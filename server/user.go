@@ -7,18 +7,31 @@ package server
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/gluee/backend/entity"
 	"github.com/motain/mux"
 )
 
 func getUser(w http.ResponseWriter, r *http.Request) {
+	var (
+		appId, userId uint64
+		err           error
+	)
 	vars := mux.Vars(r)
-	appId := vars["appId"]
-	userId := vars["userId"]
+
+	if appId, err = strconv.ParseUint(vars["appId"], 10, 64); err != nil {
+		errorHappened("appId is not set or the value is incorrect", http.StatusBadRequest, w)
+		return
+	}
+
+	if userId, err = strconv.ParseUint(vars["userId"], 10, 64); err != nil {
+		errorHappened("appId is not set or the value is incorrect", http.StatusBadRequest, w)
+		return
+	}
 
 	response := &struct {
-		appID string `json: "appId"`
+		appID uint64 `json: "appId"`
 		entity.User
 	}{
 		appID: appId,
@@ -26,7 +39,7 @@ func getUser(w http.ResponseWriter, r *http.Request) {
 			ID:          userId,
 			Token:       "demoToken",
 			DisplayName: "Demo User",
-			URL:         "app://users/" + userId,
+			URL:         "app://users/" + strconv.FormatUint(userId, 10),
 		},
 	}
 
@@ -40,36 +53,47 @@ func getUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func getUserEvents(w http.ResponseWriter, r *http.Request) {
+	var (
+		appId, userId uint64
+		err           error
+	)
 	vars := mux.Vars(r)
-	appId := vars["appId"]
-	userId := vars["userId"]
+
+	if appId, err = strconv.ParseUint(vars["appId"], 10, 64); err != nil {
+		errorHappened("appId is not set or the value is incorrect", http.StatusBadRequest, w)
+		return
+	}
+
+	if userId, err = strconv.ParseUint(vars["userId"], 10, 64); err != nil {
+		errorHappened("appId is not set or the value is incorrect", http.StatusBadRequest, w)
+		return
+	}
 
 	response := &struct {
-		appID string `json: "appId"`
 		entity.User
-		Events []entity.Event
+		Events []entity.Event `json:"events"`
 	}{
-		appID: appId,
 		User: entity.User{
 			ID:          userId,
+			AppID:       appId,
 			Token:       "demoToken",
 			DisplayName: "Demo User",
-			URL:         "app://users/" + userId,
+			URL:         "app://users/" + strconv.FormatUint(userId, 10),
 		},
 		Events: []entity.Event{
 			entity.Event{
-				ID:        "1",
+				ID:        1,
 				EventType: "like",
 				ItemID:    "1",
 				ItemURL:   "app://item/1",
-				CreatedAt: "1418839005",
+				CreatedAt: 1418839005,
 			},
 			entity.Event{
-				ID:        "2",
+				ID:        2,
 				EventType: "like",
 				ItemID:    "2",
 				ItemURL:   "app://item/2",
-				CreatedAt: "1418839015",
+				CreatedAt: 1418839015,
 			},
 		},
 	}

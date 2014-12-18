@@ -5,10 +5,17 @@
 package server
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/motain/mux"
 )
+
+func errorHappened(message string, code int, w http.ResponseWriter) {
+	w.WriteHeader(code)
+	w.Header().Set("Content-Type", "text/plain")
+	w.Write([]byte(fmt.Sprintf("%d %s", code, message)))
+}
 
 func home(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain")
@@ -46,6 +53,7 @@ func GetRouter() *mux.Router {
 	r.HandleFunc("/humans.txt", humans)
 	r.HandleFunc("/robots.txt", robots)
 	r.HandleFunc("/", home)
+	r.StrictSlash(true)
 
 	return r
 }

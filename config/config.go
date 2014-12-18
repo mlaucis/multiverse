@@ -27,8 +27,8 @@ func GetConfig(configPath string) *Config {
 	configDir := os.Getenv(configPath)
 
 	if configDir == "" {
-		_, currentFilename, _, _ := runtime.Caller(0)
-		configDir = path.Join(path.Dir(currentFilename), "/../")
+		_, currentFilename, _, _ := runtime.Caller(1)
+		configDir = path.Dir(currentFilename)
 	}
 
 	file, err := ioutil.ReadFile(path.Join(configDir, "config.json"))
