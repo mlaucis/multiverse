@@ -1,0 +1,14 @@
+{
+	"ImportPath": "github.com/gluee/backend",
+	"GoVersion": "go1.4",
+	"Deps": [
+		{
+			"ImportPath": "github.com/motain/context",
+			"Rev": "708054d61e5a2918b9f4e9700000ee611dcf03f5"
+		},
+		{
+			"ImportPath": "github.com/motain/mux",
+			"Rev": "ea2a9749be1e64347fbd29d878e8d0e5fcd84bf1"
+		}
+	]
+}
