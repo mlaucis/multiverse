@@ -1,1 +1,1 @@
-web: backend-gluee
+web: backend
