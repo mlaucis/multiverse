@@ -5,7 +5,6 @@
 package server
 
 import (
-	"encoding/json"
 	"net/http"
 	"strconv"
 
@@ -15,8 +14,9 @@ import (
 
 func getUser(w http.ResponseWriter, r *http.Request) {
 	var (
-		appId, userId uint64
-		err           error
+		appId     uint64
+		userToken string
+		err       error
 	)
 	vars := mux.Vars(r)
 
@@ -25,10 +25,101 @@ func getUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if userId, err = strconv.ParseUint(vars["userId"], 10, 64); err != nil {
+	userToken = vars["userToken"]
+
+	response := &struct {
+		appID uint64 `json: "appId"`
+		*entity.User
+	}{
+		appID: appId,
+		User: &entity.User{
+			Token:        userToken,
+			DisplayName:  "Demo User",
+			URL:          "app://users/2",
+			ThumbnailUrl: "https://avatars2.githubusercontent.com/u/1712926?v=3&s=460",
+			Custom:       `{"sound": "boo"}`,
+			CreatedAt:    "2014-12-15T10:10:10Z",
+			UpdatedAt:    "2014-12-20T12:10:10Z",
+			LastLogin:    "2014-12-20T12:10:10Z",
+		},
+	}
+
+	writeResponse(response, http.StatusOK, w)
+}
+
+func getUserEvents(w http.ResponseWriter, r *http.Request) {
+	var (
+		appId uint64
+		err   error
+	)
+	vars := mux.Vars(r)
+
+	if appId, err = strconv.ParseUint(vars["appId"], 10, 64); err != nil {
 		errorHappened("appId is not set or the value is incorrect", http.StatusBadRequest, w)
 		return
 	}
+
+	response := &struct {
+		entity.User
+		Events []*entity.Event `json:"events"`
+	}{
+		User: entity.User{
+			AppID:        appId,
+			Token:        "demoToken",
+			DisplayName:  "Demo User",
+			URL:          "app://users/2",
+			ThumbnailUrl: "https://avatars2.githubusercontent.com/u/1712926?v=3&s=460",
+			Custom:       `{"sound": "boo"}`,
+			CreatedAt:    "2014-12-15T10:10:10Z",
+			UpdatedAt:    "2014-12-20T12:10:10Z",
+			LastLogin:    "2014-12-20T12:10:10Z",
+		},
+		Events: []*entity.Event{
+			&entity.Event{
+				ID:        1,
+				EventType: "read news",
+				ItemID:    "1",
+				ItemName:  "Demo news",
+				ItemURL:   "app://news/1",
+				CreatedAt: "2014-12-20T10:20:30Z",
+				Custom:    `{"key1": "value1"}`,
+			},
+			&entity.Event{
+				ID:        2,
+				EventType: "like",
+				ItemID:    "2",
+				ItemName:  "Demo news",
+				ItemURL:   "app://item/2",
+				CreatedAt: "2014-12-20T10:23:30Z",
+			},
+			&entity.Event{
+				ID:        0,
+				EventType: "ad",
+				ItemID:    "0",
+				ItemName:  "Get more Gluee",
+				ItemURL:   "http://gluee.co",
+				CreatedAt: "2014-12-20T10:23:30Z",
+			},
+		},
+	}
+
+	writeResponse(response, http.StatusOK, w)
+}
+
+func getUserFriends(w http.ResponseWriter, r *http.Request) {
+	var (
+		appId     uint64
+		userToken string
+		err       error
+	)
+	vars := mux.Vars(r)
+
+	if appId, err = strconv.ParseUint(vars["appId"], 10, 64); err != nil {
+		errorHappened("appId is not set or the value is incorrect", http.StatusBadRequest, w)
+		return
+	}
+
+	userToken = vars["userToken"]
 
 	response := &struct {
 		appID uint64 `json: "appId"`
@@ -36,26 +127,51 @@ func getUser(w http.ResponseWriter, r *http.Request) {
 	}{
 		appID: appId,
 		User: entity.User{
-			ID:          userId,
-			Token:       "demoToken",
+			Token:       userToken,
 			DisplayName: "Demo User",
-			URL:         "app://users/" + strconv.FormatUint(userId, 10),
+			URL:         "app://users/2",
+			Friends: []*entity.User{
+				&entity.User{
+					Token:        "DemoToken1",
+					DisplayName:  "Onur",
+					URL:          "app://user/1",
+					ThumbnailUrl: "https://avatars2.githubusercontent.com/u/1712926?v=3&s=460",
+					Custom:       `{"sound": "boo"}`,
+					CreatedAt:    "2014-12-15T10:10:10Z",
+					UpdatedAt:    "2014-12-20T12:10:10Z",
+					LastLogin:    "2014-12-20T12:10:10Z",
+				},
+				&entity.User{
+					Token:        "DemoToken2",
+					DisplayName:  "Florin",
+					URL:          "app://user/2",
+					ThumbnailUrl: "https://avatars2.githubusercontent.com/u/1712926?v=3&s=460",
+					Custom:       `{"sound": "boo"}`,
+					CreatedAt:    "2014-12-15T10:10:10Z",
+					UpdatedAt:    "2014-12-20T12:10:10Z",
+					LastLogin:    "2014-12-20T12:10:10Z",
+				},
+				&entity.User{
+					Token:        "DemoToken3",
+					DisplayName:  "Norman",
+					URL:          "app://user/3",
+					Custom:       `{"sound": "boo"}`,
+					ThumbnailUrl: "https://avatars2.githubusercontent.com/u/1712926?v=3&s=460",
+					CreatedAt:    "2014-12-15T10:10:10Z",
+					UpdatedAt:    "2014-12-20T12:10:10Z",
+					LastLogin:    "2014-12-20T12:10:10Z",
+				},
+			},
 		},
 	}
 
-	json, err := json.Marshal(response)
-	if err != nil {
-		panic(err)
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(json)
+	writeResponse(response, http.StatusOK, w)
 }
 
-func getUserEvents(w http.ResponseWriter, r *http.Request) {
+func getUserFriendsEvents(w http.ResponseWriter, r *http.Request) {
 	var (
-		appId, userId uint64
-		err           error
+		appId uint64
+		err   error
 	)
 	vars := mux.Vars(r)
 
@@ -64,45 +180,106 @@ func getUserEvents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if userId, err = strconv.ParseUint(vars["userId"], 10, 64); err != nil {
-		errorHappened("appId is not set or the value is incorrect", http.StatusBadRequest, w)
-		return
-	}
-
 	response := &struct {
-		entity.User
-		Events []entity.Event `json:"events"`
+		appID  uint64          `json: "appId"`
+		Events []*entity.Event `json:"events"`
 	}{
-		User: entity.User{
-			ID:          userId,
-			AppID:       appId,
-			Token:       "demoToken",
-			DisplayName: "Demo User",
-			URL:         "app://users/" + strconv.FormatUint(userId, 10),
-		},
-		Events: []entity.Event{
-			entity.Event{
+		appID: appId,
+		Events: []*entity.Event{
+			&entity.Event{
 				ID:        1,
-				EventType: "like",
+				EventType: "read news",
 				ItemID:    "1",
-				ItemURL:   "app://item/1",
-				CreatedAt: 1418839005,
+				ItemName:  "Demo news",
+				ItemURL:   "app://news/1",
+				CreatedAt: "2014-12-20T10:20:30Z",
+				User: &entity.User{
+					DisplayName:  "Onur",
+					URL:          "app://user/1",
+					ThumbnailUrl: "https://avatars2.githubusercontent.com/u/1712926?v=3&s=460",
+					Custom:       `{"sound": "boo"}`,
+					LastLogin:    "2014-12-20T12:10:10Z",
+				},
+				Custom: `{"key1": "value1"}`,
 			},
-			entity.Event{
+			&entity.Event{
 				ID:        2,
 				EventType: "like",
 				ItemID:    "2",
+				ItemName:  "Demo news",
 				ItemURL:   "app://item/2",
-				CreatedAt: 1418839015,
+				CreatedAt: "2014-12-20T10:23:30Z",
+				User: &entity.User{
+					DisplayName:  "Florin",
+					URL:          "app://user/2",
+					ThumbnailUrl: "https://avatars0.githubusercontent.com/u/607868?v=3&s=460",
+					Custom:       `{"sound": "boo"}`,
+					LastLogin:    "2014-12-20T12:10:10Z",
+				},
+			},
+			&entity.Event{
+				ID:        0,
+				EventType: "ad",
+				ItemID:    "0",
+				ItemName:  "Get more Gluee",
+				ItemURL:   "http://gluee.co",
+				CreatedAt: "2014-12-20T10:23:30Z",
+			},
+			&entity.Event{
+				ID:        3,
+				EventType: "shared",
+				ItemID:    "3",
+				ItemName:  "Gluee works",
+				ItemURL:   "app://item/3",
+				CreatedAt: "2014-12-20T10:30:30Z",
+				User: &entity.User{
+					DisplayName:  "Norman",
+					URL:          "app://user/3",
+					ThumbnailUrl: "https://avatars0.githubusercontent.com/u/607868?v=3&s=460",
+					Custom:       `{"sound": "boo"}`,
+					LastLogin:    "2014-12-20T12:10:10Z",
+				},
+				Custom: `{"key1": "value1"}`,
+			},
+			&entity.Event{
+				ID:           4,
+				EventType:    "picture",
+				ThumbnailUrl: "https://avatars0.githubusercontent.com/u/607868?v=3&s=460",
+				ItemID:       "4",
+				ItemName:     "Summer in Berlin",
+				ItemURL:      "app://item/4",
+				CreatedAt:    "2014-12-20T10:31:30Z",
+				User: &entity.User{
+					DisplayName:  "Norman",
+					URL:          "app://user/3",
+					ThumbnailUrl: "https://avatars0.githubusercontent.com/u/607868?v=3&s=460",
+					Custom:       `{"sound": "boo"}`,
+					LastLogin:    "2014-12-20T12:10:10Z",
+				},
+				Custom: `{"largeUrl": "https://avatars0.githubusercontent.com/u/607868?v=3&s=460"}`,
+			},
+			&entity.Event{
+				ID:           5,
+				EventType:    "pictures",
+				ThumbnailUrl: "https://avatars0.githubusercontent.com/u/607868?v=3&s=460",
+				ItemID:       "5",
+				ItemName:     "Winter in London",
+				ItemURL:      "app://item/5",
+				CreatedAt:    "2014-12-20T10:35:30Z",
+				User: &entity.User{
+					DisplayName:  "Norman",
+					URL:          "app://user/3",
+					ThumbnailUrl: "https://avatars0.githubusercontent.com/u/607868?v=3&s=460",
+					Custom:       `{"sound": "boo"}`,
+					LastLogin:    "2014-12-20T12:10:10Z",
+				},
+				Custom: `{
+					"largeUrl": "https://avatars0.githubusercontent.com/u/607868?v=3&s=460",
+					"largeUrl": "https://avatars0.githubusercontent.com/u/607868?v=3&s=460",
+					"largeUrl": "https://avatars0.githubusercontent.com/u/607868?v=3&s=460"}`,
 			},
 		},
 	}
 
-	json, err := json.Marshal(response)
-	if err != nil {
-		panic(err)
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(json)
+	writeResponse(response, http.StatusOK, w)
 }

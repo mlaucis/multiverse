@@ -5,11 +5,22 @@
 package server
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
 )
+
+func writeResponse(response interface{}, code int, w http.ResponseWriter) {
+	json, err := json.Marshal(response)
+	if err != nil {
+		errorHappened(fmt.Sprintf("%q", err), http.StatusInternalServerError, w)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(json)
+}
 
 func errorHappened(message string, code int, w http.ResponseWriter) {
 	w.WriteHeader(code)
@@ -48,8 +59,11 @@ Disallow: /`))
 
 func GetRouter() *mux.Router {
 	r := mux.NewRouter()
-	r.HandleFunc("/app/{appId}/user/{userId}", getUser)
-	r.HandleFunc("/app/{appId}/user/{userId}/events", getUserEvents)
+	r.HandleFunc("/app/{appId}/user/{userToken}", getUser)
+	r.HandleFunc("/app/{appId}/user/{userToken}/events", getUserEvents)
+	r.HandleFunc("/app/{appId}/user/{userToken}/friends", getUserFriends)
+	r.HandleFunc("/app/{appId}/user/{userToken}/friends/events", getUserFriendsEvents)
+	r.HandleFunc("/app/{appId}/event/{eventId}", getEvent)
 	r.HandleFunc("/humans.txt", humans)
 	r.HandleFunc("/robots.txt", robots)
 	r.HandleFunc("/", home)
