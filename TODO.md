@@ -1,12 +1,12 @@
 
 # To Do's
 
--1. Change motain/mux to gorilla
-
-0. Schema check
-1. API Design + Definition + Documentation
+1. API Design for POST (App, Users, Events, Sessions)
 2. ORM + DB Connection
-3. Documentation in Go
-4. Extending components (message queue, redis etc.)
-5. Tests 
-6. Next steps
+3. API documentation
+
+Pipeline
+
+- Extending components (MQ, Redis, etc.)
+- Tests
+- Secure API (Authentication)
