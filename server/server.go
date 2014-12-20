@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/motain/mux"
+	"github.com/gorilla/mux"
 )
 
 func errorHappened(message string, code int, w http.ResponseWriter) {

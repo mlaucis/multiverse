@@ -10,7 +10,7 @@ import (
 	"strconv"
 
 	"github.com/gluee/backend/entity"
-	"github.com/motain/mux"
+	"github.com/gorilla/mux"
 )
 
 func getUser(w http.ResponseWriter, r *http.Request) {

@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	CONFIG_PATH = "GLUEMOBILE_BACKEND_CONFIG_PATH"
+	CONFIG_PATH = "GLUEE_BACKEND_CONFIG_PATH"
 )
 
 var cfg *config.Config
