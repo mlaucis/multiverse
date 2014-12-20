@@ -36,9 +36,8 @@ func home(w http.ResponseWriter, r *http.Request) {
 func humans(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain")
 	w.Write([]byte(`/* TEAM */
-Founder: Onur Akpolat
-http://gluemobile.com
-Twitter: @gluemobile
+Founder: Normal Wiese, Onur Akpolat
+http://gluee.co
 Location: Berlin, Germany.
 
 /* THANKS */
