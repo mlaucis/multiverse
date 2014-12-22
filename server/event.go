@@ -36,14 +36,14 @@ func getEvent(w http.ResponseWriter, r *http.Request) {
 	}{
 		appID: appId,
 		Event: &entity.Event{
-			ID:        eventId,
+			EventID:        eventId,
 			EventType: "read news",
 			ItemID:    "1",
 			ItemName:  "Demo news",
 			ItemURL:   "app://news/1",
 			CreatedAt: "2014-12-20T10:20:30Z",
 			User: &entity.User{
-				DisplayName:  "Onur",
+				Username:  "Onur",
 				URL:          "app://user/1",
 				ThumbnailUrl: "https://avatars2.githubusercontent.com/u/1712926?v=3&s=460",
 				Custom:       `{"sound": "boo"}`,

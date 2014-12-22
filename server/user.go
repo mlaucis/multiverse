@@ -34,13 +34,15 @@ func getUser(w http.ResponseWriter, r *http.Request) {
 		appID: appId,
 		User: &entity.User{
 			Token:        userToken,
-			DisplayName:  "Demo User",
+			Username:  "GlueUser123",
+			Name: "Demo User",
+			Email: "demouser@demo.com",
 			URL:          "app://users/2",
 			ThumbnailUrl: "https://avatars2.githubusercontent.com/u/1712926?v=3&s=460",
 			Custom:       `{"sound": "boo"}`,
+			LastLogin:    "2014-12-20T12:10:10Z",
 			CreatedAt:    "2014-12-15T10:10:10Z",
 			UpdatedAt:    "2014-12-20T12:10:10Z",
-			LastLogin:    "2014-12-20T12:10:10Z",
 		},
 	}
 
@@ -66,7 +68,7 @@ func getUserEvents(w http.ResponseWriter, r *http.Request) {
 		User: entity.User{
 			AppID:        appId,
 			Token:        "demoToken",
-			DisplayName:  "Demo User",
+			Username:  "Demo User",
 			URL:          "app://users/2",
 			ThumbnailUrl: "https://avatars2.githubusercontent.com/u/1712926?v=3&s=460",
 			Custom:       `{"sound": "boo"}`,
@@ -76,7 +78,7 @@ func getUserEvents(w http.ResponseWriter, r *http.Request) {
 		},
 		Events: []*entity.Event{
 			&entity.Event{
-				ID:        1,
+				EventID:        1,
 				EventType: "read news",
 				ItemID:    "1",
 				ItemName:  "Demo news",
@@ -85,7 +87,7 @@ func getUserEvents(w http.ResponseWriter, r *http.Request) {
 				Custom:    `{"key1": "value1"}`,
 			},
 			&entity.Event{
-				ID:        2,
+				EventID:        2,
 				EventType: "like",
 				ItemID:    "2",
 				ItemName:  "Demo news",
@@ -93,7 +95,7 @@ func getUserEvents(w http.ResponseWriter, r *http.Request) {
 				CreatedAt: "2014-12-20T10:23:30Z",
 			},
 			&entity.Event{
-				ID:        0,
+				EventID:        0,
 				EventType: "ad",
 				ItemID:    "0",
 				ItemName:  "Get more Gluee",
@@ -106,7 +108,7 @@ func getUserEvents(w http.ResponseWriter, r *http.Request) {
 	writeResponse(response, http.StatusOK, w)
 }
 
-func getUserFriends(w http.ResponseWriter, r *http.Request) {
+func getUserConnections(w http.ResponseWriter, r *http.Request) {
 	var (
 		appId     uint64
 		userToken string
@@ -128,12 +130,12 @@ func getUserFriends(w http.ResponseWriter, r *http.Request) {
 		appID: appId,
 		User: entity.User{
 			Token:       userToken,
-			DisplayName: "Demo User",
+			Username: "Demo User",
 			URL:         "app://users/2",
-			Friends: []*entity.User{
+			Connections: []*entity.User{
 				&entity.User{
 					Token:        "DemoToken1",
-					DisplayName:  "Onur",
+					Username:  "Onur",
 					URL:          "app://user/1",
 					ThumbnailUrl: "https://avatars2.githubusercontent.com/u/1712926?v=3&s=460",
 					Custom:       `{"sound": "boo"}`,
@@ -143,7 +145,7 @@ func getUserFriends(w http.ResponseWriter, r *http.Request) {
 				},
 				&entity.User{
 					Token:        "DemoToken2",
-					DisplayName:  "Florin",
+					Username:  "Florin",
 					URL:          "app://user/2",
 					ThumbnailUrl: "https://avatars2.githubusercontent.com/u/1712926?v=3&s=460",
 					Custom:       `{"sound": "boo"}`,
@@ -153,7 +155,7 @@ func getUserFriends(w http.ResponseWriter, r *http.Request) {
 				},
 				&entity.User{
 					Token:        "DemoToken3",
-					DisplayName:  "Norman",
+					Username:  "Norman",
 					URL:          "app://user/3",
 					Custom:       `{"sound": "boo"}`,
 					ThumbnailUrl: "https://avatars2.githubusercontent.com/u/1712926?v=3&s=460",
@@ -168,7 +170,7 @@ func getUserFriends(w http.ResponseWriter, r *http.Request) {
 	writeResponse(response, http.StatusOK, w)
 }
 
-func getUserFriendsEvents(w http.ResponseWriter, r *http.Request) {
+func getUserConnectionsEvents(w http.ResponseWriter, r *http.Request) {
 	var (
 		appId uint64
 		err   error
@@ -187,14 +189,14 @@ func getUserFriendsEvents(w http.ResponseWriter, r *http.Request) {
 		appID: appId,
 		Events: []*entity.Event{
 			&entity.Event{
-				ID:        1,
+				EventID:        1,
 				EventType: "read news",
 				ItemID:    "1",
 				ItemName:  "Demo news",
 				ItemURL:   "app://news/1",
 				CreatedAt: "2014-12-20T10:20:30Z",
 				User: &entity.User{
-					DisplayName:  "Onur",
+					Username:  "Onur",
 					URL:          "app://user/1",
 					ThumbnailUrl: "https://avatars2.githubusercontent.com/u/1712926?v=3&s=460",
 					Custom:       `{"sound": "boo"}`,
@@ -203,14 +205,14 @@ func getUserFriendsEvents(w http.ResponseWriter, r *http.Request) {
 				Custom: `{"key1": "value1"}`,
 			},
 			&entity.Event{
-				ID:        2,
+				EventID:        2,
 				EventType: "like",
 				ItemID:    "2",
 				ItemName:  "Demo news",
 				ItemURL:   "app://item/2",
 				CreatedAt: "2014-12-20T10:23:30Z",
 				User: &entity.User{
-					DisplayName:  "Florin",
+					Username:  "Florin",
 					URL:          "app://user/2",
 					ThumbnailUrl: "https://avatars0.githubusercontent.com/u/607868?v=3&s=460",
 					Custom:       `{"sound": "boo"}`,
@@ -218,7 +220,7 @@ func getUserFriendsEvents(w http.ResponseWriter, r *http.Request) {
 				},
 			},
 			&entity.Event{
-				ID:        0,
+				EventID:        0,
 				EventType: "ad",
 				ItemID:    "0",
 				ItemName:  "Get more Gluee",
@@ -226,14 +228,14 @@ func getUserFriendsEvents(w http.ResponseWriter, r *http.Request) {
 				CreatedAt: "2014-12-20T10:23:30Z",
 			},
 			&entity.Event{
-				ID:        3,
+				EventID:        3,
 				EventType: "shared",
 				ItemID:    "3",
 				ItemName:  "Gluee works",
 				ItemURL:   "app://item/3",
 				CreatedAt: "2014-12-20T10:30:30Z",
 				User: &entity.User{
-					DisplayName:  "Norman",
+					Username:  "Norman",
 					URL:          "app://user/3",
 					ThumbnailUrl: "https://avatars0.githubusercontent.com/u/607868?v=3&s=460",
 					Custom:       `{"sound": "boo"}`,
@@ -242,7 +244,7 @@ func getUserFriendsEvents(w http.ResponseWriter, r *http.Request) {
 				Custom: `{"key1": "value1"}`,
 			},
 			&entity.Event{
-				ID:           4,
+				EventID:           4,
 				EventType:    "picture",
 				ThumbnailUrl: "https://avatars0.githubusercontent.com/u/607868?v=3&s=460",
 				ItemID:       "4",
@@ -250,7 +252,7 @@ func getUserFriendsEvents(w http.ResponseWriter, r *http.Request) {
 				ItemURL:      "app://item/4",
 				CreatedAt:    "2014-12-20T10:31:30Z",
 				User: &entity.User{
-					DisplayName:  "Norman",
+					Username:  "Norman",
 					URL:          "app://user/3",
 					ThumbnailUrl: "https://avatars0.githubusercontent.com/u/607868?v=3&s=460",
 					Custom:       `{"sound": "boo"}`,
@@ -259,7 +261,7 @@ func getUserFriendsEvents(w http.ResponseWriter, r *http.Request) {
 				Custom: `{"largeUrl": "https://avatars0.githubusercontent.com/u/607868?v=3&s=460"}`,
 			},
 			&entity.Event{
-				ID:           5,
+				EventID:           5,
 				EventType:    "pictures",
 				ThumbnailUrl: "https://avatars0.githubusercontent.com/u/607868?v=3&s=460",
 				ItemID:       "5",
@@ -267,7 +269,7 @@ func getUserFriendsEvents(w http.ResponseWriter, r *http.Request) {
 				ItemURL:      "app://item/5",
 				CreatedAt:    "2014-12-20T10:35:30Z",
 				User: &entity.User{
-					DisplayName:  "Norman",
+					Username:  "Norman",
 					URL:          "app://user/3",
 					ThumbnailUrl: "https://avatars0.githubusercontent.com/u/607868?v=3&s=460",
 					Custom:       `{"sound": "boo"}`,

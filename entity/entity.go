@@ -11,15 +11,6 @@ type (
 		UpdatedAt string  `json:"updated_at"`
 	}
 
-	Application struct {
-		AppID uint64 `json:"app_id"`
-		Key	string `json: "key"`
-		Name string `json:"name"`
-		AccountID uint64 `json: "accountId"`
-		Enabled bool `json: "enabled"`
-		Dates
-	}
-
 	Device struct {
 		DeviceID string `json:"device_id"`
 		Model string `json:"model"`
@@ -39,17 +30,39 @@ type (
 		Carrier string `json:"carrier"`
 		Network string `json:"network"`
 		Enabled bool `json: "enabled"`
-		Dates
+		CreatedAt string  `json:"created_at"`
+		UpdatedAt string  `json:"updated_at"`
 	}
 
-	Session struct {
-		SessionID uint64 `"json:"session_id"`
+	Account struct {
+		AccountID uint64 `json: "account_id"`
+		Name string `json: "name"`
+		AcountUser      []*AccountUser `json:"account_user,omitempty"`
+		Enabled bool `json: "enabled"`
+		CreatedAt string  `json:"created_at"`
+		UpdatedAt string  `json:"updated_at"`
+	}
+
+	AccountUser struct {
+		UserID string `json: "user_id"`
+		AccountID uint64 `json: "account_id"`
+		Name string `json: "name"`
+		Password string `json: "password"`
+		Email string `json: "email"`
+		Enabled bool `json: "enabled"`
+		LastLogin    string  `json:"last_login,omitempty"`
+		CreatedAt string  `json:"created_at"`
+		UpdatedAt string  `json:"updated_at"`
+	}
+
+	Application struct {
 		AppID uint64 `json:"app_id"`
-		Token string  `json:"token,omitempty"`
-		Nth string `json:"nth"`
-		Custom string `json:"custom,omitempty"`
-		Device
-		Dates
+		Key	string `json: "key"`
+		Name string `json:"name"`
+		AccountID uint64 `json: "account_id"`
+		Enabled bool `json: "enabled"`
+		CreatedAt string  `json:"created_at"`
+		UpdatedAt string  `json:"updated_at"`
 	}
 
 	User struct {
@@ -59,17 +72,36 @@ type (
 		Name string `json:"name",omitempty"`
 		Password string `json:"password,omitempty"`
 		Email string `json:"email,omitempty"`
-		DisplayName  string  `json:"display_name,omitempty"`
 		URL          string  `json:"url,omitempty"`
 		ThumbnailUrl string  `json:"thumbnail_url,omitempty"`
 		Custom       string  `json:"custom,omitempty"`
+		Connections      []*User `json:"connections,omitempty"`
 		LastLogin    string  `json:"last_login,omitempty"`
-		Friends      []*User `json:"friends,omitempty"`
-		Dates
+		CreatedAt string  `json:"created_at"`
+		UpdatedAt string  `json:"updated_at"`
+	}
+
+	UserConnection struct {
+		UserID1 string `json:"user_id_1"`
+		UserID2 string `json:"user_id_2"`
+		Enabled bool `json: "enabled"`
+		CreatedAt string  `json:"created_at"`
+		UpdatedAt string  `json:"updated_at"`
+	}
+
+	Session struct {
+		SessionID uint64 `"json:"session_id"`
+		AppID uint64 `json:"app_id"`
+		Token string  `json:"token,omitempty"`
+		Nth string `json:"nth"`
+		Custom string `json:"custom,omitempty"`
+		Device
+			CreatedAt string  `json:"created_at"`
+		UpdatedAt string  `json:"updated_at"`
 	}
 
 	Event struct {
-		ID           uint64 `json:"eventId"`
+		EventID           uint64 `json:"event_id"`
 		AppID        uint64 `json:"app_id,omitempty"`
 		SessionID uint64 `"json:"session_id"`
 		UserID       uint64 `json:"user_id,omitempty"`
@@ -82,29 +114,5 @@ type (
 		Custom       string `json:"custom,omitempty"`
 		Nth string `json:"nth"`
 		User         *User  `json:"user,omitempty"` //refactor
-	}
-
-	Friend struct {
-		UserID1 string `json:"user_id_1"`
-		UserID2 string `json:"user_id_2"`
-		Enabled bool `json: "enabled"`
-		Dates
-	}
-
-	Account struct {
-		AccountID uint64 `json: "accountId"`
-		Name string `json: "name"`
-		Enabled bool `json: "enabled"`
-		Dates
-	}
-
-	AccountUser struct {
-		UserId uint64 `json: "accountId"`
-		AccountId uint64 `json: "accountId"`
-		Name string `json: "name"`
-		Password string `json: "password"`
-		Email string `json: "email"`
-		Enabled bool `json: "enabled"`
-		Dates
 	}
 )
