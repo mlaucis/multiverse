@@ -10,3 +10,4 @@ Pipeline
 - Extending components (MQ, Redis, etc.)
 - Tests
 - Secure API (Authentication)
+- Request Limitation etc.
