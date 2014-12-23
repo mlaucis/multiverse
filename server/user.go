@@ -46,7 +46,7 @@ func getUser(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
-	writeResponse(response, http.StatusOK, w)
+	writeResponse(response, http.StatusOK, 10, w, r)
 }
 
 func getUserEvents(w http.ResponseWriter, r *http.Request) {
@@ -105,7 +105,7 @@ func getUserEvents(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
-	writeResponse(response, http.StatusOK, w)
+	writeResponse(response, http.StatusOK, 10, w, r)
 }
 
 func getUserConnections(w http.ResponseWriter, r *http.Request) {
@@ -167,7 +167,7 @@ func getUserConnections(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
-	writeResponse(response, http.StatusOK, w)
+	writeResponse(response, http.StatusOK, 10, w, r)
 }
 
 func getUserConnectionsEvents(w http.ResponseWriter, r *http.Request) {
@@ -283,5 +283,5 @@ func getUserConnectionsEvents(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
-	writeResponse(response, http.StatusOK, w)
+	writeResponse(response, http.StatusOK, 10, w, r)
 }

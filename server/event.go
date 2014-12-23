@@ -5,7 +5,6 @@
 package server
 
 import (
-	"encoding/json"
 	"net/http"
 	"strconv"
 
@@ -53,11 +52,5 @@ func getEvent(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
-	json, err := json.Marshal(response)
-	if err != nil {
-		panic(err)
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(json)
+	writeResponse(response, http.StatusOK, 10, w, r)
 }

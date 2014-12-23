@@ -12,13 +12,19 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func writeResponse(response interface{}, code int, w http.ResponseWriter) {
+func writeResponse(response interface{}, code int, cache uint, w http.ResponseWriter, r *http.Request) {
 	json, err := json.Marshal(response)
 	if err != nil {
 		errorHappened(fmt.Sprintf("%q", err), http.StatusInternalServerError, w)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Cache-Control", fmt.Sprintf(`"max-age=%d, public"`, cache))
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding")
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
+
 	w.Write(json)
 }
 
