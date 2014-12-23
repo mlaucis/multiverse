@@ -14,12 +14,12 @@ import (
 
 func getAccount(w http.ResponseWriter, r *http.Request) {
 	var (
-		accountId uint64
+		accountID uint64
 		err       error
 	)
 	vars := mux.Vars(r)
 
-	if accountId, err = strconv.ParseUint(vars["accountId"], 10, 64); err != nil {
+	if accountID, err = strconv.ParseUint(vars["accountId"], 10, 64); err != nil {
 		errorHappened("accountId is not set or the value is incorrect", http.StatusBadRequest, w)
 		return
 	}
@@ -28,13 +28,11 @@ func getAccount(w http.ResponseWriter, r *http.Request) {
 		*entity.Account
 	}{
 		Account: &entity.Account{
-			ID:      accountId,
-			Name:    "Demo Account",
-			Enabled: true,
-			Dates: entity.Dates{
-				CreatedAt: "2014-12-15T10:10:10Z",
-				UpdatedAt: "2014-12-20T12:10:10Z",
-			},
+			ID:        accountID,
+			Name:      "Demo Account",
+			Enabled:   true,
+			CreatedAt: "2014-12-15T10:10:10Z",
+			UpdatedAt: "2014-12-20T12:10:10Z",
 		},
 	}
 
@@ -43,33 +41,31 @@ func getAccount(w http.ResponseWriter, r *http.Request) {
 
 func getAccountUser(w http.ResponseWriter, r *http.Request) {
 	var (
-		accountId uint64
-		userId    string
+		accountID uint64
+		userID    string
 		err       error
 	)
 	vars := mux.Vars(r)
 
-	if accountId, err = strconv.ParseUint(vars["accountId"], 10, 64); err != nil {
+	if accountID, err = strconv.ParseUint(vars["accountId"], 10, 64); err != nil {
 		errorHappened("userId is not set or the value is incorrect", http.StatusBadRequest, w)
 		return
 	}
 
-	userId = vars["userId"]
+	userID = vars["userId"]
 
 	response := &struct {
 		*entity.AccountUser
 	}{
 		AccountUser: &entity.AccountUser{
-			ID:        userId,
-			AccountID: accountId,
+			ID:        userID,
+			AccountID: accountID,
 			Name:      "Demo User",
 			Email:     "demouser@demo.com",
 			Enabled:   true,
 			LastLogin: "2014-12-20T12:10:10Z",
-			Dates: entity.Dates{
-				CreatedAt: "2014-12-15T10:10:10Z",
-				UpdatedAt: "2014-12-20T12:10:10Z",
-			},
+			CreatedAt: "2014-12-15T10:10:10Z",
+			UpdatedAt: "2014-12-20T12:10:10Z",
 		},
 	}
 
@@ -78,12 +74,12 @@ func getAccountUser(w http.ResponseWriter, r *http.Request) {
 
 func getAccountUserList(w http.ResponseWriter, r *http.Request) {
 	var (
-		accountId uint64
+		accountID uint64
 		err       error
 	)
 	vars := mux.Vars(r)
 
-	if accountId, err = strconv.ParseUint(vars["accountId"], 10, 64); err != nil {
+	if accountID, err = strconv.ParseUint(vars["accountId"], 10, 64); err != nil {
 		errorHappened("accountId is not set or the value is incorrect", http.StatusBadRequest, w)
 		return
 	}
@@ -93,50 +89,39 @@ func getAccountUserList(w http.ResponseWriter, r *http.Request) {
 		AccountUser []*entity.AccountUser `json:"accountUser"`
 	}{
 		Account: entity.Account{
-			ID:      accountId,
-			Name:    "Demo Account",
-			Enabled: true,
-			Dates: entity.Dates{
-				CreatedAt: "2014-12-15T10:10:10Z",
-				UpdatedAt: "2014-12-20T12:10:10Z",
-			},
+			ID:        accountID,
+			Name:      "Demo Account",
+			Enabled:   true,
+			CreatedAt: "2014-12-15T10:10:10Z",
+			UpdatedAt: "2014-12-20T12:10:10Z",
 		},
 		AccountUser: []*entity.AccountUser{
 			&entity.AccountUser{
 				ID:        "1",
-				AccountID: accountId,
 				Name:      "Demo User",
 				Email:     "demouser@demo.com",
 				Enabled:   true,
 				LastLogin: "2014-12-20T12:10:10Z",
-				Dates: entity.Dates{
-					CreatedAt: "2014-12-15T10:10:10Z",
-					UpdatedAt: "2014-12-20T12:10:10Z",
-				},
+				CreatedAt: "2014-12-15T10:10:10Z",
+				UpdatedAt: "2014-12-20T12:10:10Z",
 			},
 			&entity.AccountUser{
 				ID:        "2",
-				AccountID: accountId,
 				Name:      "Demo User",
 				Email:     "demouser@demo.com",
 				Enabled:   true,
 				LastLogin: "2014-12-20T12:10:10Z",
-				Dates: entity.Dates{
-					CreatedAt: "2014-12-15T10:10:10Z",
-					UpdatedAt: "2014-12-20T12:10:10Z",
-				},
+				CreatedAt: "2014-12-15T10:10:10Z",
+				UpdatedAt: "2014-12-20T12:10:10Z",
 			},
 			&entity.AccountUser{
 				ID:        "3",
-				AccountID: accountId,
 				Name:      "Demo User",
 				Email:     "demouser@demo.com",
 				Enabled:   true,
 				LastLogin: "2014-12-20T12:10:10Z",
-				Dates: entity.Dates{
-					CreatedAt: "2014-12-15T10:10:10Z",
-					UpdatedAt: "2014-12-20T12:10:10Z",
-				},
+				CreatedAt: "2014-12-15T10:10:10Z",
+				UpdatedAt: "2014-12-20T12:10:10Z",
 			},
 		},
 	}
@@ -146,12 +131,12 @@ func getAccountUserList(w http.ResponseWriter, r *http.Request) {
 
 func getApplicationList(w http.ResponseWriter, r *http.Request) {
 	var (
-		accountId uint64
+		accountID uint64
 		err       error
 	)
 	vars := mux.Vars(r)
 
-	if accountId, err = strconv.ParseUint(vars["accountId"], 10, 64); err != nil {
+	if accountID, err = strconv.ParseUint(vars["accountId"], 10, 64); err != nil {
 		errorHappened("accountId is not set or the value is incorrect", http.StatusBadRequest, w)
 		return
 	}
@@ -161,47 +146,36 @@ func getApplicationList(w http.ResponseWriter, r *http.Request) {
 		Application []*entity.Application `json:"application"`
 	}{
 		Account: entity.Account{
-			ID:      accountId,
-			Name:    "Demo Account",
-			Enabled: true,
-			Dates: entity.Dates{
-				CreatedAt: "2014-12-15T10:10:10Z",
-				UpdatedAt: "2014-12-20T12:10:10Z",
-			},
+			ID:        accountID,
+			Name:      "Demo Account",
+			Enabled:   true,
+			CreatedAt: "2014-12-15T10:10:10Z",
+			UpdatedAt: "2014-12-20T12:10:10Z",
 		},
 		Application: []*entity.Application{
 			&entity.Application{
 				ID:        1,
 				Key:       "abc123def",
-				AccountID: accountId,
 				Name:      "Demo App",
 				Enabled:   true,
-				Dates: entity.Dates{
-					CreatedAt: "2014-12-15T10:10:10Z",
-					UpdatedAt: "2014-12-20T12:10:10Z",
-				},
+				CreatedAt: "2014-12-15T10:10:10Z",
+				UpdatedAt: "2014-12-20T12:10:10Z",
 			},
 			&entity.Application{
 				ID:        2,
 				Key:       "abc345def",
-				AccountID: accountId,
 				Name:      "Demo App",
 				Enabled:   true,
-				Dates: entity.Dates{
-					CreatedAt: "2014-12-15T10:10:10Z",
-					UpdatedAt: "2014-12-20T12:10:10Z",
-				},
+				CreatedAt: "2014-12-15T10:10:10Z",
+				UpdatedAt: "2014-12-20T12:10:10Z",
 			},
 			&entity.Application{
 				ID:        3,
 				Key:       "abc678ef",
-				AccountID: accountId,
 				Name:      "Demo App",
 				Enabled:   true,
-				Dates: entity.Dates{
-					CreatedAt: "2014-12-15T10:10:10Z",
-					UpdatedAt: "2014-12-20T12:10:10Z",
-				},
+				CreatedAt: "2014-12-15T10:10:10Z",
+				UpdatedAt: "2014-12-20T12:10:10Z",
 			},
 		},
 	}

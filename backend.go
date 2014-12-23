@@ -15,7 +15,8 @@ import (
 )
 
 const (
-	CONFIG_PATH = "GLUEE_BACKEND_CONFIG_PATH"
+	// EnvConfigVar holds the name of the environment variable that holds the path to the config
+	EnvConfigVar = "GLUEE_BACKEND_CONFIG_PATH"
 )
 
 var cfg *config.Config
@@ -23,7 +24,7 @@ var cfg *config.Config
 func init() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	rand.Seed(time.Now().UTC().UnixNano())
-	cfg = config.GetConfig(CONFIG_PATH)
+	cfg = config.GetConfig(EnvConfigVar)
 }
 
 func main() {

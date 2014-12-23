@@ -14,13 +14,13 @@ import (
 
 func getUser(w http.ResponseWriter, r *http.Request) {
 	var (
-		appId     uint64
+		appID     uint64
 		userToken string
 		err       error
 	)
 	vars := mux.Vars(r)
 
-	if appId, err = strconv.ParseUint(vars["appId"], 10, 64); err != nil {
+	if appID, err = strconv.ParseUint(vars["appId"], 10, 64); err != nil {
 		errorHappened("appId is not set or the value is incorrect", http.StatusBadRequest, w)
 		return
 	}
@@ -31,20 +31,18 @@ func getUser(w http.ResponseWriter, r *http.Request) {
 		appID uint64 `json: "appId"`
 		*entity.User
 	}{
-		appID: appId,
+		appID: appID,
 		User: &entity.User{
 			Token:        userToken,
 			Username:     "GlueUser123",
 			Name:         "Demo User",
 			Email:        "demouser@demo.com",
 			URL:          "app://users/2",
-			ThumbnailUrl: "https://avatars2.githubusercontent.com/u/1712926?v=3&s=460",
+			ThumbnailURL: "https://avatars2.githubusercontent.com/u/1712926?v=3&s=460",
 			Custom:       `{"sound": "boo"}`,
 			LastLogin:    "2014-12-20T12:10:10Z",
-			Dates: entity.Dates{
-				CreatedAt: "2014-12-15T10:10:10Z",
-				UpdatedAt: "2014-12-20T12:10:10Z",
-			},
+			CreatedAt:    "2014-12-15T10:10:10Z",
+			UpdatedAt:    "2014-12-20T12:10:10Z",
 		},
 	}
 
@@ -53,12 +51,12 @@ func getUser(w http.ResponseWriter, r *http.Request) {
 
 func getUserEvents(w http.ResponseWriter, r *http.Request) {
 	var (
-		appId uint64
+		appID uint64
 		err   error
 	)
 	vars := mux.Vars(r)
 
-	if appId, err = strconv.ParseUint(vars["appId"], 10, 64); err != nil {
+	if appID, err = strconv.ParseUint(vars["appId"], 10, 64); err != nil {
 		errorHappened("appId is not set or the value is incorrect", http.StatusBadRequest, w)
 		return
 	}
@@ -68,17 +66,15 @@ func getUserEvents(w http.ResponseWriter, r *http.Request) {
 		Events []*entity.Event `json:"events"`
 	}{
 		User: entity.User{
-			AppID:        appId,
+			AppID:        appID,
 			Token:        "demoToken",
 			Username:     "Demo User",
 			URL:          "app://users/2",
-			ThumbnailUrl: "https://avatars2.githubusercontent.com/u/1712926?v=3&s=460",
+			ThumbnailURL: "https://avatars2.githubusercontent.com/u/1712926?v=3&s=460",
 			Custom:       `{"sound": "boo"}`,
-			Dates: entity.Dates{
-				CreatedAt: "2014-12-15T10:10:10Z",
-				UpdatedAt: "2014-12-20T12:10:10Z",
-			},
-			LastLogin: "2014-12-20T12:10:10Z",
+			CreatedAt:    "2014-12-15T10:10:10Z",
+			UpdatedAt:    "2014-12-20T12:10:10Z",
+			LastLogin:    "2014-12-20T12:10:10Z",
 		},
 		Events: []*entity.Event{
 			&entity.Event{
@@ -120,13 +116,13 @@ func getUserEvents(w http.ResponseWriter, r *http.Request) {
 
 func getUserConnections(w http.ResponseWriter, r *http.Request) {
 	var (
-		appId     uint64
+		appID     uint64
 		userToken string
 		err       error
 	)
 	vars := mux.Vars(r)
 
-	if appId, err = strconv.ParseUint(vars["appId"], 10, 64); err != nil {
+	if appID, err = strconv.ParseUint(vars["appId"], 10, 64); err != nil {
 		errorHappened("appId is not set or the value is incorrect", http.StatusBadRequest, w)
 		return
 	}
@@ -137,7 +133,7 @@ func getUserConnections(w http.ResponseWriter, r *http.Request) {
 		appID uint64 `json: "appId"`
 		entity.User
 	}{
-		appID: appId,
+		appID: appID,
 		User: entity.User{
 			Token:    userToken,
 			Username: "Demo User",
@@ -147,37 +143,31 @@ func getUserConnections(w http.ResponseWriter, r *http.Request) {
 					Token:        "DemoToken1",
 					Username:     "Onur",
 					URL:          "app://user/1",
-					ThumbnailUrl: "https://avatars2.githubusercontent.com/u/1712926?v=3&s=460",
+					ThumbnailURL: "https://avatars2.githubusercontent.com/u/1712926?v=3&s=460",
 					Custom:       `{"sound": "boo"}`,
-					Dates: entity.Dates{
-						CreatedAt: "2014-12-15T10:10:10Z",
-						UpdatedAt: "2014-12-20T12:10:10Z",
-					},
-					LastLogin: "2014-12-20T12:10:10Z",
+					CreatedAt:    "2014-12-15T10:10:10Z",
+					UpdatedAt:    "2014-12-20T12:10:10Z",
+					LastLogin:    "2014-12-20T12:10:10Z",
 				},
 				&entity.User{
 					Token:        "DemoToken2",
 					Username:     "Florin",
 					URL:          "app://user/2",
-					ThumbnailUrl: "https://avatars2.githubusercontent.com/u/1712926?v=3&s=460",
+					ThumbnailURL: "https://avatars2.githubusercontent.com/u/1712926?v=3&s=460",
 					Custom:       `{"sound": "boo"}`,
-					Dates: entity.Dates{
-						CreatedAt: "2014-12-15T10:10:10Z",
-						UpdatedAt: "2014-12-20T12:10:10Z",
-					},
-					LastLogin: "2014-12-20T12:10:10Z",
+					CreatedAt:    "2014-12-15T10:10:10Z",
+					UpdatedAt:    "2014-12-20T12:10:10Z",
+					LastLogin:    "2014-12-20T12:10:10Z",
 				},
 				&entity.User{
 					Token:        "DemoToken3",
 					Username:     "Norman",
 					URL:          "app://user/3",
 					Custom:       `{"sound": "boo"}`,
-					ThumbnailUrl: "https://avatars2.githubusercontent.com/u/1712926?v=3&s=460",
-					Dates: entity.Dates{
-						CreatedAt: "2014-12-15T10:10:10Z",
-						UpdatedAt: "2014-12-20T12:10:10Z",
-					},
-					LastLogin: "2014-12-20T12:10:10Z",
+					ThumbnailURL: "https://avatars2.githubusercontent.com/u/1712926?v=3&s=460",
+					CreatedAt:    "2014-12-15T10:10:10Z",
+					UpdatedAt:    "2014-12-20T12:10:10Z",
+					LastLogin:    "2014-12-20T12:10:10Z",
 				},
 			},
 		},
@@ -188,12 +178,12 @@ func getUserConnections(w http.ResponseWriter, r *http.Request) {
 
 func getUserConnectionsEvents(w http.ResponseWriter, r *http.Request) {
 	var (
-		appId uint64
+		appID uint64
 		err   error
 	)
 	vars := mux.Vars(r)
 
-	if appId, err = strconv.ParseUint(vars["appId"], 10, 64); err != nil {
+	if appID, err = strconv.ParseUint(vars["appId"], 10, 64); err != nil {
 		errorHappened("appId is not set or the value is incorrect", http.StatusBadRequest, w)
 		return
 	}
@@ -202,7 +192,7 @@ func getUserConnectionsEvents(w http.ResponseWriter, r *http.Request) {
 		appID  uint64          `json: "appId"`
 		Events []*entity.Event `json:"events"`
 	}{
-		appID: appId,
+		appID: appID,
 		Events: []*entity.Event{
 			&entity.Event{
 				ID:   1,
@@ -216,7 +206,7 @@ func getUserConnectionsEvents(w http.ResponseWriter, r *http.Request) {
 				User: &entity.User{
 					Username:     "Onur",
 					URL:          "app://user/1",
-					ThumbnailUrl: "https://avatars2.githubusercontent.com/u/1712926?v=3&s=460",
+					ThumbnailURL: "https://avatars2.githubusercontent.com/u/1712926?v=3&s=460",
 					Custom:       `{"sound": "boo"}`,
 					LastLogin:    "2014-12-20T12:10:10Z",
 				},
@@ -234,7 +224,7 @@ func getUserConnectionsEvents(w http.ResponseWriter, r *http.Request) {
 				User: &entity.User{
 					Username:     "Florin",
 					URL:          "app://user/2",
-					ThumbnailUrl: "https://avatars0.githubusercontent.com/u/607868?v=3&s=460",
+					ThumbnailURL: "https://avatars0.githubusercontent.com/u/607868?v=3&s=460",
 					Custom:       `{"sound": "boo"}`,
 					LastLogin:    "2014-12-20T12:10:10Z",
 				},
@@ -261,7 +251,7 @@ func getUserConnectionsEvents(w http.ResponseWriter, r *http.Request) {
 				User: &entity.User{
 					Username:     "Norman",
 					URL:          "app://user/3",
-					ThumbnailUrl: "https://avatars0.githubusercontent.com/u/607868?v=3&s=460",
+					ThumbnailURL: "https://avatars0.githubusercontent.com/u/607868?v=3&s=460",
 					Custom:       `{"sound": "boo"}`,
 					LastLogin:    "2014-12-20T12:10:10Z",
 				},
@@ -270,7 +260,7 @@ func getUserConnectionsEvents(w http.ResponseWriter, r *http.Request) {
 			&entity.Event{
 				ID:           4,
 				Type:         "picture",
-				ThumbnailUrl: "https://avatars0.githubusercontent.com/u/607868?v=3&s=460",
+				ThumbnailURL: "https://avatars0.githubusercontent.com/u/607868?v=3&s=460",
 				Item: &entity.Item{
 					ID:   "4",
 					Name: "Summer in Berlin",
@@ -280,7 +270,7 @@ func getUserConnectionsEvents(w http.ResponseWriter, r *http.Request) {
 				User: &entity.User{
 					Username:     "Norman",
 					URL:          "app://user/3",
-					ThumbnailUrl: "https://avatars0.githubusercontent.com/u/607868?v=3&s=460",
+					ThumbnailURL: "https://avatars0.githubusercontent.com/u/607868?v=3&s=460",
 					Custom:       `{"sound": "boo"}`,
 					LastLogin:    "2014-12-20T12:10:10Z",
 				},
@@ -289,7 +279,7 @@ func getUserConnectionsEvents(w http.ResponseWriter, r *http.Request) {
 			&entity.Event{
 				ID:           5,
 				Type:         "pictures",
-				ThumbnailUrl: "https://avatars0.githubusercontent.com/u/607868?v=3&s=460",
+				ThumbnailURL: "https://avatars0.githubusercontent.com/u/607868?v=3&s=460",
 				Item: &entity.Item{
 					ID:   "5",
 					Name: "Winter in London",
@@ -299,7 +289,7 @@ func getUserConnectionsEvents(w http.ResponseWriter, r *http.Request) {
 				User: &entity.User{
 					Username:     "Norman",
 					URL:          "app://user/3",
-					ThumbnailUrl: "https://avatars0.githubusercontent.com/u/607868?v=3&s=460",
+					ThumbnailURL: "https://avatars0.githubusercontent.com/u/607868?v=3&s=460",
 					Custom:       `{"sound": "boo"}`,
 					LastLogin:    "2014-12-20T12:10:10Z",
 				},

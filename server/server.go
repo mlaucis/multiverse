@@ -2,6 +2,7 @@
  * @author Florin Patan <florinpatan@gmail.com>
  */
 
+// Package server holds all the server related logic
 package server
 
 import (
@@ -62,6 +63,7 @@ func robots(w http.ResponseWriter, r *http.Request) {
 Disallow: /`))
 }
 
+// GetRouter returns the application router with all the needed routes configured
 func GetRouter() *mux.Router {
 	r := mux.NewRouter()
 	r.HandleFunc("/app/{appId}", getApplication)
