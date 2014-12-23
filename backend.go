@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/gluee/backend/config"
+	"github.com/gluee/backend/db"
 	"github.com/gluee/backend/server"
 )
 
@@ -25,6 +26,8 @@ func init() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	rand.Seed(time.Now().UTC().UnixNano())
 	cfg = config.GetConfig(EnvConfigVar)
+
+	db.InitDatabases(cfg)
 }
 
 func main() {
