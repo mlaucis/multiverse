@@ -53,7 +53,7 @@ Name: @dlsniper
 Last update: 2014/12/17
 Standards: HTML5
 Components: None
-Software: Golang`))
+Software: Go`))
 }
 
 func robots(w http.ResponseWriter, r *http.Request) {

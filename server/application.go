@@ -28,15 +28,17 @@ func getApplication(w http.ResponseWriter, r *http.Request) {
 		*entity.Application
 	}{
 		Application: &entity.Application{
-			AppID:     appId,
+			ID:        appId,
 			Key:       "abc123def",
 			AccountID: 123456,
 			Name:      "Demo App",
 			Enabled:   true,
-			CreatedAt: "2014-12-15T10:10:10Z",
-			UpdatedAt: "2014-12-20T12:10:10Z",
+			Dates: entity.Dates{
+				CreatedAt: "2014-12-15T10:10:10Z",
+				UpdatedAt: "2014-12-20T12:10:10Z",
+			},
 		},
 	}
 
-	writeResponse(response, http.StatusOK, w)
+	writeResponse(response, http.StatusOK, 10, w, r)
 }

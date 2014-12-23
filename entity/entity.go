@@ -11,7 +11,7 @@ type (
 	}
 
 	Device struct {
-		DeviceID     string `json:"device_id"`
+		ID           string `json:"id"`
 		Model        string `json:"model"`
 		Manufacturer string `json:"manufacturer"`
 		UUID         string `json:"uuid"`
@@ -28,40 +28,36 @@ type (
 		IP           string `json:"ip"`
 		Carrier      string `json:"carrier"`
 		Network      string `json:"network"`
-		Enabled      bool   `json: "enabled"`
-		CreatedAt    string `json:"created_at"`
-		UpdatedAt    string `json:"updated_at"`
+		Enabled      bool   `json:"enabled"`
+		Dates
 	}
 
 	Account struct {
-		AccountID  uint64         `json: "account_id"`
-		Name       string         `json: "name"`
+		ID         uint64         `json:"id"`
+		Name       string         `json:"name"`
 		AcountUser []*AccountUser `json:"account_user,omitempty"`
-		Enabled    bool           `json: "enabled"`
-		CreatedAt  string         `json:"created_at"`
-		UpdatedAt  string         `json:"updated_at"`
+		Enabled    bool           `json:"enabled"`
+		Dates
 	}
 
 	AccountUser struct {
-		UserID    string `json: "user_id"`
-		AccountID uint64 `json: "account_id"`
-		Name      string `json: "name"`
-		Password  string `json: "password"`
-		Email     string `json: "email"`
-		Enabled   bool   `json: "enabled"`
+		ID        string `json:"id"`
+		AccountID uint64 `json:"account_id"`
+		Name      string `json:"name"`
+		Password  string `json:"password"`
+		Email     string `json:"email"`
+		Enabled   bool   `json:"enabled"`
 		LastLogin string `json:"last_login,omitempty"`
-		CreatedAt string `json:"created_at"`
-		UpdatedAt string `json:"updated_at"`
+		Dates
 	}
 
 	Application struct {
-		AppID     uint64 `json:"app_id"`
-		Key       string `json: "key"`
+		ID        uint64 `json:"id"`
+		Key       string `json:"key"`
 		Name      string `json:"name"`
-		AccountID uint64 `json: "account_id"`
-		Enabled   bool   `json: "enabled"`
-		CreatedAt string `json:"created_at"`
-		UpdatedAt string `json:"updated_at"`
+		AccountID uint64 `json:"account_id"`
+		Enabled   bool   `json:"enabled"`
+		Dates
 	}
 
 	User struct {
@@ -76,42 +72,44 @@ type (
 		Custom       string  `json:"custom,omitempty"`
 		Connections  []*User `json:"connections,omitempty"`
 		LastLogin    string  `json:"last_login,omitempty"`
-		CreatedAt    string  `json:"created_at"`
-		UpdatedAt    string  `json:"updated_at"`
+		Dates
 	}
 
 	UserConnection struct {
-		UserID1   string `json:"user_id_1"`
-		UserID2   string `json:"user_id_2"`
-		Enabled   bool   `json: "enabled"`
-		CreatedAt string `json:"created_at"`
-		UpdatedAt string `json:"updated_at"`
+		AppID   string `json:"app_id"`
+		UserID1 string `json:"user_id_1"`
+		UserID2 string `json:"user_id_2"`
+		Enabled bool   `json:"enabled"`
+		Dates
 	}
 
 	Session struct {
-		SessionID uint64 `"json:"session_id"`
-		AppID     uint64 `json:"app_id"`
-		Token     string `json:"token,omitempty"`
-		Nth       string `json:"nth"`
-		Custom    string `json:"custom,omitempty"`
-		Device
-		CreatedAt string `json:"created_at"`
-		UpdatedAt string `json:"updated_at"`
+		ID     uint64  `json:"id"`
+		AppID  uint64  `json:"app_id"`
+		Token  string  `json:"token"`
+		Nth    uint64  `json:"nth"`
+		Custom string  `json:"custom,omitempty"`
+		Device *Device `json:"device"`
+		Dates
+	}
+
+	Item struct {
+		ID   string `json:"id"`
+		Name string `json:"name,omitempty"`
+		URL  string `json:"url,omitempty"`
 	}
 
 	Event struct {
-		EventID      uint64 `json:"event_id"`
+		ID           uint64 `json:"id"`
 		AppID        uint64 `json:"app_id,omitempty"`
-		SessionID    uint64 `"json:"session_id"`
+		SessionID    uint64 `json:"session_id"`
 		UserID       uint64 `json:"user_id,omitempty"`
-		EventType    string `json:"event_type"`
+		Type         string `json:"type"`
 		ThumbnailUrl string `json:"thumbnail_url,omitempty"`
-		ItemID       string `json:"item_id"`
-		ItemName     string `json:"item_name,omitempty"`
-		ItemURL      string `json:"item_url,omitempty"`
+		Item         *Item  `json:"item"`
 		CreatedAt    string `json:"created_at"`
 		Custom       string `json:"custom,omitempty"`
-		Nth          string `json:"nth"`
-		User         *User  `json:"user,omitempty"` //refactor
+		Nth          uint64 `json:"nth"`
+		User         *User  `json:"user,omitempty"`
 	}
 )
