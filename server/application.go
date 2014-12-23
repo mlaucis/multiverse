@@ -14,8 +14,8 @@ import (
 
 func getApplication(w http.ResponseWriter, r *http.Request) {
 	var (
-		appId     uint64
-		err       error
+		appId uint64
+		err   error
 	)
 	vars := mux.Vars(r)
 
@@ -28,13 +28,13 @@ func getApplication(w http.ResponseWriter, r *http.Request) {
 		*entity.Application
 	}{
 		Application: &entity.Application{
-				AppID:        appId,
-				Key: "abc123def",
-				AccountID: 123456,
-				Name: "Demo App",
-				Enabled: true,
-				CreatedAt:    "2014-12-15T10:10:10Z",
-				UpdatedAt:    "2014-12-20T12:10:10Z",
+			AppID:     appId,
+			Key:       "abc123def",
+			AccountID: 123456,
+			Name:      "Demo App",
+			Enabled:   true,
+			CreatedAt: "2014-12-15T10:10:10Z",
+			UpdatedAt: "2014-12-20T12:10:10Z",
 		},
 	}
 

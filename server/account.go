@@ -16,7 +16,7 @@ import (
 func getAccount(w http.ResponseWriter, r *http.Request) {
 	var (
 		accountId uint64
-		err            error
+		err       error
 	)
 	vars := mux.Vars(r)
 
@@ -30,10 +30,10 @@ func getAccount(w http.ResponseWriter, r *http.Request) {
 	}{
 		Account: &entity.Account{
 			AccountID: accountId,
-			Name:        "Demo Account",
-			Enabled: true,
-			CreatedAt:    "2014-12-15T10:10:10Z",
-			UpdatedAt:    "2014-12-20T12:10:10Z",
+			Name:      "Demo Account",
+			Enabled:   true,
+			CreatedAt: "2014-12-15T10:10:10Z",
+			UpdatedAt: "2014-12-20T12:10:10Z",
 		},
 	}
 
@@ -48,8 +48,8 @@ func getAccount(w http.ResponseWriter, r *http.Request) {
 
 func getAccountUser(w http.ResponseWriter, r *http.Request) {
 	var (
-		accountId     uint64
-		userId string
+		accountId uint64
+		userId    string
 		err       error
 	)
 	vars := mux.Vars(r)
@@ -65,14 +65,14 @@ func getAccountUser(w http.ResponseWriter, r *http.Request) {
 		*entity.AccountUser
 	}{
 		AccountUser: &entity.AccountUser{
-			UserID:        userId,
+			UserID:    userId,
 			AccountID: accountId,
-			Name: "Demo User",
-			Email: "demouser@demo.com",
-			Enabled: true,
-			LastLogin:    "2014-12-20T12:10:10Z",
-			CreatedAt:    "2014-12-15T10:10:10Z",
-			UpdatedAt:    "2014-12-20T12:10:10Z",
+			Name:      "Demo User",
+			Email:     "demouser@demo.com",
+			Enabled:   true,
+			LastLogin: "2014-12-20T12:10:10Z",
+			CreatedAt: "2014-12-15T10:10:10Z",
+			UpdatedAt: "2014-12-20T12:10:10Z",
 		},
 	}
 
@@ -81,7 +81,7 @@ func getAccountUser(w http.ResponseWriter, r *http.Request) {
 
 func getAccountUserList(w http.ResponseWriter, r *http.Request) {
 	var (
-		accountId     uint64
+		accountId uint64
 		err       error
 	)
 	vars := mux.Vars(r)
@@ -97,41 +97,41 @@ func getAccountUserList(w http.ResponseWriter, r *http.Request) {
 	}{
 		Account: entity.Account{
 			AccountID: accountId,
-			Name:        "Demo Account",
-			Enabled: true,
-			CreatedAt:    "2014-12-15T10:10:10Z",
-			UpdatedAt:    "2014-12-20T12:10:10Z",
+			Name:      "Demo Account",
+			Enabled:   true,
+			CreatedAt: "2014-12-15T10:10:10Z",
+			UpdatedAt: "2014-12-20T12:10:10Z",
 		},
 		AccountUser: []*entity.AccountUser{
 			&entity.AccountUser{
-				UserID:        "1",
+				UserID:    "1",
 				AccountID: accountId,
-				Name: "Demo User",
-				Email: "demouser@demo.com",
-				Enabled: true,
-				LastLogin:    "2014-12-20T12:10:10Z",
-				CreatedAt:    "2014-12-15T10:10:10Z",
-				UpdatedAt:    "2014-12-20T12:10:10Z",
+				Name:      "Demo User",
+				Email:     "demouser@demo.com",
+				Enabled:   true,
+				LastLogin: "2014-12-20T12:10:10Z",
+				CreatedAt: "2014-12-15T10:10:10Z",
+				UpdatedAt: "2014-12-20T12:10:10Z",
 			},
 			&entity.AccountUser{
-				UserID:        "2",
+				UserID:    "2",
 				AccountID: accountId,
-				Name: "Demo User",
-				Email: "demouser@demo.com",
-				Enabled: true,
-				LastLogin:    "2014-12-20T12:10:10Z",
-				CreatedAt:    "2014-12-15T10:10:10Z",
-				UpdatedAt:    "2014-12-20T12:10:10Z",
+				Name:      "Demo User",
+				Email:     "demouser@demo.com",
+				Enabled:   true,
+				LastLogin: "2014-12-20T12:10:10Z",
+				CreatedAt: "2014-12-15T10:10:10Z",
+				UpdatedAt: "2014-12-20T12:10:10Z",
 			},
 			&entity.AccountUser{
-				UserID:        "3",
+				UserID:    "3",
 				AccountID: accountId,
-				Name: "Demo User",
-				Email: "demouser@demo.com",
-				Enabled: true,
-				LastLogin:    "2014-12-20T12:10:10Z",
-				CreatedAt:    "2014-12-15T10:10:10Z",
-				UpdatedAt:    "2014-12-20T12:10:10Z",
+				Name:      "Demo User",
+				Email:     "demouser@demo.com",
+				Enabled:   true,
+				LastLogin: "2014-12-20T12:10:10Z",
+				CreatedAt: "2014-12-15T10:10:10Z",
+				UpdatedAt: "2014-12-20T12:10:10Z",
 			},
 		},
 	}
@@ -141,7 +141,7 @@ func getAccountUserList(w http.ResponseWriter, r *http.Request) {
 
 func getApplicationList(w http.ResponseWriter, r *http.Request) {
 	var (
-		accountId     uint64
+		accountId uint64
 		err       error
 	)
 	vars := mux.Vars(r)
@@ -157,38 +157,38 @@ func getApplicationList(w http.ResponseWriter, r *http.Request) {
 	}{
 		Account: entity.Account{
 			AccountID: accountId,
-			Name:        "Demo Account",
-			Enabled: true,
-			CreatedAt:    "2014-12-15T10:10:10Z",
-			UpdatedAt:    "2014-12-20T12:10:10Z",
+			Name:      "Demo Account",
+			Enabled:   true,
+			CreatedAt: "2014-12-15T10:10:10Z",
+			UpdatedAt: "2014-12-20T12:10:10Z",
 		},
 		Application: []*entity.Application{
 			&entity.Application{
-				AppID:        1,
-				Key: "abc123def",
+				AppID:     1,
+				Key:       "abc123def",
 				AccountID: accountId,
-				Name: "Demo App",
-				Enabled: true,
-				CreatedAt:    "2014-12-15T10:10:10Z",
-				UpdatedAt:    "2014-12-20T12:10:10Z",
+				Name:      "Demo App",
+				Enabled:   true,
+				CreatedAt: "2014-12-15T10:10:10Z",
+				UpdatedAt: "2014-12-20T12:10:10Z",
 			},
 			&entity.Application{
-				AppID:        2,
-				Key: "abc345def",
+				AppID:     2,
+				Key:       "abc345def",
 				AccountID: accountId,
-				Name: "Demo App",
-				Enabled: true,
-				CreatedAt:    "2014-12-15T10:10:10Z",
-				UpdatedAt:    "2014-12-20T12:10:10Z",
+				Name:      "Demo App",
+				Enabled:   true,
+				CreatedAt: "2014-12-15T10:10:10Z",
+				UpdatedAt: "2014-12-20T12:10:10Z",
 			},
 			&entity.Application{
-				AppID:        3,
-				Key: "abc678ef",
+				AppID:     3,
+				Key:       "abc678ef",
 				AccountID: accountId,
-				Name: "Demo App",
-				Enabled: true,
-				CreatedAt:    "2014-12-15T10:10:10Z",
-				UpdatedAt:    "2014-12-20T12:10:10Z",
+				Name:      "Demo App",
+				Enabled:   true,
+				CreatedAt: "2014-12-15T10:10:10Z",
+				UpdatedAt: "2014-12-20T12:10:10Z",
 			},
 		},
 	}
