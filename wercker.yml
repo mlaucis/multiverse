@@ -1,4 +1,5 @@
 box: wercker/golang
+# Add services here
 # Build definition
 build:
   # The steps that will be executed on build
@@ -6,19 +7,21 @@ build:
     # Sets the go workspace and places you package
     # at the right place in the workspace tree
     - setup-go-workspace
-
+ 
     # Gets the dependencies
     - script:
         name: go get
         code: |
           cd $WERCKER_SOURCE_DIR
           go version
-          go get -t ./...
+          go get ./...
+
     # Build the project
     - script:
         name: go build
         code: |
           go build ./...
+
     # Test the project
     - script:
         name: go test
