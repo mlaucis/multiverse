@@ -1,0 +1,23 @@
+{
+	"env": "dev",
+	"listenHost": ":8082",
+	"db": {
+		"username": "gluee",
+		"password": "x",
+		"database": "gluee",
+		"max_idle": 10,
+		"max_open": 300,
+		"master": {
+			"debug": true,
+			"host": "127.0.0.1",
+			"port": 3306
+		},
+		"slaves": [
+			{
+				"debug": true,
+				"host": "127.0.0.1",
+				"port": 3306
+			}
+		]
+	}
+}
