@@ -63,23 +63,23 @@ func robots(w http.ResponseWriter, r *http.Request) {
 Disallow: /`))
 }
 
-// GetRouter returns the application router with all the needed routes configured
+// GetRouter returns the application router with all the needed routes defined in routes.go
 func GetRouter() *mux.Router {
-	r := mux.NewRouter()
-	r.HandleFunc("/app/{appId}", getApplication)
-	r.HandleFunc("/app/{appId}/user/{userToken}", getUser)
-	r.HandleFunc("/app/{appId}/user/{userToken}/events", getUserEvents)
-	r.HandleFunc("/app/{appId}/user/{userToken}/connections", getUserConnections)
-	r.HandleFunc("/app/{appId}/user/{userToken}/connections/events", getUserConnectionsEvents)
-	r.HandleFunc("/app/{appId}/event/{eventId}", getEvent)
-	r.HandleFunc("/account/{accountId}", getAccount)
-	r.HandleFunc("/account/{accountId}/applications", getApplicationList)
-	r.HandleFunc("/account/{accountId}/user/{userId}", getAccountUser)
-	r.HandleFunc("/account/{accountId}/users", getAccountUserList)
-	r.HandleFunc("/humans.txt", humans)
-	r.HandleFunc("/robots.txt", robots)
-	r.HandleFunc("/", home)
-	r.StrictSlash(true)
 
-	return r
+	router := mux.NewRouter().StrictSlash(true)
+	for _, route := range routes {
+		var handler http.Handler
+
+		handler = route.HandlerFunc
+		handler = Logger(handler, route.Name)
+
+		router.
+			Methods(route.Method).
+			Path(route.Pattern).
+			Name(route.Name).
+			Handler(handler)
+
+	}
+
+	return router
 }

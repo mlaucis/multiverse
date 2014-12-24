@@ -35,4 +35,5 @@
 
 - Extending components (MQ, Redis, etc.)
 - Tests
-- Secure API (Authentication)
+- Secure API (Authentication) (check: http://jwt.io/)
+- Version Control (v1, v2 etc.)

@@ -5,6 +5,7 @@
 package main
 
 import (
+ 	"log"
 	"math/rand"
 	"net/http"
 	"runtime"
@@ -31,7 +32,9 @@ func init() {
 }
 
 func main() {
-	http.Handle("/", server.GetRouter())
+	//http.Handle("/", server.GetRouter())
 
-	http.ListenAndServe(cfg.ListenHost, nil)
+	router := server.GetRouter()
+
+	log.Fatal(http.ListenAndServe(cfg.ListenHost, router))
 }

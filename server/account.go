@@ -129,7 +129,7 @@ func getAccountUserList(w http.ResponseWriter, r *http.Request) {
 	writeResponse(response, http.StatusOK, 10, w, r)
 }
 
-func getApplicationList(w http.ResponseWriter, r *http.Request) {
+func getAccountApplications(w http.ResponseWriter, r *http.Request) {
 	var (
 		accountID uint64
 		err       error
