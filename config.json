@@ -2,7 +2,7 @@
 	"env": "dev",
 	"listenHost": ":8082",
 	"db": {
-		"username": "gluee",
+		"username": "root",
 		"password": "x",
 		"database": "gluee",
 		"max_idle": 10,

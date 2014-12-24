@@ -1,7 +1,7 @@
 /**
  * @author Onur Akpolat <onurakpolat@gmail.com>
  */
- 
+
 package server
 
 import (
@@ -17,7 +17,7 @@ func Logger(inner http.Handler, name string) http.Handler {
 		inner.ServeHTTP(w, r)
 
 		log.Printf(
-			"%s\t%s\t%s\t%s",
+			"%s\t%s\t%s\t%s\n",
 			r.Method,
 			r.RequestURI,
 			name,

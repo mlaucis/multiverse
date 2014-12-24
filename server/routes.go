@@ -7,99 +7,100 @@ package server
 import "net/http"
 
 // Route structure
-type Route struct {
-	Name        string
-	Method      string
-	Pattern     string
-	HandlerFunc http.HandlerFunc
+type route struct {
+	name        string
+	method      string
+	pattern     string
+	handlerFunc http.HandlerFunc
 }
 
-type Routes []Route
-
 // Route definitions of the API
-var routes = Routes{
-	Route{
-		"Index",
-		"GET",
-		"/",
-		home,
-	},
-	Route{
+var routes = []*route{
+	&route{
 		"getApplication",
 		"GET",
 		"/app/{appId}",
 		getApplication,
 	},
-	Route{
+	&route{
 		"createApplication",
 		"POST",
 		"/app",
 		createApplication,
 	},
-	Route{
+
+	&route{
 		"getUser",
 		"GET",
 		"/app/{appId}/user/{userToken}",
 		getUser,
 	},
-	Route{
+	&route{
 		"getUserEvents",
 		"GET",
 		"/app/{appId}/user/{userToken}/events",
 		getUserEvents,
 	},
-	Route{
+	&route{
 		"getUserConnections",
 		"GET",
 		"/app/{appId}/user/{userToken}/connections",
 		getUserConnections,
 	},
-	Route{
+	&route{
 		"getUserConnectionsEvents",
 		"GET",
 		"/app/{appId}/user/{userToken}/connections/events",
 		getUserConnectionsEvents,
 	},
-	Route{
+	&route{
 		"getEvent",
 		"GET",
 		"/app/{appId}/event/{eventId}",
 		getEvent,
 	},
-	Route{
+	&route{
 		"getAccount",
 		"GET",
 		"/account/{accountId}",
 		getAccount,
 	},
-	Route{
+	&route{
 		"getAccountApplications",
 		"GET",
 		"/account/{accountId}/applications",
 		getAccountApplications,
 	},
-	Route{
+	&route{
 		"getAccountUser",
 		"GET",
 		"/account/{accountId}/user/{userId}",
 		getAccountUser,
 	},
-	Route{
+	&route{
 		"getAccountUserList",
 		"GET",
 		"/account/{accountId}/users",
 		getAccountUserList,
 	},
-	Route{
+
+	&route{
 		"humans.txt",
 		"GET",
 		"/humans.txt",
 		humans,
 	},
-	Route{
+	&route{
 		"robots",
 		"GET",
 		"/robots.txt",
 		robots,
+	},
+
+	&route{
+		"Index",
+		"GET",
+		"/",
+		home,
 	},
 }
