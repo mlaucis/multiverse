@@ -22,10 +22,10 @@
 | User|GET|Read Single User|✗|✗|✗|✗|
 | UserConnection|POST|Create a User Connection|✗|✗|✗|✗|
 | UserConnection|GET|List Users Connections|✗|✗|✗|✗|
-| UserConnection|POST|Create a Session|✗|✗|✗|✗|
+| Session|POST|Create a Session|✗|✗|✗|✗|
 | Session|GET|List Sessions of a User|✗|✗|✗|✗|
 | Session|GET|Read Single Session|✗|✗|✗|✗|
-| Session|POST|Create an event|✗|✗|✗|✗|
+| Event|POST|Create an event|✗|✗|✗|✗|
 | Event|GET|List events of a user|✗|✗|✗|✗|
 | Event|GET|List events of a session|✗|✗|✗|✗|
 | Event|GET|Read single event|✗|✗|✗|✗|

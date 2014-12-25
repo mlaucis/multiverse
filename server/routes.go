@@ -2,6 +2,7 @@
  * @author Onur Akpolat <onurakpolat@gmail.com>
  */
 
+// Package server holds all the server related logic
 package server
 
 import "net/http"
@@ -14,51 +15,16 @@ type route struct {
 	handlerFunc http.HandlerFunc
 }
 
-// Route definitions of the API
+// Route definitions
 var routes = []*route{
+	// General
 	&route{
-		"getApplication",
+		"Index",
 		"GET",
-		"/app/{appId}",
-		getApplication,
+		"/",
+		home,
 	},
-	&route{
-		"createApplication",
-		"POST",
-		"/app",
-		createApplication,
-	},
-
-	&route{
-		"getUser",
-		"GET",
-		"/app/{appId}/user/{userToken}",
-		getUser,
-	},
-	&route{
-		"getUserEvents",
-		"GET",
-		"/app/{appId}/user/{userToken}/events",
-		getUserEvents,
-	},
-	&route{
-		"getUserConnections",
-		"GET",
-		"/app/{appId}/user/{userToken}/connections",
-		getUserConnections,
-	},
-	&route{
-		"getUserConnectionsEvents",
-		"GET",
-		"/app/{appId}/user/{userToken}/connections/events",
-		getUserConnectionsEvents,
-	},
-	&route{
-		"getEvent",
-		"GET",
-		"/app/{appId}/event/{eventId}",
-		getEvent,
-	},
+	// Account
 	&route{
 		"getAccount",
 		"GET",
@@ -66,11 +32,12 @@ var routes = []*route{
 		getAccount,
 	},
 	&route{
-		"getAccountApplications",
-		"GET",
-		"/account/{accountId}/applications",
-		getAccountApplications,
+		"createAccount",
+		"POST",
+		"/account",
+		createAccount,
 	},
+	// AccountUser
 	&route{
 		"getAccountUser",
 		"GET",
@@ -78,12 +45,119 @@ var routes = []*route{
 		getAccountUser,
 	},
 	&route{
+		"createAccountUser",
+		"POST",
+		"/account/{accountId}/user",
+		createAccountUser,
+	},
+	&route{
 		"getAccountUserList",
 		"GET",
 		"/account/{accountId}/users",
 		getAccountUserList,
 	},
-
+	// Application
+	&route{
+		"getApplication",
+		"GET",
+		"/app/{appId}",
+		getAccountApplication,
+	},
+	&route{
+		"createAccountApplication",
+		"POST",
+		"/account/{accountId}/app",
+		createAccountApplication,
+	},
+	&route{
+		"getAccountApplications",
+		"GET",
+		"/account/{accountId}/applications",
+		getAccountApplicationList,
+	},
+	// User
+	&route{
+		"getApplicationUser",
+		"GET",
+		"/app/{appId}/user/{userToken}",
+		getApplicationUser,
+	},
+	&route{
+		"createApplicationUser",
+		"POST",
+		"/app/{appId}/user",
+		createApplicationUser,
+	},
+	&route{
+		"getApplicationUserList",
+		"GET",
+		"/app/{appId}/users",
+		getApplicationUserList,
+	},
+	// UserConnection
+	&route{
+		"createUserConnection",
+		"POST",
+		"/app/{appId}/connection",
+		createUserConnection,
+	},
+	&route{
+		"getUserConnections",
+		"GET",
+		"/app/{appId}/user/{userToken}/connections",
+		getUserConnections,
+	},
+	// Session
+	&route{
+		"getUserSession",
+		"GET",
+		"/app/{appId}/user/{userToken}/session/{sessionId}",
+		getUserSession,
+	},
+	&route{
+		"createUserSession",
+		"POST",
+		"/app/{appId}/user/{userToken}/session",
+		createUserSession,
+	},
+	&route{
+		"getUserSessionList",
+		"GET",
+		"/app/{appId}/user/{userToken}/sessions",
+		getUserSessionList,
+	},
+	// Event
+	&route{
+		"getApplicationEvent",
+		"GET",
+		"/app/{appId}/event/{eventId}",
+		getApplicationEvent,
+	},
+	&route{
+		"createApplicationEvent",
+		"POST",
+		"/app/{appId}/user/{userToken}/session/{sessionId}/event/{eventId}",
+		createApplicationEvent,
+	},
+	&route{
+		"getApplicationUserEvents",
+		"GET",
+		"/app/{appId}/user/{userToken}/events",
+		getApplicationUserEvents,
+	},
+	&route{
+		"getSessionEvents",
+		"GET",
+		"/app/{appId}/user/{userToken}/session/{sessionId}/events",
+		getSessionEvents,
+	},
+	&route{
+		"getUserConnectionsEvents",
+		"GET",
+		"/app/{appId}/user/{userToken}/connections/events",
+		getUserConnectionsEvents,
+	},
+	// Other
 	&route{
 		"humans.txt",
 		"GET",
@@ -95,12 +169,5 @@ var routes = []*route{
 		"GET",
 		"/robots.txt",
 		robots,
-	},
-
-	&route{
-		"Index",
-		"GET",
-		"/",
-		home,
 	},
 }

@@ -13,12 +13,22 @@ import (
 	"github.com/gorilla/mux"
 )
 
+/**
+ * writeResponse handles the http responses and returns the data
+ * @param response, response data
+ * @param code, http status code
+ * @param cache, response cache
+ * @param w, http response writer
+ * @param r, http request
+ */
 func writeResponse(response interface{}, code int, cache uint, w http.ResponseWriter, r *http.Request) {
+	// Read response to json
 	json, err := json.Marshal(response)
 	if err != nil {
 		errorHappened(fmt.Sprintf("%q", err), http.StatusInternalServerError, w)
 	}
 
+	// Set the response headers
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Cache-Control", fmt.Sprintf(`"max-age=%d, public"`, cache))
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -26,20 +36,41 @@ func writeResponse(response interface{}, code int, cache uint, w http.ResponseWr
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding")
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
 
+	// Write response
 	w.Write(json)
 }
 
+/**
+ * errorHappened handles the error message
+ * @param message, error message
+ * @param code, http status code
+ * @param w, response writer
+ */
 func errorHappened(message string, code int, w http.ResponseWriter) {
 	w.WriteHeader(code)
 	w.Header().Set("Content-Type", "text/plain")
 	w.Write([]byte(fmt.Sprintf("%d %s", code, message)))
 }
 
+/**
+ * home handles request to API root
+ * Request: GET /
+ * Test with: `curl -i localhost/`
+ * @param w, response writer
+ * @param r, http request
+ */
 func home(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain")
 	w.Write([]byte(`these aren't the droids you're looking for`))
 }
 
+/**
+ * humans handles requests to humans.txt
+ * Request: GET /humans.txt
+ * Test with: curl -i localhost/humans.txt
+ * @param w, response writer
+ * @param r, http request
+ */
 func humans(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain")
 	w.Write([]byte(`/* TEAM */
@@ -57,17 +88,29 @@ Components: None
 Software: Go`))
 }
 
+/**
+ * robots handles requests to robots.txt
+ * Request: GET /robots.txt
+ * Test with: curl -i localhost/robots.txt
+ * @param w, response writer
+ * @param r, http request
+ */
 func robots(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain")
 	w.Write([]byte(`User-agent: *
 Disallow: /`))
 }
 
-// GetRouter returns the application router with all the needed routes defined in routes.go
+/**
+ * GetRouter creates the router
+ * @return router, mux router with all routes defined
+ */
 func GetRouter() *mux.Router {
 
+	// Create router
 	router := mux.NewRouter().StrictSlash(true)
 
+	// Read routes
 	for _, route := range routes {
 		router.
 			Methods(route.method).
@@ -76,5 +119,6 @@ func GetRouter() *mux.Router {
 			Handler(Logger(route.handlerFunc, route.name))
 	}
 
+	// Return router
 	return router
 }

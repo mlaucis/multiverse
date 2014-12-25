@@ -2,6 +2,7 @@
  * @author Florin Patan <florinpatan@gmai.com>
  */
 
+// Package db provides configuration for database connection
 package db
 
 import (
@@ -34,8 +35,12 @@ var (
 	slaveConnections = &dbSlaves{}
 )
 
-// Open a connection to master server
+/**
+ * Open a connection to master server
+ * @param cfg, configuration that holds database settings
+ */
 func openMasterConnection(cfg *config.Config) {
+	// Read settings from configuration
 	masterDSN := fmt.Sprintf(
 		"%s:%s@tcp(%s:%d)/%s?parseTime=true&charset=utf8&collation=utf8_general_ci",
 		cfg.DB.Username,
@@ -45,13 +50,17 @@ func openMasterConnection(cfg *config.Config) {
 		cfg.DB.Database,
 	)
 
+	// Establish connection to master
 	masterConnection = sqlx.MustConnect("mysql", masterDSN)
 	masterConnection.DB.Ping()
 	masterConnection.DB.SetMaxIdleConns(10)
 	masterConnection.DB.SetMaxOpenConns(100)
 }
 
-// Open the connections to the slave servers
+/**
+ * Open the connections to the slave servers
+ * @param cfg, configuration that holds database settings
+ */
 func openSlaveConnections(cfg *config.Config) {
 	for _, slave := range cfg.DB.Slaves {
 		slaveConnection := &sqlx.DB{}
@@ -64,6 +73,7 @@ func openSlaveConnections(cfg *config.Config) {
 			cfg.DB.Database,
 		)
 
+		// Establish connection to slaves
 		slaveConnection = sqlx.MustConnect("mysql", slaveDSN)
 		slaveConnection.DB.Ping()
 		slaveConnection.DB.SetMaxIdleConns(10)
@@ -73,24 +83,28 @@ func openSlaveConnections(cfg *config.Config) {
 	}
 }
 
-// InitDatabases initializes the connections to the servers
+/**
+ * InitDatabases initializes the connections to the servers
+ * @param cfg, configuration that holds database settings
+ */
 func InitDatabases(cfg *config.Config) {
 	openMasterConnection(cfg)
 	openSlaveConnections(cfg)
 }
 
-// GetMaster returns the master database connection.
-//
-// You should use this when you want to write to the database
+/**
+ * GetMaster is used to write to the database.
+ * @return masterConnection, master database connection
+ */
 func GetMaster() *sqlx.DB {
 	return masterConnection
 }
 
-// GetSlave returns a slave database connection from the connection pool.
-//
-// You should use this when you want to only read from the database
-//
-// If there's no slave configured, it returns master
+/**
+ * GetSlave is used to read from database.
+ * If there's no slave configured, it returns master.
+ * @return slaveConnections, slave database connection from the connection pool
+ */
 func GetSlave() *sqlx.DB {
 	if len(slaveConnections.Slaves) == 0 {
 		return masterConnection

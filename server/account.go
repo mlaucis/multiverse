@@ -2,6 +2,7 @@
  * @author Onur Akpolat <onurakpolat@gmail.com>
  */
 
+// Package server holds all the server related logic
 package server
 
 import (
@@ -12,18 +13,28 @@ import (
 	"github.com/gorilla/mux"
 )
 
+/**
+ * getAccount handles requests to a single account
+ * Request: GET /account/:AccountID
+ * Test with: curl -i localhost/account/:AccountID
+ * @param w, response writer
+ * @param r, http request
+ */
 func getAccount(w http.ResponseWriter, r *http.Request) {
 	var (
 		accountID uint64
 		err       error
 	)
+	// Read variables from request
 	vars := mux.Vars(r)
 
+	// Read accountID
 	if accountID, err = strconv.ParseUint(vars["accountId"], 10, 64); err != nil {
 		errorHappened("accountId is not set or the value is incorrect", http.StatusBadRequest, w)
 		return
 	}
 
+	// Create mock response
 	response := &struct {
 		*entity.Account
 	}{
@@ -36,149 +47,26 @@ func getAccount(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
+	// Read account from database
+
+	// Query draft
+	/**
+	 * SELECT id, name, enabled, created_at, updated_at
+	 * FROM accounts
+	 * WHERE id={accountID};
+	 */
+
+	// Write response
 	writeResponse(response, http.StatusOK, 10, w, r)
 }
 
-func getAccountUser(w http.ResponseWriter, r *http.Request) {
-	var (
-		accountID uint64
-		userID    string
-		err       error
-	)
-	vars := mux.Vars(r)
+/**
+ * createAccount handles requests create an account
+ * Request: POST /account
+ * Test with: curl -H "Content-Type: application/json" -d '{"name":"New Account"}' localhost/account
+ * @param w, response writer
+ * @param r, http request
+ */
+func createAccount(w http.ResponseWriter, r *http.Request) {
 
-	if accountID, err = strconv.ParseUint(vars["accountId"], 10, 64); err != nil {
-		errorHappened("userId is not set or the value is incorrect", http.StatusBadRequest, w)
-		return
-	}
-
-	userID = vars["userId"]
-
-	response := &struct {
-		*entity.AccountUser
-	}{
-		AccountUser: &entity.AccountUser{
-			ID:        userID,
-			AccountID: accountID,
-			Name:      "Demo User",
-			Email:     "demouser@demo.com",
-			Enabled:   true,
-			LastLogin: "2014-12-20T12:10:10Z",
-			CreatedAt: "2014-12-15T10:10:10Z",
-			UpdatedAt: "2014-12-20T12:10:10Z",
-		},
-	}
-
-	writeResponse(response, http.StatusOK, 10, w, r)
-}
-
-func getAccountUserList(w http.ResponseWriter, r *http.Request) {
-	var (
-		accountID uint64
-		err       error
-	)
-	vars := mux.Vars(r)
-
-	if accountID, err = strconv.ParseUint(vars["accountId"], 10, 64); err != nil {
-		errorHappened("accountId is not set or the value is incorrect", http.StatusBadRequest, w)
-		return
-	}
-
-	response := &struct {
-		entity.Account
-		AccountUser []*entity.AccountUser `json:"accountUser"`
-	}{
-		Account: entity.Account{
-			ID:        accountID,
-			Name:      "Demo Account",
-			Enabled:   true,
-			CreatedAt: "2014-12-15T10:10:10Z",
-			UpdatedAt: "2014-12-20T12:10:10Z",
-		},
-		AccountUser: []*entity.AccountUser{
-			&entity.AccountUser{
-				ID:        "1",
-				Name:      "Demo User",
-				Email:     "demouser@demo.com",
-				Enabled:   true,
-				LastLogin: "2014-12-20T12:10:10Z",
-				CreatedAt: "2014-12-15T10:10:10Z",
-				UpdatedAt: "2014-12-20T12:10:10Z",
-			},
-			&entity.AccountUser{
-				ID:        "2",
-				Name:      "Demo User",
-				Email:     "demouser@demo.com",
-				Enabled:   true,
-				LastLogin: "2014-12-20T12:10:10Z",
-				CreatedAt: "2014-12-15T10:10:10Z",
-				UpdatedAt: "2014-12-20T12:10:10Z",
-			},
-			&entity.AccountUser{
-				ID:        "3",
-				Name:      "Demo User",
-				Email:     "demouser@demo.com",
-				Enabled:   true,
-				LastLogin: "2014-12-20T12:10:10Z",
-				CreatedAt: "2014-12-15T10:10:10Z",
-				UpdatedAt: "2014-12-20T12:10:10Z",
-			},
-		},
-	}
-
-	writeResponse(response, http.StatusOK, 10, w, r)
-}
-
-func getAccountApplications(w http.ResponseWriter, r *http.Request) {
-	var (
-		accountID uint64
-		err       error
-	)
-	vars := mux.Vars(r)
-
-	if accountID, err = strconv.ParseUint(vars["accountId"], 10, 64); err != nil {
-		errorHappened("accountId is not set or the value is incorrect", http.StatusBadRequest, w)
-		return
-	}
-
-	response := &struct {
-		entity.Account
-		Application []*entity.Application `json:"application"`
-	}{
-		Account: entity.Account{
-			ID:        accountID,
-			Name:      "Demo Account",
-			Enabled:   true,
-			CreatedAt: "2014-12-15T10:10:10Z",
-			UpdatedAt: "2014-12-20T12:10:10Z",
-		},
-		Application: []*entity.Application{
-			&entity.Application{
-				ID:        1,
-				Key:       "abc123def",
-				Name:      "Demo App",
-				Enabled:   true,
-				CreatedAt: "2014-12-15T10:10:10Z",
-				UpdatedAt: "2014-12-20T12:10:10Z",
-			},
-			&entity.Application{
-				ID:        2,
-				Key:       "abc345def",
-				Name:      "Demo App",
-				Enabled:   true,
-				CreatedAt: "2014-12-15T10:10:10Z",
-				UpdatedAt: "2014-12-20T12:10:10Z",
-			},
-			&entity.Application{
-				ID:        3,
-				Key:       "abc678ef",
-				Name:      "Demo App",
-				Enabled:   true,
-				CreatedAt: "2014-12-15T10:10:10Z",
-				UpdatedAt: "2014-12-20T12:10:10Z",
-			},
-		},
-	}
-
-	writeResponse(response, http.StatusOK, 10, w, r)
 }

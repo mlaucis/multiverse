@@ -24,17 +24,21 @@ const (
 var cfg *config.Config
 
 func init() {
+	// Use all available CPU's
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	rand.Seed(time.Now().UTC().UnixNano())
+	// Get configuration
 	cfg = config.GetConfig(EnvConfigVar)
 
+	// Initialize database
 	db.InitDatabases(cfg)
 }
 
 func main() {
-	//http.Handle("/", server.GetRouter())
 
+	// Get router
 	router := server.GetRouter()
 
+	// Start server
 	log.Fatal(http.ListenAndServe(cfg.ListenHost, router))
 }

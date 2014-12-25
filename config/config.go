@@ -1,5 +1,5 @@
 /**
- * @author Florin Patan <florinpatan@gmail.com>
+ * @author Florin Patan <florinpatan@gmai.com>
  */
 
 // Package config provides application configuration structure and loading logic
@@ -38,7 +38,10 @@ type Config struct {
 
 var cfg *Config
 
-// Get the default configuration. It will be overwritten by the config from the user
+/**
+ * Get the default configuration. It will be overwritten by the config from the user
+ * @return cfg, default configuration
+ */
 func getDefaultConfig() *Config {
 	cfg := &Config{}
 	cfg.Env = "dev"
@@ -69,45 +72,58 @@ func getDefaultConfig() *Config {
 	return cfg
 }
 
-// This function should be implemented to add config validation
-// or panic if needed
+/**
+ * validateConfig should be implemented to add config validation
+ * or panic if needed
+ */
 func validateConfig() {
 
 }
 
-// GetConfig loads the configuration for the application.
-// After the first call, it caches the values internally.
-//
-// The name of the config file must be "config.json"
-//
-// It first tries to load the config file from the environment variable that you pass as the argument.
-// If the environment variable doesn't exist or it's empty it then tries to use the directory where the binary file is.
-//
-// If the file is not present or it's not a valid json file the the call fails as well.
-//
+/**
+ * GetConfig loads the configuration for the application.
+ * After the first call, it caches the values internally.
+ *
+ * The name of the config file must be "config.json"
+ *
+ * It first tries to load the config file from the environment variable that you pass as the argument.
+ * If the environment variable doesn't exist or it's empty it then tries to use the directory where the binary file is.
+ *
+ * If the file is not present or it's not a valid json file the the call fails as well.
+ *
+ * @param configPath, environment variable that holds the path to the config
+ * @return cfg, config settings from file
+ */
 func GetConfig(configPath string) *Config {
+	// Return config if it's not empty
 	if cfg != nil {
 		return cfg
 	}
 
+	// Read config path from environment variable
 	configDir := os.Getenv(configPath)
 
+	// If empty set path to path of current file
 	if configDir == "" {
 		_, currentFilename, _, _ := runtime.Caller(1)
 		configDir = path.Dir(currentFilename)
 	}
 
+	// Read config.json
 	file, err := ioutil.ReadFile(path.Join(configDir, "config.json"))
 	if err != nil {
 		panic(err)
 	}
 
+	// Get the default configuration
 	cfg = getDefaultConfig()
 
+	// Overwrite with user configuration from file
 	if err := json.Unmarshal(file, cfg); err != nil {
 		panic(err)
 	}
 
+	// Validate configuration
 	validateConfig()
 
 	return cfg

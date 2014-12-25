@@ -2,6 +2,7 @@
  * @author Onur Akpolat <onurakpolat@gmail.com>
  */
 
+// Package server holds all the server related logic
 package server
 
 import (
@@ -10,6 +11,10 @@ import (
 	"time"
 )
 
+/**
+ * Logger logs all server requests and prints to console
+ * @param inner, http.Handler that is beeing used
+ */
 func Logger(inner http.Handler, name string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()

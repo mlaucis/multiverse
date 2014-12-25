@@ -16,13 +16,9 @@
 			"Rev": "e444e69cbd2e2e3e0749a2f3c717cec491552bbf"
 		},
 		{
-			"ImportPath": "github.com/jinzhu/gorm",
-			"Rev": "0219fb1cc033bda7ed78c90ed933fb3ecdb6f46f"
-		},
-		{
-			"ImportPath": "github.com/lib/pq",
-			"Comment": "go1.0-cutoff-4-g2cef02a",
-			"Rev": "2cef02aef11d6a12c4ae39cba5002a7614b51a37"
+			"ImportPath": "github.com/jmoiron/sqlx",
+			"Comment": "sqlx-v1.0-58-gac7070c",
+			"Rev": "ac7070c8a115e759a26e524fd299efdac81b7e86"
 		}
 	]
 }
