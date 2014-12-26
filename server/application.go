@@ -2,12 +2,12 @@
  * @author Onur Akpolat <onurakpolat@gmail.com>
  */
 
-// Package server holds all the server related logic
 package server
 
 import (
- 	"encoding/json"
- 	"io"
+	"encoding/json"
+	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -47,8 +47,8 @@ func getAccountApplication(w http.ResponseWriter, r *http.Request) {
 			AccountID: 123456,
 			Name:      "Demo App",
 			Enabled:   true,
-			CreatedAt: "2014-12-15T10:10:10Z",
-			UpdatedAt: "2014-12-20T12:10:10Z",
+			CreatedAt: api_demo_time,
+			UpdatedAt: api_demo_time,
 		},
 	}
 
@@ -95,8 +95,8 @@ func getAccountApplicationList(w http.ResponseWriter, r *http.Request) {
 			ID:        accountID,
 			Name:      "Demo Account",
 			Enabled:   true,
-			CreatedAt: "2014-12-15T10:10:10Z",
-			UpdatedAt: "2014-12-20T12:10:10Z",
+			CreatedAt: api_demo_time,
+			UpdatedAt: api_demo_time,
 		},
 		Application: []*entity.Application{
 			&entity.Application{
@@ -104,24 +104,24 @@ func getAccountApplicationList(w http.ResponseWriter, r *http.Request) {
 				Key:       "abc123def",
 				Name:      "Demo App",
 				Enabled:   true,
-				CreatedAt: "2014-12-15T10:10:10Z",
-				UpdatedAt: "2014-12-20T12:10:10Z",
+				CreatedAt: api_demo_time,
+				UpdatedAt: api_demo_time,
 			},
 			&entity.Application{
 				ID:        2,
 				Key:       "abc345def",
 				Name:      "Demo App",
 				Enabled:   true,
-				CreatedAt: "2014-12-15T10:10:10Z",
-				UpdatedAt: "2014-12-20T12:10:10Z",
+				CreatedAt: api_demo_time,
+				UpdatedAt: api_demo_time,
 			},
 			&entity.Application{
 				ID:        3,
 				Key:       "abc678ef",
 				Name:      "Demo App",
 				Enabled:   true,
-				CreatedAt: "2014-12-15T10:10:10Z",
-				UpdatedAt: "2014-12-20T12:10:10Z",
+				CreatedAt: api_demo_time,
+				UpdatedAt: api_demo_time,
 			},
 		},
 	}
@@ -164,17 +164,15 @@ func createAccountApplication(w http.ResponseWriter, r *http.Request) {
 	// Validate request
 	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
 	if err != nil {
-		panic(err)
+		errorHappened(fmt.Sprintf("%q", err), http.StatusRequestEntityTooLarge, w)
 	}
+
 	if err := r.Body.Close(); err != nil {
-		panic(err)
+		errorHappened(fmt.Sprintf("%q", err), http.StatusBadRequest, w)
 	}
+
 	if err := json.Unmarshal(body, &app); err != nil {
-		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		w.WriteHeader(422) // unprocessable entity
-		if err := json.NewEncoder(w).Encode(err); err != nil {
-			panic(err)
-		}
+		errorHappened(fmt.Sprintf("%q", err), http.StatusBadRequest, w)
 	}
 
 	// Read variables from request
@@ -198,8 +196,8 @@ func createAccountApplication(w http.ResponseWriter, r *http.Request) {
 			AccountID: accountID,
 			Name:      "Demo App",
 			Enabled:   true,
-			CreatedAt: "2014-12-15T10:10:10Z",
-			UpdatedAt: "2014-12-20T12:10:10Z",
+			CreatedAt: api_demo_time,
+			UpdatedAt: api_demo_time,
 		},
 	}
 
@@ -215,4 +213,3 @@ func createAccountApplication(w http.ResponseWriter, r *http.Request) {
 	// Write response
 	writeResponse(response, http.StatusCreated, 10, w, r)
 }
-

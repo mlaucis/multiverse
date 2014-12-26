@@ -2,7 +2,6 @@
  * @author Florin Patan <florinpatan@gmail.com>
  */
 
-// Package server holds all the server related logic
 package server
 
 import (
@@ -59,10 +58,10 @@ func getApplicationEvent(w http.ResponseWriter, r *http.Request) {
 				URL:          "app://user/1",
 				ThumbnailURL: "https://avatars2.githubusercontent.com/u/1712926?v=3&s=460",
 				Custom:       `{"sound": "boo"}`,
-				LastLogin:    "2014-12-20T12:10:10Z",
+				LastLogin:    api_demo_time,
 			},
 			Custom:    `{"key1": "value1"}`,
-			CreatedAt: "2014-12-20T10:20:30Z",
+			CreatedAt: api_demo_time,
 		},
 	}
 
@@ -105,9 +104,9 @@ func getApplicationUserEvents(w http.ResponseWriter, r *http.Request) {
 			URL:          "app://users/2",
 			ThumbnailURL: "https://avatars2.githubusercontent.com/u/1712926?v=3&s=460",
 			Custom:       `{"sound": "boo"}`,
-			CreatedAt:    "2014-12-15T10:10:10Z",
-			UpdatedAt:    "2014-12-20T12:10:10Z",
-			LastLogin:    "2014-12-20T12:10:10Z",
+			CreatedAt:    api_demo_time,
+			UpdatedAt:    api_demo_time,
+			LastLogin:    api_demo_time,
 		},
 		Events: []*entity.Event{
 			&entity.Event{
@@ -118,7 +117,7 @@ func getApplicationUserEvents(w http.ResponseWriter, r *http.Request) {
 					Name: "Demo news",
 					URL:  "app://news/1",
 				},
-				CreatedAt: "2014-12-20T10:20:30Z",
+				CreatedAt: api_demo_time,
 				Custom:    `{"key1": "value1"}`,
 			},
 			&entity.Event{
@@ -129,7 +128,7 @@ func getApplicationUserEvents(w http.ResponseWriter, r *http.Request) {
 					Name: "Demo news",
 					URL:  "app://item/2",
 				},
-				CreatedAt: "2014-12-20T10:23:30Z",
+				CreatedAt: api_demo_time,
 			},
 			&entity.Event{
 				ID:   0,
@@ -139,7 +138,7 @@ func getApplicationUserEvents(w http.ResponseWriter, r *http.Request) {
 					Name: "Get more Gluee",
 					URL:  "http://gluee.co",
 				},
-				CreatedAt: "2014-12-20T10:23:30Z",
+				CreatedAt: api_demo_time,
 			},
 		},
 	}
@@ -159,10 +158,10 @@ func getApplicationUserEvents(w http.ResponseWriter, r *http.Request) {
  */
 func getSessionEvents(w http.ResponseWriter, r *http.Request) {
 	var (
-		appID uint64
+		appID     uint64
 		userToken string
 		sessionID string
-		err   error
+		err       error
 	)
 	// Read variables from request
 	vars := mux.Vars(r)
@@ -181,12 +180,12 @@ func getSessionEvents(w http.ResponseWriter, r *http.Request) {
 
 	// Create mock response
 	response := &struct {
-		appID  uint64          `json: "appId"`
-		userToken string 		`json: "userToken"`
-		sessionID  string      `json: "sessionId"`
-		Events []*entity.Event `json:"events"`
+		appID     uint64          `json: "appId"`
+		userToken string          `json: "userToken"`
+		sessionID string          `json: "sessionId"`
+		Events    []*entity.Event `json:"events"`
 	}{
-		appID: appID,
+		appID:     appID,
 		userToken: userToken,
 		sessionID: sessionID,
 		Events: []*entity.Event{
@@ -198,13 +197,13 @@ func getSessionEvents(w http.ResponseWriter, r *http.Request) {
 					Name: "Demo news",
 					URL:  "app://news/1",
 				},
-				CreatedAt: "2014-12-20T10:20:30Z",
+				CreatedAt: api_demo_time,
 				User: &entity.User{
 					Username:     "Onur",
 					URL:          "app://user/1",
 					ThumbnailURL: "https://avatars2.githubusercontent.com/u/1712926?v=3&s=460",
 					Custom:       `{"sound": "boo"}`,
-					LastLogin:    "2014-12-20T12:10:10Z",
+					LastLogin:    api_demo_time,
 				},
 				Custom: `{"key1": "value1"}`,
 			},
@@ -216,13 +215,13 @@ func getSessionEvents(w http.ResponseWriter, r *http.Request) {
 					Name: "Demo news",
 					URL:  "app://item/2",
 				},
-				CreatedAt: "2014-12-20T10:23:30Z",
+				CreatedAt: api_demo_time,
 				User: &entity.User{
 					Username:     "Florin",
 					URL:          "app://user/2",
 					ThumbnailURL: "https://avatars0.githubusercontent.com/u/607868?v=3&s=460",
 					Custom:       `{"sound": "boo"}`,
-					LastLogin:    "2014-12-20T12:10:10Z",
+					LastLogin:    api_demo_time,
 				},
 			},
 			&entity.Event{
@@ -233,7 +232,7 @@ func getSessionEvents(w http.ResponseWriter, r *http.Request) {
 					Name: "Get more Gluee",
 					URL:  "http://gluee.co",
 				},
-				CreatedAt: "2014-12-20T10:23:30Z",
+				CreatedAt: api_demo_time,
 			},
 			&entity.Event{
 				ID:   3,
@@ -243,13 +242,13 @@ func getSessionEvents(w http.ResponseWriter, r *http.Request) {
 					Name: "Gluee works",
 					URL:  "app://item/3",
 				},
-				CreatedAt: "2014-12-20T10:30:30Z",
+				CreatedAt: api_demo_time,
 				User: &entity.User{
 					Username:     "Norman",
 					URL:          "app://user/3",
 					ThumbnailURL: "https://avatars0.githubusercontent.com/u/607868?v=3&s=460",
 					Custom:       `{"sound": "boo"}`,
-					LastLogin:    "2014-12-20T12:10:10Z",
+					LastLogin:    api_demo_time,
 				},
 				Custom: `{"key1": "value1"}`,
 			},
@@ -262,13 +261,13 @@ func getSessionEvents(w http.ResponseWriter, r *http.Request) {
 					Name: "Summer in Berlin",
 					URL:  "app://item/4",
 				},
-				CreatedAt: "2014-12-20T10:31:30Z",
+				CreatedAt: api_demo_time,
 				User: &entity.User{
 					Username:     "Norman",
 					URL:          "app://user/3",
 					ThumbnailURL: "https://avatars0.githubusercontent.com/u/607868?v=3&s=460",
 					Custom:       `{"sound": "boo"}`,
-					LastLogin:    "2014-12-20T12:10:10Z",
+					LastLogin:    api_demo_time,
 				},
 				Custom: `{"largeUrl": "https://avatars0.githubusercontent.com/u/607868?v=3&s=460"}`,
 			},
@@ -281,13 +280,13 @@ func getSessionEvents(w http.ResponseWriter, r *http.Request) {
 					Name: "Winter in London",
 					URL:  "app://item/5",
 				},
-				CreatedAt: "2014-12-20T10:35:30Z",
+				CreatedAt: api_demo_time,
 				User: &entity.User{
 					Username:     "Norman",
 					URL:          "app://user/3",
 					ThumbnailURL: "https://avatars0.githubusercontent.com/u/607868?v=3&s=460",
 					Custom:       `{"sound": "boo"}`,
-					LastLogin:    "2014-12-20T12:10:10Z",
+					LastLogin:    api_demo_time,
 				},
 				Custom: `{
 					"largeUrl": "https://avatars0.githubusercontent.com/u/607868?v=3&s=460",
@@ -312,9 +311,9 @@ func getSessionEvents(w http.ResponseWriter, r *http.Request) {
  */
 func getUserConnectionsEvents(w http.ResponseWriter, r *http.Request) {
 	var (
-		appID uint64
+		appID     uint64
 		userToken string
-		err   error
+		err       error
 	)
 	// Read variables from request
 	vars := mux.Vars(r)
@@ -330,11 +329,11 @@ func getUserConnectionsEvents(w http.ResponseWriter, r *http.Request) {
 
 	// Create mock response
 	response := &struct {
-		appID  uint64          `json: "appId"`
-		userToken  string      `json: "userToken"`
-		Events []*entity.Event `json:"events"`
+		appID     uint64          `json: "appId"`
+		userToken string          `json: "userToken"`
+		Events    []*entity.Event `json:"events"`
 	}{
-		appID: appID,
+		appID:     appID,
 		userToken: userToken,
 		Events: []*entity.Event{
 			&entity.Event{
@@ -345,13 +344,13 @@ func getUserConnectionsEvents(w http.ResponseWriter, r *http.Request) {
 					Name: "Demo news",
 					URL:  "app://news/1",
 				},
-				CreatedAt: "2014-12-20T10:20:30Z",
+				CreatedAt: api_demo_time,
 				User: &entity.User{
 					Username:     "Onur",
 					URL:          "app://user/1",
 					ThumbnailURL: "https://avatars2.githubusercontent.com/u/1712926?v=3&s=460",
 					Custom:       `{"sound": "boo"}`,
-					LastLogin:    "2014-12-20T12:10:10Z",
+					LastLogin:    api_demo_time,
 				},
 				Custom: `{"key1": "value1"}`,
 			},
@@ -363,13 +362,13 @@ func getUserConnectionsEvents(w http.ResponseWriter, r *http.Request) {
 					Name: "Demo news",
 					URL:  "app://item/2",
 				},
-				CreatedAt: "2014-12-20T10:23:30Z",
+				CreatedAt: api_demo_time,
 				User: &entity.User{
 					Username:     "Florin",
 					URL:          "app://user/2",
 					ThumbnailURL: "https://avatars0.githubusercontent.com/u/607868?v=3&s=460",
 					Custom:       `{"sound": "boo"}`,
-					LastLogin:    "2014-12-20T12:10:10Z",
+					LastLogin:    api_demo_time,
 				},
 			},
 			&entity.Event{
@@ -380,7 +379,7 @@ func getUserConnectionsEvents(w http.ResponseWriter, r *http.Request) {
 					Name: "Get more Gluee",
 					URL:  "http://gluee.co",
 				},
-				CreatedAt: "2014-12-20T10:23:30Z",
+				CreatedAt: api_demo_time,
 			},
 			&entity.Event{
 				ID:   3,
@@ -390,13 +389,13 @@ func getUserConnectionsEvents(w http.ResponseWriter, r *http.Request) {
 					Name: "Gluee works",
 					URL:  "app://item/3",
 				},
-				CreatedAt: "2014-12-20T10:30:30Z",
+				CreatedAt: api_demo_time,
 				User: &entity.User{
 					Username:     "Norman",
 					URL:          "app://user/3",
 					ThumbnailURL: "https://avatars0.githubusercontent.com/u/607868?v=3&s=460",
 					Custom:       `{"sound": "boo"}`,
-					LastLogin:    "2014-12-20T12:10:10Z",
+					LastLogin:    api_demo_time,
 				},
 				Custom: `{"key1": "value1"}`,
 			},
@@ -409,13 +408,13 @@ func getUserConnectionsEvents(w http.ResponseWriter, r *http.Request) {
 					Name: "Summer in Berlin",
 					URL:  "app://item/4",
 				},
-				CreatedAt: "2014-12-20T10:31:30Z",
+				CreatedAt: api_demo_time,
 				User: &entity.User{
 					Username:     "Norman",
 					URL:          "app://user/3",
 					ThumbnailURL: "https://avatars0.githubusercontent.com/u/607868?v=3&s=460",
 					Custom:       `{"sound": "boo"}`,
-					LastLogin:    "2014-12-20T12:10:10Z",
+					LastLogin:    api_demo_time,
 				},
 				Custom: `{"largeUrl": "https://avatars0.githubusercontent.com/u/607868?v=3&s=460"}`,
 			},
@@ -428,13 +427,13 @@ func getUserConnectionsEvents(w http.ResponseWriter, r *http.Request) {
 					Name: "Winter in London",
 					URL:  "app://item/5",
 				},
-				CreatedAt: "2014-12-20T10:35:30Z",
+				CreatedAt: api_demo_time,
 				User: &entity.User{
 					Username:     "Norman",
 					URL:          "app://user/3",
 					ThumbnailURL: "https://avatars0.githubusercontent.com/u/607868?v=3&s=460",
 					Custom:       `{"sound": "boo"}`,
-					LastLogin:    "2014-12-20T12:10:10Z",
+					LastLogin:    api_demo_time,
 				},
 				Custom: `{
 					"largeUrl": "https://avatars0.githubusercontent.com/u/607868?v=3&s=460",

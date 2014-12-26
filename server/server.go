@@ -9,9 +9,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/mux"
 )
+
+// To be used across API demos, should be deleted when no raw examples present
+var api_demo_time = time.Date(2014, time.December, 25, 12, 30, 0, 0, time.UTC)
 
 /**
  * writeResponse handles the http responses and returns the data
@@ -26,10 +30,11 @@ func writeResponse(response interface{}, code int, cache uint, w http.ResponseWr
 	json, err := json.Marshal(response)
 	if err != nil {
 		errorHappened(fmt.Sprintf("%q", err), http.StatusInternalServerError, w)
+		return
 	}
 
 	// Set the response headers
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.Header().Set("Cache-Control", fmt.Sprintf(`"max-age=%d, public"`, cache))
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
@@ -48,7 +53,7 @@ func writeResponse(response interface{}, code int, cache uint, w http.ResponseWr
  */
 func errorHappened(message string, code int, w http.ResponseWriter) {
 	w.WriteHeader(code)
-	w.Header().Set("Content-Type", "text/plain")
+	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	w.Write([]byte(fmt.Sprintf("%d %s", code, message)))
 }
 
@@ -60,7 +65,7 @@ func errorHappened(message string, code int, w http.ResponseWriter) {
  * @param r, http request
  */
 func home(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/plain")
+	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	w.Write([]byte(`these aren't the droids you're looking for`))
 }
 
@@ -72,7 +77,7 @@ func home(w http.ResponseWriter, r *http.Request) {
  * @param r, http request
  */
 func humans(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/plain")
+	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	w.Write([]byte(`/* TEAM */
 Founder: Normal Wiese, Onur Akpolat
 http://gluee.co
@@ -96,7 +101,7 @@ Software: Go`))
  * @param r, http request
  */
 func robots(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/plain")
+	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	w.Write([]byte(`User-agent: *
 Disallow: /`))
 }

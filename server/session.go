@@ -2,7 +2,6 @@
  * @author Florin Patan <florinpatan@gmail.com>
  */
 
-// Package server holds all the server related logic
 package server
 
 import (
@@ -44,11 +43,11 @@ func getUserSession(w http.ResponseWriter, r *http.Request) {
 
 	// Create mock response
 	response := &struct {
-		appID uint64 `json: "appId"`
+		appID     uint64 `json: "appId"`
 		userToken string `json: "userToken"`
 		sessionID string `json: "sessionId"`
 	}{
-		appID: appID,
+		appID:     appID,
 		userToken: userToken,
 		sessionID: sessionID,
 	}
@@ -68,8 +67,8 @@ func getUserSession(w http.ResponseWriter, r *http.Request) {
  */
 func getUserSessionList(w http.ResponseWriter, r *http.Request) {
 	var (
-		appID     uint64
-		err       error
+		appID uint64
+		err   error
 	)
 	// Read variables from request
 	vars := mux.Vars(r)

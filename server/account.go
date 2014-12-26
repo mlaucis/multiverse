@@ -2,14 +2,14 @@
  * @author Onur Akpolat <onurakpolat@gmail.com>
  */
 
-// Package server holds all the server related logic
 package server
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
-	//"github.com/gluee/backend/db"
+	"github.com/gluee/backend/db"
 	"github.com/gluee/backend/entity"
 	"github.com/gorilla/mux"
 )
@@ -24,7 +24,7 @@ import (
 func getAccount(w http.ResponseWriter, r *http.Request) {
 	var (
 		accountID uint64
-		//account entity.Account
+		account   = &entity.Account{}
 		err       error
 	)
 	// Read variables from request
@@ -36,29 +36,15 @@ func getAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Create mock response
-	response := &struct {
-		*entity.Account
-	}{
-		Account: &entity.Account{
-			ID:        accountID,
-			Name:      "Demo Account",
-			Enabled:   true,
-			CreatedAt: "2014-12-15T10:10:10Z",
-			UpdatedAt: "2014-12-20T12:10:10Z",
-		},
+	// Read account from database
+	err = db.GetSlave().QueryRowx("SELECT * FROM accounts WHERE id=?", accountID).StructScan(account)
+	if err != nil {
+		errorHappened(fmt.Sprintf("%q", err), http.StatusInternalServerError, w)
+		return
 	}
 
-	// Read account from database
-
-	// Query draft
-	// rows, err := db.GetSlave().Queryx("SELECT * FROM accounts WHERE id=?", accountID)
-	// for rows.Next() {
-	//     err = rows.StructScan(&account)
-	// }
-
 	// Write response
-	writeResponse(response, http.StatusOK, 10, w, r)
+	writeResponse(account, http.StatusOK, 10, w, r)
 }
 
 /**
@@ -69,5 +55,5 @@ func getAccount(w http.ResponseWriter, r *http.Request) {
  * @param r, http request
  */
 func createAccount(w http.ResponseWriter, r *http.Request) {
-
+	//INSERT INTO `gluee`.`accounts` (`id`, `name`, `enabled`, `created_at`, `updated_at`) VALUES (NULL, 'demo', '1', '2014-12-26 11:14:24', '2014-12-26 11:14:24');
 }

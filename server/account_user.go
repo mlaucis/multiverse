@@ -2,7 +2,6 @@
  * @author Onur Akpolat <onurakpolat@gmail.com>
  */
 
-// Package server holds all the server related logic
 package server
 
 import (
@@ -49,9 +48,9 @@ func getAccountUser(w http.ResponseWriter, r *http.Request) {
 			Name:      "Demo User",
 			Email:     "demouser@demo.com",
 			Enabled:   true,
-			LastLogin: "2014-12-20T12:10:10Z",
-			CreatedAt: "2014-12-15T10:10:10Z",
-			UpdatedAt: "2014-12-20T12:10:10Z",
+			LastLogin: api_demo_time,
+			CreatedAt: api_demo_time,
+			UpdatedAt: api_demo_time,
 		},
 	}
 
@@ -98,8 +97,8 @@ func getAccountUserList(w http.ResponseWriter, r *http.Request) {
 			ID:        accountID,
 			Name:      "Demo Account",
 			Enabled:   true,
-			CreatedAt: "2014-12-15T10:10:10Z",
-			UpdatedAt: "2014-12-20T12:10:10Z",
+			CreatedAt: api_demo_time,
+			UpdatedAt: api_demo_time,
 		},
 		AccountUser: []*entity.AccountUser{
 			&entity.AccountUser{
@@ -107,27 +106,27 @@ func getAccountUserList(w http.ResponseWriter, r *http.Request) {
 				Name:      "Demo User",
 				Email:     "demouser@demo.com",
 				Enabled:   true,
-				LastLogin: "2014-12-20T12:10:10Z",
-				CreatedAt: "2014-12-15T10:10:10Z",
-				UpdatedAt: "2014-12-20T12:10:10Z",
+				LastLogin: api_demo_time,
+				CreatedAt: api_demo_time,
+				UpdatedAt: api_demo_time,
 			},
 			&entity.AccountUser{
 				ID:        "2",
 				Name:      "Demo User",
 				Email:     "demouser@demo.com",
 				Enabled:   true,
-				LastLogin: "2014-12-20T12:10:10Z",
-				CreatedAt: "2014-12-15T10:10:10Z",
-				UpdatedAt: "2014-12-20T12:10:10Z",
+				LastLogin: api_demo_time,
+				CreatedAt: api_demo_time,
+				UpdatedAt: api_demo_time,
 			},
 			&entity.AccountUser{
 				ID:        "3",
 				Name:      "Demo User",
 				Email:     "demouser@demo.com",
 				Enabled:   true,
-				LastLogin: "2014-12-20T12:10:10Z",
-				CreatedAt: "2014-12-15T10:10:10Z",
-				UpdatedAt: "2014-12-20T12:10:10Z",
+				LastLogin: api_demo_time,
+				CreatedAt: api_demo_time,
+				UpdatedAt: api_demo_time,
 			},
 		},
 	}

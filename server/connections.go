@@ -2,7 +2,6 @@
  * @author Florin Patan <florinpatan@gmail.com>
  */
 
-// Package server holds all the server related logic
 package server
 
 import (
@@ -55,9 +54,9 @@ func getUserConnections(w http.ResponseWriter, r *http.Request) {
 					URL:          "app://user/1",
 					ThumbnailURL: "https://avatars2.githubusercontent.com/u/1712926?v=3&s=460",
 					Custom:       `{"sound": "boo"}`,
-					CreatedAt:    "2014-12-15T10:10:10Z",
-					UpdatedAt:    "2014-12-20T12:10:10Z",
-					LastLogin:    "2014-12-20T12:10:10Z",
+					CreatedAt:    api_demo_time,
+					UpdatedAt:    api_demo_time,
+					LastLogin:    api_demo_time,
 				},
 				&entity.User{
 					Token:        "DemoToken2",
@@ -65,9 +64,9 @@ func getUserConnections(w http.ResponseWriter, r *http.Request) {
 					URL:          "app://user/2",
 					ThumbnailURL: "https://avatars2.githubusercontent.com/u/1712926?v=3&s=460",
 					Custom:       `{"sound": "boo"}`,
-					CreatedAt:    "2014-12-15T10:10:10Z",
-					UpdatedAt:    "2014-12-20T12:10:10Z",
-					LastLogin:    "2014-12-20T12:10:10Z",
+					CreatedAt:    api_demo_time,
+					UpdatedAt:    api_demo_time,
+					LastLogin:    api_demo_time,
 				},
 				&entity.User{
 					Token:        "DemoToken3",
@@ -75,9 +74,9 @@ func getUserConnections(w http.ResponseWriter, r *http.Request) {
 					URL:          "app://user/3",
 					Custom:       `{"sound": "boo"}`,
 					ThumbnailURL: "https://avatars2.githubusercontent.com/u/1712926?v=3&s=460",
-					CreatedAt:    "2014-12-15T10:10:10Z",
-					UpdatedAt:    "2014-12-20T12:10:10Z",
-					LastLogin:    "2014-12-20T12:10:10Z",
+					CreatedAt:    api_demo_time,
+					UpdatedAt:    api_demo_time,
+					LastLogin:    api_demo_time,
 				},
 			},
 		},
