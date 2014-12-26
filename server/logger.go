@@ -19,11 +19,9 @@ func Logger(inner http.Handler, name string) http.Handler {
 		start := time.Now()
 
 		// we should use this to sanitize any other headers that should not be exposed to the logs
-		headers := r.Header
+		headers := getSanitizedHeaders(r)
 
 		inner.ServeHTTP(w, r)
-
-		// TODO sanitize headers that shouldn't not appear in the logs
 
 		log.Printf(
 			"%s\t%s\t%+v\t%s\t%s\n",

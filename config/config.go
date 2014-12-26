@@ -105,7 +105,11 @@ func GetConfig(configPath string) *Config {
 
 	// If empty set path to path of current file
 	if configDir == "" {
-		_, currentFilename, _, _ := runtime.Caller(1)
+		_, currentFilename, _, ok := runtime.Caller(1)
+		if !ok {
+			panic("Could not retrieve the caller for loading config")
+		}
+
 		configDir = path.Dir(currentFilename)
 	}
 

@@ -30,7 +30,7 @@ func getAccountUser(w http.ResponseWriter, r *http.Request) {
 
 	// Read accountID
 	if accountID, err = strconv.ParseUint(vars["accountId"], 10, 64); err != nil {
-		errorHappened("accountId is not set or the value is incorrect", http.StatusBadRequest, w)
+		errorHappened("accountId is not set or the value is incorrect", http.StatusBadRequest, r, w)
 		return
 	}
 
@@ -84,7 +84,7 @@ func getAccountUserList(w http.ResponseWriter, r *http.Request) {
 
 	// Read accountID
 	if accountID, err = strconv.ParseUint(vars["accountId"], 10, 64); err != nil {
-		errorHappened("accountId is not set or the value is incorrect", http.StatusBadRequest, w)
+		errorHappened("accountId is not set or the value is incorrect", http.StatusBadRequest, r, w)
 		return
 	}
 

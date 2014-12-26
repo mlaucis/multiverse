@@ -25,7 +25,7 @@ import (
 func getAccount(w http.ResponseWriter, r *http.Request) {
 	var (
 		accountID uint64
-		account   = &entity.Account{}
+		account   *entity.Account
 		err       error
 	)
 	// Read variables from request
@@ -33,14 +33,14 @@ func getAccount(w http.ResponseWriter, r *http.Request) {
 
 	// Read accountID
 	if accountID, err = strconv.ParseUint(vars["accountId"], 10, 64); err != nil {
-		errorHappened("accountId is not set or the value is incorrect", http.StatusBadRequest, w)
+		errorHappened("accountId is not set or the value is incorrect", http.StatusBadRequest, r, w)
 		return
 	}
 
 	// Read account from database
-	err = db.GetSlave().QueryRowx("SELECT * FROM accounts WHERE id=?", accountID).StructScan(account)
+	account, err = db.GetAccountById(accountID)
 	if err != nil {
-		errorHappened(fmt.Sprintf("%q", err), http.StatusInternalServerError, w)
+		errorHappened(fmt.Sprintf("%q", err), http.StatusInternalServerError, r, w)
 		return
 	}
 
@@ -57,19 +57,37 @@ func getAccount(w http.ResponseWriter, r *http.Request) {
  */
 func createAccount(w http.ResponseWriter, r *http.Request) {
 	if err := validatePostCommon(w, r); err != nil {
-		errorHappened(fmt.Sprintf("%q", err), http.StatusBadRequest, w)
+		errorHappened(fmt.Sprintf("%q", err), http.StatusBadRequest, r, w)
 		return
 	}
 
-	var account entity.Account
+	var (
+		account          = &entity.Account{}
+		createdAccountID int64
+	)
 
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&account); err != nil {
-		errorHappened(fmt.Sprintf("%q", err), http.StatusBadRequest, w)
+		errorHappened(fmt.Sprintf("%q", err), http.StatusBadRequest, r, w)
+		return
+	}
+
+	query := "INSERT INTO `gluee`.`accounts` (`name`) VALUES (?)"
+	result, err := db.GetMaster().Exec(query, account.Name)
+	if err != nil {
+		errorHappened("Error while saving to database", http.StatusInternalServerError, r, w)
+		return
+	}
+
+	createdAccountID, err = result.LastInsertId()
+	if err != nil {
+		errorHappened("error while processing the request", http.StatusInternalServerError, r, w)
+	}
+
+	if account, err = db.GetAccountById(uint64(createdAccountID)); err != nil {
+		errorHappened(fmt.Sprintf("%q", err), http.StatusInternalServerError, r, w)
 		return
 	}
 
 	writeResponse(account, http.StatusOK, 0, w, r)
-
-	//INSERT INTO `gluee`.`accounts` (`id`, `name`, `enabled`, `created_at`, `updated_at`) VALUES (NULL, 'demo', '1', '2014-12-26 11:14:24', '2014-12-26 11:14:24');
 }

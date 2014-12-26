@@ -29,13 +29,13 @@ func getApplicationEvent(w http.ResponseWriter, r *http.Request) {
 
 	// Read appID
 	if appID, err = strconv.ParseUint(vars["appId"], 10, 64); err != nil {
-		errorHappened("appId is not set or the value is incorrect", http.StatusBadRequest, w)
+		errorHappened("appId is not set or the value is incorrect", http.StatusBadRequest, r, w)
 		return
 	}
 
 	// Read eventID
 	if eventID, err = strconv.ParseUint(vars["eventId"], 10, 64); err != nil {
-		errorHappened("eventId is not set or the value is incorrect", http.StatusBadRequest, w)
+		errorHappened("eventId is not set or the value is incorrect", http.StatusBadRequest, r, w)
 		return
 	}
 
@@ -88,7 +88,7 @@ func getApplicationUserEvents(w http.ResponseWriter, r *http.Request) {
 
 	// Read appID
 	if appID, err = strconv.ParseUint(vars["appId"], 10, 64); err != nil {
-		errorHappened("appId is not set or the value is incorrect", http.StatusBadRequest, w)
+		errorHappened("appId is not set or the value is incorrect", http.StatusBadRequest, r, w)
 		return
 	}
 
@@ -168,7 +168,7 @@ func getSessionEvents(w http.ResponseWriter, r *http.Request) {
 
 	// Read appID
 	if appID, err = strconv.ParseUint(vars["appId"], 10, 64); err != nil {
-		errorHappened("appId is not set or the value is incorrect", http.StatusBadRequest, w)
+		errorHappened("appId is not set or the value is incorrect", http.StatusBadRequest, r, w)
 		return
 	}
 
@@ -320,7 +320,7 @@ func getUserConnectionsEvents(w http.ResponseWriter, r *http.Request) {
 
 	// Read appID
 	if appID, err = strconv.ParseUint(vars["appId"], 10, 64); err != nil {
-		errorHappened("appId is not set or the value is incorrect", http.StatusBadRequest, w)
+		errorHappened("appId is not set or the value is incorrect", http.StatusBadRequest, r, w)
 		return
 	}
 

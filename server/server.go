@@ -8,7 +8,10 @@ package server
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
+	"path/filepath"
+	"runtime"
 	"strconv"
 	"time"
 
@@ -55,6 +58,15 @@ func writeCacheHeaders(cacheTime uint, w http.ResponseWriter) {
 	}
 }
 
+// getSanitizedHeaders returns the sanitized request headers
+func getSanitizedHeaders(r *http.Request) http.Header {
+	headers := r.Header
+
+	// TODO sanitize headers that shouldn't not appear in the logs
+
+	return headers
+}
+
 /**
  * writeResponse handles the http responses and returns the data
  * @param response, response data
@@ -67,7 +79,7 @@ func writeResponse(response interface{}, code int, cacheTime uint, w http.Respon
 	// Read response to json
 	json, err := json.Marshal(response)
 	if err != nil {
-		errorHappened(fmt.Sprintf("%q", err), http.StatusInternalServerError, w)
+		errorHappened(fmt.Sprintf("%q", err), http.StatusInternalServerError, r, w)
 		return
 	}
 
@@ -89,11 +101,29 @@ func writeResponse(response interface{}, code int, cacheTime uint, w http.Respon
  * @param code, http status code
  * @param w, response writer
  */
-func errorHappened(message string, code int, w http.ResponseWriter) {
+func errorHappened(message string, code int, r *http.Request, w http.ResponseWriter) {
 	w.WriteHeader(code)
 	writeCacheHeaders(0, w)
 	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	w.Write([]byte(fmt.Sprintf("%d %s", code, message)))
+
+	_, filename, line, ok := runtime.Caller(1)
+	if !ok {
+		return
+	}
+
+	headers := getSanitizedHeaders(r)
+
+	log.Printf(
+		"Error %q in %s/%s:%d while %s\t%s\t%+v\n",
+		message,
+		filepath.Base(filepath.Dir(filename)),
+		filepath.Base(filename),
+		line,
+		r.Method,
+		r.RequestURI,
+		headers,
+	)
 }
 
 /**
