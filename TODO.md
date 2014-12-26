@@ -9,8 +9,8 @@
 
 | Entity | Verb | Case | Implementation | Test | Documentation |
 | ------ | ---- | ---- | -------------- | ---- | ------------- |
-| Account|POST|Create an Account|✗|✗|✗|✗|
-| Account|GET|Read an Account|✗|✗|✗|✗|
+| Account|POST|Create an Account|✓|✗|✗|✗|
+| Account|GET|Read an Account|✓|✗|✗|✗|
 | AccountUser|POST|Create an Account User|✗|✗|✗|✗|
 | AccountUser|GET|List Account Users|✗|✗|✗|✗|
 | AccountUser|GET|Read Single Account User|✗|✗|✗|✗|
