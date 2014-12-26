@@ -434,7 +434,7 @@ func getUserConnectionsEvents(w http.ResponseWriter, r *http.Request) {
 }
 
 // createApplicationEvent handles requests to create an event
-// Request: POST /app/:AppID/user/:userToken/session/:SessionID/event/:EventID
+// Request: POST /app/:AppID/user/:userToken/session/:SessionID/event
 // Test with: curl -H "Content-Type: application/json" -d '{"TBD"}' localhost/app/:AppID/user/:userToken/session/:SessionID/event/:EventID
 func createApplicationEvent(w http.ResponseWriter, r *http.Request) {
 

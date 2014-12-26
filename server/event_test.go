@@ -9,42 +9,27 @@ import (
 	"testing"
 )
 
-/**
- * Test getApplicationEvent
- * @param t, pointer to type testing.T to record test status
- */
+// Test getApplicationEvent
 func TestgetApplicationEvent(t *testing.T) {
 	// Implement test
 }
 
-/**
- * Test getApplicationUserEvents
- * @param t, pointer to type testing.T to record test status
- */
+// Test getApplicationUserEvents
 func TestgetApplicationUserEvents(t *testing.T) {
 	// Implement test
 }
 
-/**
- * Test getSessionEvents
- * @param t, pointer to type testing.T to record test status
- */
+// Test getSessionEvents
 func TestgetSessionEvents(t *testing.T) {
 	// Implement test
 }
 
-/**
- * Test getUserConnectionsEvents
- * @param t, pointer to type testing.T to record test status
- */
+// Test getUserConnectionsEvents
 func TestgetUserConnectionsEvents(t *testing.T) {
 	// Implement test
 }
 
-/**
- * Test createApplicationEvent
- * @param t, pointer to type testing.T to record test status
- */
+// Test createApplicationEvent
 func TestcreateApplicationEvent(t *testing.T) {
 	// Implement test
 }

@@ -9,26 +9,17 @@ import (
 	"testing"
 )
 
-/**
- * Test getDefaultConfig
- * @param t, pointer to type testing.T to record test status
- */
+// Test getDefaultConfig
 func TestgetDefaultConfig(t *testing.T) {
 	// Implement test
 }
 
-/**
- * Test validateConfig
- * @param t, pointer to type testing.T to record test status
- */
+// Test validateConfig
 func TestvalidateConfig(t *testing.T) {
 	// Implement test
 }
 
-/**
- * Test GetConfig
- * @param t, pointer to type testing.T to record test status
- */
+// Test GetConfig
 func TestGetConfig(t *testing.T) {
 	// Implement test
 }

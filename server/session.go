@@ -92,7 +92,7 @@ func getUserSessionList(w http.ResponseWriter, r *http.Request) {
 }
 
 // createUserSession handles requests create a user session
-// Request: POST /app/:AppID/user/:userToken/session/:SessionID
+// Request: POST /app/:AppID/user/:userToken/session
 // Test with: curl -H "Content-Type: application/json" -d '{"TBD"}' localhost/app/:AppID/user/:userToken/session/:SessionID
 func createUserSession(w http.ResponseWriter, r *http.Request) {
 

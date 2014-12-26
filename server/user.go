@@ -117,7 +117,7 @@ func getApplicationUserList(w http.ResponseWriter, r *http.Request) {
 }
 
 // createApplicationUser handles requests create an application user
-// Request: POST /app/:AppID/user/:userToken
+// Request: POST /app/:AppID/user
 // Test with: curl -H "Content-Type: application/json" -d '{"name":"User name"}' localhost/app/:AppID/user/:userToken
 func createApplicationUser(w http.ResponseWriter, r *http.Request) {
 

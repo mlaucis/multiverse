@@ -9,10 +9,7 @@ import (
 	"testing"
 )
 
-/**
- * Test Logger
- * @param t, pointer to type testing.T to record test status
- */
+// Test Logger
 func TestLogger(t *testing.T) {
 	// Implement test
 }

@@ -9,50 +9,32 @@ import (
 	"testing"
 )
 
-/**
- * Test writeResponse
- * @param t, pointer to type testing.T to record test status
- */
+// Test writeResponse
 func TestwriteResponse(t *testing.T) {
 	// Implement test
 }
 
-/**
- * Test errorHappened
- * @param t, pointer to type testing.T to record test status
- */
+// Test errorHappened
 func TesterrorHappened(t *testing.T) {
 	// Implement test
 }
 
-/**
- * Test home
- * @param t, pointer to type testing.T to record test status
- */
+// Test home
 func Testhome(t *testing.T) {
 	// Implement test
 }
 
-/**
- * Test humans
- * @param t, pointer to type testing.T to record test status
- */
+// Test humans
 func Testhumans(t *testing.T) {
 	// Implement test
 }
 
-/**
- * Test robots
- * @param t, pointer to type testing.T to record test status
- */
+// Test robots
 func Testrobots(t *testing.T) {
 	// Implement test
 }
 
-/**
- * Test GetRouter
- * @param t, pointer to type testing.T to record test status
- */
+// Test GetRouter
 func TestGetRouter(t *testing.T) {
 	// Implement test
 }

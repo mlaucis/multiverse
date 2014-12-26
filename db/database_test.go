@@ -9,42 +9,27 @@ import (
 	"testing"
 )
 
-/**
- * Test openMasterConnection
- * @param t, pointer to type testing.T to record test status
- */
+// Test openMasterConnection
 func TestopenMasterConnection(t *testing.T) {
 	// Implement test
 }
 
-/**
- * Test openSlaveConnections
- * @param t, pointer to type testing.T to record test status
- */
+// Test openSlaveConnections
 func TestopenSlaveConnections(t *testing.T) {
 	// Implement test
 }
 
-/**
- * Test InitDatabases
- * @param t, pointer to type testing.T to record test status
- */
+// Test InitDatabases
 func TestInitDatabases(t *testing.T) {
 	// Implement test
 }
 
-/**
- * Test GetMaster
- * @param t, pointer to type testing.T to record test status
- */
+// Test GetMaster
 func TestGetMaster(t *testing.T) {
 	// Implement test
 }
 
-/**
- * Test GetSlave
- * @param t, pointer to type testing.T to record test status
- */
+// Test GetSlave
 func TestGetSlave(t *testing.T) {
 	// Implement test
 }

@@ -9,26 +9,17 @@ import (
 	"testing"
 )
 
-/**
- * Test getAccountApplication
- * @param t, pointer to type testing.T to record test status
- */
+// Test getAccountApplication
 func TestgetAccountApplication(t *testing.T) {
 	// Implement test
 }
 
-/**
- * Test getAccountApplicationList
- * @param t, pointer to type testing.T to record test status
- */
+// Test getAccountApplicationList
 func TestgetAccountApplicationList(t *testing.T) {
 	// Implement test
 }
 
-/**
- * Test createAccountApplication
- * @param t, pointer to type testing.T to record test status
- */
+// Test createAccountApplication
 func TestcreateAccountApplication(t *testing.T) {
 	// Implement test
 }
