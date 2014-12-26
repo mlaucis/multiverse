@@ -1,5 +1,5 @@
 /**
- * @author Florin Patan <florinpatan@gmai.com>
+ * @author Florin Patan <florinpatan@gmail.com>
  */
 
 // Package config provides application configuration structure and loading logic
