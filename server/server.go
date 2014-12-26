@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -16,6 +17,27 @@ import (
 
 // To be used across API demos, should be deleted when no raw examples present
 var api_demo_time = time.Date(2014, time.December, 25, 12, 30, 0, 0, time.UTC)
+
+func validatePostCommon(w http.ResponseWriter, r *http.Request) error {
+	if r.ContentLength < 1 {
+		return fmt.Errorf("invalid Content-Length size")
+	}
+
+	if r.Header.Get("Content-Length") == "" {
+		return fmt.Errorf("Content-Length header must be set")
+	}
+
+	reqCL, err := strconv.ParseInt(r.Header.Get("Content-Length"), 10, 64)
+	if err != nil {
+		return fmt.Errorf("Content-Length header value could not be decoded. %q", err)
+	}
+
+	if reqCL != r.ContentLength {
+		fmt.Errorf("Content-Length header value is different fromt the received value")
+	}
+
+	return nil
+}
 
 /**
  * writeCacheHeaders will add the corresponding cache headers based on the time supplied (in seconds)

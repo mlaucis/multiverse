@@ -5,6 +5,7 @@
 package server
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -55,5 +56,20 @@ func getAccount(w http.ResponseWriter, r *http.Request) {
  * @param r, http request
  */
 func createAccount(w http.ResponseWriter, r *http.Request) {
+	if err := validatePostCommon(w, r); err != nil {
+		errorHappened(fmt.Sprintf("%q", err), http.StatusBadRequest, w)
+		return
+	}
+
+	var account entity.Account
+
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&account); err != nil {
+		errorHappened(fmt.Sprintf("%q", err), http.StatusBadRequest, w)
+		return
+	}
+
+	writeResponse(account, http.StatusOK, 0, w, r)
+
 	//INSERT INTO `gluee`.`accounts` (`id`, `name`, `enabled`, `created_at`, `updated_at`) VALUES (NULL, 'demo', '1', '2014-12-26 11:14:24', '2014-12-26 11:14:24');
 }
