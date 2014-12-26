@@ -18,14 +18,30 @@ import (
 var api_demo_time = time.Date(2014, time.December, 25, 12, 30, 0, 0, time.UTC)
 
 /**
+ * writeCacheHeaders will add the corresponding cache headers based on the time supplied (in seconds)
+ * @param cacheTime, response cache
+ * @param w, http response writer
+ */
+func writeCacheHeaders(cacheTime uint, w http.ResponseWriter) {
+	if cacheTime > 0 {
+		w.Header().Set("Cache-Control", fmt.Sprintf(`"max-age=%d, public"`, cacheTime))
+		w.Header().Set("Expires", time.Now().Add(time.Duration(cacheTime)*time.Second).Format(http.TimeFormat))
+	} else {
+		w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+		w.Header().Set("Pragma", "no-cache")
+		w.Header().Set("Expires", "0")
+	}
+}
+
+/**
  * writeResponse handles the http responses and returns the data
  * @param response, response data
  * @param code, http status code
- * @param cache, response cache
+ * @param cacheTime, response cache
  * @param w, http response writer
  * @param r, http request
  */
-func writeResponse(response interface{}, code int, cache uint, w http.ResponseWriter, r *http.Request) {
+func writeResponse(response interface{}, code int, cacheTime uint, w http.ResponseWriter, r *http.Request) {
 	// Read response to json
 	json, err := json.Marshal(response)
 	if err != nil {
@@ -34,8 +50,8 @@ func writeResponse(response interface{}, code int, cache uint, w http.ResponseWr
 	}
 
 	// Set the response headers
+	writeCacheHeaders(cacheTime, w)
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.Header().Set("Cache-Control", fmt.Sprintf(`"max-age=%d, public"`, cache))
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding")
@@ -53,6 +69,7 @@ func writeResponse(response interface{}, code int, cache uint, w http.ResponseWr
  */
 func errorHappened(message string, code int, w http.ResponseWriter) {
 	w.WriteHeader(code)
+	writeCacheHeaders(0, w)
 	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	w.Write([]byte(fmt.Sprintf("%d %s", code, message)))
 }
@@ -65,6 +82,7 @@ func errorHappened(message string, code int, w http.ResponseWriter) {
  * @param r, http request
  */
 func home(w http.ResponseWriter, r *http.Request) {
+	writeCacheHeaders(10*24*3600, w)
 	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	w.Write([]byte(`these aren't the droids you're looking for`))
 }
@@ -77,6 +95,7 @@ func home(w http.ResponseWriter, r *http.Request) {
  * @param r, http request
  */
 func humans(w http.ResponseWriter, r *http.Request) {
+	writeCacheHeaders(10*24*3600, w)
 	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	w.Write([]byte(`/* TEAM */
 Founder: Normal Wiese, Onur Akpolat
@@ -101,6 +120,7 @@ Software: Go`))
  * @param r, http request
  */
 func robots(w http.ResponseWriter, r *http.Request) {
+	writeCacheHeaders(10*24*3600, w)
 	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	w.Write([]byte(`User-agent: *
 Disallow: /`))
