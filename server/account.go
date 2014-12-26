@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strconv"
 
+	//"github.com/gluee/backend/db"
 	"github.com/gluee/backend/entity"
 	"github.com/gorilla/mux"
 )
@@ -23,6 +24,7 @@ import (
 func getAccount(w http.ResponseWriter, r *http.Request) {
 	var (
 		accountID uint64
+		//account entity.Account
 		err       error
 	)
 	// Read variables from request
@@ -50,11 +52,10 @@ func getAccount(w http.ResponseWriter, r *http.Request) {
 	// Read account from database
 
 	// Query draft
-	/**
-	 * SELECT id, name, enabled, created_at, updated_at
-	 * FROM accounts
-	 * WHERE id={accountID};
-	 */
+	// rows, err := db.GetSlave().Queryx("SELECT * FROM accounts WHERE id=?", accountID)
+	// for rows.Next() {
+	//     err = rows.StructScan(&account)
+	// }
 
 	// Write response
 	writeResponse(response, http.StatusOK, 10, w, r)
