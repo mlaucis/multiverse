@@ -8,10 +8,8 @@ import (
 	"github.com/gluee/backend/entity"
 )
 
-/*
- * GetAccountById returns the account matching the ID or an error
- */
-func GetAccountById(accountID uint64) (account *entity.Account, err error) {
+// GetAccountByID returns the account matching the ID or an error
+func GetAccountByID(accountID uint64) (account *entity.Account, err error) {
 	account = &entity.Account{}
 
 	err = GetSlave().

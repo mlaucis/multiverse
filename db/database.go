@@ -35,10 +35,7 @@ var (
 	slaveConnections = &dbSlaves{}
 )
 
-/**
- * Open a connection to master server
- * @param cfg, configuration that holds database settings
- */
+// openMasterConnection opens a connection to the master database
 func openMasterConnection(cfg *config.Config) {
 	// Read settings from configuration
 	masterDSN := fmt.Sprintf(
@@ -57,10 +54,7 @@ func openMasterConnection(cfg *config.Config) {
 	masterConnection.DB.SetMaxOpenConns(100)
 }
 
-/**
- * Open the connections to the slave servers
- * @param cfg, configuration that holds database settings
- */
+// openSlaveConnections opens a connection to each of the slave databases
 func openSlaveConnections(cfg *config.Config) {
 	for _, slave := range cfg.DB.Slaves {
 		slaveConnection := &sqlx.DB{}
@@ -83,28 +77,20 @@ func openSlaveConnections(cfg *config.Config) {
 	}
 }
 
-/**
- * InitDatabases initializes the connections to the servers
- * @param cfg, configuration that holds database settings
- */
+// InitDatabases initializes the connections to the servers
 func InitDatabases(cfg *config.Config) {
 	openMasterConnection(cfg)
 	openSlaveConnections(cfg)
 }
 
-/**
- * GetMaster is used to write to the database.
- * @return masterConnection, master database connection
- */
+// GetMaster returns the connection to the master database.
+// It is used to write to the database.
 func GetMaster() *sqlx.DB {
 	return masterConnection
 }
 
-/**
- * GetSlave is used to read from database.
- * If there's no slave configured, it returns master.
- * @return slaveConnections, slave database connection from the connection pool
- */
+// GetSlave is used to read from database.
+// If there's no slave configured, it returns master.
 func GetSlave() *sqlx.DB {
 	if len(slaveConnections.Slaves) == 0 {
 		return masterConnection

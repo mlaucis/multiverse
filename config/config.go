@@ -38,10 +38,7 @@ type Config struct {
 
 var cfg *Config
 
-/**
- * Get the default configuration. It will be overwritten by the config from the user
- * @return cfg, default configuration
- */
+// getDefaultConfig returns the default configuration. It will be overwritten by the config from the user
 func getDefaultConfig() *Config {
 	cfg := &Config{}
 	cfg.Env = "dev"
@@ -72,28 +69,20 @@ func getDefaultConfig() *Config {
 	return cfg
 }
 
-/**
- * validateConfig should be implemented to add config validation
- * or panic if needed
- */
+// validateConfig should be implemented to add config validation or panic if needed
 func validateConfig() {
 
 }
 
-/**
- * GetConfig loads the configuration for the application.
- * After the first call, it caches the values internally.
- *
- * The name of the config file must be "config.json"
- *
- * It first tries to load the config file from the environment variable that you pass as the argument.
- * If the environment variable doesn't exist or it's empty it then tries to use the directory where the binary file is.
- *
- * If the file is not present or it's not a valid json file the the call fails as well.
- *
- * @param configPath, environment variable that holds the path to the config
- * @return cfg, config settings from file
- */
+//GetConfig loads the configuration for the application.
+//After the first call, it caches the values internally.
+//
+//The name of the config file must be "config.json"
+//
+//It first tries to load the config file from the environment variable that you pass as the argument.
+//If the environment variable doesn't exist or it's empty it then tries to use the directory where the binary file is.
+//
+//If the file is not present or it's not a valid json file the the call fails as well.
 func GetConfig(configPath string) *Config {
 	// Return config if it's not empty
 	if cfg != nil {

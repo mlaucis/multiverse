@@ -12,13 +12,9 @@ import (
 	"github.com/gorilla/mux"
 )
 
-/**
- * getUserConnections handles requests to list a users connections
- * Request: GET /app/:AppID/user/:Token/connections
- * Test with: curl -i localhost/app/:AppID/user/:Token/connections
- * @param w, response writer
- * @param r, http request
- */
+// getUserConnections handles requests to list a users connections
+// Request: GET /app/:AppID/user/:Token/connections
+// Test with: curl -i localhost/app/:AppID/user/:Token/connections
 func getUserConnections(w http.ResponseWriter, r *http.Request) {
 	var (
 		appID     uint64
@@ -54,9 +50,9 @@ func getUserConnections(w http.ResponseWriter, r *http.Request) {
 					URL:          "app://user/1",
 					ThumbnailURL: "https://avatars2.githubusercontent.com/u/1712926?v=3&s=460",
 					Custom:       `{"sound": "boo"}`,
-					CreatedAt:    api_demo_time,
-					UpdatedAt:    api_demo_time,
-					LastLogin:    api_demo_time,
+					CreatedAt:    apiDemoTime,
+					UpdatedAt:    apiDemoTime,
+					LastLogin:    apiDemoTime,
 				},
 				&entity.User{
 					Token:        "DemoToken2",
@@ -64,9 +60,9 @@ func getUserConnections(w http.ResponseWriter, r *http.Request) {
 					URL:          "app://user/2",
 					ThumbnailURL: "https://avatars2.githubusercontent.com/u/1712926?v=3&s=460",
 					Custom:       `{"sound": "boo"}`,
-					CreatedAt:    api_demo_time,
-					UpdatedAt:    api_demo_time,
-					LastLogin:    api_demo_time,
+					CreatedAt:    apiDemoTime,
+					UpdatedAt:    apiDemoTime,
+					LastLogin:    apiDemoTime,
 				},
 				&entity.User{
 					Token:        "DemoToken3",
@@ -74,9 +70,9 @@ func getUserConnections(w http.ResponseWriter, r *http.Request) {
 					URL:          "app://user/3",
 					Custom:       `{"sound": "boo"}`,
 					ThumbnailURL: "https://avatars2.githubusercontent.com/u/1712926?v=3&s=460",
-					CreatedAt:    api_demo_time,
-					UpdatedAt:    api_demo_time,
-					LastLogin:    api_demo_time,
+					CreatedAt:    apiDemoTime,
+					UpdatedAt:    apiDemoTime,
+					LastLogin:    apiDemoTime,
 				},
 			},
 		},
@@ -89,13 +85,9 @@ func getUserConnections(w http.ResponseWriter, r *http.Request) {
 	writeResponse(response, http.StatusOK, 10, w, r)
 }
 
-/**
- * createUserConnection handles requests to create a user connection
- * Request: POST /app/:AppID/connection
- * Test with: curl -H "Content-Type: application/json" -d '{"user_id1":"123456","user_id2":"654321"}' localhost/app/:AppID/connection
- * @param w, response writer
- * @param r, http request
- */
+// createUserConnection handles requests to create a user connection
+// Request: POST /app/:AppID/connection
+// Test with: curl -H "Content-Type: application/json" -d '{"user_id1":"123456","user_id2":"654321"}' localhost/app/:AppID/connection
 func createUserConnection(w http.ResponseWriter, r *http.Request) {
 
 }

@@ -15,13 +15,9 @@ import (
 	"github.com/gorilla/mux"
 )
 
-/**
- * getAccount handles requests to a single account
- * Request: GET /account/:AccountID
- * Test with: curl -i localhost/account/:AccountID
- * @param w, response writer
- * @param r, http request
- */
+// getAccount handles requests to a single account
+// Request: GET /account/:AccountID
+// Test with: curl -i localhost/account/:AccountID
 func getAccount(w http.ResponseWriter, r *http.Request) {
 	var (
 		accountID uint64
@@ -38,7 +34,7 @@ func getAccount(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Read account from database
-	account, err = db.GetAccountById(accountID)
+	account, err = db.GetAccountByID(accountID)
 	if err != nil {
 		errorHappened(fmt.Sprintf("%q", err), http.StatusInternalServerError, r, w)
 		return
@@ -48,13 +44,9 @@ func getAccount(w http.ResponseWriter, r *http.Request) {
 	writeResponse(account, http.StatusOK, 10, w, r)
 }
 
-/**
- * createAccount handles requests create an account
- * Request: POST /account
- * Test with: curl -H "Content-Type: application/json" -d '{"name":"New Account"}' localhost/account
- * @param w, response writer
- * @param r, http request
- */
+// createAccount handles requests create an account
+// Request: POST /account
+// Test with: curl -H "Content-Type: application/json" -d '{"name":"New Account"}' localhost/account
 func createAccount(w http.ResponseWriter, r *http.Request) {
 	if err := validatePostCommon(w, r); err != nil {
 		errorHappened(fmt.Sprintf("%q", err), http.StatusBadRequest, r, w)
@@ -84,7 +76,7 @@ func createAccount(w http.ResponseWriter, r *http.Request) {
 		errorHappened("error while processing the request", http.StatusInternalServerError, r, w)
 	}
 
-	if account, err = db.GetAccountById(uint64(createdAccountID)); err != nil {
+	if account, err = db.GetAccountByID(uint64(createdAccountID)); err != nil {
 		errorHappened(fmt.Sprintf("%q", err), http.StatusInternalServerError, r, w)
 		return
 	}

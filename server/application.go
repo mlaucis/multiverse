@@ -16,13 +16,9 @@ import (
 	"github.com/gorilla/mux"
 )
 
-/**
- * getAccountApplications handles requests to a single application
- * Request: GET /app/:AppID
- * Test with: curl -i localhost/app/:AppID
- * @param w, response writer
- * @param r, http request
- */
+// getAccountApplications handles requests to a single application
+// Request: GET /app/:AppID
+// Test with: curl -i localhost/app/:AppID
 func getAccountApplication(w http.ResponseWriter, r *http.Request) {
 	var (
 		appID uint64
@@ -47,8 +43,8 @@ func getAccountApplication(w http.ResponseWriter, r *http.Request) {
 			AccountID: 123456,
 			Name:      "Demo App",
 			Enabled:   true,
-			CreatedAt: api_demo_time,
-			UpdatedAt: api_demo_time,
+			CreatedAt: apiDemoTime,
+			UpdatedAt: apiDemoTime,
 		},
 	}
 
@@ -65,13 +61,9 @@ func getAccountApplication(w http.ResponseWriter, r *http.Request) {
 	writeResponse(response, http.StatusOK, 10, w, r)
 }
 
-/**
- * getAccountApplicationList handles requests list all account applications
- * Request: GET /account/:AccountID/applications
- * Test with: curl -i localhost/account/:AccountID/applications
- * @param w, response writer
- * @param r, http request
- */
+// getAccountApplicationList handles requests list all account applications
+// Request: GET /account/:AccountID/applications
+// Test with: curl -i localhost/account/:AccountID/applications
 func getAccountApplicationList(w http.ResponseWriter, r *http.Request) {
 	var (
 		accountID uint64
@@ -95,8 +87,8 @@ func getAccountApplicationList(w http.ResponseWriter, r *http.Request) {
 			ID:        accountID,
 			Name:      "Demo Account",
 			Enabled:   true,
-			CreatedAt: api_demo_time,
-			UpdatedAt: api_demo_time,
+			CreatedAt: apiDemoTime,
+			UpdatedAt: apiDemoTime,
 		},
 		Application: []*entity.Application{
 			&entity.Application{
@@ -104,24 +96,24 @@ func getAccountApplicationList(w http.ResponseWriter, r *http.Request) {
 				Key:       "abc123def",
 				Name:      "Demo App",
 				Enabled:   true,
-				CreatedAt: api_demo_time,
-				UpdatedAt: api_demo_time,
+				CreatedAt: apiDemoTime,
+				UpdatedAt: apiDemoTime,
 			},
 			&entity.Application{
 				ID:        2,
 				Key:       "abc345def",
 				Name:      "Demo App",
 				Enabled:   true,
-				CreatedAt: api_demo_time,
-				UpdatedAt: api_demo_time,
+				CreatedAt: apiDemoTime,
+				UpdatedAt: apiDemoTime,
 			},
 			&entity.Application{
 				ID:        3,
 				Key:       "abc678ef",
 				Name:      "Demo App",
 				Enabled:   true,
-				CreatedAt: api_demo_time,
-				UpdatedAt: api_demo_time,
+				CreatedAt: apiDemoTime,
+				UpdatedAt: apiDemoTime,
 			},
 		},
 	}
@@ -146,13 +138,9 @@ func getAccountApplicationList(w http.ResponseWriter, r *http.Request) {
 	writeResponse(response, http.StatusOK, 10, w, r)
 }
 
-/**
- * createAccountApplication handles requests create an application
- * Request: POST /account/:AccountID/app
- * Test with: curl -H "Content-Type: application/json" -d '{"name":"New App"}' localhost/account/:AccountID/app
- * @param w, response writer
- * @param r, http request
- */
+// createAccountApplication handles requests create an application
+// Request: POST /account/:AccountID/app
+// Test with: curl -H "Content-Type: application/json" -d '{"name":"New App"}' localhost/account/:AccountID/app
 func createAccountApplication(w http.ResponseWriter, r *http.Request) {
 	var (
 		accountID uint64
@@ -196,8 +184,8 @@ func createAccountApplication(w http.ResponseWriter, r *http.Request) {
 			AccountID: accountID,
 			Name:      "Demo App",
 			Enabled:   true,
-			CreatedAt: api_demo_time,
-			UpdatedAt: api_demo_time,
+			CreatedAt: apiDemoTime,
+			UpdatedAt: apiDemoTime,
 		},
 	}
 

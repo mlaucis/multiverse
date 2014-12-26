@@ -12,13 +12,9 @@ import (
 	"github.com/gorilla/mux"
 )
 
-/**
- * getAccountUser handles requests to a single account user
- * Request: GET /account/:AccountID/user/:UserID
- * Test with: curl -i localhost/account/:AccountID/user/:UserID
- * @param w, response writer
- * @param r, http request
- */
+// getAccountUser handles requests to a single account user
+// Request: GET /account/:AccountID/user/:UserID
+// Test with: curl -i localhost/account/:AccountID/user/:UserID
 func getAccountUser(w http.ResponseWriter, r *http.Request) {
 	var (
 		accountID uint64
@@ -48,9 +44,9 @@ func getAccountUser(w http.ResponseWriter, r *http.Request) {
 			Name:      "Demo User",
 			Email:     "demouser@demo.com",
 			Enabled:   true,
-			LastLogin: api_demo_time,
-			CreatedAt: api_demo_time,
-			UpdatedAt: api_demo_time,
+			LastLogin: apiDemoTime,
+			CreatedAt: apiDemoTime,
+			UpdatedAt: apiDemoTime,
 		},
 	}
 
@@ -67,13 +63,9 @@ func getAccountUser(w http.ResponseWriter, r *http.Request) {
 	writeResponse(response, http.StatusOK, 10, w, r)
 }
 
-/**
- * getAccountUserList handles requests to list all account users
- * Request: GET /account/:AccountID/users
- * Test with: curl -i localhost/account/:AccountID/users
- * @param w, response writer
- * @param r, http request
- */
+// getAccountUserList handles requests to list all account users
+// Request: GET /account/:AccountID/users
+// Test with: curl -i localhost/account/:AccountID/users
 func getAccountUserList(w http.ResponseWriter, r *http.Request) {
 	var (
 		accountID uint64
@@ -97,8 +89,8 @@ func getAccountUserList(w http.ResponseWriter, r *http.Request) {
 			ID:        accountID,
 			Name:      "Demo Account",
 			Enabled:   true,
-			CreatedAt: api_demo_time,
-			UpdatedAt: api_demo_time,
+			CreatedAt: apiDemoTime,
+			UpdatedAt: apiDemoTime,
 		},
 		AccountUser: []*entity.AccountUser{
 			&entity.AccountUser{
@@ -106,27 +98,27 @@ func getAccountUserList(w http.ResponseWriter, r *http.Request) {
 				Name:      "Demo User",
 				Email:     "demouser@demo.com",
 				Enabled:   true,
-				LastLogin: api_demo_time,
-				CreatedAt: api_demo_time,
-				UpdatedAt: api_demo_time,
+				LastLogin: apiDemoTime,
+				CreatedAt: apiDemoTime,
+				UpdatedAt: apiDemoTime,
 			},
 			&entity.AccountUser{
 				ID:        "2",
 				Name:      "Demo User",
 				Email:     "demouser@demo.com",
 				Enabled:   true,
-				LastLogin: api_demo_time,
-				CreatedAt: api_demo_time,
-				UpdatedAt: api_demo_time,
+				LastLogin: apiDemoTime,
+				CreatedAt: apiDemoTime,
+				UpdatedAt: apiDemoTime,
 			},
 			&entity.AccountUser{
 				ID:        "3",
 				Name:      "Demo User",
 				Email:     "demouser@demo.com",
 				Enabled:   true,
-				LastLogin: api_demo_time,
-				CreatedAt: api_demo_time,
-				UpdatedAt: api_demo_time,
+				LastLogin: apiDemoTime,
+				CreatedAt: apiDemoTime,
+				UpdatedAt: apiDemoTime,
 			},
 		},
 	}
@@ -144,13 +136,9 @@ func getAccountUserList(w http.ResponseWriter, r *http.Request) {
 	writeResponse(response, http.StatusOK, 10, w, r)
 }
 
-/**
- * createAccountUser handles requests create an account user
- * Request: POST /account/:AccountID/user
- * Test with: curl -H "Content-Type: application/json" -d '{"name":"User name"}' localhost/account/:AccountID/user
- * @param w, response writer
- * @param r, http request
- */
+// createAccountUser handles requests create an account user
+// Request: POST /account/:AccountID/user
+// Test with: curl -H "Content-Type: application/json" -d '{"name":"User name"}' localhost/account/:AccountID/user
 func createAccountUser(w http.ResponseWriter, r *http.Request) {
 
 }

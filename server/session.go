@@ -12,13 +12,9 @@ import (
 	"github.com/gorilla/mux"
 )
 
-/**
- * getUserSession handles requests to retrieve a single session
- * Request: GET /app/:AppID/user/:Token/session/:SessionID
- * Test with: curl -i localhost/app/:AppID/user/:Token/session/:SessionID
- * @param w, response writer
- * @param r, http request
- */
+// getUserSession handles requests to retrieve a single session
+// Request: GET /app/:AppID/user/:Token/session/:SessionID
+// Test with: curl -i localhost/app/:AppID/user/:Token/session/:SessionID
 func getUserSession(w http.ResponseWriter, r *http.Request) {
 	var (
 		appID     uint64
@@ -58,13 +54,9 @@ func getUserSession(w http.ResponseWriter, r *http.Request) {
 	writeResponse(response, http.StatusOK, 10, w, r)
 }
 
-/**
- * getUserSessionList handles requests to retrieve all sessions of a user
- * Request: GET /app/:AppID/user/:userToken/sessions
- * Test with: curl -i localhost/app/:AppID/user/:userToken/sessions
- * @param w, response writer
- * @param r, http request
- */
+// getUserSessionList handles requests to retrieve all sessions of a user
+// Request: GET /app/:AppID/user/:userToken/sessions
+// Test with: curl -i localhost/app/:AppID/user/:userToken/sessions
 func getUserSessionList(w http.ResponseWriter, r *http.Request) {
 	var (
 		appID uint64
@@ -99,13 +91,9 @@ func getUserSessionList(w http.ResponseWriter, r *http.Request) {
 	writeResponse(response, http.StatusOK, 10, w, r)
 }
 
-/**
- * createUserSession handles requests create a user session
- * Request: POST /app/:AppID/user/:userToken/session/:SessionID
- * Test with: curl -H "Content-Type: application/json" -d '{"TBD"}' localhost/app/:AppID/user/:userToken/session/:SessionID
- * @param w, response writer
- * @param r, http request
- */
+// createUserSession handles requests create a user session
+// Request: POST /app/:AppID/user/:userToken/session/:SessionID
+// Test with: curl -H "Content-Type: application/json" -d '{"TBD"}' localhost/app/:AppID/user/:userToken/session/:SessionID
 func createUserSession(w http.ResponseWriter, r *http.Request) {
 
 }

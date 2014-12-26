@@ -12,13 +12,9 @@ import (
 	"github.com/gorilla/mux"
 )
 
-/**
- * getApplicationEvent handles requests to retrieve a single event
- * Request: GET /app/:AppID/event/:EventID
- * Test with: curl -i localhost/app/:AppID/event/:EventID
- * @param w, response writer
- * @param r, http request
- */
+// getApplicationEvent handles requests to retrieve a single event
+// Request: GET /app/:AppID/event/:EventID
+// Test with: curl -i localhost/app/:AppID/event/:EventID
 func getApplicationEvent(w http.ResponseWriter, r *http.Request) {
 	var (
 		appID, eventID uint64
@@ -58,10 +54,10 @@ func getApplicationEvent(w http.ResponseWriter, r *http.Request) {
 				URL:          "app://user/1",
 				ThumbnailURL: "https://avatars2.githubusercontent.com/u/1712926?v=3&s=460",
 				Custom:       `{"sound": "boo"}`,
-				LastLogin:    api_demo_time,
+				LastLogin:    apiDemoTime,
 			},
 			Custom:    `{"key1": "value1"}`,
-			CreatedAt: api_demo_time,
+			CreatedAt: apiDemoTime,
 		},
 	}
 
@@ -71,13 +67,9 @@ func getApplicationEvent(w http.ResponseWriter, r *http.Request) {
 	writeResponse(response, http.StatusOK, 10, w, r)
 }
 
-/**
- * getApplicationUserEvents handles requests to retrieve a users events
- * Request: GET /app/:AppID/user/:Token/events
- * Test with: curl -i localhost/app/:AppID/user/:Token/events
- * @param w, response writer
- * @param r, http request
- */
+// getApplicationUserEvents handles requests to retrieve a users events
+// Request: GET /app/:AppID/user/:Token/events
+// Test with: curl -i localhost/app/:AppID/user/:Token/events
 func getApplicationUserEvents(w http.ResponseWriter, r *http.Request) {
 	var (
 		appID uint64
@@ -104,9 +96,9 @@ func getApplicationUserEvents(w http.ResponseWriter, r *http.Request) {
 			URL:          "app://users/2",
 			ThumbnailURL: "https://avatars2.githubusercontent.com/u/1712926?v=3&s=460",
 			Custom:       `{"sound": "boo"}`,
-			CreatedAt:    api_demo_time,
-			UpdatedAt:    api_demo_time,
-			LastLogin:    api_demo_time,
+			CreatedAt:    apiDemoTime,
+			UpdatedAt:    apiDemoTime,
+			LastLogin:    apiDemoTime,
 		},
 		Events: []*entity.Event{
 			&entity.Event{
@@ -117,7 +109,7 @@ func getApplicationUserEvents(w http.ResponseWriter, r *http.Request) {
 					Name: "Demo news",
 					URL:  "app://news/1",
 				},
-				CreatedAt: api_demo_time,
+				CreatedAt: apiDemoTime,
 				Custom:    `{"key1": "value1"}`,
 			},
 			&entity.Event{
@@ -128,7 +120,7 @@ func getApplicationUserEvents(w http.ResponseWriter, r *http.Request) {
 					Name: "Demo news",
 					URL:  "app://item/2",
 				},
-				CreatedAt: api_demo_time,
+				CreatedAt: apiDemoTime,
 			},
 			&entity.Event{
 				ID:   0,
@@ -138,7 +130,7 @@ func getApplicationUserEvents(w http.ResponseWriter, r *http.Request) {
 					Name: "Get more Gluee",
 					URL:  "http://gluee.co",
 				},
-				CreatedAt: api_demo_time,
+				CreatedAt: apiDemoTime,
 			},
 		},
 	}
@@ -149,13 +141,9 @@ func getApplicationUserEvents(w http.ResponseWriter, r *http.Request) {
 	writeResponse(response, http.StatusOK, 10, w, r)
 }
 
-/**
- * getSessionEvents handles requests to retrieve a sessions events
- * Request: GET /app/:AppID/user/:userToken/session/:SessionID/events
- * Test with: curl -i localhost/app/:AppID/user/:userToken/session/:SessionID/events
- * @param w, response writer
- * @param r, http request
- */
+// getSessionEvents handles requests to retrieve a sessions events
+// Request: GET /app/:AppID/user/:userToken/session/:SessionID/events
+// Test with: curl -i localhost/app/:AppID/user/:userToken/session/:SessionID/events
 func getSessionEvents(w http.ResponseWriter, r *http.Request) {
 	var (
 		appID     uint64
@@ -197,13 +185,13 @@ func getSessionEvents(w http.ResponseWriter, r *http.Request) {
 					Name: "Demo news",
 					URL:  "app://news/1",
 				},
-				CreatedAt: api_demo_time,
+				CreatedAt: apiDemoTime,
 				User: &entity.User{
 					Username:     "Onur",
 					URL:          "app://user/1",
 					ThumbnailURL: "https://avatars2.githubusercontent.com/u/1712926?v=3&s=460",
 					Custom:       `{"sound": "boo"}`,
-					LastLogin:    api_demo_time,
+					LastLogin:    apiDemoTime,
 				},
 				Custom: `{"key1": "value1"}`,
 			},
@@ -215,13 +203,13 @@ func getSessionEvents(w http.ResponseWriter, r *http.Request) {
 					Name: "Demo news",
 					URL:  "app://item/2",
 				},
-				CreatedAt: api_demo_time,
+				CreatedAt: apiDemoTime,
 				User: &entity.User{
 					Username:     "Florin",
 					URL:          "app://user/2",
 					ThumbnailURL: "https://avatars0.githubusercontent.com/u/607868?v=3&s=460",
 					Custom:       `{"sound": "boo"}`,
-					LastLogin:    api_demo_time,
+					LastLogin:    apiDemoTime,
 				},
 			},
 			&entity.Event{
@@ -232,7 +220,7 @@ func getSessionEvents(w http.ResponseWriter, r *http.Request) {
 					Name: "Get more Gluee",
 					URL:  "http://gluee.co",
 				},
-				CreatedAt: api_demo_time,
+				CreatedAt: apiDemoTime,
 			},
 			&entity.Event{
 				ID:   3,
@@ -242,13 +230,13 @@ func getSessionEvents(w http.ResponseWriter, r *http.Request) {
 					Name: "Gluee works",
 					URL:  "app://item/3",
 				},
-				CreatedAt: api_demo_time,
+				CreatedAt: apiDemoTime,
 				User: &entity.User{
 					Username:     "Norman",
 					URL:          "app://user/3",
 					ThumbnailURL: "https://avatars0.githubusercontent.com/u/607868?v=3&s=460",
 					Custom:       `{"sound": "boo"}`,
-					LastLogin:    api_demo_time,
+					LastLogin:    apiDemoTime,
 				},
 				Custom: `{"key1": "value1"}`,
 			},
@@ -261,13 +249,13 @@ func getSessionEvents(w http.ResponseWriter, r *http.Request) {
 					Name: "Summer in Berlin",
 					URL:  "app://item/4",
 				},
-				CreatedAt: api_demo_time,
+				CreatedAt: apiDemoTime,
 				User: &entity.User{
 					Username:     "Norman",
 					URL:          "app://user/3",
 					ThumbnailURL: "https://avatars0.githubusercontent.com/u/607868?v=3&s=460",
 					Custom:       `{"sound": "boo"}`,
-					LastLogin:    api_demo_time,
+					LastLogin:    apiDemoTime,
 				},
 				Custom: `{"largeUrl": "https://avatars0.githubusercontent.com/u/607868?v=3&s=460"}`,
 			},
@@ -280,13 +268,13 @@ func getSessionEvents(w http.ResponseWriter, r *http.Request) {
 					Name: "Winter in London",
 					URL:  "app://item/5",
 				},
-				CreatedAt: api_demo_time,
+				CreatedAt: apiDemoTime,
 				User: &entity.User{
 					Username:     "Norman",
 					URL:          "app://user/3",
 					ThumbnailURL: "https://avatars0.githubusercontent.com/u/607868?v=3&s=460",
 					Custom:       `{"sound": "boo"}`,
-					LastLogin:    api_demo_time,
+					LastLogin:    apiDemoTime,
 				},
 				Custom: `{
 					"largeUrl": "https://avatars0.githubusercontent.com/u/607868?v=3&s=460",
@@ -302,13 +290,9 @@ func getSessionEvents(w http.ResponseWriter, r *http.Request) {
 	writeResponse(response, http.StatusOK, 10, w, r)
 }
 
-/**
- * getUserConnectionsEvents handles requests to retrieve a users connections events
- * Request: GET /app/:AppID/user/:Token/connections/events
- * Test with: curl -i localhost/app/:AppID/user/:Token/connections/events
- * @param w, response writer
- * @param r, http request
- */
+// getUserConnectionsEvents handles requests to retrieve a users connections events
+// Request: GET /app/:AppID/user/:Token/connections/events
+// Test with: curl -i localhost/app/:AppID/user/:Token/connections/events
 func getUserConnectionsEvents(w http.ResponseWriter, r *http.Request) {
 	var (
 		appID     uint64
@@ -344,13 +328,13 @@ func getUserConnectionsEvents(w http.ResponseWriter, r *http.Request) {
 					Name: "Demo news",
 					URL:  "app://news/1",
 				},
-				CreatedAt: api_demo_time,
+				CreatedAt: apiDemoTime,
 				User: &entity.User{
 					Username:     "Onur",
 					URL:          "app://user/1",
 					ThumbnailURL: "https://avatars2.githubusercontent.com/u/1712926?v=3&s=460",
 					Custom:       `{"sound": "boo"}`,
-					LastLogin:    api_demo_time,
+					LastLogin:    apiDemoTime,
 				},
 				Custom: `{"key1": "value1"}`,
 			},
@@ -362,13 +346,13 @@ func getUserConnectionsEvents(w http.ResponseWriter, r *http.Request) {
 					Name: "Demo news",
 					URL:  "app://item/2",
 				},
-				CreatedAt: api_demo_time,
+				CreatedAt: apiDemoTime,
 				User: &entity.User{
 					Username:     "Florin",
 					URL:          "app://user/2",
 					ThumbnailURL: "https://avatars0.githubusercontent.com/u/607868?v=3&s=460",
 					Custom:       `{"sound": "boo"}`,
-					LastLogin:    api_demo_time,
+					LastLogin:    apiDemoTime,
 				},
 			},
 			&entity.Event{
@@ -379,7 +363,7 @@ func getUserConnectionsEvents(w http.ResponseWriter, r *http.Request) {
 					Name: "Get more Gluee",
 					URL:  "http://gluee.co",
 				},
-				CreatedAt: api_demo_time,
+				CreatedAt: apiDemoTime,
 			},
 			&entity.Event{
 				ID:   3,
@@ -389,13 +373,13 @@ func getUserConnectionsEvents(w http.ResponseWriter, r *http.Request) {
 					Name: "Gluee works",
 					URL:  "app://item/3",
 				},
-				CreatedAt: api_demo_time,
+				CreatedAt: apiDemoTime,
 				User: &entity.User{
 					Username:     "Norman",
 					URL:          "app://user/3",
 					ThumbnailURL: "https://avatars0.githubusercontent.com/u/607868?v=3&s=460",
 					Custom:       `{"sound": "boo"}`,
-					LastLogin:    api_demo_time,
+					LastLogin:    apiDemoTime,
 				},
 				Custom: `{"key1": "value1"}`,
 			},
@@ -408,13 +392,13 @@ func getUserConnectionsEvents(w http.ResponseWriter, r *http.Request) {
 					Name: "Summer in Berlin",
 					URL:  "app://item/4",
 				},
-				CreatedAt: api_demo_time,
+				CreatedAt: apiDemoTime,
 				User: &entity.User{
 					Username:     "Norman",
 					URL:          "app://user/3",
 					ThumbnailURL: "https://avatars0.githubusercontent.com/u/607868?v=3&s=460",
 					Custom:       `{"sound": "boo"}`,
-					LastLogin:    api_demo_time,
+					LastLogin:    apiDemoTime,
 				},
 				Custom: `{"largeUrl": "https://avatars0.githubusercontent.com/u/607868?v=3&s=460"}`,
 			},
@@ -427,13 +411,13 @@ func getUserConnectionsEvents(w http.ResponseWriter, r *http.Request) {
 					Name: "Winter in London",
 					URL:  "app://item/5",
 				},
-				CreatedAt: api_demo_time,
+				CreatedAt: apiDemoTime,
 				User: &entity.User{
 					Username:     "Norman",
 					URL:          "app://user/3",
 					ThumbnailURL: "https://avatars0.githubusercontent.com/u/607868?v=3&s=460",
 					Custom:       `{"sound": "boo"}`,
-					LastLogin:    api_demo_time,
+					LastLogin:    apiDemoTime,
 				},
 				Custom: `{
 					"largeUrl": "https://avatars0.githubusercontent.com/u/607868?v=3&s=460",
@@ -449,13 +433,9 @@ func getUserConnectionsEvents(w http.ResponseWriter, r *http.Request) {
 	writeResponse(response, http.StatusOK, 10, w, r)
 }
 
-/**
- * createApplicationEvent handles requests to create an event
- * Request: POST /app/:AppID/user/:userToken/session/:SessionID/event/:EventID
- * Test with: curl -H "Content-Type: application/json" -d '{"TBD"}' localhost/app/:AppID/user/:userToken/session/:SessionID/event/:EventID
- * @param w, response writer
- * @param r, http request
- */
+// createApplicationEvent handles requests to create an event
+// Request: POST /app/:AppID/user/:userToken/session/:SessionID/event/:EventID
+// Test with: curl -H "Content-Type: application/json" -d '{"TBD"}' localhost/app/:AppID/user/:userToken/session/:SessionID/event/:EventID
 func createApplicationEvent(w http.ResponseWriter, r *http.Request) {
 
 }

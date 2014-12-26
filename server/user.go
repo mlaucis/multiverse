@@ -12,13 +12,9 @@ import (
 	"github.com/gorilla/mux"
 )
 
-/**
- * getApplicationUser handles requests to retrieve a single user
- * Request: GET /app/:AppID/user/:Token
- * Test with: curl -i localhost/app/:AppID/user/:Token
- * @param w, response writer
- * @param r, http request
- */
+// getApplicationUser handles requests to retrieve a single user
+// Request: GET /app/:AppID/user/:Token
+// Test with: curl -i localhost/app/:AppID/user/:Token
 func getApplicationUser(w http.ResponseWriter, r *http.Request) {
 	var (
 		appID     uint64
@@ -51,9 +47,9 @@ func getApplicationUser(w http.ResponseWriter, r *http.Request) {
 			URL:          "app://users/2",
 			ThumbnailURL: "https://avatars2.githubusercontent.com/u/1712926?v=3&s=460",
 			Custom:       `{"sound": "boo"}`,
-			LastLogin:    api_demo_time,
-			CreatedAt:    api_demo_time,
-			UpdatedAt:    api_demo_time,
+			LastLogin:    apiDemoTime,
+			CreatedAt:    apiDemoTime,
+			UpdatedAt:    apiDemoTime,
 		},
 	}
 
@@ -70,13 +66,9 @@ func getApplicationUser(w http.ResponseWriter, r *http.Request) {
 	writeResponse(response, http.StatusOK, 10, w, r)
 }
 
-/**
- * getApplicationUserList handles requests to retrieve all users of an app
- * Request: GET /app/:AppID/users
- * Test with: curl -i localhost/app/:AppID/users
- * @param w, response writer
- * @param r, http request
- */
+// getApplicationUserList handles requests to retrieve all users of an app
+// Request: GET /app/:AppID/users
+// Test with: curl -i localhost/app/:AppID/users
 func getApplicationUserList(w http.ResponseWriter, r *http.Request) {
 	var (
 		appID uint64
@@ -105,9 +97,9 @@ func getApplicationUserList(w http.ResponseWriter, r *http.Request) {
 			URL:          "app://users/2",
 			ThumbnailURL: "https://avatars2.githubusercontent.com/u/1712926?v=3&s=460",
 			Custom:       `{"sound": "boo"}`,
-			LastLogin:    api_demo_time,
-			CreatedAt:    api_demo_time,
-			UpdatedAt:    api_demo_time,
+			LastLogin:    apiDemoTime,
+			CreatedAt:    apiDemoTime,
+			UpdatedAt:    apiDemoTime,
 		},
 	}
 
@@ -124,13 +116,9 @@ func getApplicationUserList(w http.ResponseWriter, r *http.Request) {
 	writeResponse(response, http.StatusOK, 10, w, r)
 }
 
-/**
- * createApplicationUser handles requests create an application user
- * Request: POST /app/:AppID/user/:userToken
- * Test with: curl -H "Content-Type: application/json" -d '{"name":"User name"}' localhost/app/:AppID/user/:userToken
- * @param w, response writer
- * @param r, http request
- */
+// createApplicationUser handles requests create an application user
+// Request: POST /app/:AppID/user/:userToken
+// Test with: curl -H "Content-Type: application/json" -d '{"name":"User name"}' localhost/app/:AppID/user/:userToken
 func createApplicationUser(w http.ResponseWriter, r *http.Request) {
 
 }
