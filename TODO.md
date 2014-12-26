@@ -1,12 +1,23 @@
 
 # To Do's
 
-1. ORM + DB Connection
-2. Tests
-3. Secure API (Authentication) (check: http://jwt.io/)
-4. Add message queue
-5. Add cache (Redis)
-6. Refine version control (v1, v2 etc.)
+- [x] Draft API design
+- [x] Design entities
+- [x] Create db tables
+- [x] Implement routes
+- [x] Mock API responses
+- [x] Document code
+- [x] Document api
+- [x] Implement basic logging
+- [x] Adjust response headers and caching
+- [x] Create test files
+- [x] ORM + DB Connection
+- [ ] Implement queries to read/write entities 
+- [ ] Implement tests
+- [ ] Secure API (Authentication) (check: http://jwt.io/)
+- [ ] Add message queue
+- [ ] Add cache (Redis)
+- [ ] Refine version control (v1, v2 etc.)
 
 # Cases
 
