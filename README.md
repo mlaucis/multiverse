@@ -3,7 +3,7 @@ Gluee backend [![wercker status](https://app.wercker.com/status/79fb688d3dd5889a
 
 This repository contains the implementation of gluees backend.
 
-## Build
+## Build status
 
 [![wercker status](https://app.wercker.com/status/79fb688d3dd5889a31d18cf6fee31a24/m "wercker status")](https://app.wercker.com/project/bykey/79fb688d3dd5889a31d18cf6fee31a24)
 
@@ -21,7 +21,7 @@ Following steps are need to download and install this project.
 
 ### Getting started
 
-**Download repository**
+Download the git repository to get started.
 
 ```shell
 $ git clone https://github.com/Gluee/backend.git
@@ -29,8 +29,6 @@ $ cd backend
 ```
 
 ### Dependencies
-
-**Install dependencies**
 
 MySQL driver
 
@@ -73,4 +71,3 @@ $ go run backend.go
 ```shell
 $ go test
 ```
-
