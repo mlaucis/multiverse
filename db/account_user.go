@@ -33,7 +33,7 @@ func GetAccountAllUsers(accountID uint64) (accountUsers []*entity.AccountUser, e
 
 // AddAccountUser creates a user for an account and returns the created entry or an error
 func AddAccountUser(accountID uint64, accountUser *entity.AccountUser) (*entity.AccountUser, error) {
-	query := "INSERT INTO `gluee`.`account_users` (`account_id`, `name`, `password`, `email`) VALUES (?, ?, ?, ?);"
+	query := "INSERT INTO `gluee`.`account_users` (`account_id`, `name`, `password`, `email`) VALUES (?, ?, ?, ?)"
 	result, err := GetMaster().Exec(query, accountID, accountUser.Name, accountUser.Password, accountUser.Email)
 	if err != nil {
 		return nil, fmt.Errorf("error while saving to database")

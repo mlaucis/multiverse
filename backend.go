@@ -5,7 +5,7 @@
 package main
 
 import (
- 	"log"
+	"log"
 	"math/rand"
 	"net/http"
 	"runtime"
@@ -28,7 +28,8 @@ func init() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	rand.Seed(time.Now().UTC().UnixNano())
 	// Get configuration
-	cfg = config.GetConfig(EnvConfigVar)
+	config.LoadConfig(EnvConfigVar)
+	cfg = config.GetConfig()
 
 	// Initialize database
 	db.InitDatabases(cfg)

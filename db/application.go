@@ -33,7 +33,7 @@ func GetAccountAllApplications(accountID uint64) (applications []*entity.Applica
 
 // AddAccountApplication creates a user for an account and returns the created entry or an error
 func AddAccountApplication(accountID uint64, application *entity.Application) (*entity.Application, error) {
-	query := "INSERT INTO `gluee`.`applications` (`account_id`, `key`, `name`) VALUES (?, ?, ?);"
+	query := "INSERT INTO `gluee`.`applications` (`account_id`, `key`, `name`) VALUES (?, ?, ?)"
 	result, err := GetMaster().Exec(query, accountID, application.Key, application.Name)
 	if err != nil {
 		return nil, fmt.Errorf("error while saving to database")

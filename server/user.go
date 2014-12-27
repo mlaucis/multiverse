@@ -5,10 +5,12 @@
 package server
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
 
+	"github.com/gluee/backend/db"
 	"github.com/gluee/backend/entity"
 	"github.com/gorilla/mux"
 )
@@ -18,6 +20,7 @@ import (
 // Test with: curl -i localhost/app/:AppID/user/:Token
 func getApplicationUser(w http.ResponseWriter, r *http.Request) {
 	var (
+		user      *entity.User
 		appID     uint64
 		userToken string
 		err       error
@@ -34,34 +37,18 @@ func getApplicationUser(w http.ResponseWriter, r *http.Request) {
 	// Read userToken
 	userToken = vars["userToken"]
 
-	// Create mock response
+	if user, err = db.GetApplicationUserByToken(appID, userToken); err != nil {
+		errorHappened(err, http.StatusInternalServerError, r, w)
+		return
+	}
+
 	response := &struct {
 		appID uint64 `json: "appId"`
 		*entity.User
 	}{
 		appID: appID,
-		User: &entity.User{
-			Token:        userToken,
-			Username:     "GlueUser123",
-			Name:         "Demo User",
-			Email:        "demouser@demo.com",
-			URL:          "app://users/2",
-			ThumbnailURL: "https://avatars2.githubusercontent.com/u/1712926?v=3&s=460",
-			Custom:       `{"sound": "boo"}`,
-			LastLogin:    apiDemoTime,
-			CreatedAt:    apiDemoTime,
-			UpdatedAt:    apiDemoTime,
-		},
+		User:  user,
 	}
-
-	// Read user from database
-
-	// Query draft
-	/**
-	 * SELECT token, username, name, email, url, thumbnail_url, custom, last_login, created_at, updated_at
-	 * FROM users
-	 * WHERE app_id={appID} AND token={userToken};
-	 */
 
 	// Write response
 	writeResponse(response, http.StatusOK, 10, w, r)
@@ -72,6 +59,48 @@ func getApplicationUser(w http.ResponseWriter, r *http.Request) {
 // Test with: curl -i localhost/app/:AppID/users
 func getApplicationUserList(w http.ResponseWriter, r *http.Request) {
 	var (
+		appID uint64
+		users []*entity.User
+		err   error
+	)
+	// Read variables from request
+	vars := mux.Vars(r)
+
+	// Read appID
+	if appID, err = strconv.ParseUint(vars["appId"], 10, 64); err != nil {
+		errorHappened(fmt.Errorf("appId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
+		return
+	}
+
+	if users, err = db.GetApplicationUsers(appID); err != nil {
+		errorHappened(err, http.StatusInternalServerError, r, w)
+		return
+	}
+
+	// Create mock response
+	response := &struct {
+		appID uint64 `json: "appId"`
+		Users []*entity.User
+	}{
+		appID: appID,
+		Users: users,
+	}
+
+	// Write response
+	writeResponse(response, http.StatusOK, 10, w, r)
+}
+
+// createApplicationUser handles requests create an application user
+// Request: POST /app/:AppId/user
+// Test with: curl -i -H "Content-Type: application/json" -d '{"token": "token1flo", "username": "flo", "name": "Florin", "password": "passwd", "email": "fl@r.in", "url": "blogger", "thumbnail_url": "gravatar", "custom": "{}"}' localhost/app/:AppID/user
+func createApplicationUser(w http.ResponseWriter, r *http.Request) {
+	if err := validatePostCommon(w, r); err != nil {
+		errorHappened(err, http.StatusBadRequest, r, w)
+		return
+	}
+
+	var (
+		user  = &entity.User{}
 		appID uint64
 		err   error
 	)
@@ -84,42 +113,19 @@ func getApplicationUserList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Create mock response
-	response := &struct {
-		appID uint64 `json: "appId"`
-		*entity.User
-	}{
-		appID: appID,
-		User: &entity.User{
-			Token:        "1",
-			Username:     "GlueUser123",
-			Name:         "Demo User",
-			Email:        "demouser@demo.com",
-			URL:          "app://users/2",
-			ThumbnailURL: "https://avatars2.githubusercontent.com/u/1712926?v=3&s=460",
-			Custom:       `{"sound": "boo"}`,
-			LastLogin:    apiDemoTime,
-			CreatedAt:    apiDemoTime,
-			UpdatedAt:    apiDemoTime,
-		},
+	decoder := json.NewDecoder(r.Body)
+	if err = decoder.Decode(user); err != nil {
+		errorHappened(err, http.StatusBadRequest, r, w)
+		return
 	}
 
-	// Read user from database
+	// TODO validation should be added here, for example, name shouldn't be empty ;)
+	user.AppID = appID
 
-	// Query draft
-	/**
-	 * SELECT token, username, name, email, url, thumbnail_url, custom, last_login, created_at, updated_at
-	 * FROM users
-	 * WHERE app_id={appID};
-	 */
+	if user, err = db.AddApplicationUser(appID, user); err != nil {
+		errorHappened(err, http.StatusInternalServerError, r, w)
+		return
+	}
 
-	// Write response
-	writeResponse(response, http.StatusOK, 10, w, r)
-}
-
-// createApplicationUser handles requests create an application user
-// Request: POST /app/:AppID/user
-// Test with: curl -H "Content-Type: application/json" -d '{"name":"User name"}' localhost/app/:AppID/user/:userToken
-func createApplicationUser(w http.ResponseWriter, r *http.Request) {
-
+	writeResponse(user, http.StatusCreated, 0, w, r)
 }

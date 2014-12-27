@@ -74,23 +74,20 @@ func validateConfig() {
 
 }
 
-//GetConfig loads the configuration for the application.
-//After the first call, it caches the values internally.
+// LoadConfig loads the configuration for the application.
 //
-//The name of the config file must be "config.json"
+// The name of the config file must be "config.json"
 //
-//It first tries to load the config file from the environment variable that you pass as the argument.
-//If the environment variable doesn't exist or it's empty it then tries to use the directory where the binary file is.
+// It first tries to load the config file from the environment variable that you pass as the argument.
+// If the environment variable doesn't exist or it's empty it then tries to use the directory where the binary file is.
 //
-//If the file is not present or it's not a valid json file the the call fails as well.
-func GetConfig(configPath string) *Config {
-	// Return config if it's not empty
-	if cfg != nil {
-		return cfg
-	}
-
+// If the file is not present or it's not a valid json file the the call fails as well.
+func LoadConfig(configPath string) {
 	// Read config path from environment variable
-	configDir := os.Getenv(configPath)
+	configDir := ""
+	if configPath != "" {
+		configDir = os.Getenv(configPath)
+	}
 
 	// If empty set path to path of current file
 	if configDir == "" {
@@ -118,6 +115,16 @@ func GetConfig(configPath string) *Config {
 
 	// Validate configuration
 	validateConfig()
+}
+
+// GetConfig will return the config
+//
+// If the config is not loaded already, it will attempt to load it from the directory of the binary
+func GetConfig() *Config {
+	// Return config if it's not empty
+	if cfg == nil {
+		LoadConfig("")
+	}
 
 	return cfg
 }
