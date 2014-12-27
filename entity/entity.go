@@ -19,6 +19,7 @@ type (
 		AndroidID    string    `json:"android_id" db:"android_id"`
 		Platform     string    `json:"platfrom"`
 		OSVersion    string    `json:"os_version" db:"os_version"`
+		Browser      string    `json:"browser" db:"browser"`
 		AppVersion   string    `json:"app_version" db:"app_version"`
 		SDKVersion   string    `json:"sdk_version" db:"sdk_version"`
 		Timezone     string    `json:"timezone"`
@@ -77,6 +78,7 @@ type (
 		Email        string    `json:"email,omitempty"`
 		URL          string    `json:"url,omitempty"`
 		ThumbnailURL string    `json:"thumbnail_url,omitempty" db:"thumbnail_url"`
+		Provider     string    `json:"provider,omitempty"`
 		Custom       string    `json:"custom,omitempty"`
 		Connections  []*User   `json:"connections,omitempty" db:"-"`
 		LastLogin    time.Time `json:"last_login,omitempty" db:"last_login"`

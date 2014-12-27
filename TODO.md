@@ -12,6 +12,7 @@
 - [x] Adjust response headers and caching
 - [x] Create test files
 - [x] ORM + DB Connection
+- [x] Implement request validation in routes with regex 
 - [ ] Implement queries to read/write entities 
 - [ ] Implement tests
 - [ ] Secure API (Authentication) (check: http://jwt.io/)

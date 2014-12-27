@@ -114,6 +114,7 @@ CREATE TABLE IF NOT EXISTS `sessions` (
   `manufacturer` varchar(255) DEFAULT NULL,
   `android_id` varchar(255) DEFAULT NULL,
   `os_version` varchar(255) DEFAULT NULL,
+  `browser` varchar(255) DEFAULT NULL,
   `ip` varchar(255) DEFAULT NULL,
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -134,6 +135,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `email` varchar(255) DEFAULT NULL,
   `url` varchar(255) DEFAULT NULL,
   `thumbnail_url` varchar(255) DEFAULT NULL,
+  `provider` varchar(255) DEFAULT NULL,
   `custom` varchar(255) DEFAULT NULL,
   `last_login` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,

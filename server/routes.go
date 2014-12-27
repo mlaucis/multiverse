@@ -27,7 +27,7 @@ var routes = []*route{
 	&route{
 		"getAccount",
 		"GET",
-		"/account/{accountId}",
+		"/account/{accountId:[0-9]{1,20}}",
 		getAccount,
 	},
 	&route{
@@ -40,120 +40,120 @@ var routes = []*route{
 	&route{
 		"getAccountUser",
 		"GET",
-		"/account/{accountId}/user/{userId}",
+		"/account/{accountId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}",
 		getAccountUser,
 	},
 	&route{
 		"createAccountUser",
 		"POST",
-		"/account/{accountId}/user",
+		"/account/{accountId:[0-9]{1,20}}/user",
 		createAccountUser,
 	},
 	&route{
 		"getAccountUserList",
 		"GET",
-		"/account/{accountId}/users",
+		"/account/{accountId:[0-9]{1,20}}/users",
 		getAccountUserList,
 	},
 	// Application
 	&route{
 		"getApplication",
 		"GET",
-		"/app/{appId}",
+		"/app/{appId:[0-9]{1,20}}",
 		getAccountApplication,
 	},
 	&route{
 		"createAccountApplication",
 		"POST",
-		"/account/{accountId}/app",
+		"/account/{accountId:[0-9]{1,20}}/app",
 		createAccountApplication,
 	},
 	&route{
 		"getAccountApplications",
 		"GET",
-		"/account/{accountId}/applications",
+		"/account/{accountId:[0-9]{1,20}}/applications",
 		getAccountApplicationList,
 	},
 	// User
 	&route{
 		"getApplicationUser",
 		"GET",
-		"/app/{appId}/user/{userToken}",
+		"/app/{appId:[0-9]{1,20}}/user/{userToken:[a-zA-Z0-9]+}",
 		getApplicationUser,
 	},
 	&route{
 		"createApplicationUser",
 		"POST",
-		"/app/{appId}/user",
+		"/app/{appId:[0-9]{1,20}}/user",
 		createApplicationUser,
 	},
 	&route{
 		"getApplicationUserList",
 		"GET",
-		"/app/{appId}/users",
+		"/app/{appId:[0-9]{1,20}}/users",
 		getApplicationUserList,
 	},
 	// UserConnection
 	&route{
 		"createUserConnection",
 		"POST",
-		"/app/{appId}/connection",
+		"/app/{appId:[0-9]{1,20}}/connection",
 		createUserConnection,
 	},
 	&route{
 		"getUserConnections",
 		"GET",
-		"/app/{appId}/user/{userToken}/connections",
+		"/app/{appId:[0-9]{1,20}}/user/{userToken:[a-zA-Z0-9]+}/connections",
 		getUserConnections,
 	},
 	// Session
 	&route{
 		"getUserSession",
 		"GET",
-		"/app/{appId}/user/{userToken}/session/{sessionId}",
+		"/app/{appId:[0-9]{1,20}}/user/{userToken:[a-zA-Z0-9]+}/session/{sessionId:[a-zA-Z0-9]+}",
 		getUserSession,
 	},
 	&route{
 		"createUserSession",
 		"POST",
-		"/app/{appId}/user/{userToken}/session",
+		"/app/{appId:[0-9]{1,20}}/user/{userToken:[a-zA-Z0-9]+}/session",
 		createUserSession,
 	},
 	&route{
 		"getUserSessionList",
 		"GET",
-		"/app/{appId}/user/{userToken}/sessions",
+		"/app/{appId:[0-9]{1,20}}/user/{userToken:[a-zA-Z0-9]+}/sessions",
 		getUserSessionList,
 	},
 	// Event
 	&route{
 		"getApplicationEvent",
 		"GET",
-		"/app/{appId}/event/{eventId}",
+		"/app/{appId:[0-9]{1,20}}/event/{eventId:[0-9]{1,20}}",
 		getApplicationEvent,
 	},
 	&route{
 		"createApplicationEvent",
 		"POST",
-		"/app/{appId}/user/{userToken}/session/{sessionId}/event/{eventId}",
+		"/app/{appId:[0-9]{1,20}}/user/{userToken:[a-zA-Z0-9]+}/session/{sessionId:[0-9]{1,20}}/event/{eventId:[0-9]{1,20}}",
 		createApplicationEvent,
 	},
 	&route{
 		"getApplicationUserEvents",
 		"GET",
-		"/app/{appId}/user/{userToken}/events",
+		"/app/{appId:[0-9]{1,20}}/user/{userToken:[a-zA-Z0-9]+}/events",
 		getApplicationUserEvents,
 	},
 	&route{
 		"getSessionEvents",
 		"GET",
-		"/app/{appId}/user/{userToken}/session/{sessionId}/events",
+		"/app/{appId:[0-9]{1,20}}/user/{userToken:[a-zA-Z0-9]+}/session/{sessionId:[0-9]{1,20}}/events",
 		getSessionEvents,
 	},
 	&route{
 		"getUserConnectionsEvents",
 		"GET",
-		"/app/{appId}/user/{userToken}/connections/events",
+		"/app/{appId:[0-9]{1,20}}/user/{userToken:[a-zA-Z0-9]+}/connections/events",
 		getUserConnectionsEvents,
 	},
 	// Other
