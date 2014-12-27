@@ -5,10 +5,12 @@
 package server
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
 
+	"github.com/gluee/backend/db"
 	"github.com/gluee/backend/entity"
 	"github.com/gorilla/mux"
 )
@@ -18,10 +20,12 @@ import (
 // Test with: curl -i localhost/account/:AccountID/user/:UserID
 func getAccountUser(w http.ResponseWriter, r *http.Request) {
 	var (
-		accountID uint64
-		userID    string
-		err       error
+		accountID   uint64
+		userID      uint64
+		accountUser *entity.AccountUser
+		err         error
 	)
+
 	// Read variables from request
 	vars := mux.Vars(r)
 
@@ -32,36 +36,18 @@ func getAccountUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Read userID
-	// TBD userID validation
-	userID = vars["userId"]
-
-	// Create mock response
-	response := &struct {
-		*entity.AccountUser
-	}{
-		AccountUser: &entity.AccountUser{
-			ID:        userID,
-			AccountID: accountID,
-			Name:      "Demo User",
-			Email:     "demouser@demo.com",
-			Enabled:   true,
-			LastLogin: apiDemoTime,
-			CreatedAt: apiDemoTime,
-			UpdatedAt: apiDemoTime,
-		},
+	if userID, err = strconv.ParseUint(vars["userId"], 10, 64); err != nil {
+		errorHappened(fmt.Errorf("userId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
+		return
 	}
 
-	// Read account user from database
-
-	// Query draft
-	/**
-	 * SELECT id, account_id, name, email, enabled, last_login, created_at, updated_at
-	 * FROM account_users
-	 * WHERE account_id={accountID} AND id={userID};
-	 */
+	if accountUser, err = db.GetAccountUserByID(accountID, userID); err != nil {
+		errorHappened(err, http.StatusInternalServerError, r, w)
+		return
+	}
 
 	// Write response
-	writeResponse(response, http.StatusOK, 10, w, r)
+	writeResponse(accountUser, http.StatusOK, 10, w, r)
 }
 
 // getAccountUserList handles requests to list all account users
@@ -69,8 +55,10 @@ func getAccountUser(w http.ResponseWriter, r *http.Request) {
 // Test with: curl -i localhost/account/:AccountID/users
 func getAccountUserList(w http.ResponseWriter, r *http.Request) {
 	var (
-		accountID uint64
-		err       error
+		accountID    uint64
+		account      *entity.Account
+		accountUsers []*entity.AccountUser
+		err          error
 	)
 	// Read variables from request
 	vars := mux.Vars(r)
@@ -81,57 +69,23 @@ func getAccountUserList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Create mock response
-	response := &struct {
-		entity.Account
-		AccountUser []*entity.AccountUser `json:"accountUser"`
-	}{
-		Account: entity.Account{
-			ID:        accountID,
-			Name:      "Demo Account",
-			Enabled:   true,
-			CreatedAt: apiDemoTime,
-			UpdatedAt: apiDemoTime,
-		},
-		AccountUser: []*entity.AccountUser{
-			&entity.AccountUser{
-				ID:        "1",
-				Name:      "Demo User",
-				Email:     "demouser@demo.com",
-				Enabled:   true,
-				LastLogin: apiDemoTime,
-				CreatedAt: apiDemoTime,
-				UpdatedAt: apiDemoTime,
-			},
-			&entity.AccountUser{
-				ID:        "2",
-				Name:      "Demo User",
-				Email:     "demouser@demo.com",
-				Enabled:   true,
-				LastLogin: apiDemoTime,
-				CreatedAt: apiDemoTime,
-				UpdatedAt: apiDemoTime,
-			},
-			&entity.AccountUser{
-				ID:        "3",
-				Name:      "Demo User",
-				Email:     "demouser@demo.com",
-				Enabled:   true,
-				LastLogin: apiDemoTime,
-				CreatedAt: apiDemoTime,
-				UpdatedAt: apiDemoTime,
-			},
-		},
+	if account, err = db.GetAccountByID(accountID); err != nil {
+		errorHappened(err, http.StatusInternalServerError, r, w)
+		return
 	}
 
-	// Read account users from database
+	if accountUsers, err = db.GetAccountAllUsers(accountID); err != nil {
+		errorHappened(err, http.StatusInternalServerError, r, w)
+		return
+	}
 
-	// Query draft
-	/**
-	 * SELECT id, account_id, name, email, enabled, last_login, created_at, updated_at
-	 * FROM account_users
-	 * WHERE account_id={accountID};
-	 */
+	response := &struct {
+		entity.Account
+		AccountUsers []*entity.AccountUser `json:"accountUsers"`
+	}{
+		Account:      *account,
+		AccountUsers: accountUsers,
+	}
 
 	// Write response
 	writeResponse(response, http.StatusOK, 10, w, r)
@@ -139,7 +93,39 @@ func getAccountUserList(w http.ResponseWriter, r *http.Request) {
 
 // createAccountUser handles requests create an account user
 // Request: POST /account/:AccountID/user
-// Test with: curl -H "Content-Type: application/json" -d '{"name":"User name"}' localhost/account/:AccountID/user
+// Test with: curl -H "Content-Type: application/json" -d '{"name":"User name", "password":"hmac(256)", "email":"de@m.o"}' localhost/account/:AccountID/user
 func createAccountUser(w http.ResponseWriter, r *http.Request) {
+	if err := validatePostCommon(w, r); err != nil {
+		errorHappened(err, http.StatusBadRequest, r, w)
+		return
+	}
 
+	var (
+		accountUser = &entity.AccountUser{}
+		accountID   uint64
+		err         error
+	)
+	// Read variables from request
+	vars := mux.Vars(r)
+
+	// Read accountID
+	if accountID, err = strconv.ParseUint(vars["accountId"], 10, 64); err != nil {
+		errorHappened(fmt.Errorf("accountId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
+		return
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	if err = decoder.Decode(accountUser); err != nil {
+		errorHappened(err, http.StatusBadRequest, r, w)
+		return
+	}
+
+	// TODO validation should be added here, for example, name shouldn't be empty ;)
+
+	if accountUser, err = db.AddAccountUser(accountID, accountUser); err != nil {
+		errorHappened(err, http.StatusInternalServerError, r, w)
+		return
+	}
+
+	writeResponse(accountUser, http.StatusOK, 0, w, r)
 }

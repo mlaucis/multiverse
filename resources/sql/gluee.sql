@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Dec 27, 2014 at 02:38 PM
+-- Generation Time: Dec 27, 2014 at 04:24 PM
 -- Server version: 5.6.19-1~exp1ubuntu2
 -- PHP Version: 5.5.12-2ubuntu4.1
 
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS `accounts` (
   `enabled` tinyint(1) NOT NULL DEFAULT '1',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -46,11 +46,11 @@ CREATE TABLE IF NOT EXISTS `account_users` (
   `name` varchar(255) DEFAULT NULL,
   `password` varchar(255) DEFAULT NULL,
   `email` varchar(255) DEFAULT NULL,
-  `enabled` tinyint(1) DEFAULT NULL,
+  `enabled` tinyint(1) NOT NULL DEFAULT '1',
   `last_login` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS `applications` (
   `account_id` bigint(20) unsigned NOT NULL,
   `key` varchar(255) DEFAULT NULL,
   `name` varchar(255) DEFAULT NULL,
-  `enabled` tinyint(1) DEFAULT NULL,
+  `enabled` tinyint(1) NOT NULL DEFAULT '1',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -135,7 +135,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `url` varchar(255) DEFAULT NULL,
   `thumbnail_url` varchar(255) DEFAULT NULL,
   `custom` varchar(255) DEFAULT NULL,
-  `last_login` varchar(255) DEFAULT NULL,
+  `last_login` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -150,7 +150,7 @@ CREATE TABLE IF NOT EXISTS `user_connections` (
   `app_id` bigint(20) unsigned NOT NULL,
   `user_id1` varchar(255) DEFAULT NULL,
   `user_id2` varchar(255) DEFAULT NULL,
-  `enabled` tinyint(1) DEFAULT NULL,
+  `enabled` tinyint(1) NOT NULL DEFAULT '1',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -209,12 +209,12 @@ ALTER TABLE `user_connections`
 -- AUTO_INCREMENT for table `accounts`
 --
 ALTER TABLE `accounts`
-  MODIFY `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=2;
+  MODIFY `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=1;
 --
 -- AUTO_INCREMENT for table `account_users`
 --
 ALTER TABLE `account_users`
-  MODIFY `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=1;
 --
 -- AUTO_INCREMENT for table `applications`
 --

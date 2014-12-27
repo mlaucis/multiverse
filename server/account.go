@@ -34,8 +34,7 @@ func getAccount(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Read account from database
-	account, err = db.GetAccountByID(accountID)
-	if err != nil {
+	if account, err = db.GetAccountByID(accountID); err != nil {
 		errorHappened(err, http.StatusInternalServerError, r, w)
 		return
 	}
@@ -66,8 +65,7 @@ func createAccount(w http.ResponseWriter, r *http.Request) {
 
 	// TODO validation should be added here, for example, name shouldn't be empty ;)
 
-	account, err = db.AddAccount(account)
-	if err != nil {
+	if account, err = db.AddAccount(account); err != nil {
 		errorHappened(err, http.StatusInternalServerError, r, w)
 		return
 	}
