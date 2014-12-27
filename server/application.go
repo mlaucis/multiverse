@@ -29,7 +29,7 @@ func getAccountApplication(w http.ResponseWriter, r *http.Request) {
 
 	// Read appID
 	if appID, err = strconv.ParseUint(vars["appId"], 10, 64); err != nil {
-		errorHappened("appId is not set or the value is incorrect", http.StatusBadRequest, r, w)
+		errorHappened(fmt.Errorf("appId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
 		return
 	}
 
@@ -74,7 +74,7 @@ func getAccountApplicationList(w http.ResponseWriter, r *http.Request) {
 
 	// Read accountID
 	if accountID, err = strconv.ParseUint(vars["accountId"], 10, 64); err != nil {
-		errorHappened("accountId is not set or the value is incorrect", http.StatusBadRequest, r, w)
+		errorHappened(fmt.Errorf("accountId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
 		return
 	}
 
@@ -152,15 +152,15 @@ func createAccountApplication(w http.ResponseWriter, r *http.Request) {
 	// Validate request
 	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
 	if err != nil {
-		errorHappened(fmt.Sprintf("%q", err), http.StatusRequestEntityTooLarge, r, w)
+		errorHappened(err, http.StatusRequestEntityTooLarge, r, w)
 	}
 
 	if err := r.Body.Close(); err != nil {
-		errorHappened(fmt.Sprintf("%q", err), http.StatusBadRequest, r, w)
+		errorHappened(err, http.StatusBadRequest, r, w)
 	}
 
 	if err := json.Unmarshal(body, &app); err != nil {
-		errorHappened(fmt.Sprintf("%q", err), http.StatusBadRequest, r, w)
+		errorHappened(err, http.StatusBadRequest, r, w)
 	}
 
 	// Read variables from request
@@ -168,7 +168,7 @@ func createAccountApplication(w http.ResponseWriter, r *http.Request) {
 
 	// Read accountID
 	if accountID, err = strconv.ParseUint(vars["accountId"], 10, 64); err != nil {
-		errorHappened("accountId is not set or the value is incorrect", http.StatusBadRequest, r, w)
+		errorHappened(fmt.Errorf("accountId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
 		return
 	}
 

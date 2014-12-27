@@ -5,6 +5,7 @@
 package server
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -26,7 +27,7 @@ func getApplicationUser(w http.ResponseWriter, r *http.Request) {
 
 	// Read appID
 	if appID, err = strconv.ParseUint(vars["appId"], 10, 64); err != nil {
-		errorHappened("appId is not set or the value is incorrect", http.StatusBadRequest, r, w)
+		errorHappened(fmt.Errorf("appId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
 		return
 	}
 
@@ -79,7 +80,7 @@ func getApplicationUserList(w http.ResponseWriter, r *http.Request) {
 
 	// Read appID
 	if appID, err = strconv.ParseUint(vars["appId"], 10, 64); err != nil {
-		errorHappened("appId is not set or the value is incorrect", http.StatusBadRequest, r, w)
+		errorHappened(fmt.Errorf("appId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
 		return
 	}
 

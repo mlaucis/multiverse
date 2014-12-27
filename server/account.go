@@ -29,14 +29,14 @@ func getAccount(w http.ResponseWriter, r *http.Request) {
 
 	// Read accountID
 	if accountID, err = strconv.ParseUint(vars["accountId"], 10, 64); err != nil {
-		errorHappened("accountId is not set or the value is incorrect", http.StatusBadRequest, r, w)
+		errorHappened(fmt.Errorf("accountId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
 		return
 	}
 
 	// Read account from database
 	account, err = db.GetAccountByID(accountID)
 	if err != nil {
-		errorHappened(fmt.Sprintf("%q", err), http.StatusInternalServerError, r, w)
+		errorHappened(err, http.StatusInternalServerError, r, w)
 		return
 	}
 
@@ -49,35 +49,26 @@ func getAccount(w http.ResponseWriter, r *http.Request) {
 // Test with: curl -H "Content-Type: application/json" -d '{"name":"New Account"}' localhost/account
 func createAccount(w http.ResponseWriter, r *http.Request) {
 	if err := validatePostCommon(w, r); err != nil {
-		errorHappened(fmt.Sprintf("%q", err), http.StatusBadRequest, r, w)
+		errorHappened(err, http.StatusBadRequest, r, w)
 		return
 	}
 
 	var (
-		account          = &entity.Account{}
-		createdAccountID int64
+		account = &entity.Account{}
+		err     error
 	)
 
 	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&account); err != nil {
-		errorHappened(fmt.Sprintf("%q", err), http.StatusBadRequest, r, w)
+	if err = decoder.Decode(account); err != nil {
+		errorHappened(err, http.StatusBadRequest, r, w)
 		return
 	}
 
-	query := "INSERT INTO `gluee`.`accounts` (`name`) VALUES (?)"
-	result, err := db.GetMaster().Exec(query, account.Name)
-	if err != nil {
-		errorHappened("Error while saving to database", http.StatusInternalServerError, r, w)
-		return
-	}
+	// TODO validation should be added here, for example, name shouldn't be empty ;)
 
-	createdAccountID, err = result.LastInsertId()
+	account, err = db.AddAccount(account)
 	if err != nil {
-		errorHappened("error while processing the request", http.StatusInternalServerError, r, w)
-	}
-
-	if account, err = db.GetAccountByID(uint64(createdAccountID)); err != nil {
-		errorHappened(fmt.Sprintf("%q", err), http.StatusInternalServerError, r, w)
+		errorHappened(err, http.StatusInternalServerError, r, w)
 		return
 	}
 

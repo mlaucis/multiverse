@@ -69,7 +69,7 @@ func writeResponse(response interface{}, code int, cacheTime uint, w http.Respon
 	// Read response to json
 	json, err := json.Marshal(response)
 	if err != nil {
-		errorHappened(fmt.Sprintf("%q", err), http.StatusInternalServerError, r, w)
+		errorHappened(err, http.StatusInternalServerError, r, w)
 		return
 	}
 
@@ -86,11 +86,11 @@ func writeResponse(response interface{}, code int, cacheTime uint, w http.Respon
 }
 
 // errorHappened handles the error message
-func errorHappened(message string, code int, r *http.Request, w http.ResponseWriter) {
+func errorHappened(err error, code int, r *http.Request, w http.ResponseWriter) {
 	w.WriteHeader(code)
 	writeCacheHeaders(0, w)
 	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
-	w.Write([]byte(fmt.Sprintf("%d %s", code, message)))
+	w.Write([]byte(fmt.Sprintf("%d %q", code, err)))
 
 	_, filename, line, ok := runtime.Caller(1)
 	if !ok {
@@ -101,7 +101,7 @@ func errorHappened(message string, code int, r *http.Request, w http.ResponseWri
 
 	log.Printf(
 		"Error %q in %s/%s:%d while %s\t%s\t%+v\n",
-		message,
+		err,
 		filepath.Base(filepath.Dir(filename)),
 		filepath.Base(filename),
 		line,

@@ -5,6 +5,8 @@
 package db
 
 import (
+	"fmt"
+
 	"github.com/gluee/backend/entity"
 )
 
@@ -17,4 +19,20 @@ func GetAccountByID(accountID uint64) (account *entity.Account, err error) {
 		StructScan(account)
 
 	return
+}
+
+func AddAccount(account *entity.Account) (*entity.Account, error) {
+	query := "INSERT INTO `gluee`.`accounts` (`name`) VALUES (?)"
+	result, err := GetMaster().Exec(query, account.Name)
+	if err != nil {
+		return nil, fmt.Errorf("error while saving to database")
+	}
+
+	var createdAccountID int64
+	createdAccountID, err = result.LastInsertId()
+	if err != nil {
+		return nil, fmt.Errorf("error while processing the request")
+	}
+
+	return GetAccountByID(uint64(createdAccountID))
 }
