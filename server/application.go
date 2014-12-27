@@ -7,11 +7,10 @@ package server
 import (
 	"encoding/json"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"net/http"
 	"strconv"
 
+	"github.com/gluee/backend/db"
 	"github.com/gluee/backend/entity"
 	"github.com/gorilla/mux"
 )
@@ -21,8 +20,9 @@ import (
 // Test with: curl -i localhost/app/:AppID
 func getAccountApplication(w http.ResponseWriter, r *http.Request) {
 	var (
-		appID uint64
-		err   error
+		application *entity.Application
+		appID       uint64
+		err         error
 	)
 	// Read variables from request
 	vars := mux.Vars(r)
@@ -33,32 +33,13 @@ func getAccountApplication(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Create mock response
-	response := &struct {
-		*entity.Application
-	}{
-		Application: &entity.Application{
-			ID:        appID,
-			Key:       "abc123def",
-			AccountID: 123456,
-			Name:      "Demo App",
-			Enabled:   true,
-			CreatedAt: apiDemoTime,
-			UpdatedAt: apiDemoTime,
-		},
+	if application, err = db.GetApplicationByID(appID); err != nil {
+		errorHappened(err, http.StatusInternalServerError, r, w)
+		return
 	}
 
-	// Read account application from database
-
-	// Query draft
-	/**
-	 * SELECT id, key, name, enabled, created_at, updated_at
-	 * FROM applications
-	 * WHERE id={apptID};
-	 */
-
 	// Write response
-	writeResponse(response, http.StatusOK, 10, w, r)
+	writeResponse(application, http.StatusOK, 10, w, r)
 }
 
 // getAccountApplicationList handles requests list all account applications
@@ -66,8 +47,10 @@ func getAccountApplication(w http.ResponseWriter, r *http.Request) {
 // Test with: curl -i localhost/account/:AccountID/applications
 func getAccountApplicationList(w http.ResponseWriter, r *http.Request) {
 	var (
-		accountID uint64
-		err       error
+		account      *entity.Account
+		applications []*entity.Application
+		accountID    uint64
+		err          error
 	)
 	// Read variables from request
 	vars := mux.Vars(r)
@@ -78,61 +61,24 @@ func getAccountApplicationList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Create mock response
-	response := &struct {
-		entity.Account
-		Application []*entity.Application `json:"application"`
-	}{
-		Account: entity.Account{
-			ID:        accountID,
-			Name:      "Demo Account",
-			Enabled:   true,
-			CreatedAt: apiDemoTime,
-			UpdatedAt: apiDemoTime,
-		},
-		Application: []*entity.Application{
-			&entity.Application{
-				ID:        1,
-				Key:       "abc123def",
-				Name:      "Demo App",
-				Enabled:   true,
-				CreatedAt: apiDemoTime,
-				UpdatedAt: apiDemoTime,
-			},
-			&entity.Application{
-				ID:        2,
-				Key:       "abc345def",
-				Name:      "Demo App",
-				Enabled:   true,
-				CreatedAt: apiDemoTime,
-				UpdatedAt: apiDemoTime,
-			},
-			&entity.Application{
-				ID:        3,
-				Key:       "abc678ef",
-				Name:      "Demo App",
-				Enabled:   true,
-				CreatedAt: apiDemoTime,
-				UpdatedAt: apiDemoTime,
-			},
-		},
+	// Read account from database
+	if account, err = db.GetAccountByID(accountID); err != nil {
+		errorHappened(err, http.StatusInternalServerError, r, w)
+		return
 	}
 
-	// Read account applications from database
+	if applications, err = db.GetAccountAllApplications(accountID); err != nil {
+		errorHappened(err, http.StatusInternalServerError, r, w)
+		return
+	}
 
-	// Query drafts
-
-	/** Query Account
-	 * SELECT id, name, enabled, created_at, updated_at
-	 * FROM accounts
-	 * WHERE id={accountID};
-	 */
-
-	/** Query Applications
-	 * SELECT id, key, name, enabled, created_at, updated_at
-	 * FROM applications
-	 * WHERE account_id={accountID};
-	 */
+	response := &struct {
+		entity.Account
+		Applications []*entity.Application `json:"applications"`
+	}{
+		Account:      *account,
+		Applications: applications,
+	}
 
 	// Write response
 	writeResponse(response, http.StatusOK, 10, w, r)
@@ -140,64 +86,38 @@ func getAccountApplicationList(w http.ResponseWriter, r *http.Request) {
 
 // createAccountApplication handles requests create an application
 // Request: POST /account/:AccountID/app
-// Test with: curl -H "Content-Type: application/json" -d '{"name":"New App"}' localhost/account/:AccountID/app
+// Test with: curl -i -H "Content-Type: application/json" -d '{"key": "hmac(256)", "name":"New App"}' localhost/account/:AccountID/app
 func createAccountApplication(w http.ResponseWriter, r *http.Request) {
+	if err := validatePostCommon(w, r); err != nil {
+		errorHappened(err, http.StatusBadRequest, r, w)
+		return
+	}
+
 	var (
-		accountID uint64
-		//appName string
-		app entity.Application
-		err error
+		application = &entity.Application{}
+		accountID   uint64
+		err         error
 	)
-
-	// Validate request
-	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
-	if err != nil {
-		errorHappened(err, http.StatusRequestEntityTooLarge, r, w)
-	}
-
-	if err := r.Body.Close(); err != nil {
-		errorHappened(err, http.StatusBadRequest, r, w)
-	}
-
-	if err := json.Unmarshal(body, &app); err != nil {
-		errorHappened(err, http.StatusBadRequest, r, w)
-	}
-
 	// Read variables from request
 	vars := mux.Vars(r)
 
-	// Read accountID
 	if accountID, err = strconv.ParseUint(vars["accountId"], 10, 64); err != nil {
 		errorHappened(fmt.Errorf("accountId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
 		return
 	}
 
-	// TBD Read and validate appname
-
-	// Create mock response
-	response := &struct {
-		*entity.Application
-	}{
-		Application: &entity.Application{
-			ID:        1,
-			Key:       "abc123def",
-			AccountID: accountID,
-			Name:      "Demo App",
-			Enabled:   true,
-			CreatedAt: apiDemoTime,
-			UpdatedAt: apiDemoTime,
-		},
+	decoder := json.NewDecoder(r.Body)
+	if err = decoder.Decode(application); err != nil {
+		errorHappened(err, http.StatusBadRequest, r, w)
+		return
 	}
 
-	// Write account applications to database
+	// TODO validation should be added here, for example, name shouldn't be empty ;)
 
-	// Query drafts
+	if application, err = db.AddAccountApplication(accountID, application); err != nil {
+		errorHappened(err, http.StatusInternalServerError, r, w)
+		return
+	}
 
-	/**
-	 * INSERT INTO applications (account_id, name)
-	 * VALUES ({accountID}, {appName});
-	 */
-
-	// Write response
-	writeResponse(response, http.StatusCreated, 10, w, r)
+	writeResponse(application, http.StatusCreated, 0, w, r)
 }

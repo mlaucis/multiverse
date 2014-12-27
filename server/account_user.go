@@ -127,5 +127,5 @@ func createAccountUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeResponse(accountUser, http.StatusOK, 0, w, r)
+	writeResponse(accountUser, http.StatusCreated, 0, w, r)
 }

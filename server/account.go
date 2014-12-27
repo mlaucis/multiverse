@@ -45,7 +45,7 @@ func getAccount(w http.ResponseWriter, r *http.Request) {
 
 // createAccount handles requests create an account
 // Request: POST /account
-// Test with: curl -H "Content-Type: application/json" -d '{"name":"New Account"}' localhost/account
+// Test with: curl -i -H "Content-Type: application/json" -d '{"name":"New Account"}' localhost/account
 func createAccount(w http.ResponseWriter, r *http.Request) {
 	if err := validatePostCommon(w, r); err != nil {
 		errorHappened(err, http.StatusBadRequest, r, w)
@@ -70,5 +70,5 @@ func createAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeResponse(account, http.StatusOK, 0, w, r)
+	writeResponse(account, http.StatusCreated, 0, w, r)
 }
