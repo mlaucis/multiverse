@@ -110,7 +110,7 @@ var routes = []*route{
 	&route{
 		"getUserSession",
 		"GET",
-		"/app/{appId:[0-9]{1,20}}/user/{userToken:[a-zA-Z0-9]+}/session/{sessionId:[a-zA-Z0-9]+}",
+		"/app/{appId:[0-9]{1,20}}/user/{userToken:[a-zA-Z0-9]+}/session/{sessionId:[0-9]{1,20}}",
 		getUserSession,
 	},
 	&route{
