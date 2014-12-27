@@ -66,7 +66,7 @@ func getSanitizedHeaders(r *http.Request) http.Header {
 
 // writeResponse handles the http responses and returns the data
 func writeResponse(response interface{}, code int, cacheTime uint, w http.ResponseWriter, r *http.Request) {
-	// Read response to json
+	// Convert response to json
 	json, err := json.Marshal(response)
 	if err != nil {
 		errorHappened(err, http.StatusInternalServerError, r, w)
@@ -80,6 +80,7 @@ func writeResponse(response interface{}, code int, cacheTime uint, w http.Respon
 	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding")
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
+	w.WriteHeader(code)
 
 	// Write response
 	w.Write(json)
