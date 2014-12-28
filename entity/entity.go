@@ -89,8 +89,8 @@ type (
 	// UserConnection structure holds the connections of the users between each-other
 	UserConnection struct {
 		AppID      string    `json:"app_id" db:"app_id"`
-		UserToken1 string    `json:"user_token1" db:"user_token1"`
-		UserToken2 string    `json:"user_token2" db:"user_token2"`
+		UserToken1 string    `json:"user_id1" db:"user_id1"`
+		UserToken2 string    `json:"user_id2" db:"user_id2"`
 		Enabled    bool      `json:"enabled"`
 		CreatedAt  time.Time `json:"created_at" db:"created_at"`
 		UpdatedAt  time.Time `json:"updated_at" db:"updated_at"`
