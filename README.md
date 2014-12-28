@@ -1,5 +1,4 @@
-Gluee backend [![wercker status](https://app.wercker.com/status/79fb688d3dd5889a31d18cf6fee31a24/s/ "wercker status")](https://app.wercker.com/project/bykey/79fb688d3dd5889a31d18cf6fee31a24)
-=====================
+# Gluee backend [![wercker status](https://app.wercker.com/status/79fb688d3dd5889a31d18cf6fee31a24/s/ "wercker status")](https://app.wercker.com/project/bykey/79fb688d3dd5889a31d18cf6fee31a24)
 
 This repository contains the implementation of gluees backend.
 
@@ -60,9 +59,16 @@ Registry for global request variables
 $ go get github.com/gorilla/context
 ```
 
-### Configure server
+Finally get, compile and install everything
 
-Configure the server including ports and database settings in the [config file](config.json).
+```shell
+$ go get
+$ go install
+```
+
+### Server configuration
+
+Configure the server including ports and database settings in the [config.json](config.json).
 
 ```json
 {
@@ -89,6 +95,10 @@ Configure the server including ports and database settings in the [config file](
 	}
 }
 ```
+
+### Database configuration
+
+Create a database called `gluee` and execute the SQL [gluee.sql](https://github.com/Gluee/backend/blob/master/resources/sql/gluee.sql) to create all tables and settings.
 
 ### Start server
 
