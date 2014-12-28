@@ -76,10 +76,13 @@ CREATE TABLE IF NOT EXISTS `applications` (
 
 CREATE TABLE IF NOT EXISTS `events` (
   `id` bigint(20) unsigned NOT NULL,
-  `app_id` bigint(20) unsigned NOT NULL,
-  `sess_id` bigint(20) unsigned NOT NULL,
-  `usr_token` varchar(255) NOT NULL,
+  `application_id` bigint(20) unsigned NOT NULL,
+  `session_id` bigint(20) unsigned NOT NULL,
+  `user_token` varchar(255) NOT NULL,
   `type` varchar(255) DEFAULT NULL,
+  `item_id` varchar(255) DEFAULT NULL,
+  `item_name` varchar(255) DEFAULT NULL,
+  `item_url` varchar(255) DEFAULT NULL,
   `thumbnail_url` varchar(255) DEFAULT NULL,
   `custom` varchar(255) DEFAULT NULL,
   `nth` bigint(20) DEFAULT NULL,
@@ -94,7 +97,7 @@ CREATE TABLE IF NOT EXISTS `events` (
 
 CREATE TABLE IF NOT EXISTS `sessions` (
   `id` bigint(20) unsigned NOT NULL,
-  `app_id` bigint(20) unsigned NOT NULL,
+  `application_id` bigint(20) unsigned NOT NULL,
   `user_token` varchar(255) DEFAULT NULL,
   `nth` bigint(20) DEFAULT NULL,
   `custom` varchar(255) DEFAULT NULL,
@@ -127,7 +130,7 @@ CREATE TABLE IF NOT EXISTS `sessions` (
 --
 
 CREATE TABLE IF NOT EXISTS `users` (
-  `app_id` bigint(20) unsigned NOT NULL,
+  `application_id` bigint(20) unsigned NOT NULL,
   `token` varchar(255) NOT NULL DEFAULT '',
   `username` varchar(255) DEFAULT NULL,
   `name` varchar(255) DEFAULT NULL,
@@ -149,7 +152,7 @@ CREATE TABLE IF NOT EXISTS `users` (
 --
 
 CREATE TABLE IF NOT EXISTS `user_connections` (
-  `app_id` bigint(20) unsigned NOT NULL,
+  `application_id` bigint(20) unsigned NOT NULL,
   `user_id1` varchar(255) DEFAULT NULL,
   `user_id2` varchar(255) DEFAULT NULL,
   `enabled` tinyint(1) NOT NULL DEFAULT '1',
@@ -183,25 +186,25 @@ ALTER TABLE `applications`
 -- Indexes for table `events`
 --
 ALTER TABLE `events`
-  ADD PRIMARY KEY (`id`), ADD KEY `app_id` (`app_id`), ADD KEY `usr_token` (`usr_token`), ADD KEY `sess_id` (`sess_id`);
+  ADD PRIMARY KEY (`id`), ADD KEY `application_id` (`application_id`), ADD KEY `user_token` (`user_token`), ADD KEY `session_id` (`session_id`);
 
 --
 -- Indexes for table `sessions`
 --
 ALTER TABLE `sessions`
-  ADD PRIMARY KEY (`id`), ADD KEY `app_id` (`app_id`), ADD KEY `user_token` (`user_token`);
+  ADD PRIMARY KEY (`id`), ADD KEY `application_id` (`application_id`), ADD KEY `user_token` (`user_token`);
 
 --
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
-  ADD PRIMARY KEY (`token`), ADD KEY `app_id` (`app_id`);
+  ADD PRIMARY KEY (`token`), ADD KEY `application_id` (`application_id`);
 
 --
 -- Indexes for table `user_connections`
 --
 ALTER TABLE `user_connections`
-  ADD KEY `app_id` (`app_id`), ADD KEY `user_id1` (`user_id1`), ADD KEY `user_id2` (`user_id2`);
+  ADD KEY `application_id` (`application_id`), ADD KEY `user_id1` (`user_id1`), ADD KEY `user_id2` (`user_id2`);
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -252,28 +255,28 @@ ADD CONSTRAINT `app_acc_fk` FOREIGN KEY (`account_id`) REFERENCES `accounts` (`i
 -- Constraints for table `events`
 --
 ALTER TABLE `events`
-ADD CONSTRAINT `evt_app_fk` FOREIGN KEY (`app_id`) REFERENCES `applications` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-ADD CONSTRAINT `evt_sess_fk` FOREIGN KEY (`sess_id`) REFERENCES `sessions` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-ADD CONSTRAINT `evt_usr_fk` FOREIGN KEY (`usr_token`) REFERENCES `users` (`token`) ON DELETE CASCADE ON UPDATE CASCADE;
+ADD CONSTRAINT `evt_app_fk` FOREIGN KEY (`application_id`) REFERENCES `applications` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+ADD CONSTRAINT `evt_sess_fk` FOREIGN KEY (`session_id`) REFERENCES `sessions` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+ADD CONSTRAINT `evt_usr_fk` FOREIGN KEY (`user_token`) REFERENCES `users` (`token`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `sessions`
 --
 ALTER TABLE `sessions`
 ADD CONSTRAINT `sess_usr_fk` FOREIGN KEY (`user_token`) REFERENCES `users` (`token`) ON DELETE CASCADE ON UPDATE CASCADE,
-ADD CONSTRAINT `sess_app_fk` FOREIGN KEY (`app_id`) REFERENCES `applications` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ADD CONSTRAINT `sess_app_fk` FOREIGN KEY (`application_id`) REFERENCES `applications` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `users`
 --
 ALTER TABLE `users`
-ADD CONSTRAINT `usr_app_fk` FOREIGN KEY (`app_id`) REFERENCES `applications` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ADD CONSTRAINT `usr_app_fk` FOREIGN KEY (`application_id`) REFERENCES `applications` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `user_connections`
 --
 ALTER TABLE `user_connections`
-ADD CONSTRAINT `usrc_app_fk` FOREIGN KEY (`app_id`) REFERENCES `applications` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+ADD CONSTRAINT `usrc_app_fk` FOREIGN KEY (`application_id`) REFERENCES `applications` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
 ADD CONSTRAINT `usrc_usr_fk1` FOREIGN KEY (`user_id1`) REFERENCES `users` (`token`) ON DELETE CASCADE ON UPDATE CASCADE,
 ADD CONSTRAINT `usrc_usr_fk2` FOREIGN KEY (`user_id2`) REFERENCES `users` (`token`) ON DELETE CASCADE ON UPDATE CASCADE;
 

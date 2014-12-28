@@ -27,17 +27,17 @@ func GetAllUserSessions(appID uint64, userToken string) (userSessions []*entity.
 	userSessions = []*entity.Session{}
 
 	err = GetSlave().
-		Select(&userSessions, "SELECT * FROM `gluee`.`sessions` WHERE `app_id`=? AND `user_token`=?", appID, userToken)
+		Select(&userSessions, "SELECT * FROM `gluee`.`sessions` WHERE `application_id`=? AND `user_token`=?", appID, userToken)
 
 	return
 }
 
-// AddtUserSession creates a new session for an user and returns the created entry or an error
-func AddtUserSession(session *entity.Session) (*entity.Session, error) {
-	query := "INSERT INTO `gluee`.`sessions` (`app_id`, `user_token`, `nth`, `custom`, " +
+// AddUserSession creates a new session for an user and returns the created entry or an error
+func AddUserSession(session *entity.Session) (*entity.Session, error) {
+	query := "INSERT INTO `gluee`.`sessions` (`application_id`, `user_token`, `nth`, `custom`, " +
 		"`language`, `country`, `network`, `uuid`, `platform`, `sdk_version`, `timezone`, `city`, `gid`, " +
-		"`idfa`, `app_version`, `carrier`, `model`, `manufacturer`, `android_id`, `os_version`, `ip`) " +
-		"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"
+		"`idfa`, `app_version`, `carrier`, `model`, `manufacturer`, `android_id`, `os_version`, `ip`, `browser`) " +
+		"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 	result, err := GetMaster().
 		Exec(query,
 		session.AppID,
@@ -61,6 +61,7 @@ func AddtUserSession(session *entity.Session) (*entity.Session, error) {
 		session.Device.AndroidID,
 		session.Device.OSVersion,
 		session.Device.IP,
+		session.Device.Browser,
 	)
 
 	if err != nil {

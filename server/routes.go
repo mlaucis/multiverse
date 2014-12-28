@@ -135,7 +135,7 @@ var routes = []*route{
 	&route{
 		"createApplicationEvent",
 		"POST",
-		"/app/{appId:[0-9]{1,20}}/user/{userToken:[a-zA-Z0-9]+}/session/{sessionId:[0-9]{1,20}}/event/{eventId:[0-9]{1,20}}",
+		"/app/{appId:[0-9]{1,20}}/user/{userToken:[a-zA-Z0-9]+}/session/{sessionId:[0-9]{1,20}}/event",
 		createApplicationEvent,
 	},
 	&route{

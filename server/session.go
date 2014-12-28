@@ -106,7 +106,7 @@ func getUserSessionList(w http.ResponseWriter, r *http.Request) {
 
 // createUserSession handles requests create a user session
 // Request: POST /app/:AppID/user/:userToken/session
-// Test with: curl -i -H "Content-Type: application/json" -d '{"nth":2,"custom":"{}","gid":"gluee_uid","model":"galaxy siv","manufacturer":"samsung","uuid":"uuid","idfa":"iddd","android_id":"1","platfrom":"android","os_version":"lollipop","browser":"","app_version":"1.0.1","sdk_version":"0.1","timezone":"+0100","language":"en","country":"de","city":"berlin","ip":"300.400.500.600","carrier":"vodasucks","network":"wifi"}' localhost/app/1/user/token1/session
+// Test with: curl -i -H "Content-Type: application/json" -d '{"nth":1,"custom":"{}","gid":"gluee_uid","model":"galaxy siv","manufacturer":"samsung","uuid":"uuid","idfa":"iddd","android_id":"1","platfrom":"android","os_version":"lollipop","browser":"","app_version":"1.0.1","sdk_version":"0.1","timezone":"+0100","language":"en","country":"de","city":"berlin","ip":"300.400.500.600","carrier":"vodasucks","network":"wifi"}' localhost/app/1/user/token1/session
 func createUserSession(w http.ResponseWriter, r *http.Request) {
 	if err := validatePostCommon(w, r); err != nil {
 		errorHappened(err, http.StatusBadRequest, r, w)
@@ -142,7 +142,7 @@ func createUserSession(w http.ResponseWriter, r *http.Request) {
 
 	// TODO validation should be added here, for example, name shouldn't be empty ;)
 
-	if session, err = db.AddtUserSession(session); err != nil {
+	if session, err = db.AddUserSession(session); err != nil {
 		errorHappened(err, http.StatusInternalServerError, r, w)
 		return
 	}

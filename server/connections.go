@@ -56,7 +56,7 @@ func getUserConnections(w http.ResponseWriter, r *http.Request) {
 
 // createUserConnection handles requests to create a user connection
 // Request: POST /app/:AppID/connection
-// Test with: curl -H "Content-Type: application/json" -d '{"user_id1":"123456","user_id2":"654321"}' localhost/app/:AppID/connection
+// Test with: curl -i -H "Content-Type: application/json" -d '{"user_id1":"123456","user_id2":"654321"}' localhost/app/:AppID/connection
 func createUserConnection(w http.ResponseWriter, r *http.Request) {
 	if err := validatePostCommon(w, r); err != nil {
 		errorHappened(err, http.StatusBadRequest, r, w)

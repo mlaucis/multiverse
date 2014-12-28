@@ -67,17 +67,18 @@ type (
 
 	// User structure
 	User struct {
-		AppID        uint64    `json:"app_id,omitempty" db:"app_id"`
+		AppID        uint64    `json:"app_id,omitempty" db:"application_id"`
 		Token        string    `json:"token,omitempty"`
 		Username     string    `json:"username,omitempty"`
 		Name         string    `json:"name",omitempty"`
 		Password     string    `json:"password,omitempty"`
 		Email        string    `json:"email,omitempty"`
-		URL          string    `json:"url,omitempty"`
+		URL          string    `json:"url,omitempty" db:"url"`
 		ThumbnailURL string    `json:"thumbnail_url,omitempty" db:"thumbnail_url"`
 		Provider     string    `json:"provider,omitempty"`
 		Custom       string    `json:"custom,omitempty"`
 		Connections  []*User   `json:"connections,omitempty" db:"-"`
+		Events       []*Event  `json:"events,omitempty" db:"-"`
 		LastLogin    time.Time `json:"last_login,omitempty" db:"last_login"`
 		CreatedAt    time.Time `json:"created_at" db:"created_at"`
 		UpdatedAt    time.Time `json:"updated_at" db:"updated_at"`
@@ -85,7 +86,7 @@ type (
 
 	// UserConnection structure holds the connections of the users between each-other
 	UserConnection struct {
-		AppID      string    `json:"app_id" db:"app_id"`
+		AppID      string    `json:"app_id" db:"application_id"`
 		UserToken1 string    `json:"user_id1" db:"user_id1"`
 		UserToken2 string    `json:"user_id2" db:"user_id2"`
 		Enabled    bool      `json:"enabled"`
@@ -96,34 +97,36 @@ type (
 	// Session structure
 	Session struct {
 		ID        uint64 `json:"id"`
-		AppID     uint64 `json:"app_id" db:"app_id"`
+		AppID     uint64 `json:"app_id" db:"application_id"`
 		UserToken string `json:"user_token" db:"user_token"`
 		Nth       uint64 `json:"nth"`
 		Custom    string `json:"custom,omitempty"`
 		Device
+		User      *User     `json:"user,omitempty" db:"-"`
+		Events    []*Event  `json:"events,omitempty" db:"-"`
 		CreatedAt time.Time `json:"created_at" db:"created_at"`
 		UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
 	}
 
 	// Item structure
 	Item struct {
-		ID   string `json:"item_id" db:"item_id"`
-		Name string `json:"item_name,omitempty" db:"item_name"`
-		URL  string `json:"item_url,omitempty" db:"item_url"`
+		ID           string `json:"item_id" db:"item_id"`
+		Name         string `json:"item_name,omitempty" db:"item_name"`
+		URL          string `json:"item_url,omitempty" db:"item_url"`
+		ThumbnailURL string `json:"thumbnail_url,omitempty" db:"thumbnail_url"`
 	}
 
 	// Event structure
 	Event struct {
-		ID           uint64    `json:"id"`
-		AppID        uint64    `json:"app_id,omitempty" db:"app_id"`
-		SessionID    uint64    `json:"session_id" db:"session_id"`
-		UserToken    uint64    `json:"user_token,omitempty" db:"user_token"`
-		Type         string    `json:"type"`
-		ThumbnailURL string    `json:"thumbnail_url,omitempty" db:"thumbnail_url"`
-		Item         *Item     `json:"item"`
-		Custom       string    `json:"custom,omitempty"`
-		Nth          uint64    `json:"nth"`
-		User         *User     `json:"user,omitempty" db:"-"`
-		CreatedAt    time.Time `json:"created_at" db:"created_at"`
+		ID        uint64 `json:"id"`
+		AppID     uint64 `json:"app_id,omitempty" db:"application_id"`
+		SessionID uint64 `json:"session_id" db:"session_id"`
+		UserToken string `json:"user_token,omitempty" db:"user_token"`
+		Type      string `json:"type"`
+		Item
+		Custom    string    `json:"custom,omitempty"`
+		Nth       uint64    `json:"nth"`
+		User      *User     `json:"user,omitempty" db:"-"`
+		CreatedAt time.Time `json:"created_at" db:"created_at"`
 	}
 )
