@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Dec 27, 2014 at 04:24 PM
+-- Generation Time: Dec 28, 2014 at 01:49 PM
 -- Server version: 5.6.19-1~exp1ubuntu2
 -- PHP Version: 5.5.12-2ubuntu4.1
 
@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS `applications` (
   `enabled` tinyint(1) NOT NULL DEFAULT '1',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -95,7 +95,7 @@ CREATE TABLE IF NOT EXISTS `events` (
 CREATE TABLE IF NOT EXISTS `sessions` (
   `id` bigint(20) unsigned NOT NULL,
   `app_id` bigint(20) unsigned NOT NULL,
-  `usr_token` varchar(255) DEFAULT NULL,
+  `user_token` varchar(255) DEFAULT NULL,
   `nth` bigint(20) DEFAULT NULL,
   `custom` varchar(255) DEFAULT NULL,
   `language` varchar(255) DEFAULT NULL,
@@ -118,7 +118,7 @@ CREATE TABLE IF NOT EXISTS `sessions` (
   `ip` varchar(255) DEFAULT NULL,
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -189,7 +189,7 @@ ALTER TABLE `events`
 -- Indexes for table `sessions`
 --
 ALTER TABLE `sessions`
-  ADD PRIMARY KEY (`id`), ADD KEY `app_id` (`app_id`), ADD KEY `usr_token` (`usr_token`);
+  ADD PRIMARY KEY (`id`), ADD KEY `app_id` (`app_id`), ADD KEY `user_token` (`user_token`);
 
 --
 -- Indexes for table `users`
@@ -211,12 +211,12 @@ ALTER TABLE `user_connections`
 -- AUTO_INCREMENT for table `accounts`
 --
 ALTER TABLE `accounts`
-  MODIFY `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=1;
+  MODIFY `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `account_users`
 --
 ALTER TABLE `account_users`
-  MODIFY `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=1;
+  MODIFY `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `applications`
 --
@@ -253,15 +253,15 @@ ADD CONSTRAINT `app_acc_fk` FOREIGN KEY (`account_id`) REFERENCES `accounts` (`i
 --
 ALTER TABLE `events`
 ADD CONSTRAINT `evt_app_fk` FOREIGN KEY (`app_id`) REFERENCES `applications` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-ADD CONSTRAINT `evt_sess_fk` FOREIGN KEY (`sess_id`) REFERENCES `sessions` (`id`),
-ADD CONSTRAINT `evt_usr_fk` FOREIGN KEY (`usr_token`) REFERENCES `users` (`token`);
+ADD CONSTRAINT `evt_sess_fk` FOREIGN KEY (`sess_id`) REFERENCES `sessions` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+ADD CONSTRAINT `evt_usr_fk` FOREIGN KEY (`usr_token`) REFERENCES `users` (`token`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `sessions`
 --
 ALTER TABLE `sessions`
-ADD CONSTRAINT `sess_app_fk` FOREIGN KEY (`app_id`) REFERENCES `applications` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-ADD CONSTRAINT `sess_usr_fk` FOREIGN KEY (`usr_token`) REFERENCES `users` (`token`);
+ADD CONSTRAINT `sess_usr_fk` FOREIGN KEY (`user_token`) REFERENCES `users` (`token`) ON DELETE CASCADE ON UPDATE CASCADE,
+ADD CONSTRAINT `sess_app_fk` FOREIGN KEY (`app_id`) REFERENCES `applications` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `users`
@@ -274,7 +274,7 @@ ADD CONSTRAINT `usr_app_fk` FOREIGN KEY (`app_id`) REFERENCES `applications` (`i
 --
 ALTER TABLE `user_connections`
 ADD CONSTRAINT `usrc_app_fk` FOREIGN KEY (`app_id`) REFERENCES `applications` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-ADD CONSTRAINT `usrc_usr_fk1` FOREIGN KEY (`user_id1`) REFERENCES `users` (`token`),
+ADD CONSTRAINT `usrc_usr_fk1` FOREIGN KEY (`user_id1`) REFERENCES `users` (`token`) ON DELETE CASCADE ON UPDATE CASCADE,
 ADD CONSTRAINT `usrc_usr_fk2` FOREIGN KEY (`user_id2`) REFERENCES `users` (`token`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

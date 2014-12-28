@@ -5,11 +5,14 @@
 package server
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
 
 	//"github.com/gluee/backend/entity"
+	"github.com/gluee/backend/db"
+	"github.com/gluee/backend/entity"
 	"github.com/gorilla/mux"
 )
 
@@ -18,9 +21,52 @@ import (
 // Test with: curl -i localhost/app/:AppID/user/:Token/session/:SessionID
 func getUserSession(w http.ResponseWriter, r *http.Request) {
 	var (
+		sessionID uint64
 		appID     uint64
 		userToken string
-		sessionID string
+		session   = &entity.Session{}
+		err       error
+	)
+	// Read variables from request
+	vars := mux.Vars(r)
+
+	// Read appID
+	if appID, err = strconv.ParseUint(vars["appId"], 10, 64); err != nil {
+		errorHappened(fmt.Errorf("appId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
+		return
+	}
+
+	if sessionID, err = strconv.ParseUint(vars["sessionId"], 10, 64); err != nil {
+		errorHappened(fmt.Errorf("appId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
+		return
+	}
+
+	// Read userToken
+	userToken = vars["userToken"]
+
+	if session, err = db.GetSessionByID(sessionID); err != nil {
+		errorHappened(err, http.StatusInternalServerError, r, w)
+		return
+	}
+
+	if session.AppID != appID || session.UserToken != userToken {
+		errorHappened(fmt.Errorf("session doesn't match expected values"), http.StatusInternalServerError, r, w)
+		return
+	}
+
+	// Write response
+	writeResponse(session, http.StatusOK, 10, w, r)
+}
+
+// getUserSessionList handles requests to retrieve all sessions of a user
+// Request: GET /app/:AppID/user/:userToken/sessions
+// Test with: curl -i localhost/app/:AppID/user/:userToken/sessions
+func getUserSessionList(w http.ResponseWriter, r *http.Request) {
+	var (
+		user      *entity.User
+		userToken string
+		sessions  []*entity.Session
+		appID     uint64
 		err       error
 	)
 	// Read variables from request
@@ -35,33 +81,43 @@ func getUserSession(w http.ResponseWriter, r *http.Request) {
 	// Read userToken
 	userToken = vars["userToken"]
 
-	// Read sessionID
-	sessionID = vars["sessionId"]
+	if user, err = db.GetApplicationUserByToken(appID, userToken); err != nil {
+		errorHappened(err, http.StatusInternalServerError, r, w)
+		return
+	}
+
+	if sessions, err = db.GetAllUserSessions(appID, userToken); err != nil {
+		errorHappened(err, http.StatusInternalServerError, r, w)
+		return
+	}
 
 	// Create mock response
 	response := &struct {
-		appID     uint64 `json: "appId"`
-		userToken string `json: "userToken"`
-		sessionID string `json: "sessionId"`
+		*entity.User
+		Sessions []*entity.Session
 	}{
-		appID:     appID,
-		userToken: userToken,
-		sessionID: sessionID,
+		User:     user,
+		Sessions: sessions,
 	}
-
-	// Read session from database
 
 	// Write response
 	writeResponse(response, http.StatusOK, 10, w, r)
 }
 
-// getUserSessionList handles requests to retrieve all sessions of a user
-// Request: GET /app/:AppID/user/:userToken/sessions
-// Test with: curl -i localhost/app/:AppID/user/:userToken/sessions
-func getUserSessionList(w http.ResponseWriter, r *http.Request) {
+// createUserSession handles requests create a user session
+// Request: POST /app/:AppID/user/:userToken/session
+// Test with: curl -i -H "Content-Type: application/json" -d '{"nth":2,"custom":"{}","gid":"gluee_uid","model":"galaxy siv","manufacturer":"samsung","uuid":"uuid","idfa":"iddd","android_id":"1","platfrom":"android","os_version":"lollipop","browser":"","app_version":"1.0.1","sdk_version":"0.1","timezone":"+0100","language":"en","country":"de","city":"berlin","ip":"300.400.500.600","carrier":"vodasucks","network":"wifi"}' localhost/app/1/user/token1/session
+func createUserSession(w http.ResponseWriter, r *http.Request) {
+	if err := validatePostCommon(w, r); err != nil {
+		errorHappened(err, http.StatusBadRequest, r, w)
+		return
+	}
+
 	var (
-		appID uint64
-		err   error
+		session   = &entity.Session{}
+		appID     uint64
+		userToken string
+		err       error
 	)
 	// Read variables from request
 	vars := mux.Vars(r)
@@ -72,29 +128,24 @@ func getUserSessionList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Create mock response
-	response := &struct {
-		appID uint64 `json: "appId"`
-	}{
-		appID: appID,
+	// Read userToken
+	userToken = vars["userToken"]
+
+	decoder := json.NewDecoder(r.Body)
+	if err = decoder.Decode(session); err != nil {
+		errorHappened(err, http.StatusBadRequest, r, w)
+		return
 	}
 
-	// Read user from database
+	session.AppID = appID
+	session.UserToken = userToken
 
-	// Query draft
-	/**
-	 * SELECT token, username, name, email, url, thumbnail_url, custom, last_login, created_at, updated_at
-	 * FROM users
-	 * WHERE app_id={appID};
-	 */
+	// TODO validation should be added here, for example, name shouldn't be empty ;)
 
-	// Write response
-	writeResponse(response, http.StatusOK, 10, w, r)
-}
+	if session, err = db.AddtUserSession(session); err != nil {
+		errorHappened(err, http.StatusInternalServerError, r, w)
+		return
+	}
 
-// createUserSession handles requests create a user session
-// Request: POST /app/:AppID/user/:userToken/session
-// Test with: curl -H "Content-Type: application/json" -d '{"TBD"}' localhost/app/:AppID/user/:userToken/session/:SessionID
-func createUserSession(w http.ResponseWriter, r *http.Request) {
-
+	writeResponse(session, http.StatusCreated, 0, w, r)
 }

@@ -11,27 +11,24 @@ import "time"
 type (
 	// Device structure
 	Device struct {
-		GID          string    `json:"gid" db:"gid"`
-		Model        string    `json:"model"`
-		Manufacturer string    `json:"manufacturer"`
-		UUID         string    `json:"uuid" db:"uuid"`
-		IDFA         string    `json:"idfa" db:"idfa"`
-		AndroidID    string    `json:"android_id" db:"android_id"`
-		Platform     string    `json:"platfrom"`
-		OSVersion    string    `json:"os_version" db:"os_version"`
-		Browser      string    `json:"browser" db:"browser"`
-		AppVersion   string    `json:"app_version" db:"app_version"`
-		SDKVersion   string    `json:"sdk_version" db:"sdk_version"`
-		Timezone     string    `json:"timezone"`
-		Language     string    `json:"language"`
-		Country      string    `json:"country"`
-		City         string    `json:"city"`
-		IP           string    `json:"ip" db:"ip"`
-		Carrier      string    `json:"carrier"`
-		Network      string    `json:"network"`
-		Enabled      bool      `json:"enabled"`
-		CreatedAt    time.Time `json:"created_at" db:"created_at"`
-		UpdatedAt    time.Time `json:"updated_at" db:"updated_at"`
+		GID          string `json:"gid" db:"gid"`
+		Model        string `json:"model"`
+		Manufacturer string `json:"manufacturer"`
+		UUID         string `json:"uuid" db:"uuid"`
+		IDFA         string `json:"idfa" db:"idfa"`
+		AndroidID    string `json:"android_id" db:"android_id"`
+		Platform     string `json:"platfrom"`
+		OSVersion    string `json:"os_version" db:"os_version"`
+		Browser      string `json:"browser" db:"browser"`
+		AppVersion   string `json:"app_version" db:"app_version"`
+		SDKVersion   string `json:"sdk_version" db:"sdk_version"`
+		Timezone     string `json:"timezone"`
+		Language     string `json:"language"`
+		Country      string `json:"country"`
+		City         string `json:"city"`
+		IP           string `json:"ip" db:"ip"`
+		Carrier      string `json:"carrier"`
+		Network      string `json:"network"`
 	}
 
 	// Account structure
@@ -98,21 +95,21 @@ type (
 
 	// Session structure
 	Session struct {
-		ID        uint64    `json:"id"`
-		AppID     uint64    `json:"app_id" db:"app_id"`
-		Token     string    `json:"token"`
-		Nth       uint64    `json:"nth"`
-		Custom    string    `json:"custom,omitempty"`
-		Device    *Device   `json:"device"`
+		ID        uint64 `json:"id"`
+		AppID     uint64 `json:"app_id" db:"app_id"`
+		UserToken string `json:"user_token" db:"user_token"`
+		Nth       uint64 `json:"nth"`
+		Custom    string `json:"custom,omitempty"`
+		Device
 		CreatedAt time.Time `json:"created_at" db:"created_at"`
 		UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
 	}
 
 	// Item structure
 	Item struct {
-		ID   string `json:"id"`
-		Name string `json:"name,omitempty"`
-		URL  string `json:"url,omitempty" db:"url"`
+		ID   string `json:"item_id" db:"item_id"`
+		Name string `json:"item_name,omitempty" db:"item_name"`
+		URL  string `json:"item_url,omitempty" db:"item_url"`
 	}
 
 	// Event structure
