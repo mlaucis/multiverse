@@ -21,18 +21,17 @@ const (
 	EnvConfigVar = "GLUEE_BACKEND_CONFIG_PATH"
 )
 
-var cfg *config.Config
+var cfg *config.Cfg
 
 func init() {
 	// Use all available CPU's
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	rand.Seed(time.Now().UTC().UnixNano())
 	// Get configuration
-	config.LoadConfig(EnvConfigVar)
-	cfg = config.GetConfig()
+	cfg = config.NewConf(EnvConfigVar)
 
 	// Initialize database
-	db.InitDatabases(cfg)
+	db.InitDatabases(cfg.DB())
 }
 
 func main() {
@@ -41,5 +40,5 @@ func main() {
 	router := server.GetRouter()
 
 	// Start server
-	log.Fatal(http.ListenAndServe(cfg.ListenHost, router))
+	log.Fatal(http.ListenAndServe(cfg.ListenHost(), router))
 }

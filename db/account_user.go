@@ -10,7 +10,7 @@ import (
 	"github.com/gluee/backend/entity"
 )
 
-// GetAccountUser returns the user matching the account or an error
+// GetAccountUserByID returns the user matching the account or an error
 func GetAccountUserByID(accountID, userID uint64) (accountUser *entity.AccountUser, err error) {
 	accountUser = &entity.AccountUser{}
 

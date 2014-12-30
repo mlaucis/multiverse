@@ -25,7 +25,7 @@ func GetEventByID(eventID uint64) (event *entity.Event, err error) {
 // GetAllUserAppEvents returns all the events of a user for a certain app
 func GetAllUserAppEvents(appID uint64, userToken string) (user *entity.User, err error) {
 	if user, err = GetApplicationUserByToken(appID, userToken); err != nil {
-		if config.GetConfig().Env == "dev" {
+		if config.Conf().Env() == "dev" {
 			return nil, err
 		}
 		return
@@ -42,7 +42,7 @@ func GetAllUserAppEvents(appID uint64, userToken string) (user *entity.User, err
 // GetSessionEvents returns all the events from a session of a user within an app
 func GetSessionEvents(appID, sessionID uint64, userToken string) (session *entity.Session, err error) {
 	if session, err = GetSessionByID(sessionID); err != nil {
-		if config.GetConfig().Env == "dev" {
+		if config.Conf().Env() == "dev" {
 			return nil, err
 		}
 		return
@@ -55,7 +55,7 @@ func GetSessionEvents(appID, sessionID uint64, userToken string) (session *entit
 	session.User = &entity.User{}
 
 	if session.User, err = GetApplicationUserByToken(appID, userToken); err != nil {
-		if config.GetConfig().Env == "dev" {
+		if config.Conf().Env() == "dev" {
 			return nil, err
 		}
 		return
@@ -69,6 +69,7 @@ func GetSessionEvents(appID, sessionID uint64, userToken string) (session *entit
 	return
 }
 
+// GetUserConnectionsEvents returns the events of all the users connected to the specified user
 func GetUserConnectionsEvents(appID uint64, userToken string) (events []*entity.Event, err error) {
 	events = []*entity.Event{}
 
@@ -85,7 +86,7 @@ func GetUserConnectionsEvents(appID uint64, userToken string) (events []*entity.
 	return
 }
 
-// AddtUserSession creates a new session for an user and returns the created entry or an error
+// AddSessionEvent creates a new session for an user and returns the created entry or an error
 func AddSessionEvent(event *entity.Event) (*entity.Event, error) {
 	query := "INSERT INTO `gluee`.`events` (`application_id`, `session_id`, `user_token`, `type`, " +
 		"`item_id`, `item_name`, `item_url`, `thumbnail_url`, `custom`, `nth`) " +
@@ -105,7 +106,7 @@ func AddSessionEvent(event *entity.Event) (*entity.Event, error) {
 	)
 
 	if err != nil {
-		if config.GetConfig().Env == "dev" {
+		if config.Conf().Env() == "dev" {
 			return nil, err
 		}
 		return nil, fmt.Errorf("error while saving to database")

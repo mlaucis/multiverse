@@ -77,7 +77,7 @@ func getApplicationUserEvents(w http.ResponseWriter, r *http.Request) {
 	userToken = vars["userToken"]
 
 	if user, err = db.GetAllUserAppEvents(appID, userToken); err != nil {
-		if config.GetConfig().Env != "dev" {
+		if config.Conf().Env() != "dev" {
 			err = fmt.Errorf("could not retrieve the user events")
 		}
 		errorHappened(err, http.StatusBadRequest, r, w)

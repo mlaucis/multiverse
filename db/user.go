@@ -39,7 +39,7 @@ func AddApplicationUser(appID uint64, user *entity.User) (*entity.User, error) {
 	_, err := GetMaster().
 		Exec(query, appID, user.Token, user.Username, user.Name, user.Password, user.Email, user.URL, user.ThumbnailURL, user.Provider, user.Custom)
 	if err != nil {
-		if config.GetConfig().Env == "dev" {
+		if config.Conf().Env() == "dev" {
 			return nil, err
 		}
 		return nil, fmt.Errorf("error while saving to database")
@@ -77,7 +77,7 @@ func AddApplicationUserConnection(appID uint64, user1Token, user2Token string) (
 	_, err = GetMaster().
 		Exec(query, appID, user1Token, user2Token)
 	if err != nil {
-		if config.GetConfig().Env == "dev" {
+		if config.Conf().Env() == "dev" {
 			return err
 		}
 		return fmt.Errorf("error while saving to database")

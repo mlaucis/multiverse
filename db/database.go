@@ -6,7 +6,6 @@
 package db
 
 import (
-	"fmt"
 	"sync"
 
 	"github.com/gluee/backend/config"
@@ -36,49 +35,36 @@ var (
 )
 
 // openMasterConnection opens a connection to the master database
-func openMasterConnection(cfg *config.Config) {
+func openMasterConnection(cfg config.DB) {
 	// Read settings from configuration
-	masterDSN := fmt.Sprintf(
-		"%s:%s@tcp(%s:%d)/%s?parseTime=true&charset=utf8&collation=utf8_general_ci",
-		cfg.DB.Username,
-		cfg.DB.Password,
-		cfg.DB.Master.Host,
-		cfg.DB.Master.Port,
-		cfg.DB.Database,
-	)
+	masterDSN := cfg.MasterDSN()
 
 	// Establish connection to master
 	masterConnection = sqlx.MustConnect("mysql", masterDSN)
 	masterConnection.DB.Ping()
-	masterConnection.DB.SetMaxIdleConns(10)
-	masterConnection.DB.SetMaxOpenConns(100)
+	masterConnection.DB.SetMaxIdleConns(cfg.MaxIdleConnections())
+	masterConnection.DB.SetMaxOpenConns(cfg.MaxOpenConnections())
 }
 
 // openSlaveConnections opens a connection to each of the slave databases
-func openSlaveConnections(cfg *config.Config) {
-	for _, slave := range cfg.DB.Slaves {
+func openSlaveConnections(cfg config.DB) {
+	slaves := cfg.SlavesDSN()
+
+	for _, slaveDSN := range slaves {
 		slaveConnection := &sqlx.DB{}
-		slaveDSN := fmt.Sprintf(
-			"%s:%s@tcp(%s:%d)/%s?parseTime=true&charset=utf8&collation=utf8_general_ci",
-			cfg.DB.Username,
-			cfg.DB.Password,
-			slave.Host,
-			slave.Port,
-			cfg.DB.Database,
-		)
 
 		// Establish connection to slaves
 		slaveConnection = sqlx.MustConnect("mysql", slaveDSN)
 		slaveConnection.DB.Ping()
-		slaveConnection.DB.SetMaxIdleConns(10)
-		slaveConnection.DB.SetMaxOpenConns(100)
+		slaveConnection.DB.SetMaxIdleConns(cfg.MaxIdleConnections())
+		slaveConnection.DB.SetMaxOpenConns(cfg.MaxOpenConnections())
 
 		slaveConnections.Slaves = append(slaveConnections.Slaves, &dbSlave{DB: slaveConnection})
 	}
 }
 
 // InitDatabases initializes the connections to the servers
-func InitDatabases(cfg *config.Config) {
+func InitDatabases(cfg config.DB) {
 	openMasterConnection(cfg)
 	openSlaveConnections(cfg)
 }

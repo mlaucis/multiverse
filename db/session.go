@@ -65,7 +65,7 @@ func AddUserSession(session *entity.Session) (*entity.Session, error) {
 	)
 
 	if err != nil {
-		if config.GetConfig().Env == "dev" {
+		if config.Conf().Env() == "dev" {
 			return nil, err
 		}
 		return nil, fmt.Errorf("error while saving to database")

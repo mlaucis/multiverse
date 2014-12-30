@@ -7,22 +7,40 @@ package config
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
 	"runtime"
 )
 
-// Config structure for the application configuration
-type Config struct {
-	Env        string `json:"env"`
-	ListenHost string `json:"listenHost"`
-	DB         struct {
+type (
+	// DB interface
+	DB interface {
+		IsMasterDebug() bool
+		IsSlaveDebug(slaveID uint) bool
+		MasterDSN() string
+		SlavesDSN() []string
+		MaxIdleConnections() int
+		MaxOpenConnections() int
+	}
+
+	// Config interface
+	Config interface {
+		Load(configEnvPath string)
+		Valiate()
+		Env() string
+		ListenHost() string
+		DB() *DB
+	}
+
+	// Db structure
+	Db struct {
 		Username string `json:"username"`
 		Password string `json:"password`
 		Database string `json:"database"`
-		MaxIdle  uint   `json:"max_idle"`
-		MaxOpen  uint   `json:"max_open"`
+		MaxIdle  int    `json:"max_idle"`
+		MaxOpen  int    `json:"max_open"`
 		Master   struct {
 			Debug bool   `json:"debug"`
 			Host  string `json:"host"`
@@ -33,29 +51,37 @@ type Config struct {
 			Host  string `json:"host"`
 			Port  uint   `json:"port"`
 		} `json:"slaves"`
-	} `json:"db"`
-}
+	}
 
-var cfg *Config
+	// Cfg structure for the application configuration
+	Cfg struct {
+		Environment    string `json:"env"`
+		ListenHostPort string `json:"listenHost"`
+		Database       *Db    `json:"db"`
+	}
+)
+
+var cfg *Cfg
 
 // getDefaultConfig returns the default configuration. It will be overwritten by the config from the user
-func getDefaultConfig() *Config {
-	cfg := &Config{}
-	cfg.Env = "dev"
-	cfg.ListenHost = ":8082"
+func defaultConfig() *Cfg {
+	cfg := &Cfg{}
+	cfg.Environment = "dev"
+	cfg.ListenHostPort = ":8082"
 
-	cfg.DB.Username = "gluee"
-	cfg.DB.Password = "x"
-	cfg.DB.Database = "gluee"
+	cfg.Database = &Db{}
+	cfg.Database.Username = "gluee"
+	cfg.Database.Password = "x"
+	cfg.Database.Database = "gluee"
 
-	cfg.DB.MaxIdle = 10
-	cfg.DB.MaxOpen = 300
+	cfg.Database.MaxIdle = 10
+	cfg.Database.MaxOpen = 300
 
-	cfg.DB.Master.Debug = true
-	cfg.DB.Master.Host = "127.0.0.1"
-	cfg.DB.Master.Port = 3306
+	cfg.Database.Master.Debug = true
+	cfg.Database.Master.Host = "127.0.0.1"
+	cfg.Database.Master.Port = 3306
 
-	cfg.DB.Slaves = append(cfg.DB.Slaves, struct {
+	cfg.Database.Slaves = append(cfg.Database.Slaves, struct {
 		Debug bool   `json:"debug"`
 		Host  string `json:"host"`
 		Port  uint   `json:"port"`
@@ -69,12 +95,83 @@ func getDefaultConfig() *Config {
 	return cfg
 }
 
-// validateConfig should be implemented to add config validation or panic if needed
-func validateConfig() {
+// Env returns the environment of the application
+func (config *Cfg) Env() string {
+	return config.Environment
+}
+
+// ListenHost returns the host:port combination for the main server
+func (config *Cfg) ListenHost() string {
+	return config.ListenHostPort
+}
+
+// DB returns a database interface
+func (config *Cfg) DB() DB {
+	return config.Database
+}
+
+// IsMasterDebug returns if the master database is set to debug
+func (database *Db) IsMasterDebug() bool {
+	return database.Master.Debug
+}
+
+// IsSlaveDebug returns if the specified slave is set to debug
+func (database *Db) IsSlaveDebug(slaveID uint) bool {
+	if uint(len(database.Slaves)-1) > slaveID {
+		return false
+	}
+
+	return database.Slaves[slaveID].Debug
+}
+
+// MasterDSN returns the master DSN connection string
+func (database *Db) MasterDSN() string {
+	return fmt.Sprintf(
+		"%s:%s@tcp(%s:%d)/%s?parseTime=true&charset=utf8&collation=utf8_general_ci",
+		database.Username,
+		database.Password,
+		database.Master.Host,
+		database.Master.Port,
+		database.Database,
+	)
+}
+
+// SlavesDSN returns the DSN for all the slaves
+func (database *Db) SlavesDSN() []string {
+	result := []string{}
+	for _, slave := range database.Slaves {
+
+		slaveDSN := fmt.Sprintf(
+			"%s:%s@tcp(%s:%d)/%s?parseTime=true&charset=utf8&collation=utf8_general_ci",
+			database.Username,
+			database.Password,
+			slave.Host,
+			slave.Port,
+			database.Database,
+		)
+
+		result = append(result, slaveDSN)
+	}
+
+	return result
+}
+
+// MaxIdleConnections returns the number of maximum idle connections for the database
+func (database *Db) MaxIdleConnections() int {
+	return database.MaxIdle
+}
+
+// MaxOpenConnections returns the number of maximum open connections to the database
+func (database *Db) MaxOpenConnections() int {
+	return database.MaxOpen
+}
+
+// Validate should be implemented to add config validation or panic if needed
+func (config *Cfg) Validate() {
 
 }
 
-// LoadConfig loads the configuration for the application.
+// Load loads the configuration for the application.
 //
 // The name of the config file must be "config.json"
 //
@@ -82,16 +179,16 @@ func validateConfig() {
 // If the environment variable doesn't exist or it's empty it then tries to use the directory where the binary file is.
 //
 // If the file is not present or it's not a valid json file the the call fails as well.
-func LoadConfig(configPath string) {
+func (config *Cfg) Load(configEnvPath string) {
 	// Read config path from environment variable
 	configDir := ""
-	if configPath != "" {
-		configDir = os.Getenv(configPath)
+	if configEnvPath != "" {
+		configDir = os.Getenv(configEnvPath)
 	}
 
 	// If empty set path to path of current file
 	if configDir == "" {
-		_, currentFilename, _, ok := runtime.Caller(1)
+		_, currentFilename, _, ok := runtime.Caller(2)
 		if !ok {
 			panic("Could not retrieve the caller for loading config")
 		}
@@ -106,7 +203,7 @@ func LoadConfig(configPath string) {
 	}
 
 	// Get the default configuration
-	cfg = getDefaultConfig()
+	cfg = defaultConfig()
 
 	// Overwrite with user configuration from file
 	if err := json.Unmarshal(file, cfg); err != nil {
@@ -114,16 +211,23 @@ func LoadConfig(configPath string) {
 	}
 
 	// Validate configuration
-	validateConfig()
+	config.Validate()
 }
 
-// GetConfig will return the config
+// NewConf will load and return the config
+func NewConf(configEnvPath string) *Cfg {
+	cfg.Load(configEnvPath)
+
+	return cfg
+}
+
+// Conf will return the config
 //
 // If the config is not loaded already, it will attempt to load it from the directory of the binary
-func GetConfig() *Config {
-	// Return config if it's not empty
-	if cfg == nil {
-		LoadConfig("")
+func Conf() *Cfg {
+	// Last mile defence, try to load the config from the current binary directory if it's not loaded yet
+	if cfg.Env() == "" {
+		cfg.Load("")
 	}
 
 	return cfg
