@@ -1,10 +1,10 @@
-# Gluee backend [![wercker status](https://app.wercker.com/status/79fb688d3dd5889a31d18cf6fee31a24/s/ "wercker status")](https://app.wercker.com/project/bykey/79fb688d3dd5889a31d18cf6fee31a24)
+# Tapglue backend [![wercker status](https://app.wercker.com/status/37a8675b2ae12075851f297ce6a36ead/s "wercker status")](https://app.wercker.com/project/bykey/37a8675b2ae12075851f297ce6a36ead)
 
-This repository contains the implementation of gluees backend.
+This repository contains the implementation of tapglues backend.
 
 ## Build status
 
-[![wercker status](https://app.wercker.com/status/79fb688d3dd5889a31d18cf6fee31a24/m "wercker status")](https://app.wercker.com/project/bykey/79fb688d3dd5889a31d18cf6fee31a24)
+[![wercker status](https://app.wercker.com/status/37a8675b2ae12075851f297ce6a36ead/m "wercker status")](https://app.wercker.com/project/bykey/37a8675b2ae12075851f297ce6a36ead)
 
 ## Documentation
 
