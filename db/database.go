@@ -8,7 +8,7 @@ package db
 import (
 	"sync"
 
-	"github.com/gluee/backend/config"
+	"github.com/tapglue/backend/config"
 
 	_ "github.com/go-sql-driver/mysql" // Get the MySQL driver
 	"github.com/jmoiron/sqlx"

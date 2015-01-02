@@ -129,7 +129,7 @@ func humans(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	w.Write([]byte(`/* TEAM */
 Founder: Normal Wiese, Onur Akpolat
-http://gluee.co
+http://tapglue.co
 Location: Berlin, Germany.
 
 /* THANKS */

@@ -8,7 +8,7 @@ This repository contains the implementation of tapglues backend.
 
 ## Documentation
 
-See [Documentation](https://github.com/Gluee/backend/wiki) for entities, api design and more.
+See [Documentation](https://github.com/tapglue/backend/wiki) for entities, api design and more.
 
 ## System Requirements
 
@@ -23,7 +23,7 @@ Following steps are need to download and install this project.
 Download the git repository to get started.
 
 ```shell
-$ git clone https://github.com/Gluee/backend.git
+$ git clone https://github.com/tapglue/backend.git
 $ cd backend
 ```
 
@@ -75,9 +75,9 @@ Configure the server including ports and database settings in the [config.json](
 	"env": "dev",
 	"listenHost": ":8082",
 	"db": {
-		"username": "root",
+		"username": "tapglue",
 		"password": "x",
-		"database": "gluee",
+		"database": "tapglue",
 		"max_idle": 10,
 		"max_open": 300,
 		"master": {
@@ -98,7 +98,22 @@ Configure the server including ports and database settings in the [config.json](
 
 ### Database configuration
 
-Create a database called `gluee` and execute the SQL [gluee.sql](https://github.com/Gluee/backend/blob/master/resources/sql/gluee.sql) to create all tables and settings.
+```sql
+CREATE SCHEMA `tapglue` ;
+```
+
+#### Create database
+
+#### Create tables
+
+Create a database called `tapglue` and execute the SQL [tapglue.sql](https://github.com/tapglue/backend/blob/master/resources/sql/tapglue.sql) to create all tables and settings.
+
+#### Create users
+
+````sql
+CREATE USER 'tapglue'@'localhost' IDENTIFIED BY 'x';
+GRANT ALL PRIVILEGES ON * . * TO 'tapglue'@'localhost';
+```
 
 ### Start server
 

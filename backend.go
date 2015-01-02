@@ -11,14 +11,14 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/gluee/backend/config"
-	"github.com/gluee/backend/db"
-	"github.com/gluee/backend/server"
+	"github.com/tapglue/backend/config"
+	"github.com/tapglue/backend/db"
+	"github.com/tapglue/backend/server"
 )
 
 const (
 	// EnvConfigVar holds the name of the environment variable that holds the path to the config
-	EnvConfigVar = "GLUEE_BACKEND_CONFIG_PATH"
+	EnvConfigVar = "tapglue_BACKEND_CONFIG_PATH"
 )
 
 var cfg *config.Cfg

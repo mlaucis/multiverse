@@ -7,8 +7,8 @@ package db
 import (
 	"fmt"
 
-	"github.com/gluee/backend/config"
-	"github.com/gluee/backend/entity"
+	"github.com/tapglue/backend/config"
+	"github.com/tapglue/backend/entity"
 )
 
 // GetEventByID returns the event matching the id or an error
@@ -16,7 +16,7 @@ func GetEventByID(eventID uint64) (event *entity.Event, err error) {
 	event = &entity.Event{}
 
 	err = GetSlave().
-		QueryRowx("SELECT * FROM `gluee`.`events` WHERE `id`=?", eventID).
+		QueryRowx("SELECT * FROM `tapglue`.`events` WHERE `id`=?", eventID).
 		StructScan(event)
 
 	return
@@ -34,7 +34,7 @@ func GetAllUserAppEvents(appID uint64, userToken string) (user *entity.User, err
 	user.Events = []*entity.Event{}
 
 	err = GetSlave().
-		Select(&user.Events, "SELECT * FROM `gluee`.`events` WHERE `application_id`=? AND `user_token`=?", appID, userToken)
+		Select(&user.Events, "SELECT * FROM `tapglue`.`events` WHERE `application_id`=? AND `user_token`=?", appID, userToken)
 
 	return
 }
@@ -64,7 +64,7 @@ func GetSessionEvents(appID, sessionID uint64, userToken string) (session *entit
 	session.Events = []*entity.Event{}
 
 	err = GetSlave().
-		Select(&session.Events, "SELECT * FROM `gluee`.`events` WHERE `application_id`=? AND `session_id`=? AND `user_token`=?", appID, sessionID, userToken)
+		Select(&session.Events, "SELECT * FROM `tapglue`.`events` WHERE `application_id`=? AND `session_id`=? AND `user_token`=?", appID, sessionID, userToken)
 
 	return
 }
@@ -73,11 +73,11 @@ func GetSessionEvents(appID, sessionID uint64, userToken string) (session *entit
 func GetUserConnectionsEvents(appID uint64, userToken string) (events []*entity.Event, err error) {
 	events = []*entity.Event{}
 
-	query := "SELECT `gluee`.`events`.* " +
-		"FROM `gluee`.`events` " +
-		"JOIN `gluee`.`user_connections` as `guc` " +
-		"ON `gluee`.`events`.`application_id` = `guc`.`application_id`" +
-		"AND `gluee`.`events`.`user_token` = `guc`.`user_id2` " +
+	query := "SELECT `tapglue`.`events`.* " +
+		"FROM `tapglue`.`events` " +
+		"JOIN `tapglue`.`user_connections` as `guc` " +
+		"ON `tapglue`.`events`.`application_id` = `guc`.`application_id`" +
+		"AND `tapglue`.`events`.`user_token` = `guc`.`user_id2` " +
 		"WHERE `guc`.`application_id`=? AND `guc`.`user_id1`=?"
 
 	err = GetSlave().
@@ -88,7 +88,7 @@ func GetUserConnectionsEvents(appID uint64, userToken string) (events []*entity.
 
 // AddSessionEvent creates a new session for an user and returns the created entry or an error
 func AddSessionEvent(event *entity.Event) (*entity.Event, error) {
-	query := "INSERT INTO `gluee`.`events` (`application_id`, `session_id`, `user_token`, `type`, " +
+	query := "INSERT INTO `tapglue`.`events` (`application_id`, `session_id`, `user_token`, `type`, " +
 		"`item_id`, `item_name`, `item_url`, `thumbnail_url`, `custom`, `nth`) " +
 		"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 	result, err := GetMaster().

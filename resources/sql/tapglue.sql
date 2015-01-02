@@ -17,7 +17,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8 */;
 
 --
--- Database: `gluee`
+-- Database: `tapglue`
 --
 
 -- --------------------------------------------------------
@@ -71,61 +71,6 @@ CREATE TABLE IF NOT EXISTS `applications` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `events`
---
-
-CREATE TABLE IF NOT EXISTS `events` (
-  `id` bigint(20) unsigned NOT NULL,
-  `application_id` bigint(20) unsigned NOT NULL,
-  `session_id` bigint(20) unsigned NOT NULL,
-  `user_token` varchar(255) NOT NULL,
-  `type` varchar(255) DEFAULT NULL,
-  `item_id` varchar(255) DEFAULT NULL,
-  `item_name` varchar(255) DEFAULT NULL,
-  `item_url` varchar(255) DEFAULT NULL,
-  `thumbnail_url` varchar(255) DEFAULT NULL,
-  `custom` varchar(255) DEFAULT NULL,
-  `nth` bigint(20) DEFAULT NULL,
-  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `sessions`
---
-
-CREATE TABLE IF NOT EXISTS `sessions` (
-  `id` bigint(20) unsigned NOT NULL,
-  `application_id` bigint(20) unsigned NOT NULL,
-  `user_token` varchar(255) DEFAULT NULL,
-  `nth` bigint(20) DEFAULT NULL,
-  `custom` varchar(255) DEFAULT NULL,
-  `language` varchar(255) DEFAULT NULL,
-  `country` varchar(255) DEFAULT NULL,
-  `network` varchar(255) DEFAULT NULL,
-  `uuid` varchar(255) DEFAULT NULL,
-  `platform` varchar(255) DEFAULT NULL,
-  `sdk_version` varchar(255) DEFAULT NULL,
-  `timezone` varchar(255) DEFAULT NULL,
-  `city` varchar(255) DEFAULT NULL,
-  `gid` varchar(255) DEFAULT NULL,
-  `idfa` varchar(255) DEFAULT NULL,
-  `app_version` varchar(255) DEFAULT NULL,
-  `carrier` varchar(255) DEFAULT NULL,
-  `model` varchar(255) DEFAULT NULL,
-  `manufacturer` varchar(255) DEFAULT NULL,
-  `android_id` varchar(255) DEFAULT NULL,
-  `os_version` varchar(255) DEFAULT NULL,
-  `browser` varchar(255) DEFAULT NULL,
-  `ip` varchar(255) DEFAULT NULL,
-  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `users`
 --
 
@@ -159,6 +104,68 @@ CREATE TABLE IF NOT EXISTS `user_connections` (
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `sessions`
+--
+
+CREATE TABLE IF NOT EXISTS `sessions` (
+  `id` bigint(20) unsigned NOT NULL,
+  `application_id` bigint(20) unsigned NOT NULL,
+  `user_token` varchar(255) DEFAULT NULL,
+  `nth` bigint(20) DEFAULT NULL,
+  `custom` varchar(255) DEFAULT NULL,
+  `language` varchar(255) DEFAULT NULL,
+  `country` varchar(255) DEFAULT NULL,
+  `network` varchar(255) DEFAULT NULL,
+  `uuid` varchar(255) DEFAULT NULL,
+  `platform` varchar(255) DEFAULT NULL,
+  `sdk_version` varchar(255) DEFAULT NULL,
+  `timezone` varchar(255) DEFAULT NULL,
+  `city` varchar(255) DEFAULT NULL,
+  `gid` varchar(255) DEFAULT NULL,
+  `idfa` varchar(255) DEFAULT NULL,
+  `idfv` varchar(255) DEFAULT NULL,
+  `mac` varchar(255) DEFAULT NULL,
+  `mac_md5` varchar(255) DEFAULT NULL,
+  `mac_sha1` varchar(255) DEFAULT NULL,
+  `android_id` varchar(255) DEFAULT NULL,
+  `gps_adid` varchar(255) DEFAULT NULL,
+  `app_version` varchar(255) DEFAULT NULL,
+  `carrier` varchar(255) DEFAULT NULL,
+  `model` varchar(255) DEFAULT NULL,
+  `manufacturer` varchar(255) DEFAULT NULL,
+  `os_version` varchar(255) DEFAULT NULL,
+  `browser` varchar(255) DEFAULT NULL,
+  `ip` varchar(255) DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `events`
+--
+
+CREATE TABLE IF NOT EXISTS `events` (
+  `id` bigint(20) unsigned NOT NULL,
+  `application_id` bigint(20) unsigned NOT NULL,
+  `session_id` bigint(20) unsigned NOT NULL,
+  `user_token` varchar(255) NOT NULL,
+  `type` varchar(255) DEFAULT NULL,
+  `item_id` varchar(255) DEFAULT NULL,
+  `item_name` varchar(255) DEFAULT NULL,
+  `item_url` varchar(255) DEFAULT NULL,
+  `thumbnail_url` varchar(255) DEFAULT NULL,
+  `custom` varchar(255) DEFAULT NULL,
+  `nth` bigint(20) DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
 
 --
 -- Indexes for dumped tables

@@ -70,9 +70,9 @@ func defaultConfig() *Cfg {
 	cfg.ListenHostPort = ":8082"
 
 	cfg.Database = &Db{}
-	cfg.Database.Username = "gluee"
+	cfg.Database.Username = "tapglue"
 	cfg.Database.Password = "x"
-	cfg.Database.Database = "gluee"
+	cfg.Database.Database = "tapglue"
 
 	cfg.Database.MaxIdle = 10
 	cfg.Database.MaxOpen = 300

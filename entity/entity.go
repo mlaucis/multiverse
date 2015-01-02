@@ -9,27 +9,6 @@ package entity
 import "time"
 
 type (
-	// Device structure
-	Device struct {
-		GID          string `json:"gid" db:"gid"`
-		Model        string `json:"model"`
-		Manufacturer string `json:"manufacturer"`
-		UUID         string `json:"uuid" db:"uuid"`
-		IDFA         string `json:"idfa" db:"idfa"`
-		AndroidID    string `json:"android_id" db:"android_id"`
-		Platform     string `json:"platfrom"`
-		OSVersion    string `json:"os_version" db:"os_version"`
-		Browser      string `json:"browser" db:"browser"`
-		AppVersion   string `json:"app_version" db:"app_version"`
-		SDKVersion   string `json:"sdk_version" db:"sdk_version"`
-		Timezone     string `json:"timezone"`
-		Language     string `json:"language"`
-		Country      string `json:"country"`
-		City         string `json:"city"`
-		IP           string `json:"ip" db:"ip"`
-		Carrier      string `json:"carrier"`
-		Network      string `json:"network"`
-	}
 
 	// Account structure
 	Account struct {
@@ -92,6 +71,33 @@ type (
 		Enabled    bool      `json:"enabled"`
 		CreatedAt  time.Time `json:"created_at" db:"created_at"`
 		UpdatedAt  time.Time `json:"updated_at" db:"updated_at"`
+	}
+
+	// Device structure
+	Device struct {
+		GID          string `json:"gid" db:"gid"`
+		Model        string `json:"model"`
+		Manufacturer string `json:"manufacturer"`
+		UUID         string `json:"uuid" db:"uuid"`
+		IDFA         string `json:"idfa" db:"idfa"`
+		IDFV         string `json:"idfv" db:"idfv"`
+		Mac          string `json:"mac" db:"mac"`
+		MacMD5       string `json:"mac_md5" db:"mac_md5"`
+		MacSHA1      string `json:"mac_sha1" db:"mac_sha1"`
+		AndroidID    string `json:"android_id" db:"android_id"`
+		GPSAdID      string `json:"gps_adid" db:"gps_adid"`
+		Platform     string `json:"platfrom"`
+		OSVersion    string `json:"os_version" db:"os_version"`
+		Browser      string `json:"browser" db:"browser"`
+		AppVersion   string `json:"app_version" db:"app_version"`
+		SDKVersion   string `json:"sdk_version" db:"sdk_version"`
+		Timezone     string `json:"timezone"`
+		Language     string `json:"language"`
+		Country      string `json:"country"`
+		City         string `json:"city"`
+		IP           string `json:"ip" db:"ip"`
+		Carrier      string `json:"carrier"`
+		Network      string `json:"network"`
 	}
 
 	// Session structure

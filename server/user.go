@@ -10,9 +10,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/gluee/backend/db"
-	"github.com/gluee/backend/entity"
 	"github.com/gorilla/mux"
+	"github.com/tapglue/backend/db"
+	"github.com/tapglue/backend/entity"
 )
 
 // getApplicationUser handles requests to retrieve a single user

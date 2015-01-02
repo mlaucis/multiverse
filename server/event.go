@@ -10,10 +10,10 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/gluee/backend/config"
-	"github.com/gluee/backend/db"
-	"github.com/gluee/backend/entity"
 	"github.com/gorilla/mux"
+	"github.com/tapglue/backend/config"
+	"github.com/tapglue/backend/db"
+	"github.com/tapglue/backend/entity"
 )
 
 // getApplicationEvent handles requests to retrieve a single event
