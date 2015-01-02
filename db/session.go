@@ -36,8 +36,8 @@ func GetAllUserSessions(appID uint64, userToken string) (userSessions []*entity.
 func AddUserSession(session *entity.Session) (*entity.Session, error) {
 	query := "INSERT INTO `tapglue`.`sessions` (`application_id`, `user_token`, `nth`, `custom`, " +
 		"`language`, `country`, `network`, `uuid`, `platform`, `sdk_version`, `timezone`, `city`, `gid`, " +
-		"`idfa`, `app_version`, `carrier`, `model`, `manufacturer`, `android_id`, `os_version`, `ip`, `browser`) " +
-		"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+		"`idfa`, `idfv`, `mac`, `mac_md5`, `mac_sha1`, `gps_adid`, `app_version`, `carrier`, `model`, `manufacturer`, `android_id`, `os_version`, `ip`, `browser`) " +
+		"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 	result, err := GetMaster().
 		Exec(query,
 		session.AppID,
@@ -54,6 +54,11 @@ func AddUserSession(session *entity.Session) (*entity.Session, error) {
 		session.Device.City,
 		session.Device.GID,
 		session.Device.IDFA,
+		session.Device.IDFV,
+		session.Device.Mac,
+		session.Device.MacMD5,
+		session.Device.MacSHA1,
+		session.Device.GPSAdID,
 		session.Device.AppVersion,
 		session.Device.Carrier,
 		session.Device.Model,
