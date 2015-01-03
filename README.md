@@ -98,15 +98,17 @@ Configure the server including ports and database settings in the [config.json](
 
 ### Database configuration
 
+To configure the database create the db `tapglue` and execute the following scripts.
+
+#### Create database
+
 ```sql
 CREATE SCHEMA `tapglue` ;
 ```
 
-#### Create database
-
 #### Create tables
 
-Create a database called `tapglue` and execute the SQL [tapglue.sql](https://github.com/tapglue/backend/blob/master/resources/sql/tapglue.sql) to create all tables and settings.
+Execute the SQL [tapglue.sql](https://github.com/tapglue/backend/blob/master/resources/sql/tapglue.sql) to create all tables and settings.
 
 #### Create users
 
