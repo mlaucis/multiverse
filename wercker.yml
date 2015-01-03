@@ -1,0 +1,34 @@
+box: wercker/golang@1.3.0
+services:
+  - wercker/mysql
+build:
+  steps:
+    - setup-go-workspace
+    - script:
+        name: initializing go dependencies
+        code: |-
+          cd $WERCKER_SOURCE_DIR
+          $WERCKER_SOURCE_DIR/bin/godeps.sh
+    - script:
+        name: deploying test config
+        code: |-
+          cd $WERCKER_SOURCE_DIR
+          $WERCKER_SOURCE_DIR/bin/test_configs.sh
+    - script:
+            name: setup mysql database
+            code: |-
+              cd $WERCKER_SOURCE_DIR
+              $WERCKER_SOURCE_DIR/bin/deploy_db.sh
+    - script:
+        name: test building project
+        code: |-
+          go build -o tapglue-backend backend.go
+          rm -f tapglue-backend
+    - script:
+        name: test database
+        code: |
+          go test github.com/tapglue/backend/db
+    - script:
+        name: test server
+        code: |
+          go test github.com/tapglue/backend/server

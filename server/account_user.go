@@ -93,7 +93,7 @@ func getAccountUserList(w http.ResponseWriter, r *http.Request) {
 
 // createAccountUser handles requests create an account user
 // Request: POST /account/:AccountID/user
-// Test with: curl -H "Content-Type: application/json" -d '{"name":"User name", "password":"hmac(256)", "email":"de@m.o"}' localhost/account/:AccountID/user
+// Test with: curl -i -H "Content-Type: application/json" -d '{"name":"User name", "password":"hmac(256)", "email":"de@m.o"}' localhost/account/:AccountID/user
 func createAccountUser(w http.ResponseWriter, r *http.Request) {
 	if err := validatePostCommon(w, r); err != nil {
 		errorHappened(err, http.StatusBadRequest, r, w)

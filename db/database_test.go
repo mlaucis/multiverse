@@ -7,29 +7,39 @@ package db
 
 import (
 	"testing"
+
+	"github.com/tapglue/backend/config"
+
+	. "gopkg.in/check.v1"
 )
 
-// Test openMasterConnection
-func TestopenMasterConnection(t *testing.T) {
-	// Implement test
-}
+// Hook up gocheck into the "go test" runner.
+func Test(t *testing.T) { TestingT(t) }
 
-// Test openSlaveConnections
-func TestopenSlaveConnections(t *testing.T) {
-	// Implement test
+type (
+	DatabaseSuite struct{}
+)
+
+var (
+	_   = Suite(&DatabaseSuite{})
+	cfg *config.Cfg
+)
+
+func (dbs *DatabaseSuite) SetUpTest(c *C) {
+	cfg = config.NewConf("")
 }
 
 // Test InitDatabases
-func TestInitDatabases(t *testing.T) {
-	// Implement test
+func (dbs *DatabaseSuite) TestInitDatabases(c *C) {
+	c.Skip("not implemented yet")
 }
 
 // Test GetMaster
-func TestGetMaster(t *testing.T) {
-	// Implement test
+func (dbs *DatabaseSuite) TestGetMaster(c *C) {
+	c.Skip("not implemented yet")
 }
 
 // Test GetSlave
-func TestGetSlave(t *testing.T) {
-	// Implement test
+func (dbs *DatabaseSuite) TestGetSlave(c *C) {
+	c.Skip("not implemented yet")
 }

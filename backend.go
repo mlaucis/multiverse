@@ -18,7 +18,7 @@ import (
 
 const (
 	// EnvConfigVar holds the name of the environment variable that holds the path to the config
-	EnvConfigVar = "tapglue_BACKEND_CONFIG_PATH"
+	EnvConfigVar = "TAPGLUE_BACKEND_CONFIG_PATH"
 )
 
 var cfg *config.Cfg

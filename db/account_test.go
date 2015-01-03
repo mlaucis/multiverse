@@ -4,11 +4,9 @@
 
 package db
 
-import (
-	"testing"
-)
+import . "gopkg.in/check.v1"
 
 // Test GetAccountByID
-func GetAccountByID(t *testing.T) {
-	// Implement test
+func (dbs *DatabaseSuite) TestgetAccountByID(c *C) {
+	c.Skip("not implemented yet")
 }

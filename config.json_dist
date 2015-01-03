@@ -1,22 +1,22 @@
 {
-	"env": "dev",
-	"listenHost": ":8082",
+	"env": "APP_ENV",
+	"listenHost": "APP_HOST_PORT",
 	"db": {
-		"username": "tapglue",
-		"password": "x",
-		"database": "tapglue",
-		"max_idle": 10,
-		"max_open": 300,
+		"username": "DB_USER",
+		"password": "DB_PASS",
+		"database": "DB_DB",
+		"max_idle": DB_MAX_IDLE,
+		"max_open": DB_MAX_OPEN,
 		"master": {
-			"debug": true,
-			"host": "127.0.0.1",
-			"port": 3306
+			"debug": DB_MASTER_DEBUG,
+			"host": "DB_MASTER_HOST",
+			"port": DB_MASTER_PORT
 		},
 		"slaves": [
 			{
-				"debug": true,
-				"host": "127.0.0.1",
-				"port": 3306
+				"debug": DB_SLAVE1_DEBUG,
+				"host": "DB_SLAVE1_HOST",
+				"port": DB_SLAVE1_PORT
 			}
 		]
 	}
