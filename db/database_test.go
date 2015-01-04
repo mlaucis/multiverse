@@ -31,15 +31,20 @@ func (dbs *DatabaseSuite) SetUpTest(c *C) {
 
 // Test InitDatabases
 func (dbs *DatabaseSuite) TestInitDatabases(c *C) {
-	c.Skip("not implemented yet")
+	// This will panic if things don't work
+	InitDatabases(cfg.DB())
 }
 
 // Test GetMaster
 func (dbs *DatabaseSuite) TestGetMaster(c *C) {
-	c.Skip("not implemented yet")
+	// This will panic if things don't work
+	InitDatabases(cfg.DB())
+	GetMaster().Ping()
 }
 
 // Test GetSlave
 func (dbs *DatabaseSuite) TestGetSlave(c *C) {
-	c.Skip("not implemented yet")
+	// This will panic if things don't work
+	InitDatabases(cfg.DB())
+	GetSlave().Ping()
 }

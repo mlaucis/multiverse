@@ -16,7 +16,7 @@ func GetApplicationUserByToken(appID uint64, userToken string) (user *entity.Use
 	user = &entity.User{}
 
 	err = GetSlave().
-		QueryRowx("SELECT * FROM `tapglue`.`users` WHERE `application_id`=? AND `token`=?", appID, userToken).
+		QueryRowx("SELECT * FROM `users` WHERE `application_id`=? AND `token`=?", appID, userToken).
 		StructScan(user)
 
 	return
@@ -27,14 +27,14 @@ func GetApplicationUsers(appID uint64) (users []*entity.User, err error) {
 	users = []*entity.User{}
 
 	err = GetSlave().
-		Select(&users, "SELECT * FROM `tapglue`.`users` WHERE `application_id`=?", appID)
+		Select(&users, "SELECT * FROM `users` WHERE `application_id`=?", appID)
 
 	return
 }
 
 // AddApplicationUser creates a user for an account and returns the created entry or an error
 func AddApplicationUser(appID uint64, user *entity.User) (*entity.User, error) {
-	query := "INSERT INTO `tapglue`.`users` (`application_id`, `token`, `username`, `name`, `password`, `email`, `url`, `thumbnail_url`, `provider`, `custom`)" +
+	query := "INSERT INTO `users` (`application_id`, `token`, `username`, `name`, `password`, `email`, `url`, `thumbnail_url`, `provider`, `custom`)" +
 		"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 	_, err := GetMaster().
 		Exec(query, appID, user.Token, user.Username, user.Name, user.Password, user.Email, user.URL, user.ThumbnailURL, user.Provider, user.Custom)
@@ -58,11 +58,11 @@ func GetApplicationUserWithConnections(appID uint64, userToken string) (user *en
 	err = GetSlave().
 		Select(
 		&user.Connections,
-		"SELECT `tapglue`.`users`.* "+
-			"FROM `tapglue`.`users` "+
-			"JOIN `tapglue`.`user_connections` as `guc` "+
-			"ON `tapglue`.`users`.`application_id` = `guc`.`application_id` AND "+
-			"`tapglue`.`users`.`token` = `guc`.`user_id2` "+
+		"SELECT `users`.* "+
+			"FROM `users` "+
+			"JOIN `user_connections` as `guc` "+
+			"ON `users`.`application_id` = `guc`.`application_id` AND "+
+			"`users`.`token` = `guc`.`user_id2` "+
 			"WHERE `guc`.`application_id`=? AND `guc`.`user_id1`=?",
 		appID,
 		userToken,
@@ -73,7 +73,7 @@ func GetApplicationUserWithConnections(appID uint64, userToken string) (user *en
 
 // AddApplicationUserConnection will add a new connection between users or returns an error
 func AddApplicationUserConnection(appID uint64, user1Token, user2Token string) (err error) {
-	query := "INSERT INTO `tapglue`.`user_connections` (`application_id`, `user_id1`, `user_id2`) VALUES (?, ?, ?)"
+	query := "INSERT INTO `user_connections` (`application_id`, `user_id1`, `user_id2`) VALUES (?, ?, ?)"
 	_, err = GetMaster().
 		Exec(query, appID, user1Token, user2Token)
 	if err != nil {

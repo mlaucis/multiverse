@@ -70,16 +70,16 @@ func defaultConfig() *Cfg {
 	cfg.ListenHostPort = ":8082"
 
 	cfg.Database = &Db{}
-	cfg.Database.Username = "tapglue"
-	cfg.Database.Password = "x"
-	cfg.Database.Database = "tapglue"
+	cfg.Database.Username = ""
+	cfg.Database.Password = ""
+	cfg.Database.Database = ""
 
 	cfg.Database.MaxIdle = 10
 	cfg.Database.MaxOpen = 300
 
 	cfg.Database.Master.Debug = true
-	cfg.Database.Master.Host = "127.0.0.1"
-	cfg.Database.Master.Port = 3306
+	cfg.Database.Master.Host = ""
+	cfg.Database.Master.Port = 0
 
 	cfg.Database.Slaves = append(cfg.Database.Slaves, struct {
 		Debug bool   `json:"debug"`
@@ -87,8 +87,8 @@ func defaultConfig() *Cfg {
 		Port  uint   `json:"port"`
 	}{
 		Debug: true,
-		Host:  "127.0.0.1",
-		Port:  3306,
+		Host:  "",
+		Port:  0,
 	},
 	)
 

@@ -4,9 +4,23 @@
 
 package db
 
-import . "gopkg.in/check.v1"
+import (
+	"github.com/tapglue/backend/entity"
+
+	. "gopkg.in/check.v1"
+)
 
 // Test GetAccountByID
-func (dbs *DatabaseSuite) TestgetAccountByID(c *C) {
+func (dbs *DatabaseSuite) TestGetAccountByID(c *C) {
 	c.Skip("not implemented yet")
+}
+
+func (dbs *DatabaseSuite) TestAddAccount_Empty(c *C) {
+	InitDatabases(cfg.DB())
+
+	var account = &entity.Account{}
+
+	_, err := AddAccount(account)
+
+	c.Assert(err, Not(IsNil))
 }

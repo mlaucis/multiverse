@@ -15,7 +15,7 @@ func GetAccountUserByID(accountID, userID uint64) (accountUser *entity.AccountUs
 	accountUser = &entity.AccountUser{}
 
 	err = GetSlave().
-		QueryRowx("SELECT * FROM `tapglue`.`account_users` WHERE `id`=? AND `account_id`=?", userID, accountID).
+		QueryRowx("SELECT * FROM `account_users` WHERE `id`=? AND `account_id`=?", userID, accountID).
 		StructScan(accountUser)
 
 	return
@@ -26,14 +26,14 @@ func GetAccountAllUsers(accountID uint64) (accountUsers []*entity.AccountUser, e
 	accountUsers = []*entity.AccountUser{}
 
 	err = GetSlave().
-		Select(&accountUsers, "SELECT * FROM `tapglue`.`account_users` WHERE `account_id`=?", accountID)
+		Select(&accountUsers, "SELECT * FROM `account_users` WHERE `account_id`=?", accountID)
 
 	return
 }
 
 // AddAccountUser creates a user for an account and returns the created entry or an error
 func AddAccountUser(accountID uint64, accountUser *entity.AccountUser) (*entity.AccountUser, error) {
-	query := "INSERT INTO `tapglue`.`account_users` (`account_id`, `name`, `password`, `email`) VALUES (?, ?, ?, ?)"
+	query := "INSERT INTO `account_users` (`account_id`, `name`, `password`, `email`) VALUES (?, ?, ?, ?)"
 	result, err := GetMaster().Exec(query, accountID, accountUser.Name, accountUser.Password, accountUser.Email)
 	if err != nil {
 		return nil, fmt.Errorf("error while saving to database")

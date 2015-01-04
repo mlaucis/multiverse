@@ -16,7 +16,7 @@ func GetSessionByID(sessionID uint64) (session *entity.Session, err error) {
 	session = &entity.Session{}
 
 	err = GetSlave().
-		QueryRowx("SELECT * FROM `tapglue`.`sessions` WHERE `id`=?", sessionID).
+		QueryRowx("SELECT * FROM `sessions` WHERE `id`=?", sessionID).
 		StructScan(session)
 
 	return
@@ -27,14 +27,14 @@ func GetAllUserSessions(appID uint64, userToken string) (userSessions []*entity.
 	userSessions = []*entity.Session{}
 
 	err = GetSlave().
-		Select(&userSessions, "SELECT * FROM `tapglue`.`sessions` WHERE `application_id`=? AND `user_token`=?", appID, userToken)
+		Select(&userSessions, "SELECT * FROM `sessions` WHERE `application_id`=? AND `user_token`=?", appID, userToken)
 
 	return
 }
 
 // AddUserSession creates a new session for an user and returns the created entry or an error
 func AddUserSession(session *entity.Session) (*entity.Session, error) {
-	query := "INSERT INTO `tapglue`.`sessions` (`application_id`, `user_token`, `nth`, `custom`, " +
+	query := "INSERT INTO `sessions` (`application_id`, `user_token`, `nth`, `custom`, " +
 		"`language`, `country`, `network`, `uuid`, `platform`, `sdk_version`, `timezone`, `city`, `gid`, " +
 		"`idfa`, `idfv`, `mac`, `mac_md5`, `mac_sha1`, `gps_adid`, `app_version`, `carrier`, `model`, `manufacturer`, `android_id`, `os_version`, `ip`, `browser`) " +
 		"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
