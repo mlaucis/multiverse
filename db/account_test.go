@@ -38,5 +38,19 @@ func (dbs *DatabaseSuite) TestAddAccount_Normal(c *C) {
 
 // Test GetAccountByID
 func (dbs *DatabaseSuite) TestGetAccountByID(c *C) {
-	c.Skip("not implemented yet")
+	InitDatabases(cfg.DB())
+
+	var account = &entity.Account{
+		Name: "Demo",
+	}
+
+	savedAccount, err := AddAccount(account)
+
+	c.Assert(savedAccount, Not(IsNil))
+	c.Assert(err, IsNil)
+
+	getAccount, err := GetAccountByID(savedAccount.ID)
+
+	c.Assert(err, IsNil)
+	c.Assert(getAccount, DeepEquals, savedAccount)
 }
