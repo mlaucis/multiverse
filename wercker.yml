@@ -40,3 +40,10 @@ build:
           export WERCKER_SOURCE_DIR=${GOPATH}/src/github.com/tapglue/backend
           cd $WERCKER_SOURCE_DIR/server
           go test -check.v
+  after-steps:
+        - sherzberg/slack-notify:
+            subdomain: tapglue
+            token: $SLACK_TOKEN
+            channel: "#development"
+            username: wercker
+            icon_url: https://avatars3.githubusercontent.com/u/1695193?s=140
