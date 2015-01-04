@@ -18,7 +18,7 @@ func (dbs *DatabaseSuite) TestAddAccount_Empty(c *C) {
 	savedAccount, err := AddAccount(account)
 
 	c.Assert(savedAccount, IsNil)
-	c.Assert(err, Not(IsNil))
+	c.Assert(err, NotNil)
 }
 
 func (dbs *DatabaseSuite) TestAddAccount_Normal(c *C) {
@@ -30,7 +30,7 @@ func (dbs *DatabaseSuite) TestAddAccount_Normal(c *C) {
 
 	savedAccount, err := AddAccount(account)
 
-	c.Assert(savedAccount, Not(IsNil))
+	c.Assert(savedAccount, NotNil)
 	c.Assert(err, IsNil)
 	c.Assert(savedAccount.Name, Equals, account.Name)
 	c.Assert(savedAccount.Enabled, Equals, true)
@@ -46,7 +46,7 @@ func (dbs *DatabaseSuite) TestGetAccountByID(c *C) {
 
 	savedAccount, err := AddAccount(account)
 
-	c.Assert(savedAccount, Not(IsNil))
+	c.Assert(savedAccount, NotNil)
 	c.Assert(err, IsNil)
 
 	getAccount, err := GetAccountByID(savedAccount.ID)

@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/tapglue/backend/config"
 )
 
 // To be used across API demos, should be deleted when no raw examples present
@@ -92,6 +93,10 @@ func errorHappened(err error, code int, r *http.Request, w http.ResponseWriter) 
 	writeCacheHeaders(0, w)
 	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	w.Write([]byte(fmt.Sprintf("%d %q", code, err)))
+
+	if config.Conf().Env() == "test" {
+		return
+	}
 
 	_, filename, line, ok := runtime.Caller(1)
 	if !ok {
