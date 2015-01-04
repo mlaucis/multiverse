@@ -27,24 +27,9 @@ var (
 
 func (dbs *DatabaseSuite) SetUpTest(c *C) {
 	cfg = config.NewConf("")
-}
-
-// Test InitDatabases
-func (dbs *DatabaseSuite) TestInitDatabases(c *C) {
-	// This will panic if things don't work
-	InitDatabases(cfg.DB())
-}
-
-// Test GetMaster
-func (dbs *DatabaseSuite) TestGetMaster(c *C) {
-	// This will panic if things don't work
 	InitDatabases(cfg.DB())
 	GetMaster().Ping()
-}
-
-// Test GetSlave
-func (dbs *DatabaseSuite) TestGetSlave(c *C) {
-	// This will panic if things don't work
-	InitDatabases(cfg.DB())
 	GetSlave().Ping()
+	_, err := GetMaster().Exec("DELETE FROM `accounts`")
+	c.Assert(err, IsNil)
 }
