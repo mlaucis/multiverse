@@ -20,7 +20,8 @@ func (dbs *DatabaseSuite) TestAddAccount_Empty(c *C) {
 
 	var account = &entity.Account{}
 
-	_, err := AddAccount(account)
+	savedAccount, err := AddAccount(account)
 
+	c.Assert(savedAccount, IsNil)
 	c.Assert(err, Not(IsNil))
 }

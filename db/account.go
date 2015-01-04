@@ -23,6 +23,10 @@ func GetAccountByID(accountID uint64) (account *entity.Account, err error) {
 
 // AddAccount adds a new account to the database and returns the created account or an error
 func AddAccount(account *entity.Account) (*entity.Account, error) {
+	if account.Name == "" {
+		return nil, fmt.Errorf("account name should not be empty")
+	}
+
 	query := "INSERT INTO `accounts` (`name`) VALUES (?)"
 	result, err := GetMaster().Exec(query, account.Name)
 	if err != nil {
