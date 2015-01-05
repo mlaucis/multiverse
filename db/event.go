@@ -88,14 +88,15 @@ func GetUserConnectionsEvents(appID uint64, userToken string) (events []*entity.
 
 // AddSessionEvent creates a new session for an user and returns the created entry or an error
 func AddSessionEvent(event *entity.Event) (*entity.Event, error) {
-	query := "INSERT INTO `events` (`application_id`, `session_id`, `user_token`, `type`, " +
+	query := "INSERT INTO `events` (`application_id`, `session_id`, `user_token`, `title`, `type`, " +
 		"`item_id`, `item_name`, `item_url`, `thumbnail_url`, `custom`, `nth`) " +
-		"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+		"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 	result, err := GetMaster().
 		Exec(query,
 		event.AppID,
 		event.SessionID,
 		event.UserToken,
+		event.Title,
 		event.Type,
 		event.Item.ID,
 		event.Item.Name,

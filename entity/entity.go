@@ -128,6 +128,7 @@ type (
 		AppID     uint64 `json:"app_id,omitempty" db:"application_id"`
 		SessionID uint64 `json:"session_id" db:"session_id"`
 		UserToken string `json:"user_token,omitempty" db:"user_token"`
+		Title     string `json:"title",omitempty" db:"title"`
 		Type      string `json:"type"`
 		Item
 		Custom    string    `json:"custom,omitempty"`

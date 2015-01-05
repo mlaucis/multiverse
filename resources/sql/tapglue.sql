@@ -155,6 +155,7 @@ CREATE TABLE IF NOT EXISTS `events` (
   `application_id` bigint(20) unsigned NOT NULL,
   `session_id` bigint(20) unsigned NOT NULL,
   `user_token` varchar(255) NOT NULL,
+  `title` varchar(255) DEFAULT NULL,
   `type` varchar(255) DEFAULT NULL,
   `item_id` varchar(255) DEFAULT NULL,
   `item_name` varchar(255) DEFAULT NULL,
