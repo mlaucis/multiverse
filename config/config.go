@@ -196,17 +196,21 @@ func (config *Cfg) Load(configEnvPath string) {
 		configDir = path.Dir(currentFilename)
 	}
 
-	// Read config.json
-	file, err := ioutil.ReadFile(path.Join(configDir, "config.json"))
-	if err != nil {
-		panic(err)
-	}
-
 	// Get the default configuration
 	cfg = defaultConfig()
 
+	// Read config.json
+	configContents, err := ioutil.ReadFile(path.Join(configDir, "config.json"))
+	if err != nil {
+		configContents = []byte(os.Getenv("TAPGLUE_CONFIG_VARS"))
+
+		if len(configContents) < 1 {
+			panic(fmt.Errorf("no suitable config file was found"))
+		}
+	}
+
 	// Overwrite with user configuration from file
-	if err := json.Unmarshal(file, cfg); err != nil {
+	if err := json.Unmarshal(configContents, cfg); err != nil {
 		panic(err)
 	}
 
