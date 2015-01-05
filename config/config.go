@@ -110,6 +110,9 @@ func (config *Cfg) Env() string {
 
 // ListenHost returns the host:port combination for the main server
 func (config *Cfg) ListenHost() string {
+	if os.Getenv("IS_HEROKU_ENV") != "" {
+		return fmt.Sprintf(":%s", os.Getenv("PORT"))
+	}
 	return config.ListenHostPort
 }
 

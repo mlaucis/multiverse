@@ -30,8 +30,8 @@ CREATE TABLE IF NOT EXISTS `accounts` (
   `id` bigint(20) unsigned NOT NULL,
   `name` varchar(255) DEFAULT NULL,
   `enabled` tinyint(1) NOT NULL DEFAULT '1',
-  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
+  `created_at` datetime NOT NULL DEFAULT '2015-01-01 01:23:45',
+  `updated_at` datetime NOT NULL DEFAULT '2015-01-01 01:23:45'
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -47,9 +47,9 @@ CREATE TABLE IF NOT EXISTS `account_users` (
   `password` varchar(255) DEFAULT NULL,
   `email` varchar(255) DEFAULT NULL,
   `enabled` tinyint(1) NOT NULL DEFAULT '1',
-  `last_login` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
+  `last_login` datetime NOT NULL DEFAULT '2015-01-01 01:23:45',
+  `created_at` datetime NOT NULL DEFAULT '2015-01-01 01:23:45',
+  `updated_at` datetime NOT NULL DEFAULT '2015-01-01 01:23:45'
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -64,8 +64,8 @@ CREATE TABLE IF NOT EXISTS `applications` (
   `key` varchar(255) DEFAULT NULL,
   `name` varchar(255) DEFAULT NULL,
   `enabled` tinyint(1) NOT NULL DEFAULT '1',
-  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
+  `created_at` datetime NOT NULL DEFAULT '2015-01-01 01:23:45',
+  `updated_at` datetime NOT NULL DEFAULT '2015-01-01 01:23:45'
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -85,9 +85,9 @@ CREATE TABLE IF NOT EXISTS `users` (
   `thumbnail_url` varchar(255) DEFAULT NULL,
   `provider` varchar(255) DEFAULT NULL,
   `custom` varchar(255) DEFAULT NULL,
-  `last_login` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
+  `last_login` datetime NOT NULL DEFAULT '2015-01-01 01:23:45',
+  `created_at` datetime NOT NULL DEFAULT '2015-01-01 01:23:45',
+  `updated_at` datetime NOT NULL DEFAULT '2015-01-01 01:23:45'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -101,8 +101,8 @@ CREATE TABLE IF NOT EXISTS `user_connections` (
   `user_id1` varchar(255) DEFAULT NULL,
   `user_id2` varchar(255) DEFAULT NULL,
   `enabled` tinyint(1) NOT NULL DEFAULT '1',
-  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
+  `created_at` datetime NOT NULL DEFAULT '2015-01-01 01:23:45',
+  `updated_at` datetime NOT NULL DEFAULT '2015-01-01 01:23:45'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -140,8 +140,8 @@ CREATE TABLE IF NOT EXISTS `sessions` (
   `os_version` varchar(255) DEFAULT NULL,
   `browser` varchar(255) DEFAULT NULL,
   `ip` varchar(255) DEFAULT NULL,
-  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
+  `created_at` datetime NOT NULL DEFAULT '2015-01-01 01:23:45',
+  `updated_at` datetime NOT NULL DEFAULT '2015-01-01 01:23:45'
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -163,7 +163,7 @@ CREATE TABLE IF NOT EXISTS `events` (
   `thumbnail_url` varchar(255) DEFAULT NULL,
   `custom` varchar(255) DEFAULT NULL,
   `nth` bigint(20) DEFAULT NULL,
-  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
+  `created_at` datetime NOT NULL DEFAULT '2015-01-01 01:23:45'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
