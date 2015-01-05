@@ -2,7 +2,6 @@
  * @author Onur Akpolat <onurakpolat@gmail.com>
  */
 
-// Package db provides configuration for database connection
 package db
 
 import (

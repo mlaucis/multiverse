@@ -10,6 +10,7 @@ import (
 	. "gopkg.in/check.v1"
 )
 
+// AddAccount test to write empty entity
 func (dbs *DatabaseSuite) TestAddAccount_Empty(c *C) {
 	InitDatabases(cfg.DB())
 
@@ -21,7 +22,8 @@ func (dbs *DatabaseSuite) TestAddAccount_Empty(c *C) {
 	c.Assert(err, NotNil)
 }
 
-func (dbs *DatabaseSuite) TestAddAccount_Normal(c *C) {
+// AddAccount test to write account entity with just a name
+func (dbs *DatabaseSuite) TestAddAccount_Correct(c *C) {
 	InitDatabases(cfg.DB())
 
 	var account = &entity.Account{
@@ -44,11 +46,13 @@ func (dbs *DatabaseSuite) TestGetAccountByID(c *C) {
 		Name: "Demo",
 	}
 
+	// Write account first
 	savedAccount, err := AddAccount(account)
 
 	c.Assert(savedAccount, NotNil)
 	c.Assert(err, IsNil)
 
+	// Get account by id
 	getAccount, err := GetAccountByID(savedAccount.ID)
 
 	c.Assert(err, IsNil)

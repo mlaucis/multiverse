@@ -60,6 +60,12 @@ Registry for global request variables
 $ go get github.com/gorilla/context
 ```
 
+Rich testing framework
+
+```shell
+$ go get gopkg.in/check.v1
+```
+
 Finally get, compile and install everything
 
 ```shell
@@ -104,7 +110,7 @@ To configure the database create the db `tapglue` and execute the following scri
 #### Create database
 
 ```sql
-CREATE SCHEMA `tapglue` ;
+CREATE SCHEMA `tapglue`;
 ```
 
 #### Create tables
