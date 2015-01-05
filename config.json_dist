@@ -1,6 +1,10 @@
 {
 	"env": "APP_ENV",
 	"listenHost": "APP_HOST_PORT",
+	"newrelic": {
+		"key": "NEWRELIC_KEY",
+		"name": "NEWRELIC_NAME"
+	},
 	"db": {
 		"username": "DB_USER",
 		"password": "DB_PASS",

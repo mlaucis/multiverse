@@ -14,6 +14,7 @@ import (
 	"github.com/tapglue/backend/config"
 	"github.com/tapglue/backend/db"
 	"github.com/tapglue/backend/server"
+	"github.com/yvasiyarov/gorelic"
 )
 
 const (
@@ -36,8 +37,13 @@ func init() {
 
 func main() {
 
+	newRelicAgent := gorelic.NewAgent()
+	newRelicAgent.Verbose = true
+	newRelicAgent.NewrelicLicense, newRelicAgent.NewrelicName = cfg.NewRelic()
+	newRelicAgent.Run()
+
 	// Get router
-	router := server.GetRouter()
+	router := server.GetRouter(newRelicAgent)
 
 	// Start server
 	log.Fatal(http.ListenAndServe(cfg.ListenHost(), router))

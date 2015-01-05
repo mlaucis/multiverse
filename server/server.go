@@ -17,6 +17,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/tapglue/backend/config"
+	"github.com/yvasiyarov/gorelic"
 )
 
 // To be used across API demos, should be deleted when no raw examples present
@@ -158,7 +159,7 @@ Disallow: /`))
 }
 
 // GetRouter creates the router
-func GetRouter() *mux.Router {
+func GetRouter(newRelicAgent *gorelic.Agent) *mux.Router {
 
 	// Create router
 	router := mux.NewRouter().StrictSlash(true)
@@ -169,7 +170,7 @@ func GetRouter() *mux.Router {
 			Methods(route.method).
 			Path(route.pattern).
 			Name(route.name).
-			Handler(Logger(route.handlerFunc, route.name))
+			Handler(Logger(route.handlerFunc, route.name, newRelicAgent))
 	}
 
 	// Return router

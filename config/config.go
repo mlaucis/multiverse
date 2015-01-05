@@ -31,6 +31,7 @@ type (
 		Valiate()
 		Env() string
 		ListenHost() string
+		NewRelic() (string, string)
 		DB() *DB
 	}
 
@@ -57,7 +58,11 @@ type (
 	Cfg struct {
 		Environment    string `json:"env"`
 		ListenHostPort string `json:"listenHost"`
-		Database       *Db    `json:"db"`
+		Newrelic       struct {
+			Key  string `json:"key"`
+			Name string `json:"name"`
+		} `json:"newrelic"`
+		Database *Db `json:"db"`
 	}
 )
 
@@ -68,6 +73,9 @@ func defaultConfig() *Cfg {
 	cfg := &Cfg{}
 	cfg.Environment = "dev"
 	cfg.ListenHostPort = ":8082"
+
+	cfg.Newrelic.Key = "demo"
+	cfg.Newrelic.Name = "tapglue - stub"
 
 	cfg.Database = &Db{}
 	cfg.Database.Username = ""
@@ -103,6 +111,10 @@ func (config *Cfg) Env() string {
 // ListenHost returns the host:port combination for the main server
 func (config *Cfg) ListenHost() string {
 	return config.ListenHostPort
+}
+
+func (config *Cfg) NewRelic() (string, string) {
+	return config.Newrelic.Key, config.Newrelic.Name
 }
 
 // DB returns a database interface
