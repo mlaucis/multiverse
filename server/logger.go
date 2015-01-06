@@ -14,15 +14,13 @@ import (
 
 // Logger logs all server requests and prints to console
 func Logger(inner http.Handler, name string, newRelicAgent *gorelic.Agent) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return http.HandlerFunc(newRelicAgent.WrapHTTPHandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 
 		// we should use this to sanitize any other headers that should not be exposed to the logs
 		headers := getSanitizedHeaders(r)
 
-		newRelicAgent.
-			WrapHTTPHandler(inner).
-			ServeHTTP(w, r)
+		inner.ServeHTTP(w, r)
 
 		log.Printf(
 			"%s\t%s\t%+v\t%s\t%s\n",
@@ -32,5 +30,5 @@ func Logger(inner http.Handler, name string, newRelicAgent *gorelic.Agent) http.
 			name,
 			time.Since(start),
 		)
-	})
+	}))
 }
