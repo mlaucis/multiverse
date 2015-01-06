@@ -22,7 +22,7 @@ type (
 
 	// AccountUser structure
 	AccountUser struct {
-		ID        string    `json:"id"`
+		ID        uint64    `json:"id"`
 		AccountID uint64    `json:"account_id" db:"account_id"`
 		Name      string    `json:"name"`
 		Password  string    `json:"password"`

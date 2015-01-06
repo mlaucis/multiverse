@@ -17,11 +17,13 @@ import (
 	. "gopkg.in/check.v1"
 )
 
+// Test CLHeader
 func test_CLHeader(req *http.Request) {
 	req.Header.Add("Content-Length", strconv.FormatInt(int64(len("{name:'Demo'}")), 10))
 }
 
-func (s *ServerSuite) TestCreateAccount_WRONG(c *C) {
+// Test create acccount request with a wrong key
+func (s *ServerSuite) TestCreateAccount_WrongKey(c *C) {
 	req, err := http.NewRequest(
 		"POST",
 		"http://localhost:8089/account",
@@ -37,7 +39,8 @@ func (s *ServerSuite) TestCreateAccount_WRONG(c *C) {
 	c.Assert(w.Body.String(), Not(Equals), "")
 }
 
-func (s *ServerSuite) TestCreateAccount_OK(c *C) {
+// Test a correct create account request
+func (s *ServerSuite) TestCreateAccount_Correct(c *C) {
 	payload := "{\"name\":\"Demo\"}"
 	req, err := http.NewRequest(
 		"POST",

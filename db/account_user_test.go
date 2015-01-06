@@ -45,6 +45,7 @@ func (dbs *DatabaseSuite) TestAddAccountUser_Correct(c *C) {
 	// Write account first
 	savedAccount, err := AddAccount(account)
 
+	// Write account user
 	savedAccountUser, err := AddAccountUser(savedAccount.ID, accountUser)
 
 	c.Assert(savedAccountUser, NotNil)
@@ -69,10 +70,44 @@ func (dbs *DatabaseSuite) TestAddAccountUser_NoAccount(c *C) {
 		}
 	)
 
-	accountID = 2
+	accountID = 0
 
 	savedAccountUser, err := AddAccountUser(accountID, accountUser)
 
 	c.Assert(savedAccountUser, IsNil)
 	c.Assert(err, NotNil)
+}
+
+// GetAccountUserByID test to get an account by its id
+func (dbs *DatabaseSuite) TestGetAccountUserByID_Correct(c *C) {
+	InitDatabases(cfg.DB())
+
+	var (
+		account = &entity.Account{
+			Name: "Demo",
+		}
+		accountUser = &entity.AccountUser{
+			Name:     "Demo User",
+			Password: "iamsecure..not",
+			Email:    "d@m.o",
+		}
+	)
+
+	// Write account first
+	savedAccount, err := AddAccount(account)
+
+	c.Assert(savedAccount, NotNil)
+	c.Assert(err, IsNil)
+
+	// Write account user
+	savedAccountUser, err := AddAccountUser(savedAccount.ID, accountUser)
+
+	c.Assert(savedAccountUser, NotNil)
+	c.Assert(err, IsNil)
+
+	// Get account user by id
+	getAccountUser, err := GetAccountUserByID(savedAccount.ID, savedAccountUser.ID)
+
+	c.Assert(err, IsNil)
+	c.Assert(getAccountUser, DeepEquals, savedAccountUser)
 }

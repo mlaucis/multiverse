@@ -38,8 +38,8 @@ func (dbs *DatabaseSuite) TestAddAccount_Correct(c *C) {
 	c.Assert(savedAccount.Enabled, Equals, true)
 }
 
-// Test GetAccountByID
-func (dbs *DatabaseSuite) TestGetAccountByID(c *C) {
+// GetAccountByID test to get an account by its id
+func (dbs *DatabaseSuite) TestGetAccountByID_Correct(c *C) {
 	InitDatabases(cfg.DB())
 
 	var account = &entity.Account{

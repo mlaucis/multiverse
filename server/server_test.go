@@ -25,6 +25,7 @@ var (
 	cfg *config.Cfg
 )
 
+// Setup once when the suite starts running
 func (s *ServerSuite) SetUpTest(c *C) {
 	cfg = config.NewConf("")
 	db.InitDatabases(cfg.DB())
@@ -34,7 +35,8 @@ func (s *ServerSuite) SetUpTest(c *C) {
 	c.Assert(err, IsNil)
 }
 
-func (s *ServerSuite) Test1ValidatePostCommon_NoCLHeader(c *C) {
+// Test POST common without CLHeader
+func (s *ServerSuite) TestValidatePostCommon_NoCLHeader(c *C) {
 	req, err := http.NewRequest(
 		"POST",
 		"http://localhost:8089/",
@@ -49,7 +51,8 @@ func (s *ServerSuite) Test1ValidatePostCommon_NoCLHeader(c *C) {
 	c.Assert(w.Body.String(), Equals, "400 \"invalid Content-Length size\"")
 }
 
-func (s *ServerSuite) Test1ValidatePostCommon_CLHeader(c *C) {
+// Test POST common with CLHeader
+func (s *ServerSuite) TestValidatePostCommon_CLHeader(c *C) {
 	req, err := http.NewRequest(
 		"POST",
 		"http://localhost:8089/",
