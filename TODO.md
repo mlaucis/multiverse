@@ -1,6 +1,8 @@
 
 # To Do's
 
+## Done
+
 - [x] Draft API design
 - [x] Design entities
 - [x] Create db tables
@@ -14,11 +16,93 @@
 - [x] ORM + DB Connection
 - [x] Implement request validation in routes with regex 
 - [x] Implement queries to read/write entities 
-- [ ] Implement tests
-- [ ] Secure API (Authentication) (check: http://jwt.io/)
-- [ ] Add message queue
-- [ ] Add cache (Redis)
-- [ ] Refine version control (v1, v2 etc.)
+
+## Concept & API Design
+
+### Access
+
+- [ ] Add friend request confirmation
+- [ ] Define what APIs to make unaccessible from outside (app,account etc.)
+- [ ] Remove API for app/users?
+- [ ] Limit data access to only friends?
+- [ ] Define API versioning in header and/or URI
+
+### Requests 
+- [ ] Define HTTP Redirects if needed
+- [ ] Require User-Agent
+- [ ] Define & Implement request parameters
+- [ ] Define & Implement condition requests
+- [ ] Evaluate & Define rate limitation
+
+### Responses
+- [ ] Implement proper GET status codes
+- [ ] Implement proper POST/PATCH status codes
+- [ ] Implement proper DELETE status codes
+- [ ] Implement proper Error status codes
+
+### Authentication
+
+- [ ] Implement request authentication with `user_token`
+- [ ] Implement user login (`username`+`password`)
+- [ ] Implement password recovery
+- [ ] Check (check: http://jwt.io/)
+
+### Model
+
+- [ ] Refine Follwer vs. Friend Model
+- [ ] Add IDFA, IDFV, GPS_ADID, Game_Center_ID, FB_ID, etc. and push_token to users?
+- [ ] Attach push certificate to app entity to use for push.
+
+### Data & Processing
+
+- [ ] Evaluate [ffjson](https://github.com/pquerna/ffjson)
+- [ ] Implement UTF-8 encoding everywhere
+- [ ] Omit or blank or `null` fields
+- [ ] Implement PATCH routes and queries
+- [ ] Implement DELETE routes and queries
+- [ ] Implement Links (`href`) in responses
+- [ ] Implement Expansion for links/tokens
+- [ ] Define & Implement pagination
+- [ ] Define & Implement sorting
+- [ ] Evaluate, Define & Implement search
+
+### Security
+
+- [ ] Evaluate caching headers if SSL encrypted
+- [ ] Implement SSL only
+- [ ] Implement `base-64 encoded` token in requests
+
+### Webhooks
+
+- [ ] Evaluate need for webhooks
+- [ ] Define webhook use cases
+- [ ] Design and implement webhooks
+
+## Architecture
+
+### Database
+
+- [ ] Evaluate Redis as main DB for users, connections, sessions and events
+- [ ] Implement [go-redis](https://github.com/go-redis/redis)
+
+### Message Queue
+
+- [ ] Implement MQ for write requests (i.e. NATS, RabbitMQ, etc.)
+
+### Testing & Benchmarks
+
+- [ ] Implement unit tests db
+- [ ] Implement unit tests server
+- [ ] Define and implement integration tests
+- [ ] Define and implement benchmarks
+
+### Monitoring
+
+- [ ] Evaluate Graphite as monitoring/alerts/metrics solution
+
+## Documentation
+
+- [ ] Evaluate further use cases of godep
 
 # Cases
 

@@ -42,13 +42,13 @@ Postgres driver
 $ go get github.com/lib/pq
 ```
 
-Postgres driver
+Extensions to database/sql
 
 ```shell
 $ go get github.com/jmoiron/sqlx
 ```
 
-Extensions to database/sql
+Request router and dispatcher
 
 ```shell
 $ go get github.com/gorilla/mux
@@ -133,5 +133,12 @@ $ go run backend.go
 ## Tests
 
 ```shell
-$ go test
+$ cd db
+$ go test -check.v
+$ cd ../server
+$ go test -check.v
 ```
+
+## Deployment
+
+Currently commits to master branch will be automatically deployed to `http://tapglue.herokuapp.com/` if they pass.
