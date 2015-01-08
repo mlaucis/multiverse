@@ -15,7 +15,7 @@
 - [x] Create test files
 - [x] ORM + DB Connection
 - [x] Implement request validation in routes with regex 
-- [x] Implement queries to read/write entities 
+- [x] Implement queries to read/write entities
 
 ## Concept & API Design
 
@@ -42,7 +42,7 @@
 
 ### Authentication
 
-- [ ] Implement request authentication with `user_token`
+- [ ] Implement request authentication with `user_token` (Oauth2)
 - [ ] Implement user login (`username`+`password`)
 - [ ] Implement password recovery
 - [ ] Check (check: http://jwt.io/)
@@ -50,27 +50,29 @@
 ### Model
 
 - [ ] Refine Follwer vs. Friend Model
-- [ ] Add `IDFA`, `IDFV`, `GPS_ADID`, `Game_Center_ID`, `FB_ID`, etc. and `push_token to users?
+- [ ] Add `IDFA`, `IDFV`, `GPS_ADID`, `Game_Center_ID`, `FB_ID`, etc. and `push_token to users vs session?
 - [ ] Attach push certificate to app entity to use for push.
 
 ### Data & Processing
 
 - [ ] Evaluate [ffjson](https://github.com/pquerna/ffjson)
 - [ ] Implement UTF-8 encoding everywhere
-- [ ] Omit or blank or `null` fields
+- [ ] Omit blank or `null` fields
 - [ ] Implement PATCH routes and queries
 - [ ] Implement DELETE routes and queries
 - [ ] Implement Links (`href`) in responses
 - [ ] Implement Expansion for links/tokens
 - [ ] Define & Implement pagination
-- [ ] Define & Implement sorting
 - [ ] Evaluate, Define & Implement search
+- [ ] Define & Implement sorting
+- [ ] Design architecture for push
 
 ### Security
 
 - [ ] Evaluate caching headers if SSL encrypted
 - [ ] Implement SSL only
 - [ ] Implement `base-64 encoded` token in requests
+- [ ] Evaluate other option for encoding data
 
 ### Webhooks
 
@@ -84,9 +86,11 @@
 
 - [ ] Evaluate Redis as main DB for users, connections, sessions and events
 - [ ] Implement [go-redis](https://github.com/go-redis/redis)
+- [ ] Evaluate groupcache use cases
 
 ### Message Queue
 
+- [ ] Evaluate MQ options
 - [ ] Implement MQ for write requests (i.e. NATS, RabbitMQ, etc.)
 
 ### Testing & Benchmarks

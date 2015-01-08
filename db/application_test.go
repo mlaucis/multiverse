@@ -17,11 +17,9 @@ func (dbs *DatabaseSuite) TestAddAccountApplication_Empty(c *C) {
 
 	// Define data
 	var (
-		accountID   uint64
-		application = &entity.Application{}
+		accountID   uint64 = 1
+		application        = &entity.Application{}
 	)
-
-	accountID = 1
 
 	// Write application
 	savedApplication, err := AddAccountApplication(accountID, application)
