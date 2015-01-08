@@ -127,3 +127,46 @@ func (dbs *DatabaseSuite) TestGetAccountUserByID_Correct(c *C) {
 	c.Assert(err, IsNil)
 	c.Assert(getAccountUser, DeepEquals, savedAccountUser)
 }
+
+// GetAccountAllUsers test to get all account users
+func (dbs *DatabaseSuite) TestGetAccountAllUsers_Correct(c *C) {
+	// Initialize database
+	InitDatabases(cfg.DB())
+
+	// Define data
+	var (
+		account = &entity.Account{
+			Name: "Demo",
+		}
+		accountUser = &entity.AccountUser{
+			Name:     "Demo User",
+			Password: "iamsecure..not",
+			Email:    "d@m.o",
+		}
+	)
+
+	// Write account
+	savedAccount, err := AddAccount(account)
+
+	// Perform tests
+	c.Assert(savedAccount, NotNil)
+	c.Assert(err, IsNil)
+
+	// Write account user
+	savedAccountUser1, err := AddAccountUser(savedAccount.ID, accountUser)
+
+	// Write another account user
+	savedAccountUser2, err := AddAccountUser(savedAccount.ID, accountUser)
+
+	// Perform tests
+	c.Assert(savedAccountUser1, NotNil)
+	c.Assert(savedAccountUser2, NotNil)
+	c.Assert(err, IsNil)
+
+	// Get account user by id
+	getAccountUsers, err := GetAccountAllUsers(savedAccount.ID)
+
+	// Perform tests
+	c.Assert(err, IsNil)
+	c.Assert(getAccountUsers, HasLen, 2)
+}

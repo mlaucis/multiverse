@@ -77,8 +77,12 @@ func (dbs *DatabaseSuite) TestAddAccountApplication_Correct(c *C) {
 		}
 	)
 
-	// Write account first
+	// Write account
 	savedAccount, err := AddAccount(account)
+
+	// Perform tests
+	c.Assert(savedAccount, NotNil)
+	c.Assert(err, IsNil)
 
 	// Write application
 	savedApplication, err := AddAccountApplication(savedAccount.ID, application)
@@ -94,4 +98,82 @@ func (dbs *DatabaseSuite) TestAddAccountApplication_Correct(c *C) {
 	c.Assert(savedApplication.Key, FitsTypeOf, string("go"))
 	c.Assert(savedApplication.Enabled, Equals, true)
 	c.Assert(savedApplication.Enabled, FitsTypeOf, bool(true))
+}
+
+// GetApplicationByID test to get an application by its id
+func (dbs *DatabaseSuite) TestGetApplicationByID_Correct(c *C) {
+	// Initialize database
+	InitDatabases(cfg.DB())
+
+	// Define data
+	var (
+		account = &entity.Account{
+			Name: "Demo",
+		}
+		application = &entity.Application{
+			Name: "Demo App",
+			Key:  "imanappkey12345",
+		}
+	)
+
+	// Write account
+	savedAccount, err := AddAccount(account)
+
+	// Perform tests
+	c.Assert(savedAccount, NotNil)
+	c.Assert(err, IsNil)
+
+	// Write application
+	savedApplication, err := AddAccountApplication(savedAccount.ID, application)
+
+	// Perform tests
+	c.Assert(savedApplication, NotNil)
+	c.Assert(err, IsNil)
+
+	// Get account user by id
+	getAccountApplication, err := GetApplicationByID(savedApplication.ID)
+
+	// Perform tests
+	c.Assert(err, IsNil)
+	c.Assert(getAccountApplication, DeepEquals, savedApplication)
+}
+
+// GetAccountAllApplications test to get all applications
+func (dbs *DatabaseSuite) TestGetAccountAllApplications_Correct(c *C) {
+	// Initialize database
+	InitDatabases(cfg.DB())
+
+	// Define data
+	var (
+		account = &entity.Account{
+			Name: "Demo",
+		}
+		application = &entity.Application{
+			Name: "Demo App",
+			Key:  "imanappkey12345",
+		}
+	)
+
+	// Write account
+	savedAccount, err := AddAccount(account)
+
+	// Perform tests
+	c.Assert(savedAccount, NotNil)
+	c.Assert(err, IsNil)
+
+	// Write application
+	savedApplication1, err := AddAccountApplication(savedAccount.ID, application)
+	savedApplication2, err := AddAccountApplication(savedAccount.ID, application)
+
+	// Perform tests
+	c.Assert(savedApplication1, NotNil)
+	c.Assert(savedApplication2, NotNil)
+	c.Assert(err, IsNil)
+
+	// Get account user by id
+	getApplications, err := GetAccountAllApplications(savedAccount.ID)
+
+	// Perform tests
+	c.Assert(err, IsNil)
+	c.Assert(getApplications, HasLen, 2)
 }
