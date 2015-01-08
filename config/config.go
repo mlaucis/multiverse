@@ -116,6 +116,7 @@ func (config *Cfg) ListenHost() string {
 	return config.ListenHostPort
 }
 
+// NewRelic returns the newrelic key and name
 func (config *Cfg) NewRelic() (string, string) {
 	return config.Newrelic.Key, config.Newrelic.Name
 }

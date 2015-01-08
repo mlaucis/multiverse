@@ -70,5 +70,6 @@ func createAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Write response
 	writeResponse(account, http.StatusCreated, 0, w, r)
 }

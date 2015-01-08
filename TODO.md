@@ -50,7 +50,7 @@
 ### Model
 
 - [ ] Refine Follwer vs. Friend Model
-- [ ] Add IDFA, IDFV, GPS_ADID, Game_Center_ID, FB_ID, etc. and push_token to users?
+- [ ] Add `IDFA`, `IDFV`, `GPS_ADID`, `Game_Center_ID`, `FB_ID`, etc. and `push_token to users?
 - [ ] Attach push certificate to app entity to use for push.
 
 ### Data & Processing
