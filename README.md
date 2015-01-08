@@ -141,4 +141,4 @@ $ go test -check.v
 
 ## Deployment
 
-Currently commits to master branch will be automatically deployed to `http://tapglue.herokuapp.com/` if they pass.
+Currently commits to master branch will be automatically deployed to [http://tapglue.herokuapp.com](http://tapglue.herokuapp.com/) if they pass.
