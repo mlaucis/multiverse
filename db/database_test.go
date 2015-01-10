@@ -24,11 +24,13 @@ var (
 	cfg *config.Cfg
 )
 
-func (dbs *DatabaseSuite) SetUpTest(c *C) {
+func (dbs *DatabaseSuite) SetUpSuite(c *C) {
 	cfg = config.NewConf("")
 	InitDatabases(cfg.DB())
+
 	GetMaster().Ping()
 	GetSlave().Ping()
+
 	_, err := GetMaster().Exec("DELETE FROM `accounts`")
 	c.Assert(err, IsNil)
 }

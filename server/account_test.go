@@ -69,50 +69,26 @@ func (s *ServerSuite) TestCreateAccount_Correct(c *C) {
 
 // Test getAccount
 func (s *ServerSuite) TestGetAccount_OK(c *C) {
-	// This (section until GET) should probably be reduced to setting up some common dummy data
-	payload := "{\"name\":\"Demo\"}"
-	req, err := http.NewRequest(
-		"POST",
-		"http://localhost:8089/account",
-		strings.NewReader(payload),
-	)
-	test_CLHeader(req)
-	c.Assert(err, IsNil)
-
-	w := httptest.NewRecorder()
-	createAccount(w, req)
-
-	c.Assert(w.Code, Equals, http.StatusCreated)
-	response := w.Body.String()
-	c.Assert(response, Not(Equals), "")
-
-	account := &entity.Account{}
-	err = json.Unmarshal([]byte(response), account)
-	c.Assert(err, IsNil)
-	if account.ID < 1 {
-		c.Fail()
-	}
-	c.Assert(account.Name, Equals, "Demo")
-	c.Assert(account.Enabled, Equals, true)
+	// Add account first
+	account := AddCorrectAccount()
 
 	// Now we test the GET part
-
-	req, err = http.NewRequest(
+	req, err := http.NewRequest(
 		"GET",
 		fmt.Sprintf("http://localhost:8089/account/%d", account.ID),
 		nil,
 	)
-	fmt.Println(fmt.Sprintf("http://localhost:8089/account/%d", account.ID))
+
 	c.Assert(err, IsNil)
 
-	w = httptest.NewRecorder()
+	w := httptest.NewRecorder()
 	m := mux.NewRouter()
 	route := routes["getAccount"]
 	m.HandleFunc(route.pattern, route.handlerFunc).Methods(route.method)
 	m.ServeHTTP(w, req)
 
 	c.Assert(w.Code, Equals, http.StatusOK)
-	response = w.Body.String()
+	response := w.Body.String()
 	c.Assert(response, Not(Equals), "")
 
 	accountGet := &entity.Account{}

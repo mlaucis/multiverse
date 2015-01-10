@@ -12,10 +12,6 @@ import (
 
 // AddAccount test to write empty entity
 func (dbs *DatabaseSuite) TestAddAccount_Empty(c *C) {
-	// Initialize database
-	InitDatabases(cfg.DB())
-
-	// Define data
 	var account = &entity.Account{}
 
 	// Write account
@@ -28,9 +24,6 @@ func (dbs *DatabaseSuite) TestAddAccount_Empty(c *C) {
 
 // AddAccount test to write account entity with just a name
 func (dbs *DatabaseSuite) TestAddAccount_Correct(c *C) {
-	// Initialize database
-	InitDatabases(cfg.DB())
-
 	// Define data
 	var account = &entity.Account{
 		Name: "Demo",
@@ -47,21 +40,9 @@ func (dbs *DatabaseSuite) TestAddAccount_Correct(c *C) {
 }
 
 // GetAccountByID test to get an account by its id
-func (dbs *DatabaseSuite) TestGetAccountByID_Correct(c *C) {
-	// Initialize database
-	InitDatabases(cfg.DB())
-
-	// Define data
-	var account = &entity.Account{
-		Name: "Demo",
-	}
-
+func (dbs *DatabaseSuite) TestGetAccountByID(c *C) {
 	// Write account first
-	savedAccount, err := AddAccount(account)
-
-	// Perform tests
-	c.Assert(savedAccount, NotNil)
-	c.Assert(err, IsNil)
+	savedAccount := AddCorrectAccount()
 
 	// Get account by id
 	getAccount, err := GetAccountByID(savedAccount.ID)
@@ -69,4 +50,14 @@ func (dbs *DatabaseSuite) TestGetAccountByID_Correct(c *C) {
 	// Perform tests
 	c.Assert(err, IsNil)
 	c.Assert(getAccount, DeepEquals, savedAccount)
+}
+
+func (dbs *DatabaseSuite) BenchmarkAddAccount(c *C) {
+	var account = &entity.Account{
+		Name: "Demo",
+	}
+
+	for i := 0; i < 1000; i++ {
+		_, _ = AddAccount(account)
+	}
 }

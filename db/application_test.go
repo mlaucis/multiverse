@@ -12,9 +12,6 @@ import (
 
 // AddAccountApplication test to write empty entity
 func (dbs *DatabaseSuite) TestAddAccountApplication_Empty(c *C) {
-	// Initialize database
-	InitDatabases(cfg.DB())
-
 	// Define data
 	var (
 		accountID   uint64 = 1
@@ -34,9 +31,6 @@ func (dbs *DatabaseSuite) TestAddAccountApplication_Empty(c *C) {
 
 // AddAccountApplication test to write an application without an account
 func (dbs *DatabaseSuite) TestAddAccountApplication_NoAccount(c *C) {
-	// Initialize database
-	InitDatabases(cfg.DB())
-
 	// Define data
 	var (
 		accountID   uint64
@@ -61,14 +55,8 @@ func (dbs *DatabaseSuite) TestAddAccountApplication_NoAccount(c *C) {
 
 // AddAccountApplication test to write application entity with name and key
 func (dbs *DatabaseSuite) TestAddAccountApplication_Correct(c *C) {
-	// Initialize database
-	InitDatabases(cfg.DB())
-
 	// Define data
 	var (
-		account = &entity.Account{
-			Name: "Demo",
-		}
 		application = &entity.Application{
 			Name: "Demo App",
 			Key:  "imanappkey12345",
@@ -76,11 +64,7 @@ func (dbs *DatabaseSuite) TestAddAccountApplication_Correct(c *C) {
 	)
 
 	// Write account
-	savedAccount, err := AddAccount(account)
-
-	// Perform tests
-	c.Assert(savedAccount, NotNil)
-	c.Assert(err, IsNil)
+	savedAccount := AddCorrectAccount()
 
 	// Write application
 	savedApplication, err := AddAccountApplication(savedAccount.ID, application)
@@ -100,14 +84,8 @@ func (dbs *DatabaseSuite) TestAddAccountApplication_Correct(c *C) {
 
 // GetApplicationByID test to get an application by its id
 func (dbs *DatabaseSuite) TestGetApplicationByID_Correct(c *C) {
-	// Initialize database
-	InitDatabases(cfg.DB())
-
 	// Define data
 	var (
-		account = &entity.Account{
-			Name: "Demo",
-		}
 		application = &entity.Application{
 			Name: "Demo App",
 			Key:  "imanappkey12345",
@@ -115,11 +93,7 @@ func (dbs *DatabaseSuite) TestGetApplicationByID_Correct(c *C) {
 	)
 
 	// Write account
-	savedAccount, err := AddAccount(account)
-
-	// Perform tests
-	c.Assert(savedAccount, NotNil)
-	c.Assert(err, IsNil)
+	savedAccount := AddCorrectAccount()
 
 	// Write application
 	savedApplication, err := AddAccountApplication(savedAccount.ID, application)
@@ -138,14 +112,8 @@ func (dbs *DatabaseSuite) TestGetApplicationByID_Correct(c *C) {
 
 // GetAccountAllApplications test to get all applications
 func (dbs *DatabaseSuite) TestGetAccountAllApplications_Correct(c *C) {
-	// Initialize database
-	InitDatabases(cfg.DB())
-
 	// Define data
 	var (
-		account = &entity.Account{
-			Name: "Demo",
-		}
 		application = &entity.Application{
 			Name: "Demo App",
 			Key:  "imanappkey12345",
@@ -153,11 +121,7 @@ func (dbs *DatabaseSuite) TestGetAccountAllApplications_Correct(c *C) {
 	)
 
 	// Write account
-	savedAccount, err := AddAccount(account)
-
-	// Perform tests
-	c.Assert(savedAccount, NotNil)
-	c.Assert(err, IsNil)
+	savedAccount := AddCorrectAccount()
 
 	// Write application
 	savedApplication1, err := AddAccountApplication(savedAccount.ID, application)

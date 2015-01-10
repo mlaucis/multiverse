@@ -12,10 +12,6 @@ import (
 
 // AddAccountUser test to write empty entity
 func (dbs *DatabaseSuite) TestAddAccountUser_Empty(c *C) {
-	// Initialize database
-	InitDatabases(cfg.DB())
-
-	// Define data
 	var (
 		accountID   uint64
 		accountUser = &entity.AccountUser{}
@@ -33,9 +29,6 @@ func (dbs *DatabaseSuite) TestAddAccountUser_Empty(c *C) {
 
 // AddAccountUser test to write account user entity without an account
 func (dbs *DatabaseSuite) TestAddAccountUser_NoAccount(c *C) {
-	// Initialize database
-	InitDatabases(cfg.DB())
-
 	// Define data
 	var (
 		accountID   uint64
@@ -58,14 +51,7 @@ func (dbs *DatabaseSuite) TestAddAccountUser_NoAccount(c *C) {
 
 // AddAccountUser test to write account user entity with name, pw, email
 func (dbs *DatabaseSuite) TestAddAccountUser_Correct(c *C) {
-	// Initialize database
-	InitDatabases(cfg.DB())
-
-	// Define data
 	var (
-		account = &entity.Account{
-			Name: "Demo",
-		}
 		accountUser = &entity.AccountUser{
 			Name:     "Demo User",
 			Password: "iamsecure..not",
@@ -73,8 +59,8 @@ func (dbs *DatabaseSuite) TestAddAccountUser_Correct(c *C) {
 		}
 	)
 
-	// Write account
-	savedAccount, err := AddAccount(account)
+	// Write account first
+	savedAccount := AddCorrectAccount()
 
 	// Write account user
 	savedAccountUser, err := AddAccountUser(savedAccount.ID, accountUser)
@@ -91,14 +77,8 @@ func (dbs *DatabaseSuite) TestAddAccountUser_Correct(c *C) {
 
 // GetAccountUserByID test to get an account by its id
 func (dbs *DatabaseSuite) TestGetAccountUserByID_Correct(c *C) {
-	// Initialize database
-	InitDatabases(cfg.DB())
-
 	// Define data
 	var (
-		account = &entity.Account{
-			Name: "Demo",
-		}
 		accountUser = &entity.AccountUser{
 			Name:     "Demo User",
 			Password: "iamsecure..not",
@@ -107,11 +87,7 @@ func (dbs *DatabaseSuite) TestGetAccountUserByID_Correct(c *C) {
 	)
 
 	// Write account
-	savedAccount, err := AddAccount(account)
-
-	// Perform tests
-	c.Assert(savedAccount, NotNil)
-	c.Assert(err, IsNil)
+	savedAccount := AddCorrectAccount()
 
 	// Write account user
 	savedAccountUser, err := AddAccountUser(savedAccount.ID, accountUser)
@@ -130,14 +106,8 @@ func (dbs *DatabaseSuite) TestGetAccountUserByID_Correct(c *C) {
 
 // GetAccountAllUsers test to get all account users
 func (dbs *DatabaseSuite) TestGetAccountAllUsers_Correct(c *C) {
-	// Initialize database
-	InitDatabases(cfg.DB())
-
 	// Define data
 	var (
-		account = &entity.Account{
-			Name: "Demo",
-		}
 		accountUser = &entity.AccountUser{
 			Name:     "Demo User",
 			Password: "iamsecure..not",
@@ -146,11 +116,7 @@ func (dbs *DatabaseSuite) TestGetAccountAllUsers_Correct(c *C) {
 	)
 
 	// Write account
-	savedAccount, err := AddAccount(account)
-
-	// Perform tests
-	c.Assert(savedAccount, NotNil)
-	c.Assert(err, IsNil)
+	savedAccount := AddCorrectAccount()
 
 	// Write account user
 	savedAccountUser1, err := AddAccountUser(savedAccount.ID, accountUser)
