@@ -33,6 +33,18 @@ func GetAccountAllUsers(accountID uint64) (accountUsers []*entity.AccountUser, e
 
 // AddAccountUser creates a user for an account and returns the created entry or an error
 func AddAccountUser(accountID uint64, accountUser *entity.AccountUser) (*entity.AccountUser, error) {
+	if accountUser.Name == "" {
+		return nil, fmt.Errorf("empty account user username is not allowed")
+	}
+
+	if accountUser.Password == "" {
+		return nil, fmt.Errorf("empty account user password is not allowed")
+	}
+
+	if accountUser.Email == "" {
+		return nil, fmt.Errorf("empty account user email is not allowed")
+	}
+
 	query := "INSERT INTO `account_users` (`account_id`, `name`, `password`, `email`) VALUES (?, ?, ?, ?)"
 	result, err := GetMaster().Exec(query, accountID, accountUser.Name, accountUser.Password, accountUser.Email)
 	if err != nil {

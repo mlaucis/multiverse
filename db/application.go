@@ -33,6 +33,14 @@ func GetAccountAllApplications(accountID uint64) (applications []*entity.Applica
 
 // AddAccountApplication creates a user for an account and returns the created entry or an error
 func AddAccountApplication(accountID uint64, application *entity.Application) (*entity.Application, error) {
+	if application.Key == "" {
+		return nil, fmt.Errorf("empty application key is not allowed")
+	}
+
+	if application.Name == "" {
+		return nil, fmt.Errorf("empty application name is not allowed")
+	}
+
 	query := "INSERT INTO `applications` (`account_id`, `key`, `name`) VALUES (?, ?, ?)"
 	result, err := GetMaster().Exec(query, accountID, application.Key, application.Name)
 	if err != nil {
