@@ -19,6 +19,11 @@ import (
 // Request: GET /account/:AccountID
 // Test with: curl -i localhost/account/:AccountID
 func getAccount(w http.ResponseWriter, r *http.Request) {
+	if err := validateGetCommon(w, r); err != nil {
+		errorHappened(err, http.StatusBadRequest, r, w)
+		return
+	}
+
 	var (
 		accountID uint64
 		account   *entity.Account

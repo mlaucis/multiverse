@@ -20,11 +20,21 @@ import (
 	"github.com/yvasiyarov/gorelic"
 )
 
-// To be used across API demos, should be deleted when no raw examples present
-var apiDemoTime = time.Date(2014, time.December, 25, 12, 30, 0, 0, time.UTC)
+// validateGetCommon runs a series of predefinied, common, tests for GET requests
+func validateGetCommon(w http.ResponseWriter, r *http.Request) error {
+	if r.Header.Get("User-Agent") == "" {
+		return fmt.Errorf("User-Agent header must be set")
+	}
+
+	return nil
+}
 
 // validatePostCommon runs a series of predefined, common, tests for the POST requests
 func validatePostCommon(w http.ResponseWriter, r *http.Request) error {
+	if r.Header.Get("User-Agent") == "" {
+		return fmt.Errorf("User-Agent header must be set")
+	}
+
 	if r.ContentLength < 1 {
 		return fmt.Errorf("invalid Content-Length size")
 	}
@@ -122,6 +132,11 @@ func errorHappened(err error, code int, r *http.Request, w http.ResponseWriter) 
 // Request: GET /
 // Test with: `curl -i localhost/`
 func home(w http.ResponseWriter, r *http.Request) {
+	if err := validateGetCommon(w, r); err != nil {
+		errorHappened(err, http.StatusBadRequest, r, w)
+		return
+	}
+
 	writeCacheHeaders(10*24*3600, w)
 	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	w.Write([]byte(`these aren't the droids you're looking for`))
@@ -131,6 +146,11 @@ func home(w http.ResponseWriter, r *http.Request) {
 // Request: GET /humans.txt
 // Test with: curl -i localhost/humans.txt
 func humans(w http.ResponseWriter, r *http.Request) {
+	if err := validateGetCommon(w, r); err != nil {
+		errorHappened(err, http.StatusBadRequest, r, w)
+		return
+	}
+
 	writeCacheHeaders(10*24*3600, w)
 	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	w.Write([]byte(`/* TEAM */
@@ -152,6 +172,11 @@ Software: Go`))
 // Request: GET /robots.txt
 // Test with: curl -i localhost/robots.txt
 func robots(w http.ResponseWriter, r *http.Request) {
+	if err := validateGetCommon(w, r); err != nil {
+		errorHappened(err, http.StatusBadRequest, r, w)
+		return
+	}
+
 	writeCacheHeaders(10*24*3600, w)
 	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	w.Write([]byte(`User-agent: *

@@ -19,6 +19,11 @@ import (
 // Request: GET /app/:AppID
 // Test with: curl -i localhost/app/:AppID
 func getAccountApplication(w http.ResponseWriter, r *http.Request) {
+	if err := validateGetCommon(w, r); err != nil {
+		errorHappened(err, http.StatusBadRequest, r, w)
+		return
+	}
+
 	var (
 		application *entity.Application
 		appID       uint64
@@ -46,6 +51,11 @@ func getAccountApplication(w http.ResponseWriter, r *http.Request) {
 // Request: GET /account/:AccountID/applications
 // Test with: curl -i localhost/account/:AccountID/applications
 func getAccountApplicationList(w http.ResponseWriter, r *http.Request) {
+	if err := validateGetCommon(w, r); err != nil {
+		errorHappened(err, http.StatusBadRequest, r, w)
+		return
+	}
+
 	var (
 		account      *entity.Account
 		applications []*entity.Application

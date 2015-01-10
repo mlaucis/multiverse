@@ -19,6 +19,11 @@ import (
 // Request: GET /app/:AppID/user/:Token
 // Test with: curl -i localhost/app/:AppID/user/:Token
 func getApplicationUser(w http.ResponseWriter, r *http.Request) {
+	if err := validateGetCommon(w, r); err != nil {
+		errorHappened(err, http.StatusBadRequest, r, w)
+		return
+	}
+
 	var (
 		user      *entity.User
 		appID     uint64
@@ -58,6 +63,11 @@ func getApplicationUser(w http.ResponseWriter, r *http.Request) {
 // Request: GET /app/:AppID/users
 // Test with: curl -i localhost/app/:AppID/users
 func getApplicationUserList(w http.ResponseWriter, r *http.Request) {
+	if err := validateGetCommon(w, r); err != nil {
+		errorHappened(err, http.StatusBadRequest, r, w)
+		return
+	}
+
 	var (
 		appID uint64
 		users []*entity.User

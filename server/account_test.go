@@ -18,18 +18,23 @@ import (
 )
 
 // Test CLHeader
-func test_CLHeader(req *http.Request) {
-	req.Header.Add("Content-Length", strconv.FormatInt(int64(len("{name:'Demo'}")), 10))
+func test_CLHeader(payload string, req *http.Request) {
+	req.Header.Add("User-Agent", "go test (+localhost)")
+	if len(payload) > 0 {
+		req.Header.Add("Content-Length", strconv.FormatInt(int64(len(payload)), 10))
+	}
 }
 
 // Test create acccount request with a wrong key
 func (s *ServerSuite) TestCreateAccount_WrongKey(c *C) {
+	payload := "{namae:''}"
+
 	req, err := http.NewRequest(
 		"POST",
 		"http://localhost:8089/account",
-		strings.NewReader("{namae:''}"),
+		strings.NewReader(payload),
 	)
-	test_CLHeader(req)
+	test_CLHeader(payload, req)
 	c.Assert(err, IsNil)
 
 	w := httptest.NewRecorder()
@@ -47,7 +52,7 @@ func (s *ServerSuite) TestCreateAccount_Correct(c *C) {
 		"http://localhost:8089/account",
 		strings.NewReader(payload),
 	)
-	test_CLHeader(req)
+	test_CLHeader(payload, req)
 	c.Assert(err, IsNil)
 
 	w := httptest.NewRecorder()
@@ -78,7 +83,7 @@ func (s *ServerSuite) TestGetAccount_OK(c *C) {
 		fmt.Sprintf("http://localhost:8089/account/%d", account.ID),
 		nil,
 	)
-
+	test_CLHeader("", req)
 	c.Assert(err, IsNil)
 
 	w := httptest.NewRecorder()

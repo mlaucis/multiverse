@@ -40,8 +40,9 @@ func (s *ServerSuite) TestValidatePostCommon_NoCLHeader(c *C) {
 	req, err := http.NewRequest(
 		"POST",
 		"http://localhost:8089/",
-		strings.NewReader(""),
+		nil,
 	)
+	test_CLHeader("", req)
 	c.Assert(err, IsNil)
 
 	w := httptest.NewRecorder()
@@ -53,12 +54,13 @@ func (s *ServerSuite) TestValidatePostCommon_NoCLHeader(c *C) {
 
 // Test POST common with CLHeader
 func (s *ServerSuite) TestValidatePostCommon_CLHeader(c *C) {
+	payload := "{demo}"
 	req, err := http.NewRequest(
 		"POST",
 		"http://localhost:8089/",
-		strings.NewReader("{demo}"),
+		strings.NewReader(payload),
 	)
-	req.Header.Add("Content-Length", "6")
+	test_CLHeader(payload, req)
 	c.Assert(err, IsNil)
 
 	w := httptest.NewRecorder()

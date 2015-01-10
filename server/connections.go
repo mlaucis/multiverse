@@ -19,6 +19,11 @@ import (
 // Request: GET /app/:AppID/user/:Token/connections
 // Test with: curl -i localhost/app/:AppID/user/:Token/connections
 func getUserConnections(w http.ResponseWriter, r *http.Request) {
+	if err := validateGetCommon(w, r); err != nil {
+		errorHappened(err, http.StatusBadRequest, r, w)
+		return
+	}
+
 	var (
 		user      *entity.User
 		appID     uint64

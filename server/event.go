@@ -20,6 +20,11 @@ import (
 // Request: GET /app/:AppID/event/:EventID
 // Test with: curl -i localhost/app/:AppID/event/:EventID
 func getApplicationEvent(w http.ResponseWriter, r *http.Request) {
+	if err := validateGetCommon(w, r); err != nil {
+		errorHappened(err, http.StatusBadRequest, r, w)
+		return
+	}
+
 	var (
 		event   = &entity.Event{}
 		appID   uint64
@@ -59,6 +64,11 @@ func getApplicationEvent(w http.ResponseWriter, r *http.Request) {
 // Request: GET /app/:AppID/user/:Token/events
 // Test with: curl -i localhost/app/:AppID/user/:Token/events
 func getApplicationUserEvents(w http.ResponseWriter, r *http.Request) {
+	if err := validateGetCommon(w, r); err != nil {
+		errorHappened(err, http.StatusBadRequest, r, w)
+		return
+	}
+
 	var (
 		user      = &entity.User{}
 		appID     uint64
@@ -92,6 +102,11 @@ func getApplicationUserEvents(w http.ResponseWriter, r *http.Request) {
 // Request: GET /app/:AppID/user/:userToken/session/:SessionID/events
 // Test with: curl -i localhost/app/:AppID/user/:userToken/session/:SessionID/events
 func getSessionEvents(w http.ResponseWriter, r *http.Request) {
+	if err := validateGetCommon(w, r); err != nil {
+		errorHappened(err, http.StatusBadRequest, r, w)
+		return
+	}
+
 	var (
 		session   = &entity.Session{}
 		appID     uint64
@@ -130,6 +145,11 @@ func getSessionEvents(w http.ResponseWriter, r *http.Request) {
 // Request: GET /app/:AppID/user/:Token/connections/events
 // Test with: curl -i localhost/app/:AppID/user/:Token/connections/events
 func getUserConnectionsEvents(w http.ResponseWriter, r *http.Request) {
+	if err := validateGetCommon(w, r); err != nil {
+		errorHappened(err, http.StatusBadRequest, r, w)
+		return
+	}
+
 	var (
 		events    = []*entity.Event{}
 		appID     uint64

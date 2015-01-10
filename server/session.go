@@ -20,6 +20,11 @@ import (
 // Request: GET /app/:AppID/user/:Token/session/:SessionID
 // Test with: curl -i localhost/app/:AppID/user/:Token/session/:SessionID
 func getUserSession(w http.ResponseWriter, r *http.Request) {
+	if err := validateGetCommon(w, r); err != nil {
+		errorHappened(err, http.StatusBadRequest, r, w)
+		return
+	}
+
 	var (
 		sessionID uint64
 		appID     uint64
@@ -62,6 +67,11 @@ func getUserSession(w http.ResponseWriter, r *http.Request) {
 // Request: GET /app/:AppID/user/:userToken/sessions
 // Test with: curl -i localhost/app/:AppID/user/:userToken/sessions
 func getUserSessionList(w http.ResponseWriter, r *http.Request) {
+	if err := validateGetCommon(w, r); err != nil {
+		errorHappened(err, http.StatusBadRequest, r, w)
+		return
+	}
+
 	var (
 		user      *entity.User
 		userToken string
