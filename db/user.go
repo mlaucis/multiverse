@@ -15,6 +15,7 @@ import (
 func GetApplicationUserByToken(appID uint64, userToken string) (user *entity.User, err error) {
 	user = &entity.User{}
 
+	// Execute query to get user
 	err = GetSlave().
 		QueryRowx("SELECT * FROM `users` WHERE `application_id`=? AND `token`=?", appID, userToken).
 		StructScan(user)
@@ -26,6 +27,7 @@ func GetApplicationUserByToken(appID uint64, userToken string) (user *entity.Use
 func GetApplicationUsers(appID uint64) (users []*entity.User, err error) {
 	users = []*entity.User{}
 
+	// Execute query to get users
 	err = GetSlave().
 		Select(&users, "SELECT * FROM `users` WHERE `application_id`=?", appID)
 
@@ -34,6 +36,20 @@ func GetApplicationUsers(appID uint64) (users []*entity.User, err error) {
 
 // AddApplicationUser creates a user for an account and returns the created entry or an error
 func AddApplicationUser(appID uint64, user *entity.User) (*entity.User, error) {
+	// Check if token empty
+	if user.Token == "" {
+		return nil, fmt.Errorf("empty user token is not allowed")
+	}
+	// Check if token empty
+	if user.Username == "" {
+		return nil, fmt.Errorf("empty user username is not allowed")
+	}
+	// Check if token empty
+	if user.Password == "" {
+		return nil, fmt.Errorf("empty user password is not allowed")
+	}
+
+	// Write to db
 	query := "INSERT INTO `users` (`application_id`, `token`, `username`, `name`, `password`, `email`, `url`, `thumbnail_url`, `provider`, `custom`)" +
 		"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 	_, err := GetMaster().
@@ -45,16 +61,23 @@ func AddApplicationUser(appID uint64, user *entity.User) (*entity.User, error) {
 		return nil, fmt.Errorf("error while saving to database")
 	}
 
+	// Return application user
 	return GetApplicationUserByToken(appID, user.Token)
 }
 
 // GetApplicationUserWithConnections returns the user and it's connections to other users or an error
 func GetApplicationUserWithConnections(appID uint64, userToken string) (user *entity.User, err error) {
+	// Check if token empty
+	if userToken == "" {
+		return nil, fmt.Errorf("empty user token is not allowed")
+	}
+	// Retrieve user
 	if user, err = GetApplicationUserByToken(appID, userToken); err != nil {
 		return
 	}
-
 	user.Connections = []*entity.User{}
+
+	// Retrieve user connections
 	err = GetSlave().
 		Select(
 		&user.Connections,
@@ -73,6 +96,15 @@ func GetApplicationUserWithConnections(appID uint64, userToken string) (user *en
 
 // AddApplicationUserConnection will add a new connection between users or returns an error
 func AddApplicationUserConnection(appID uint64, user1Token, user2Token string) (err error) {
+	// Check if token1 empty
+	if user1Token == "" {
+		return fmt.Errorf("empty user1 token is not allowed")
+	}
+	// Check if token2 empty
+	if user2Token == "" {
+		return fmt.Errorf("empty user2 token is not allowed")
+	}
+	// Write to db
 	query := "INSERT INTO `user_connections` (`application_id`, `user_id1`, `user_id2`) VALUES (?, ?, ?)"
 	_, err = GetMaster().
 		Exec(query, appID, user1Token, user2Token)
@@ -84,4 +116,5 @@ func AddApplicationUserConnection(appID uint64, user1Token, user2Token string) (
 	}
 
 	return
+
 }

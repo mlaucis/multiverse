@@ -4,18 +4,12 @@
 
 package db
 
-import (
-	"github.com/tapglue/backend/entity"
-
-	. "gopkg.in/check.v1"
-)
+import . "gopkg.in/check.v1"
 
 // AddAccount test to write empty entity
 func (dbs *DatabaseSuite) TestAddAccount_Empty(c *C) {
-	var account = &entity.Account{}
-
 	// Write account
-	savedAccount, err := AddAccount(account)
+	savedAccount, err := AddAccount(emtpyAccount)
 
 	// Perform tests
 	c.Assert(savedAccount, IsNil)
@@ -24,24 +18,19 @@ func (dbs *DatabaseSuite) TestAddAccount_Empty(c *C) {
 
 // AddAccount test to write account entity with just a name
 func (dbs *DatabaseSuite) TestAddAccount_Correct(c *C) {
-	// Define data
-	var account = &entity.Account{
-		Name: "Demo",
-	}
-
 	// Write account
-	savedAccount, err := AddAccount(account)
+	savedAccount, err := AddAccount(correctAccount)
 
 	// Perform tests
 	c.Assert(savedAccount, NotNil)
 	c.Assert(err, IsNil)
-	c.Assert(savedAccount.Name, Equals, account.Name)
+	c.Assert(savedAccount.Name, Equals, correctAccount.Name)
 	c.Assert(savedAccount.Enabled, Equals, true)
 }
 
 // GetAccountByID test to get an account by its id
 func (dbs *DatabaseSuite) TestGetAccountByID(c *C) {
-	// Write account first
+	// Write correct account
 	savedAccount := AddCorrectAccount()
 
 	// Get account by id
@@ -52,12 +41,10 @@ func (dbs *DatabaseSuite) TestGetAccountByID(c *C) {
 	c.Assert(getAccount, DeepEquals, savedAccount)
 }
 
+// BenchmarkAddAccount executes AddAccount 1000 times
 func (dbs *DatabaseSuite) BenchmarkAddAccount(c *C) {
-	var account = &entity.Account{
-		Name: "Demo",
-	}
-
+	// Loop to create 1000 accounts
 	for i := 0; i < 1000; i++ {
-		_, _ = AddAccount(account)
+		_, _ = AddAccount(correctAccount)
 	}
 }
