@@ -8,7 +8,7 @@ var (
 	emtpyAccountUser = &entity.AccountUser{}
 	emptyApplication = &entity.Application{}
 	emptyUser        = &entity.User{}
-	emptySessions    = &entity.Session{}
+	emptySession     = &entity.Session{}
 	emptyEvent       = &entity.Event{}
 	correctAccount   = &entity.Account{
 		Name: "Demo",
@@ -35,7 +35,7 @@ var (
 	}
 	correctSession = &entity.Session{
 		AppID:     1,
-		UserToken: "userToken123",
+		UserToken: correctUser.Token,
 		Custom:    "{\"more\":\"data\"}",
 	}
 )

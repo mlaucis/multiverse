@@ -74,7 +74,7 @@ func (dbs *DatabaseSuite) TestGetAccountAllUsers_Correct(c *C) {
 	// Perform tests
 	c.Assert(savedAccountUser1, NotNil)
 	c.Assert(savedAccountUser2, NotNil)
-	c.Assert(savedAccountUser1.AccountID, Equals, savedAccountUser1.AccountID)
+	c.Assert(savedAccountUser1.AccountID, Equals, savedAccountUser2.AccountID)
 
 	// Get account user by id
 	getAccountUsers, err := GetAccountAllUsers(savedAccountUser1.AccountID)

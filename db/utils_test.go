@@ -98,9 +98,7 @@ func AddCorrectApplicationUsers() (user1, user2 *entity.User) {
 
 // Create a correct session
 func AddCorrectUserSession() *entity.Session {
-	correctUser.Token = RandomToken()
 	savedUser := AddCorrectApplicationUser()
-	correctSession.UserToken = savedUser.Token
 	correctSession.AppID = savedUser.AppID
 	savedSession, err := AddUserSession(correctSession)
 	if err != nil {
@@ -108,6 +106,22 @@ func AddCorrectUserSession() *entity.Session {
 	}
 
 	return savedSession
+}
+
+// Create correct sessions
+func AddCorrectUserSessions() (session1, session2 *entity.Session) {
+	savedUser := AddCorrectApplicationUser()
+	correctSession.AppID = savedUser.AppID
+	savedSession1, err := AddUserSession(correctSession)
+	if err != nil {
+		panic(err)
+	}
+	savedSession2, err := AddUserSession(correctSession)
+	if err != nil {
+		panic(err)
+	}
+
+	return savedSession1, savedSession2
 }
 
 // RandomToken returns a random Token
