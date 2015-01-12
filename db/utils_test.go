@@ -110,7 +110,7 @@ func AddCorrectUserSession() *entity.Session {
 	return savedSession
 }
 
-// randomizeUserToken sets a random Token for correctUser
+// RandomToken returns a random Token
 func RandomToken() string {
 	// String length
 	size := 32
