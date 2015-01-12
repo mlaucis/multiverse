@@ -22,7 +22,7 @@ func (dbs *DatabaseSuite) TestAddAccountUser_Empty(c *C) {
 // AddAccountUser test to write entity without account
 func (dbs *DatabaseSuite) TestAddAccountUser_NoAccount(c *C) {
 	// Write account user
-	savedAccountUser, err := AddAccountUser(1, correctAccountUser)
+	savedAccountUser, err := AddAccountUser(0, correctAccountUser)
 
 	// Perform tests
 	c.Assert(savedAccountUser, IsNil)

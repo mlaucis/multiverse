@@ -22,7 +22,7 @@ func (dbs *DatabaseSuite) TestAddAccountApplication_Empty(c *C) {
 // AddAccountApplication test to write an application without an account
 func (dbs *DatabaseSuite) TestAddAccountApplication_NoAccount(c *C) {
 	// Write application
-	savedApplication, err := AddAccountApplication(1, correctApplication)
+	savedApplication, err := AddAccountApplication(0, correctApplication)
 
 	// Perform tests
 	c.Assert(savedApplication, IsNil)
