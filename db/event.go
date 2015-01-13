@@ -15,6 +15,7 @@ import (
 func GetEventByID(eventID uint64) (event *entity.Event, err error) {
 	event = &entity.Event{}
 
+	// Exectute query to get event
 	err = GetSlave().
 		QueryRowx("SELECT * FROM `events` WHERE `id`=?", eventID).
 		StructScan(event)
@@ -33,6 +34,7 @@ func GetAllUserAppEvents(appID uint64, userToken string) (user *entity.User, err
 
 	user.Events = []*entity.Event{}
 
+	// Execture query to get events
 	err = GetSlave().
 		Select(&user.Events, "SELECT * FROM `events` WHERE `application_id`=? AND `user_token`=?", appID, userToken)
 
@@ -48,6 +50,7 @@ func GetSessionEvents(appID, sessionID uint64, userToken string) (session *entit
 		return
 	}
 
+	// Check appID of session
 	if session.AppID != appID || session.UserToken != userToken {
 		return nil, fmt.Errorf("invalid session retrieved")
 	}
@@ -63,6 +66,7 @@ func GetSessionEvents(appID, sessionID uint64, userToken string) (session *entit
 
 	session.Events = []*entity.Event{}
 
+	// Execute query to get events
 	err = GetSlave().
 		Select(&session.Events, "SELECT * FROM `events` WHERE `application_id`=? AND `session_id`=? AND `user_token`=?", appID, sessionID, userToken)
 
@@ -73,6 +77,7 @@ func GetSessionEvents(appID, sessionID uint64, userToken string) (session *entit
 func GetUserConnectionsEvents(appID uint64, userToken string) (events []*entity.Event, err error) {
 	events = []*entity.Event{}
 
+	// Execute query to get connection events
 	query := "SELECT `events`.* " +
 		"FROM `events` " +
 		"JOIN `user_connections` as `guc` " +
@@ -88,6 +93,7 @@ func GetUserConnectionsEvents(appID uint64, userToken string) (events []*entity.
 
 // AddSessionEvent creates a new session for an user and returns the created entry or an error
 func AddSessionEvent(event *entity.Event) (*entity.Event, error) {
+	// Execute query to write an event
 	query := "INSERT INTO `events` (`application_id`, `session_id`, `user_token`, `title`, `type`, " +
 		"`item_id`, `item_name`, `item_url`, `thumbnail_url`, `custom`, `nth`) " +
 		"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
@@ -119,5 +125,6 @@ func AddSessionEvent(event *entity.Event) (*entity.Event, error) {
 		return nil, fmt.Errorf("error while processing the request")
 	}
 
+	// Return event
 	return GetEventByID(uint64(createdEventID))
 }

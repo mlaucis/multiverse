@@ -38,4 +38,11 @@ var (
 		UserToken: correctUser.Token,
 		Custom:    "{\"more\":\"data\"}",
 	}
+	correctEvent = &entity.Event{
+		AppID:     correctSession.AppID,
+		UserToken: correctUser.Token,
+		SessionID: 2,
+		Title:     "Event performed",
+		Custom:    "{\"more\":\"data\"}",
+	}
 )

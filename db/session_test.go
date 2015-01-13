@@ -8,6 +8,10 @@ import . "gopkg.in/check.v1"
 
 // AddUserSession test to write empty entity
 func (dbs *DatabaseSuite) TestAddUserSession_Empty(c *C) {
+	// Prepare data
+	savedUser := AddCorrectApplicationUser()
+	UpdateSession(savedUser.AppID, savedUser.Token)
+
 	// Write session
 	savedSession, err := AddUserSession(emptySession)
 
@@ -20,8 +24,7 @@ func (dbs *DatabaseSuite) TestAddUserSession_Empty(c *C) {
 func (dbs *DatabaseSuite) TestAddUserSession_Correct(c *C) {
 	// Prepare data
 	savedUser := AddCorrectApplicationUser()
-	correctSession.UserToken = savedUser.Token
-	correctSession.AppID = savedUser.AppID
+	UpdateSession(savedUser.AppID, savedUser.Token)
 
 	// Write session
 	savedSession, err := AddUserSession(correctSession)

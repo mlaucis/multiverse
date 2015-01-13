@@ -99,7 +99,7 @@ func AddCorrectApplicationUsers() (user1, user2 *entity.User) {
 // Create a correct session
 func AddCorrectUserSession() *entity.Session {
 	savedUser := AddCorrectApplicationUser()
-	correctSession.AppID = savedUser.AppID
+	UpdateSession(savedUser.AppID, savedUser.Token)
 	savedSession, err := AddUserSession(correctSession)
 	if err != nil {
 		panic(err)
@@ -111,7 +111,7 @@ func AddCorrectUserSession() *entity.Session {
 // Create correct sessions
 func AddCorrectUserSessions() (session1, session2 *entity.Session) {
 	savedUser := AddCorrectApplicationUser()
-	correctSession.AppID = savedUser.AppID
+	UpdateSession(savedUser.AppID, savedUser.Token)
 	savedSession1, err := AddUserSession(correctSession)
 	if err != nil {
 		panic(err)
@@ -122,6 +122,34 @@ func AddCorrectUserSessions() (session1, session2 *entity.Session) {
 	}
 
 	return savedSession1, savedSession2
+}
+
+// Create a correct event
+func AddCorrectEvent() *entity.Event {
+	savedSession := AddCorrectUserSession()
+	UpdateEvent(savedSession.AppID, savedSession.ID, savedSession.UserToken)
+	savedEvent, err := AddSessionEvent(correctEvent)
+	if err != nil {
+		panic(err)
+	}
+
+	return savedEvent
+}
+
+// Create correct events
+func AddCorrectEvents() (event1, event2 *entity.Event) {
+	savedSession := AddCorrectUserSession()
+	UpdateEvent(savedSession.AppID, savedSession.ID, savedSession.UserToken)
+	savedEvent1, err := AddSessionEvent(correctEvent)
+	if err != nil {
+		panic(err)
+	}
+	savedEvent2, err := AddSessionEvent(correctEvent)
+	if err != nil {
+		panic(err)
+	}
+
+	return savedEvent1, savedEvent2
 }
 
 // RandomToken returns a random Token
@@ -142,4 +170,17 @@ func RandomToken() string {
 
 	// Return string
 	return rs
+}
+
+// UdateSession updates correctSession struct
+func UpdateSession(appID uint64, token string) {
+	correctSession.AppID = appID
+	correctSession.UserToken = token
+}
+
+// UpdateEvent updates correctEvent struct
+func UpdateEvent(appID, sessionID uint64, token string) {
+	correctEvent.AppID = appID
+	correctEvent.SessionID = sessionID
+	correctEvent.UserToken = token
 }
