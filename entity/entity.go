@@ -47,7 +47,7 @@ type (
 		DisplayName []*string `json:"display_name,omitempty"`
 	}
 
-	// Object structure
+	// Participant structure
 	Participant struct {
 		ID          string    `json:"id,omitempty"`
 		URL         string    `json:"url,omitempty"`
