@@ -2,11 +2,12 @@ package librato
 
 import (
 	"fmt"
-	"github.com/yvasiyarov/go-metrics"
 	"log"
 	"math"
 	"regexp"
 	"time"
+
+	"github.com/yvasiyarov/go-metrics"
 
 	//"github.com/rcrowley/go-metrics"
 )

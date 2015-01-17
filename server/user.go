@@ -11,8 +11,8 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
-	"github.com/tapglue/backend/db"
 	"github.com/tapglue/backend/entity"
+	"github.com/tapglue/backend/mysql"
 )
 
 // getApplicationUser handles requests to retrieve a single user
@@ -42,7 +42,7 @@ func getApplicationUser(w http.ResponseWriter, r *http.Request) {
 	// Read userToken
 	userToken = vars["userToken"]
 
-	if user, err = db.GetApplicationUserByToken(appID, userToken); err != nil {
+	if user, err = mysql.GetApplicationUserByToken(appID, userToken); err != nil {
 		errorHappened(err, http.StatusInternalServerError, r, w)
 		return
 	}
@@ -82,7 +82,7 @@ func getApplicationUserList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if users, err = db.GetApplicationUsers(appID); err != nil {
+	if users, err = mysql.GetApplicationUsers(appID); err != nil {
 		errorHappened(err, http.StatusInternalServerError, r, w)
 		return
 	}
@@ -130,9 +130,9 @@ func createApplicationUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// TODO validation should be added here, for example, name shouldn't be empty ;)
-	user.AppID = appID
+	user.ApplicationID = appID
 
-	if user, err = db.AddApplicationUser(appID, user); err != nil {
+	if user, err = mysql.AddApplicationUser(appID, user); err != nil {
 		errorHappened(err, http.StatusInternalServerError, r, w)
 		return
 	}

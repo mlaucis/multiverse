@@ -1,10 +1,10 @@
-# Tapglue backend [![wercker status](https://app.wercker.com/status/37a8675b2ae12075851f297ce6a36ead/s "wercker status")](https://app.wercker.com/project/bykey/37a8675b2ae12075851f297ce6a36ead)
+# Tapglue backend [![wercker status](https://app.wercker.com/status/37a8675b2ae12075851f297ce6a36ead/s/master "wercker status")](https://app.wercker.com/project/bykey/37a8675b2ae12075851f297ce6a36ead)
 
 This repository contains the implementation of tapglues backend.
 
 ## Build status
 
-[![wercker status](https://app.wercker.com/status/37a8675b2ae12075851f297ce6a36ead/m "wercker status")](https://app.wercker.com/project/bykey/37a8675b2ae12075851f297ce6a36ead)
+[![wercker status](https://app.wercker.com/status/37a8675b2ae12075851f297ce6a36ead/m/master "wercker status")](https://app.wercker.com/project/bykey/37a8675b2ae12075851f297ce6a36ead)
 
 ## Documentation
 

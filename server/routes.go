@@ -106,25 +106,6 @@ var routes = map[string]*route{
 		"/app/{appId:[0-9]{1,20}}/user/{userToken:[a-zA-Z0-9]+}/connections",
 		getUserConnections,
 	},
-	// Session
-	"getUserSession": &route{
-		"getUserSession",
-		"GET",
-		"/app/{appId:[0-9]{1,20}}/user/{userToken:[a-zA-Z0-9]+}/session/{sessionId:[0-9]{1,20}}",
-		getUserSession,
-	},
-	"createUserSession": &route{
-		"createUserSession",
-		"POST",
-		"/app/{appId:[0-9]{1,20}}/user/{userToken:[a-zA-Z0-9]+}/session",
-		createUserSession,
-	},
-	"getUserSessionList": &route{
-		"getUserSessionList",
-		"GET",
-		"/app/{appId:[0-9]{1,20}}/user/{userToken:[a-zA-Z0-9]+}/sessions",
-		getUserSessionList,
-	},
 	// Event
 	"getApplicationEvent": &route{
 		"getApplicationEvent",
@@ -135,7 +116,7 @@ var routes = map[string]*route{
 	"createApplicationEvent": &route{
 		"createApplicationEvent",
 		"POST",
-		"/app/{appId:[0-9]{1,20}}/user/{userToken:[a-zA-Z0-9]+}/session/{sessionId:[0-9]{1,20}}/event",
+		"/app/{appId:[0-9]{1,20}}/user/{userToken:[a-zA-Z0-9]+}/event",
 		createApplicationEvent,
 	},
 	"getApplicationUserEvents": &route{
@@ -143,12 +124,6 @@ var routes = map[string]*route{
 		"GET",
 		"/app/{appId:[0-9]{1,20}}/user/{userToken:[a-zA-Z0-9]+}/events",
 		getApplicationUserEvents,
-	},
-	"getSessionEvents": &route{
-		"getSessionEvents",
-		"GET",
-		"/app/{appId:[0-9]{1,20}}/user/{userToken:[a-zA-Z0-9]+}/session/{sessionId:[0-9]{1,20}}/events",
-		getSessionEvents,
 	},
 	"getUserConnectionsEvents": &route{
 		"getUserConnectionsEvents",

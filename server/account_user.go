@@ -11,8 +11,8 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
-	"github.com/tapglue/backend/db"
 	"github.com/tapglue/backend/entity"
+	"github.com/tapglue/backend/mysql"
 )
 
 // getAccountUser handles requests to a single account user
@@ -20,7 +20,7 @@ import (
 // Test with: curl -i localhost/account/:AccountID/user/:UserID
 func getAccountUser(w http.ResponseWriter, r *http.Request) {
 	var (
-		accountID   uint64
+		accountID   int64
 		userID      uint64
 		accountUser *entity.AccountUser
 		err         error
@@ -30,7 +30,7 @@ func getAccountUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	// Read accountID
-	if accountID, err = strconv.ParseUint(vars["accountId"], 10, 64); err != nil {
+	if accountID, err = strconv.ParseInt(vars["accountId"], 10, 64); err != nil {
 		errorHappened(fmt.Errorf("accountId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
 		return
 	}
@@ -41,7 +41,7 @@ func getAccountUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if accountUser, err = db.GetAccountUserByID(accountID, userID); err != nil {
+	if accountUser, err = mysql.GetAccountUserByID(accountID, userID); err != nil {
 		errorHappened(err, http.StatusInternalServerError, r, w)
 		return
 	}
@@ -55,7 +55,7 @@ func getAccountUser(w http.ResponseWriter, r *http.Request) {
 // Test with: curl -i localhost/account/:AccountID/users
 func getAccountUserList(w http.ResponseWriter, r *http.Request) {
 	var (
-		accountID    uint64
+		accountID    int64
 		account      *entity.Account
 		accountUsers []*entity.AccountUser
 		err          error
@@ -64,17 +64,17 @@ func getAccountUserList(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	// Read accountID
-	if accountID, err = strconv.ParseUint(vars["accountId"], 10, 64); err != nil {
+	if accountID, err = strconv.ParseInt(vars["accountId"], 10, 64); err != nil {
 		errorHappened(fmt.Errorf("accountId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
 		return
 	}
 
-	if account, err = db.GetAccountByID(accountID); err != nil {
+	if account, err = mysql.GetAccountByID(accountID); err != nil {
 		errorHappened(err, http.StatusInternalServerError, r, w)
 		return
 	}
 
-	if accountUsers, err = db.GetAccountAllUsers(accountID); err != nil {
+	if accountUsers, err = mysql.GetAccountAllUsers(accountID); err != nil {
 		errorHappened(err, http.StatusInternalServerError, r, w)
 		return
 	}
@@ -102,14 +102,14 @@ func createAccountUser(w http.ResponseWriter, r *http.Request) {
 
 	var (
 		accountUser = &entity.AccountUser{}
-		accountID   uint64
+		accountID   int64
 		err         error
 	)
 	// Read variables from request
 	vars := mux.Vars(r)
 
 	// Read accountID
-	if accountID, err = strconv.ParseUint(vars["accountId"], 10, 64); err != nil {
+	if accountID, err = strconv.ParseInt(vars["accountId"], 10, 64); err != nil {
 		errorHappened(fmt.Errorf("accountId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
 		return
 	}
@@ -122,7 +122,7 @@ func createAccountUser(w http.ResponseWriter, r *http.Request) {
 
 	// TODO validation should be added here, for example, name shouldn't be empty ;)
 
-	if accountUser, err = db.AddAccountUser(accountID, accountUser); err != nil {
+	if accountUser, err = mysql.AddAccountUser(accountID, accountUser); err != nil {
 		errorHappened(err, http.StatusInternalServerError, r, w)
 		return
 	}

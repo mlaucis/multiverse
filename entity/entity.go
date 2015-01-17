@@ -14,8 +14,8 @@ type (
 		Image     []*Image  `json:"image,omitempty"`
 		Metadata  string    `json:"metadata,omitempty"`
 		Enabled   bool      `json:"enabled,omitempty"`
-		CreatedAt time.Time `json:"created_at"`
-		UpdatedAt time.Time `json:"updated_at"`
+		CreatedAt time.Time `json:"created_at" db:"created_at"`
+		UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
 	}
 
 	// Commonly used structure for users
@@ -41,10 +41,10 @@ type (
 
 	// Object structure
 	Object struct {
-		ID          string             `json:"id"`
-		Type        string             `json:"type"`
-		URL         string             `json:"url,omitempty"`
-		DisplayName map[string]*string `json:"display_name"` // ["en"=>"article", "de"=>"artikel"]
+		ID          string            `json:"id"`
+		Type        string            `json:"type"`
+		URL         string            `json:"url,omitempty"`
+		DisplayName map[string]string `json:"display_name"` // ["en"=>"article", "de"=>"artikel"]
 	}
 
 	// Participant structure
@@ -57,7 +57,7 @@ type (
 
 	// Account structure
 	Account struct {
-		ID          uint64 `json:"id"`
+		ID          int64  `json:"id"`
 		Name        string `json:"name"`
 		Description string `json:"description"`
 		Enabled     bool   `json:"enabled"`
@@ -75,7 +75,7 @@ type (
 	// AccountUser structure
 	AccountUser struct {
 		ID        uint64       `json:"id"`
-		AccountID uint64       `json:"account_id"`
+		AccountID int64        `json:"account_id"`
 		Role      *AccountRole `json:"account_role,omitempty"`
 		UserCommon
 		Common
@@ -84,7 +84,7 @@ type (
 	// Application structure
 	Application struct {
 		ID          uint64 `json:"id"`
-		AccountID   uint64 `json:"account_id"`
+		AccountID   int64  `json:"account_id"`
 		AuthToken   string `json:"auth_token"`
 		Name        string `json:"name"`
 		Description string `json:"description"`
@@ -103,7 +103,8 @@ type (
 		CustomerID    string    `json:"customer_id,omitempty"`
 		GameCenterID  string    `json:"game_center_id,omitempty"`
 		DeviceIDs     []*string `json:"device_ids,omitempty"`
-		URL           string    `json:"url,omitempty"`
+		Events        []*Event  `json:"events,omitempty"`
+		Connections   []*User   `json:"connections,omitempty"`
 		UserCommon
 		Common
 	}
@@ -111,8 +112,8 @@ type (
 	// Connection structure holds the connections of the users
 	Connection struct {
 		ApplicationID string `json:"application_id"`
-		UserFromID    string `json:"user_from_id"`
-		UserToID      string `json:"user_to_id"`
+		UserFromID    uint64 `json:"user_from_id"`
+		UserToID      uint64 `json:"user_to_id"`
 		Common
 	}
 

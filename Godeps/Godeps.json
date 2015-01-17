@@ -6,6 +6,11 @@
 	],
 	"Deps": [
 		{
+			"ImportPath": "github.com/aerospike/aerospike-client-go",
+			"Comment": "v1.2.0",
+			"Rev": "5ccddde68ca83e72c4a6e7729680dddb639b361e"
+		},
+		{
 			"ImportPath": "github.com/go-sql-driver/mysql",
 			"Comment": "v1.2-28-gcebeb35",
 			"Rev": "cebeb3599d51814753350e87cd21f24b3ddaa66e"

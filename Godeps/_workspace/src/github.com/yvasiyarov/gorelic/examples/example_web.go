@@ -3,13 +3,14 @@ package main
 import (
 	"expvar"
 	"flag"
-	"github.com/yvasiyarov/gorelic"
 	"io"
 	"log"
 	"math/rand"
 	"net/http"
 	"runtime"
 	"time"
+
+	"github.com/yvasiyarov/gorelic"
 )
 
 var newrelicLicense = flag.String("newrelic-license", "", "Newrelic license")

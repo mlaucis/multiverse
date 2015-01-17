@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/tapglue/backend/config"
-	"github.com/tapglue/backend/db"
+	"github.com/tapglue/backend/mysql"
 	"github.com/tapglue/backend/server"
 	"github.com/yvasiyarov/gorelic"
 )
@@ -32,7 +32,7 @@ func init() {
 	cfg = config.NewConf(EnvConfigVar)
 
 	// Initialize database
-	db.InitDatabases(cfg.DB())
+	mysql.InitDatabases(cfg.DB())
 }
 
 func main() {

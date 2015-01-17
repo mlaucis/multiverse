@@ -1,6 +1,7 @@
 box: wercker/golang@1.3.0
 services:
   - wercker/mysql
+  - dlsniper/aerospike
 build:
   steps:
     - setup-go-workspace
@@ -33,13 +34,13 @@ build:
         code: |-
           export WERCKER_SOURCE_DIR=${GOPATH}/src/github.com/tapglue/backend
           cd $WERCKER_SOURCE_DIR/db
-          go test -check.v
+          go test --race -check.v
     - script:
         name: test server
         code: |-
           export WERCKER_SOURCE_DIR=${GOPATH}/src/github.com/tapglue/backend
           cd $WERCKER_SOURCE_DIR/server
-          go test -check.v
+          go test --race -check.v
   after-steps:
         - sherzberg/slack-notify:
             subdomain: tapglue

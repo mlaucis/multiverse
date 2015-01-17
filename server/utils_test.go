@@ -1,8 +1,8 @@
 package server
 
 import (
-	"github.com/tapglue/backend/db"
 	"github.com/tapglue/backend/entity"
+	"github.com/tapglue/backend/mysql"
 )
 
 func AddCorrectAccount() *entity.Account {
@@ -11,7 +11,7 @@ func AddCorrectAccount() *entity.Account {
 		Name: "Demo",
 	}
 
-	savedAccount, err := db.AddAccount(account)
+	savedAccount, err := mysql.AddAccount(account)
 	if err != nil {
 		panic(err)
 	}
