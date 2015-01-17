@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/tapglue/backend/config"
-	"github.com/tapglue/backend/mysql"
 	"github.com/tapglue/backend/server"
 	"github.com/yvasiyarov/gorelic"
 )
@@ -32,7 +31,7 @@ func init() {
 	cfg = config.NewConf(EnvConfigVar)
 
 	// Initialize database
-	mysql.InitDatabases(cfg.DB())
+	//aerospike.InitDatabases(cfg.DB())
 }
 
 func main() {
