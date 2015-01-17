@@ -11,16 +11,16 @@ import "time"
 type (
 	// Commenly used structure
 	Common struct {
-		Image     []*Image
+		Image     []*Image  `json:"image,omitempty"`
 		Metadata  string    `json:"metadata,omitempty"`
 		Enabled   bool      `json:"enabled,omitempty"`
-		CreatedAt time.Time `json:"created_at,omitempty"`
-		UpdatedAt time.Time `json:"updated_at,omitempty"`
+		CreatedAt time.Time `json:"created_at"`
+		UpdatedAt time.Time `json:"updated_at"`
 	}
 
 	// Commonly used structure for users
 	UserCommon struct {
-		Username    string    `json:"user_name,omitempty"`
+		Username    string    `json:"user_name"`
 		Password    string    `json:"password,omitempty"`
 		DisplayName string    `json:"display_name,omitempty"`
 		FirstName   string    `json:"first_name,omitempty"`
@@ -33,70 +33,70 @@ type (
 
 	// Image structure
 	Image struct {
-		URL    string `json:"url,omitempty"`
-		Type   string `json:"type,omitempty"`
+		URL    string `json:"url"`
+		Type   string `json:"type,omitempty"` // image/jpeg image/png
 		Width  string `json:"width,omitempty"`
 		Heigth string `json:"height,omitempty"`
 	}
 
 	// Object structure
 	Object struct {
-		ID          string    `json:"id,omitempty"`
-		Type        string    `json:"type,omitempty"`
-		URL         string    `json:"url,omitempty"`
-		DisplayName []*string `json:"display_name,omitempty"`
+		ID          string             `json:"id"`
+		Type        string             `json:"type"`
+		URL         string             `json:"url,omitempty"`
+		DisplayName map[string]*string `json:"display_name"` // ["en"=>"article", "de"=>"artikel"]
 	}
 
 	// Participant structure
 	Participant struct {
-		ID          string    `json:"id,omitempty"`
-		URL         string    `json:"url,omitempty"`
-		DisplayName []*string `json:"display_name,omitempty"`
-		Image       []*Image
+		ID          string   `json:"id"`
+		URL         string   `json:"url,omitempty"`
+		DisplayName string   `json:"display_name"`
+		Image       []*Image `json:"image,omitempty"`
 	}
 
 	// Account structure
 	Account struct {
-		ID          uint64 `json:"id,omitempty"`
-		Name        string `json:"name,omitempty"`
-		Description string `json:"description,omitempty"`
-		Enabled     bool   `json:"enabled,omitempty"`
+		ID          uint64 `json:"id"`
+		Name        string `json:"name"`
+		Description string `json:"description"`
+		Enabled     bool   `json:"enabled"`
 		Common
 	}
 
 	// AccountRole structure
 	AccountRole struct {
-		ID          uint64 `json:"id,omitempty"`
-		Permission  string `json:"permission,omitempty"`
-		Description string `json:"description,omitempty"`
+		ID          uint64 `json:"id"`
+		Permission  string `json:"permission"`
+		Description string `json:"description"`
 		Common
 	}
 
 	// AccountUser structure
 	AccountUser struct {
-		ID        uint64 `json:"id,omitempty"`
-		AccountID uint64 `json:"account_id,omitempty"`
-		Role      *AccountRole
+		ID        uint64       `json:"id"`
+		AccountID uint64       `json:"account_id"`
+		Role      *AccountRole `json:"account_role,omitempty"`
 		UserCommon
 		Common
 	}
 
 	// Application structure
 	Application struct {
-		ID          uint64 `json:"id,omitempty"`
-		AccountID   uint64 `json:"account_id,omitempty"`
-		AuthToken   string `json:"auth_token,omitempty"`
-		Name        string `json:"name,omitempty"`
-		Description string `json:"description,omitempty"`
-		URL         string `json:"url,omitempty"`
+		ID          uint64 `json:"id"`
+		AccountID   uint64 `json:"account_id"`
+		AuthToken   string `json:"auth_token"`
+		Name        string `json:"name"`
+		Description string `json:"description"`
+		URL         string `json:"url"`
 		Common
 	}
 
 	// User structure
 	User struct {
-		ID            uint64    `json:"id",omitempty`
-		ApplicationID uint64    `json:"application_id,omitempty"`
-		AuthToken     string    `json:"auth_token,omitempty"`
+		ID            uint64    `json:"id"`
+		ApplicationID uint64    `json:"application_id"`
+		AuthToken     string    `json:"auth_token"`
 		FacebookID    string    `json:"facebook_id,omitempty"`
 		TwitterID     string    `json:"twitter_id,omitempty"`
 		GoogleID      string    `json:"google_id,omitempty"`
@@ -110,15 +110,15 @@ type (
 
 	// Connection structure holds the connections of the users
 	Connection struct {
-		ApplicationID string `json:"application_id,omitempty"`
-		UserFromID    string `json:"user_from_id,omitempty"`
-		UserToID      string `json:"user_to_id,omitempty"`
+		ApplicationID string `json:"application_id"`
+		UserFromID    string `json:"user_from_id"`
+		UserToID      string `json:"user_to_id"`
 		Common
 	}
 
 	// Device structure
 	Device struct {
-		ID           string `json:"id,omitempty"`
+		ID           string `json:"id"`
 		UUID         string `json:"uuid,omitempty"`
 		IDFA         string `json:"idfa,omitempty"`
 		IDFV         string `json:"idfv,omitempty"`
@@ -128,15 +128,15 @@ type (
 		Mac          string `json:"mac,omitempty"`
 		MacMD5       string `json:"mac_md5,omitempty"`
 		MacSHA1      string `json:"mac_sha1,omitempty"`
-		Platform     string `json:"platfrom,omitempty"`
-		OSVersion    string `json:"os_version,omitempty"`
+		Platform     string `json:"platfrom"`
+		OSVersion    string `json:"os_version"`
 		Browser      string `json:"browser,omitempty"`
-		Model        string `json:"model,omitempty"`
-		Manufacturer string `json:"manufacturer,omitempty"`
-		AppVersion   string `json:"app_version,omitempty"`
-		SDKVersion   string `json:"sdk_version,omitempty"`
-		Timezone     string `json:"timezone,omitempty"`
-		Language     string `json:"language,omitempty"`
+		Model        string `json:"model"`
+		Manufacturer string `json:"manufacturer"`
+		AppVersion   string `json:"app_version"`
+		SDKVersion   string `json:"sdk_version"`
+		Timezone     string `json:"timezone"`
+		Language     string `json:"language"`
 		Country      string `json:"country,omitempty"`
 		City         string `json:"city,omitempty"`
 		IP           string `json:"ip,omitempty"`
@@ -147,19 +147,18 @@ type (
 
 	// Event structure
 	Event struct {
-		ID            uint64 `json:"id,omitempty"`
-		ApplicationID uint64 `json:"application_id,omitempty"`
-		UserID        uint64 `json:"user_id,omitempty"`
-		Verb          string `json:"string,omitempty"`
-		Language      string `json:"language,omitempty"`
-		Prioritity    string `json:"priority,omitempty"`
-		Status        string `json:"status,omitempty"`
-		Location      string `json:"location,omitempty"`
-		Object        *Object
-		Target        *Object
-		Instrument    *Object
-		Attachment    *Object
-		Participant   *Participant
+		ID            uint64         `json:"id"`
+		ApplicationID uint64         `json:"application_id"`
+		UserID        uint64         `json:"user_id"`
+		Verb          string         `json:"string"`
+		Language      string         `json:"language"`
+		Prioritity    string         `json:"priority"`
+		Location      string         `json:"location,omitempty"`
+		Object        *Object        `json:"object"`
+		Target        *Object        `json:"target,omitempty"`
+		Instrument    *Object        `json:"instrument,omitempty"`
+		Attachment    []*Object      `json:"attachment,omitempty"`
+		Participant   []*Participant `json:"participant,omitempty"`
 		Common
 	}
 )
