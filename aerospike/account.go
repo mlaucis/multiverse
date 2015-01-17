@@ -28,6 +28,27 @@ func aerospiked() (client *as.Client) {
 	return
 }
 
+//
+func getNewAccountID() (accountID int64, err error) {
+	client := aerospiked()
+
+	ops := []*as.Operation{
+		as.AddOp(as.NewBin("account_id", 1)),
+		as.GetOp(),
+	}
+
+	var (
+		rec *as.Record
+		key *as.Key
+	)
+	if key, err = as.NewKey("keys", "keys", "account_id"); err != nil {
+		return
+	}
+	rec, err = client.Operate(nil, key, ops...)
+
+	return int64(rec.Bins["account_id"].(int)), err
+}
+
 // GetAccountByID returns the account matching the ID or an error
 func GetAccountByID(accountID int64) (account *entity.Account, err error) {
 	account = &entity.Account{}
@@ -35,7 +56,6 @@ func GetAccountByID(accountID int64) (account *entity.Account, err error) {
 	client := aerospiked()
 
 	var key *as.Key
-
 	if key, err = as.NewKey("accounts", "acc", accountID); err != nil {
 		return
 	}
@@ -65,8 +85,15 @@ func AddAccount(account *entity.Account, retrieve bool) (*entity.Account, error)
 		return nil, fmt.Errorf("account name should not be empty")
 	}
 
+	var err error
+
+	if account.ID, err = getNewAccountID(); err != nil {
+		return nil, err
+	}
+
 	// TODO find a better way to store the buckets / sets (and maybe actually learn what those things are in the first place?)
-	key, err := as.NewKey("accounts", "acc", account.ID)
+	var key *as.Key
+	key, err = as.NewKey("accounts", "acc", account.ID)
 
 	// define some bins with data
 	bins := as.BinMap{
