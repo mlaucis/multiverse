@@ -23,5 +23,13 @@
 				"port": DB_SLAVE1_PORT
 			}
 		]
+	},
+	"as": {
+		"timeout": 500,
+		"connection_queue": 256,
+		"fail_if_not_connected": true,
+		"hosts": {
+			"127.0.0.1": 3000
+		}
 	}
 }

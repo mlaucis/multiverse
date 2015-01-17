@@ -11,26 +11,9 @@ import (
 	"github.com/tapglue/backend/entity"
 )
 
-var ass *as.Client
-
-func aerospiked() (client *as.Client) {
-	if ass != nil {
-		return ass
-	}
-
-	var err error
-	if client, err = as.NewClient("127.0.0.1", 3000); err != nil {
-		panic(err)
-	}
-
-	ass = client
-
-	return
-}
-
-//
+// getnewAccountID generates a new account ID
 func getNewAccountID() (accountID int64, err error) {
-	client := aerospiked()
+	client := Client()
 
 	ops := []*as.Operation{
 		as.AddOp(as.NewBin("account_id", 1)),
@@ -53,7 +36,7 @@ func getNewAccountID() (accountID int64, err error) {
 func GetAccountByID(accountID int64) (account *entity.Account, err error) {
 	account = &entity.Account{}
 
-	client := aerospiked()
+	client := Client()
 
 	var key *as.Key
 	if key, err = as.NewKey("accounts", "acc", accountID); err != nil {
@@ -106,7 +89,7 @@ func AddAccount(account *entity.Account, retrieve bool) (*entity.Account, error)
 		bins["enabled"] = 0
 	}
 
-	client := aerospiked()
+	client := Client()
 	policy := as.NewWritePolicy(0, 0)
 	// write the bins
 	if err = client.Put(policy, key, bins); err != nil {

@@ -11,6 +11,7 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/tapglue/backend/aerospike"
 	"github.com/tapglue/backend/config"
 	"github.com/tapglue/backend/server"
 	"github.com/yvasiyarov/gorelic"
@@ -31,7 +32,7 @@ func init() {
 	cfg = config.NewConf(EnvConfigVar)
 
 	// Initialize database
-	//aerospike.InitDatabases(cfg.DB())
+	aerospike.InitAerospike(cfg.Aerospike())
 }
 
 func main() {
