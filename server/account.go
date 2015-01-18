@@ -70,6 +70,8 @@ func createAccount(w http.ResponseWriter, r *http.Request) {
 
 	// TODO validation should be added here, for example, name shouldn't be empty ;)
 
+	account.Enabled = true
+
 	if account, err = aerospike.AddAccount(account, true); err != nil {
 		errorHappened(err, http.StatusInternalServerError, r, w)
 		return

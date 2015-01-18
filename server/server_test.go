@@ -11,8 +11,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/tapglue/backend/aerospike"
 	"github.com/tapglue/backend/config"
-	"github.com/tapglue/backend/mysql"
 	. "gopkg.in/check.v1"
 )
 
@@ -30,11 +30,7 @@ var (
 func (s *ServerSuite) SetUpTest(c *C) {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	cfg = config.NewConf("")
-	mysql.InitDatabases(cfg.DB())
-	mysql.GetMaster().Ping()
-	mysql.GetSlave().Ping()
-	_, err := mysql.GetMaster().Exec("DELETE FROM `accounts`")
-	c.Assert(err, IsNil)
+	aerospike.InitAerospike(cfg.Aerospike())
 }
 
 // Test POST common without CLHeader

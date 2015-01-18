@@ -1,10 +1,33 @@
 box: wercker/golang@1.3.0
-services:
-  - wercker/mysql
-  - dlsniper/aerospike
+#services:
+#  - wercker/mysql
+#  - dlsniper/aerospike
 build:
   steps:
     - setup-go-workspace
+    - script:
+        name: setup Aerospike
+        code: |-
+          cd /tmp/
+
+          echo 'Downloading Aerospike'
+          wget -O aerospike.tgz 'http://www.aerospike.com/artifacts/aerospike-server-community/3.4.0/aerospike-server-community-3.4.0-ubuntu12.04.tgz'
+
+          echo 'Extracting the archive'
+          tar -xvf aerospike.tgz
+          cd aerospike-server-community-*-ubuntu12.04
+
+          echo 'Installing Aerospike'
+          sudo ./asinstall
+
+          sudo cp $WERCKER_SOURCE_DIR/resources/wercker/aerospike.conf /etc/aerospike/aerospike.conf
+
+          echo 'Starting Aerospike'
+          sudo service aerospike start
+
+          echo 'Give Aerospike time to start'
+          sleep 3
+
     - script:
         name: initializing go dependencies
         code: |-
@@ -19,9 +42,9 @@ build:
     - script:
         name: setup mysql database
         code: |-
-          export WERCKER_SOURCE_DIR=${GOPATH}/src/github.com/tapglue/backend
-          cd $WERCKER_SOURCE_DIR
-          $WERCKER_SOURCE_DIR/bin/deploy_db.sh
+          #export WERCKER_SOURCE_DIR=${GOPATH}/src/github.com/tapglue/backend
+          #cd $WERCKER_SOURCE_DIR
+          #$WERCKER_SOURCE_DIR/bin/deploy_db.sh
     - script:
         name: test building project
         code: |-
@@ -29,18 +52,30 @@ build:
           cd $WERCKER_SOURCE_DIR
           go build -o tapglue-backend backend.go
           rm -f tapglue-backend
+#    - script:
+#        name: test database
+#        code: |-
+#          export WERCKER_SOURCE_DIR=${GOPATH}/src/github.com/tapglue/backend
+#          cd $WERCKER_SOURCE_DIR/mysql
+#          go test -race -check.v
     - script:
-        name: test database
+        name: test aerospike
         code: |-
           export WERCKER_SOURCE_DIR=${GOPATH}/src/github.com/tapglue/backend
-          cd $WERCKER_SOURCE_DIR/db
-          go test --race -check.v
+          cd $WERCKER_SOURCE_DIR/aerospike
+          go test -race -check.v
     - script:
         name: test server
         code: |-
           export WERCKER_SOURCE_DIR=${GOPATH}/src/github.com/tapglue/backend
           cd $WERCKER_SOURCE_DIR/server
-          go test --race -check.v
+          go test -race -check.v
+#    - script:
+#        name: bechmark aerospike
+#        code: |-
+#          export WERCKER_SOURCE_DIR=${GOPATH}/src/github.com/tapglue/backend
+#          cd $WERCKER_SOURCE_DIR/aerospike
+#          go test -check.b
   after-steps:
         - sherzberg/slack-notify:
             subdomain: tapglue
