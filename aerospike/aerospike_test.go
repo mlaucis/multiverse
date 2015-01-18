@@ -28,5 +28,5 @@ var (
 func (ass *AerospikeSuite) SetUpSuite(c *C) {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	cfg = config.NewConf("")
-	_ = cfg
+	InitAerospike(cfg.Aerospike())
 }
