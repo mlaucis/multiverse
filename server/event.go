@@ -12,7 +12,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/tapglue/backend/config"
-	"github.com/tapglue/backend/entity"
+	"github.com/tapglue/backend/core/entity"
 	"github.com/tapglue/backend/mysql"
 )
 

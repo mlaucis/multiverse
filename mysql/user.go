@@ -8,7 +8,7 @@ import (
 	"fmt"
 
 	"github.com/tapglue/backend/config"
-	"github.com/tapglue/backend/entity"
+	"github.com/tapglue/backend/core/entity"
 )
 
 // GetApplicationUserByToken returns the user corresponding to the appID / userToken combination or an error

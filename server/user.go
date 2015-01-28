@@ -11,7 +11,7 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
-	"github.com/tapglue/backend/entity"
+	"github.com/tapglue/backend/core/entity"
 	"github.com/tapglue/backend/mysql"
 )
 

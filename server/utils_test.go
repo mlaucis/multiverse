@@ -2,7 +2,7 @@ package server
 
 import (
 	"github.com/tapglue/backend/aerospike"
-	"github.com/tapglue/backend/entity"
+	"github.com/tapglue/backend/core/entity"
 )
 
 func AddCorrectAccount() *entity.Account {

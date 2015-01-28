@@ -8,7 +8,7 @@ import (
 	"fmt"
 
 	"github.com/tapglue/backend/config"
-	"github.com/tapglue/backend/entity"
+	"github.com/tapglue/backend/core/entity"
 )
 
 // GetEventByID returns the event matching the id or an error

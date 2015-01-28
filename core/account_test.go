@@ -2,7 +2,7 @@
  * @author Onur Akpolat <onurakpolat@gmail.com>
  */
 
-package aerospike
+package core
 
 import . "gopkg.in/check.v1"
 

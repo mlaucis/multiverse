@@ -1,4 +1,4 @@
-package aerospike
+package core
 
 import "github.com/tapglue/backend/entity"
 

@@ -11,9 +11,10 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/tapglue/backend/aerospike"
 	"github.com/tapglue/backend/config"
+	"github.com/tapglue/backend/redis"
 	"github.com/tapglue/backend/server"
+
 	"github.com/yvasiyarov/gorelic"
 )
 
@@ -22,7 +23,10 @@ const (
 	EnvConfigVar = "TAPGLUE_BACKEND_CONFIG_PATH"
 )
 
-var cfg *config.Cfg
+var (
+	cfg           *config.Cfg
+	newRelicAgent *gorelic.Agent
+)
 
 func init() {
 	// Use all available CPU's
@@ -32,15 +36,19 @@ func init() {
 	cfg = config.NewConf(EnvConfigVar)
 
 	// Initialize database
-	aerospike.InitAerospike(cfg.Aerospike())
+	redis.Init()
 }
 
 func main() {
 
-	newRelicAgent := gorelic.NewAgent()
+	/** /
+	newRelicAgent = gorelic.NewAgent()
 	newRelicAgent.Verbose = true
 	newRelicAgent.NewrelicLicense, newRelicAgent.NewrelicName = cfg.NewRelic()
 	newRelicAgent.Run()
+	/**/
+	newRelicAgent = nil
+	/**/
 
 	// Get router
 	router := server.GetRouter(newRelicAgent)

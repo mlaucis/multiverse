@@ -7,7 +7,7 @@ package mysql
 import (
 	"fmt"
 
-	"github.com/tapglue/backend/entity"
+	"github.com/tapglue/backend/core/entity"
 )
 
 // GetAccountUserByID returns the user matching the account or an error

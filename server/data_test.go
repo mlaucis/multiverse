@@ -1,6 +1,6 @@
 package server
 
-import "github.com/tapglue/backend/entity"
+import "github.com/tapglue/backend/core/entity"
 
 // Definition of test data
 var (

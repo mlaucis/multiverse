@@ -2,8 +2,7 @@
  * @author Florin Patan <florinpatan@gmail.com>
  */
 
-// Package entity provides all the entities needed by the app to interact
-// with the API or the database
+//Package entity provides all the entities needed by the app to interact with the database
 package entity
 
 import "time"

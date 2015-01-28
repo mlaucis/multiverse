@@ -11,8 +11,8 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
-	"github.com/tapglue/backend/aerospike"
-	"github.com/tapglue/backend/entity"
+	"github.com/tapglue/backend/core"
+	"github.com/tapglue/backend/core/entity"
 )
 
 // getAccount handles requests to a single account
@@ -39,7 +39,7 @@ func getAccount(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Read account from database
-	if account, err = aerospike.GetAccountByID(accountID); err != nil {
+	if account, err = core.GetAccountByID(accountID); err != nil {
 		errorHappened(err, http.StatusInternalServerError, r, w)
 		return
 	}
@@ -72,7 +72,7 @@ func createAccount(w http.ResponseWriter, r *http.Request) {
 
 	account.Enabled = true
 
-	if account, err = aerospike.AddAccount(account, true); err != nil {
+	if account, err = core.AddAccount(account, true); err != nil {
 		errorHappened(err, http.StatusInternalServerError, r, w)
 		return
 	}
