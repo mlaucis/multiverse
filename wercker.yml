@@ -1,33 +1,9 @@
-box: wercker/golang@1.3.0
-#services:
-#  - wercker/mysql
-#  - dlsniper/aerospike
+box: wercker/golang@1.3.1
+services:
+  - wercker/redis@1.0.1
 build:
   steps:
     - setup-go-workspace
-    - script:
-        name: setup Aerospike
-        code: |-
-          cd /tmp/
-
-          echo 'Downloading Aerospike'
-          wget -O aerospike.tgz 'http://www.aerospike.com/artifacts/aerospike-server-community/3.4.0/aerospike-server-community-3.4.0-ubuntu12.04.tgz'
-
-          echo 'Extracting the archive'
-          tar -xvf aerospike.tgz
-          cd aerospike-server-community-*-ubuntu12.04
-
-          echo 'Installing Aerospike'
-          sudo ./asinstall
-
-          sudo cp $WERCKER_SOURCE_DIR/resources/wercker/aerospike.conf /etc/aerospike/aerospike.conf
-
-          echo 'Starting Aerospike'
-          sudo service aerospike start
-
-          echo 'Give Aerospike time to start'
-          sleep 3
-
     - script:
         name: initializing go dependencies
         code: |-
@@ -59,10 +35,10 @@ build:
 #          cd $WERCKER_SOURCE_DIR/mysql
 #          go test -race -check.v
     - script:
-        name: test aerospike
+        name: test core
         code: |-
           export WERCKER_SOURCE_DIR=${GOPATH}/src/github.com/tapglue/backend
-          cd $WERCKER_SOURCE_DIR/aerospike
+          cd $WERCKER_SOURCE_DIR/core
           go test -race -check.v
     - script:
         name: test server
@@ -71,10 +47,10 @@ build:
           cd $WERCKER_SOURCE_DIR/server
           go test -race -check.v
 #    - script:
-#        name: bechmark aerospike
+#        name: bechmark core
 #        code: |-
 #          export WERCKER_SOURCE_DIR=${GOPATH}/src/github.com/tapglue/backend
-#          cd $WERCKER_SOURCE_DIR/aerospike
+#          cd $WERCKER_SOURCE_DIR/core
 #          go test -check.b
   after-steps:
         - sherzberg/slack-notify:

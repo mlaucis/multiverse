@@ -48,12 +48,10 @@ func AddAccount(account *entity.Account, retrieve bool) (acc *entity.Account, er
 		return nil, err
 	}
 
-	result, err := redis.GetClient().Set(fmt.Sprintf("account_%d", account.ID), string(val)).Result()
-	if err != nil {
+	if err = redis.GetClient().Set(fmt.Sprintf("account_%d", account.ID), string(val)).Err(); err != nil {
 		return nil, err
 	}
 
-	fmt.Printf("%s\n", result)
 	if !retrieve {
 		return account, nil
 	}

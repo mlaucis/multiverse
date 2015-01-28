@@ -7,7 +7,7 @@ package core
 import . "gopkg.in/check.v1"
 
 // AddAccount test to write empty entity
-func (ass *AerospikeSuite) TestAddAccount_Empty(c *C) {
+func (cs *CoreSuite) TestAddAccount_Empty(c *C) {
 	// Write account
 	savedAccount, err := AddAccount(emtpyAccount, true)
 
@@ -17,7 +17,7 @@ func (ass *AerospikeSuite) TestAddAccount_Empty(c *C) {
 }
 
 // AddAccount test to write account entity with just a name
-func (ass *AerospikeSuite) TestAddAccount_Correct(c *C) {
+func (cs *CoreSuite) TestAddAccount_Correct(c *C) {
 	// Write account
 	savedAccount, err := AddAccount(correctAccount, true)
 
@@ -29,7 +29,7 @@ func (ass *AerospikeSuite) TestAddAccount_Correct(c *C) {
 }
 
 // GetAccountByID test to get an account by its id
-func (ass *AerospikeSuite) TestGetAccountByID(c *C) {
+func (cs *CoreSuite) TestGetAccountByID(c *C) {
 	// Write correct account
 	savedAccount := AddCorrectAccount()
 
@@ -42,7 +42,7 @@ func (ass *AerospikeSuite) TestGetAccountByID(c *C) {
 }
 
 // BenchmarkAddAccount executes AddAccount 1000 times
-func (ass *AerospikeSuite) BenchmarkAddAccount(c *C) {
+func (cs *CoreSuite) BenchmarkAddAccount(c *C) {
 	var i int64
 	// Loop to create 1000 accounts
 	for i = 1; i <= 1000; i++ {
@@ -52,7 +52,7 @@ func (ass *AerospikeSuite) BenchmarkAddAccount(c *C) {
 }
 
 // BenchmarkAddAccount executes GetAccount 1000 times
-func (ass *AerospikeSuite) BenchmarkGetAccount(c *C) {
+func (cs *CoreSuite) BenchmarkGetAccount(c *C) {
 	var i int64
 	// Loop to create 1000 accounts
 	for i = 1; i <= 1000; i++ {
