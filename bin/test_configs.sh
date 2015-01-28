@@ -7,6 +7,7 @@ sed -i "s/APP_HOST_PORT/:8082/g" config.json
 sed -i "s/NEWRELIC_KEY/${NEW_RELIC_LICENSE_KEY}/g" config.json
 sed -i "s/NEWRELIC_NAME/test - tapglue/g" config.json
 sed -i "s/REDIS_HOST/${WERCKER_REDIS_HOST}:${WERCKER_REDIS_PORT}/g" config.json
+sed -i "s/REDIS_DB_ID/0/g" config.json
 
 cp config.json core/
 cp config.json server/

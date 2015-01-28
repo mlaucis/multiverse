@@ -22,15 +22,15 @@ func Test(t *testing.T) { TestingT(t) }
 type ServerSuite struct{}
 
 var (
-	_   = Suite(&ServerSuite{})
-	cfg *config.Config
+	_    = Suite(&ServerSuite{})
+	conf *config.Config
 )
 
 // Setup once when the suite starts running
 func (s *ServerSuite) SetUpTest(c *C) {
 	runtime.GOMAXPROCS(runtime.NumCPU())
-	cfg = config.NewConf("")
-	redis.Init(cfg.Redis.Hosts[0])
+	conf = config.NewConf("")
+	redis.Init(conf.Redis.Hosts[0], conf.Redis.Password, conf.Redis.DB, conf.Redis.PoolSize)
 }
 
 // Test POST common without CLHeader

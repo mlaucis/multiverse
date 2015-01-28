@@ -37,7 +37,7 @@ func init() {
 	conf = config.NewConf(EnvConfigVar)
 
 	// Initialize redis
-	redis.Init(conf.Redis.Hosts[0])
+	redis.Init(conf.Redis.Hosts[0], conf.Redis.Password, conf.Redis.DB, conf.Redis.PoolSize)
 }
 
 func main() {

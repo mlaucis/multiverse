@@ -17,7 +17,10 @@ import (
 type (
 	// Redis struture
 	Redis struct {
-		Hosts []string `json:"hosts"`
+		Hosts    []string `json:"hosts"`
+		Password string   `json:"password"`
+		DB       int64    `json:"db"`
+		PoolSize int      `json:"pool_size"`
 	}
 
 	// Config structure for the application configuration

@@ -18,12 +18,12 @@ type (
 var redisClient *cli
 
 // Init initializes the redis client
-func Init(address string) {
+func Init(address, password string, db int64, poolSize int) {
 	options := &redis.Options{
 		Addr:     address,
-		Password: "",
-		DB:       0,
-		PoolSize: 30,
+		Password: password,
+		DB:       db,
+		PoolSize: poolSize,
 	}
 
 	redisClient = &cli{

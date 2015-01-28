@@ -9,6 +9,9 @@
 	"redis": {
 		"hosts": [
 			"REDIS_HOST"
-		]
+		],
+		"password": "",
+		"db": REDIS_DB_ID,
+		"pool_size": 30
 	}
 }

@@ -29,5 +29,5 @@ var (
 func (ass *CoreSuite) SetUpSuite(c *C) {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	conf = config.NewConf("")
-	redis.Init(conf.Redis.Hosts[0])
+	redis.Init(conf.Redis.Hosts[0], conf.Redis.Password, conf.Redis.DB, conf.Redis.PoolSize)
 }
