@@ -22,7 +22,7 @@ type (
 
 var (
 	_   = Suite(&DatabaseSuite{})
-	cfg *config.Cfg
+	cfg *config.Config
 )
 
 func (dbs *DatabaseSuite) SetUpSuite(c *C) {

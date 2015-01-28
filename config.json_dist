@@ -3,33 +3,12 @@
 	"listenHost": "APP_HOST_PORT",
 	"newrelic": {
 		"key": "NEWRELIC_KEY",
-		"name": "NEWRELIC_NAME"
+		"name": "NEWRELIC_NAME",
+		"enabled": true
 	},
-	"db": {
-		"username": "DB_USER",
-		"password": "DB_PASS",
-		"database": "DB_DB",
-		"max_idle": DB_MAX_IDLE,
-		"max_open": DB_MAX_OPEN,
-		"master": {
-			"debug": DB_MASTER_DEBUG,
-			"host": "DB_MASTER_HOST",
-			"port": DB_MASTER_PORT
-		},
-		"slaves": [
-			{
-				"debug": DB_SLAVE1_DEBUG,
-				"host": "DB_SLAVE1_HOST",
-				"port": DB_SLAVE1_PORT
-			}
+	"redis": {
+		"hosts": [
+			"REDIS_HOST"
 		]
-	},
-	"as": {
-		"timeout": 500,
-		"connection_queue": 256,
-		"fail_if_not_connected": true,
-		"hosts": {
-			"127.0.0.1": 3000
-		}
 	}
 }

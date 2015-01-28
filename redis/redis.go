@@ -6,27 +6,32 @@
 package redis
 
 import (
-	//"net"
-
 	"gopkg.in/redis.v2"
 )
 
-var client *redis.Client
+type (
+	cli struct {
+		client *redis.Client
+	}
+)
+
+var redisClient *cli
 
 // Init initializes the redis client
-func Init() {
+func Init(address string) {
 	options := &redis.Options{
-		Addr: "127.0.0.1:6379",
-		/*Dialer: func() (net.Conn, error) {
-			return net.Dial("tcp", "127.0.0.1:6379")
-		},*/
+		Addr:     address,
 		Password: "",
 		DB:       0,
 		PoolSize: 30,
 	}
-	client = redis.NewTCPClient(options)
+
+	redisClient = &cli{
+		client: redis.NewTCPClient(options),
+	}
 }
 
-func GetClient() *redis.Client {
-	return client
+// Client returns the redis client
+func Client() *redis.Client {
+	return redisClient.client
 }

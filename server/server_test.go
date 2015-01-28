@@ -11,8 +11,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/tapglue/backend/redis"
 	"github.com/tapglue/backend/config"
+	"github.com/tapglue/backend/redis"
 	. "gopkg.in/check.v1"
 )
 
@@ -23,14 +23,14 @@ type ServerSuite struct{}
 
 var (
 	_   = Suite(&ServerSuite{})
-	cfg *config.Cfg
+	cfg *config.Config
 )
 
 // Setup once when the suite starts running
 func (s *ServerSuite) SetUpTest(c *C) {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	cfg = config.NewConf("")
-	redis.Init()
+	redis.Init(cfg.Redis.Hosts[0])
 }
 
 // Test POST common without CLHeader
@@ -40,7 +40,7 @@ func (s *ServerSuite) TestValidatePostCommon_NoCLHeader(c *C) {
 		"http://localhost:8089/",
 		nil,
 	)
-	test_CLHeader("", req)
+	clHeader("", req)
 	c.Assert(err, IsNil)
 
 	w := httptest.NewRecorder()
@@ -58,7 +58,7 @@ func (s *ServerSuite) TestValidatePostCommon_CLHeader(c *C) {
 		"http://localhost:8089/",
 		strings.NewReader(payload),
 	)
-	test_CLHeader(payload, req)
+	clHeader(payload, req)
 	c.Assert(err, IsNil)
 
 	w := httptest.NewRecorder()

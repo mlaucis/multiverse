@@ -24,7 +24,7 @@ const (
 )
 
 var (
-	cfg           *config.Cfg
+	conf          *config.Config
 	newRelicAgent *gorelic.Agent
 )
 
@@ -32,27 +32,29 @@ func init() {
 	// Use all available CPU's
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	rand.Seed(time.Now().UTC().UnixNano())
-	// Get configuration
-	cfg = config.NewConf(EnvConfigVar)
 
-	// Initialize database
-	redis.Init()
+	// Get configuration
+	conf = config.NewConf(EnvConfigVar)
+
+	// Initialize redis
+	redis.Init(conf.Redis.Hosts[0])
 }
 
 func main() {
 
-	/** /
-	newRelicAgent = gorelic.NewAgent()
-	newRelicAgent.Verbose = true
-	newRelicAgent.NewrelicLicense, newRelicAgent.NewrelicName = cfg.NewRelic()
-	newRelicAgent.Run()
-	/**/
-	newRelicAgent = nil
-	/**/
+	if conf.Newrelic.Enabled {
+		newRelicAgent = gorelic.NewAgent()
+		newRelicAgent.Verbose = true
+		newRelicAgent.NewrelicLicense = conf.Newrelic.Key
+		newRelicAgent.NewrelicName = conf.Newrelic.Name
+		newRelicAgent.Run()
+	} else {
+		newRelicAgent = nil
+	}
 
 	// Get router
 	router := server.GetRouter(newRelicAgent)
 
 	// Start server
-	log.Fatal(http.ListenAndServe(cfg.ListenHost(), router))
+	log.Fatal(http.ListenAndServe(conf.ListenHostPort, router))
 }

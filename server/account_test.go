@@ -17,8 +17,7 @@ import (
 	. "gopkg.in/check.v1"
 )
 
-// Test CLHeader
-func test_CLHeader(payload string, req *http.Request) {
+func clHeader(payload string, req *http.Request) {
 	req.Header.Add("User-Agent", "go test (+localhost)")
 	if len(payload) > 0 {
 		req.Header.Add("Content-Length", strconv.FormatInt(int64(len(payload)), 10))
@@ -34,7 +33,7 @@ func (s *ServerSuite) TestCreateAccount_WrongKey(c *C) {
 		"http://localhost:8089/account",
 		strings.NewReader(payload),
 	)
-	test_CLHeader(payload, req)
+	clHeader(payload, req)
 	c.Assert(err, IsNil)
 
 	w := httptest.NewRecorder()
@@ -52,7 +51,7 @@ func (s *ServerSuite) TestCreateAccount_Correct(c *C) {
 		"http://localhost:8089/account",
 		strings.NewReader(payload),
 	)
-	test_CLHeader(payload, req)
+	clHeader(payload, req)
 	c.Assert(err, IsNil)
 
 	w := httptest.NewRecorder()
@@ -83,7 +82,7 @@ func (s *ServerSuite) TestGetAccount_OK(c *C) {
 		fmt.Sprintf("http://localhost:8089/account/%d", account.ID),
 		nil,
 	)
-	test_CLHeader("", req)
+	clHeader("", req)
 	c.Assert(err, IsNil)
 
 	w := httptest.NewRecorder()

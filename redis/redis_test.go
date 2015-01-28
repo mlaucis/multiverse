@@ -22,7 +22,7 @@ type (
 
 var (
 	_   = Suite(&AerospikeSuite{})
-	cfg *config.Cfg
+	cfg *config.Config
 )
 
 func (ass *AerospikeSuite) SetUpSuite(c *C) {

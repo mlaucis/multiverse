@@ -2,7 +2,7 @@
  * @author Florin Patan <florinpatan@gmail.com>
  */
 
-// package mysql provides configuration for database connection
+// Package mysql provides configuration for database connection
 package mysql
 
 import (

@@ -10,6 +10,7 @@ import (
 	"github.com/tapglue/backend/core/entity"
 )
 
+// ValidateAccount will validate the passed account
 func ValidateAccount(account *entity.Account) error {
 	// Check if name empty
 	if account.Name == "" {

@@ -12,229 +12,46 @@ import (
 	"os"
 	"path"
 	"runtime"
-	"time"
 )
 
 type (
-	// DB config interface
-	DB interface {
-		IsMasterDebug() bool
-		IsSlaveDebug(slaveID uint) bool
-		MasterDSN() string
-		SlavesDSN() []string
-		MaxIdleConnections() int
-		MaxOpenConnections() int
+	// Redis struture
+	Redis struct {
+		Hosts []string `json:"hosts"`
 	}
 
-	// Aerospike config interface
-	Aerospike interface {
-		ConnectionTimeout() time.Duration
-		ConnectionQueueSize() int
-		ConnectOrFail() bool
-		Servers() map[string]int
-	}
-
-	// Config interface
-	Config interface {
-		Load(configEnvPath string)
-		Valiate()
-		Env() string
-		ListenHost() string
-		NewRelic() (string, string)
-		DB() *DB
-		Aerospike() *Aerospike
-	}
-
-	// As struture
-	As struct {
-		Timeout            int            `json:"timeout"`
-		ConnectionQueue    int            `json:"connection_queue"`
-		FailIfNotConnected bool           `json:"fail_if_not_connected"`
-		Hosts              map[string]int `json:"hosts"`
-	}
-
-	// Db structure
-	Db struct {
-		Username string `json:"username"`
-		Password string `json:"password`
-		Database string `json:"database"`
-		MaxIdle  int    `json:"max_idle"`
-		MaxOpen  int    `json:"max_open"`
-		Master   struct {
-			Debug bool   `json:"debug"`
-			Host  string `json:"host"`
-			Port  uint   `json:"port"`
-		} `json:"master"`
-		Slaves []struct {
-			Debug bool   `json:"debug"`
-			Host  string `json:"host"`
-			Port  uint   `json:"port"`
-		} `json:"slaves"`
-	}
-
-	// Cfg structure for the application configuration
-	Cfg struct {
+	// Config structure for the application configuration
+	Config struct {
 		Environment    string `json:"env"`
 		ListenHostPort string `json:"listenHost"`
 		Newrelic       struct {
-			Key  string `json:"key"`
-			Name string `json:"name"`
+			Key     string `json:"key"`
+			Name    string `json:"name"`
+			Enabled bool   `json:"enabled"`
 		} `json:"newrelic"`
-		Database  *Db `json:"db"`
-		AeroSpike *As `json:"as"`
+		Redis *Redis `json:"redis"`
 	}
 )
 
-var cfg *Cfg
+var cfg *Config
 
-// getDefaultConfig returns the default configuration. It will be overwritten by the config from the user
-func defaultConfig() *Cfg {
-	cfg := &Cfg{}
+// defaultConfig returns the default configuration. It will be overwritten by the config from the user
+func defaultConfig() *Config {
+	cfg := &Config{}
 	cfg.Environment = "dev"
 	cfg.ListenHostPort = ":8082"
 
 	cfg.Newrelic.Key = "demo"
 	cfg.Newrelic.Name = "tapglue - stub"
 
-	cfg.Database = &Db{}
-	cfg.Database.Username = ""
-	cfg.Database.Password = ""
-	cfg.Database.Database = ""
-
-	cfg.Database.MaxIdle = 10
-	cfg.Database.MaxOpen = 300
-
-	cfg.Database.Master.Debug = true
-	cfg.Database.Master.Host = ""
-	cfg.Database.Master.Port = 0
-
-	cfg.Database.Slaves = append(cfg.Database.Slaves, struct {
-		Debug bool   `json:"debug"`
-		Host  string `json:"host"`
-		Port  uint   `json:"port"`
-	}{
-		Debug: true,
-		Host:  "",
-		Port:  0,
-	},
-	)
-
-	cfg.AeroSpike = &As{}
-	cfg.AeroSpike.ConnectionQueue = 256
-	cfg.AeroSpike.FailIfNotConnected = true
-	cfg.AeroSpike.Timeout = 1
-	cfg.AeroSpike.Hosts = make(map[string]int)
-	cfg.AeroSpike.Hosts["127.0.0.1"] = 3000
+	cfg.Redis = &Redis{}
+	cfg.Redis.Hosts = append(cfg.Redis.Hosts, "127.0.0.1:6379")
 
 	return cfg
 }
 
-// Env returns the environment of the application
-func (config *Cfg) Env() string {
-	return config.Environment
-}
-
-// ListenHost returns the host:port combination for the main server
-func (config *Cfg) ListenHost() string {
-	if os.Getenv("IS_HEROKU_ENV") != "" {
-		return fmt.Sprintf(":%s", os.Getenv("PORT"))
-	}
-	return config.ListenHostPort
-}
-
-// NewRelic returns the newrelic key and name
-func (config *Cfg) NewRelic() (string, string) {
-	return config.Newrelic.Key, config.Newrelic.Name
-}
-
-// Aerospike returns an Aerospike interface
-func (config *Cfg) Aerospike() Aerospike {
-	return config.AeroSpike
-}
-
-// Timeout returns the connect timeout
-func (as *As) ConnectionTimeout() time.Duration {
-	return time.Millisecond * time.Duration(as.Timeout)
-}
-
-// ConnectionQueueSize returns the size of the connection queue
-func (as *As) ConnectionQueueSize() int {
-	return as.ConnectionQueue
-}
-
-// ConnectOrFail returns if the client should work or fail
-func (as *As) ConnectOrFail() bool {
-	return as.FailIfNotConnected
-}
-
-// Servers returns the configured Aerospike servers
-func (as *As) Servers() map[string]int {
-	return as.Hosts
-}
-
-// DB returns a database interface
-func (config *Cfg) DB() DB {
-	return config.Database
-}
-
-// IsMasterDebug returns if the master database is set to debug
-func (database *Db) IsMasterDebug() bool {
-	return database.Master.Debug
-}
-
-// IsSlaveDebug returns if the specified slave is set to debug
-func (database *Db) IsSlaveDebug(slaveID uint) bool {
-	if uint(len(database.Slaves)-1) > slaveID {
-		return false
-	}
-
-	return database.Slaves[slaveID].Debug
-}
-
-// MasterDSN returns the master DSN connection string
-func (database *Db) MasterDSN() string {
-	return fmt.Sprintf(
-		"%s:%s@tcp(%s:%d)/%s?parseTime=true&charset=utf8&collation=utf8_general_ci",
-		database.Username,
-		database.Password,
-		database.Master.Host,
-		database.Master.Port,
-		database.Database,
-	)
-}
-
-// SlavesDSN returns the DSN for all the slaves
-func (database *Db) SlavesDSN() []string {
-	result := []string{}
-	for _, slave := range database.Slaves {
-
-		slaveDSN := fmt.Sprintf(
-			"%s:%s@tcp(%s:%d)/%s?parseTime=true&charset=utf8&collation=utf8_general_ci",
-			database.Username,
-			database.Password,
-			slave.Host,
-			slave.Port,
-			database.Database,
-		)
-
-		result = append(result, slaveDSN)
-	}
-
-	return result
-}
-
-// MaxIdleConnections returns the number of maximum idle connections for the database
-func (database *Db) MaxIdleConnections() int {
-	return database.MaxIdle
-}
-
-// MaxOpenConnections returns the number of maximum open connections to the database
-func (database *Db) MaxOpenConnections() int {
-	return database.MaxOpen
-}
-
-// Validate the config or panic if needed
-func (config *Cfg) Validate() {
+// validate the config or panic if needed
+func (config *Config) validate() {
 	// TODO Implement this
 }
 
@@ -246,7 +63,7 @@ func (config *Cfg) Validate() {
 // If the environment variable doesn't exist or it's empty it then tries to use the directory where the binary file is.
 //
 // If the file is not present or it's not a valid json file the the call fails as well.
-func (config *Cfg) Load(configEnvPath string) {
+func (config *Config) Load(configEnvPath string) {
 	// Read config path from environment variable
 	configDir := ""
 	if configEnvPath != "" {
@@ -282,11 +99,11 @@ func (config *Cfg) Load(configEnvPath string) {
 	}
 
 	// Validate configuration
-	config.Validate()
+	config.validate()
 }
 
 // NewConf will load and return the config
-func NewConf(configEnvPath string) *Cfg {
+func NewConf(configEnvPath string) *Config {
 	cfg.Load(configEnvPath)
 
 	return cfg
@@ -295,9 +112,9 @@ func NewConf(configEnvPath string) *Cfg {
 // Conf will return the config
 //
 // If the config is not loaded already, it will attempt to load it from the directory of the binary
-func Conf() *Cfg {
+func Conf() *Config {
 	// Last mile defence, try to load the config from the current binary directory if it's not loaded yet
-	if cfg.Env() == "" {
+	if cfg.Environment == "" {
 		cfg.Load("")
 	}
 

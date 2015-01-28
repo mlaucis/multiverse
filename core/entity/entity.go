@@ -8,7 +8,7 @@ package entity
 import "time"
 
 type (
-	// Commenly used structure
+	// Common holds common used fields
 	Common struct {
 		Image     []*Image  `json:"image,omitempty"`
 		Metadata  string    `json:"metadata,omitempty"`
@@ -17,7 +17,7 @@ type (
 		UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
 	}
 
-	// Commonly used structure for users
+	// UserCommon holds common used fields for users
 	UserCommon struct {
 		Username    string    `json:"user_name"`
 		Password    string    `json:"password,omitempty"`

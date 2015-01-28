@@ -105,7 +105,7 @@ func errorHappened(err error, code int, r *http.Request, w http.ResponseWriter) 
 	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	w.Write([]byte(fmt.Sprintf("%d %q", code, err)))
 
-	if config.Conf().Env() == "test" {
+	if config.Conf().Environment == "test" {
 		return
 	}
 

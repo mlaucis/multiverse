@@ -15,13 +15,13 @@ import (
 
 // getnewAccountID generates a new account ID
 func getNewAccountID() (int64, error) {
-	incr := redis.GetClient().Incr("ids_account")
+	incr := redis.Client().Incr("ids_account")
 	return incr.Result()
 }
 
 // GetAccountByID returns the account matching the ID or an error
 func GetAccountByID(accountID int64) (account *entity.Account, err error) {
-	result, err := redis.GetClient().Get(fmt.Sprintf("account_%d", accountID)).Result()
+	result, err := redis.Client().Get(fmt.Sprintf("account_%d", accountID)).Result()
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +48,7 @@ func AddAccount(account *entity.Account, retrieve bool) (acc *entity.Account, er
 		return nil, err
 	}
 
-	if err = redis.GetClient().Set(fmt.Sprintf("account_%d", account.ID), string(val)).Err(); err != nil {
+	if err = redis.Client().Set(fmt.Sprintf("account_%d", account.ID), string(val)).Err(); err != nil {
 		return nil, err
 	}
 
