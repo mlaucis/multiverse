@@ -13,7 +13,7 @@ import (
 	"strings"
 
 	"github.com/gorilla/mux"
-	"github.com/tapglue/backend/entity"
+	"github.com/tapglue/backend/core/entity"
 	. "gopkg.in/check.v1"
 )
 

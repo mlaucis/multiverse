@@ -14,7 +14,8 @@ import (
 
 // Logger logs all server requests and prints to console
 func Logger(inner http.Handler, name string, newRelicAgent *gorelic.Agent) http.Handler {
-	return http.HandlerFunc(newRelicAgent.WrapHTTPHandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+	routeHandler := func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 
 		// we should use this to sanitize any other headers that should not be exposed to the logs
@@ -30,5 +31,11 @@ func Logger(inner http.Handler, name string, newRelicAgent *gorelic.Agent) http.
 			name,
 			time.Since(start),
 		)
-	}))
+	}
+
+	if newRelicAgent != nil {
+		routeHandler = newRelicAgent.WrapHTTPHandlerFunc(routeHandler)
+	}
+
+	return http.HandlerFunc(routeHandler)
 }

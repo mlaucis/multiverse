@@ -11,8 +11,8 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
-	"github.com/tapglue/backend/db"
-	"github.com/tapglue/backend/entity"
+	"github.com/tapglue/backend/core"
+	"github.com/tapglue/backend/core/entity"
 )
 
 // getAccount handles requests to a single account
@@ -25,7 +25,7 @@ func getAccount(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var (
-		accountID uint64
+		accountID int64
 		account   *entity.Account
 		err       error
 	)
@@ -33,13 +33,13 @@ func getAccount(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	// Read accountID
-	if accountID, err = strconv.ParseUint(vars["accountId"], 10, 64); err != nil {
+	if accountID, err = strconv.ParseInt(vars["accountId"], 10, 64); err != nil {
 		errorHappened(fmt.Errorf("accountId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
 		return
 	}
 
 	// Read account from database
-	if account, err = db.GetAccountByID(accountID); err != nil {
+	if account, err = core.GetAccountByID(accountID); err != nil {
 		errorHappened(err, http.StatusInternalServerError, r, w)
 		return
 	}
@@ -70,7 +70,9 @@ func createAccount(w http.ResponseWriter, r *http.Request) {
 
 	// TODO validation should be added here, for example, name shouldn't be empty ;)
 
-	if account, err = db.AddAccount(account); err != nil {
+	account.Enabled = true
+
+	if account, err = core.AddAccount(account, true); err != nil {
 		errorHappened(err, http.StatusInternalServerError, r, w)
 		return
 	}

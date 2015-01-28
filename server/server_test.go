@@ -7,11 +7,12 @@ package server
 import (
 	"net/http"
 	"net/http/httptest"
+	"runtime"
 	"strings"
 	"testing"
 
+	"github.com/tapglue/backend/aerospike"
 	"github.com/tapglue/backend/config"
-	"github.com/tapglue/backend/db"
 	. "gopkg.in/check.v1"
 )
 
@@ -27,12 +28,9 @@ var (
 
 // Setup once when the suite starts running
 func (s *ServerSuite) SetUpTest(c *C) {
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	cfg = config.NewConf("")
-	db.InitDatabases(cfg.DB())
-	db.GetMaster().Ping()
-	db.GetSlave().Ping()
-	_, err := db.GetMaster().Exec("DELETE FROM `accounts`")
-	c.Assert(err, IsNil)
+	aerospike.InitAerospike(cfg.Aerospike())
 }
 
 // Test POST common without CLHeader

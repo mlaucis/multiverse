@@ -11,8 +11,8 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
-	"github.com/tapglue/backend/db"
-	"github.com/tapglue/backend/entity"
+	"github.com/tapglue/backend/core/entity"
+	"github.com/tapglue/backend/mysql"
 )
 
 // getUserConnections handles requests to list a users connections
@@ -42,7 +42,7 @@ func getUserConnections(w http.ResponseWriter, r *http.Request) {
 	// Read userToken
 	userToken = vars["userToken"]
 
-	if user, err = db.GetApplicationUserWithConnections(appID, userToken); err != nil {
+	if user, err = mysql.GetApplicationUserWithConnections(appID, userToken); err != nil {
 		errorHappened(err, http.StatusInternalServerError, r, w)
 		return
 	}
@@ -69,7 +69,7 @@ func createUserConnection(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var (
-		connection = &entity.UserConnection{}
+		connection = &entity.Connection{}
 		appID      uint64
 		err        error
 	)
@@ -90,7 +90,7 @@ func createUserConnection(w http.ResponseWriter, r *http.Request) {
 
 	// TODO validation should be added here, for example, name shouldn't be empty ;)
 
-	if err = db.AddApplicationUserConnection(appID, connection.UserToken1, connection.UserToken2); err != nil {
+	if err = mysql.AddApplicationUserConnection(appID, connection); err != nil {
 		errorHappened(err, http.StatusInternalServerError, r, w)
 		return
 	}

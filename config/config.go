@@ -12,10 +12,11 @@ import (
 	"os"
 	"path"
 	"runtime"
+	"time"
 )
 
 type (
-	// DB interface
+	// DB config interface
 	DB interface {
 		IsMasterDebug() bool
 		IsSlaveDebug(slaveID uint) bool
@@ -23,6 +24,14 @@ type (
 		SlavesDSN() []string
 		MaxIdleConnections() int
 		MaxOpenConnections() int
+	}
+
+	// Aerospike config interface
+	Aerospike interface {
+		ConnectionTimeout() time.Duration
+		ConnectionQueueSize() int
+		ConnectOrFail() bool
+		Servers() map[string]int
 	}
 
 	// Config interface
@@ -33,6 +42,15 @@ type (
 		ListenHost() string
 		NewRelic() (string, string)
 		DB() *DB
+		Aerospike() *Aerospike
+	}
+
+	// As struture
+	As struct {
+		Timeout            int            `json:"timeout"`
+		ConnectionQueue    int            `json:"connection_queue"`
+		FailIfNotConnected bool           `json:"fail_if_not_connected"`
+		Hosts              map[string]int `json:"hosts"`
 	}
 
 	// Db structure
@@ -62,7 +80,8 @@ type (
 			Key  string `json:"key"`
 			Name string `json:"name"`
 		} `json:"newrelic"`
-		Database *Db `json:"db"`
+		Database  *Db `json:"db"`
+		AeroSpike *As `json:"as"`
 	}
 )
 
@@ -100,6 +119,13 @@ func defaultConfig() *Cfg {
 	},
 	)
 
+	cfg.AeroSpike = &As{}
+	cfg.AeroSpike.ConnectionQueue = 256
+	cfg.AeroSpike.FailIfNotConnected = true
+	cfg.AeroSpike.Timeout = 1
+	cfg.AeroSpike.Hosts = make(map[string]int)
+	cfg.AeroSpike.Hosts["127.0.0.1"] = 3000
+
 	return cfg
 }
 
@@ -119,6 +145,31 @@ func (config *Cfg) ListenHost() string {
 // NewRelic returns the newrelic key and name
 func (config *Cfg) NewRelic() (string, string) {
 	return config.Newrelic.Key, config.Newrelic.Name
+}
+
+// Aerospike returns an Aerospike interface
+func (config *Cfg) Aerospike() Aerospike {
+	return config.AeroSpike
+}
+
+// Timeout returns the connect timeout
+func (as *As) ConnectionTimeout() time.Duration {
+	return time.Millisecond * time.Duration(as.Timeout)
+}
+
+// ConnectionQueueSize returns the size of the connection queue
+func (as *As) ConnectionQueueSize() int {
+	return as.ConnectionQueue
+}
+
+// ConnectOrFail returns if the client should work or fail
+func (as *As) ConnectOrFail() bool {
+	return as.FailIfNotConnected
+}
+
+// Servers returns the configured Aerospike servers
+func (as *As) Servers() map[string]int {
+	return as.Hosts
 }
 
 // DB returns a database interface
@@ -182,9 +233,9 @@ func (database *Db) MaxOpenConnections() int {
 	return database.MaxOpen
 }
 
-// Validate should be implemented to add config validation or panic if needed
+// Validate the config or panic if needed
 func (config *Cfg) Validate() {
-
+	// TODO Implement this
 }
 
 // Load loads the configuration for the application.

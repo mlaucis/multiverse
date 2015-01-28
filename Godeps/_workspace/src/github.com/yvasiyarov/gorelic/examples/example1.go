@@ -2,11 +2,12 @@ package main
 
 import (
 	"flag"
-	"github.com/yvasiyarov/gorelic"
 	"log"
 	"math/rand"
 	"runtime"
 	"time"
+
+	"github.com/yvasiyarov/gorelic"
 )
 
 var newrelicLicense = flag.String("newrelic-license", "", "Newrelic license")

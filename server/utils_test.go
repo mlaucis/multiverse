@@ -1,17 +1,12 @@
 package server
 
 import (
-	"github.com/tapglue/backend/db"
-	"github.com/tapglue/backend/entity"
+	"github.com/tapglue/backend/aerospike"
+	"github.com/tapglue/backend/core/entity"
 )
 
 func AddCorrectAccount() *entity.Account {
-
-	var account = &entity.Account{
-		Name: "Demo",
-	}
-
-	savedAccount, err := db.AddAccount(account)
+	savedAccount, err := aerospike.AddAccount(correctAccount, true)
 	if err != nil {
 		panic(err)
 	}

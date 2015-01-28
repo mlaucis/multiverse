@@ -11,8 +11,8 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
-	"github.com/tapglue/backend/db"
-	"github.com/tapglue/backend/entity"
+	"github.com/tapglue/backend/core/entity"
+	"github.com/tapglue/backend/mysql"
 )
 
 // getAccountApplications handles requests to a single application
@@ -38,7 +38,7 @@ func getAccountApplication(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if application, err = db.GetApplicationByID(appID); err != nil {
+	if application, err = mysql.GetApplicationByID(appID); err != nil {
 		errorHappened(err, http.StatusInternalServerError, r, w)
 		return
 	}
@@ -59,25 +59,25 @@ func getAccountApplicationList(w http.ResponseWriter, r *http.Request) {
 	var (
 		account      *entity.Account
 		applications []*entity.Application
-		accountID    uint64
+		accountID    int64
 		err          error
 	)
 	// Read variables from request
 	vars := mux.Vars(r)
 
 	// Read accountID
-	if accountID, err = strconv.ParseUint(vars["accountId"], 10, 64); err != nil {
+	if accountID, err = strconv.ParseInt(vars["accountId"], 10, 64); err != nil {
 		errorHappened(fmt.Errorf("accountId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
 		return
 	}
 
 	// Read account from database
-	if account, err = db.GetAccountByID(accountID); err != nil {
+	if account, err = mysql.GetAccountByID(accountID); err != nil {
 		errorHappened(err, http.StatusInternalServerError, r, w)
 		return
 	}
 
-	if applications, err = db.GetAccountAllApplications(accountID); err != nil {
+	if applications, err = mysql.GetAccountAllApplications(accountID); err != nil {
 		errorHappened(err, http.StatusInternalServerError, r, w)
 		return
 	}
@@ -105,13 +105,13 @@ func createAccountApplication(w http.ResponseWriter, r *http.Request) {
 
 	var (
 		application = &entity.Application{}
-		accountID   uint64
+		accountID   int64
 		err         error
 	)
 	// Read variables from request
 	vars := mux.Vars(r)
 
-	if accountID, err = strconv.ParseUint(vars["accountId"], 10, 64); err != nil {
+	if accountID, err = strconv.ParseInt(vars["accountId"], 10, 64); err != nil {
 		errorHappened(fmt.Errorf("accountId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
 		return
 	}
@@ -124,7 +124,7 @@ func createAccountApplication(w http.ResponseWriter, r *http.Request) {
 
 	// TODO validation should be added here, for example, name shouldn't be empty ;)
 
-	if application, err = db.AddAccountApplication(accountID, application); err != nil {
+	if application, err = mysql.AddAccountApplication(accountID, application); err != nil {
 		errorHappened(err, http.StatusInternalServerError, r, w)
 		return
 	}
