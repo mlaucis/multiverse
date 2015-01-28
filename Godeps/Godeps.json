@@ -1,15 +1,10 @@
 {
 	"ImportPath": "github.com/tapglue/backend",
-	"GoVersion": "go1.4",
+	"GoVersion": "go1.4.1",
 	"Packages": [
 		"./..."
 	],
 	"Deps": [
-		{
-			"ImportPath": "github.com/aerospike/aerospike-client-go",
-			"Comment": "v1.2.0",
-			"Rev": "5ccddde68ca83e72c4a6e7729680dddb639b361e"
-		},
 		{
 			"ImportPath": "github.com/go-sql-driver/mysql",
 			"Comment": "v1.2-28-gcebeb35",
@@ -42,8 +37,18 @@
 			"Rev": "13d5af9721f4455a501db543c93827447089bab3"
 		},
 		{
+			"ImportPath": "gopkg.in/bufio.v1",
+			"Comment": "v1",
+			"Rev": "567b2bfa514e796916c4747494d6ff5132a1dfce"
+		},
+		{
 			"ImportPath": "gopkg.in/check.v1",
 			"Rev": "64131543e7896d5bcc6bd5a76287eb75ea96c673"
+		},
+		{
+			"ImportPath": "gopkg.in/redis.v2",
+			"Comment": "v2.3.2",
+			"Rev": "e6179049628164864e6e84e973cfb56335748dea"
 		}
 	]
 }
