@@ -11,7 +11,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/tapglue/backend/aerospike"
+	"github.com/tapglue/backend/redis"
 	"github.com/tapglue/backend/config"
 	. "gopkg.in/check.v1"
 )
@@ -30,7 +30,7 @@ var (
 func (s *ServerSuite) SetUpTest(c *C) {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	cfg = config.NewConf("")
-	aerospike.InitAerospike(cfg.Aerospike())
+	redis.Init()
 }
 
 // Test POST common without CLHeader
