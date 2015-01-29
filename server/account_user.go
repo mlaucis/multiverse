@@ -13,12 +13,20 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/tapglue/backend/core"
 	"github.com/tapglue/backend/core/entity"
+	"github.com/tapglue/backend/validator"
 )
 
 // getAccountUser handles requests to a single account user
 // Request: GET /account/:AccountID/user/:UserID
 // Test with: curl -i localhost/account/:AccountID/user/:UserID
 func getAccountUser(w http.ResponseWriter, r *http.Request) {
+	// Validate request
+	if err := validateGetCommon(w, r); err != nil {
+		errorHappened(err, http.StatusBadRequest, r, w)
+		return
+	}
+
+	// Declare vars
 	var (
 		accountID   int64
 		userID      int64
@@ -26,7 +34,7 @@ func getAccountUser(w http.ResponseWriter, r *http.Request) {
 		err         error
 	)
 
-	// Read variables from request
+	// Read vars
 	vars := mux.Vars(r)
 
 	// Read accountID
@@ -41,7 +49,8 @@ func getAccountUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if accountUser, err = core.GetAccountUserByID(accountID, userID); err != nil {
+	// Read resource
+	if accountUser, err = core.ReadAccountUser(accountID, userID); err != nil {
 		errorHappened(err, http.StatusInternalServerError, r, w)
 		return
 	}
@@ -93,19 +102,21 @@ func getAccountUser(w http.ResponseWriter, r *http.Request) {
 
 // createAccountUser handles requests create an account user
 // Request: POST /account/:AccountID/users
-// Test with: curl -i -H "Content-Type: application/json" -d '{"name":"User name", "password":"hmac(256)", "email":"de@m.o"}' localhost/account/:AccountID/users
+// Test with: curl -i -H "Content-Type: application/json" -d '{"user_name":"User name", "password":"hmac(256)", "email":"de@m.o"}' localhost/account/:AccountID/users
 func createAccountUser(w http.ResponseWriter, r *http.Request) {
+	// Validate request
 	if err := validatePostCommon(w, r); err != nil {
 		errorHappened(err, http.StatusBadRequest, r, w)
 		return
 	}
 
+	// Declare vars
 	var (
 		accountUser = &entity.AccountUser{}
 		accountID   int64
 		err         error
 	)
-	// Read variables from request
+	// Read vars
 	vars := mux.Vars(r)
 
 	// Read accountID
@@ -114,18 +125,28 @@ func createAccountUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Decode JSON
 	decoder := json.NewDecoder(r.Body)
 	if err = decoder.Decode(accountUser); err != nil {
 		errorHappened(err, http.StatusBadRequest, r, w)
 		return
 	}
 
+	// Set values
+	accountUser.AccountID = accountID
 	accountUser.Enabled = true
 
-	if accountUser, err = core.AddAccountUser(accountID, accountUser, true); err != nil {
+	// Validate resource
+	if err = validator.ValidateAccountUser(accountUser); err != nil {
+		return
+	}
+
+	// Write resource
+	if accountUser, err = core.WriteAccountUser(accountUser, true); err != nil {
 		errorHappened(err, http.StatusInternalServerError, r, w)
 		return
 	}
 
+	// Write response
 	writeResponse(accountUser, http.StatusCreated, 0, w, r)
 }

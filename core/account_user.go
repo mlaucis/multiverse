@@ -7,22 +7,26 @@ package core
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/tapglue/backend/core/entity"
 	"github.com/tapglue/backend/redis"
 )
 
 // Defining redis keys
-const AccountUserKey string = "account_%d_user%d"
+const (
+	AccountUserKey  string = "account_%d_user_%d"
+	AccountUsersKey string = "account_%d_users"
+)
 
-// getnewAccountUserID generates a new account user ID
-func getNewAccountUserID(accountID int64) (int64, error) {
+// generateAccountUserID generates a new account user ID
+func generateAccountUserID(accountID int64) (int64, error) {
 	incr := redis.Client().Incr(fmt.Sprintf("ids_account_%d_user", accountID))
 	return incr.Result()
 }
 
-// GetAccountUserByID returns the account matching the ID or an error
-func GetAccountUserByID(accountID int64, accountUserID int64) (accountUser *entity.AccountUser, err error) {
+// ReadAccountUser returns the account matching the ID or an error
+func ReadAccountUser(accountID int64, accountUserID int64) (accountUser *entity.AccountUser, err error) {
 	// Read from db
 	result, err := redis.Client().Get(fmt.Sprintf(AccountUserKey, accountID, accountUserID)).Result()
 	if err != nil {
@@ -37,15 +41,10 @@ func GetAccountUserByID(accountID int64, accountUserID int64) (accountUser *enti
 	return
 }
 
-// AddAccount adds a new account user to the database and returns the created account or an error
-func AddAccountUser(accountID int64, accountUser *entity.AccountUser, retrieve bool) (accUser *entity.AccountUser, err error) {
-	// Validate account
-	// if err = validator.ValidateAccountUser(accountUser); err != nil {
-	// 	return nil, err
-	// }
-
+// WriteAccountUser adds a new account user to the database and returns the created account user or an error
+func WriteAccountUser(accountUser *entity.AccountUser, retrieve bool) (accUser *entity.AccountUser, err error) {
 	// Generate account id
-	if accountUser.ID, err = getNewAccountUserID(accountID); err != nil {
+	if accountUser.ID, err = generateAccountUserID(accountUser.AccountID); err != nil {
 		return nil, err
 	}
 
@@ -55,8 +54,13 @@ func AddAccountUser(accountID int64, accountUser *entity.AccountUser, retrieve b
 		return nil, err
 	}
 
-	// Write to db
-	if err = redis.Client().Set(fmt.Sprintf(AccountUserKey, accountID, accountUser.ID), string(val)).Err(); err != nil {
+	// Write resource
+	if err = redis.Client().Set(fmt.Sprintf(AccountUserKey, accountUser.AccountID, accountUser.ID), string(val)).Err(); err != nil {
+		return nil, err
+	}
+
+	// Write list
+	if err = redis.Client().LPush(fmt.Sprintf(AccountUsersKey, accountUser.AccountID), string(strconv.FormatInt(accountUser.ID, 10))).Err(); err != nil {
 		return nil, err
 	}
 
@@ -65,5 +69,5 @@ func AddAccountUser(accountID int64, accountUser *entity.AccountUser, retrieve b
 	}
 
 	// Return resource
-	return GetAccountUserByID(accountID, accountUser.ID)
+	return ReadAccountUser(accountUser.AccountID, accountUser.ID)
 }

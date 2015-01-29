@@ -13,23 +13,27 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/tapglue/backend/core"
 	"github.com/tapglue/backend/core/entity"
+	"github.com/tapglue/backend/validator"
 )
 
 // getAccount handles requests to a single account
 // Request: GET /account/:AccountID
 // Test with: curl -i localhost/account/:AccountID
 func getAccount(w http.ResponseWriter, r *http.Request) {
+	// Validate request
 	if err := validateGetCommon(w, r); err != nil {
 		errorHappened(err, http.StatusBadRequest, r, w)
 		return
 	}
 
+	// Declare vars
 	var (
 		accountID int64
 		account   *entity.Account
 		err       error
 	)
-	// Read variables from request
+
+	// Read vars
 	vars := mux.Vars(r)
 
 	// Read accountID
@@ -39,7 +43,7 @@ func getAccount(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Read account from database
-	if account, err = core.GetAccountByID(accountID); err != nil {
+	if account, err = core.ReadAccount(accountID); err != nil {
 		errorHappened(err, http.StatusInternalServerError, r, w)
 		return
 	}
@@ -52,25 +56,35 @@ func getAccount(w http.ResponseWriter, r *http.Request) {
 // Request: POST /accounts
 // Test with: curl -i -H "Content-Type: application/json" -d '{"name":"New Account"}' localhost/accounts
 func createAccount(w http.ResponseWriter, r *http.Request) {
+	// Validate request
 	if err := validatePostCommon(w, r); err != nil {
 		errorHappened(err, http.StatusBadRequest, r, w)
 		return
 	}
 
+	// Declare vars
 	var (
 		account = &entity.Account{}
 		err     error
 	)
 
+	// Decode JSON
 	decoder := json.NewDecoder(r.Body)
 	if err = decoder.Decode(account); err != nil {
 		errorHappened(err, http.StatusBadRequest, r, w)
 		return
 	}
 
+	// Set values
 	account.Enabled = true
 
-	if account, err = core.AddAccount(account, true); err != nil {
+	// Validate resource
+	if err = validator.ValidateAccount(account); err != nil {
+		return
+	}
+
+	// Write account
+	if account, err = core.WriteAccount(account, true); err != nil {
 		errorHappened(err, http.StatusInternalServerError, r, w)
 		return
 	}
