@@ -42,6 +42,7 @@ func init() {
 
 func main() {
 
+	// Setup newrelic
 	if conf.Newrelic.Enabled {
 		newRelicAgent = gorelic.NewAgent()
 		newRelicAgent.Verbose = true

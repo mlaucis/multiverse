@@ -73,7 +73,7 @@ type (
 
 	// AccountUser structure
 	AccountUser struct {
-		ID        uint64       `json:"id"`
+		ID        int64        `json:"id"`
 		AccountID int64        `json:"account_id"`
 		Role      *AccountRole `json:"account_role,omitempty"`
 		UserCommon

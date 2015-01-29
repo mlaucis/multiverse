@@ -49,8 +49,8 @@ func getAccount(w http.ResponseWriter, r *http.Request) {
 }
 
 // createAccount handles requests create an account
-// Request: POST /account
-// Test with: curl -i -H "Content-Type: application/json" -d '{"name":"New Account"}' localhost/account
+// Request: POST /accounts
+// Test with: curl -i -H "Content-Type: application/json" -d '{"name":"New Account"}' localhost/accounts
 func createAccount(w http.ResponseWriter, r *http.Request) {
 	if err := validatePostCommon(w, r); err != nil {
 		errorHappened(err, http.StatusBadRequest, r, w)
@@ -67,8 +67,6 @@ func createAccount(w http.ResponseWriter, r *http.Request) {
 		errorHappened(err, http.StatusBadRequest, r, w)
 		return
 	}
-
-	// TODO validation should be added here, for example, name shouldn't be empty ;)
 
 	account.Enabled = true
 

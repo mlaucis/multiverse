@@ -33,8 +33,21 @@ var routes = map[string]*route{
 	"createAccount": &route{
 		"createAccount",
 		"POST",
-		"/account",
+		"/accounts",
 		createAccount,
+	},
+	// AccountUser
+	"getAccountUser": &route{
+		"getAccountUser",
+		"GET",
+		"/account/{accountId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}",
+		getAccountUser,
+	},
+	"createAccountUser": &route{
+		"createAccountUser",
+		"POST",
+		"/account/{accountId:[0-9]{1,20}}/users",
+		createAccountUser,
 	},
 	/*
 		// AccountUser
