@@ -7,7 +7,6 @@ package core
 import (
 	"encoding/json"
 	"fmt"
-	"strconv"
 
 	"github.com/tapglue/backend/core/entity"
 	"github.com/tapglue/backend/redis"
@@ -27,8 +26,11 @@ func generateAccountUserID(accountID int64) (int64, error) {
 
 // ReadAccountUser returns the account matching the ID or an error
 func ReadAccountUser(accountID int64, accountUserID int64) (accountUser *entity.AccountUser, err error) {
+	// Generate resource key
+	key := fmt.Sprintf(AccountUserKey, accountID, accountUserID)
+
 	// Read from db
-	result, err := redis.Client().Get(fmt.Sprintf(AccountUserKey, accountID, accountUserID)).Result()
+	result, err := redis.Client().Get(key).Result()
 	if err != nil {
 		return nil, err
 	}
@@ -36,6 +38,40 @@ func ReadAccountUser(accountID int64, accountUserID int64) (accountUser *entity.
 	// Parse JSON
 	if err = json.Unmarshal([]byte(result), &accountUser); err != nil {
 		return nil, err
+	}
+
+	return
+}
+
+// ReadAccountUserList returns all the users from a certain account
+func ReadAccountUserList(accountID int64) (accountUsers []*entity.AccountUser, err error) {
+	// Generate resource key
+	key := fmt.Sprintf(AccountUsersKey, accountID)
+
+	// Read from db
+	result, err := redis.Client().LRange(key, 0, -1).Result()
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Printf("%v\n", result)
+
+	// Read from db
+	resultList, err := redis.Client().MGet(result...).Result()
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Printf("%v\n", resultList)
+
+	// Parse JSON
+	accountUser := &entity.AccountUser{}
+	for _, result := range resultList {
+		if err = json.Unmarshal([]byte(result.(string)), accountUser); err != nil {
+			return nil, err
+		}
+		accountUsers = append(accountUsers, accountUser)
+		accountUser = &entity.AccountUser{}
 	}
 
 	return
@@ -54,13 +90,19 @@ func WriteAccountUser(accountUser *entity.AccountUser, retrieve bool) (accUser *
 		return nil, err
 	}
 
+	// Generate resource key
+	key := fmt.Sprintf(AccountUserKey, accountUser.AccountID, accountUser.ID)
+
 	// Write resource
-	if err = redis.Client().Set(fmt.Sprintf(AccountUserKey, accountUser.AccountID, accountUser.ID), string(val)).Err(); err != nil {
+	if err = redis.Client().Set(key, string(val)).Err(); err != nil {
 		return nil, err
 	}
 
+	// Generate list key
+	listKey := fmt.Sprintf(AccountUsersKey, accountUser.AccountID)
+
 	// Write list
-	if err = redis.Client().LPush(fmt.Sprintf(AccountUsersKey, accountUser.AccountID), string(strconv.FormatInt(accountUser.ID, 10))).Err(); err != nil {
+	if err = redis.Client().LPush(listKey, key).Err(); err != nil {
 		return nil, err
 	}
 

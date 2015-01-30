@@ -36,13 +36,13 @@ func getAccount(w http.ResponseWriter, r *http.Request) {
 	// Read vars
 	vars := mux.Vars(r)
 
-	// Read accountID
+	// Read id
 	if accountID, err = strconv.ParseInt(vars["accountId"], 10, 64); err != nil {
 		errorHappened(fmt.Errorf("accountId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
 		return
 	}
 
-	// Read account from database
+	// Read resource
 	if account, err = core.ReadAccount(accountID); err != nil {
 		errorHappened(err, http.StatusInternalServerError, r, w)
 		return

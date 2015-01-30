@@ -23,8 +23,11 @@ func generateAccountID() (int64, error) {
 
 // ReadAccount returns the account matching the ID or an error
 func ReadAccount(accountID int64) (account *entity.Account, err error) {
+	// Generate resource key
+	key := fmt.Sprintf(AccountKey, accountID)
+
 	// Read from db
-	result, err := redis.Client().Get(fmt.Sprintf(AccountKey, accountID)).Result()
+	result, err := redis.Client().Get(key).Result()
 	if err != nil {
 		return nil, err
 	}
@@ -50,8 +53,11 @@ func WriteAccount(account *entity.Account, retrieve bool) (acc *entity.Account, 
 		return nil, err
 	}
 
+	// Generate resource key
+	key := fmt.Sprintf(AccountKey, account.ID)
+
 	// Write
-	if err = redis.Client().Set(fmt.Sprintf(AccountKey, account.ID), string(val)).Err(); err != nil {
+	if err = redis.Client().Set(key, string(val)).Err(); err != nil {
 		return nil, err
 	}
 

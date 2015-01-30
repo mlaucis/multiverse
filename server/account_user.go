@@ -62,43 +62,44 @@ func getAccountUser(w http.ResponseWriter, r *http.Request) {
 // getAccountUserList handles requests to list all account users
 // Request: GET /account/:AccountID/users
 // Test with: curl -i localhost/account/:AccountID/users
-// func getAccountUserList(w http.ResponseWriter, r *http.Request) {
-// 	var (
-// 		accountID    int64
-// 		account      *entity.Account
-// 		accountUsers []*entity.AccountUser
-// 		err          error
-// 	)
-// 	// Read variables from request
-// 	vars := mux.Vars(r)
+func getAccountUserList(w http.ResponseWriter, r *http.Request) {
+	var (
+		accountID    int64
+		account      *entity.Account
+		accountUsers []*entity.AccountUser
+		err          error
+	)
+	// Read vars
+	vars := mux.Vars(r)
 
-// 	// Read accountID
-// 	if accountID, err = strconv.ParseInt(vars["accountId"], 10, 64); err != nil {
-// 		errorHappened(fmt.Errorf("accountId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
-// 		return
-// 	}
+	// Read id
+	if accountID, err = strconv.ParseInt(vars["accountId"], 10, 64); err != nil {
+		errorHappened(fmt.Errorf("accountId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
+		return
+	}
 
-// 	if account, err = core.GetAccountByID(accountID); err != nil {
-// 		errorHappened(err, http.StatusInternalServerError, r, w)
-// 		return
-// 	}
+	// Read resource
+	if account, err = core.ReadAccount(accountID); err != nil {
+		errorHappened(err, http.StatusInternalServerError, r, w)
+		return
+	}
 
-// 	if accountUsers, err = core.GetAccountAllUsers(accountID); err != nil {
-// 		errorHappened(err, http.StatusInternalServerError, r, w)
-// 		return
-// 	}
+	if accountUsers, err = core.ReadAccountUserList(accountID); err != nil {
+		errorHappened(err, http.StatusInternalServerError, r, w)
+		return
+	}
 
-// 	response := &struct {
-// 		entity.Account
-// 		AccountUsers []*entity.AccountUser `json:"accountUsers"`
-// 	}{
-// 		Account:      *account,
-// 		AccountUsers: accountUsers,
-// 	}
+	response := &struct {
+		entity.Account
+		AccountUsers []*entity.AccountUser `json:"accountUsers"`
+	}{
+		Account:      *account,
+		AccountUsers: accountUsers,
+	}
 
-// 	// Write response
-// 	writeResponse(response, http.StatusOK, 10, w, r)
-// }
+	// Write response
+	writeResponse(response, http.StatusOK, 10, w, r)
+}
 
 // createAccountUser handles requests create an account user
 // Request: POST /account/:AccountID/users

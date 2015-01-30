@@ -49,26 +49,13 @@ var routes = map[string]*route{
 		"/account/{accountId:[0-9]{1,20}}/users",
 		createAccountUser,
 	},
+	"getAccountUserList": &route{
+		"getAccountUserList",
+		"GET",
+		"/account/{accountId:[0-9]{1,20}}/users",
+		getAccountUserList,
+	},
 	/*
-		// AccountUser
-		"getAccountUser": &route{
-			"getAccountUser",
-			"GET",
-			"/account/{accountId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}",
-			getAccountUser,
-		},
-		"createAccountUser": &route{
-			"createAccountUser",
-			"POST",
-			"/account/{accountId:[0-9]{1,20}}/user",
-			createAccountUser,
-		},
-		"getAccountUserList": &route{
-			"getAccountUserList",
-			"GET",
-			"/account/{accountId:[0-9]{1,20}}/users",
-			getAccountUserList,
-		},
 		// Application
 		"getApplication": &route{
 			"getApplication",
