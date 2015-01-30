@@ -114,7 +114,7 @@ func getUserList(w http.ResponseWriter, r *http.Request) {
 
 // createUser handles requests create an application user
 // Request: POST /application/:AppId/users
-// Test with: curl -i -H "Content-Type: application/json" -d '{"token": "token1flo", "username": "flo", "name": "Florin", "password": "passwd", "email": "fl@r.in", "url": "blogger", "thumbnail_url": "gravatar", "custom": "{}"}' localhost/application/:AppID/users
+// Test with: curl -i -H "Content-Type: application/json" -d '{"auth_token": "token1flo", "username": "flo", "name": "Florin", "password": "passwd", "email": "fl@r.in", "url": "blogger", "metadata": "{}"}' localhost/application/:AppID/users
 func createUser(w http.ResponseWriter, r *http.Request) {
 	// Validate request
 	if err := validatePostCommon(w, r); err != nil {

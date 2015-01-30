@@ -65,7 +65,7 @@ type (
 
 	// AccountRole structure
 	AccountRole struct {
-		ID          uint64 `json:"id"`
+		ID          int64  `json:"id"`
 		Permission  string `json:"permission"`
 		Description string `json:"description"`
 		Common
@@ -110,9 +110,9 @@ type (
 
 	// Connection structure holds the connections of the users
 	Connection struct {
-		ApplicationID string `json:"application_id"`
-		UserFromID    uint64 `json:"user_from_id"`
-		UserToID      uint64 `json:"user_to_id"`
+		ApplicationID int64 `json:"application_id"`
+		UserFromID    int64 `json:"user_from_id"`
+		UserToID      int64 `json:"user_to_id"`
 		Common
 	}
 
@@ -147,9 +147,9 @@ type (
 
 	// Event structure
 	Event struct {
-		ID            uint64         `json:"id"`
-		ApplicationID uint64         `json:"application_id"`
-		UserID        uint64         `json:"user_id"`
+		ID            int64          `json:"id"`
+		ApplicationID int64          `json:"application_id"`
+		UserID        int64          `json:"user_id"`
 		Verb          string         `json:"string"`
 		Language      string         `json:"language"`
 		Prioritity    string         `json:"priority"`

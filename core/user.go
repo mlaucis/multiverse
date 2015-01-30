@@ -44,7 +44,7 @@ func ReadUser(applicationID int64, userID int64) (user *entity.User, err error) 
 	return
 }
 
-// ReadUserList returns all applications from a certain account
+// ReadUserList returns all users from a certain account
 func ReadUserList(applicationID int64) (users []*entity.User, err error) {
 	// Generate resource key
 	key := fmt.Sprintf(UsersKey, applicationID)
