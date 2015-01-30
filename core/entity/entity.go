@@ -93,8 +93,8 @@ type (
 
 	// User structure
 	User struct {
-		ID            uint64    `json:"id"`
-		ApplicationID uint64    `json:"application_id"`
+		ID            int64     `json:"id"`
+		ApplicationID int64     `json:"application_id"`
 		AuthToken     string    `json:"auth_token"`
 		FacebookID    string    `json:"facebook_id,omitempty"`
 		TwitterID     string    `json:"twitter_id,omitempty"`

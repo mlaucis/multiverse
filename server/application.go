@@ -32,7 +32,8 @@ func getApplication(w http.ResponseWriter, r *http.Request) {
 		appID       int64
 		err         error
 	)
-	// Read variables from request
+
+	// Read vars
 	vars := mux.Vars(r)
 
 	// Read accountID
@@ -74,7 +75,7 @@ func getApplicationList(w http.ResponseWriter, r *http.Request) {
 		accountID    int64
 		err          error
 	)
-	// Read variables from request
+	// Read vars
 	vars := mux.Vars(r)
 
 	// Read accountID
@@ -133,7 +134,7 @@ func createApplication(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Decode JSON
+	// Parse JSON
 	decoder := json.NewDecoder(r.Body)
 	if err = decoder.Decode(application); err != nil {
 		errorHappened(err, http.StatusBadRequest, r, w)
