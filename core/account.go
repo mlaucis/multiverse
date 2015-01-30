@@ -12,7 +12,7 @@ import (
 	"github.com/tapglue/backend/redis"
 )
 
-// Defining redis keys
+// Defining keys
 const AccountKey string = "account_%d"
 
 // generateAccountID generates a new account ID
@@ -42,7 +42,7 @@ func ReadAccount(accountID int64) (account *entity.Account, err error) {
 
 // WriteAccount adds a new account to the database and returns the created account or an error
 func WriteAccount(account *entity.Account, retrieve bool) (acc *entity.Account, err error) {
-	// Generate account id
+	// Generate id
 	if account.ID, err = generateAccountID(); err != nil {
 		return nil, err
 	}

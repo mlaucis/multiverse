@@ -55,26 +55,26 @@ var routes = map[string]*route{
 		"/account/{accountId:[0-9]{1,20}}/users",
 		getAccountUserList,
 	},
+	// Application
+	"getApplication": &route{
+		"getApplication",
+		"GET",
+		"/account/{accountId:[0-9]{1,20}}/application/{appId:[0-9]{1,20}}",
+		getApplication,
+	},
+	"createApplication": &route{
+		"createApplication",
+		"POST",
+		"/account/{accountId:[0-9]{1,20}}/applications",
+		createApplication,
+	},
+	"getApplications": &route{
+		"getAccountApplications",
+		"GET",
+		"/account/{accountId:[0-9]{1,20}}/applications",
+		getApplicationList,
+	},
 	/*
-		// Application
-		"getApplication": &route{
-			"getApplication",
-			"GET",
-			"/app/{appId:[0-9]{1,20}}",
-			getAccountApplication,
-		},
-		"createAccountApplication": &route{
-			"createAccountApplication",
-			"POST",
-			"/account/{accountId:[0-9]{1,20}}/app",
-			createAccountApplication,
-		},
-		"getAccountApplications": &route{
-			"getAccountApplications",
-			"GET",
-			"/account/{accountId:[0-9]{1,20}}/applications",
-			getAccountApplicationList,
-		},
 		// User
 		"getApplicationUser": &route{
 			"getApplicationUser",

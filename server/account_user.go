@@ -17,8 +17,8 @@ import (
 )
 
 // getAccountUser handles requests to a single account user
-// Request: GET /account/:AccountID/user/:UserID
-// Test with: curl -i localhost/account/:AccountID/user/:UserID
+// Request: GET /account/:AccountID/user/:ID
+// Test with: curl -i localhost/account/:AccountID/user/:ID
 func getAccountUser(w http.ResponseWriter, r *http.Request) {
 	// Validate request
 	if err := validateGetCommon(w, r); err != nil {
@@ -63,6 +63,13 @@ func getAccountUser(w http.ResponseWriter, r *http.Request) {
 // Request: GET /account/:AccountID/users
 // Test with: curl -i localhost/account/:AccountID/users
 func getAccountUserList(w http.ResponseWriter, r *http.Request) {
+	// Validate request
+	if err := validateGetCommon(w, r); err != nil {
+		errorHappened(err, http.StatusBadRequest, r, w)
+		return
+	}
+
+	// Declare vars
 	var (
 		accountID    int64
 		account      *entity.Account
@@ -84,11 +91,13 @@ func getAccountUserList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Read account users
 	if accountUsers, err = core.ReadAccountUserList(accountID); err != nil {
 		errorHappened(err, http.StatusInternalServerError, r, w)
 		return
 	}
 
+	// Create response
 	response := &struct {
 		entity.Account
 		AccountUsers []*entity.AccountUser `json:"accountUsers"`

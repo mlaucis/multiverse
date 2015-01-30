@@ -82,7 +82,7 @@ type (
 
 	// Application structure
 	Application struct {
-		ID          uint64 `json:"id"`
+		ID          int64  `json:"id"`
 		AccountID   int64  `json:"account_id"`
 		AuthToken   string `json:"auth_token"`
 		Name        string `json:"name"`

@@ -12,7 +12,7 @@ import (
 	"github.com/tapglue/backend/redis"
 )
 
-// Defining redis keys
+// Defining keys
 const (
 	AccountUserKey  string = "account_%d_user_%d"
 	AccountUsersKey string = "account_%d_users"
@@ -54,15 +54,11 @@ func ReadAccountUserList(accountID int64) (accountUsers []*entity.AccountUser, e
 		return nil, err
 	}
 
-	fmt.Printf("%v\n", result)
-
 	// Read from db
 	resultList, err := redis.Client().MGet(result...).Result()
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Printf("%v\n", resultList)
 
 	// Parse JSON
 	accountUser := &entity.AccountUser{}
@@ -79,7 +75,7 @@ func ReadAccountUserList(accountID int64) (accountUsers []*entity.AccountUser, e
 
 // WriteAccountUser adds a new account user to the database and returns the created account user or an error
 func WriteAccountUser(accountUser *entity.AccountUser, retrieve bool) (accUser *entity.AccountUser, err error) {
-	// Generate account id
+	// Generate id
 	if accountUser.ID, err = generateAccountUserID(accountUser.AccountID); err != nil {
 		return nil, err
 	}

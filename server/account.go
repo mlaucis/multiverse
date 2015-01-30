@@ -17,8 +17,8 @@ import (
 )
 
 // getAccount handles requests to a single account
-// Request: GET /account/:AccountID
-// Test with: curl -i localhost/account/:AccountID
+// Request: GET /account/:ID
+// Test with: curl -i localhost/account/:ID
 func getAccount(w http.ResponseWriter, r *http.Request) {
 	// Validate request
 	if err := validateGetCommon(w, r); err != nil {

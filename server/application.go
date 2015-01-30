@@ -11,34 +11,44 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
+	"github.com/tapglue/backend/core"
 	"github.com/tapglue/backend/core/entity"
-	"github.com/tapglue/backend/mysql"
 )
 
-// getAccountApplications handles requests to a single application
-// Request: GET /app/:AppID
-// Test with: curl -i localhost/app/:AppID
-func getAccountApplication(w http.ResponseWriter, r *http.Request) {
+// getApplication handles requests to a single application
+// Request: GET /account/:AccountID/application/:ID
+// Test with: curl -i localhost/account/:AccountID/application/:ID
+func getApplication(w http.ResponseWriter, r *http.Request) {
+	// Validate request
 	if err := validateGetCommon(w, r); err != nil {
 		errorHappened(err, http.StatusBadRequest, r, w)
 		return
 	}
 
+	// Declare vars
 	var (
 		application *entity.Application
-		appID       uint64
+		accountID   int64
+		appID       int64
 		err         error
 	)
 	// Read variables from request
 	vars := mux.Vars(r)
 
+	// Read accountID
+	if accountID, err = strconv.ParseInt(vars["accountId"], 10, 64); err != nil {
+		errorHappened(fmt.Errorf("accountId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
+		return
+	}
+
 	// Read appID
-	if appID, err = strconv.ParseUint(vars["appId"], 10, 64); err != nil {
+	if appID, err = strconv.ParseInt(vars["appId"], 10, 64); err != nil {
 		errorHappened(fmt.Errorf("appId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
 		return
 	}
 
-	if application, err = mysql.GetApplicationByID(appID); err != nil {
+	// Read application
+	if application, err = core.ReadApplication(accountID, appID); err != nil {
 		errorHappened(err, http.StatusInternalServerError, r, w)
 		return
 	}
@@ -47,15 +57,17 @@ func getAccountApplication(w http.ResponseWriter, r *http.Request) {
 	writeResponse(application, http.StatusOK, 10, w, r)
 }
 
-// getAccountApplicationList handles requests list all account applications
+// getApplicationList handles requests list all account applications
 // Request: GET /account/:AccountID/applications
 // Test with: curl -i localhost/account/:AccountID/applications
-func getAccountApplicationList(w http.ResponseWriter, r *http.Request) {
+func getApplicationList(w http.ResponseWriter, r *http.Request) {
+	// Validate request
 	if err := validateGetCommon(w, r); err != nil {
 		errorHappened(err, http.StatusBadRequest, r, w)
 		return
 	}
 
+	// Declare vars
 	var (
 		account      *entity.Account
 		applications []*entity.Application
@@ -71,17 +83,19 @@ func getAccountApplicationList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Read account from database
-	if account, err = mysql.GetAccountByID(accountID); err != nil {
+	// Read account
+	if account, err = core.ReadAccount(accountID); err != nil {
 		errorHappened(err, http.StatusInternalServerError, r, w)
 		return
 	}
 
-	if applications, err = mysql.GetAccountAllApplications(accountID); err != nil {
+	// Read applications
+	if applications, err = core.ReadApplicationList(accountID); err != nil {
 		errorHappened(err, http.StatusInternalServerError, r, w)
 		return
 	}
 
+	// Create response
 	response := &struct {
 		entity.Account
 		Applications []*entity.Application `json:"applications"`
@@ -94,40 +108,50 @@ func getAccountApplicationList(w http.ResponseWriter, r *http.Request) {
 	writeResponse(response, http.StatusOK, 10, w, r)
 }
 
-// createAccountApplication handles requests create an application
-// Request: POST /account/:AccountID/app
-// Test with: curl -i -H "Content-Type: application/json" -d '{"key": "hmac(256)", "name":"New App"}' localhost/account/:AccountID/app
-func createAccountApplication(w http.ResponseWriter, r *http.Request) {
+// createApplication handles requests create an application
+// Request: POST /account/:AccountID/applications
+// Test with: curl -i -H "Content-Type: application/json" -d '{"key": "hmac(256)", "name":"New App"}' localhost/account/:AccountID/applications
+func createApplication(w http.ResponseWriter, r *http.Request) {
+	// Validate request
 	if err := validatePostCommon(w, r); err != nil {
 		errorHappened(err, http.StatusBadRequest, r, w)
 		return
 	}
 
+	// Declare vars
 	var (
 		application = &entity.Application{}
 		accountID   int64
 		err         error
 	)
-	// Read variables from request
+	// Read vars
 	vars := mux.Vars(r)
 
+	// Read accountID
 	if accountID, err = strconv.ParseInt(vars["accountId"], 10, 64); err != nil {
 		errorHappened(fmt.Errorf("accountId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
 		return
 	}
 
+	// Decode JSON
 	decoder := json.NewDecoder(r.Body)
 	if err = decoder.Decode(application); err != nil {
 		errorHappened(err, http.StatusBadRequest, r, w)
 		return
 	}
 
+	// Set values
+	application.AccountID = accountID
+	application.Enabled = true
+
 	// TODO validation should be added here, for example, name shouldn't be empty ;)
 
-	if application, err = mysql.AddAccountApplication(accountID, application); err != nil {
+	// Write resource
+	if application, err = core.WriteApplication(application, true); err != nil {
 		errorHappened(err, http.StatusInternalServerError, r, w)
 		return
 	}
 
+	// Write response
 	writeResponse(application, http.StatusCreated, 0, w, r)
 }
