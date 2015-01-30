@@ -6,7 +6,7 @@ import (
 )
 
 func AddCorrectAccount() *entity.Account {
-	savedAccount, err := core.AddAccount(correctAccount, true)
+	savedAccount, err := core.WriteAccount(correctAccount, true)
 	if err != nil {
 		panic(err)
 	}

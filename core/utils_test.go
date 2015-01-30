@@ -10,7 +10,7 @@ import (
 
 // Create a correct account
 func AddCorrectAccount() *entity.Account {
-	savedAccount, err := AddAccount(correctAccount, true)
+	savedAccount, err := WriteAccount(correctAccount, true)
 	if err != nil {
 		panic(err)
 	}
@@ -130,6 +130,12 @@ func UpdateEvent(appID, token string) {
 }
 
 */
+
+// Empty account struct
+func EmptyAccount() {
+	emtpyAccount.ID = 0
+	emtpyAccount.Name = ""
+}
 
 // RandomToken returns a random Token
 func RandomToken() string {
