@@ -12,7 +12,7 @@ import (
 	"testing"
 
 	"github.com/tapglue/backend/config"
-	"github.com/tapglue/backend/redis"
+	"github.com/tapglue/backend/storage/redis"
 	. "gopkg.in/check.v1"
 )
 

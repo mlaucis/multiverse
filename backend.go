@@ -12,8 +12,10 @@ import (
 	"time"
 
 	"github.com/tapglue/backend/config"
-	"github.com/tapglue/backend/redis"
+	"github.com/tapglue/backend/core"
 	"github.com/tapglue/backend/server"
+	"github.com/tapglue/backend/storage"
+	"github.com/tapglue/backend/storage/redis"
 
 	"github.com/yvasiyarov/gorelic"
 )
@@ -31,13 +33,17 @@ var (
 func init() {
 	// Use all available CPU's
 	runtime.GOMAXPROCS(runtime.NumCPU())
+
+	// Seed random generator
 	rand.Seed(time.Now().UTC().UnixNano())
 
 	// Get configuration
 	conf = config.NewConf(EnvConfigVar)
 
-	// Initialize redis
+	// Initialize components
 	redis.Init(conf.Redis.Hosts[0], conf.Redis.Password, conf.Redis.DB, conf.Redis.PoolSize)
+	storageClient := storage.Init(redis.Client())
+	core.Init(storageClient)
 }
 
 func main() {

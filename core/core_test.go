@@ -9,7 +9,8 @@ import (
 	"testing"
 
 	"github.com/tapglue/backend/config"
-	"github.com/tapglue/backend/redis"
+	"github.com/tapglue/backend/storage"
+	"github.com/tapglue/backend/storage/redis"
 
 	. "gopkg.in/check.v1"
 )
@@ -30,4 +31,7 @@ func (ass *CoreSuite) SetUpSuite(c *C) {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	conf = config.NewConf("")
 	redis.Init(conf.Redis.Hosts[0], conf.Redis.Password, conf.Redis.DB, conf.Redis.PoolSize)
+	redis.Client().FlushDb()
+	storageClient := storage.Init(redis.Client())
+	Init(storageClient)
 }

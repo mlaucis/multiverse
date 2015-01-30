@@ -7,34 +7,23 @@ package core
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 
 	"github.com/tapglue/backend/core/entity"
-	"github.com/tapglue/backend/redis"
 	red "gopkg.in/redis.v2"
 )
 
-// Defining keys
-const (
-	EventKey                string = "app_%d_user_%d_event_%d"
-	EventsKey               string = "app_%d_user_%d_events"
-	ConnectionEventsKey     string = "app_%d_user_%d_connection_events"
-	ConnectionEventsKeyLoop string = "%s_connection_events"
-)
-
 // generateEventID generates a new event ID
-func generateEventID(applicationID int64, userID int64) (int64, error) {
-	incr := redis.Client().Incr(fmt.Sprintf("ids_application_%d_user_%d_event", applicationID, userID))
-	return incr.Result()
+func generateEventID(applicationID int64) (int64, error) {
+	return storageEngine.Incr(storageClient.GenerateApplicationEventID(applicationID)).Result()
 }
 
 // ReadEvent returns the event matching the ID or an error
-func ReadEvent(applicationID int64, userID int64, eventID int64) (event *entity.Event, err error) {
+func ReadEvent(applicationID, userID, eventID int64) (event *entity.Event, err error) {
 	// Generate resource key
-	key := fmt.Sprintf(EventKey, applicationID, userID, eventID)
+	key := storageClient.EventKey(applicationID, userID, eventID)
 
 	// Read from db
-	result, err := redis.Client().Get(key).Result()
+	result, err := storageEngine.Get(key).Result()
 	if err != nil {
 		return nil, err
 	}
@@ -48,12 +37,12 @@ func ReadEvent(applicationID int64, userID int64, eventID int64) (event *entity.
 }
 
 // ReadEventList returns all events from a certain user
-func ReadEventList(applicationID int64, userID int64) (events []*entity.Event, err error) {
+func ReadEventList(applicationID, userID int64) (events []*entity.Event, err error) {
 	// Generate resource key
-	key := fmt.Sprintf(EventsKey, applicationID, userID)
+	key := storageClient.EventsKey(applicationID, userID)
 
 	// Read from db
-	result, err := redis.Client().LRange(key, 0, -1).Result()
+	result, err := storageEngine.LRange(key, 0, -1).Result()
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +54,7 @@ func ReadEventList(applicationID int64, userID int64) (events []*entity.Event, e
 	}
 
 	// Read from db
-	resultList, err := redis.Client().MGet(result...).Result()
+	resultList, err := storageEngine.MGet(result...).Result()
 	if err != nil {
 		return nil, err
 	}
@@ -84,12 +73,12 @@ func ReadEventList(applicationID int64, userID int64) (events []*entity.Event, e
 }
 
 // ReadConnectionEventList returns all events from connections
-func ReadConnectionEventList(applicationID int64, userID int64) (events []*entity.Event, err error) {
+func ReadConnectionEventList(applicationID, userID int64) (events []*entity.Event, err error) {
 	// Generate resource key
-	key := fmt.Sprintf(ConnectionEventsKey, applicationID, userID)
+	key := storageClient.ConnectionEventsKey(applicationID, userID)
 
 	// Read from db
-	result, err := redis.Client().LRange(key, 0, -1).Result()
+	result, err := storageEngine.LRange(key, 0, -1).Result()
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +90,7 @@ func ReadConnectionEventList(applicationID int64, userID int64) (events []*entit
 	}
 
 	// Read from db
-	resultList, err := redis.Client().MGet(result...).Result()
+	resultList, err := storageEngine.MGet(result...).Result()
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +112,7 @@ func ReadConnectionEventList(applicationID int64, userID int64) (events []*entit
 func WriteEvent(event *entity.Event, retrieve bool) (evn *entity.Event, err error) {
 
 	// Generate id
-	if event.ID, err = generateEventID(event.ApplicationID, event.UserID); err != nil {
+	if event.ID, err = generateEventID(event.ApplicationID); err != nil {
 		return nil, err
 	}
 
@@ -134,37 +123,38 @@ func WriteEvent(event *entity.Event, retrieve bool) (evn *entity.Event, err erro
 	}
 
 	// Generate resource key
-	key := fmt.Sprintf(EventKey, event.ApplicationID, event.UserID, event.ID)
+	key := storageClient.EventKey(event.ApplicationID, event.UserID, event.ID)
 
 	// Write resource
-	if err = redis.Client().Set(key, string(val)).Err(); err != nil {
+	if err = storageEngine.Set(key, string(val)).Err(); err != nil {
 		return nil, err
 	}
 
 	// Generate list key
-	listKey := fmt.Sprintf(EventsKey, event.ApplicationID, event.UserID)
+	listKey := storageClient.EventsKey(event.ApplicationID, event.UserID)
 
 	// Write list
-	if err = redis.Client().LPush(listKey, key).Err(); err != nil {
+	if err = storageEngine.LPush(listKey, key).Err(); err != nil {
 		return nil, err
 	}
 
 	// Generate connections key
-	connectionsKey := fmt.Sprintf(FollowedByUsersKey, event.ApplicationID, event.UserID)
+	connectionsKey := storageClient.FollowedByUsersKey(event.ApplicationID, event.UserID)
 
 	// Read connections
-	connections, err := redis.Client().LRange(connectionsKey, 0, -1).Result()
+	connections, err := storageEngine.LRange(connectionsKey, 0, -1).Result()
 	if err != nil {
 		return nil, err
 	}
 
 	// Write to connections lists
-	for _, each := range connections {
+	for _, userID := range connections {
 		// Create Key
-		feedKey := fmt.Sprintf(ConnectionEventsKeyLoop, each)
+		feedKey := storageClient.ConnectionEventsKeyLoop(userID)
+
 		// Write to lists
 		val := red.Z{Score: float64(event.ReceivedAt), Member: key}
-		if err = redis.Client().ZAdd(feedKey, val).Err(); err != nil {
+		if err = storageEngine.ZAdd(feedKey, val).Err(); err != nil {
 			return nil, err
 		}
 	}

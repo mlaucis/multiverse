@@ -4,17 +4,11 @@
 
 package core
 
-import . "gopkg.in/check.v1"
+import (
+	"github.com/tapglue/backend/core/entity"
 
-// WriteAccount test to write empty entity
-// func (cs *CoreSuite) TestWriteAccount_Empty(c *C) {
-// 	// Write account
-// 	savedAccount, err := WriteAccount(emtpyAccount, true)
-
-// 	// Perform tests
-// 	c.Assert(savedAccount, IsNil)
-// 	c.Assert(err, NotNil)
-// }
+	. "gopkg.in/check.v1"
+)
 
 // WriteAccount test to write account entity with just a name
 func (cs *CoreSuite) TestWriteAccount_Correct(c *C) {
@@ -41,21 +35,27 @@ func (cs *CoreSuite) TestReadAccount(c *C) {
 	c.Assert(getAccount, DeepEquals, savedAccount)
 }
 
-// BenchmarkWriteAccount executes WriteAccount 1000 times
-func (cs *CoreSuite) BenchmarkWriteAccount(c *C) {
+// BenchmarkAccountStep1Write executes WriteAccount 1000 times
+func (cs *CoreSuite) BenchmarkAccountStep1Write(c *C) {
 	var i int64
-	// Loop to create 1000 accounts
+
 	for i = 1; i <= 1000; i++ {
 		correctAccount.ID = i
 		_, _ = WriteAccount(correctAccount, false)
 	}
 }
 
-// BenchmarkReadAccount executes ReadAccount 1000 times
-func (cs *CoreSuite) BenchmarkReadAccount(c *C) {
-	var i int64
-	// Loop to create 1000 accounts
+// BenchmarkAccountStep2Write executes ReadAccount 1000 times
+func (cs *CoreSuite) BenchmarkAccountStep2Read(c *C) {
+	var (
+		i        int64
+		accounts = make(map[int64]*entity.Account)
+	)
+
 	for i = 1; i <= 1000; i++ {
-		_, _ = ReadAccount(i)
+		account, _ := ReadAccount(i)
+		accounts[i] = account
 	}
+
+	accounts = nil
 }

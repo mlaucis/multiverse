@@ -15,7 +15,9 @@ type (
 	}
 )
 
-var redisClient *cli
+var (
+	redisClient *cli
+)
 
 // Init initializes the redis client
 func Init(address, password string, db int64, poolSize int) {

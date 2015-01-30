@@ -7,31 +7,28 @@ package core
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 
 	"github.com/tapglue/backend/core/entity"
-	"github.com/tapglue/backend/redis"
 )
 
 // Defining keys
 const (
-	UserKey  string = "app_%d_user_%d"
-	UsersKey string = "app_%d_users"
+	_UserKey  string = "app_%d_user_%d"
+	_UsersKey string = "app_%d_users"
 )
 
 // generateUserID generates a new user ID
 func generateUserID(applicationID int64) (int64, error) {
-	incr := redis.Client().Incr(fmt.Sprintf("ids_application_%d_user", applicationID))
-	return incr.Result()
+	return storageEngine.Incr(storageClient.GenerateApplicationUserID(applicationID)).Result()
 }
 
 // ReadUser returns the user matching the ID or an error
 func ReadUser(applicationID int64, userID int64) (user *entity.User, err error) {
 	// Generate resource key
-	key := fmt.Sprintf(UserKey, applicationID, userID)
+	key := storageClient.UserKey(applicationID, userID)
 
 	// Read from db
-	result, err := redis.Client().Get(key).Result()
+	result, err := storageEngine.Get(key).Result()
 	if err != nil {
 		return nil, err
 	}
@@ -47,10 +44,10 @@ func ReadUser(applicationID int64, userID int64) (user *entity.User, err error) 
 // ReadUserList returns all users from a certain account
 func ReadUserList(applicationID int64) (users []*entity.User, err error) {
 	// Generate resource key
-	key := fmt.Sprintf(UsersKey, applicationID)
+	key := storageClient.UsersKey(applicationID)
 
 	// Read from db
-	result, err := redis.Client().LRange(key, 0, -1).Result()
+	result, err := storageEngine.LRange(key, 0, -1).Result()
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +59,7 @@ func ReadUserList(applicationID int64) (users []*entity.User, err error) {
 	}
 
 	// Read from db
-	resultList, err := redis.Client().MGet(result...).Result()
+	resultList, err := storageEngine.MGet(result...).Result()
 	if err != nil {
 		return nil, err
 	}
@@ -94,18 +91,18 @@ func WriteUser(user *entity.User, retrieve bool) (usr *entity.User, err error) {
 	}
 
 	// Generate resource key
-	key := fmt.Sprintf(UserKey, user.ApplicationID, user.ID)
+	key := storageClient.UserKey(user.ApplicationID, user.ID)
 
 	// Write resource
-	if err = redis.Client().Set(key, string(val)).Err(); err != nil {
+	if err = storageEngine.Set(key, string(val)).Err(); err != nil {
 		return nil, err
 	}
 
 	// Generate list key
-	listKey := fmt.Sprintf(UsersKey, user.ApplicationID)
+	listKey := storageClient.UsersKey(user.ApplicationID)
 
 	// Write list
-	if err = redis.Client().LPush(listKey, key).Err(); err != nil {
+	if err = storageEngine.LPush(listKey, key).Err(); err != nil {
 		return nil, err
 	}
 

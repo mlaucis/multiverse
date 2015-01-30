@@ -7,27 +7,16 @@ package core
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 
 	"github.com/tapglue/backend/core/entity"
-	"github.com/tapglue/backend/redis"
-)
-
-// Defining keys
-const (
-	ConnectionKey      string = "app_%d_user_%d_follows_%d"
-	ConnectionsKey     string = "app_%d_user_%d_connections"
-	ConnectionUsersKey string = "app_%d_user_%d_follows_users"
-	FollowedByUsersKey string = "app_%d_user_%d_followed_by_users"
 )
 
 // ReadConnectionList returns all connections from a certain user
-func ReadConnectionList(applicationID int64, userID int64) (users []*entity.User, err error) {
-	// Generate resource key
-	key := fmt.Sprintf(ConnectionUsersKey, applicationID, userID)
+func ReadConnectionList(applicationID, userID int64) (users []*entity.User, err error) {
+	key := storageClient.ConnectionUsersKey(applicationID, userID)
 
 	// Read from db
-	result, err := redis.Client().LRange(key, 0, -1).Result()
+	result, err := storageEngine.LRange(key, 0, -1).Result()
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +28,7 @@ func ReadConnectionList(applicationID int64, userID int64) (users []*entity.User
 	}
 
 	// Read from db
-	resultList, err := redis.Client().MGet(result...).Result()
+	resultList, err := storageEngine.MGet(result...).Result()
 	if err != nil {
 		return nil, err
 	}
@@ -66,40 +55,40 @@ func WriteConnection(connection *entity.Connection, retrieve bool) (con *entity.
 	}
 
 	// Generate resource key
-	key := fmt.Sprintf(ConnectionKey, connection.ApplicationID, connection.UserFromID, connection.UserToID)
+	key := storageClient.ConnectionKey(connection.ApplicationID, connection.UserFromID, connection.UserToID)
 
 	// Write resource
-	if err = redis.Client().Set(key, string(val)).Err(); err != nil {
+	if err = storageEngine.Set(key, string(val)).Err(); err != nil {
 		return nil, err
 	}
 
 	// Generate list key
-	listKey := fmt.Sprintf(ConnectionsKey, connection.ApplicationID, connection.UserFromID)
+	listKey := storageClient.ConnectionsKey(connection.ApplicationID, connection.UserFromID)
 
 	// Write list
-	if err = redis.Client().LPush(listKey, key).Err(); err != nil {
+	if err = storageEngine.LPush(listKey, key).Err(); err != nil {
 		return nil, err
 	}
 
 	// Generate list key
-	userListKey := fmt.Sprintf(ConnectionUsersKey, connection.ApplicationID, connection.UserFromID)
+	userListKey := storageClient.ConnectionUsersKey(connection.ApplicationID, connection.UserFromID)
 
 	// Generate following key
-	userKey := fmt.Sprintf(UserKey, connection.ApplicationID, connection.UserToID)
+	userKey := storageClient.UserKey(connection.ApplicationID, connection.UserToID)
 
 	// Write list
-	if err = redis.Client().LPush(userListKey, userKey).Err(); err != nil {
+	if err = storageEngine.LPush(userListKey, userKey).Err(); err != nil {
 		return nil, err
 	}
 
 	// Generate list key
-	followerListKey := fmt.Sprintf(FollowedByUsersKey, connection.ApplicationID, connection.UserToID)
+	followerListKey := storageClient.FollowedByUsersKey(connection.ApplicationID, connection.UserToID)
 
 	// Generate follower key
-	followerKey := fmt.Sprintf(UserKey, connection.ApplicationID, connection.UserFromID)
+	followerKey := storageClient.UserKey(connection.ApplicationID, connection.UserFromID)
 
 	// Write list
-	if err = redis.Client().LPush(followerListKey, followerKey).Err(); err != nil {
+	if err = storageEngine.LPush(followerListKey, followerKey).Err(); err != nil {
 		return nil, err
 	}
 
