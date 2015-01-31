@@ -8,6 +8,7 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	_ "net/http/pprof"
 	"runtime"
 	"time"
 
@@ -60,7 +61,7 @@ func main() {
 	}
 
 	// Get router
-	router := server.GetRouter(newRelicAgent)
+	router := server.GetRouter(conf.Environment != "prod", newRelicAgent)
 
 	// Start server
 	log.Fatal(http.ListenAndServe(conf.ListenHostPort, router))

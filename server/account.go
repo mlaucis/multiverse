@@ -79,7 +79,8 @@ func createAccount(w http.ResponseWriter, r *http.Request) {
 	account.Enabled = true
 
 	// Validate resource
-	if err = validator.ValidateAccount(account); err != nil {
+	if err = validator.CreateAccount(account); err != nil {
+		errorHappened(err, http.StatusBadRequest, r, w)
 		return
 	}
 

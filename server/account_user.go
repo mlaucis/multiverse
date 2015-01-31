@@ -147,7 +147,7 @@ func createAccountUser(w http.ResponseWriter, r *http.Request) {
 	accountUser.Enabled = true
 
 	// Validate resource
-	if err = validator.ValidateAccountUser(accountUser); err != nil {
+	if err = validator.CreateAccountUser(accountUser); err != nil {
 		return
 	}
 

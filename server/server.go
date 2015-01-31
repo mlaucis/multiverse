@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/http/pprof"
 	"path/filepath"
 	"runtime"
 	"strconv"
@@ -184,7 +185,7 @@ Disallow: /`))
 }
 
 // GetRouter creates the router
-func GetRouter(newRelicAgent *gorelic.Agent) *mux.Router {
+func GetRouter(debugMode bool, newRelicAgent *gorelic.Agent) *mux.Router {
 
 	// Create router
 	router := mux.NewRouter().StrictSlash(true)
@@ -197,6 +198,13 @@ func GetRouter(newRelicAgent *gorelic.Agent) *mux.Router {
 				Name(route.name).
 				Handler(Logger(route.handlerFunc, route.name, newRelicAgent))
 		}
+	}
+
+	if debugMode {
+		router.Handle("/debug/pprof/", http.HandlerFunc(pprof.Index))
+		router.Handle("/debug/pprof/cmdline", http.HandlerFunc(pprof.Cmdline))
+		router.Handle("/debug/pprof/profile", http.HandlerFunc(pprof.Profile))
+		router.Handle("/debug/pprof/symbol", http.HandlerFunc(pprof.Symbol))
 	}
 
 	// Return router

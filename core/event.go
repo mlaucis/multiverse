@@ -157,7 +157,7 @@ func WriteEvent(event *entity.Event, retrieve bool) (evn *entity.Event, err erro
 		feedKey := storageClient.ConnectionEventsKeyLoop(userID)
 
 		// Write to lists
-		val := red.Z{Score: float64(event.ReceivedAt), Member: key}
+		val := red.Z{Score: float64(event.ReceivedAt.Unix()), Member: key}
 		if err = storageEngine.ZAdd(feedKey, val).Err(); err != nil {
 			return nil, err
 		}

@@ -223,9 +223,7 @@ func createEvent(w http.ResponseWriter, r *http.Request) {
 	// Set values
 	event.ApplicationID = appID
 	event.UserID = userID
-	event.ReceivedAt = time.Now().UTC().UnixNano()
-
-	// TODO validation should be added here, for example, name shouldn't be empty ;)
+	event.ReceivedAt = time.Now().UTC()
 
 	// Write resource
 	if event, err = core.WriteEvent(event, true); err != nil {

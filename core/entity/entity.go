@@ -15,20 +15,19 @@ type (
 		Enabled    bool      `json:"enabled,omitempty"`
 		CreatedAt  time.Time `json:"created_at"`
 		UpdatedAt  time.Time `json:"updated_at"`
-		ReceivedAt int64     `json:"received_at"`
+		ReceivedAt time.Time `json:"received_at"`
 	}
 
 	// UserCommon holds common used fields for users
 	UserCommon struct {
-		Username    string    `json:"user_name"`
-		Password    string    `json:"password,omitempty"`
-		DisplayName string    `json:"display_name,omitempty"`
-		FirstName   string    `json:"first_name,omitempty"`
-		LastName    string    `json:"last_name,omitempty"`
-		Email       string    `json:"email,omitempty"`
-		URL         string    `json:"url,omitempty"`
-		Activated   string    `json:"activated,omitempty"`
-		LastLogin   time.Time `json:"last_login,omitempty"`
+		Username  string    `json:"user_name"`
+		Password  string    `json:"password,omitempty"`
+		FirstName string    `json:"first_name,omitempty"`
+		LastName  string    `json:"last_name,omitempty"`
+		Email     string    `json:"email,omitempty"`
+		URL       string    `json:"url,omitempty"`
+		Activated bool      `json:"activated,omitempty"`
+		LastLogin time.Time `json:"last_login,omitempty"`
 	}
 
 	// Image structure
@@ -49,10 +48,9 @@ type (
 
 	// Participant structure
 	Participant struct {
-		ID          string   `json:"id"`
-		URL         string   `json:"url,omitempty"`
-		DisplayName string   `json:"display_name"`
-		Image       []*Image `json:"image,omitempty"`
+		ID    string   `json:"id"`
+		URL   string   `json:"url,omitempty"`
+		Image []*Image `json:"image,omitempty"`
 	}
 
 	// Account structure
@@ -60,7 +58,6 @@ type (
 		ID          int64  `json:"id"`
 		Name        string `json:"name"`
 		Description string `json:"description"`
-		Enabled     bool   `json:"enabled"`
 		Common
 	}
 
@@ -126,9 +123,9 @@ type (
 		GPSAdID      string `json:"gps_adid,omitempty"`
 		AndroidID    string `json:"android_id,omitempty"`
 		PushToken    string `json:"push_token,omitempty"`
-		Mac          string `json:"mac,omitempty"`
-		MacMD5       string `json:"mac_md5,omitempty"`
-		MacSHA1      string `json:"mac_sha1,omitempty"`
+		MAC          string `json:"mac,omitempty"`
+		MACMD5       string `json:"mac_md5,omitempty"`
+		MACSHA1      string `json:"mac_sha1,omitempty"`
 		Platform     string `json:"platfrom"`
 		OSVersion    string `json:"os_version"`
 		Browser      string `json:"browser,omitempty"`
