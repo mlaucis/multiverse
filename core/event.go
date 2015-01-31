@@ -78,20 +78,23 @@ func ReadConnectionEventList(applicationID, userID int64) (events []*entity.Even
 	key := storageClient.ConnectionEventsKey(applicationID, userID)
 
 	// Read from db
-	result, err := storageEngine.LRange(key, 0, -1).Result()
+	result, err := storageEngine.ZRevRange(key, "0", "-1").Result()
 	if err != nil {
+		panic(err)
 		return nil, err
 	}
 
 	// Return no elements
 	if len(result) == 0 {
 		err := errors.New("There are no events from connections")
+		panic(err)
 		return nil, err
 	}
 
 	// Read from db
 	resultList, err := storageEngine.MGet(result...).Result()
 	if err != nil {
+		panic(err)
 		return nil, err
 	}
 
@@ -99,6 +102,7 @@ func ReadConnectionEventList(applicationID, userID int64) (events []*entity.Even
 	event := &entity.Event{}
 	for _, result := range resultList {
 		if err = json.Unmarshal([]byte(result.(string)), event); err != nil {
+			panic(err)
 			return nil, err
 		}
 		events = append(events, event)
