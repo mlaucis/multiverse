@@ -189,13 +189,14 @@ func GetRouter(newRelicAgent *gorelic.Agent) *mux.Router {
 	// Create router
 	router := mux.NewRouter().StrictSlash(true)
 
-	// Read routes
-	for _, route := range routes {
-		router.
-			Methods(route.method).
-			Path(route.pattern).
-			Name(route.name).
-			Handler(Logger(route.handlerFunc, route.name, newRelicAgent))
+	for version, innerRoutes := range routes {
+		for _, route := range innerRoutes {
+			router.
+				Methods(route.method).
+				Path(fmt.Sprintf("/%s%s", version, route.pattern)).
+				Name(route.name).
+				Handler(Logger(route.handlerFunc, route.name, newRelicAgent))
+		}
 	}
 
 	// Return router

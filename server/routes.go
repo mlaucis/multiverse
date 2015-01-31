@@ -15,133 +15,135 @@ type route struct {
 }
 
 // Route definitions
-var routes = map[string]*route{
-	// General
-	"Index": &route{
-		"Index",
-		"GET",
-		"/",
-		home,
-	},
-	// Account
-	"getAccount": &route{
-		"getAccount",
-		"GET",
-		"/account/{accountId:[0-9]{1,20}}",
-		getAccount,
-	},
-	"createAccount": &route{
-		"createAccount",
-		"POST",
-		"/accounts",
-		createAccount,
-	},
-	// AccountUser
-	"getAccountUser": &route{
-		"getAccountUser",
-		"GET",
-		"/account/{accountId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}",
-		getAccountUser,
-	},
-	"createAccountUser": &route{
-		"createAccountUser",
-		"POST",
-		"/account/{accountId:[0-9]{1,20}}/users",
-		createAccountUser,
-	},
-	"getAccountUserList": &route{
-		"getAccountUserList",
-		"GET",
-		"/account/{accountId:[0-9]{1,20}}/users",
-		getAccountUserList,
-	},
-	// Application
-	"getApplication": &route{
-		"getApplication",
-		"GET",
-		"/account/{accountId:[0-9]{1,20}}/application/{appId:[0-9]{1,20}}",
-		getApplication,
-	},
-	"createApplication": &route{
-		"createApplication",
-		"POST",
-		"/account/{accountId:[0-9]{1,20}}/applications",
-		createApplication,
-	},
-	"getApplications": &route{
-		"getApplications",
-		"GET",
-		"/account/{accountId:[0-9]{1,20}}/applications",
-		getApplicationList,
-	},
-	// User
-	"getUser": &route{
-		"getUser",
-		"GET",
-		"/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}",
-		getUser,
-	},
-	"createUser": &route{
-		"createUser",
-		"POST",
-		"/application/{appId:[0-9]{1,20}}/users",
-		createUser,
-	},
-	// "getUserList": &route{
-	// 	"getUserList",
-	// 	"GET",
-	// 	"/application/{appId:[0-9]{1,20}}/users",
-	// 	getUserList,
-	// },
-	// UserConnection
-	"createConnection": &route{
-		"createConnection",
-		"POST",
-		"/application/{appId:[0-9]{1,20}}/connections",
-		createConnection,
-	},
-	"getConnectionList": &route{
-		"getConnectionList",
-		"GET",
-		"/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/connections",
-		getConnectionList,
-	},
-	// Event
-	"getEvent": &route{
-		"getEvent",
-		"GET",
-		"/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/event/{eventId:[0-9]{1,20}}",
-		getEvent,
-	},
-	"createEvent": &route{
-		"createEvent",
-		"POST",
-		"/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/events",
-		createEvent,
-	},
-	"getEventList": &route{
-		"getEventList",
-		"GET",
-		"/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/events",
-		getEventList,
-	},
-	"getConnectionEventList": &route{
-		"getConnectionEventList",
-		"GET",
-		"/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/connections/events",
-		getConnectionEventList,
-	},
-	// Other
-	"humans.txt": &route{
-		"humans.txt",
-		"GET",
-		"/humans.txt",
-		humans,
-	},
-	"robots": &route{
-		"robots",
-		"GET",
-		"/robots.txt",
-		robots,
+var routes = map[string]map[string]*route{
+	"0.1": {
+		// General
+		"Index": &route{
+			"Index",
+			"GET",
+			"/",
+			home,
+		},
+		// Account
+		"getAccount": &route{
+			"getAccount",
+			"GET",
+			"/account/{accountId:[0-9]{1,20}}",
+			getAccount,
+		},
+		"createAccount": &route{
+			"createAccount",
+			"POST",
+			"/accounts",
+			createAccount,
+		},
+		// AccountUser
+		"getAccountUser": &route{
+			"getAccountUser",
+			"GET",
+			"/account/{accountId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}",
+			getAccountUser,
+		},
+		"createAccountUser": &route{
+			"createAccountUser",
+			"POST",
+			"/account/{accountId:[0-9]{1,20}}/users",
+			createAccountUser,
+		},
+		"getAccountUserList": &route{
+			"getAccountUserList",
+			"GET",
+			"/account/{accountId:[0-9]{1,20}}/users",
+			getAccountUserList,
+		},
+		// Application
+		"getApplication": &route{
+			"getApplication",
+			"GET",
+			"/account/{accountId:[0-9]{1,20}}/application/{appId:[0-9]{1,20}}",
+			getApplication,
+		},
+		"createApplication": &route{
+			"createApplication",
+			"POST",
+			"/account/{accountId:[0-9]{1,20}}/applications",
+			createApplication,
+		},
+		"getApplications": &route{
+			"getApplications",
+			"GET",
+			"/account/{accountId:[0-9]{1,20}}/applications",
+			getApplicationList,
+		},
+		// User
+		"getUser": &route{
+			"getUser",
+			"GET",
+			"/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}",
+			getUser,
+		},
+		"createUser": &route{
+			"createUser",
+			"POST",
+			"/application/{appId:[0-9]{1,20}}/users",
+			createUser,
+		},
+		// "getUserList": &route{
+		// 	"getUserList",
+		// 	"GET",
+		// 	"/application/{appId:[0-9]{1,20}}/users",
+		// 	getUserList,
+		// },
+		// UserConnection
+		"createConnection": &route{
+			"createConnection",
+			"POST",
+			"/application/{appId:[0-9]{1,20}}/connections",
+			createConnection,
+		},
+		"getConnectionList": &route{
+			"getConnectionList",
+			"GET",
+			"/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/connections",
+			getConnectionList,
+		},
+		// Event
+		"getEvent": &route{
+			"getEvent",
+			"GET",
+			"/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/event/{eventId:[0-9]{1,20}}",
+			getEvent,
+		},
+		"createEvent": &route{
+			"createEvent",
+			"POST",
+			"/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/events",
+			createEvent,
+		},
+		"getEventList": &route{
+			"getEventList",
+			"GET",
+			"/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/events",
+			getEventList,
+		},
+		"getConnectionEventList": &route{
+			"getConnectionEventList",
+			"GET",
+			"/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/connections/events",
+			getConnectionEventList,
+		},
+		// Other
+		"humans.txt": &route{
+			"humans.txt",
+			"GET",
+			"/humans.txt",
+			humans,
+		},
+		"robots": &route{
+			"robots",
+			"GET",
+			"/robots.txt",
+			robots,
+		},
 	},
 }
