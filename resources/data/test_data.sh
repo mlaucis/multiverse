@@ -1,3 +1,4 @@
+#!/bin/bash
 curl -i -H "Content-Type: application/json" -d '{"name":"New Account"}' localhost:8082/accounts
 curl -i -H "Content-Type: application/json" -d '{"user_name":"User name", "password":"hmac(256)", "email":"de@m.o"}' localhost:8082/account/1/users
 curl -i -H "Content-Type: application/json" -d '{"key": "hmac(256)", "name":"New App"}' localhost:8082/account/1/applications
