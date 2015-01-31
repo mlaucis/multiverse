@@ -66,6 +66,8 @@ func getConnectionList(w http.ResponseWriter, r *http.Request) {
 	writeResponse(response, http.StatusOK, 10, w, r)
 }
 
+// TODO: GET FOLLOWER
+
 // createConnection handles requests to create a user connection
 // Request: POST /application/:AppID/connections
 // Test with: curl -i -H "Content-Type: application/json" -d '{"user_from_id":1,"user_to_id":2}' localhost/application/:AppID/connections

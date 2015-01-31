@@ -149,7 +149,7 @@ func WriteEvent(event *entity.Event, retrieve bool) (evn *entity.Event, err erro
 	}
 
 	// Generate connections key
-	connectionsKey := fmt.Sprintf(ConnectionUsersKey, event.ApplicationID, event.UserID)
+	connectionsKey := fmt.Sprintf(FollowedByUsersKey, event.ApplicationID, event.UserID)
 
 	// Read connections
 	connections, err := redis.Client().LRange(connectionsKey, 0, -1).Result()

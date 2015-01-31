@@ -15,10 +15,10 @@ import (
 
 // Defining keys
 const (
-	UserToKey          string = "app_%d_user_%d"
-	ConnectionKey      string = "app_%d_user_%d_connection_%d"
+	ConnectionKey      string = "app_%d_user_%d_follows_%d"
 	ConnectionsKey     string = "app_%d_user_%d_connections"
-	ConnectionUsersKey string = "app_%d_user_%d_connection_users"
+	ConnectionUsersKey string = "app_%d_user_%d_follows_users"
+	FollowedByUsersKey string = "app_%d_user_%d_followed_by_users"
 )
 
 // ReadConnectionList returns all connections from a certain user
@@ -84,11 +84,22 @@ func WriteConnection(connection *entity.Connection, retrieve bool) (con *entity.
 	// Generate list key
 	userListKey := fmt.Sprintf(ConnectionUsersKey, connection.ApplicationID, connection.UserFromID)
 
-	// Generate user key
-	userToKey := fmt.Sprintf(UserToKey, connection.ApplicationID, connection.UserToID)
+	// Generate following key
+	userKey := fmt.Sprintf(UserKey, connection.ApplicationID, connection.UserToID)
 
 	// Write list
-	if err = redis.Client().LPush(userListKey, userToKey).Err(); err != nil {
+	if err = redis.Client().LPush(userListKey, userKey).Err(); err != nil {
+		return nil, err
+	}
+
+	// Generate list key
+	followerListKey := fmt.Sprintf(FollowedByUsersKey, connection.ApplicationID, connection.UserToID)
+
+	// Generate follower key
+	followerKey := fmt.Sprintf(UserKey, connection.ApplicationID, connection.UserFromID)
+
+	// Write list
+	if err = redis.Client().LPush(followerListKey, followerKey).Err(); err != nil {
 		return nil, err
 	}
 
