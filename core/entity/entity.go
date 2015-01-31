@@ -10,11 +10,12 @@ import "time"
 type (
 	// Common holds common used fields
 	Common struct {
-		Image     []*Image  `json:"image,omitempty"`
-		Metadata  string    `json:"metadata,omitempty"`
-		Enabled   bool      `json:"enabled,omitempty"`
-		CreatedAt time.Time `json:"created_at" db:"created_at"`
-		UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
+		Image      []*Image  `json:"image,omitempty"`
+		Metadata   string    `json:"metadata,omitempty"`
+		Enabled    bool      `json:"enabled,omitempty"`
+		CreatedAt  time.Time `json:"created_at"`
+		UpdatedAt  time.Time `json:"updated_at"`
+		ReceivedAt int64     `json:"received_at"`
 	}
 
 	// UserCommon holds common used fields for users

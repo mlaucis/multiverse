@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/tapglue/backend/core"
@@ -222,6 +223,7 @@ func createEvent(w http.ResponseWriter, r *http.Request) {
 	// Set values
 	event.ApplicationID = appID
 	event.UserID = userID
+	event.ReceivedAt = time.Now().UTC().UnixNano()
 
 	// TODO validation should be added here, for example, name shouldn't be empty ;)
 

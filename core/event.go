@@ -11,6 +11,7 @@ import (
 
 	"github.com/tapglue/backend/core/entity"
 	"github.com/tapglue/backend/redis"
+	red "gopkg.in/redis.v2"
 )
 
 // Defining keys
@@ -162,7 +163,8 @@ func WriteEvent(event *entity.Event, retrieve bool) (evn *entity.Event, err erro
 		// Create Key
 		feedKey := fmt.Sprintf(ConnectionEventsKeyLoop, each)
 		// Write to lists
-		if err = redis.Client().LPush(feedKey, key).Err(); err != nil {
+		val := red.Z{Score: float64(event.ReceivedAt), Member: key}
+		if err = redis.Client().ZAdd(feedKey, val).Err(); err != nil {
 			return nil, err
 		}
 	}
