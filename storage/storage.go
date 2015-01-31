@@ -20,33 +20,33 @@ type (
 
 // Defining keys
 const (
-	idAccountKey         = "ids:accounts"
-	idAccountUserKey     = "ids:account:%d:user"
-	idAccountAppKey      = "ids:account:%d:application"
-	idApplicationUserKey = "ids:application:%d:user"
-	idApplicationEvent   = "ids:application:%d:events"
+	idAccountKey         = "ids:acs"
+	idAccountUserKey     = "ids:ac:%d:u"
+	idAccountAppKey      = "ids:ac:%d:a"
+	idApplicationUserKey = "ids:a:%d:u"
+	idApplicationEvent   = "ids:a:%d:e"
 
-	accountKey = "account:%d"
+	accountKey = "ac:%d"
 
-	accountUserKey  = "account:%d:user:%d"
-	accountUsersKey = "account:%d:users"
+	accountUserKey  = "ac:%d:u:%d"
+	accountUsersKey = "ac:%d:us"
 
-	accountAppKey  = "account:%d:app:%d"
-	accountAppsKey = "account:%d:apps"
+	accountAppKey  = "ac:%d:a:%d"
+	accountAppsKey = "ac:%d:as"
 
-	connectionKey      = "app:%d:user:%d:follows:%d"
-	connectionsKey     = "app:%d:user:%d:connections"
-	connectionUsersKey = "app:%d:user:%d:follows_users"
-	followedByUsersKey = "app:%d:user:%d:followed_by_users"
+	connectionKey      = "a:%d:u:%d:fs:%d"
+	connectionsKey     = "a:%d:u:%d:c"
+	connectionUsersKey = "a:%d:u:%d:fu"
+	followedByUsersKey = "a:%d:u:%d:fbu"
 
-	userKey  = "app:%d:user:%d"
-	usersKey = "app:%d:users"
+	userKey  = "a:%d:u:%d"
+	usersKey = "a:%d:us"
 
-	eventKey  = "app:%d:user:%d:event_%d"
-	eventsKey = "app:%d:user:%d:events"
+	eventKey  = "a:%d:u:%d:e:%d"
+	eventsKey = "a:%d:u:%d:es"
 
-	connectionEventsKey     = "app:%d:user:%d:connection_events"
-	connectionEventsKeyLoop = "%s:connection_events"
+	connectionEventsKey     = "a:%d:u:%d:ce"
+	connectionEventsKeyLoop = "%s:ce"
 )
 
 var (
