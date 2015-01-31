@@ -59,3 +59,7 @@ func main() {
 	// Start server
 	log.Fatal(http.ListenAndServe(conf.ListenHostPort, router))
 }
+
+c.Assert(getAccountUser, DeepEquals, savedAccountUser)
+... obtained *entity.AccountUser = &entity.AccountUser{ID:3, AccountID:0, Role:(*entity.AccountRole)(nil), UserCommon:entity.UserCommon{Username:"", Password:"iamsecure..not", DisplayName:"Demo User", FirstName:"", LastName:"", Email:"d@m.o", URL:"", Activated:"", LastLogin:time.Time{sec:0, nsec:0, loc:(*time.Location)(0x465220)}}, Common:entity.Common{Image:[]*entity.Image(nil), Metadata:"", Enabled:false, CreatedAt:time.Time{sec:0, nsec:0, loc:(*time.Location)(0x465220)}, UpdatedAt:time.Time{sec:0, nsec:0, loc:(*time.Location)(0x465220)}, ReceivedAt:0}}
+... expected *entity.AccountUser = &entity.AccountUser{ID:3, AccountID:0, Role:(*entity.AccountRole)(nil), UserCommon:entity.UserCommon{Username:"", Password:"iamsecure..not", DisplayName:"Demo User", FirstName:"", LastName:"", Email:"d@m.o", URL:"", Activated:"", LastLogin:time.Time{sec:0, nsec:0, loc:(*time.Location)(nil)}}, Common:entity.Common{Image:[]*entity.Image(nil), Metadata:"", Enabled:false, CreatedAt:time.Time{sec:0, nsec:0, loc:(*time.Location)(nil)}, UpdatedAt:time.Time{sec:0, nsec:0, loc:(*time.Location)(nil)}, ReceivedAt:0}}

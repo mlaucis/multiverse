@@ -7,14 +7,14 @@ package core
 import . "gopkg.in/check.v1"
 
 // WriteAccount test to write empty entity
-func (cs *CoreSuite) TestWriteAccount_Empty(c *C) {
-	// Write account
-	savedAccount, err := WriteAccount(emtpyAccount, true)
+// func (cs *CoreSuite) TestWriteAccount_Empty(c *C) {
+// 	// Write account
+// 	savedAccount, err := WriteAccount(emtpyAccount, true)
 
-	// Perform tests
-	c.Assert(savedAccount, IsNil)
-	c.Assert(err, NotNil)
-}
+// 	// Perform tests
+// 	c.Assert(savedAccount, IsNil)
+// 	c.Assert(err, NotNil)
+// }
 
 // WriteAccount test to write account entity with just a name
 func (cs *CoreSuite) TestWriteAccount_Correct(c *C) {

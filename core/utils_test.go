@@ -1,9 +1,7 @@
 package core
 
 import (
-	"crypto/rand"
-	"encoding/base64"
-	"fmt"
+	"time"
 
 	"github.com/tapglue/backend/core/entity"
 )
@@ -18,10 +16,9 @@ func AddCorrectAccount() *entity.Account {
 	return savedAccount
 }
 
-/*
 // Create a correct account user
 func AddCorrectAccountUser() *entity.AccountUser {
-	savedAccountUser, err := AddAccountUser(AddCorrectAccount().ID, correctAccountUser)
+	savedAccountUser, err := WriteAccountUser(correctAccountUser, false)
 	if err != nil {
 		panic(err)
 	}
@@ -31,12 +28,11 @@ func AddCorrectAccountUser() *entity.AccountUser {
 
 // Create correct account users
 func AddCorrectAccountUsers() (accountUser1, accountUser2 *entity.AccountUser) {
-	savedAccount := AddCorrectAccount()
-	savedAccountUser1, err := AddAccountUser(savedAccount.ID, correctAccountUser)
+	savedAccountUser1, err := WriteAccountUser(correctAccountUser, false)
 	if err != nil {
 		panic(err)
 	}
-	savedAccountUser2, err := AddAccountUser(savedAccount.ID, correctAccountUser)
+	savedAccountUser2, err := WriteAccountUser(correctAccountUser, false)
 	if err != nil {
 		panic(err)
 	}
@@ -45,8 +41,8 @@ func AddCorrectAccountUsers() (accountUser1, accountUser2 *entity.AccountUser) {
 }
 
 // Create a correct applicaton
-func AddCorrectAccountApplication() *entity.Application {
-	savedApplication, err := AddAccountApplication(AddCorrectAccount().ID, correctApplication)
+func AddCorrectApplication() *entity.Application {
+	savedApplication, err := WriteApplication(correctApplication, false)
 	if err != nil {
 		panic(err)
 	}
@@ -55,13 +51,12 @@ func AddCorrectAccountApplication() *entity.Application {
 }
 
 // Create correct applicatons
-func AddCorrectAccountApplications() (application1, application2 *entity.Application) {
-	savedAccount := AddCorrectAccount()
-	savedApplication1, err := AddAccountApplication(savedAccount.ID, correctApplication)
+func AddCorrectApplications() (application1, application2 *entity.Application) {
+	savedApplication1, err := WriteApplication(correctApplication, false)
 	if err != nil {
 		panic(err)
 	}
-	savedApplication2, err := AddAccountApplication(savedAccount.ID, correctApplication)
+	savedApplication2, err := WriteApplication(correctApplication, false)
 	if err != nil {
 		panic(err)
 	}
@@ -70,9 +65,9 @@ func AddCorrectAccountApplications() (application1, application2 *entity.Applica
 }
 
 // Create a correct user
-func AddCorrectApplicationUser() *entity.User {
-	correctUser.Token = RandomToken()
-	savedUser, err := AddApplicationUser(AddCorrectAccountApplication().ID, correctUser)
+func AddCorrectUser() *entity.User {
+	correctUser.ID = time.Now().UTC().UnixNano()
+	savedUser, err := WriteUser(correctUser, false)
 	if err != nil {
 		panic(err)
 	}
@@ -82,14 +77,13 @@ func AddCorrectApplicationUser() *entity.User {
 
 // Create correct users
 func AddCorrectApplicationUsers() (user1, user2 *entity.User) {
-	savedApplication := AddCorrectAccountApplication()
-	correctUser.Token = RandomToken()
-	savedUser1, err := AddApplicationUser(savedApplication.ID, correctUser)
+	correctUser.ID = time.Now().UTC().UnixNano()
+	savedUser1, err := WriteUser(correctUser, false)
 	if err != nil {
 		panic(err)
 	}
-	correctUser.Token = RandomToken()
-	savedUser2, err := AddApplicationUser(savedApplication.ID, correctUser)
+	correctUser.ID = time.Now().UTC().UnixNano()
+	savedUser2, err := WriteUser(correctUser, false)
 	if err != nil {
 		panic(err)
 	}
@@ -99,8 +93,7 @@ func AddCorrectApplicationUsers() (user1, user2 *entity.User) {
 
 // Create a correct event
 func AddCorrectEvent() *entity.Event {
-	UpdateEvent(savedSession.AppID, savedSession.ID, savedSession.UserToken)
-	savedEvent, err := AddSessionEvent(correctEvent)
+	savedEvent, err := WriteEvent(correctEvent, false)
 	if err != nil {
 		panic(err)
 	}
@@ -110,49 +103,14 @@ func AddCorrectEvent() *entity.Event {
 
 // Create correct events
 func AddCorrectEvents() (event1, event2 *entity.Event) {
-	UpdateEvent(savedSession.AppID, savedSession.ID, savedSession.UserToken)
-	savedEvent1, err := AddSessionEvent(correctEvent)
+	savedEvent1, err := WriteEvent(correctEvent, false)
 	if err != nil {
 		panic(err)
 	}
-	savedEvent2, err := AddSessionEvent(correctEvent)
+	savedEvent2, err := WriteEvent(correctEvent, false)
 	if err != nil {
 		panic(err)
 	}
 
 	return savedEvent1, savedEvent2
-}
-
-// UpdateEvent updates correctEvent struct
-func UpdateEvent(appID, token string) {
-	correctEvent.AppID = appID
-	correctEvent.UserToken = token
-}
-
-*/
-
-// Empty account struct
-func EmptyAccount() {
-	emtpyAccount.ID = 0
-	emtpyAccount.Name = ""
-}
-
-// RandomToken returns a random Token
-func RandomToken() string {
-	// String length
-	size := 32
-
-	// Create random string
-	rb := make([]byte, size)
-	_, err := rand.Read(rb)
-
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	// Encode to base64 string
-	rs := base64.URLEncoding.EncodeToString(rb)
-
-	// Return string
-	return rs
 }
