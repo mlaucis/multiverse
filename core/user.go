@@ -80,7 +80,7 @@ func ReadUserList(applicationID int64) (users []*entity.User, err error) {
 	return
 }
 
-// WriteUser adds a user to the database and returns the created user user or an error
+// WriteUser adds a user to the database and returns the created user or an error
 func WriteUser(user *entity.User, retrieve bool) (usr *entity.User, err error) {
 	// Generate id
 	if user.ID, err = generateUserID(user.ApplicationID); err != nil {

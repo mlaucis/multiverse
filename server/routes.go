@@ -106,33 +106,31 @@ var routes = map[string]*route{
 		"/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/connections",
 		getConnectionList,
 	},
-	/*
-		// Event
-		"getApplicationEvent": &route{
-			"getApplicationEvent",
-			"GET",
-			"/application/{appId:[0-9]{1,20}}/event/{eventId:[0-9]{1,20}}",
-			getApplicationEvent,
-		},
-		"createApplicationEvent": &route{
-			"createApplicationEvent",
-			"POST",
-			"/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/event",
-			createApplicationEvent,
-		},
-		"getApplicationUserEvents": &route{
-			"getApplicationUserEvents",
-			"GET",
-			"/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/events",
-			getApplicationUserEvents,
-		},
-		"getUserConnectionsEvents": &route{
-			"getUserConnectionsEvents",
-			"GET",
-			"/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/connections/events",
-			getUserConnectionsEvents,
-		},
-	*/
+	// Event
+	"getEvent": &route{
+		"getEvent",
+		"GET",
+		"/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/event/{eventId:[0-9]{1,20}}",
+		getEvent,
+	},
+	"createEvent": &route{
+		"createEvent",
+		"POST",
+		"/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/events",
+		createEvent,
+	},
+	"getEventList": &route{
+		"getEventList",
+		"GET",
+		"/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/events",
+		getEventList,
+	},
+	"getConnectionEventList": &route{
+		"getConnectionEventList",
+		"GET",
+		"/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/connections/events",
+		getConnectionEventList,
+	},
 	// Other
 	"humans.txt": &route{
 		"humans.txt",

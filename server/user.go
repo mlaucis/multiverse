@@ -42,7 +42,7 @@ func getUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Read appID
+	// Read userID
 	if userID, err = strconv.ParseInt(vars["userId"], 10, 64); err != nil {
 		errorHappened(fmt.Errorf("userId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
 		return

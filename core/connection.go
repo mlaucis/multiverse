@@ -92,6 +92,8 @@ func WriteConnection(connection *entity.Connection, retrieve bool) (con *entity.
 		return nil, err
 	}
 
+	// TODO: Add events of user "user_to_id" to list of user "user_from_id" order by date
+
 	if !retrieve {
 		return connection, nil
 	}
