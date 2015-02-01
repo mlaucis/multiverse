@@ -6,7 +6,10 @@
 package storage
 
 import (
+	"encoding/base64"
 	"fmt"
+
+	"github.com/tapglue/backend/core/entity"
 
 	red "gopkg.in/redis.v2"
 )
@@ -56,6 +59,11 @@ var (
 // GenerateAccountID generates a new account ID
 func (client *Client) GenerateAccountID() (int64, error) {
 	return client.engine.Incr(idAccountKey).Result()
+}
+
+// GenerateAccountToken returns a token for the specified account
+func (client *Client) GenerateAccountToken(account *entity.Account) (string, error) {
+	return fmt.Sprintf("token_%d_%s", account.ID, base64.StdEncoding.EncodeToString([]byte(account.Name))), nil
 }
 
 // GenerateAccountUserID generates a new account user id for a specified account

@@ -34,7 +34,7 @@ var (
 
 // packErrors prints errors happened during validation
 func packErrors(errs []*error) error {
-	if len(errs) > 0 {
+	if len(errs) == 0 {
 		return nil
 	}
 

@@ -12,6 +12,8 @@ import (
 
 	"github.com/tapglue/backend/core/entity"
 
+	"fmt"
+
 	"github.com/gorilla/mux"
 	. "gopkg.in/check.v1"
 )
@@ -38,7 +40,7 @@ func (s *ServerSuite) TestCreateAccount_WrongKey(c *C) {
 
 // Test a correct create account request
 func (s *ServerSuite) TestCreateAccount_Correct(c *C) {
-	payload := `{"name":"Demo"}`
+	payload := fmt.Sprintf(`{"name":"%s", "description":"%s"}`, correctAccount.Name, correctAccount.Description)
 	req, err := http.NewRequest(
 		"POST",
 		getComposedRoute("createAccount"),
@@ -61,8 +63,9 @@ func (s *ServerSuite) TestCreateAccount_Correct(c *C) {
 	if account.ID < 1 {
 		c.Fail()
 	}
-	c.Assert(account.Name, Equals, "Demo")
+	c.Assert(account.Name, Equals, correctAccount.Name)
 	c.Assert(account.Enabled, Equals, true)
+	c.Assert(account.Token, Not(Equals), "")
 }
 
 // Test getAccount
@@ -95,4 +98,5 @@ func (s *ServerSuite) TestGetAccount_OK(c *C) {
 	c.Assert(accountGet.ID, Equals, account.ID)
 	c.Assert(accountGet.Name, Equals, account.Name)
 	c.Assert(accountGet.Enabled, Equals, true)
+	c.Assert(accountGet.Token, Not(Equals), "")
 }

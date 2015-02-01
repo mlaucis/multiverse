@@ -25,15 +25,15 @@ var (
 	errorAccountDescriptionSize = fmt.Errorf("account description must be between %d and %d characters", accountDescriptionMin, accountDescriptionMax)
 	errorAccountDescriptionType = fmt.Errorf("account description is not a valid alphanumeric sequence")
 
-	errorAccountIDIsAlreadySet = fmt.Errorf("account id is already set")
-	errorAccountSetNotEnabled  = fmt.Errorf("account cannot be set as disabled")
+	errorAccountIDIsAlreadySet  = fmt.Errorf("account id is already set")
+	errorAccountSetNotEnabled   = fmt.Errorf("account cannot be set as disabled")
+	errorAccountTokenAlreadySet = fmt.Errorf("account token is already set")
 )
 
 // CreateAccount validates an account
 func CreateAccount(account *entity.Account) error {
 	errs := []*error{}
 
-	// Validate names
 	if !stringBetween(account.Name, accountNameMin, accountNameMax) {
 		errs = append(errs, &errorAccountNameSize)
 	}
@@ -50,16 +50,14 @@ func CreateAccount(account *entity.Account) error {
 		errs = append(errs, &errorAccountDescriptionType)
 	}
 
-	// Validate ID
-	if numFloat.Match([]byte(fmt.Sprintf("%d", account.ID))) {
+	if account.ID != 0 {
 		errs = append(errs, &errorAccountIDIsAlreadySet)
 	}
 
-	if !account.Enabled {
-		errs = append(errs, &errorAccountSetNotEnabled)
+	if account.Token != "" {
+		errs = append(errs, &errorAccountTokenAlreadySet)
 	}
 
-	// Validate Image
 	if len(account.Image) > 0 {
 		for _, image := range account.Image {
 			if !url.Match([]byte(image.URL)) {

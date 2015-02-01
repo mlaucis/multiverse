@@ -7,6 +7,8 @@ package core
 import (
 	"encoding/json"
 
+	"time"
+
 	"github.com/tapglue/backend/core/entity"
 )
 
@@ -26,17 +28,23 @@ func ReadAccount(accountID int64) (account *entity.Account, err error) {
 
 // WriteAccount adds a new account to the database and returns the created account or an error
 func WriteAccount(account *entity.Account, retrieve bool) (acc *entity.Account, err error) {
-	// Generate id
 	if account.ID, err = storageClient.GenerateAccountID(); err != nil {
 		return nil, err
 	}
+
+	if account.Token, err = storageClient.GenerateAccountToken(account); err != nil {
+		return nil, err
+	}
+
+	account.Enabled = true
+	account.CreatedAt = time.Now()
+	account.UpdatedAt, account.ReceivedAt = account.CreatedAt, account.CreatedAt
 
 	val, err := json.Marshal(account)
 	if err != nil {
 		return nil, err
 	}
 
-	// Write
 	if err = storageEngine.Set(storageClient.AccountKey(account.ID), string(val)).Err(); err != nil {
 		return nil, err
 	}

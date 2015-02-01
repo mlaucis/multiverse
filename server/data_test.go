@@ -10,7 +10,8 @@ var (
 	emptyUser        = &entity.User{}
 	emptyEvent       = &entity.Event{}
 	correctAccount   = &entity.Account{
-		Name: "Demo",
+		Name:        "Demo",
+		Description: "This is a demo account",
 		Common: entity.Common{
 			Enabled: true,
 		},
