@@ -121,14 +121,9 @@ func WriteConnectionEventsToList(connection *entity.Connection) (err error) {
 		return err
 	}
 
-	// TESTAREA DEBUG *************************************************
-	//fmt.prinft("%v\n", events)
-
 	var vals []red.Z
 
 	for _, eventKey := range events {
-		// fmt.prinft("%v\n", eventKey.Score)
-		// fmt.prinft("%v\n", eventKey.Member)
 		val := red.Z{Score: float64(eventKey.Score), Member: eventKey.Member}
 		vals = append(vals, val)
 	}
@@ -137,7 +132,6 @@ func WriteConnectionEventsToList(connection *entity.Connection) (err error) {
 	if err = storageEngine.ZAdd(connectionEventsKey, vals...).Err(); err != nil {
 		return err
 	}
-	// TESTAREA DEBUG *************************************************
 
 	return nil
 }
