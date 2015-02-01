@@ -14,6 +14,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/tapglue/backend/core"
 	"github.com/tapglue/backend/core/entity"
+	"github.com/tapglue/backend/validator"
 )
 
 // getEvent handles requests to retrieve a single event
@@ -224,6 +225,11 @@ func createEvent(w http.ResponseWriter, r *http.Request) {
 	event.ApplicationID = appID
 	event.UserID = userID
 	event.ReceivedAt = time.Now().UTC()
+
+	// Validate resource
+	if err = validator.CreateEvent(event); err != nil {
+		return
+	}
 
 	// Write resource
 	if event, err = core.WriteEvent(event, true); err != nil {

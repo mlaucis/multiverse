@@ -13,6 +13,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/tapglue/backend/core"
 	"github.com/tapglue/backend/core/entity"
+	"github.com/tapglue/backend/validator"
 )
 
 // getConnectionList handles requests to list a users connections
@@ -105,7 +106,10 @@ func createConnection(w http.ResponseWriter, r *http.Request) {
 	connection.ApplicationID = appID
 	connection.Enabled = true
 
-	// TODO validation should be added here, for example, name shouldn't be empty ;)
+	// Validate resource
+	if err = validator.CreateConnection(connection); err != nil {
+		return
+	}
 
 	// Write resource
 	if connection, err = core.WriteConnection(connection, false); err != nil {

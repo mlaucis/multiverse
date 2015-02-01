@@ -12,27 +12,28 @@ import (
 
 const (
 	accountNameMin = 3
-	accountNameMax = 25
+	accountNameMax = 40
 
-	accountDescriptionMin = 10
+	accountDescriptionMin = 0
 	accountDescriptionMax = 100
 )
 
 var (
-	errorAccountNameSize      = fmt.Errorf("account name must be between %d and %d characters", accountNameMin, accountNameMax)
-	errorAccountNameNotString = fmt.Errorf("account name is not a valid alphanumeric sequence")
+	errorAccountNameSize = fmt.Errorf("account name must be between %d and %d characters", accountNameMin, accountNameMax)
+	errorAccountNameType = fmt.Errorf("account name is not a valid alphanumeric sequence")
 
-	errorAccountDescriptionSize      = fmt.Errorf("account description must be between %d and %d characters", accountDescriptionMin, accountDescriptionMax)
-	errorAccountDescriptionNotString = fmt.Errorf("account description is not a valid alphanumeric sequence")
+	errorAccountDescriptionSize = fmt.Errorf("account description must be between %d and %d characters", accountDescriptionMin, accountDescriptionMax)
+	errorAccountDescriptionType = fmt.Errorf("account description is not a valid alphanumeric sequence")
 
 	errorAccountIDIsAlreadySet = fmt.Errorf("account id is already set")
 	errorAccountSetNotEnabled  = fmt.Errorf("account cannot be set as disabled")
 )
 
-// CreateAccount validates the account
+// CreateAccount validates an account
 func CreateAccount(account *entity.Account) error {
 	errs := []*error{}
 
+	// Validate names
 	if !stringBetween(account.Name, accountNameMin, accountNameMax) {
 		errs = append(errs, &errorAccountNameSize)
 	}
@@ -42,13 +43,14 @@ func CreateAccount(account *entity.Account) error {
 	}
 
 	if !alphaNumExtraCharFirst.Match([]byte(account.Name)) {
-		errs = append(errs, &errorAccountNameNotString)
+		errs = append(errs, &errorAccountNameType)
 	}
 
 	if !alphaNumExtraCharFirst.Match([]byte(account.Description)) {
-		errs = append(errs, &errorAccountDescriptionNotString)
+		errs = append(errs, &errorAccountDescriptionType)
 	}
 
+	// Validate ID
 	if numFloat.Match([]byte(fmt.Sprintf("%d", account.ID))) {
 		errs = append(errs, &errorAccountIDIsAlreadySet)
 	}
@@ -57,6 +59,7 @@ func CreateAccount(account *entity.Account) error {
 		errs = append(errs, &errorAccountSetNotEnabled)
 	}
 
+	// Validate Image
 	if len(account.Image) > 0 {
 		for _, image := range account.Image {
 			if !url.Match([]byte(image.URL)) {

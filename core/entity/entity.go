@@ -155,7 +155,6 @@ type (
 		Object        *Object        `json:"object"`
 		Target        *Object        `json:"target,omitempty"`
 		Instrument    *Object        `json:"instrument,omitempty"`
-		Attachment    []*Object      `json:"attachment,omitempty"`
 		Participant   []*Participant `json:"participant,omitempty"`
 		Common
 	}

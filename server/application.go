@@ -13,6 +13,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/tapglue/backend/core"
 	"github.com/tapglue/backend/core/entity"
+	"github.com/tapglue/backend/validator"
 )
 
 // getApplication handles requests to a single application
@@ -145,7 +146,10 @@ func createApplication(w http.ResponseWriter, r *http.Request) {
 	application.AccountID = accountID
 	application.Enabled = true
 
-	// TODO validation should be added here, for example, name shouldn't be empty ;)
+	// Validate resource
+	if err = validator.CreateApplication(application); err != nil {
+		return
+	}
 
 	// Write resource
 	if application, err = core.WriteApplication(application, true); err != nil {

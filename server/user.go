@@ -13,6 +13,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/tapglue/backend/core"
 	"github.com/tapglue/backend/core/entity"
+	"github.com/tapglue/backend/validator"
 )
 
 // getUser handles requests to retrieve a single user
@@ -149,7 +150,10 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 	user.ApplicationID = appID
 	user.Enabled = true
 
-	// TODO validation should be added here, for example, name shouldn't be empty ;)
+	// Validate resource
+	if err = validator.CreateUser(user); err != nil {
+		return
+	}
 
 	// Write resource
 	if user, err = core.WriteUser(user, true); err != nil {
