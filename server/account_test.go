@@ -6,23 +6,15 @@ package server
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"strconv"
 	"strings"
 
-	"github.com/gorilla/mux"
 	"github.com/tapglue/backend/core/entity"
+
+	"github.com/gorilla/mux"
 	. "gopkg.in/check.v1"
 )
-
-func clHeader(payload string, req *http.Request) {
-	req.Header.Add("User-Agent", "go test (+localhost)")
-	if len(payload) > 0 {
-		req.Header.Add("Content-Length", strconv.FormatInt(int64(len(payload)), 10))
-	}
-}
 
 // Test create acccount request with a wrong key
 func (s *ServerSuite) TestCreateAccount_WrongKey(c *C) {
@@ -30,11 +22,12 @@ func (s *ServerSuite) TestCreateAccount_WrongKey(c *C) {
 
 	req, err := http.NewRequest(
 		"POST",
-		"http://localhost:8089/account",
+		getComposedRoute("createAccount"),
 		strings.NewReader(payload),
 	)
-	clHeader(payload, req)
 	c.Assert(err, IsNil)
+
+	clHeader(payload, req)
 
 	w := httptest.NewRecorder()
 	createAccount(w, req)
@@ -45,14 +38,15 @@ func (s *ServerSuite) TestCreateAccount_WrongKey(c *C) {
 
 // Test a correct create account request
 func (s *ServerSuite) TestCreateAccount_Correct(c *C) {
-	payload := "{\"name\":\"Demo\"}"
+	payload := `{"name":"Demo"}`
 	req, err := http.NewRequest(
 		"POST",
-		"http://localhost:8089/account",
+		getComposedRoute("createAccount"),
 		strings.NewReader(payload),
 	)
-	clHeader(payload, req)
 	c.Assert(err, IsNil)
+
+	clHeader(payload, req)
 
 	w := httptest.NewRecorder()
 	createAccount(w, req)
@@ -73,22 +67,22 @@ func (s *ServerSuite) TestCreateAccount_Correct(c *C) {
 
 // Test getAccount
 func (s *ServerSuite) TestGetAccount_OK(c *C) {
-	// Add account first
 	account := AddCorrectAccount()
 
-	// Now we test the GET part
 	req, err := http.NewRequest(
 		"GET",
-		fmt.Sprintf("http://localhost:8089/account/%d", account.ID),
+		getComposedRoute("getAccount", account.ID),
 		nil,
 	)
-	clHeader("", req)
 	c.Assert(err, IsNil)
+
+	clHeader("", req)
 
 	w := httptest.NewRecorder()
 	m := mux.NewRouter()
-	route := routes["getAccount"]
-	m.HandleFunc(route.pattern, route.handlerFunc).Methods(route.method)
+	route := getRoute("getAccount")
+
+	m.HandleFunc(route.routePattern(apiVersion), route.handlerFunc).Methods(route.method)
 	m.ServeHTTP(w, req)
 
 	c.Assert(w.Code, Equals, http.StatusOK)

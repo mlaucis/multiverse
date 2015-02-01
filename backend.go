@@ -38,18 +38,14 @@ func init() {
 	// Seed random generator
 	rand.Seed(time.Now().UTC().UnixNano())
 
-	// Get configuration
 	conf = config.NewConf(EnvConfigVar)
 
-	// Initialize components
 	redis.Init(conf.Redis.Hosts[0], conf.Redis.Password, conf.Redis.DB, conf.Redis.PoolSize)
 	storageClient := storage.Init(redis.Client())
 	core.Init(storageClient)
 }
 
 func main() {
-
-	// Setup newrelic
 	if conf.Newrelic.Enabled {
 		newRelicAgent = gorelic.NewAgent()
 		newRelicAgent.Verbose = true
@@ -63,6 +59,7 @@ func main() {
 	// Get router
 	router := server.GetRouter(conf.Environment != "prod", newRelicAgent)
 
-	// Start server
+	log.Println("starting the server")
+
 	log.Fatal(http.ListenAndServe(conf.ListenHostPort, router))
 }

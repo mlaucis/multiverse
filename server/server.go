@@ -16,8 +16,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gorilla/mux"
 	"github.com/tapglue/backend/config"
+
+	"github.com/gorilla/mux"
 	"github.com/yvasiyarov/gorelic"
 )
 
@@ -186,17 +187,15 @@ Disallow: /`))
 
 // GetRouter creates the router
 func GetRouter(debugMode bool, newRelicAgent *gorelic.Agent) *mux.Router {
-
-	// Create router
 	router := mux.NewRouter().StrictSlash(true)
 
 	for version, innerRoutes := range routes {
-		for _, route := range innerRoutes {
+		for routeName, route := range innerRoutes {
 			router.
 				Methods(route.method).
-				Path(fmt.Sprintf("/%s%s", version, route.pattern)).
-				Name(route.name).
-				Handler(Logger(route.handlerFunc, route.name, newRelicAgent))
+				Path(route.routePattern(version)).
+				Name(routeName).
+				Handler(Logger(route.handlerFunc, routeName, newRelicAgent))
 		}
 	}
 
@@ -207,6 +206,5 @@ func GetRouter(debugMode bool, newRelicAgent *gorelic.Agent) *mux.Router {
 		router.Handle("/debug/pprof/symbol", http.HandlerFunc(pprof.Symbol))
 	}
 
-	// Return router
 	return router
 }

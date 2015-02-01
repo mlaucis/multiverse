@@ -10,10 +10,11 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/gorilla/mux"
 	"github.com/tapglue/backend/core"
 	"github.com/tapglue/backend/core/entity"
 	"github.com/tapglue/backend/validator"
+
+	"github.com/gorilla/mux"
 )
 
 // getUser handles requests to retrieve a single user

@@ -11,10 +11,11 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gorilla/mux"
 	"github.com/tapglue/backend/core"
 	"github.com/tapglue/backend/core/entity"
 	"github.com/tapglue/backend/validator"
+
+	"github.com/gorilla/mux"
 )
 
 // getEvent handles requests to retrieve a single event

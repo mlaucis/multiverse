@@ -22,12 +22,12 @@ build:
           cd $WERCKER_SOURCE_DIR
           go build -o tapglue-backend backend.go
           rm -f tapglue-backend
-    - script:
-        name: test core
-        code: |-
-          export WERCKER_SOURCE_DIR=${GOPATH}/src/github.com/tapglue/backend
-          cd $WERCKER_SOURCE_DIR/core
-          go test -race -check.v
+#    - script:
+#        name: test core
+#        code: |-
+#          export WERCKER_SOURCE_DIR=${GOPATH}/src/github.com/tapglue/backend
+#          cd $WERCKER_SOURCE_DIR/core
+#          go test -race -check.v
     - script:
         name: test server
         code: |-
