@@ -10,18 +10,22 @@ var (
 	emptyUser        = &entity.User{}
 	emptyEvent       = &entity.Event{}
 	correctAccount   = &entity.Account{
-		Name:    "Demo",
-		Enabled: true,
+		Name: "Demo",
+		Common: entity.Common{
+			Enabled: true,
+		},
 	}
 	correctAccountBig = &entity.Account{
-		Name:    "Demozdr;aryprawurpaiw;ayeaasjhdsakjdlksajdlsakjlsakdjsalkdjlkasfja;sjflsakfaf[wor3pouarjlkfhzslkfhasfha;fha;kfhaslkgjas;lfjajsdhals;jfasljfhals;fja;skfhas;lfjas;kfhaslkghas;kghaslkghaslfhdlsakjdaslfasjas;lgjsaljgajgasjgasgas;k'saldksa;gosaeugauypaotyaptua;otyqpotyapyrqyrapytalktypawrpauadadasasdads",
-		Enabled: true,
+		Name: "Demozdr;aryprawurpaiw;ayeaasjhdsakjdlksajdlsakjlsakdjsalkdjlkasfja;sjflsakfaf[wor3pouarjlkfhzslkfhasfha;fha;kfhaslkgjas;lfjajsdhals;jfasljfhals;fja;skfhas;lfjas;kfhaslkghas;kghaslkghaslfhdlsakjdaslfasjas;lgjsaljgajgasjgasgas;k'saldksa;gosaeugauypaotyaptua;otyqpotyapyrqyrapytalktypawrpauadadasasdads",
+		Common: entity.Common{
+			Enabled: true,
+		},
 	}
 	correctAccountUser = &entity.AccountUser{
 		UserCommon: entity.UserCommon{
-			DisplayName: "Demo User",
-			Password:    "iamsecure..not",
-			Email:       "d@m.o",
+			Username: "Demo User",
+			Password: "iamsecure..not",
+			Email:    "d@m.o",
 		},
 	}
 	correctApplication = &entity.Application{

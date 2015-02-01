@@ -18,15 +18,14 @@ func (cs *CoreSuite) TestWriteAccountUser_Correct(c *C) {
 	c.Assert(savedAccountUser, NotNil)
 	c.Assert(err, IsNil)
 	c.Assert(savedAccountUser.AccountID, Equals, savedAccount.ID)
-	c.Assert(savedAccountUser.DisplayName, Equals, correctAccountUser.DisplayName)
+	c.Assert(savedAccountUser.Username, Equals, correctAccountUser.Username)
 	c.Assert(savedAccountUser.Password, Equals, correctAccountUser.Password)
 	c.Assert(savedAccountUser.Email, Equals, correctAccountUser.Email)
 	c.Assert(savedAccountUser.Enabled, Equals, true)
 
 	// Test types
 	c.Assert(savedAccountUser.AccountID, FitsTypeOf, int64(0))
-	c.Assert(savedAccountUser.DisplayName, FitsTypeOf, string(""))
-	c.Assert(savedAccountUser.DisplayName, FitsTypeOf, string(""))
+	c.Assert(savedAccountUser.Username, FitsTypeOf, string(""))
 	c.Assert(savedAccountUser.Password, FitsTypeOf, string(""))
 	c.Assert(savedAccountUser.Email, FitsTypeOf, string(""))
 }
