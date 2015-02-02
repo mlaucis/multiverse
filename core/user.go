@@ -8,6 +8,8 @@ import (
 	"encoding/json"
 	"errors"
 
+	"fmt"
+
 	"github.com/tapglue/backend/core/entity"
 )
 
@@ -94,8 +96,11 @@ func WriteUser(user *entity.User, retrieve bool) (usr *entity.User, err error) {
 	key := storageClient.UserKey(user.ApplicationID, user.ID)
 
 	// Write resource
-	if exist, err := storageEngine.SetNX(key, string(val)).Result(); !exist {
-		// TODO Wrong HTTP CODE is SENT (200 instead of 4XX)
+	exist, err := storageEngine.SetNX(key, string(val)).Result()
+	if !exist {
+		return nil, fmt.Errorf("user already exists")
+	}
+	if err != nil {
 		return nil, err
 	}
 

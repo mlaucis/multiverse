@@ -6,6 +6,7 @@ package core
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/tapglue/backend/core/entity"
@@ -66,8 +67,11 @@ func WriteAccountUser(accountUser *entity.AccountUser, retrieve bool) (accUser *
 	}
 
 	key := storageClient.AccountUserKey(accountUser.AccountID, accountUser.ID)
-	if exist, err := storageEngine.SetNX(key, string(val)).Result(); !exist {
-		// TODO Wrong HTTP CODE is SENT (200 instead of 4XX)
+	exist, err := storageEngine.SetNX(key, string(val)).Result()
+	if !exist {
+		return nil, fmt.Errorf("account user does not exists")
+	}
+	if err != nil {
 		return nil, err
 	}
 

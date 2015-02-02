@@ -6,7 +6,7 @@ package core
 
 import (
 	"encoding/json"
-
+	"fmt"
 	"time"
 
 	"github.com/tapglue/backend/core/entity"
@@ -34,8 +34,11 @@ func UpdateAccount(account *entity.Account, retrieve bool) (acc *entity.Account,
 
 	key := storageClient.AccountKey(account.ID)
 
-	if exist, err := storageEngine.Exists(key).Result(); !exist {
-		// TODO send proper HTTP code
+	exist, err := storageEngine.Exists(key).Result()
+	if !exist {
+		return nil, fmt.Errorf("account does not exist")
+	}
+	if err != nil {
 		return nil, err
 	}
 
@@ -90,8 +93,12 @@ func WriteAccount(account *entity.Account, retrieve bool) (acc *entity.Account, 
 		return nil, err
 	}
 
-	if exist, err := storageEngine.SetNX(storageClient.AccountKey(account.ID), string(val)).Result(); !exist {
-		// TODO Wrong HTTP CODE is SENT (200 instead of 4XX)
+	// TODO this should never happen, maybe we should panic instead just to catch it better?
+	exist, err := storageEngine.SetNX(storageClient.AccountKey(account.ID), string(val)).Result()
+	if !exist {
+		return nil, fmt.Errorf("account already exists")
+	}
+	if err != nil {
 		return nil, err
 	}
 

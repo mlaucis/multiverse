@@ -7,6 +7,7 @@ package core
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/tapglue/backend/core/entity"
 )
@@ -69,8 +70,11 @@ func WriteApplication(application *entity.Application, retrieve bool) (app *enti
 
 	key := storageClient.AccountAppKey(application.AccountID, application.ID)
 
-	if exist, err := storageEngine.SetNX(key, string(val)).Result(); !exist {
-		// TODO Wrong HTTP CODE is SENT (200 instead of 4XX)
+	exist, err := storageEngine.SetNX(key, string(val)).Result()
+	if !exist {
+		return nil, fmt.Errorf("application already exists")
+	}
+	if err != nil {
 		return nil, err
 	}
 

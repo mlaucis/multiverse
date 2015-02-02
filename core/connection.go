@@ -8,6 +8,8 @@ import (
 	"encoding/json"
 	"errors"
 
+	"fmt"
+
 	"github.com/tapglue/backend/core/entity"
 	red "gopkg.in/redis.v2"
 )
@@ -59,8 +61,11 @@ func WriteConnection(connection *entity.Connection, retrieve bool) (con *entity.
 	key := storageClient.ConnectionKey(connection.ApplicationID, connection.UserFromID, connection.UserToID)
 
 	// Write resource
-	if exist, err := storageEngine.SetNX(key, string(val)).Result(); !exist {
-		// TODO Wrong HTTP CODE is SENT (200 instead of 4XX)
+	exist, err := storageEngine.SetNX(key, string(val)).Result()
+	if !exist {
+		return nil, fmt.Errorf("account connection already exists")
+	}
+	if err != nil {
 		return nil, err
 	}
 
