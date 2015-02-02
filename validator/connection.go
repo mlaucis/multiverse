@@ -18,26 +18,45 @@ var (
 	errorUserToIDType = fmt.Errorf("user to id is not a valid integer")
 )
 
-// CreateConnection validates a connection
+// CreateConnection validates a connection on create
 func CreateConnection(connection *entity.Connection) error {
 	errs := []*error{}
 
-	// Validate ApplicationID
 	if connection.ApplicationID == 0 {
 		errs = append(errs, &errorApplicationIDZero)
 	}
 
-	// Validate UserFromID
 	if connection.UserFromID == 0 {
 		errs = append(errs, &errorUserFromIDZero)
 	}
 
-	// Validate UserToID
 	if connection.UserToID == 0 {
 		errs = append(errs, &errorUserToIDZero)
 	}
 
-	// Validate Users
+	if !userExists(connection.ApplicationID, connection.UserFromID) {
+		errs = append(errs, &errorUserDoesNotExists)
+	}
+
+	if !userExists(connection.ApplicationID, connection.UserToID) {
+		errs = append(errs, &errorUserDoesNotExists)
+	}
+
+	return packErrors(errs)
+}
+
+// UpdateConnection validates a connection on update
+func UpdateConnection(connection *entity.Connection) error {
+	errs := []*error{}
+
+	if connection.UserFromID == 0 {
+		errs = append(errs, &errorUserFromIDZero)
+	}
+
+	if connection.UserToID == 0 {
+		errs = append(errs, &errorUserToIDZero)
+	}
+
 	if !userExists(connection.ApplicationID, connection.UserFromID) {
 		errs = append(errs, &errorUserDoesNotExists)
 	}

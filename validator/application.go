@@ -30,11 +30,10 @@ var (
 	errorApplicationIDIsAlreadySet = fmt.Errorf("application id is already set")
 )
 
-// CreateApplication validates an application
+// CreateApplication validates an application on create
 func CreateApplication(application *entity.Application) error {
 	errs := []*error{}
 
-	// Valindate names
 	if !stringBetween(application.Name, applicationNameMin, applicationNameMax) {
 		errs = append(errs, &errorApplicationNameSize)
 	}
@@ -55,17 +54,14 @@ func CreateApplication(application *entity.Application) error {
 		errs = append(errs, &errorApplicationIDIsAlreadySet)
 	}
 
-	// Validate AcountID
 	if application.AccountID == 0 {
 		errs = append(errs, &errorAccountIDZero)
 	}
 
-	// Validate URL
 	if application.URL != "" && !url.Match([]byte(application.URL)) {
 		errs = append(errs, &errorApplicationUserURLInvalid)
 	}
 
-	// Validate Image
 	if len(application.Image) > 0 {
 		for _, image := range application.Image {
 			if !url.Match([]byte(image.URL)) {
@@ -74,7 +70,45 @@ func CreateApplication(application *entity.Application) error {
 		}
 	}
 
-	// Validate account
+	if !accountExists(application.AccountID) {
+		errs = append(errs, &errorAccountDoesNotExists)
+	}
+
+	return packErrors(errs)
+}
+
+// UpdateApplication validates an application on update
+func UpdateApplication(application *entity.Application) error {
+	errs := []*error{}
+
+	if !stringBetween(application.Name, applicationNameMin, applicationNameMax) {
+		errs = append(errs, &errorApplicationNameSize)
+	}
+
+	if !stringBetween(application.Description, applicationDescriptionMin, applicationDescriptionMax) {
+		errs = append(errs, &errorApplicationDescriptionSize)
+	}
+
+	if !alphaNumExtraCharFirst.Match([]byte(application.Name)) {
+		errs = append(errs, &errorApplicationNameType)
+	}
+
+	if !alphaNumExtraCharFirst.Match([]byte(application.Description)) {
+		errs = append(errs, &errorApplicationDescriptionType)
+	}
+
+	if application.URL != "" && !url.Match([]byte(application.URL)) {
+		errs = append(errs, &errorApplicationUserURLInvalid)
+	}
+
+	if len(application.Image) > 0 {
+		for _, image := range application.Image {
+			if !url.Match([]byte(image.URL)) {
+				errs = append(errs, &errorInvalidImageURL)
+			}
+		}
+	}
+
 	if !accountExists(application.AccountID) {
 		errs = append(errs, &errorAccountDoesNotExists)
 	}

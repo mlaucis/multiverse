@@ -27,6 +27,65 @@ func ReadAccountUser(accountID, accountUserID int64) (accountUser *entity.Accoun
 	return
 }
 
+// UpdateAccountUser update an account user in the database and returns the updated account user or an error
+func UpdateAccountUser(accountUser *entity.AccountUser, retrieve bool) (accUser *entity.AccountUser, err error) {
+
+	accountUser.UpdatedAt = time.Now()
+
+	val, err := json.Marshal(accountUser)
+	if err != nil {
+		return nil, err
+	}
+
+	key := storageClient.AccountUserKey(accountUser.AccountID, accountUser.ID)
+	exist, err := storageEngine.Exists(key).Result()
+	if !exist {
+		return nil, fmt.Errorf("account user does not exist")
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	if err = storageEngine.Set(key, string(val)).Err(); err != nil {
+		return nil, err
+	}
+
+	listKey := storageClient.AccountUsersKey(accountUser.AccountID)
+	if err = storageEngine.LRem(listKey, 0, key).Err(); err != nil {
+		return nil, err
+	}
+
+	if !retrieve {
+		return accountUser, nil
+	}
+
+	return ReadAccountUser(accountUser.AccountID, accountUser.ID)
+}
+
+// DeleteAccountUser deletes the account user matching the IDs or an error
+func DeleteAccountUser(accountID, userID int64) (err error) {
+	key := storageClient.AccountUserKey(accountID, userID)
+	result, err := storageEngine.Del(key).Result()
+	if err != nil {
+		return err
+	}
+
+	if result != 1 {
+		return fmt.Errorf("The resource for the provided id doesn't exist")
+	}
+
+	// TODO Check if any other way than first delete and then add again
+	listKey := storageClient.AccountUserKey(accountID, userID)
+	if err = storageEngine.LRem(listKey, 0, key).Err(); err != nil {
+		return err
+	}
+	if err = storageEngine.LPush(listKey, key).Err(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // ReadAccountUserList returns all the users from a certain account
 func ReadAccountUserList(accountID int64) (accountUsers []*entity.AccountUser, err error) {
 	result, err := storageEngine.LRange(storageClient.AccountKey(accountID), 0, -1).Result()

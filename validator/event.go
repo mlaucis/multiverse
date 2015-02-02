@@ -25,21 +25,18 @@ var (
 	errorEventIDIsAlreadySet = fmt.Errorf("event id is already set")
 )
 
-// CreateEvent validates an event
+// CreateEvent validates an event on create
 func CreateEvent(event *entity.Event) error {
 	errs := []*error{}
 
-	// Validate ApplicationID
 	if event.ApplicationID == 0 {
 		errs = append(errs, &errorApplicationIDZero)
 	}
 
-	// Validate UserID
 	if event.UserID == 0 {
 		errs = append(errs, &errorUserIDZero)
 	}
 
-	// Validate Verb
 	if !stringBetween(event.Verb, verbMin, verbMax) {
 		errs = append(errs, &errorVerbSize)
 	}
@@ -48,12 +45,29 @@ func CreateEvent(event *entity.Event) error {
 		errs = append(errs, &errorVerbType)
 	}
 
-	// Validate ID
 	if event.ID != 0 {
 		errs = append(errs, &errorEventIDIsAlreadySet)
 	}
 
-	// Validate User
+	if !userExists(event.ApplicationID, event.UserID) {
+		errs = append(errs, &errorUserDoesNotExists)
+	}
+
+	return packErrors(errs)
+}
+
+// UpdateEvent validates an event on update
+func UpdateEvent(event *entity.Event) error {
+	errs := []*error{}
+
+	if !stringBetween(event.Verb, verbMin, verbMax) {
+		errs = append(errs, &errorVerbSize)
+	}
+
+	if !alphaNumExtraCharFirst.Match([]byte(event.Verb)) {
+		errs = append(errs, &errorVerbType)
+	}
+
 	if !userExists(event.ApplicationID, event.UserID) {
 		errs = append(errs, &errorUserDoesNotExists)
 	}

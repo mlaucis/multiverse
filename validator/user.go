@@ -35,11 +35,10 @@ var (
 	errorUserIDIsAlreadySet = fmt.Errorf("user id is already set")
 )
 
-// CreateUser validates a user
+// CreateUser validates a user on create
 func CreateUser(user *entity.User) error {
 	errs := []*error{}
 
-	// Validate names
 	if !stringBetween(user.FirstName, userNameMin, userNameMax) {
 		errs = append(errs, &errorUserFirstNameSize)
 	}
@@ -64,27 +63,75 @@ func CreateUser(user *entity.User) error {
 		errs = append(errs, &errorUserUsernameType)
 	}
 
-	// Validate ApplicatonID
 	if user.ApplicationID == 0 {
 		errs = append(errs, &errorApplicationIDZero)
 	}
 
-	// Validate AuthToken
 	if user.AuthToken == "" {
 		errs = append(errs, &errorAuthTokenInvalid)
 	}
 
-	// Validate Email
 	if user.Email == "" || !email.Match([]byte(user.Email)) {
 		errs = append(errs, &errorUserEmailInvalid)
 	}
 
-	// Validate URL
 	if user.URL != "" && !url.Match([]byte(user.URL)) {
 		errs = append(errs, &errorUserURLInvalid)
 	}
 
-	// Validate Image
+	if len(user.Image) > 0 {
+		for _, image := range user.Image {
+			if !url.Match([]byte(image.URL)) {
+				errs = append(errs, &errorInvalidImageURL)
+			}
+		}
+	}
+
+	// TODO: Check if Application exists
+
+	return packErrors(errs)
+}
+
+// UpdateUser validates a user on update
+func UpdateUser(user *entity.User) error {
+	errs := []*error{}
+
+	if !stringBetween(user.FirstName, userNameMin, userNameMax) {
+		errs = append(errs, &errorUserFirstNameSize)
+	}
+
+	if !stringBetween(user.LastName, userNameMin, userNameMax) {
+		errs = append(errs, &errorUserLastNameSize)
+	}
+
+	if !stringBetween(user.Username, userNameMin, userNameMax) {
+		errs = append(errs, &errorUserUsernameSize)
+	}
+
+	if !alphaNumExtraCharFirst.Match([]byte(user.FirstName)) {
+		errs = append(errs, &errorUserFirstNameType)
+	}
+
+	if !alphaNumExtraCharFirst.Match([]byte(user.LastName)) {
+		errs = append(errs, &errorUserLastNameType)
+	}
+
+	if !alphaNumExtraCharFirst.Match([]byte(user.Username)) {
+		errs = append(errs, &errorUserUsernameType)
+	}
+
+	if user.AuthToken == "" {
+		errs = append(errs, &errorAuthTokenInvalid)
+	}
+
+	if user.Email == "" || !email.Match([]byte(user.Email)) {
+		errs = append(errs, &errorUserEmailInvalid)
+	}
+
+	if user.URL != "" && !url.Match([]byte(user.URL)) {
+		errs = append(errs, &errorUserURLInvalid)
+	}
+
 	if len(user.Image) > 0 {
 		for _, image := range user.Image {
 			if !url.Match([]byte(image.URL)) {

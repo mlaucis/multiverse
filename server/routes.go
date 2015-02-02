@@ -64,6 +64,18 @@ var routes = map[string]map[string]*route{
 			"/account/%d/user/%s",
 			getAccountUser,
 		},
+		"updateAccountUser": &route{
+			"PUT",
+			"/account/{accountId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}",
+			"/account/%d/user/%s",
+			updateAccountUser,
+		},
+		"deleteAccountUser": &route{
+			"DELETE",
+			"/account/{accountId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}",
+			"/account/%d/user/%s",
+			deleteAccountUser,
+		},
 		"createAccountUser": &route{
 			"POST",
 			"/account/{accountId:[0-9]{1,20}}/users",
@@ -83,6 +95,18 @@ var routes = map[string]map[string]*route{
 			"/account/%d/application/%d",
 			getApplication,
 		},
+		// "updateApplication": &route{
+		// 	"PUT",
+		// 	"/account/{accountId:[0-9]{1,20}}/application/{appId:[0-9]{1,20}}",
+		// 	"/account/%d/application/%d",
+		// 	updateApplication,
+		// },
+		// "deleteApplication": &route{
+		// 	"DELETE",
+		// 	"/account/{accountId:[0-9]{1,20}}/application/{appId:[0-9]{1,20}}",
+		// 	"/account/%d/application/%d",
+		// 	deleteApplication,
+		// },
 		"createApplication": &route{
 			"POST",
 			"/account/{accountId:[0-9]{1,20}}/applications",
@@ -102,25 +126,51 @@ var routes = map[string]map[string]*route{
 			"/application/%d/user/%s",
 			getUser,
 		},
+		// "updateUser": &route{
+		// 	"PUT",
+		// 	"/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}",
+		// 	"/application/%d/user/%s",
+		// 	updateUser,
+		// },
+		// "deleteUser": &route{
+		// 	"DELETE",
+		// 	"/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}",
+		// 	"/application/%d/user/%s",
+		// 	deleteUser,
+		// },
 		"createUser": &route{
 			"POST",
 			"/application/{appId:[0-9]{1,20}}/users",
 			"/application/%d/users",
 			createUser,
 		},
-		// "getUserList": &route{
-		// 	"getUserList",
-		// 	"GET",
-		// 	"/application/{appId:[0-9]{1,20}}/users",
-		// 	getUserList,
-		// },
+		/*
+			"getUserList": &route{
+				"getUserList",
+				"GET",
+				"/application/{appId:[0-9]{1,20}}/users",
+				getUserList,
+			},
+		*/
 		// UserConnection
 		"createConnection": &route{
 			"POST",
-			"/application/{appId:[0-9]{1,20}}/connections",
+			"/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/connections",
 			"/application/%d/connections",
 			createConnection,
 		},
+		// "updateConnection": &route{
+		// 	"PUT",
+		// 	"/application/{appId:[0-9]{1,20}}/user/{userFromId:[a-zA-Z0-9]+}/connection/{userToId:[a-zA-Z0-9]+}",
+		// 	"/application/%d/user/%d/connection/%d",
+		// 	updateConnection,
+		// },
+		// "deleteConnection": &route{
+		// 	"DELETE",
+		// 	"/application/{appId:[0-9]{1,20}}/user/{userFromId:[a-zA-Z0-9]+}/connection/{userToId:[a-zA-Z0-9]+}",
+		// 	"/application/%d/user/%d/connection/%d",
+		// 	deleteConnection,
+		// },
 		"getConnectionList": &route{
 			"GET",
 			"/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/connections",
@@ -134,6 +184,18 @@ var routes = map[string]map[string]*route{
 			"/application/%d/user/%s/event/%d",
 			getEvent,
 		},
+		// "updateEvent": &route{
+		// 	"PUT",
+		// 	"/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/event/{eventId:[0-9]{1,20}}",
+		// 	"/application/%d/user/%s/event/%d",
+		// 	updateEvent,
+		// },
+		// "deleteEvent": &route{
+		// 	"DELETE",
+		// 	"/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/event/{eventId:[0-9]{1,20}}",
+		// 	"/application/%d/user/%s/event/%d",
+		// 	deleteEvent,
+		// },
 		"createEvent": &route{
 			"POST",
 			"/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/events",

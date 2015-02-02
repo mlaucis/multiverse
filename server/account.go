@@ -61,7 +61,6 @@ func updateAccount(w http.ResponseWriter, r *http.Request) {
 		account   = &entity.Account{}
 		err       error
 	)
-
 	vars := mux.Vars(r)
 
 	if accountID, err = strconv.ParseInt(vars["accountId"], 10, 64); err != nil {
@@ -75,7 +74,9 @@ func updateAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	account.ID = accountID
+	if account.ID == 0 {
+		account.ID = accountID
+	}
 
 	if err = validator.UpdateAccount(account); err != nil {
 		errorHappened(err, http.StatusBadRequest, r, w)
@@ -101,10 +102,8 @@ func deleteAccount(w http.ResponseWriter, r *http.Request) {
 
 	var (
 		accountID int64
-		result    string
 		err       error
 	)
-
 	vars := mux.Vars(r)
 
 	if accountID, err = strconv.ParseInt(vars["accountId"], 10, 64); err != nil {
@@ -112,14 +111,12 @@ func deleteAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result, err = core.DeleteAccount(accountID); err != nil {
+	if err = core.DeleteAccount(accountID); err != nil {
 		errorHappened(err, http.StatusInternalServerError, r, w)
 		return
 	}
 
-	fmt.Println("%d", result)
-
-	writeResponse(result, http.StatusNoContent, 10, w, r)
+	writeResponse("", http.StatusNoContent, 10, w, r)
 }
 
 // createAccount handles requests create an account

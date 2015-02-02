@@ -32,19 +32,18 @@ func UpdateAccount(account *entity.Account, retrieve bool) (acc *entity.Account,
 		return nil, err
 	}
 
-	key := storageClient.AccountKey(account.ID)
+	account.UpdatedAt = time.Now()
 
-	exist, err := storageEngine.Exists(key).Result()
-	if !exist {
-		return nil, fmt.Errorf("account does not exist")
-	}
+	val, err := json.Marshal(account)
 	if err != nil {
 		return nil, err
 	}
 
-	account.UpdatedAt = time.Now()
-
-	val, err := json.Marshal(account)
+	key := storageClient.AccountKey(account.ID)
+	exist, err := storageEngine.Exists(key).Result()
+	if !exist {
+		return nil, fmt.Errorf("account does not exist")
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -61,17 +60,17 @@ func UpdateAccount(account *entity.Account, retrieve bool) (acc *entity.Account,
 }
 
 // DeleteAccount deletes the account matching the ID or an error
-func DeleteAccount(accountID int64) (rs string, err error) {
+func DeleteAccount(accountID int64) (err error) {
 	result, err := storageEngine.Del(storageClient.AccountKey(accountID)).Result()
-
-	switch result {
-	case 0:
-		rs = "The resource for the provided id doesn't exist"
-	case 1:
-		rs = "Resource was deleted successfully"
+	if err != nil {
+		return err
 	}
 
-	return rs, err
+	if result != 1 {
+		return fmt.Errorf("The resource for the provided id doesn't exist")
+	}
+
+	return nil
 }
 
 // WriteAccount adds a new account to the database and returns the created account or an error

@@ -63,7 +63,7 @@ func WriteConnection(connection *entity.Connection, retrieve bool) (con *entity.
 	// Write resource
 	exist, err := storageEngine.SetNX(key, string(val)).Result()
 	if !exist {
-		return nil, fmt.Errorf("account connection already exists")
+		return nil, fmt.Errorf("user connection already exists")
 	}
 	if err != nil {
 		return nil, err
