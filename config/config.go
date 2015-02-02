@@ -26,6 +26,7 @@ type (
 	// Config structure for the application configuration
 	Config struct {
 		Environment    string `json:"env"`
+		UseArtwork     bool   `json:"use_artwork"`
 		ListenHostPort string `json:"listenHost"`
 		Newrelic       struct {
 			Key     string `json:"key"`
@@ -42,6 +43,7 @@ var cfg *Config
 func defaultConfig() *Config {
 	cfg := &Config{}
 	cfg.Environment = "dev"
+	cfg.UseArtwork = true
 	cfg.ListenHostPort = ":8082"
 
 	cfg.Newrelic.Key = "demo"

@@ -61,7 +61,8 @@ func main() {
 	// Get router
 	router := server.GetRouter(conf.Environment != "prod", newRelicAgent)
 
-	log.Printf(`
+	if conf.UseArtwork {
+		log.Printf(`
 
 88888888888                         888                          .d8888b.                                             
     888                             888                         d88P  Y88b                                            
@@ -76,6 +77,7 @@ func main() {
                   888       "Y88P"
      
   	`)
+	}
 	log.Printf("Starting the server at port %s", conf.ListenHostPort)
 	log.Fatal(http.ListenAndServe(conf.ListenHostPort, router))
 }
