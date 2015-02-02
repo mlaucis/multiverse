@@ -94,7 +94,8 @@ func WriteUser(user *entity.User, retrieve bool) (usr *entity.User, err error) {
 	key := storageClient.UserKey(user.ApplicationID, user.ID)
 
 	// Write resource
-	if err = storageEngine.Set(key, string(val)).Err(); err != nil {
+	if exist, err := storageEngine.SetNX(key, string(val)).Result(); !exist {
+		// TODO Wrong HTTP CODE is SENT (200 instead of 4XX)
 		return nil, err
 	}
 

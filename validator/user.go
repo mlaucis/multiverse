@@ -69,10 +69,6 @@ func CreateUser(user *entity.User) error {
 		errs = append(errs, &errorApplicationIDZero)
 	}
 
-	if numInt.Match([]byte(fmt.Sprintf("%d", user.ApplicationID))) {
-		errs = append(errs, &errorApplicationIDType)
-	}
-
 	// Validate AuthToken
 	if user.AuthToken == "" {
 		errs = append(errs, &errorAuthTokenInvalid)

@@ -149,7 +149,7 @@ type (
 		ID            int64          `json:"id"`
 		ApplicationID int64          `json:"application_id"`
 		UserID        int64          `json:"user_id"`
-		Verb          string         `json:"string"`
+		Verb          string         `json:"verb"`
 		Language      string         `json:"language"`
 		Prioritity    string         `json:"priority"`
 		Location      string         `json:"location,omitempty"`

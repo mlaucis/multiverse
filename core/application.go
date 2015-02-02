@@ -69,7 +69,8 @@ func WriteApplication(application *entity.Application, retrieve bool) (app *enti
 
 	key := storageClient.AccountAppKey(application.AccountID, application.ID)
 
-	if err = storageEngine.Set(key, string(val)).Err(); err != nil {
+	if exist, err := storageEngine.SetNX(key, string(val)).Result(); !exist {
+		// TODO Wrong HTTP CODE is SENT (200 instead of 4XX)
 		return nil, err
 	}
 

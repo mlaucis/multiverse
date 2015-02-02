@@ -34,17 +34,9 @@ func CreateEvent(event *entity.Event) error {
 		errs = append(errs, &errorApplicationIDZero)
 	}
 
-	if numInt.Match([]byte(fmt.Sprintf("%d", event.ApplicationID))) {
-		errs = append(errs, &errorApplicationIDType)
-	}
-
 	// Validate UserID
 	if event.UserID == 0 {
 		errs = append(errs, &errorUserIDZero)
-	}
-
-	if numInt.Match([]byte(fmt.Sprintf("%d", event.UserID))) {
-		errs = append(errs, &errorUserIDType)
 	}
 
 	// Validate Verb
@@ -57,7 +49,7 @@ func CreateEvent(event *entity.Event) error {
 	}
 
 	// Validate ID
-	if numFloat.Match([]byte(fmt.Sprintf("%d", event.ID))) {
+	if event.ID != 0 {
 		errs = append(errs, &errorEventIDIsAlreadySet)
 	}
 

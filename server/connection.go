@@ -109,6 +109,7 @@ func createConnection(w http.ResponseWriter, r *http.Request) {
 
 	// Validate resource
 	if err = validator.CreateConnection(connection); err != nil {
+		errorHappened(err, http.StatusBadRequest, r, w)
 		return
 	}
 

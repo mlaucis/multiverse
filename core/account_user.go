@@ -66,7 +66,8 @@ func WriteAccountUser(accountUser *entity.AccountUser, retrieve bool) (accUser *
 	}
 
 	key := storageClient.AccountUserKey(accountUser.AccountID, accountUser.ID)
-	if err = storageEngine.Set(key, string(val)).Err(); err != nil {
+	if exist, err := storageEngine.SetNX(key, string(val)).Result(); !exist {
+		// TODO Wrong HTTP CODE is SENT (200 instead of 4XX)
 		return nil, err
 	}
 

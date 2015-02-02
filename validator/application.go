@@ -51,17 +51,13 @@ func CreateApplication(application *entity.Application) error {
 		errs = append(errs, &errorApplicationDescriptionType)
 	}
 
-	if numFloat.Match([]byte(fmt.Sprintf("%d", application.ID))) {
+	if application.ID != 0 {
 		errs = append(errs, &errorApplicationIDIsAlreadySet)
 	}
 
 	// Validate AcountID
 	if application.AccountID == 0 {
 		errs = append(errs, &errorAccountIDZero)
-	}
-
-	if numInt.Match([]byte(fmt.Sprintf("%d", application.AccountID))) {
-		errs = append(errs, &errorAccountIDType)
 	}
 
 	// Validate URL

@@ -27,26 +27,14 @@ func CreateConnection(connection *entity.Connection) error {
 		errs = append(errs, &errorApplicationIDZero)
 	}
 
-	if numInt.Match([]byte(fmt.Sprintf("%d", connection.ApplicationID))) {
-		errs = append(errs, &errorApplicationIDType)
-	}
-
 	// Validate UserFromID
 	if connection.UserFromID == 0 {
 		errs = append(errs, &errorUserFromIDZero)
 	}
 
-	if numInt.Match([]byte(fmt.Sprintf("%d", connection.UserFromID))) {
-		errs = append(errs, &errorUserFromIDType)
-	}
-
 	// Validate UserToID
 	if connection.UserToID == 0 {
 		errs = append(errs, &errorUserToIDZero)
-	}
-
-	if numInt.Match([]byte(fmt.Sprintf("%d", connection.UserToID))) {
-		errs = append(errs, &errorUserToIDType)
 	}
 
 	// Validate Users

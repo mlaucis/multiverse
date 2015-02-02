@@ -229,6 +229,7 @@ func createEvent(w http.ResponseWriter, r *http.Request) {
 
 	// Validate resource
 	if err = validator.CreateEvent(event); err != nil {
+		errorHappened(err, http.StatusBadRequest, r, w)
 		return
 	}
 

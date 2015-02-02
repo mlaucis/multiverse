@@ -149,6 +149,7 @@ func createApplication(w http.ResponseWriter, r *http.Request) {
 
 	// Validate resource
 	if err = validator.CreateApplication(application); err != nil {
+		errorHappened(err, http.StatusBadRequest, r, w)
 		return
 	}
 

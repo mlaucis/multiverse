@@ -59,7 +59,8 @@ func WriteConnection(connection *entity.Connection, retrieve bool) (con *entity.
 	key := storageClient.ConnectionKey(connection.ApplicationID, connection.UserFromID, connection.UserToID)
 
 	// Write resource
-	if err = storageEngine.Set(key, string(val)).Err(); err != nil {
+	if exist, err := storageEngine.SetNX(key, string(val)).Result(); !exist {
+		// TODO Wrong HTTP CODE is SENT (200 instead of 4XX)
 		return nil, err
 	}
 
@@ -121,16 +122,19 @@ func WriteConnectionEventsToList(connection *entity.Connection) (err error) {
 		return err
 	}
 
-	var vals []red.Z
+	// Sync if events exist
+	if len(events) >= 1 {
+		var vals []red.Z
 
-	for _, eventKey := range events {
-		val := red.Z{Score: float64(eventKey.Score), Member: eventKey.Member}
-		vals = append(vals, val)
-	}
+		for _, eventKey := range events {
+			val := red.Z{Score: float64(eventKey.Score), Member: eventKey.Member}
+			vals = append(vals, val)
+		}
 
-	// Write list
-	if err = storageEngine.ZAdd(connectionEventsKey, vals...).Err(); err != nil {
-		return err
+		// Write list
+		if err = storageEngine.ZAdd(connectionEventsKey, vals...).Err(); err != nil {
+			return err
+		}
 	}
 
 	return nil

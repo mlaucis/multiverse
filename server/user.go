@@ -153,6 +153,7 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 
 	// Validate resource
 	if err = validator.CreateUser(user); err != nil {
+		errorHappened(err, http.StatusBadRequest, r, w)
 		return
 	}
 
