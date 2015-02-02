@@ -17,6 +17,7 @@ import (
 	"github.com/tapglue/backend/server"
 	"github.com/tapglue/backend/storage"
 	"github.com/tapglue/backend/storage/redis"
+	"github.com/tapglue/backend/validator"
 
 	"github.com/yvasiyarov/gorelic"
 )
@@ -43,6 +44,7 @@ func init() {
 	redis.Init(conf.Redis.Hosts[0], conf.Redis.Password, conf.Redis.DB, conf.Redis.PoolSize)
 	storageClient := storage.Init(redis.Client())
 	core.Init(storageClient)
+	validator.Init(storageClient)
 }
 
 func main() {

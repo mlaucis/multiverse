@@ -63,7 +63,11 @@ func (client *Client) GenerateAccountID() (int64, error) {
 
 // GenerateAccountToken returns a token for the specified account
 func (client *Client) GenerateAccountToken(account *entity.Account) (string, error) {
-	return fmt.Sprintf("token_%d_%s", account.ID, base64.StdEncoding.EncodeToString([]byte(account.Name))), nil
+	return fmt.Sprintf(
+		"token_%d_%s",
+		account.ID,
+		base64Encode(account.Name),
+	), nil
 }
 
 // GenerateAccountUserID generates a new account user id for a specified account
@@ -74,6 +78,16 @@ func (client *Client) GenerateAccountUserID(accountID int64) (int64, error) {
 // GenerateApplicationID generates a new application ID
 func (client *Client) GenerateApplicationID(accountID int64) (int64, error) {
 	return client.engine.Incr(fmt.Sprintf(idAccountAppKey, accountID)).Result()
+}
+
+// GenerateApplicationToken returns a token for the specified application of an account
+func (client *Client) GenerateApplicationToken(accountID int64, application *entity.Application) (string, error) {
+	return fmt.Sprintf(
+		"token_%d_%d_%s",
+		accountID,
+		application.ID,
+		base64Encode(application.Name),
+	), nil
 }
 
 // GenerateApplicationUserID generates the user id in the specified app
@@ -175,4 +189,8 @@ func Init(engine *red.Client) *Client {
 	}
 
 	return instance
+}
+
+func base64Encode(value string) string {
+	return base64.StdEncoding.EncodeToString([]byte(value))
 }

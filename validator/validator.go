@@ -10,9 +10,15 @@ import (
 	"regexp"
 
 	"github.com/tapglue/backend/core"
+	"github.com/tapglue/backend/storage"
+
+	"gopkg.in/redis.v2"
 )
 
 var (
+	storageClient *storage.Client
+	storageEngine *redis.Client
+
 	alpha                  = regexp.MustCompile("^[\u0020-\u007E\uFF61-\uFF9F\uFFA0-\uFFDC\uFFE8-\uFFEEa-zA-Z]+$")
 	alphaNum               = regexp.MustCompile("^[\u0020-\u007E\uFF61-\uFF9F\uFFA0-\uFFDC\uFFE8-\uFFEE0-9a-zA-Z]+$")
 	alphaNumExtra          = regexp.MustCompile("^[\u0020-\u007E\uFF61-\uFF9F\uFFA0-\uFFDC\uFFE8-\uFFEE0-9a-zA-Z ]+$")
@@ -79,4 +85,10 @@ func userExists(applicationID, userID int64) bool {
 	}
 
 	return user.Enabled
+}
+
+// Init initializes the core package
+func Init(engine *storage.Client) {
+	storageClient = engine
+	storageEngine = engine.Engine()
 }

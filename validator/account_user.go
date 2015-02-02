@@ -13,6 +13,9 @@ import (
 const (
 	accountUserNameMin = 2
 	accountUserNameMax = 40
+
+	accountUserPasswordMin = 8
+	accountUserPasswordMax = 60
 )
 
 var (
@@ -25,6 +28,8 @@ var (
 	errorAccountUserUsernameSize = fmt.Errorf("user username must be between %d and %d characters", accountUserNameMin, accountUserNameMax)
 	errorAccountUserUsernameType = fmt.Errorf("user username is not a valid alphanumeric sequence")
 
+	errorAccountUserPasswordSize = fmt.Errorf("user password must be between %d and %d characters", accountUserPasswordMin, accountUserPasswordMax)
+
 	errorAccountIDZero = fmt.Errorf("account id can't be 0")
 	errorAccountIDType = fmt.Errorf("account id is not a valid integer")
 
@@ -36,7 +41,6 @@ var (
 func CreateAccountUser(accountUser *entity.AccountUser) error {
 	errs := []*error{}
 
-	// Validate names
 	if !stringBetween(accountUser.FirstName, accountUserNameMin, accountUserNameMax) {
 		errs = append(errs, &errorAccountUserFirstNameSize)
 	}
@@ -47,6 +51,10 @@ func CreateAccountUser(accountUser *entity.AccountUser) error {
 
 	if !stringBetween(accountUser.Username, accountUserNameMin, accountUserNameMax) {
 		errs = append(errs, &errorAccountUserUsernameSize)
+	}
+
+	if !stringBetween(accountUser.Password, accountUserPasswordMin, accountUserPasswordMax) {
+		errs = append(errs, &errorAccountUserPasswordSize)
 	}
 
 	if !alphaNumExtraCharFirst.Match([]byte(accountUser.FirstName)) {
@@ -61,26 +69,20 @@ func CreateAccountUser(accountUser *entity.AccountUser) error {
 		errs = append(errs, &errorAccountUserUsernameType)
 	}
 
-	// Validate AccountID
+	// TODO add validation for password rules such as use all type of chars
+
 	if accountUser.AccountID == 0 {
 		errs = append(errs, &errorAccountIDZero)
 	}
 
-	if numInt.Match([]byte(fmt.Sprintf("%d", accountUser.AccountID))) {
-		errs = append(errs, &errorAccountIDType)
-	}
-
-	// Validate Email
 	if accountUser.Email == "" || !email.Match([]byte(accountUser.Email)) {
 		errs = append(errs, &errorAccountUserEmailInvalid)
 	}
 
-	// Validate URL
 	if accountUser.URL != "" && !url.Match([]byte(accountUser.URL)) {
 		errs = append(errs, &errorAccountUserURLInvalid)
 	}
 
-	// Validate Image
 	if len(accountUser.Image) > 0 {
 		for _, image := range accountUser.Image {
 			if !url.Match([]byte(image.URL)) {
@@ -89,7 +91,6 @@ func CreateAccountUser(accountUser *entity.AccountUser) error {
 		}
 	}
 
-	// Validate Account
 	if !accountExists(accountUser.AccountID) {
 		errs = append(errs, &errorAccountDoesNotExists)
 	}

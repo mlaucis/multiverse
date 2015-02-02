@@ -22,6 +22,14 @@ import (
 	"github.com/yvasiyarov/gorelic"
 )
 
+var (
+	dbgMode bool
+)
+
+func getReqAuthToken(r *http.Request) string {
+	return r.Header.Get("Authorization")
+}
+
 // validateGetCommon runs a series of predefinied, common, tests for GET requests
 func validateGetCommon(w http.ResponseWriter, r *http.Request) error {
 	if r.Header.Get("User-Agent") == "" {
@@ -72,6 +80,10 @@ func writeCacheHeaders(cacheTime uint, w http.ResponseWriter) {
 // getSanitizedHeaders returns the sanitized request headers
 func getSanitizedHeaders(r *http.Request) http.Header {
 	headers := r.Header
+
+	if !dbgMode {
+		headers.Del("Authorization")
+	}
 
 	// TODO sanitize headers that shouldn't not appear in the logs
 
@@ -187,6 +199,7 @@ Disallow: /`))
 
 // GetRouter creates the router
 func GetRouter(debugMode bool, newRelicAgent *gorelic.Agent) *mux.Router {
+	dbgMode = debugMode
 	router := mux.NewRouter().StrictSlash(true)
 
 	for version, innerRoutes := range routes {

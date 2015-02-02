@@ -1,6 +1,6 @@
 #!/bin/bash
 curl -i -H "Content-Type: application/json" -d '{"name":"New Account", "description":"Description of the account"}' localhost:8082/0.1/accounts
-curl -i -H "Content-Type: application/json" -d '{"user_name":"User name", "password":"hmac(256)", "email":"de@m.o"}' localhost:8082/0.1/account/1/users
+curl -i -H "Content-Type: application/json" -H "Authorization: Bearer token_1_TmV3IEFjY291bnQ=" -d '{"user_name":"User name", "first_name": "Demo", "last_name": "User", "password":"hmac(256)", "email":"de@m.o"}' localhost:8082/0.1/account/1/users
 curl -i -H "Content-Type: application/json" -d '{"key": "hmac(256)", "name":"New App"}' localhost:8082/0.1/account/1/applications
 curl -i -H "Content-Type: application/json" -d '{"auth_token": "yZg6ZCJjHGy5caTcVnD25pVMEswUEQWTSA64tkBU", "username": "dlsniper", "name": "Florin Patan", "password": "JjQxWYYCWfX634q6KQeDSusywVH3T5Dw9hMqBcUd", "email": "florinpatan@gmail.com", "url": "http://florinpatan.ro", "metadata": "{}"}' localhost:8082/0.1/application/1/users
 curl -i -H "Content-Type: application/json" -d '{"auth_token": "yZg6ZCJjHGy5caTcVnD25pVMEswUEQWTSA64tkBU", "username": "dlsniper", "name": "Florin Patan", "password": "JjQxWYYCWfX634q6KQeDSusywVH3T5Dw9hMqBcUd", "email": "florinpatan@gmail.com", "url": "http://florinpatan.ro", "metadata": "{}"}' localhost:8082/0.1/application/1/users

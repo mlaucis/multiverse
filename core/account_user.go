@@ -6,6 +6,7 @@ package core
 
 import (
 	"encoding/json"
+	"time"
 
 	"github.com/tapglue/backend/core/entity"
 )
@@ -54,6 +55,10 @@ func WriteAccountUser(accountUser *entity.AccountUser, retrieve bool) (accUser *
 	if accountUser.ID, err = storageClient.GenerateAccountUserID(accountUser.AccountID); err != nil {
 		return nil, err
 	}
+
+	accountUser.Enabled = true
+	accountUser.CreatedAt = time.Now()
+	accountUser.UpdatedAt, accountUser.ReceivedAt = accountUser.CreatedAt, accountUser.CreatedAt
 
 	val, err := json.Marshal(accountUser)
 	if err != nil {
