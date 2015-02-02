@@ -20,7 +20,7 @@ import (
 
 // getEvent handles requests to retrieve a single event
 // Request: GET /application/:AppID/event/:ID
-// Test with: curl -i localhost/application/:AppID/event/:ID
+// Test with: curl -i localhost/0.1/application/:AppID/event/:ID
 func getEvent(w http.ResponseWriter, r *http.Request) {
 	// Validate request
 	if err := validateGetCommon(w, r); err != nil {
@@ -70,7 +70,7 @@ func getEvent(w http.ResponseWriter, r *http.Request) {
 
 // getEventList handles requests to retrieve a users events
 // Request: GET /application/:AppID/user/:UserID/events
-// Test with: curl -i localhost/application/:AppID/user/:UserID/events
+// Test with: curl -i localhost/0.1/application/:AppID/user/:UserID/events
 func getEventList(w http.ResponseWriter, r *http.Request) {
 	// Validate request
 	if err := validateGetCommon(w, r); err != nil {
@@ -130,7 +130,7 @@ func getEventList(w http.ResponseWriter, r *http.Request) {
 
 // getConnectionEventList handles requests to retrieve a users connections events
 // Request: GET /application/:AppID/user/:UserID/connections/events
-// Test with: curl -i localhost/application/:AppID/user/:UserID/connections/events
+// Test with: curl -i localhost/0.1/application/:AppID/user/:UserID/connections/events
 func getConnectionEventList(w http.ResponseWriter, r *http.Request) {
 	// Validate request
 	if err := validateGetCommon(w, r); err != nil {
@@ -184,7 +184,7 @@ func getConnectionEventList(w http.ResponseWriter, r *http.Request) {
 
 // createEvent handles requests to create an event
 // Request: POST /application/:AppID/user/:UserID/events
-// Test with: curl -i -H "Content-Type: application/json" -d '{"type": "like", "item_id": "item1", "item_name": "item-name", "item_url": "app://url", "thumbnail_url": "gravatar", "custom": "{}", "nth": 1}' localhost/application/:AppID/user/:UserID/events
+// Test with: curl -i -H "Content-Type: application/json" -d '{"type": "like", "item_id": "item1", "item_name": "item-name", "item_url": "app://url", "thumbnail_url": "gravatar", "custom": "{}", "nth": 1}' localhost/0.1/application/:AppID/user/:UserID/events
 func createEvent(w http.ResponseWriter, r *http.Request) {
 	// Validate request
 	if err := validatePostCommon(w, r); err != nil {

@@ -26,6 +26,20 @@ func ReadAccount(accountID int64) (account *entity.Account, err error) {
 	return
 }
 
+// DeleteAccount deletes the account matching the ID or an error
+func DeleteAccount(accountID int64) (rs string, err error) {
+	result, err := storageEngine.Del(storageClient.AccountKey(accountID)).Result()
+
+	switch result {
+	case 0:
+		rs = "The resource for the provided id doesn't exist"
+	case 1:
+		rs = "Resource was deleted successfully"
+	}
+
+	return rs, err
+}
+
 // WriteAccount adds a new account to the database and returns the created account or an error
 func WriteAccount(account *entity.Account, retrieve bool) (acc *entity.Account, err error) {
 	if account.ID, err = storageClient.GenerateAccountID(); err != nil {

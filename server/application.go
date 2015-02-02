@@ -19,7 +19,7 @@ import (
 
 // getApplication handles requests to a single application
 // Request: GET /account/:AccountID/application/:ID
-// Test with: curl -i localhost/account/:AccountID/application/:ID
+// Test with: curl -i localhost/0.1/account/:AccountID/application/:ID
 func getApplication(w http.ResponseWriter, r *http.Request) {
 	// Validate request
 	if err := validateGetCommon(w, r); err != nil {
@@ -62,7 +62,7 @@ func getApplication(w http.ResponseWriter, r *http.Request) {
 
 // getApplicationList handles requests list all account applications
 // Request: GET /account/:AccountID/applications
-// Test with: curl -i localhost/account/:AccountID/applications
+// Test with: curl -i localhost/0.1/account/:AccountID/applications
 func getApplicationList(w http.ResponseWriter, r *http.Request) {
 	// Validate request
 	if err := validateGetCommon(w, r); err != nil {
@@ -113,7 +113,7 @@ func getApplicationList(w http.ResponseWriter, r *http.Request) {
 
 // createApplication handles requests create an application
 // Request: POST /account/:AccountID/applications
-// Test with: curl -i -H "Content-Type: application/json" -d '{"key": "hmac(256)", "name":"New App"}' localhost/account/:AccountID/applications
+// Test with: curl -i -H "Content-Type: application/json" -d '{"key": "hmac(256)", "name":"New App"}' localhost/0.1/account/:AccountID/applications
 func createApplication(w http.ResponseWriter, r *http.Request) {
 	// Validate request
 	if err := validatePostCommon(w, r); err != nil {
