@@ -130,17 +130,17 @@ func (client *Client) ConnectionKey(applicationID, userFromID, userToID int64) s
 	return fmt.Sprintf(connectionKey, applicationID, userFromID, userToID)
 }
 
-// ConnectionsKey replace this
+// ConnectionsKey gets the key for the connections list
 func (client *Client) ConnectionsKey(applicationID, userFromID int64) string {
 	return fmt.Sprintf(connectionsKey, applicationID, userFromID)
 }
 
-// ConnectionUsersKey replace this
+// ConnectionUsersKey gets the key for the connectioned users list
 func (client *Client) ConnectionUsersKey(applicationID, userFromID int64) string {
 	return fmt.Sprintf(connectionUsersKey, applicationID, userFromID)
 }
 
-// FollowedByUsersKey replace this
+// FollowedByUsersKey gets the key for the list of followers
 func (client *Client) FollowedByUsersKey(applicationID, userToID int64) string {
 	return fmt.Sprintf(followedByUsersKey, applicationID, userToID)
 }
@@ -150,27 +150,27 @@ func (client *Client) UserKey(applicationID, userID int64) string {
 	return fmt.Sprintf(userKey, applicationID, userID)
 }
 
-// UsersKey replace this
+// UsersKey gets the key the app users list
 func (client *Client) UsersKey(applicationID int64) string {
 	return fmt.Sprintf(usersKey, applicationID)
 }
 
-// EventKey replace this
+// EventKey gets the key for an event
 func (client *Client) EventKey(applicationID, userID, eventID int64) string {
 	return fmt.Sprintf(eventKey, applicationID, userID, eventID)
 }
 
-// EventsKey replace this
+// EventsKey get the key for the events list
 func (client *Client) EventsKey(applicationID, userID int64) string {
 	return fmt.Sprintf(eventsKey, applicationID, userID)
 }
 
-// ConnectionEventsKey replace this
+// ConnectionEventsKey get the key for the connections events list
 func (client *Client) ConnectionEventsKey(applicationID, userID int64) string {
 	return fmt.Sprintf(connectionEventsKey, applicationID, userID)
 }
 
-// ConnectionEventsKeyLoop replace this
+// ConnectionEventsKeyLoop gets the key for looping through connections
 func (client *Client) ConnectionEventsKeyLoop(userID string) string {
 	return fmt.Sprintf(connectionEventsKeyLoop, userID)
 }
