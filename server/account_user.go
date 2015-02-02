@@ -19,7 +19,7 @@ import (
 
 // getAccountUser handles requests to a single account user
 // Request: GET /account/:AccountID/user/:ID
-// Test with: curl -i localhost/account/:AccountID/user/:ID
+// Test with: curl -i localhost/0.1/account/:AccountID/user/:ID
 func getAccountUser(w http.ResponseWriter, r *http.Request) {
 	if err := validateGetCommon(w, r); err != nil {
 		errorHappened(err, http.StatusBadRequest, r, w)
@@ -59,7 +59,7 @@ func getAccountUser(w http.ResponseWriter, r *http.Request) {
 
 // getAccountUserList handles requests to list all account users
 // Request: GET /account/:AccountID/users
-// Test with: curl -i localhost/account/:AccountID/users
+// Test with: curl -i localhost/0.1/account/:AccountID/users
 func getAccountUserList(w http.ResponseWriter, r *http.Request) {
 	if err := validateGetCommon(w, r); err != nil {
 		errorHappened(err, http.StatusBadRequest, r, w)
@@ -107,7 +107,7 @@ func getAccountUserList(w http.ResponseWriter, r *http.Request) {
 
 // createAccountUser handles requests create an account user
 // Request: POST /account/:AccountID/users
-// Test with: curl -i -H "Content-Type: application/json" -d '{"user_name":"User name", "password":"hmac(256)", "email":"de@m.o"}' localhost/account/:AccountID/users
+// Test with: curl -i -H "Content-Type: application/json" -d '{"user_name":"User name", "password":"hmac(256)", "email":"de@m.o"}' localhost/0.1/account/:AccountID/users
 func createAccountUser(w http.ResponseWriter, r *http.Request) {
 	if err := validatePostCommon(w, r); err != nil {
 		errorHappened(err, http.StatusBadRequest, r, w)

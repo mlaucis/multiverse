@@ -39,6 +39,12 @@ var routes = map[string]map[string]*route{
 			"/account/%d",
 			getAccount,
 		},
+		"deleteAccount": &route{
+			"DELETE",
+			"/account/{accountId:[0-9]{1,20}}",
+			"/account/%d",
+			deleteAccount,
+		},
 		"createAccount": &route{
 			"POST",
 			"/accounts",

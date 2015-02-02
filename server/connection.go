@@ -19,7 +19,7 @@ import (
 
 // getConnectionList handles requests to list a users connections
 // Request: GET /application/:AppID/user/:UserID/connections
-// Test with: curl -i localhost/application/:AppID/user/:UserID/connections
+// Test with: curl -i localhost/0.1/application/:AppID/user/:UserID/connections
 func getConnectionList(w http.ResponseWriter, r *http.Request) {
 	// Validate request
 	if err := validateGetCommon(w, r); err != nil {
@@ -72,7 +72,7 @@ func getConnectionList(w http.ResponseWriter, r *http.Request) {
 
 // createConnection handles requests to create a user connection
 // Request: POST /application/:AppID/connections
-// Test with: curl -i -H "Content-Type: application/json" -d '{"user_from_id":1,"user_to_id":2}' localhost/application/:AppID/connections
+// Test with: curl -i -H "Content-Type: application/json" -d '{"user_from_id":1,"user_to_id":2}' localhost/0.1/application/:AppID/connections
 func createConnection(w http.ResponseWriter, r *http.Request) {
 	// Validate request
 	if err := validatePostCommon(w, r); err != nil {

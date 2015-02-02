@@ -19,7 +19,7 @@ import (
 
 // getUser handles requests to retrieve a single user
 // Request: GET /application/:AppID/user/:ID
-// Test with: curl -i localhost/application/:AppID/user/:ID
+// Test with: curl -i localhost/0.1/application/:AppID/user/:ID
 func getUser(w http.ResponseWriter, r *http.Request) {
 	// Validate request
 	if err := validateGetCommon(w, r); err != nil {
@@ -72,7 +72,7 @@ func getUser(w http.ResponseWriter, r *http.Request) {
 // getUserList handles requests to retrieve all users of an app
 // THIS ROUTE IS NOT YET ACTIVATED
 // Request: GET /application/:AppID/users
-// Test with: curl -i localhost/application/:AppID/users
+// Test with: curl -i localhost/0.1/application/:AppID/users
 func getUserList(w http.ResponseWriter, r *http.Request) {
 	// Validate request
 	if err := validateGetCommon(w, r); err != nil {
@@ -116,7 +116,7 @@ func getUserList(w http.ResponseWriter, r *http.Request) {
 
 // createUser handles requests create an application user
 // Request: POST /application/:AppId/users
-// Test with: curl -i -H "Content-Type: application/json" -d '{"auth_token": "token1flo", "username": "flo", "name": "Florin", "password": "passwd", "email": "fl@r.in", "url": "blogger", "metadata": "{}"}' localhost/application/:AppID/users
+// Test with: curl -i -H "Content-Type: application/json" -d '{"auth_token": "token1flo", "username": "flo", "name": "Florin", "password": "passwd", "email": "fl@r.in", "url": "blogger", "metadata": "{}"}' localhost/0.1/application/:AppID/users
 func createUser(w http.ResponseWriter, r *http.Request) {
 	// Validate request
 	if err := validatePostCommon(w, r); err != nil {
