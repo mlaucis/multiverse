@@ -25,3 +25,4 @@ curl -i -H "Content-Type: application/json" -d '{"verb": "like", "metadata": "{}
 curl -i -H "Content-Type: application/json" -d '{"verb": "like", "metadata": "{}"}' localhost:8082/0.1/application/1/user/1/events
 curl -i -H "Content-Type: application/json" -d '{"verb": "like", "metadata": "{}"}' localhost:8082/0.1/application/1/user/1/events
 curl -i -H "Content-Type: application/json" -d '{"user_from_id":5,"user_to_id":1}' localhost:8082/0.1/application/1/connections
+curl -i -H "Content-Type: application/json" -d '{"token":"token_1_TmV3IEFjY291bnQ=", "name":"New Account","description":"Another description of the account", "enabled": true, "created_at":"2015-02-02T19:13:18.239759449Z", "received_at":"2015-02-02T19:13:18.239759449Z", "metadata":"{123}"}' -X PUT localhost/0.1/account/:ID

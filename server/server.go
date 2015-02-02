@@ -39,6 +39,15 @@ func validateGetCommon(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
+// validatePutCommon runs a series of predefinied, common, tests for PUT requests
+func validatePutCommon(w http.ResponseWriter, r *http.Request) error {
+	if r.Header.Get("User-Agent") == "" {
+		return fmt.Errorf("User-Agent header must be set")
+	}
+
+	return nil
+}
+
 // validateDeleteCommon runs a series of predefinied, common, tests for DELETE requests
 func validateDeleteCommon(w http.ResponseWriter, r *http.Request) error {
 	if r.Header.Get("User-Agent") == "" {

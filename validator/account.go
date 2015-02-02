@@ -30,7 +30,7 @@ var (
 	errorAccountTokenAlreadySet = fmt.Errorf("account token is already set")
 )
 
-// CreateAccount validates an account
+// CreateAccount validates an account on create
 func CreateAccount(account *entity.Account) error {
 	errs := []*error{}
 
@@ -56,6 +56,37 @@ func CreateAccount(account *entity.Account) error {
 
 	if account.Token != "" {
 		errs = append(errs, &errorAccountTokenAlreadySet)
+	}
+
+	if len(account.Image) > 0 {
+		for _, image := range account.Image {
+			if !url.Match([]byte(image.URL)) {
+				errs = append(errs, &errorInvalidImageURL)
+			}
+		}
+	}
+
+	return packErrors(errs)
+}
+
+// UpdateAccount validates an account on update
+func UpdateAccount(account *entity.Account) error {
+	errs := []*error{}
+
+	if !stringBetween(account.Name, accountNameMin, accountNameMax) {
+		errs = append(errs, &errorAccountNameSize)
+	}
+
+	if !stringBetween(account.Description, accountDescriptionMin, accountDescriptionMax) {
+		errs = append(errs, &errorAccountDescriptionSize)
+	}
+
+	if !alphaNumExtraCharFirst.Match([]byte(account.Name)) {
+		errs = append(errs, &errorAccountNameType)
+	}
+
+	if !alphaNumExtraCharFirst.Match([]byte(account.Description)) {
+		errs = append(errs, &errorAccountDescriptionType)
 	}
 
 	if len(account.Image) > 0 {

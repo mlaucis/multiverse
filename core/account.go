@@ -26,6 +26,37 @@ func ReadAccount(accountID int64) (account *entity.Account, err error) {
 	return
 }
 
+// UpdateAccount updates the account matching the ID or an error
+func UpdateAccount(account *entity.Account, retrieve bool) (acc *entity.Account, err error) {
+	if account.Token, err = storageClient.GenerateAccountToken(account); err != nil {
+		return nil, err
+	}
+
+	key := storageClient.AccountKey(account.ID)
+
+	if exist, err := storageEngine.Exists(key).Result(); !exist {
+		// TODO send proper HTTP code
+		return nil, err
+	}
+
+	account.UpdatedAt = time.Now()
+
+	val, err := json.Marshal(account)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = storageEngine.Set(key, string(val)).Err(); err != nil {
+		return nil, err
+	}
+
+	if !retrieve {
+		return account, nil
+	}
+
+	return ReadAccount(account.ID)
+}
+
 // DeleteAccount deletes the account matching the ID or an error
 func DeleteAccount(accountID int64) (rs string, err error) {
 	result, err := storageEngine.Del(storageClient.AccountKey(accountID)).Result()
