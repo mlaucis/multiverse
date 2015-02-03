@@ -39,7 +39,7 @@ func UpdateApplication(application *entity.Application, retrieve bool) (app *ent
 	key := storageClient.Application(application.AccountID, application.ID)
 	exist, err := storageEngine.Exists(key).Result()
 	if !exist {
-		return nil, fmt.Errorf("application user does not exist")
+		return nil, fmt.Errorf("application does not exist")
 	}
 	if err != nil {
 		return nil, err
@@ -64,7 +64,7 @@ func UpdateApplication(application *entity.Application, retrieve bool) (app *ent
 	return ReadApplication(application.AccountID, application.ID)
 }
 
-// DeleteApplication deletes the application user matching the IDs or an error
+// DeleteApplication deletes the application matching the IDs or an error
 func DeleteApplication(accountID, appID int64) (err error) {
 	key := storageClient.Application(accountID, appID)
 	result, err := storageEngine.Del(key).Result()

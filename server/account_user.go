@@ -59,7 +59,7 @@ func getAccountUser(w http.ResponseWriter, r *http.Request) {
 
 // updateAccountUser handles requests update an account user
 // Request: PUT /account/:AccountID/user/:ID
-// Test with: curl -i -H "Content-Type: application/json" -d '{"user_name":"User name", "password":"hmac(256)", "email":"de@m.o"}' localhost/0.1/account/:AccountID/user/:ID
+// Test with: curl -i -H "Content-Type: application/json" -d '{"user_name":"User name", "password":"hmac(256)", "email":"de@m.o"}' -X PUT localhost/0.1/account/:AccountID/user/:ID
 func updateAccountUser(w http.ResponseWriter, r *http.Request) {
 	if err := validatePutCommon(w, r); err != nil {
 		errorHappened(err, http.StatusBadRequest, r, w)

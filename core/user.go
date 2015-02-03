@@ -7,35 +7,26 @@ package core
 import (
 	"encoding/json"
 	"errors"
+	"time"
 
 	"fmt"
 
 	"github.com/tapglue/backend/core/entity"
 )
 
-// Defining keys
-const (
-	_UserKey  string = "app_%d_user_%d"
-	_UsersKey string = "app_%d_users"
-)
-
-// generateUserID generates a new user ID
 func generateUserID(applicationID int64) (int64, error) {
 	return storageEngine.Incr(storageClient.GenerateApplicationUserID(applicationID)).Result()
 }
 
 // ReadUser returns the user matching the ID or an error
 func ReadUser(applicationID int64, userID int64) (user *entity.User, err error) {
-	// Generate resource key
 	key := storageClient.User(applicationID, userID)
 
-	// Read from db
 	result, err := storageEngine.Get(key).Result()
 	if err != nil {
 		return nil, err
 	}
 
-	// Parse JSON
 	if err = json.Unmarshal([]byte(result), &user); err != nil {
 		return nil, err
 	}
@@ -43,30 +34,88 @@ func ReadUser(applicationID int64, userID int64) (user *entity.User, err error) 
 	return
 }
 
+// UpdateUser updates a user in the database and returns the created applicaton user or an error
+func UpdateUser(user *entity.User, retrieve bool) (usr *entity.User, err error) {
+	user.UpdatedAt = time.Now()
+
+	val, err := json.Marshal(user)
+	if err != nil {
+		return nil, err
+	}
+
+	key := storageClient.User(user.ApplicationID, user.ID)
+	exist, err := storageEngine.Exists(key).Result()
+	if !exist {
+		return nil, fmt.Errorf("user does not exist")
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	if err = storageEngine.Set(key, string(val)).Err(); err != nil {
+		return nil, err
+	}
+
+	listKey := storageClient.Users(user.ApplicationID)
+	if err = storageEngine.LRem(listKey, 0, key).Err(); err != nil {
+		return nil, err
+	}
+	if err = storageEngine.LPush(listKey, key).Err(); err != nil {
+		return nil, err
+	}
+
+	if !retrieve {
+		return user, nil
+	}
+
+	return ReadUser(user.ApplicationID, user.ID)
+}
+
+// DeleteUser deletes the user matching the IDs or an error
+func DeleteUser(appID, userID int64) (err error) {
+	key := storageClient.User(appID, userID)
+	result, err := storageEngine.Del(key).Result()
+	if err != nil {
+		return err
+	}
+
+	if result != 1 {
+		return fmt.Errorf("The resource for the provided id doesn't exist")
+	}
+
+	listKey := storageClient.Users(appID)
+	if err = storageEngine.LRem(listKey, 0, key).Err(); err != nil {
+		return err
+	}
+
+	// TODO: Remove Users Connections?
+	// TODO: Remove Users Connection Lists?
+	// TODO: Remove User in other Users Connection Lists?
+	// TODO: Remove Users Events?
+	// TODO: Remove Users Events from Lists?
+
+	return nil
+}
+
 // ReadUserList returns all users from a certain account
 func ReadUserList(applicationID int64) (users []*entity.User, err error) {
-	// Generate resource key
 	key := storageClient.Users(applicationID)
 
-	// Read from db
 	result, err := storageEngine.LRange(key, 0, -1).Result()
 	if err != nil {
 		return nil, err
 	}
 
-	// Return no elements
 	if len(result) == 0 {
 		err := errors.New("There are no users for this app")
 		return nil, err
 	}
 
-	// Read from db
 	resultList, err := storageEngine.MGet(result...).Result()
 	if err != nil {
 		return nil, err
 	}
 
-	// Parse JSON
 	user := &entity.User{}
 	for _, result := range resultList {
 		if err = json.Unmarshal([]byte(result.(string)), user); err != nil {
@@ -81,21 +130,17 @@ func ReadUserList(applicationID int64) (users []*entity.User, err error) {
 
 // WriteUser adds a user to the database and returns the created user or an error
 func WriteUser(user *entity.User, retrieve bool) (usr *entity.User, err error) {
-	// Generate id
 	if user.ID, err = generateUserID(user.ApplicationID); err != nil {
 		return nil, err
 	}
 
-	// Encode JSON
 	val, err := json.Marshal(user)
 	if err != nil {
 		return nil, err
 	}
 
-	// Generate resource key
 	key := storageClient.User(user.ApplicationID, user.ID)
 
-	// Write resource
 	exist, err := storageEngine.SetNX(key, string(val)).Result()
 	if !exist {
 		return nil, fmt.Errorf("user already exists")
@@ -104,10 +149,8 @@ func WriteUser(user *entity.User, retrieve bool) (usr *entity.User, err error) {
 		return nil, err
 	}
 
-	// Generate list key
 	listKey := storageClient.Users(user.ApplicationID)
 
-	// Write list
 	if err = storageEngine.LPush(listKey, key).Err(); err != nil {
 		return nil, err
 	}
@@ -116,6 +159,5 @@ func WriteUser(user *entity.User, retrieve bool) (usr *entity.User, err error) {
 		return user, nil
 	}
 
-	// Return resource
 	return ReadUser(user.ApplicationID, user.ID)
 }

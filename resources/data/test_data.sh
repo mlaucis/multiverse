@@ -35,3 +35,6 @@ curl -i -H "Content-Type: application/json" -d '{"key": "hmac(256)", "name":"New
 curl -i -H "Content-Type: application/json" -d '{"key": "hmac(256)", "name":"New App","description":"awesomeness"}' localhost:8082/0.1/account/1/applications
 curl -i -H "Content-Type: application/json" -d '{"key": "hmac(256)", "name":"New App changed","description":"awesomeness changed"}' -X PUT localhost:8082/0.1/account/1/application/2
 curl -i -X DELETE localhost:8082/0.1/account/1/application/2
+curl -i -H "Content-Type: application/json" -d '{"auth_token": "yZg6ZCJjHGy5caTcVnD25pVMEswUEQWTSA64tkBU", "user_name": "dlsniper", "first_name": "Florin", "last_name": "Patan", "password": "JjQxWYYCWfX634q6KQeDSusywVH3T5Dw9hMqBcUd", "email": "florinpatan@gmail.com", "url": "http://florinpatan.ro", "metadata": "{}"}' localhost:8082/0.1/application/1/users
+curl -i -H "Content-Type: application/json" -d '{"auth_token": "yZg6ZCJjHGy5caTcVnD25pVMEswUEQWTSA64tkBU", "user_name": "dlsniper changed", "first_name": "Florin", "last_name": "Patan", "password": "JjQxWYYCWfX634q6KQeDSusywVH3T5Dw9hMqBcUd", "email": "florinpatan@gmail.com", "url": "http://florinpatan.ro", "metadata": "{changed}"}' -X PUT  localhost:8082/0.1/application/1/user/6
+curl -i -X DELETE localhost:8082/0.1/application/1/user/6

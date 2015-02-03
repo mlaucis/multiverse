@@ -21,13 +21,11 @@ import (
 // Request: GET /application/:AppID/user/:ID
 // Test with: curl -i localhost/0.1/application/:AppID/user/:ID
 func getUser(w http.ResponseWriter, r *http.Request) {
-	// Validate request
 	if err := validateGetCommon(w, r); err != nil {
 		errorHappened(err, http.StatusBadRequest, r, w)
 		return
 	}
 
-	// Declare vars
 	var (
 		user   *entity.User
 		appID  int64
@@ -35,28 +33,23 @@ func getUser(w http.ResponseWriter, r *http.Request) {
 		err    error
 	)
 
-	// Read vars
 	vars := mux.Vars(r)
 
-	// Read appID
 	if appID, err = strconv.ParseInt(vars["appId"], 10, 64); err != nil {
 		errorHappened(fmt.Errorf("appId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
 		return
 	}
 
-	// Read userID
 	if userID, err = strconv.ParseInt(vars["userId"], 10, 64); err != nil {
 		errorHappened(fmt.Errorf("userId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
 		return
 	}
 
-	// Read user
 	if user, err = core.ReadUser(appID, userID); err != nil {
 		errorHappened(err, http.StatusInternalServerError, r, w)
 		return
 	}
 
-	// Create response
 	response := &struct {
 		appID int64 `json: "appId"`
 		*entity.User
@@ -65,8 +58,96 @@ func getUser(w http.ResponseWriter, r *http.Request) {
 		User:  user,
 	}
 
-	// Write response
 	writeResponse(response, http.StatusOK, 10, w, r)
+}
+
+// updateUser handles requests to update a user
+// Request: PUT /application/:AppID/user/:ID
+// Test with: curl -i -H "Content-Type: application/json" -d '{"auth_token": "token1flo", "username": "flo", "name": "Florin", "password": "passwd", "email": "fl@r.in", "url": "blogger", "metadata": "{}"}'  -X PUT localhost/0.1/application/:AppID/user/:ID
+func updateUser(w http.ResponseWriter, r *http.Request) {
+	if err := validatePostCommon(w, r); err != nil {
+		errorHappened(err, http.StatusBadRequest, r, w)
+		return
+	}
+
+	var (
+		user   = &entity.User{}
+		appID  int64
+		userID int64
+		err    error
+	)
+
+	vars := mux.Vars(r)
+
+	if appID, err = strconv.ParseInt(vars["appId"], 10, 64); err != nil {
+		errorHappened(fmt.Errorf("appId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
+		return
+	}
+
+	if userID, err = strconv.ParseInt(vars["userId"], 10, 64); err != nil {
+		errorHappened(fmt.Errorf("userId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
+		return
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	if err = decoder.Decode(user); err != nil {
+		errorHappened(err, http.StatusBadRequest, r, w)
+		return
+	}
+
+	if user.ID == 0 {
+		user.ID = userID
+	}
+	if user.ApplicationID == 0 {
+		user.ApplicationID = appID
+	}
+
+	if err = validator.UpdateUser(user); err != nil {
+		errorHappened(err, http.StatusBadRequest, r, w)
+		return
+	}
+
+	if user, err = core.UpdateUser(user, true); err != nil {
+		errorHappened(err, http.StatusInternalServerError, r, w)
+		return
+	}
+
+	writeResponse(user, http.StatusCreated, 0, w, r)
+}
+
+// deleteUser handles requests to delete a single user
+// Request: DELETE /application/:AppID/user/:ID
+// Test with: curl -i -X DELETE localhost/0.1/application/:AppId/user/:ID
+func deleteUser(w http.ResponseWriter, r *http.Request) {
+	if err := validateDeleteCommon(w, r); err != nil {
+		errorHappened(err, http.StatusBadRequest, r, w)
+		return
+	}
+
+	var (
+		appID  int64
+		userID int64
+		err    error
+	)
+
+	vars := mux.Vars(r)
+
+	if appID, err = strconv.ParseInt(vars["appId"], 10, 64); err != nil {
+		errorHappened(fmt.Errorf("appId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
+		return
+	}
+
+	if userID, err = strconv.ParseInt(vars["userId"], 10, 64); err != nil {
+		errorHappened(fmt.Errorf("userId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
+		return
+	}
+
+	if err = core.DeleteUser(appID, userID); err != nil {
+		errorHappened(err, http.StatusInternalServerError, r, w)
+		return
+	}
+
+	writeResponse("", http.StatusNoContent, 10, w, r)
 }
 
 // getUserList handles requests to retrieve all users of an app
@@ -74,34 +155,28 @@ func getUser(w http.ResponseWriter, r *http.Request) {
 // Request: GET /application/:AppID/users
 // Test with: curl -i localhost/0.1/application/:AppID/users
 func getUserList(w http.ResponseWriter, r *http.Request) {
-	// Validate request
 	if err := validateGetCommon(w, r); err != nil {
 		errorHappened(err, http.StatusBadRequest, r, w)
 		return
 	}
 
-	// Declare vars
 	var (
 		appID int64
 		users []*entity.User
 		err   error
 	)
-	// Read vars
 	vars := mux.Vars(r)
 
-	// Read appID
 	if appID, err = strconv.ParseInt(vars["appId"], 10, 64); err != nil {
 		errorHappened(fmt.Errorf("appId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
 		return
 	}
 
-	// Read users
 	if users, err = core.ReadUserList(appID); err != nil {
 		errorHappened(err, http.StatusInternalServerError, r, w)
 		return
 	}
 
-	// Create response
 	response := &struct {
 		appID int64 `json: "appId"`
 		Users []*entity.User
@@ -110,59 +185,49 @@ func getUserList(w http.ResponseWriter, r *http.Request) {
 		Users: users,
 	}
 
-	// Write response
 	writeResponse(response, http.StatusOK, 10, w, r)
 }
 
-// createUser handles requests create an application user
-// Request: POST /application/:AppId/users
+// createUser handles requests to create a user
+// Request: POST /application/:AppID/users
 // Test with: curl -i -H "Content-Type: application/json" -d '{"auth_token": "token1flo", "username": "flo", "name": "Florin", "password": "passwd", "email": "fl@r.in", "url": "blogger", "metadata": "{}"}' localhost/0.1/application/:AppID/users
 func createUser(w http.ResponseWriter, r *http.Request) {
-	// Validate request
 	if err := validatePostCommon(w, r); err != nil {
 		errorHappened(err, http.StatusBadRequest, r, w)
 		return
 	}
 
-	// Declare vars
 	var (
 		user  = &entity.User{}
 		appID int64
 		err   error
 	)
 
-	// Read vars
 	vars := mux.Vars(r)
 
-	// Read appID
 	if appID, err = strconv.ParseInt(vars["appId"], 10, 64); err != nil {
 		errorHappened(fmt.Errorf("appId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
 		return
 	}
 
-	// Parse JSON
 	decoder := json.NewDecoder(r.Body)
 	if err = decoder.Decode(user); err != nil {
 		errorHappened(err, http.StatusBadRequest, r, w)
 		return
 	}
 
-	// Set values
 	user.ApplicationID = appID
 	user.Enabled = true
 
-	// Validate resource
 	if err = validator.CreateUser(user); err != nil {
 		errorHappened(err, http.StatusBadRequest, r, w)
 		return
 	}
 
-	// Write resource
 	if user, err = core.WriteUser(user, true); err != nil {
 		errorHappened(err, http.StatusInternalServerError, r, w)
 		return
 	}
 
-	// Write response
 	writeResponse(user, http.StatusCreated, 0, w, r)
 }

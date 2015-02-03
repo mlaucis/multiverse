@@ -126,18 +126,18 @@ var routes = map[string]map[string]*route{
 			"/application/%d/user/%s",
 			getUser,
 		},
-		// "updateUser": &route{
-		// 	"PUT",
-		// 	"/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}",
-		// 	"/application/%d/user/%s",
-		// 	updateUser,
-		// },
-		// "deleteUser": &route{
-		// 	"DELETE",
-		// 	"/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}",
-		// 	"/application/%d/user/%s",
-		// 	deleteUser,
-		// },
+		"updateUser": &route{
+			"PUT",
+			"/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}",
+			"/application/%d/user/%s",
+			updateUser,
+		},
+		"deleteUser": &route{
+			"DELETE",
+			"/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}",
+			"/application/%d/user/%s",
+			deleteUser,
+		},
 		"createUser": &route{
 			"POST",
 			"/application/{appId:[0-9]{1,20}}/users",
