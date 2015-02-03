@@ -2,6 +2,7 @@
  * @author Florin Patan <florinpatan@gmail.com>
  */
 
+// Command backend is the heavy lifting part of the tapglue backend
 package main
 
 import (
@@ -18,6 +19,7 @@ import (
 	"github.com/tapglue/backend/storage"
 	"github.com/tapglue/backend/storage/redis"
 	"github.com/tapglue/backend/validator"
+	"github.com/tapglue/backend/worker/channel"
 
 	"github.com/yvasiyarov/gorelic"
 )
@@ -45,6 +47,10 @@ func init() {
 	storageClient := storage.Init(redis.Client())
 	core.Init(storageClient)
 	validator.Init(storageClient)
+
+	queue := channel.NewQueue()
+	worker := channel.NewWorker(queue)
+	_ = worker
 }
 
 func main() {

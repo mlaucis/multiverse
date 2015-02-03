@@ -2,6 +2,7 @@
  * @author Florin Patan <florinpatan@gmail.com>
  */
 
+// Package core holds the core functionality of the backend
 package core
 
 import (
