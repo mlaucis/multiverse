@@ -14,7 +14,7 @@ import (
 
 // ReadAccount returns the account matching the ID or an error
 func ReadAccount(accountID int64) (account *entity.Account, err error) {
-	result, err := storageEngine.Get(storageClient.AccountKey(accountID)).Result()
+	result, err := storageEngine.Get(storageClient.Account(accountID)).Result()
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +39,7 @@ func UpdateAccount(account *entity.Account, retrieve bool) (acc *entity.Account,
 		return nil, err
 	}
 
-	key := storageClient.AccountKey(account.ID)
+	key := storageClient.Account(account.ID)
 	exist, err := storageEngine.Exists(key).Result()
 	if !exist {
 		return nil, fmt.Errorf("account does not exist")
@@ -61,7 +61,7 @@ func UpdateAccount(account *entity.Account, retrieve bool) (acc *entity.Account,
 
 // DeleteAccount deletes the account matching the ID or an error
 func DeleteAccount(accountID int64) (err error) {
-	result, err := storageEngine.Del(storageClient.AccountKey(accountID)).Result()
+	result, err := storageEngine.Del(storageClient.Account(accountID)).Result()
 	if err != nil {
 		return err
 	}
@@ -93,7 +93,7 @@ func WriteAccount(account *entity.Account, retrieve bool) (acc *entity.Account, 
 	}
 
 	// TODO this should never happen, maybe we should panic instead just to catch it better?
-	exist, err := storageEngine.SetNX(storageClient.AccountKey(account.ID), string(val)).Result()
+	exist, err := storageEngine.SetNX(storageClient.Account(account.ID), string(val)).Result()
 	if !exist {
 		return nil, fmt.Errorf("account already exists")
 	}

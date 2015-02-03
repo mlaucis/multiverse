@@ -23,33 +23,33 @@ type (
 
 // Defining keys
 const (
-	idAccountKey         = "ids:acs"
-	idAccountUserKey     = "ids:ac:%d:u"
-	idAccountAppKey      = "ids:ac:%d:a"
-	idApplicationUserKey = "ids:a:%d:u"
-	idApplicationEvent   = "ids:a:%d:e"
+	idAccount          = "ids:acs"
+	idAccountUser      = "ids:ac:%d:u"
+	idAccountApp       = "ids:ac:%d:a"
+	idApplicationUser  = "ids:a:%d:u"
+	idApplicationEvent = "ids:a:%d:e"
 
-	accountKey = "ac:%d"
+	account = "acc:%d"
 
-	accountUserKey  = "ac:%d:u:%d"
-	accountUsersKey = "ac:%d:us"
+	accountUser  = "acc:%d:user:%d"
+	accountUsers = "acc:%d:users"
 
-	accountAppKey  = "ac:%d:a:%d"
-	accountAppsKey = "ac:%d:as"
+	application  = "acc:%d:app:%d"
+	applications = "acc:%d:apps"
 
-	connectionKey      = "a:%d:u:%d:fs:%d"
-	connectionsKey     = "a:%d:u:%d:c"
-	connectionUsersKey = "a:%d:u:%d:fu"
-	followedByUsersKey = "a:%d:u:%d:fbu"
+	user  = "app:%d:user:%d"
+	users = "app:%d:user"
 
-	userKey  = "a:%d:u:%d"
-	usersKey = "a:%d:us"
+	connection      = "app:%d:user:%d:connection:%d"
+	connections     = "app:%d:user:%d:connections"
+	followsUsers    = "app:%d:user:%d:followsUsers"
+	followedByUsers = "app:%d:user:%d:follwedByUsers"
 
-	eventKey  = "a:%d:u:%d:e:%d"
-	eventsKey = "a:%d:u:%d:es"
+	event  = "app:%d:user:%d:event:%d"
+	events = "app:%d:user:%d:events"
 
-	connectionEventsKey     = "a:%d:u:%d:ce"
-	connectionEventsKeyLoop = "%s:ce"
+	connectionEvents     = "app:%d:user:%d:connectionEvents"
+	connectionEventsLoop = "%s:ce"
 )
 
 var (
@@ -58,7 +58,7 @@ var (
 
 // GenerateAccountID generates a new account ID
 func (client *Client) GenerateAccountID() (int64, error) {
-	return client.engine.Incr(idAccountKey).Result()
+	return client.engine.Incr(idAccount).Result()
 }
 
 // GenerateAccountToken returns a token for the specified account
@@ -72,12 +72,12 @@ func (client *Client) GenerateAccountToken(account *entity.Account) (string, err
 
 // GenerateAccountUserID generates a new account user id for a specified account
 func (client *Client) GenerateAccountUserID(accountID int64) (int64, error) {
-	return client.engine.Incr(fmt.Sprintf(idAccountUserKey, accountID)).Result()
+	return client.engine.Incr(fmt.Sprintf(idAccountUser, accountID)).Result()
 }
 
 // GenerateApplicationID generates a new application ID
 func (client *Client) GenerateApplicationID(accountID int64) (int64, error) {
-	return client.engine.Incr(fmt.Sprintf(idAccountAppKey, accountID)).Result()
+	return client.engine.Incr(fmt.Sprintf(idAccountApp, accountID)).Result()
 }
 
 // GenerateApplicationToken returns a token for the specified application of an account
@@ -92,7 +92,7 @@ func (client *Client) GenerateApplicationToken(accountID int64, application *ent
 
 // GenerateApplicationUserID generates the user id in the specified app
 func (client *Client) GenerateApplicationUserID(applicationID int64) string {
-	return fmt.Sprintf(idApplicationUserKey, applicationID)
+	return fmt.Sprintf(idApplicationUser, applicationID)
 }
 
 // GenerateApplicationEventID generates the event id in the specified app
@@ -100,79 +100,79 @@ func (client *Client) GenerateApplicationEventID(applicationID int64) string {
 	return fmt.Sprintf(idApplicationEvent, applicationID)
 }
 
-// AccountKey returns the key for a specified account
-func (client *Client) AccountKey(accountID int64) string {
-	return fmt.Sprintf(accountKey, accountID)
+// Account returns the key for a specified account
+func (client *Client) Account(accountID int64) string {
+	return fmt.Sprintf(account, accountID)
 }
 
-// AccountUserKey returns the key for a specific user of an account
-func (client *Client) AccountUserKey(accountID, accountUserID int64) string {
-	return fmt.Sprintf(accountUserKey, accountID, accountUserID)
+// AccountUser returns the key for a specific user of an account
+func (client *Client) AccountUser(accountID, accountUserID int64) string {
+	return fmt.Sprintf(accountUser, accountID, accountUserID)
 }
 
-// AccountUsersKey returns the key for account users
-func (client *Client) AccountUsersKey(accountID int64) string {
-	return fmt.Sprintf(accountUsersKey, accountID)
+// AccountUsers returns the key for account users
+func (client *Client) AccountUsers(accountID int64) string {
+	return fmt.Sprintf(accountUsers, accountID)
 }
 
-// AccountAppKey returns the key for one account app
-func (client *Client) AccountAppKey(accountID, applicationID int64) string {
-	return fmt.Sprintf(accountAppKey, accountID, applicationID)
+// application returns the key for one account app
+func (client *Client) Application(accountID, applicationID int64) string {
+	return fmt.Sprintf(application, accountID, applicationID)
 }
 
-// AccountAppsKey returns the key for one account app
-func (client *Client) AccountAppsKey(accountID int64) string {
-	return fmt.Sprintf(accountAppsKey, accountID)
+// applications returns the key for one account app
+func (client *Client) Applications(accountID int64) string {
+	return fmt.Sprintf(applications, accountID)
 }
 
-// ConnectionKey gets the key for the connection
-func (client *Client) ConnectionKey(applicationID, userFromID, userToID int64) string {
-	return fmt.Sprintf(connectionKey, applicationID, userFromID, userToID)
+// Connection gets the key for the connection
+func (client *Client) Connection(applicationID, userFromID, userToID int64) string {
+	return fmt.Sprintf(connection, applicationID, userFromID, userToID)
 }
 
-// ConnectionsKey gets the key for the connections list
-func (client *Client) ConnectionsKey(applicationID, userFromID int64) string {
-	return fmt.Sprintf(connectionsKey, applicationID, userFromID)
+// Connections gets the key for the connections list
+func (client *Client) Connections(applicationID, userFromID int64) string {
+	return fmt.Sprintf(connections, applicationID, userFromID)
 }
 
-// ConnectionUsersKey gets the key for the connectioned users list
-func (client *Client) ConnectionUsersKey(applicationID, userFromID int64) string {
-	return fmt.Sprintf(connectionUsersKey, applicationID, userFromID)
+// ConnectionUsers gets the key for the connectioned users list
+func (client *Client) ConnectionUsers(applicationID, userFromID int64) string {
+	return fmt.Sprintf(followsUsers, applicationID, userFromID)
 }
 
-// FollowedByUsersKey gets the key for the list of followers
-func (client *Client) FollowedByUsersKey(applicationID, userToID int64) string {
-	return fmt.Sprintf(followedByUsersKey, applicationID, userToID)
+// FollowedByUsers gets the key for the list of followers
+func (client *Client) FollowedByUsers(applicationID, userToID int64) string {
+	return fmt.Sprintf(followedByUsers, applicationID, userToID)
 }
 
-// UserKey gets the key for the user
-func (client *Client) UserKey(applicationID, userID int64) string {
-	return fmt.Sprintf(userKey, applicationID, userID)
+// User gets the key for the user
+func (client *Client) User(applicationID, userID int64) string {
+	return fmt.Sprintf(user, applicationID, userID)
 }
 
-// UsersKey gets the key the app users list
-func (client *Client) UsersKey(applicationID int64) string {
-	return fmt.Sprintf(usersKey, applicationID)
+// Users gets the key the app users list
+func (client *Client) Users(applicationID int64) string {
+	return fmt.Sprintf(users, applicationID)
 }
 
-// EventKey gets the key for an event
-func (client *Client) EventKey(applicationID, userID, eventID int64) string {
-	return fmt.Sprintf(eventKey, applicationID, userID, eventID)
+// Event gets the key for an event
+func (client *Client) Event(applicationID, userID, eventID int64) string {
+	return fmt.Sprintf(event, applicationID, userID, eventID)
 }
 
-// EventsKey get the key for the events list
-func (client *Client) EventsKey(applicationID, userID int64) string {
-	return fmt.Sprintf(eventsKey, applicationID, userID)
+// Events get the key for the events list
+func (client *Client) Events(applicationID, userID int64) string {
+	return fmt.Sprintf(events, applicationID, userID)
 }
 
-// ConnectionEventsKey get the key for the connections events list
-func (client *Client) ConnectionEventsKey(applicationID, userID int64) string {
-	return fmt.Sprintf(connectionEventsKey, applicationID, userID)
+// ConnectionEvents get the key for the connections events list
+func (client *Client) ConnectionEvents(applicationID, userID int64) string {
+	return fmt.Sprintf(connectionEvents, applicationID, userID)
 }
 
-// ConnectionEventsKeyLoop gets the key for looping through connections
-func (client *Client) ConnectionEventsKeyLoop(userID string) string {
-	return fmt.Sprintf(connectionEventsKeyLoop, userID)
+// ConnectionEventsLoop gets the key for looping through connections
+func (client *Client) ConnectionEventsLoop(userID string) string {
+	return fmt.Sprintf(connectionEventsLoop, userID)
 }
 
 // Engine returns the storage engine used

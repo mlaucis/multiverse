@@ -28,3 +28,6 @@ curl -i -H "Content-Type: application/json" -d '{"user_from_id":5,"user_to_id":1
 curl -i -H "Content-Type: application/json" -d '{"token":"token_1_TmV3IEFjY291bnQ=", "name":"New Account","description":"Another description of the account", "enabled": true, "created_at":"2015-02-02T19:13:18.239759449Z", "received_at":"2015-02-02T19:13:18.239759449Z", "metadata":"{123}"}' -X PUT localhost:8082/0.1/account/1
 curl -i -H "Content-Type: application/json" -d '{"name":"New Account", "description":"Description of the account"}' localhost:8082/0.1/accounts
 curl -i -X DELETE localhost:8082/0.1/account/2
+curl -i -H "Content-Type: application/json" -H "Authorization: Bearer token_1_TmV3IEFjY291bnQ=" -d '{"user_name":"User name", "first_name": "Demo", "last_name": "User", "password":"hmac(256)", "email":"de@m.o"}' localhost:8082/0.1/account/1/users
+curl -i -H "Content-Type: application/json" -H "Authorization: Bearer token_1_TmV3IEFjY291bnQ=" -d '{"user_name":"User name changed", "first_name": "Demo", "last_name": "User", "password":"hmac(256)changed", "email":"de@m.ohno"}' -X PUT localhost:8082/0.1/account/1/user/2
+##curl -i -X DELETE localhost:8082/0.1/account/1/user/2

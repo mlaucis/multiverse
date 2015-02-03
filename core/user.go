@@ -27,7 +27,7 @@ func generateUserID(applicationID int64) (int64, error) {
 // ReadUser returns the user matching the ID or an error
 func ReadUser(applicationID int64, userID int64) (user *entity.User, err error) {
 	// Generate resource key
-	key := storageClient.UserKey(applicationID, userID)
+	key := storageClient.User(applicationID, userID)
 
 	// Read from db
 	result, err := storageEngine.Get(key).Result()
@@ -46,7 +46,7 @@ func ReadUser(applicationID int64, userID int64) (user *entity.User, err error) 
 // ReadUserList returns all users from a certain account
 func ReadUserList(applicationID int64) (users []*entity.User, err error) {
 	// Generate resource key
-	key := storageClient.UsersKey(applicationID)
+	key := storageClient.Users(applicationID)
 
 	// Read from db
 	result, err := storageEngine.LRange(key, 0, -1).Result()
@@ -93,7 +93,7 @@ func WriteUser(user *entity.User, retrieve bool) (usr *entity.User, err error) {
 	}
 
 	// Generate resource key
-	key := storageClient.UserKey(user.ApplicationID, user.ID)
+	key := storageClient.User(user.ApplicationID, user.ID)
 
 	// Write resource
 	exist, err := storageEngine.SetNX(key, string(val)).Result()
@@ -105,7 +105,7 @@ func WriteUser(user *entity.User, retrieve bool) (usr *entity.User, err error) {
 	}
 
 	// Generate list key
-	listKey := storageClient.UsersKey(user.ApplicationID)
+	listKey := storageClient.Users(user.ApplicationID)
 
 	// Write list
 	if err = storageEngine.LPush(listKey, key).Err(); err != nil {

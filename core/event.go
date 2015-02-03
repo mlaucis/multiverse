@@ -20,7 +20,7 @@ func generateEventID(applicationID int64) (int64, error) {
 // ReadEvent returns the event matching the ID or an error
 func ReadEvent(applicationID, userID, eventID int64) (event *entity.Event, err error) {
 	// Generate resource key
-	key := storageClient.EventKey(applicationID, userID, eventID)
+	key := storageClient.Event(applicationID, userID, eventID)
 
 	// Read from db
 	result, err := storageEngine.Get(key).Result()
@@ -39,7 +39,7 @@ func ReadEvent(applicationID, userID, eventID int64) (event *entity.Event, err e
 // ReadEventList returns all events from a certain user
 func ReadEventList(applicationID, userID int64) (events []*entity.Event, err error) {
 	// Generate resource key
-	key := storageClient.EventsKey(applicationID, userID)
+	key := storageClient.Events(applicationID, userID)
 
 	// Read from db
 	result, err := storageEngine.ZRevRange(key, "0", "-1").Result()
@@ -75,7 +75,7 @@ func ReadEventList(applicationID, userID int64) (events []*entity.Event, err err
 // ReadConnectionEventList returns all events from connections
 func ReadConnectionEventList(applicationID, userID int64) (events []*entity.Event, err error) {
 	// Generate resource key
-	key := storageClient.ConnectionEventsKey(applicationID, userID)
+	key := storageClient.ConnectionEvents(applicationID, userID)
 
 	// Read from db
 	result, err := storageEngine.ZRevRange(key, "0", "-1").Result()
@@ -123,7 +123,7 @@ func WriteEvent(event *entity.Event, retrieve bool) (evn *entity.Event, err erro
 	}
 
 	// Generate resource key
-	key := storageClient.EventKey(event.ApplicationID, event.UserID, event.ID)
+	key := storageClient.Event(event.ApplicationID, event.UserID, event.ID)
 
 	// Write resource
 	if err = storageEngine.Set(key, string(val)).Err(); err != nil {
@@ -131,7 +131,7 @@ func WriteEvent(event *entity.Event, retrieve bool) (evn *entity.Event, err erro
 	}
 
 	// Generate list key
-	listKey := storageClient.EventsKey(event.ApplicationID, event.UserID)
+	listKey := storageClient.Events(event.ApplicationID, event.UserID)
 
 	// Write list
 	setVal := red.Z{Score: float64(event.ReceivedAt.Unix()), Member: key}
@@ -155,7 +155,7 @@ func WriteEvent(event *entity.Event, retrieve bool) (evn *entity.Event, err erro
 // WriteEventToConnectionsLists takes an event and writes it to the user connections list
 func WriteEventToConnectionsLists(event *entity.Event, key string) (err error) {
 	// Generate connections key
-	connectionsKey := storageClient.FollowedByUsersKey(event.ApplicationID, event.UserID)
+	connectionsKey := storageClient.FollowedByUsers(event.ApplicationID, event.UserID)
 
 	// Read connections
 	connections, err := storageEngine.LRange(connectionsKey, 0, -1).Result()
@@ -166,7 +166,7 @@ func WriteEventToConnectionsLists(event *entity.Event, key string) (err error) {
 	// Write to connections lists
 	for _, userKey := range connections {
 		// Create Key
-		feedKey := storageClient.ConnectionEventsKeyLoop(userKey)
+		feedKey := storageClient.ConnectionEventsLoop(userKey)
 
 		// Write to lists
 		val := red.Z{Score: float64(event.ReceivedAt.Unix()), Member: key}

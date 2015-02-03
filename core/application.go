@@ -14,7 +14,7 @@ import (
 
 // ReadApplication returns the application matching the ID or an error
 func ReadApplication(accountID, applicationID int64) (application *entity.Application, err error) {
-	result, err := storageEngine.Get(storageClient.AccountAppKey(accountID, applicationID)).Result()
+	result, err := storageEngine.Get(storageClient.Application(accountID, applicationID)).Result()
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +28,7 @@ func ReadApplication(accountID, applicationID int64) (application *entity.Applic
 
 // ReadApplicationList returns all applications from a certain account
 func ReadApplicationList(accountID int64) (applications []*entity.Application, err error) {
-	key := storageClient.AccountAppsKey(accountID)
+	key := storageClient.Applications(accountID)
 
 	result, err := storageEngine.LRange(key, 0, -1).Result()
 	if err != nil {
@@ -68,7 +68,7 @@ func WriteApplication(application *entity.Application, retrieve bool) (app *enti
 		return nil, err
 	}
 
-	key := storageClient.AccountAppKey(application.AccountID, application.ID)
+	key := storageClient.Application(application.AccountID, application.ID)
 
 	exist, err := storageEngine.SetNX(key, string(val)).Result()
 	if !exist {
@@ -79,7 +79,7 @@ func WriteApplication(application *entity.Application, retrieve bool) (app *enti
 	}
 
 	// Generate list key
-	listKey := storageClient.AccountAppsKey(application.AccountID)
+	listKey := storageClient.Applications(application.AccountID)
 
 	// Write list
 	if err = storageEngine.LPush(listKey, key).Err(); err != nil {

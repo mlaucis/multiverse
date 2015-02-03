@@ -16,7 +16,7 @@ import (
 
 // ReadConnectionList returns all connections from a certain user
 func ReadConnectionList(applicationID, userID int64) (users []*entity.User, err error) {
-	key := storageClient.ConnectionUsersKey(applicationID, userID)
+	key := storageClient.ConnectionUsers(applicationID, userID)
 
 	// Read from db
 	result, err := storageEngine.LRange(key, 0, -1).Result()
@@ -58,7 +58,7 @@ func WriteConnection(connection *entity.Connection, retrieve bool) (con *entity.
 	}
 
 	// Generate resource key
-	key := storageClient.ConnectionKey(connection.ApplicationID, connection.UserFromID, connection.UserToID)
+	key := storageClient.Connection(connection.ApplicationID, connection.UserFromID, connection.UserToID)
 
 	// Write resource
 	exist, err := storageEngine.SetNX(key, string(val)).Result()
@@ -70,7 +70,7 @@ func WriteConnection(connection *entity.Connection, retrieve bool) (con *entity.
 	}
 
 	// Generate list key
-	listKey := storageClient.ConnectionsKey(connection.ApplicationID, connection.UserFromID)
+	listKey := storageClient.Connections(connection.ApplicationID, connection.UserFromID)
 
 	// Write list
 	if err = storageEngine.LPush(listKey, key).Err(); err != nil {
@@ -78,10 +78,10 @@ func WriteConnection(connection *entity.Connection, retrieve bool) (con *entity.
 	}
 
 	// Generate list key
-	userListKey := storageClient.ConnectionUsersKey(connection.ApplicationID, connection.UserFromID)
+	userListKey := storageClient.ConnectionUsers(connection.ApplicationID, connection.UserFromID)
 
 	// Generate following key
-	userKey := storageClient.UserKey(connection.ApplicationID, connection.UserToID)
+	userKey := storageClient.User(connection.ApplicationID, connection.UserToID)
 
 	// Write list
 	if err = storageEngine.LPush(userListKey, userKey).Err(); err != nil {
@@ -89,10 +89,10 @@ func WriteConnection(connection *entity.Connection, retrieve bool) (con *entity.
 	}
 
 	// Generate list key
-	followerListKey := storageClient.FollowedByUsersKey(connection.ApplicationID, connection.UserToID)
+	followerListKey := storageClient.FollowedByUsers(connection.ApplicationID, connection.UserToID)
 
 	// Generate follower key
-	followerKey := storageClient.UserKey(connection.ApplicationID, connection.UserFromID)
+	followerKey := storageClient.User(connection.ApplicationID, connection.UserFromID)
 
 	// Write list
 	if err = storageEngine.LPush(followerListKey, followerKey).Err(); err != nil {
@@ -116,10 +116,10 @@ func WriteConnection(connection *entity.Connection, retrieve bool) (con *entity.
 func WriteConnectionEventsToList(connection *entity.Connection) (err error) {
 
 	// Generate list key (UserFromID connection events)
-	connectionEventsKey := storageClient.ConnectionEventsKey(connection.ApplicationID, connection.UserFromID)
+	connectionEventsKey := storageClient.ConnectionEvents(connection.ApplicationID, connection.UserFromID)
 
 	// Generate list key (UserToID events)
-	eventsKey := storageClient.EventsKey(connection.ApplicationID, connection.UserToID)
+	eventsKey := storageClient.Events(connection.ApplicationID, connection.UserToID)
 
 	// Read events
 	events, err := storageEngine.ZRevRangeWithScores(eventsKey, "0", "-1").Result()
