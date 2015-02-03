@@ -85,7 +85,7 @@ func (s *ServerSuite) TestGetAccount_OK(c *C) {
 	m := mux.NewRouter()
 	route := getRoute("getAccount")
 
-	m.HandleFunc(route.routePattern(apiVersion), route.handlers).Methods(route.method)
+	m.HandleFunc(route.routePattern(apiVersion), customHandler("getAccount", route, nil, logChan)).Methods(route.method)
 	m.ServeHTTP(w, req)
 
 	c.Assert(w.Code, Equals, http.StatusOK)

@@ -31,8 +31,9 @@ const (
 )
 
 var (
-	_    = Suite(&ServerSuite{})
-	conf *config.Config
+	_       = Suite(&ServerSuite{})
+	conf    *config.Config
+	logChan = make(chan *LogMsg)
 )
 
 // Setup once when the suite starts running
@@ -43,6 +44,8 @@ func (s *ServerSuite) SetUpTest(c *C) {
 	redis.Client().FlushDb()
 	storageClient := storage.Init(redis.Client())
 	core.Init(storageClient)
+
+	go TGLog(logChan)
 }
 
 // Test POST common without CLHeader
