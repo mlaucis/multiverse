@@ -64,7 +64,7 @@ func main() {
 		newRelicAgent = nil
 	}
 
-	logChan := make(chan *server.LogMsg, 10000)
+	logChan := make(chan *server.LogMsg)
 	go server.TGLog(logChan)
 
 	// Get router
