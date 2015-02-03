@@ -30,4 +30,8 @@ curl -i -H "Content-Type: application/json" -d '{"name":"New Account", "descript
 curl -i -X DELETE localhost:8082/0.1/account/2
 curl -i -H "Content-Type: application/json" -H "Authorization: Bearer token_1_TmV3IEFjY291bnQ=" -d '{"user_name":"User name", "first_name": "Demo", "last_name": "User", "password":"hmac(256)", "email":"de@m.o"}' localhost:8082/0.1/account/1/users
 curl -i -H "Content-Type: application/json" -H "Authorization: Bearer token_1_TmV3IEFjY291bnQ=" -d '{"user_name":"User name changed", "first_name": "Demo", "last_name": "User", "password":"hmac(256)changed", "email":"de@m.ohno"}' -X PUT localhost:8082/0.1/account/1/user/2
-##curl -i -X DELETE localhost:8082/0.1/account/1/user/2
+curl -i -X DELETE localhost:8082/0.1/account/1/user/2
+curl -i -H "Content-Type: application/json" -d '{"key": "hmac(256)", "name":"New App","description":"awesomeness"}' localhost:8082/0.1/account/1/applications
+curl -i -H "Content-Type: application/json" -d '{"key": "hmac(256)", "name":"New App","description":"awesomeness"}' localhost:8082/0.1/account/1/applications
+curl -i -H "Content-Type: application/json" -d '{"key": "hmac(256)", "name":"New App changed","description":"awesomeness changed"}' -X PUT localhost:8082/0.1/account/1/application/2
+curl -i -X DELETE localhost:8082/0.1/account/1/application/2

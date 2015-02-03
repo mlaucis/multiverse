@@ -49,7 +49,7 @@ const (
 	events = "app:%d:user:%d:events"
 
 	connectionEvents     = "app:%d:user:%d:connectionEvents"
-	connectionEventsLoop = "%s:ce"
+	connectionEventsLoop = "%s:connectionEvents"
 )
 
 var (

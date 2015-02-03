@@ -95,18 +95,18 @@ var routes = map[string]map[string]*route{
 			"/account/%d/application/%d",
 			getApplication,
 		},
-		// "updateApplication": &route{
-		// 	"PUT",
-		// 	"/account/{accountId:[0-9]{1,20}}/application/{appId:[0-9]{1,20}}",
-		// 	"/account/%d/application/%d",
-		// 	updateApplication,
-		// },
-		// "deleteApplication": &route{
-		// 	"DELETE",
-		// 	"/account/{accountId:[0-9]{1,20}}/application/{appId:[0-9]{1,20}}",
-		// 	"/account/%d/application/%d",
-		// 	deleteApplication,
-		// },
+		"updateApplication": &route{
+			"PUT",
+			"/account/{accountId:[0-9]{1,20}}/application/{appId:[0-9]{1,20}}",
+			"/account/%d/application/%d",
+			updateApplication,
+		},
+		"deleteApplication": &route{
+			"DELETE",
+			"/account/{accountId:[0-9]{1,20}}/application/{appId:[0-9]{1,20}}",
+			"/account/%d/application/%d",
+			deleteApplication,
+		},
 		"createApplication": &route{
 			"POST",
 			"/account/{accountId:[0-9]{1,20}}/applications",

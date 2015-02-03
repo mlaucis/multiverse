@@ -29,7 +29,6 @@ func ReadAccountUser(accountID, accountUserID int64) (accountUser *entity.Accoun
 
 // UpdateAccountUser update an account user in the database and returns the updated account user or an error
 func UpdateAccountUser(accountUser *entity.AccountUser, retrieve bool) (accUser *entity.AccountUser, err error) {
-
 	accountUser.UpdatedAt = time.Now()
 
 	val, err := json.Marshal(accountUser)
@@ -78,7 +77,6 @@ func DeleteAccountUser(accountID, userID int64) (err error) {
 		return fmt.Errorf("The resource for the provided id doesn't exist")
 	}
 
-	// TODO Check if any other way than first delete and then add again
 	listKey := storageClient.AccountUsers(accountID)
 	if err = storageEngine.LRem(listKey, 0, key).Err(); err != nil {
 		return err
