@@ -8,10 +8,10 @@ import "net/http"
 
 // Route structure
 type route struct {
-	method      string
-	pattern     string
-	cPattern    string
-	handlerFunc http.HandlerFunc
+	method   string
+	pattern  string
+	cPattern string
+	handlers []http.HandlerFunc
 }
 
 func (r *route) routePattern(version string) string {
@@ -30,119 +30,157 @@ var routes = map[string]map[string]*route{
 			"GET",
 			"/",
 			"/",
-			home,
+			[]http.HandlerFunc{
+				home,
+			},
 		},
 		// Account
 		"getAccount": &route{
 			"GET",
 			"/account/{accountId:[0-9]{1,20}}",
 			"/account/%d",
-			getAccount,
+			[]http.HandlerFunc{
+				getAccount,
+			},
 		},
 		"updateAccount": &route{
 			"PUT",
 			"/account/{accountId:[0-9]{1,20}}",
 			"/account/%d",
-			updateAccount,
+			[]http.HandlerFunc{
+				updateAccount,
+			},
 		},
 		"deleteAccount": &route{
 			"DELETE",
 			"/account/{accountId:[0-9]{1,20}}",
 			"/account/%d",
-			deleteAccount,
+			[]http.HandlerFunc{
+				deleteAccount,
+			},
 		},
 		"createAccount": &route{
 			"POST",
 			"/accounts",
 			"/accounts",
-			createAccount,
+			[]http.HandlerFunc{
+				createAccount,
+			},
 		},
 		// AccountUser
 		"getAccountUser": &route{
 			"GET",
 			"/account/{accountId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}",
 			"/account/%d/user/%s",
-			getAccountUser,
+			[]http.HandlerFunc{
+				getAccountUser,
+			},
 		},
 		"updateAccountUser": &route{
 			"PUT",
 			"/account/{accountId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}",
 			"/account/%d/user/%s",
-			updateAccountUser,
+			[]http.HandlerFunc{
+				updateAccountUser,
+			},
 		},
 		"deleteAccountUser": &route{
 			"DELETE",
 			"/account/{accountId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}",
 			"/account/%d/user/%s",
-			deleteAccountUser,
+			[]http.HandlerFunc{
+				deleteAccountUser,
+			},
 		},
 		"createAccountUser": &route{
 			"POST",
 			"/account/{accountId:[0-9]{1,20}}/users",
 			"/account/%d/users",
-			createAccountUser,
+			[]http.HandlerFunc{
+				createAccountUser,
+			},
 		},
 		"getAccountUserList": &route{
 			"GET",
 			"/account/{accountId:[0-9]{1,20}}/users",
 			"/account/%d/users",
-			getAccountUserList,
+			[]http.HandlerFunc{
+				getAccountUserList,
+			},
 		},
 		// Application
 		"getApplication": &route{
 			"GET",
 			"/account/{accountId:[0-9]{1,20}}/application/{appId:[0-9]{1,20}}",
 			"/account/%d/application/%d",
-			getApplication,
+			[]http.HandlerFunc{
+				getApplication,
+			},
 		},
 		"updateApplication": &route{
 			"PUT",
 			"/account/{accountId:[0-9]{1,20}}/application/{appId:[0-9]{1,20}}",
 			"/account/%d/application/%d",
-			updateApplication,
+			[]http.HandlerFunc{
+				updateApplication,
+			},
 		},
 		"deleteApplication": &route{
 			"DELETE",
 			"/account/{accountId:[0-9]{1,20}}/application/{appId:[0-9]{1,20}}",
 			"/account/%d/application/%d",
-			deleteApplication,
+			[]http.HandlerFunc{
+				deleteApplication,
+			},
 		},
 		"createApplication": &route{
 			"POST",
 			"/account/{accountId:[0-9]{1,20}}/applications",
 			"/account/%d/applications",
-			createApplication,
+			[]http.HandlerFunc{
+				createApplication,
+			},
 		},
 		"getApplications": &route{
 			"GET",
 			"/account/{accountId:[0-9]{1,20}}/applications",
 			"/account/%d/applications",
-			getApplicationList,
+			[]http.HandlerFunc{
+				getApplicationList,
+			},
 		},
 		// User
 		"getUser": &route{
 			"GET",
 			"/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}",
 			"/application/%d/user/%s",
-			getUser,
+			[]http.HandlerFunc{
+				getUser,
+			},
 		},
 		"updateUser": &route{
 			"PUT",
 			"/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}",
 			"/application/%d/user/%s",
-			updateUser,
+			[]http.HandlerFunc{
+				updateUser,
+			},
 		},
 		"deleteUser": &route{
 			"DELETE",
 			"/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}",
 			"/application/%d/user/%s",
-			deleteUser,
+			[]http.HandlerFunc{
+				deleteUser,
+			},
 		},
 		"createUser": &route{
 			"POST",
 			"/application/{appId:[0-9]{1,20}}/users",
 			"/application/%d/users",
-			createUser,
+			[]http.HandlerFunc{
+				createUser,
+			},
 		},
 		/*
 			"getUserList": &route{
@@ -157,7 +195,9 @@ var routes = map[string]map[string]*route{
 			"POST",
 			"/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/connections",
 			"/application/%d/connections",
-			createConnection,
+			[]http.HandlerFunc{
+				createConnection,
+			},
 		},
 		// "updateConnection": &route{
 		// 	"PUT",
@@ -175,14 +215,18 @@ var routes = map[string]map[string]*route{
 			"GET",
 			"/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/connections",
 			"/application/%d/user/%s/connections",
-			getConnectionList,
+			[]http.HandlerFunc{
+				getConnectionList,
+			},
 		},
 		// Event
 		"getEvent": &route{
 			"GET",
 			"/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/event/{eventId:[0-9]{1,20}}",
 			"/application/%d/user/%s/event/%d",
-			getEvent,
+			[]http.HandlerFunc{
+				getEvent,
+			},
 		},
 		// "updateEvent": &route{
 		// 	"PUT",
@@ -200,32 +244,42 @@ var routes = map[string]map[string]*route{
 			"POST",
 			"/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/events",
 			"/application/%d/user/%s/events",
-			createEvent,
+			[]http.HandlerFunc{
+				createEvent,
+			},
 		},
 		"getEventList": &route{
 			"GET",
 			"/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/events",
 			"/application/%d/user/%s/events",
-			getEventList,
+			[]http.HandlerFunc{
+				getEventList,
+			},
 		},
 		"getConnectionEventList": &route{
 			"GET",
 			"/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/connections/events",
 			"/application/%d/user/%s/connections/events",
-			getConnectionEventList,
+			[]http.HandlerFunc{
+				getConnectionEventList,
+			},
 		},
 		// Other
 		"humans.txt": &route{
 			"GET",
 			"/humans.txt",
 			"/humans.txt",
-			humans,
+			[]http.HandlerFunc{
+				humans,
+			},
 		},
 		"robots": &route{
 			"GET",
 			"/robots.txt",
 			"/robots.txt",
-			robots,
+			[]http.HandlerFunc{
+				robots,
+			},
 		},
 	},
 }

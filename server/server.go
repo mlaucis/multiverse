@@ -45,6 +45,19 @@ func validatePutCommon(w http.ResponseWriter, r *http.Request) error {
 		return fmt.Errorf("User-Agent header must be set")
 	}
 
+	if r.Header.Get("Content-Length") == "" {
+		return fmt.Errorf("Content-Length header must be set")
+	}
+
+	reqCL, err := strconv.ParseInt(r.Header.Get("Content-Length"), 10, 64)
+	if err != nil {
+		return fmt.Errorf("Content-Length header value could not be decoded. %q", err)
+	}
+
+	if reqCL != r.ContentLength {
+		fmt.Errorf("Content-Length header value is different fromt the received value")
+	}
+
 	return nil
 }
 
@@ -96,9 +109,7 @@ func writeCacheHeaders(cacheTime uint, w http.ResponseWriter) {
 }
 
 // getSanitizedHeaders returns the sanitized request headers
-func getSanitizedHeaders(r *http.Request) http.Header {
-	headers := r.Header
-
+func getSanitizedHeaders(headers http.Header) http.Header {
 	if !dbgMode {
 		headers.Del("Authorization")
 	}
@@ -146,7 +157,7 @@ func errorHappened(err error, code int, r *http.Request, w http.ResponseWriter) 
 		return
 	}
 
-	headers := getSanitizedHeaders(r)
+	headers := getSanitizedHeaders(r.Header)
 
 	log.Printf(
 		"Error %q in %s/%s:%d while %s\t%s\t%+v\n",
@@ -215,8 +226,36 @@ func robots(w http.ResponseWriter, r *http.Request) {
 Disallow: /`))
 }
 
+func customHandler(routeName string, r *route, newRelicAgent *gorelic.Agent, logChan chan *LogMsg) http.HandlerFunc {
+	handlerFunc := func(resp http.ResponseWriter, req *http.Request) {
+		start := time.Now()
+
+		for _, handler := range r.handlers {
+			// Any response that happens in a handler MUST send a Content-Type header
+			if resp.Header().Get("Content-Type") != "" {
+				break
+			}
+			handler(resp, req)
+		}
+
+		logChan <- &LogMsg{
+			method:     req.Method,
+			requestURI: req.RequestURI,
+			name:       routeName,
+			headers:    req.Header,
+			start:      start,
+			end:        time.Now(),
+		}
+	}
+
+	if newRelicAgent != nil {
+		return http.HandlerFunc(newRelicAgent.WrapHTTPHandlerFunc(handlerFunc))
+	}
+	return handlerFunc
+}
+
 // GetRouter creates the router
-func GetRouter(debugMode bool, newRelicAgent *gorelic.Agent) *mux.Router {
+func GetRouter(debugMode bool, newRelicAgent *gorelic.Agent, logChan chan *LogMsg) *mux.Router {
 	dbgMode = debugMode
 	router := mux.NewRouter().StrictSlash(true)
 
@@ -226,7 +265,7 @@ func GetRouter(debugMode bool, newRelicAgent *gorelic.Agent) *mux.Router {
 				Methods(route.method).
 				Path(route.routePattern(version)).
 				Name(routeName).
-				Handler(Logger(route.handlerFunc, routeName, newRelicAgent))
+				HandlerFunc(customHandler(routeName, route, newRelicAgent, logChan))
 		}
 	}
 

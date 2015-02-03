@@ -115,12 +115,12 @@ func (client *Client) AccountUsers(accountID int64) string {
 	return fmt.Sprintf(accountUsers, accountID)
 }
 
-// application returns the key for one account app
+// Application returns the key for one account app
 func (client *Client) Application(accountID, applicationID int64) string {
 	return fmt.Sprintf(application, accountID, applicationID)
 }
 
-// applications returns the key for one account app
+// Applications returns the key for one account app
 func (client *Client) Applications(accountID int64) string {
 	return fmt.Sprintf(applications, accountID)
 }

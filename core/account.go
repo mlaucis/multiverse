@@ -28,10 +28,6 @@ func ReadAccount(accountID int64) (account *entity.Account, err error) {
 
 // UpdateAccount updates the account matching the ID or an error
 func UpdateAccount(account *entity.Account, retrieve bool) (acc *entity.Account, err error) {
-	if account.Token, err = storageClient.GenerateAccountToken(account); err != nil {
-		return nil, err
-	}
-
 	account.UpdatedAt = time.Now()
 
 	val, err := json.Marshal(account)
