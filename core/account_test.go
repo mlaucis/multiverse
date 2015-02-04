@@ -6,6 +6,8 @@ package core
 
 import (
 	"github.com/tapglue/backend/core/entity"
+	"github.com/tapglue/backend/utils"
+	// FIX import cycle not allowed in test
 
 	. "gopkg.in/check.v1"
 )
@@ -13,19 +15,18 @@ import (
 // WriteAccount test to write account entity with just a name
 func (cs *CoreSuite) TestWriteAccount_Correct(c *C) {
 	// Write account
-	savedAccount, err := WriteAccount(correctAccount, true)
+	savedAccount, err := utils.AddCorrectAccount()
 
 	// Perform tests
 	c.Assert(savedAccount, NotNil)
 	c.Assert(err, IsNil)
-	c.Assert(savedAccount.Name, Equals, correctAccount.Name)
 	c.Assert(savedAccount.Enabled, Equals, true)
 }
 
 // ReadAccount test to get an account by its id
 func (cs *CoreSuite) TestReadAccount(c *C) {
 	// Write correct account
-	savedAccount := AddCorrectAccount()
+	savedAccount, err := utils.AddCorrectAccount()
 
 	// Get account by id
 	getAccount, err := ReadAccount(savedAccount.ID)
@@ -41,7 +42,7 @@ func (cs *CoreSuite) BenchmarkAccountStep1Write(c *C) {
 
 	for i = 1; i <= 1000; i++ {
 		correctAccount.ID = i
-		_, _ = WriteAccount(correctAccount, false)
+		_, _ = utils.AddCorrectAccount()
 	}
 }
 

@@ -49,3 +49,4 @@ curl -i -X DELETE localhost:8082/0.1/application/1/user/1/event/11
 curl -i -H "Content-Type: application/json" -d '{"verb": "like", "metadata": "{changed}", "enabled": true}' -X PUT localhost:8082/0.1/application/1/user/1/event/12
 curl -i -H "Content-Type: application/json" -d '{"verb": "like", "metadata": "{}"}' localhost:8082/0.1/application/1/user/1/events
 curl -i -H "Content-Type: application/json" -d '{"verb": "like", "metadata": "{changed}", "enabled": true}' -X PUT localhost:8082/0.1/application/1/user/1/event/13
+curl -i -H "Content-Type: application/json" -d '{"verb": "like", "metadata": "{}"}' localhost:8082/0.1/application/1/user/3/events

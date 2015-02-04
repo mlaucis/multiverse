@@ -217,7 +217,6 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user.ApplicationID = appID
-	user.Enabled = true
 
 	if err = validator.CreateUser(user); err != nil {
 		errorHappened(err, http.StatusBadRequest, r, w)

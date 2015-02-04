@@ -230,7 +230,6 @@ func createAccountUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	accountUser.AccountID = accountID
-	accountUser.Enabled = true
 
 	if err = validator.CreateAccountUser(accountUser); err != nil {
 		errorHappened(err, http.StatusBadRequest, r, w)

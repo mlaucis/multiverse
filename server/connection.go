@@ -205,7 +205,6 @@ func createConnection(w http.ResponseWriter, r *http.Request) {
 		connection.UserFromID = userFromID
 	}
 	connection.ApplicationID = appID
-	connection.Enabled = true
 
 	if err = validator.CreateConnection(connection); err != nil {
 		errorHappened(err, http.StatusBadRequest, r, w)

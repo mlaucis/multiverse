@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/tapglue/backend/core/entity"
+	"github.com/tapglue/backend/utils"
 
 	"fmt"
 
@@ -70,7 +71,8 @@ func (s *ServerSuite) TestCreateAccount_Correct(c *C) {
 
 // Test getAccount
 func (s *ServerSuite) TestGetAccount_OK(c *C) {
-	account := AddCorrectAccount()
+	account, err := utils.AddCorrectAccount()
+	c.Assert(err, IsNil)
 
 	req, err := http.NewRequest(
 		"GET",

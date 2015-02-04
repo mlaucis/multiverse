@@ -1,4 +1,8 @@
-package core
+/**
+ * @author Onur Akpolat <onurakpolat@gmail.com>
+ */
+
+package utils
 
 import "github.com/tapglue/backend/core/entity"
 
@@ -10,7 +14,8 @@ var (
 	emptyUser        = &entity.User{}
 	emptyEvent       = &entity.Event{}
 	correctAccount   = &entity.Account{
-		Name: "Demo",
+		Name:        "Demo",
+		Description: "This is a demo account",
 		Common: entity.Common{
 			Enabled: true,
 		},

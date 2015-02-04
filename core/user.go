@@ -129,6 +129,10 @@ func ReadUserList(applicationID int64) (users []*entity.User, err error) {
 
 // WriteUser adds a user to the database and returns the created user or an error
 func WriteUser(user *entity.User, retrieve bool) (usr *entity.User, err error) {
+	user.Enabled = true
+	user.CreatedAt = time.Now()
+	user.UpdatedAt, user.ReceivedAt = user.CreatedAt, user.CreatedAt
+
 	if user.ID, err = generateUserID(user.ApplicationID); err != nil {
 		return nil, err
 	}

@@ -293,7 +293,6 @@ func createEvent(w http.ResponseWriter, r *http.Request) {
 
 	event.ApplicationID = appID
 	event.UserID = userID
-	event.Enabled = true
 
 	if err = validator.CreateEvent(event); err != nil {
 		errorHappened(err, http.StatusBadRequest, r, w)

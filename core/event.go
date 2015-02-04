@@ -163,6 +163,10 @@ func ReadConnectionEventList(applicationID, userID int64) (events []*entity.Even
 
 // WriteEvent adds an event to the database and returns the created event or an error
 func WriteEvent(event *entity.Event, retrieve bool) (evn *entity.Event, err error) {
+	event.Enabled = true
+	event.CreatedAt = time.Now()
+	event.UpdatedAt, event.ReceivedAt = event.CreatedAt, event.CreatedAt
+
 	if event.ID, err = generateEventID(event.ApplicationID); err != nil {
 		return nil, err
 	}

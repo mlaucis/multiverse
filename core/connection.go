@@ -127,6 +127,11 @@ func ReadConnectionList(applicationID, userID int64) (users []*entity.User, err 
 
 // WriteConnection adds a user connection to the database and returns the created user connection or an error
 func WriteConnection(connection *entity.Connection, retrieve bool) (con *entity.Connection, err error) {
+
+	connection.Enabled = true
+	connection.CreatedAt = time.Now()
+	connection.UpdatedAt, connection.ReceivedAt = connection.CreatedAt, connection.CreatedAt
+
 	val, err := json.Marshal(connection)
 	if err != nil {
 		return nil, err
