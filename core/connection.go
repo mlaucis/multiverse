@@ -88,7 +88,9 @@ func DeleteConnection(appID, userFromID, userToID int64) (err error) {
 		return err
 	}
 
-	// TODO: Delete Connections events from lists
+	if err = DeleteConnectionEventsFromLists(appID, userFromID, userToID); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -193,6 +195,33 @@ func WriteConnectionEventsToList(connection *entity.Connection) (err error) {
 		}
 
 		if err = storageEngine.ZAdd(connectionEventsKey, vals...).Err(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// DeleteConnectionEventsFromLists takes a connection and deletes the events from the lists
+func DeleteConnectionEventsFromLists(appID, userFromID, userToID int64) (err error) {
+	connectionEventsKey := storageClient.ConnectionEvents(appID, userFromID)
+
+	eventsKey := storageClient.Events(appID, userToID)
+
+	events, err := storageEngine.ZRevRangeWithScores(eventsKey, "0", "-1").Result()
+	if err != nil {
+		return err
+	}
+
+	if len(events) >= 1 {
+		var members []string
+
+		for _, eventKey := range events {
+			member := eventKey.Member
+			members = append(members, member)
+		}
+
+		if err = storageEngine.ZRem(connectionEventsKey, members...).Err(); err != nil {
 			return err
 		}
 	}
