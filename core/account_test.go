@@ -7,7 +7,6 @@ package core
 import (
 	"github.com/tapglue/backend/core/entity"
 	"github.com/tapglue/backend/utils"
-	// FIX import cycle not allowed in test
 
 	. "gopkg.in/check.v1"
 )
