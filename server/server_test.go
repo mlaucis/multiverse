@@ -63,7 +63,7 @@ func (s *ServerSuite) TestValidatePostCommon_NoCLHeader(c *C) {
 	createAccount(w, req)
 
 	c.Assert(w.Code, Equals, http.StatusBadRequest)
-	c.Assert(w.Body.String(), Equals, "400 \"invalid Content-Length size\"")
+	c.Assert(w.Body.String(), Equals, "400 invalid Content-Length size")
 }
 
 // Test POST common with CLHeader
@@ -82,7 +82,7 @@ func (s *ServerSuite) TestValidatePostCommon_CLHeader(c *C) {
 	createAccount(w, req)
 
 	c.Assert(w.Code, Equals, http.StatusBadRequest)
-	c.Assert(w.Body.String(), Equals, "400 \"invalid character 'd' looking for beginning of object key string\"")
+	c.Assert(w.Body.String(), Equals, "400 invalid character 'd' looking for beginning of object key string")
 }
 
 func clHeader(payload string, req *http.Request) {

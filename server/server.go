@@ -6,6 +6,7 @@
 package server
 
 import (
+	"compress/gzip"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -14,9 +15,8 @@ import (
 	"path/filepath"
 	"runtime"
 	"strconv"
+	"strings"
 	"time"
-
-	"github.com/tapglue/backend/config"
 
 	"github.com/gorilla/mux"
 	"github.com/yvasiyarov/gorelic"
@@ -121,13 +121,7 @@ func getSanitizedHeaders(headers http.Header) http.Header {
 
 // writeResponse handles the http responses and returns the data
 func writeResponse(response interface{}, code int, cacheTime uint, w http.ResponseWriter, r *http.Request) {
-	// Convert response to json
-	json, err := json.Marshal(response)
-	if err != nil {
-		errorHappened(err, http.StatusInternalServerError, r, w)
-		return
-	}
-
+	w.WriteHeader(code)
 	// Set the response headers
 	writeCacheHeaders(cacheTime, w)
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -135,10 +129,18 @@ func writeResponse(response interface{}, code int, cacheTime uint, w http.Respon
 	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding")
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
-	w.WriteHeader(code)
 
 	// Write response
-	w.Write(json)
+	if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+		// No gzip support
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	w.Header().Set("Content-Encoding", "gzip")
+	gz := gzip.NewWriter(w)
+	json.NewEncoder(gz).Encode(response)
+	gz.Close()
 }
 
 // errorHappened handles the error message
@@ -146,10 +148,15 @@ func errorHappened(err error, code int, r *http.Request, w http.ResponseWriter) 
 	w.WriteHeader(code)
 	writeCacheHeaders(0, w)
 	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
-	w.Write([]byte(fmt.Sprintf("%d %q", code, err)))
-
-	if config.Conf().Environment == "test" {
-		return
+	// Write response
+	if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+		// No gzip support
+		fmt.Fprintf(w, "%d %s", code, err)
+	} else {
+		w.Header().Set("Content-Encoding", "gzip")
+		gz := gzip.NewWriter(w)
+		fmt.Fprintf(gz, "%d %s", code, err)
+		gz.Close()
 	}
 
 	_, filename, line, ok := runtime.Caller(1)
