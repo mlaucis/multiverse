@@ -49,13 +49,11 @@ func UpdateAccountUser(accountUser *entity.AccountUser, retrieve bool) (accUser 
 		return nil, err
 	}
 
-	listKey := storageClient.AccountUsers(accountUser.AccountID)
-	if err = storageEngine.LRem(listKey, 0, key).Err(); err != nil {
-		return nil, err
-	}
-
-	if err = storageEngine.LPush(listKey, key).Err(); err != nil {
-		return nil, err
+	if !accountUser.Enabled {
+		listKey := storageClient.AccountUsers(accountUser.AccountID)
+		if err = storageEngine.LRem(listKey, 0, key).Err(); err != nil {
+			return nil, err
+		}
 	}
 
 	if !retrieve {
@@ -67,6 +65,7 @@ func UpdateAccountUser(accountUser *entity.AccountUser, retrieve bool) (accUser 
 
 // DeleteAccountUser deletes the account user matching the IDs or an error
 func DeleteAccountUser(accountID, userID int64) (err error) {
+	// TODO: Make not deletable if its the only account user of an account
 	key := storageClient.AccountUser(accountID, userID)
 	result, err := storageEngine.Del(key).Result()
 	if err != nil {

@@ -7,6 +7,7 @@ package core
 import (
 	"encoding/json"
 	"errors"
+	"time"
 
 	"fmt"
 
@@ -14,29 +15,102 @@ import (
 	red "gopkg.in/redis.v2"
 )
 
+// UpdateConnection updates a connection in the database and returns the updated connection user or an error
+func UpdateConnection(connection *entity.Connection, retrieve bool) (con *entity.Connection, err error) {
+	connection.UpdatedAt = time.Now()
+
+	val, err := json.Marshal(connection)
+	if err != nil {
+		return nil, err
+	}
+
+	key := storageClient.Connection(connection.ApplicationID, connection.UserFromID, connection.UserToID)
+	exist, err := storageEngine.Exists(key).Result()
+	if !exist {
+		return nil, fmt.Errorf("connection does not exist")
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	if err = storageEngine.Set(key, string(val)).Err(); err != nil {
+		return nil, err
+	}
+
+	if !connection.Enabled {
+		listKey := storageClient.Connections(connection.ApplicationID, connection.UserFromID)
+		if err = storageEngine.LRem(listKey, 0, key).Err(); err != nil {
+			return nil, err
+		}
+		userListKey := storageClient.ConnectionUsers(connection.ApplicationID, connection.UserFromID)
+		userKey := storageClient.User(connection.ApplicationID, connection.UserToID)
+		if err = storageEngine.LRem(userListKey, 0, userKey).Err(); err != nil {
+			return nil, err
+		}
+		followerListKey := storageClient.FollowedByUsers(connection.ApplicationID, connection.UserToID)
+		followerKey := storageClient.User(connection.ApplicationID, connection.UserFromID)
+		if err = storageEngine.LRem(followerListKey, 0, followerKey).Err(); err != nil {
+			return nil, err
+		}
+	}
+
+	if !retrieve {
+		return connection, nil
+	}
+
+	return connection, nil
+}
+
+// DeleteConnection deletes the connection matching the IDs or an error
+func DeleteConnection(appID, userFromID, userToID int64) (err error) {
+	key := storageClient.Connection(appID, userFromID, userToID)
+	result, err := storageEngine.Del(key).Result()
+	if err != nil {
+		return err
+	}
+
+	if result != 1 {
+		return fmt.Errorf("The resource for the provided id doesn't exist")
+	}
+
+	listKey := storageClient.Connections(appID, userFromID)
+	if err = storageEngine.LRem(listKey, 0, key).Err(); err != nil {
+		return err
+	}
+	userListKey := storageClient.ConnectionUsers(appID, userFromID)
+	userKey := storageClient.User(appID, userToID)
+	if err = storageEngine.LRem(userListKey, 0, userKey).Err(); err != nil {
+		return err
+	}
+	followerListKey := storageClient.FollowedByUsers(appID, userToID)
+	followerKey := storageClient.User(appID, userFromID)
+	if err = storageEngine.LRem(followerListKey, 0, followerKey).Err(); err != nil {
+		return err
+	}
+
+	// TODO: Delete Connections events from lists
+
+	return nil
+}
+
 // ReadConnectionList returns all connections from a certain user
 func ReadConnectionList(applicationID, userID int64) (users []*entity.User, err error) {
 	key := storageClient.ConnectionUsers(applicationID, userID)
-
-	// Read from db
 	result, err := storageEngine.LRange(key, 0, -1).Result()
 	if err != nil {
 		return nil, err
 	}
 
-	// Return no elements
 	if len(result) == 0 {
 		err := errors.New("There are no connections for this user")
 		return nil, err
 	}
 
-	// Read from db
 	resultList, err := storageEngine.MGet(result...).Result()
 	if err != nil {
 		return nil, err
 	}
 
-	// Parse JSON
 	user := &entity.User{}
 	for _, result := range resultList {
 		if err = json.Unmarshal([]byte(result.(string)), user); err != nil {
@@ -51,16 +125,13 @@ func ReadConnectionList(applicationID, userID int64) (users []*entity.User, err 
 
 // WriteConnection adds a user connection to the database and returns the created user connection or an error
 func WriteConnection(connection *entity.Connection, retrieve bool) (con *entity.Connection, err error) {
-	// Encode JSON
 	val, err := json.Marshal(connection)
 	if err != nil {
 		return nil, err
 	}
 
-	// Generate resource key
 	key := storageClient.Connection(connection.ApplicationID, connection.UserFromID, connection.UserToID)
 
-	// Write resource
 	exist, err := storageEngine.SetNX(key, string(val)).Result()
 	if !exist {
 		return nil, fmt.Errorf("user connection already exists")
@@ -69,37 +140,28 @@ func WriteConnection(connection *entity.Connection, retrieve bool) (con *entity.
 		return nil, err
 	}
 
-	// Generate list key
 	listKey := storageClient.Connections(connection.ApplicationID, connection.UserFromID)
 
-	// Write list
 	if err = storageEngine.LPush(listKey, key).Err(); err != nil {
 		return nil, err
 	}
 
-	// Generate list key
 	userListKey := storageClient.ConnectionUsers(connection.ApplicationID, connection.UserFromID)
 
-	// Generate following key
 	userKey := storageClient.User(connection.ApplicationID, connection.UserToID)
 
-	// Write list
 	if err = storageEngine.LPush(userListKey, userKey).Err(); err != nil {
 		return nil, err
 	}
 
-	// Generate list key
 	followerListKey := storageClient.FollowedByUsers(connection.ApplicationID, connection.UserToID)
 
-	// Generate follower key
 	followerKey := storageClient.User(connection.ApplicationID, connection.UserFromID)
 
-	// Write list
 	if err = storageEngine.LPush(followerListKey, followerKey).Err(); err != nil {
 		return nil, err
 	}
 
-	// Write connection events to list
 	if err = WriteConnectionEventsToList(connection); err != nil {
 		return nil, err
 	}
@@ -108,26 +170,20 @@ func WriteConnection(connection *entity.Connection, retrieve bool) (con *entity.
 		return connection, nil
 	}
 
-	// Return resource
 	return connection, nil
 }
 
 // WriteConnectionEventsToList takes a connection and writes the events to the lists
 func WriteConnectionEventsToList(connection *entity.Connection) (err error) {
-
-	// Generate list key (UserFromID connection events)
 	connectionEventsKey := storageClient.ConnectionEvents(connection.ApplicationID, connection.UserFromID)
 
-	// Generate list key (UserToID events)
 	eventsKey := storageClient.Events(connection.ApplicationID, connection.UserToID)
 
-	// Read events
 	events, err := storageEngine.ZRevRangeWithScores(eventsKey, "0", "-1").Result()
 	if err != nil {
 		return err
 	}
 
-	// Sync if events exist
 	if len(events) >= 1 {
 		var vals []red.Z
 
@@ -136,7 +192,6 @@ func WriteConnectionEventsToList(connection *entity.Connection) (err error) {
 			vals = append(vals, val)
 		}
 
-		// Write list
 		if err = storageEngine.ZAdd(connectionEventsKey, vals...).Err(); err != nil {
 			return err
 		}

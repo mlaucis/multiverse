@@ -49,12 +49,11 @@ func UpdateApplication(application *entity.Application, retrieve bool) (app *ent
 		return nil, err
 	}
 
-	listKey := storageClient.Applications(application.AccountID)
-	if err = storageEngine.LRem(listKey, 0, key).Err(); err != nil {
-		return nil, err
-	}
-	if err = storageEngine.LPush(listKey, key).Err(); err != nil {
-		return nil, err
+	if !application.Enabled {
+		listKey := storageClient.Applications(application.AccountID)
+		if err = storageEngine.LRem(listKey, 0, key).Err(); err != nil {
+			return nil, err
+		}
 	}
 
 	if !retrieve {
@@ -66,6 +65,11 @@ func UpdateApplication(application *entity.Application, retrieve bool) (app *ent
 
 // DeleteApplication deletes the application matching the IDs or an error
 func DeleteApplication(accountID, appID int64) (err error) {
+	// TODO: Disable application users?
+	// TODO: User connections?
+	// TODO: Application lists?
+	// TODO: Application events?
+
 	key := storageClient.Application(accountID, appID)
 	result, err := storageEngine.Del(key).Result()
 	if err != nil {

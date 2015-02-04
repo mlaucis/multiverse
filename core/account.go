@@ -62,6 +62,9 @@ func DeleteAccount(accountID int64) (err error) {
 		return err
 	}
 
+	// TODO: Disable Account users
+	// TODO: Disable Applications
+
 	if result != 1 {
 		return fmt.Errorf("The resource for the provided id doesn't exist")
 	}

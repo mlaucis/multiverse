@@ -199,18 +199,22 @@ var routes = map[string]map[string]*route{
 				createConnection,
 			},
 		},
-		// "updateConnection": &route{
-		// 	"PUT",
-		// 	"/application/{appId:[0-9]{1,20}}/user/{userFromId:[a-zA-Z0-9]+}/connection/{userToId:[a-zA-Z0-9]+}",
-		// 	"/application/%d/user/%d/connection/%d",
-		// 	updateConnection,
-		// },
-		// "deleteConnection": &route{
-		// 	"DELETE",
-		// 	"/application/{appId:[0-9]{1,20}}/user/{userFromId:[a-zA-Z0-9]+}/connection/{userToId:[a-zA-Z0-9]+}",
-		// 	"/application/%d/user/%d/connection/%d",
-		// 	deleteConnection,
-		// },
+		"updateConnection": &route{
+			"PUT",
+			"/application/{appId:[0-9]{1,20}}/user/{userFromId:[a-zA-Z0-9]+}/connection/{userToId:[a-zA-Z0-9]+}",
+			"/application/%d/user/%d/connection/%d",
+			[]http.HandlerFunc{
+				updateConnection,
+			},
+		},
+		"deleteConnection": &route{
+			"DELETE",
+			"/application/{appId:[0-9]{1,20}}/user/{userFromId:[a-zA-Z0-9]+}/connection/{userToId:[a-zA-Z0-9]+}",
+			"/application/%d/user/%d/connection/%d",
+			[]http.HandlerFunc{
+				deleteConnection,
+			},
+		},
 		"getConnectionList": &route{
 			"GET",
 			"/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/connections",

@@ -34,7 +34,7 @@ func ReadUser(applicationID int64, userID int64) (user *entity.User, err error) 
 	return
 }
 
-// UpdateUser updates a user in the database and returns the created applicaton user or an error
+// UpdateUser updates a user in the database and returns the updates user or an error
 func UpdateUser(user *entity.User, retrieve bool) (usr *entity.User, err error) {
 	user.UpdatedAt = time.Now()
 
@@ -56,12 +56,11 @@ func UpdateUser(user *entity.User, retrieve bool) (usr *entity.User, err error) 
 		return nil, err
 	}
 
-	listKey := storageClient.Users(user.ApplicationID)
-	if err = storageEngine.LRem(listKey, 0, key).Err(); err != nil {
-		return nil, err
-	}
-	if err = storageEngine.LPush(listKey, key).Err(); err != nil {
-		return nil, err
+	if !user.Enabled {
+		listKey := storageClient.Users(user.ApplicationID)
+		if err = storageEngine.LRem(listKey, 0, key).Err(); err != nil {
+			return nil, err
+		}
 	}
 
 	if !retrieve {
