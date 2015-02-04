@@ -139,6 +139,8 @@ func createAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	account.Enabled = true
+
 	if err = validator.CreateAccount(account); err != nil {
 		errorHappened(err, http.StatusBadRequest, r, w)
 		return

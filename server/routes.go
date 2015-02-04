@@ -232,18 +232,22 @@ var routes = map[string]map[string]*route{
 				getEvent,
 			},
 		},
-		// "updateEvent": &route{
-		// 	"PUT",
-		// 	"/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/event/{eventId:[0-9]{1,20}}",
-		// 	"/application/%d/user/%s/event/%d",
-		// 	updateEvent,
-		// },
-		// "deleteEvent": &route{
-		// 	"DELETE",
-		// 	"/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/event/{eventId:[0-9]{1,20}}",
-		// 	"/application/%d/user/%s/event/%d",
-		// 	deleteEvent,
-		// },
+		"updateEvent": &route{
+			"PUT",
+			"/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/event/{eventId:[0-9]{1,20}}",
+			"/application/%d/user/%s/event/%d",
+			[]http.HandlerFunc{
+				updateEvent,
+			},
+		},
+		"deleteEvent": &route{
+			"DELETE",
+			"/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/event/{eventId:[0-9]{1,20}}",
+			"/application/%d/user/%s/event/%d",
+			[]http.HandlerFunc{
+				deleteEvent,
+			},
+		},
 		"createEvent": &route{
 			"POST",
 			"/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/events",
