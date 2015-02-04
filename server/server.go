@@ -121,7 +121,6 @@ func getSanitizedHeaders(headers http.Header) http.Header {
 
 // writeResponse handles the http responses and returns the data
 func writeResponse(response interface{}, code int, cacheTime uint, w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(code)
 	// Set the response headers
 	writeCacheHeaders(cacheTime, w)
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -133,11 +132,13 @@ func writeResponse(response interface{}, code int, cacheTime uint, w http.Respon
 	// Write response
 	if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
 		// No gzip support
+		w.WriteHeader(code)
 		json.NewEncoder(w).Encode(response)
 		return
 	}
 
 	w.Header().Set("Content-Encoding", "gzip")
+	w.WriteHeader(code)
 	gz := gzip.NewWriter(w)
 	json.NewEncoder(gz).Encode(response)
 	gz.Close()
@@ -145,15 +146,16 @@ func writeResponse(response interface{}, code int, cacheTime uint, w http.Respon
 
 // errorHappened handles the error message
 func errorHappened(err error, code int, r *http.Request, w http.ResponseWriter) {
-	w.WriteHeader(code)
 	writeCacheHeaders(0, w)
 	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	// Write response
 	if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
 		// No gzip support
+		w.WriteHeader(code)
 		fmt.Fprintf(w, "%d %s", code, err)
 	} else {
 		w.Header().Set("Content-Encoding", "gzip")
+		w.WriteHeader(code)
 		gz := gzip.NewWriter(w)
 		fmt.Fprintf(gz, "%d %s", code, err)
 		gz.Close()
