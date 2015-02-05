@@ -141,6 +141,11 @@ func deleteAccountUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !validator.ValidateAccountRequestToken(accountID, getReqAuthToken(r)) {
+		errorHappened(fmt.Errorf("request is not properly signed"), http.StatusBadRequest, r, w)
+		return
+	}
+
 	if err = core.DeleteAccountUser(accountID, userID); err != nil {
 		errorHappened(err, http.StatusInternalServerError, r, w)
 		return

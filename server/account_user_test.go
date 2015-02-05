@@ -162,6 +162,7 @@ func (s *ServerSuite) TestUpdateAccountUser_WrongValue(c *C) {
 		correctAccountUser.LastName,
 		correctAccountUser.Email,
 	)
+
 	token, err := storageClient.GenerateAccountToken(correctAccount)
 	if err != nil {
 		panic(err)
@@ -174,6 +175,26 @@ func (s *ServerSuite) TestUpdateAccountUser_WrongValue(c *C) {
 
 	c.Assert(w.Code, Equals, http.StatusBadRequest)
 	c.Assert(w.Body.String(), Not(Equals), "")
+}
+
+// Test a correct updateAccountUser request with a wrong token
+func (s *ServerSuite) TestUpdateAccountUser_WrongToken(c *C) {
+	correctAccount, err := utils.AddCorrectAccount()
+	correctAccountUser, err := utils.AddCorrectAccountUser(correctAccount.ID)
+	payload := fmt.Sprintf(
+		`{"user_name":"%s", "password":"", "first_name": "%s", "last_name": "%s", "email": "%s", "enabled": true}`,
+		correctAccountUser.Username,
+		correctAccountUser.FirstName,
+		correctAccountUser.LastName,
+		correctAccountUser.Email,
+	)
+	c.Assert(err, IsNil)
+
+	routeName := "updateAccountUser"
+	route := getComposedRoute(routeName, correctAccountUser.AccountID, correctAccountUser.ID)
+	w, err := runRequest(routeName, route, payload, "")
+
+	c.Assert(w.Code, Equals, http.StatusBadRequest)
 }
 
 // Test a correct deleteAccountUser request
@@ -213,6 +234,19 @@ func (s *ServerSuite) TestDeleteAccountUser_WrongID(c *C) {
 	c.Assert(err, IsNil)
 
 	c.Assert(w.Code, Equals, http.StatusInternalServerError)
+}
+
+// Test a correct deleteAccountUser request with a wrong token
+func (s *ServerSuite) TestDeleteAccountUser_WrongToken(c *C) {
+	correctAccount, err := utils.AddCorrectAccount()
+	correctAccountUser, err := utils.AddCorrectAccountUser(correctAccount.ID)
+	c.Assert(err, IsNil)
+
+	routeName := "deleteAccountUser"
+	route := getComposedRoute(routeName, correctAccountUser.AccountID, correctAccountUser.ID)
+	w, err := runRequest(routeName, route, "", "")
+
+	c.Assert(w.Code, Equals, http.StatusBadRequest)
 }
 
 // Test a correct getAccountUser request
@@ -258,4 +292,17 @@ func (s *ServerSuite) TestGetAccountUser_WrongID(c *C) {
 	w, err := runRequest(routeName, route, "", token)
 
 	c.Assert(w.Code, Equals, http.StatusInternalServerError)
+}
+
+// Test a correct getAccountUser request with a wrong token
+func (s *ServerSuite) TestGetAccountUser_WrongToken(c *C) {
+	correctAccount, err := utils.AddCorrectAccount()
+	correctAccountUser, err := utils.AddCorrectAccountUser(correctAccount.ID)
+	c.Assert(err, IsNil)
+
+	routeName := "getAccountUser"
+	route := getComposedRoute(routeName, correctAccountUser.AccountID, correctAccountUser.ID)
+	w, err := runRequest(routeName, route, "", "")
+
+	c.Assert(w.Code, Equals, http.StatusBadRequest)
 }
