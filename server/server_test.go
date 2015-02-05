@@ -57,13 +57,11 @@ func (s *ServerSuite) TestValidatePostCommon_NoCLHeader(c *C) {
 	)
 	c.Assert(err, IsNil)
 
-	clHeader("", req)
-
 	w := httptest.NewRecorder()
 	createAccount(w, req)
 
 	c.Assert(w.Code, Equals, http.StatusBadRequest)
-	c.Assert(w.Body.String(), Equals, "400 invalid Content-Length size")
+	c.Assert(w.Body.String(), Equals, "400 User-Agent header must be set")
 }
 
 // Test POST common with CLHeader
@@ -85,6 +83,110 @@ func (s *ServerSuite) TestValidatePostCommon_CLHeader(c *C) {
 	c.Assert(w.Body.String(), Equals, "400 invalid character 'd' looking for beginning of object key string")
 }
 
+// Test GET common with CLHeader
+func (s *ServerSuite) TestValidateGetCommon_CLHeader(c *C) {
+	req, err := http.NewRequest(
+		"GET",
+		getComposedRoute("getAccount", 100),
+		nil,
+	)
+	c.Assert(err, IsNil)
+
+	clHeader("", req)
+
+	w := httptest.NewRecorder()
+	getAccount(w, req)
+
+	c.Assert(w.Code, Equals, http.StatusBadRequest)
+	c.Assert(w.Body.String(), Equals, "400 accountId is not set or the value is incorrect")
+}
+
+// Test GET common without CLHeader
+func (s *ServerSuite) TestValidateGetCommon_NoCLHeader(c *C) {
+	req, err := http.NewRequest(
+		"GET",
+		getComposedRoute("getAccount", 100),
+		nil,
+	)
+	c.Assert(err, IsNil)
+
+	w := httptest.NewRecorder()
+	getAccount(w, req)
+
+	c.Assert(w.Code, Equals, http.StatusBadRequest)
+	c.Assert(w.Body.String(), Equals, "400 User-Agent header must be set")
+}
+
+// Test PUT common with CLHeader
+func (s *ServerSuite) TestValidatePutCommon_CLHeader(c *C) {
+	payload := "{demo}"
+	req, err := http.NewRequest(
+		"PUT",
+		getComposedRoute("updateAccount", 100),
+		strings.NewReader(payload),
+	)
+	c.Assert(err, IsNil)
+
+	clHeader(payload, req)
+
+	w := httptest.NewRecorder()
+	updateAccount(w, req)
+
+	c.Assert(w.Code, Equals, http.StatusBadRequest)
+	c.Assert(w.Body.String(), Equals, "400 accountId is not set or the value is incorrect")
+}
+
+// Test PUT common without CLHeader
+func (s *ServerSuite) TestValidatePutCommon_NoCLHeader(c *C) {
+	req, err := http.NewRequest(
+		"PUT",
+		getComposedRoute("updateAccount", 100),
+		nil,
+	)
+	c.Assert(err, IsNil)
+
+	w := httptest.NewRecorder()
+	updateAccount(w, req)
+
+	c.Assert(w.Code, Equals, http.StatusBadRequest)
+	c.Assert(w.Body.String(), Equals, "400 User-Agent header must be set")
+}
+
+// Test DELETE common with CLHeader
+func (s *ServerSuite) TestValidateDeleteCommon_CLHeader(c *C) {
+	req, err := http.NewRequest(
+		"DELETE",
+		getComposedRoute("deleteAccount", 100),
+		nil,
+	)
+	c.Assert(err, IsNil)
+
+	clHeader("", req)
+
+	w := httptest.NewRecorder()
+	deleteAccount(w, req)
+
+	c.Assert(w.Code, Equals, http.StatusBadRequest)
+	c.Assert(w.Body.String(), Equals, "400 accountId is not set or the value is incorrect")
+}
+
+// Test DELETE common without CLHeader
+func (s *ServerSuite) TestValidateDeleteCommon_NoCLHeader(c *C) {
+	req, err := http.NewRequest(
+		"DELETE",
+		getComposedRoute("deleteAccount", 100),
+		nil,
+	)
+	c.Assert(err, IsNil)
+
+	w := httptest.NewRecorder()
+	deleteAccount(w, req)
+
+	c.Assert(w.Code, Equals, http.StatusBadRequest)
+	c.Assert(w.Body.String(), Equals, "400 User-Agent header must be set")
+}
+
+// clHeader create a correct request header
 func clHeader(payload string, req *http.Request) {
 	req.Header.Add("User-Agent", "go test (+localhost)")
 	if len(payload) > 0 {
@@ -92,6 +194,7 @@ func clHeader(payload string, req *http.Request) {
 	}
 }
 
+// getRoute takes a route name and returns the route including the version
 func getRoute(routeName string) *route {
 	if _, ok := routes[apiVersion][routeName]; !ok {
 		panic(fmt.Errorf("You requested a route, %s, that does not exists in the routing table for version%s\n", routeName, apiVersion))
@@ -100,6 +203,7 @@ func getRoute(routeName string) *route {
 	return routes[apiVersion][routeName]
 }
 
+// getComposedRoute takes a routeName and parameter and returns the route including the version
 func getComposedRoute(routeName string, params ...interface{}) string {
 	if _, ok := routes[apiVersion][routeName]; !ok {
 		panic(fmt.Errorf("You requested a route, %s, that does not exists in the routing table for version%s\n", routeName, apiVersion))
