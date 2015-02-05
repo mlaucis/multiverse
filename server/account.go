@@ -21,11 +21,6 @@ import (
 // Request: GET /account/:ID
 // Test with: curl -i localhost/0.1/account/:ID
 func getAccount(w http.ResponseWriter, r *http.Request) {
-	if err := validateGetCommon(w, r); err != nil {
-		errorHappened(err, http.StatusBadRequest, r, w)
-		return
-	}
-
 	var (
 		accountID int64
 		account   *entity.Account
@@ -35,12 +30,12 @@ func getAccount(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	if accountID, err = strconv.ParseInt(vars["accountId"], 10, 64); err != nil {
-		errorHappened(fmt.Errorf("accountId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
+		errorHappened("accountId is not set or the value is incorrect", http.StatusBadRequest, r, w)
 		return
 	}
 
 	if account, err = core.ReadAccount(accountID); err != nil {
-		errorHappened(err, http.StatusInternalServerError, r, w)
+		errorHappened(fmt.Sprintf("%s", err), http.StatusInternalServerError, r, w)
 		return
 	}
 
@@ -51,11 +46,6 @@ func getAccount(w http.ResponseWriter, r *http.Request) {
 // Request: PUT /account/:ID
 // Test with: curl -i -H "Content-Type: application/json" -d '{"token":"token_1_TmV3IEFjY291bnQ=", "name":"New Account","description":"Description of the account", "enabled": true, "created_at":"2015-02-02T19:13:18.239759449Z", "received_at":"2015-02-02T19:13:18.239759449Z", "metadata":"{}"}' -X PUT localhost/0.1/account/:ID
 func updateAccount(w http.ResponseWriter, r *http.Request) {
-	if err := validatePutCommon(w, r); err != nil {
-		errorHappened(err, http.StatusBadRequest, r, w)
-		return
-	}
-
 	var (
 		accountID int64
 		account   = &entity.Account{}
@@ -64,13 +54,13 @@ func updateAccount(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	if accountID, err = strconv.ParseInt(vars["accountId"], 10, 64); err != nil {
-		errorHappened(fmt.Errorf("accountId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
+		errorHappened("accountId is not set or the value is incorrect", http.StatusBadRequest, r, w)
 		return
 	}
 
 	decoder := json.NewDecoder(r.Body)
 	if err = decoder.Decode(account); err != nil {
-		errorHappened(err, http.StatusBadRequest, r, w)
+		errorHappened(fmt.Sprintf("%s", err), http.StatusBadRequest, r, w)
 		return
 	}
 
@@ -79,12 +69,12 @@ func updateAccount(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err = validator.UpdateAccount(account); err != nil {
-		errorHappened(err, http.StatusBadRequest, r, w)
+		errorHappened(fmt.Sprintf("%s", err), http.StatusBadRequest, r, w)
 		return
 	}
 
 	if account, err = core.UpdateAccount(account, true); err != nil {
-		errorHappened(err, http.StatusInternalServerError, r, w)
+		errorHappened(fmt.Sprintf("%s", err), http.StatusInternalServerError, r, w)
 		return
 	}
 
@@ -95,11 +85,6 @@ func updateAccount(w http.ResponseWriter, r *http.Request) {
 // Request: DELETE /account/:ID
 // Test with: curl -i -X DELETE localhost/0.1/account/:ID
 func deleteAccount(w http.ResponseWriter, r *http.Request) {
-	if err := validateDeleteCommon(w, r); err != nil {
-		errorHappened(err, http.StatusBadRequest, r, w)
-		return
-	}
-
 	var (
 		accountID int64
 		err       error
@@ -107,12 +92,12 @@ func deleteAccount(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	if accountID, err = strconv.ParseInt(vars["accountId"], 10, 64); err != nil {
-		errorHappened(fmt.Errorf("accountId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
+		errorHappened("accountId is not set or the value is incorrect", http.StatusBadRequest, r, w)
 		return
 	}
 
 	if err = core.DeleteAccount(accountID); err != nil {
-		errorHappened(err, http.StatusInternalServerError, r, w)
+		errorHappened(fmt.Sprintf("%s", err), http.StatusInternalServerError, r, w)
 		return
 	}
 
@@ -123,11 +108,6 @@ func deleteAccount(w http.ResponseWriter, r *http.Request) {
 // Request: POST /accounts
 // Test with: curl -i -H "Content-Type: application/json" -d '{"name":"New Account"}' localhost/0.1/accounts
 func createAccount(w http.ResponseWriter, r *http.Request) {
-	if err := validatePostCommon(w, r); err != nil {
-		errorHappened(err, http.StatusBadRequest, r, w)
-		return
-	}
-
 	var (
 		account = &entity.Account{}
 		err     error
@@ -135,17 +115,17 @@ func createAccount(w http.ResponseWriter, r *http.Request) {
 
 	decoder := json.NewDecoder(r.Body)
 	if err = decoder.Decode(account); err != nil {
-		errorHappened(err, http.StatusBadRequest, r, w)
+		errorHappened(fmt.Sprintf("%s", err), http.StatusBadRequest, r, w)
 		return
 	}
 
 	if err = validator.CreateAccount(account); err != nil {
-		errorHappened(err, http.StatusBadRequest, r, w)
+		errorHappened(fmt.Sprintf("%s", err), http.StatusBadRequest, r, w)
 		return
 	}
 
 	if account, err = core.WriteAccount(account, true); err != nil {
-		errorHappened(err, http.StatusInternalServerError, r, w)
+		errorHappened(fmt.Sprintf("%s", err), http.StatusInternalServerError, r, w)
 		return
 	}
 

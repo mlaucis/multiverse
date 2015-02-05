@@ -21,11 +21,6 @@ import (
 // Request: GET /account/:AccountID/application/:ID
 // Test with: curl -i localhost/0.1/account/:AccountID/application/:ID
 func getApplication(w http.ResponseWriter, r *http.Request) {
-	if err := validateGetCommon(w, r); err != nil {
-		errorHappened(err, http.StatusBadRequest, r, w)
-		return
-	}
-
 	var (
 		application *entity.Application
 		accountID   int64
@@ -36,17 +31,17 @@ func getApplication(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	if accountID, err = strconv.ParseInt(vars["accountId"], 10, 64); err != nil {
-		errorHappened(fmt.Errorf("accountId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
+		errorHappened("accountId is not set or the value is incorrect", http.StatusBadRequest, r, w)
 		return
 	}
 
 	if appID, err = strconv.ParseInt(vars["appId"], 10, 64); err != nil {
-		errorHappened(fmt.Errorf("appId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
+		errorHappened("appId is not set or the value is incorrect", http.StatusBadRequest, r, w)
 		return
 	}
 
 	if application, err = core.ReadApplication(accountID, appID); err != nil {
-		errorHappened(err, http.StatusInternalServerError, r, w)
+		errorHappened(fmt.Sprintf("%s", err), http.StatusInternalServerError, r, w)
 		return
 	}
 
@@ -57,11 +52,6 @@ func getApplication(w http.ResponseWriter, r *http.Request) {
 // Request: PUT /account/:AccountID/application/:ID
 // Test with: curl -i -H "Content-Type: application/json" -d '{"key": "hmac(256)", "name":"New App"}' -X PUT localhost/0.1/account/:AccountID/application/:ID
 func updateApplication(w http.ResponseWriter, r *http.Request) {
-	if err := validatePutCommon(w, r); err != nil {
-		errorHappened(err, http.StatusBadRequest, r, w)
-		return
-	}
-
 	var (
 		application = &entity.Application{}
 		accountID   int64
@@ -71,18 +61,18 @@ func updateApplication(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	if accountID, err = strconv.ParseInt(vars["accountId"], 10, 64); err != nil {
-		errorHappened(fmt.Errorf("accountId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
+		errorHappened("accountId is not set or the value is incorrect", http.StatusBadRequest, r, w)
 		return
 	}
 
 	if appID, err = strconv.ParseInt(vars["appId"], 10, 64); err != nil {
-		errorHappened(fmt.Errorf("appId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
+		errorHappened("appId is not set or the value is incorrect", http.StatusBadRequest, r, w)
 		return
 	}
 
 	decoder := json.NewDecoder(r.Body)
 	if err = decoder.Decode(application); err != nil {
-		errorHappened(err, http.StatusBadRequest, r, w)
+		errorHappened(fmt.Sprintf("%s", err), http.StatusBadRequest, r, w)
 		return
 	}
 
@@ -94,12 +84,12 @@ func updateApplication(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err = validator.UpdateApplication(application); err != nil {
-		errorHappened(err, http.StatusBadRequest, r, w)
+		errorHappened(fmt.Sprintf("%s", err), http.StatusBadRequest, r, w)
 		return
 	}
 
 	if application, err = core.UpdateApplication(application, true); err != nil {
-		errorHappened(err, http.StatusInternalServerError, r, w)
+		errorHappened(fmt.Sprintf("%s", err), http.StatusInternalServerError, r, w)
 		return
 	}
 
@@ -110,11 +100,6 @@ func updateApplication(w http.ResponseWriter, r *http.Request) {
 // Request: DELETE /account/:AccountID/application/:ID
 // Test with: curl -i -X DELETE localhost/0.1/account/:AccountID/application/:ID
 func deleteApplication(w http.ResponseWriter, r *http.Request) {
-	if err := validateDeleteCommon(w, r); err != nil {
-		errorHappened(err, http.StatusBadRequest, r, w)
-		return
-	}
-
 	var (
 		accountID int64
 		appID     int64
@@ -123,17 +108,17 @@ func deleteApplication(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	if accountID, err = strconv.ParseInt(vars["accountId"], 10, 64); err != nil {
-		errorHappened(fmt.Errorf("accountId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
+		errorHappened("accountId is not set or the value is incorrect", http.StatusBadRequest, r, w)
 		return
 	}
 
 	if appID, err = strconv.ParseInt(vars["appId"], 10, 64); err != nil {
-		errorHappened(fmt.Errorf("appId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
+		errorHappened("appId is not set or the value is incorrect", http.StatusBadRequest, r, w)
 		return
 	}
 
 	if err = core.DeleteApplication(accountID, appID); err != nil {
-		errorHappened(err, http.StatusInternalServerError, r, w)
+		errorHappened(fmt.Sprintf("%s", err), http.StatusInternalServerError, r, w)
 		return
 	}
 
@@ -144,11 +129,6 @@ func deleteApplication(w http.ResponseWriter, r *http.Request) {
 // Request: GET /account/:AccountID/applications
 // Test with: curl -i localhost/0.1/account/:AccountID/applications
 func getApplicationList(w http.ResponseWriter, r *http.Request) {
-	if err := validateGetCommon(w, r); err != nil {
-		errorHappened(err, http.StatusBadRequest, r, w)
-		return
-	}
-
 	var (
 		account      *entity.Account
 		applications []*entity.Application
@@ -158,17 +138,17 @@ func getApplicationList(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	if accountID, err = strconv.ParseInt(vars["accountId"], 10, 64); err != nil {
-		errorHappened(fmt.Errorf("accountId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
+		errorHappened("accountId is not set or the value is incorrect", http.StatusBadRequest, r, w)
 		return
 	}
 
 	if account, err = core.ReadAccount(accountID); err != nil {
-		errorHappened(err, http.StatusInternalServerError, r, w)
+		errorHappened(fmt.Sprintf("%s", err), http.StatusInternalServerError, r, w)
 		return
 	}
 
 	if applications, err = core.ReadApplicationList(accountID); err != nil {
-		errorHappened(err, http.StatusInternalServerError, r, w)
+		errorHappened(fmt.Sprintf("%s", err), http.StatusInternalServerError, r, w)
 		return
 	}
 
@@ -187,11 +167,6 @@ func getApplicationList(w http.ResponseWriter, r *http.Request) {
 // Request: POST /account/:AccountID/applications
 // Test with: curl -i -H "Content-Type: application/json" -d '{"key": "hmac(256)", "name":"New App"}' localhost/0.1/account/:AccountID/applications
 func createApplication(w http.ResponseWriter, r *http.Request) {
-	if err := validatePostCommon(w, r); err != nil {
-		errorHappened(err, http.StatusBadRequest, r, w)
-		return
-	}
-
 	var (
 		application = &entity.Application{}
 		accountID   int64
@@ -200,25 +175,25 @@ func createApplication(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	if accountID, err = strconv.ParseInt(vars["accountId"], 10, 64); err != nil {
-		errorHappened(fmt.Errorf("accountId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
+		errorHappened("accountId is not set or the value is incorrect", http.StatusBadRequest, r, w)
 		return
 	}
 
 	decoder := json.NewDecoder(r.Body)
 	if err = decoder.Decode(application); err != nil {
-		errorHappened(err, http.StatusBadRequest, r, w)
+		errorHappened(fmt.Sprintf("%s", err), http.StatusBadRequest, r, w)
 		return
 	}
 
 	application.AccountID = accountID
 
 	if err = validator.CreateApplication(application); err != nil {
-		errorHappened(err, http.StatusBadRequest, r, w)
+		errorHappened(fmt.Sprintf("%s", err), http.StatusBadRequest, r, w)
 		return
 	}
 
 	if application, err = core.WriteApplication(application, true); err != nil {
-		errorHappened(err, http.StatusInternalServerError, r, w)
+		errorHappened(fmt.Sprintf("%s", err), http.StatusInternalServerError, r, w)
 		return
 	}
 

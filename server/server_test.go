@@ -52,15 +52,23 @@ func (s *ServerSuite) SetUpTest(c *C) {
 
 // Test POST common without CLHeader
 func (s *ServerSuite) TestValidatePostCommon_NoCLHeader(c *C) {
+	payload := "{demo}"
+	routeName := "createAccount"
+	requestRoute := getRoute(routeName)
+	routePath := requestRoute.routePattern(apiVersion)
+
 	req, err := http.NewRequest(
-		"POST",
-		getComposedRoute("index"),
-		nil,
+		requestRoute.method,
+		routePath,
+		strings.NewReader(payload),
 	)
 	c.Assert(err, IsNil)
 
 	w := httptest.NewRecorder()
-	createAccount(w, req)
+	m := mux.NewRouter()
+
+	m.HandleFunc(routePath, customHandler(routeName, requestRoute, nil, logChan)).Methods(requestRoute.method)
+	m.ServeHTTP(w, req)
 
 	c.Assert(w.Code, Equals, http.StatusBadRequest)
 	c.Assert(w.Body.String(), Equals, "400 User-Agent header must be set")
@@ -69,17 +77,24 @@ func (s *ServerSuite) TestValidatePostCommon_NoCLHeader(c *C) {
 // Test POST common with CLHeader
 func (s *ServerSuite) TestValidatePostCommon_CLHeader(c *C) {
 	payload := "{demo}"
+	routeName := "createAccount"
+	requestRoute := getRoute(routeName)
+	routePath := requestRoute.routePattern(apiVersion)
+
 	req, err := http.NewRequest(
-		"POST",
-		getComposedRoute("index"),
+		requestRoute.method,
+		routePath,
 		strings.NewReader(payload),
 	)
 	c.Assert(err, IsNil)
 
-	clHeader(payload, req)
+	createCommonRequestHeaders(payload, req)
 
 	w := httptest.NewRecorder()
-	createAccount(w, req)
+	m := mux.NewRouter()
+
+	m.HandleFunc(routePath, customHandler(routeName, requestRoute, nil, logChan)).Methods(requestRoute.method)
+	m.ServeHTTP(w, req)
 
 	c.Assert(w.Code, Equals, http.StatusBadRequest)
 	c.Assert(w.Body.String(), Equals, "400 invalid character 'd' looking for beginning of object key string")
@@ -87,33 +102,48 @@ func (s *ServerSuite) TestValidatePostCommon_CLHeader(c *C) {
 
 // Test GET common with CLHeader
 func (s *ServerSuite) TestValidateGetCommon_CLHeader(c *C) {
+	payload := ""
+	routeName := "index"
+	requestRoute := getRoute(routeName)
+	routePath := requestRoute.routePattern(apiVersion)
+
 	req, err := http.NewRequest(
-		"GET",
-		getComposedRoute("getAccount", 100),
-		nil,
+		requestRoute.method,
+		routePath,
+		strings.NewReader(payload),
 	)
 	c.Assert(err, IsNil)
 
-	clHeader("", req)
+	createCommonRequestHeaders(payload, req)
 
 	w := httptest.NewRecorder()
-	getAccount(w, req)
+	m := mux.NewRouter()
 
-	c.Assert(w.Code, Equals, http.StatusBadRequest)
-	c.Assert(w.Body.String(), Equals, "400 accountId is not set or the value is incorrect")
+	m.HandleFunc(routePath, customHandler(routeName, requestRoute, nil, logChan)).Methods(requestRoute.method)
+	m.ServeHTTP(w, req)
+
+	c.Assert(w.Code, Equals, http.StatusOK)
 }
 
 // Test GET common without CLHeader
 func (s *ServerSuite) TestValidateGetCommon_NoCLHeader(c *C) {
+	payload := ""
+	routeName := "index"
+	requestRoute := getRoute(routeName)
+	routePath := requestRoute.routePattern(apiVersion)
+
 	req, err := http.NewRequest(
-		"GET",
-		getComposedRoute("getAccount", 100),
-		nil,
+		requestRoute.method,
+		routePath,
+		strings.NewReader(payload),
 	)
 	c.Assert(err, IsNil)
 
 	w := httptest.NewRecorder()
-	getAccount(w, req)
+	m := mux.NewRouter()
+
+	m.HandleFunc(routePath, customHandler(routeName, requestRoute, nil, logChan)).Methods(requestRoute.method)
+	m.ServeHTTP(w, req)
 
 	c.Assert(w.Code, Equals, http.StatusBadRequest)
 	c.Assert(w.Body.String(), Equals, "400 User-Agent header must be set")
@@ -122,17 +152,24 @@ func (s *ServerSuite) TestValidateGetCommon_NoCLHeader(c *C) {
 // Test PUT common with CLHeader
 func (s *ServerSuite) TestValidatePutCommon_CLHeader(c *C) {
 	payload := "{demo}"
+	routeName := "updateAccount"
+	requestRoute := getRoute(routeName)
+	routePath := getComposedRoute(routeName, 0)
+
 	req, err := http.NewRequest(
-		"PUT",
-		getComposedRoute("updateAccount", 100),
+		requestRoute.method,
+		routePath,
 		strings.NewReader(payload),
 	)
 	c.Assert(err, IsNil)
 
-	clHeader(payload, req)
+	createCommonRequestHeaders(payload, req)
 
 	w := httptest.NewRecorder()
-	updateAccount(w, req)
+	m := mux.NewRouter()
+
+	m.HandleFunc(routePath, customHandler(routeName, requestRoute, nil, logChan)).Methods(requestRoute.method)
+	m.ServeHTTP(w, req)
 
 	c.Assert(w.Code, Equals, http.StatusBadRequest)
 	c.Assert(w.Body.String(), Equals, "400 accountId is not set or the value is incorrect")
@@ -140,15 +177,23 @@ func (s *ServerSuite) TestValidatePutCommon_CLHeader(c *C) {
 
 // Test PUT common without CLHeader
 func (s *ServerSuite) TestValidatePutCommon_NoCLHeader(c *C) {
+	payload := "{demo}"
+	routeName := "updateAccount"
+	requestRoute := getRoute(routeName)
+	routePath := getComposedRoute(routeName, 0)
+
 	req, err := http.NewRequest(
-		"PUT",
-		getComposedRoute("updateAccount", 100),
-		nil,
+		requestRoute.method,
+		routePath,
+		strings.NewReader(payload),
 	)
 	c.Assert(err, IsNil)
 
 	w := httptest.NewRecorder()
-	updateAccount(w, req)
+	m := mux.NewRouter()
+
+	m.HandleFunc(routePath, customHandler(routeName, requestRoute, nil, logChan)).Methods(requestRoute.method)
+	m.ServeHTTP(w, req)
 
 	c.Assert(w.Code, Equals, http.StatusBadRequest)
 	c.Assert(w.Body.String(), Equals, "400 User-Agent header must be set")
@@ -156,17 +201,25 @@ func (s *ServerSuite) TestValidatePutCommon_NoCLHeader(c *C) {
 
 // Test DELETE common with CLHeader
 func (s *ServerSuite) TestValidateDeleteCommon_CLHeader(c *C) {
+	payload := "{demo}"
+	routeName := "deleteAccount"
+	requestRoute := getRoute(routeName)
+	routePath := getComposedRoute(routeName, 0)
+
 	req, err := http.NewRequest(
-		"DELETE",
-		getComposedRoute("deleteAccount", 100),
-		nil,
+		requestRoute.method,
+		routePath,
+		strings.NewReader(payload),
 	)
 	c.Assert(err, IsNil)
 
-	clHeader("", req)
+	createCommonRequestHeaders(payload, req)
 
 	w := httptest.NewRecorder()
-	deleteAccount(w, req)
+	m := mux.NewRouter()
+
+	m.HandleFunc(routePath, customHandler(routeName, requestRoute, nil, logChan)).Methods(requestRoute.method)
+	m.ServeHTTP(w, req)
 
 	c.Assert(w.Code, Equals, http.StatusBadRequest)
 	c.Assert(w.Body.String(), Equals, "400 accountId is not set or the value is incorrect")
@@ -174,22 +227,30 @@ func (s *ServerSuite) TestValidateDeleteCommon_CLHeader(c *C) {
 
 // Test DELETE common without CLHeader
 func (s *ServerSuite) TestValidateDeleteCommon_NoCLHeader(c *C) {
+	payload := ""
+	routeName := "deleteAccount"
+	requestRoute := getRoute(routeName)
+	routePath := getComposedRoute(routeName, 0)
+
 	req, err := http.NewRequest(
-		"DELETE",
-		getComposedRoute("deleteAccount", 100),
-		nil,
+		requestRoute.method,
+		routePath,
+		strings.NewReader(payload),
 	)
 	c.Assert(err, IsNil)
 
 	w := httptest.NewRecorder()
-	deleteAccount(w, req)
+	m := mux.NewRouter()
+
+	m.HandleFunc(routePath, customHandler(routeName, requestRoute, nil, logChan)).Methods(requestRoute.method)
+	m.ServeHTTP(w, req)
 
 	c.Assert(w.Code, Equals, http.StatusBadRequest)
 	c.Assert(w.Body.String(), Equals, "400 User-Agent header must be set")
 }
 
-// clHeader create a correct request header
-func clHeader(payload string, req *http.Request) {
+// createCommonRequestHeaders create a correct request header
+func createCommonRequestHeaders(payload string, req *http.Request) {
 	req.Header.Add("User-Agent", "go test (+localhost)")
 	if len(payload) > 0 {
 		req.Header.Add("Content-Length", strconv.FormatInt(int64(len(payload)), 10))
@@ -216,10 +277,10 @@ func getComposedRoute(routeName string, params ...interface{}) string {
 
 // runRequest takes a route, path, payload and token, performs a request and return a response recorder
 func runRequest(routeName, routePath, payload, token string) (*httptest.ResponseRecorder, error) {
-	route := getRoute(routeName)
+	requestRoute := getRoute(routeName)
 
 	req, err := http.NewRequest(
-		route.method,
+		requestRoute.method,
 		routePath,
 		strings.NewReader(payload),
 	)
@@ -227,7 +288,7 @@ func runRequest(routeName, routePath, payload, token string) (*httptest.Response
 		return nil, err
 	}
 
-	clHeader(payload, req)
+	createCommonRequestHeaders(payload, req)
 	if token != "" {
 		signRequest(token, req)
 	}
@@ -235,7 +296,7 @@ func runRequest(routeName, routePath, payload, token string) (*httptest.Response
 	w := httptest.NewRecorder()
 	m := mux.NewRouter()
 
-	m.HandleFunc(route.routePattern(apiVersion), customHandler(routeName, route, nil, logChan)).Methods(route.method)
+	m.HandleFunc(requestRoute.routePattern(apiVersion), customHandler(routeName, requestRoute, nil, logChan)).Methods(requestRoute.method)
 	m.ServeHTTP(w, req)
 
 	return w, nil
