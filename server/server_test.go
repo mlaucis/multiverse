@@ -18,6 +18,7 @@ import (
 	"github.com/tapglue/backend/storage"
 	"github.com/tapglue/backend/storage/redis"
 
+	"github.com/gorilla/mux"
 	. "gopkg.in/check.v1"
 )
 
@@ -211,4 +212,27 @@ func getComposedRoute(routeName string, params ...interface{}) string {
 	}
 
 	return fmt.Sprintf(routes[apiVersion][routeName].composePattern(apiVersion), params...)
+}
+
+func runTestFunc(routeName, routePath, payload, token string) (*httptest.ResponseRecorder, error) {
+	req, err := http.NewRequest(
+		"POST",
+		routePath,
+		strings.NewReader(payload),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	clHeader(payload, req)
+	signRequest(token, req)
+
+	w := httptest.NewRecorder()
+	m := mux.NewRouter()
+	route := getRoute(routeName)
+
+	m.HandleFunc(route.routePattern(apiVersion), customHandler(routeName, route, nil, logChan)).Methods(route.method)
+	m.ServeHTTP(w, req)
+
+	return w, nil
 }

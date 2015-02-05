@@ -11,7 +11,6 @@ import (
 	"net/http/httptest"
 	"strings"
 
-	"github.com/gorilla/mux"
 	"github.com/tapglue/backend/core/entity"
 	"github.com/tapglue/backend/utils"
 	. "gopkg.in/check.v1"
@@ -64,8 +63,6 @@ func (s *ServerSuite) TestCreateAccountUser_OK(c *C) {
 	correctAccount, err := utils.AddCorrectAccount()
 	correctAccountUser := utils.CorrectAccountUser()
 
-	currentRoute := "createAccountUser"
-
 	payload := fmt.Sprintf(
 		`{"user_name":"%s", "password":"%s", "first_name": "%s", "last_name": "%s", "email": "%s"}`,
 		correctAccountUser.Username,
@@ -75,26 +72,15 @@ func (s *ServerSuite) TestCreateAccountUser_OK(c *C) {
 		correctAccountUser.Email,
 	)
 
-	req, err := http.NewRequest(
-		"POST",
-		getComposedRoute(currentRoute, correctAccount.ID),
-		strings.NewReader(payload),
-	)
-	c.Assert(err, IsNil)
-
-	clHeader(payload, req)
 	token, err := storageClient.GenerateAccountToken(correctAccount)
 	if err != nil {
 		panic(err)
 	}
-	signRequest(token, req)
 
-	w := httptest.NewRecorder()
-	m := mux.NewRouter()
-	route := getRoute(currentRoute)
-
-	m.HandleFunc(route.routePattern(apiVersion), customHandler(currentRoute, route, nil, logChan)).Methods(route.method)
-	m.ServeHTTP(w, req)
+	routeName := "createAccountUser"
+	route := getComposedRoute(routeName, correctAccount.ID)
+	w, err := runTestFunc(routeName, route, payload, token)
+	c.Assert(err, IsNil)
 
 	c.Assert(w.Code, Equals, http.StatusCreated)
 	response := w.Body.String()
