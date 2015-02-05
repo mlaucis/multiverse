@@ -214,7 +214,7 @@ func createAccountUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	if accountID, err = strconv.ParseInt(vars["accountId"], 10, 64); err != nil {
-		errorHappened(fmt.Errorf("accountId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
+		errorHappened(fmt.Errorf("accountId is not set or the value is incorrect %v", vars["accountId"]), http.StatusBadRequest, r, w)
 		return
 	}
 

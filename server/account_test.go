@@ -19,7 +19,7 @@ import (
 	. "gopkg.in/check.v1"
 )
 
-// Test create acccount request with a wrong key
+// Test createAcccount request with a wrong key
 func (s *ServerSuite) TestCreateAccount_WrongKey(c *C) {
 	payload := "{namae:''}"
 
@@ -39,7 +39,7 @@ func (s *ServerSuite) TestCreateAccount_WrongKey(c *C) {
 	c.Assert(w.Body.String(), Not(Equals), "")
 }
 
-// Test create acccount request with an invalid name
+// Test createAcccount request with an invalid name
 func (s *ServerSuite) TestCreateAccount_Invalid(c *C) {
 	payload := `{"name":""}`
 
@@ -225,12 +225,12 @@ func (s *ServerSuite) TestDeleteAccount_WrongID(c *C) {
 
 // Test a correct getAccount request
 func (s *ServerSuite) TestGetAccount_OK(c *C) {
-	account, err := utils.AddCorrectAccount()
+	correctAccount, err := utils.AddCorrectAccount()
 	c.Assert(err, IsNil)
 
 	req, err := http.NewRequest(
 		"GET",
-		getComposedRoute("getAccount", account.ID),
+		getComposedRoute("getAccount", correctAccount.ID),
 		nil,
 	)
 	c.Assert(err, IsNil)
@@ -248,23 +248,23 @@ func (s *ServerSuite) TestGetAccount_OK(c *C) {
 	response := w.Body.String()
 	c.Assert(response, Not(Equals), "")
 
-	accountGet := &entity.Account{}
-	err = json.Unmarshal([]byte(response), accountGet)
+	account := &entity.Account{}
+	err = json.Unmarshal([]byte(response), account)
 	c.Assert(err, IsNil)
-	c.Assert(accountGet.ID, Equals, account.ID)
-	c.Assert(accountGet.Name, Equals, account.Name)
-	c.Assert(accountGet.Enabled, Equals, true)
-	c.Assert(accountGet.Token, Not(Equals), "")
+	c.Assert(account.ID, Equals, correctAccount.ID)
+	c.Assert(account.Name, Equals, correctAccount.Name)
+	c.Assert(account.Enabled, Equals, true)
+	c.Assert(account.Token, Not(Equals), "")
 }
 
 // Test a correct getAccount request with a wrong id
 func (s *ServerSuite) TestGetAccount_WrongID(c *C) {
-	account, err := utils.AddCorrectAccount()
+	correctAccount, err := utils.AddCorrectAccount()
 	c.Assert(err, IsNil)
 
 	req, err := http.NewRequest(
 		"GET",
-		getComposedRoute("getAccount", (account.ID+1)),
+		getComposedRoute("getAccount", (correctAccount.ID+1)),
 		nil,
 	)
 	c.Assert(err, IsNil)
