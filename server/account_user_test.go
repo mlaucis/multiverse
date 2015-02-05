@@ -26,7 +26,7 @@ func (s *ServerSuite) TestCreateAccountUser_WrongKey(c *C) {
 
 	routeName := "createAccountUser"
 	route := getComposedRoute(routeName, correctAccount.ID)
-	w, err := runRequest("POST", routeName, route, payload, token)
+	w, err := runRequest(routeName, route, payload, token)
 	c.Assert(err, IsNil)
 
 	c.Assert(w.Code, Equals, http.StatusBadRequest)
@@ -45,7 +45,7 @@ func (s *ServerSuite) TestCreateAccountUser_WrongValue(c *C) {
 
 	routeName := "createAccountUser"
 	route := getComposedRoute(routeName, correctAccount.ID)
-	w, err := runRequest("POST", routeName, route, payload, token)
+	w, err := runRequest(routeName, route, payload, token)
 	c.Assert(err, IsNil)
 
 	c.Assert(w.Code, Equals, http.StatusBadRequest)
@@ -73,7 +73,7 @@ func (s *ServerSuite) TestCreateAccountUser_OK(c *C) {
 
 	routeName := "createAccountUser"
 	route := getComposedRoute(routeName, correctAccount.ID)
-	w, err := runRequest("POST", routeName, route, payload, token)
+	w, err := runRequest(routeName, route, payload, token)
 	c.Assert(err, IsNil)
 
 	c.Assert(w.Code, Equals, http.StatusCreated)
@@ -109,7 +109,7 @@ func (s *ServerSuite) TestUpdateAccountUser_OK(c *C) {
 
 	routeName := "updateAccountUser"
 	route := getComposedRoute(routeName, correctAccountUser.AccountID, correctAccountUser.ID)
-	w, err := runRequest("PUT", routeName, route, payload, token)
+	w, err := runRequest(routeName, route, payload, token)
 	c.Assert(err, IsNil)
 
 	c.Assert(w.Code, Equals, http.StatusOK)

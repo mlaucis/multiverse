@@ -22,7 +22,7 @@ func (s *ServerSuite) TestCreateAccount_WrongKey(c *C) {
 
 	routeName := "createAccount"
 	route := getComposedRoute(routeName)
-	w, err := runRequest("POST", routeName, route, payload, "")
+	w, err := runRequest(routeName, route, payload, "")
 	c.Assert(err, IsNil)
 
 	c.Assert(w.Code, Equals, http.StatusBadRequest)
@@ -35,7 +35,7 @@ func (s *ServerSuite) TestCreateAccount_WrongValue(c *C) {
 
 	routeName := "createAccount"
 	route := getComposedRoute(routeName)
-	w, err := runRequest("POST", routeName, route, payload, "")
+	w, err := runRequest(routeName, route, payload, "")
 	c.Assert(err, IsNil)
 
 	c.Assert(w.Code, Equals, http.StatusBadRequest)
@@ -49,7 +49,7 @@ func (s *ServerSuite) TestCreateAccount_OK(c *C) {
 
 	routeName := "createAccount"
 	route := getComposedRoute(routeName)
-	w, err := runRequest("POST", routeName, route, payload, "")
+	w, err := runRequest(routeName, route, payload, "")
 	c.Assert(err, IsNil)
 
 	c.Assert(w.Code, Equals, http.StatusCreated)
@@ -75,7 +75,7 @@ func (s *ServerSuite) TestUpdateAccount_OK(c *C) {
 
 	routeName := "updateAccount"
 	route := getComposedRoute(routeName, correctAccount.ID)
-	w, err := runRequest("PUT", routeName, route, payload, "")
+	w, err := runRequest(routeName, route, payload, "")
 	c.Assert(err, IsNil)
 
 	c.Assert(w.Code, Equals, http.StatusOK)
@@ -102,7 +102,7 @@ func (s *ServerSuite) TestUpdateAccount_WrongID(c *C) {
 
 	routeName := "updateAccount"
 	route := getComposedRoute(routeName, correctAccount.ID+1)
-	w, err := runRequest("PUT", routeName, route, payload, "")
+	w, err := runRequest(routeName, route, payload, "")
 	c.Assert(err, IsNil)
 
 	c.Assert(w.Code, Equals, http.StatusInternalServerError)
@@ -115,7 +115,7 @@ func (s *ServerSuite) TestUpdateAccount_Invalid(c *C) {
 
 	routeName := "updateAccount"
 	route := getComposedRoute(routeName, correctAccount.ID)
-	w, err := runRequest("PUT", routeName, route, payload, "")
+	w, err := runRequest(routeName, route, payload, "")
 	c.Assert(err, IsNil)
 
 	c.Assert(w.Code, Equals, http.StatusBadRequest)
@@ -129,7 +129,7 @@ func (s *ServerSuite) TestDeleteAccount_OK(c *C) {
 
 	routeName := "deleteAccount"
 	route := getComposedRoute(routeName, account.ID)
-	w, err := runRequest("DELETE", routeName, route, "", "")
+	w, err := runRequest(routeName, route, "", "")
 	c.Assert(err, IsNil)
 
 	c.Assert(w.Code, Equals, http.StatusNoContent)
@@ -142,7 +142,7 @@ func (s *ServerSuite) TestDeleteAccount_WrongID(c *C) {
 
 	routeName := "deleteAccount"
 	route := getComposedRoute(routeName, account.ID+1)
-	w, err := runRequest("DELETE", routeName, route, "", "")
+	w, err := runRequest(routeName, route, "", "")
 	c.Assert(err, IsNil)
 
 	c.Assert(w.Code, Equals, http.StatusInternalServerError)
@@ -155,7 +155,7 @@ func (s *ServerSuite) TestGetAccount_OK(c *C) {
 
 	routeName := "getAccount"
 	route := getComposedRoute(routeName, correctAccount.ID)
-	w, err := runRequest("GET", routeName, route, "", "")
+	w, err := runRequest(routeName, route, "", "")
 	c.Assert(err, IsNil)
 
 	c.Assert(w.Code, Equals, http.StatusOK)
@@ -178,7 +178,7 @@ func (s *ServerSuite) TestGetAccount_WrongID(c *C) {
 
 	routeName := "getAccount"
 	route := getComposedRoute(routeName, correctAccount.ID+1)
-	w, err := runRequest("GET", routeName, route, "", "")
+	w, err := runRequest(routeName, route, "", "")
 	c.Assert(err, IsNil)
 
 	c.Assert(w.Code, Equals, http.StatusInternalServerError)

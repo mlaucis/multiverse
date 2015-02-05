@@ -215,9 +215,11 @@ func getComposedRoute(routeName string, params ...interface{}) string {
 }
 
 // runRequest takes a route, path, payload and token, performs a request and return a response recorder
-func runRequest(method, routeName, routePath, payload, token string) (*httptest.ResponseRecorder, error) {
+func runRequest(routeName, routePath, payload, token string) (*httptest.ResponseRecorder, error) {
+	route := getRoute(routeName)
+
 	req, err := http.NewRequest(
-		method,
+		route.method,
 		routePath,
 		strings.NewReader(payload),
 	)
@@ -232,7 +234,6 @@ func runRequest(method, routeName, routePath, payload, token string) (*httptest.
 
 	w := httptest.NewRecorder()
 	m := mux.NewRouter()
-	route := getRoute(routeName)
 
 	m.HandleFunc(route.routePattern(apiVersion), customHandler(routeName, route, nil, logChan)).Methods(route.method)
 	m.ServeHTTP(w, req)
