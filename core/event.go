@@ -221,8 +221,8 @@ func WriteEventToConnectionsLists(event *entity.Event, key string) (err error) {
 }
 
 // DeleteEventFromConnectionsLists takes a user id and key and deletes it to the user connections list
-func DeleteEventFromConnectionsLists(appId, userId int64, key string) (err error) {
-	connectionsKey := storageClient.FollowedByUsers(appId, userId)
+func DeleteEventFromConnectionsLists(appID, userID int64, key string) (err error) {
+	connectionsKey := storageClient.FollowedByUsers(appID, userID)
 
 	connections, err := storageEngine.LRange(connectionsKey, 0, -1).Result()
 	if err != nil {

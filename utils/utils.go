@@ -10,7 +10,7 @@ import (
 	"github.com/tapglue/backend/core/entity"
 )
 
-// Create a correct account
+// AddCorrectAccount creates a correct account
 func AddCorrectAccount() (acc *entity.Account, err error) {
 	account, err := core.WriteAccount(correctAccount, true)
 	if err != nil {
@@ -20,7 +20,7 @@ func AddCorrectAccount() (acc *entity.Account, err error) {
 	return account, nil
 }
 
-// Create a correct account user
+// AddCorrectAccountUser creates a correct account user
 func AddCorrectAccountUser() (acc *entity.AccountUser, err error) {
 	account, err := AddCorrectAccount()
 	if err != nil {
