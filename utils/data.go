@@ -28,9 +28,11 @@ var (
 	}
 	correctAccountUser = &entity.AccountUser{
 		UserCommon: entity.UserCommon{
-			Username: "Demo User",
-			Password: "iamsecure..not",
-			Email:    "d@m.o",
+			Username:  "Demo User",
+			FirstName: "First name",
+			LastName:  "Last Name",
+			Password:  "iamsecure..not",
+			Email:     "d@m.o",
 		},
 	}
 	correctApplication = &entity.Application{

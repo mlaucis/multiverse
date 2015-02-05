@@ -235,6 +235,10 @@ func robots(w http.ResponseWriter, r *http.Request) {
 Disallow: /`))
 }
 
+func signRequest(token string, req *http.Request) {
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token))
+}
+
 func customHandler(routeName string, r *route, newRelicAgent *gorelic.Agent, logChan chan *LogMsg) http.HandlerFunc {
 	handlerFunc := func(resp http.ResponseWriter, req *http.Request) {
 		start := time.Now()

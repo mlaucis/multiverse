@@ -31,9 +31,10 @@ const (
 )
 
 var (
-	_       = Suite(&ServerSuite{})
-	conf    *config.Config
-	logChan = make(chan *LogMsg)
+	_             = Suite(&ServerSuite{})
+	conf          *config.Config
+	logChan       = make(chan *LogMsg)
+	storageClient *storage.Client
 )
 
 // Setup once when the suite starts running
@@ -42,7 +43,7 @@ func (s *ServerSuite) SetUpTest(c *C) {
 	conf = config.NewConf("")
 	redis.Init(conf.Redis.Hosts[0], conf.Redis.Password, conf.Redis.DB, conf.Redis.PoolSize)
 	redis.Client().FlushDb()
-	storageClient := storage.Init(redis.Client())
+	storageClient = storage.Init(redis.Client())
 	core.Init(storageClient)
 
 	go TGLog(logChan)
