@@ -214,9 +214,10 @@ func getComposedRoute(routeName string, params ...interface{}) string {
 	return fmt.Sprintf(routes[apiVersion][routeName].composePattern(apiVersion), params...)
 }
 
-func runTestFunc(routeName, routePath, payload, token string) (*httptest.ResponseRecorder, error) {
+// runRequest takes a route, path, payload and token, performs a request and return a response recorder
+func runRequest(method, routeName, routePath, payload, token string) (*httptest.ResponseRecorder, error) {
 	req, err := http.NewRequest(
-		"POST",
+		method,
 		routePath,
 		strings.NewReader(payload),
 	)
@@ -225,7 +226,9 @@ func runTestFunc(routeName, routePath, payload, token string) (*httptest.Respons
 	}
 
 	clHeader(payload, req)
-	signRequest(token, req)
+	if token != "" {
+		signRequest(token, req)
+	}
 
 	w := httptest.NewRecorder()
 	m := mux.NewRouter()

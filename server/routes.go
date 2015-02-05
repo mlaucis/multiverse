@@ -79,7 +79,7 @@ var routes = map[string]map[string]*route{
 		"updateAccountUser": &route{
 			"PUT",
 			"/account/{accountId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}",
-			"/account/%d/user/%s",
+			"/account/%d/user/%d",
 			[]http.HandlerFunc{
 				updateAccountUser,
 			},

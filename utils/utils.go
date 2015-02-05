@@ -21,14 +21,9 @@ func AddCorrectAccount() (acc *entity.Account, err error) {
 }
 
 // AddCorrectAccountUser creates a correct account user
-func AddCorrectAccountUser() (acc *entity.AccountUser, err error) {
-	account, err := AddCorrectAccount()
-	if err != nil {
-		return nil, err
-	}
-
+func AddCorrectAccountUser(accountID int64) (acc *entity.AccountUser, err error) {
 	accountUserWithAccountID := correctAccountUser
-	accountUserWithAccountID.AccountID = account.ID
+	accountUserWithAccountID.AccountID = accountID
 	accountUser, err := core.WriteAccountUser(accountUserWithAccountID, true)
 	if err != nil {
 		return nil, err

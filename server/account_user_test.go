@@ -8,8 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/http/httptest"
-	"strings"
 
 	"github.com/tapglue/backend/core/entity"
 	"github.com/tapglue/backend/utils"
@@ -21,38 +19,34 @@ func (s *ServerSuite) TestCreateAccountUser_WrongKey(c *C) {
 	correctAccount, err := utils.AddCorrectAccount()
 	payload := "{usrnamae:''}"
 
-	req, err := http.NewRequest(
-		"POST",
-		getComposedRoute("createAccountUser", correctAccount.ID),
-		strings.NewReader(payload),
-	)
+	token, err := storageClient.GenerateAccountToken(correctAccount)
+	if err != nil {
+		panic(err)
+	}
+
+	routeName := "createAccountUser"
+	route := getComposedRoute(routeName, correctAccount.ID)
+	w, err := runRequest("POST", routeName, route, payload, token)
 	c.Assert(err, IsNil)
-
-	clHeader(payload, req)
-
-	w := httptest.NewRecorder()
-	createAccountUser(w, req)
 
 	c.Assert(w.Code, Equals, http.StatusBadRequest)
 	c.Assert(w.Body.String(), Not(Equals), "")
 }
 
-// Test create acccountUser request with an invalid name
-func (s *ServerSuite) TestCreateAccountUser_Invalid(c *C) {
+// Test create acccountUser request with an wrong name
+func (s *ServerSuite) TestCreateAccountUser_WrongValue(c *C) {
 	correctAccount, err := utils.AddCorrectAccount()
 	payload := `{"user_name":""}`
 
-	req, err := http.NewRequest(
-		"POST",
-		getComposedRoute("createAccountUser", correctAccount.ID),
-		strings.NewReader(payload),
-	)
+	token, err := storageClient.GenerateAccountToken(correctAccount)
+	if err != nil {
+		panic(err)
+	}
+
+	routeName := "createAccountUser"
+	route := getComposedRoute(routeName, correctAccount.ID)
+	w, err := runRequest("POST", routeName, route, payload, token)
 	c.Assert(err, IsNil)
-
-	clHeader(payload, req)
-
-	w := httptest.NewRecorder()
-	createAccountUser(w, req)
 
 	c.Assert(w.Code, Equals, http.StatusBadRequest)
 	c.Assert(w.Body.String(), Not(Equals), "")
@@ -79,7 +73,7 @@ func (s *ServerSuite) TestCreateAccountUser_OK(c *C) {
 
 	routeName := "createAccountUser"
 	route := getComposedRoute(routeName, correctAccount.ID)
-	w, err := runTestFunc(routeName, route, payload, token)
+	w, err := runRequest("POST", routeName, route, payload, token)
 	c.Assert(err, IsNil)
 
 	c.Assert(w.Code, Equals, http.StatusCreated)
@@ -96,41 +90,41 @@ func (s *ServerSuite) TestCreateAccountUser_OK(c *C) {
 	c.Assert(accountUser.Enabled, Equals, true)
 }
 
-// // Test a correct updateAccountUser request
-// func (s *ServerSuite) TestUpdateAccountUser_OK(c *C) {
-// 	correctAccountUser, err := utils.AddCorrectAccountUser()
-// 	password := "changed"
-// 	payload := fmt.Sprintf(`{"user_name":"%s", "password":"%s","enabled":true}`, correctAccountUser.Username, password)
-// 	req, err := http.NewRequest(
-// 		"PUT",
-// 		getComposedRoute("updateAccountUser", correctAccountUser.AccountID, correctAccountUser.ID),
-// 		strings.NewReader(payload),
-// 	)
-// 	c.Assert(err, IsNil)
+// Test a correct updateAccountUser request
+func (s *ServerSuite) TestUpdateAccountUser_OK(c *C) {
+	correctAccount, err := utils.AddCorrectAccount()
+	correctAccountUser, err := utils.AddCorrectAccountUser(correctAccount.ID)
+	payload := fmt.Sprintf(
+		`{"user_name":"%s", "password":"changed", "first_name": "%s", "last_name": "%s", "email": "%s", "enabled": true}`,
+		correctAccountUser.Username,
+		correctAccountUser.FirstName,
+		correctAccountUser.LastName,
+		correctAccountUser.Email,
+	)
 
-// 	clHeader(payload, req)
+	token, err := storageClient.GenerateAccountToken(correctAccount)
+	if err != nil {
+		panic(err)
+	}
 
-// 	w := httptest.NewRecorder()
-// 	m := mux.NewRouter()
-// 	route := getRoute("updateAccountUser")
+	routeName := "updateAccountUser"
+	route := getComposedRoute(routeName, correctAccountUser.AccountID, correctAccountUser.ID)
+	w, err := runRequest("PUT", routeName, route, payload, token)
+	c.Assert(err, IsNil)
 
-// 	m.HandleFunc(route.routePattern(apiVersion), customHandler("updateAccountUser", route, nil, logChan)).Methods(route.method)
-// 	m.ServeHTTP(w, req)
+	c.Assert(w.Code, Equals, http.StatusOK)
+	response := w.Body.String()
+	c.Assert(response, Not(Equals), "")
 
-// 	c.Assert(w.Code, Equals, http.StatusOK)
-// 	response := w.Body.String()
-// 	c.Assert(response, Not(Equals), "")
-
-// 	accountUser := &entity.AccountUser{}
-// 	err = json.Unmarshal([]byte(response), accountUser)
-// 	c.Assert(err, IsNil)
-// 	if accountUser.ID < 1 {
-// 		c.Fail()
-// 	}
-// 	c.Assert(accountUser.Username, Equals, correctAccountUser.Username)
-// 	c.Assert(accountUser.Password, Equals, password)
-// 	c.Assert(accountUser.Enabled, Equals, true)
-// }
+	accountUser := &entity.AccountUser{}
+	err = json.Unmarshal([]byte(response), accountUser)
+	c.Assert(err, IsNil)
+	if accountUser.ID < 1 {
+		c.Fail()
+	}
+	c.Assert(accountUser.Username, Equals, correctAccountUser.Username)
+	c.Assert(accountUser.Enabled, Equals, true)
+}
 
 // // Test a correct updateAccountUser request with a wrong id
 // func (s *ServerSuite) TestUpdateAccountUser_WrongID(c *C) {
