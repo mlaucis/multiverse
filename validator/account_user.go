@@ -14,7 +14,7 @@ const (
 	accountUserNameMin = 2
 	accountUserNameMax = 40
 
-	accountUserPasswordMin = 8
+	accountUserPasswordMin = 4
 	accountUserPasswordMax = 60
 )
 

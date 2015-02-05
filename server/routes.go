@@ -71,7 +71,7 @@ var routes = map[string]map[string]*route{
 		"getAccountUser": &route{
 			"GET",
 			"/account/{accountId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}",
-			"/account/%d/user/%s",
+			"/account/%d/user/%d",
 			[]http.HandlerFunc{
 				getAccountUser,
 			},
@@ -87,7 +87,7 @@ var routes = map[string]map[string]*route{
 		"deleteAccountUser": &route{
 			"DELETE",
 			"/account/{accountId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}",
-			"/account/%d/user/%s",
+			"/account/%d/user/%d",
 			[]http.HandlerFunc{
 				deleteAccountUser,
 			},
@@ -153,7 +153,7 @@ var routes = map[string]map[string]*route{
 		"getUser": &route{
 			"GET",
 			"/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}",
-			"/application/%d/user/%s",
+			"/application/%d/user/%d",
 			[]http.HandlerFunc{
 				getUser,
 			},
@@ -161,7 +161,7 @@ var routes = map[string]map[string]*route{
 		"updateUser": &route{
 			"PUT",
 			"/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}",
-			"/application/%d/user/%s",
+			"/application/%d/user/%d",
 			[]http.HandlerFunc{
 				updateUser,
 			},
@@ -169,7 +169,7 @@ var routes = map[string]map[string]*route{
 		"deleteUser": &route{
 			"DELETE",
 			"/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}",
-			"/application/%d/user/%s",
+			"/application/%d/user/%d",
 			[]http.HandlerFunc{
 				deleteUser,
 			},
