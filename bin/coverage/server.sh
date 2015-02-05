@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd ${GOPATH}/src/github.com/tapglue/backend/core
+cd ${GOPATH}/src/github.com/tapglue/backend/server
 gocov test -race > coverage.json
 gocov-html coverage.json > coverage.html
 
@@ -14,5 +14,5 @@ case "$(uname -s)" in
      ;;
 esac
 
-sleep 1
+sleep 3
 rm coverage.json coverage.html
