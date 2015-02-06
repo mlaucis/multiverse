@@ -9,7 +9,6 @@ import (
 	"net/http"
 
 	"github.com/tapglue/backend/core/entity"
-	"github.com/tapglue/backend/utils"
 
 	"fmt"
 
@@ -44,7 +43,7 @@ func (s *ServerSuite) TestCreateAccount_WrongValue(c *C) {
 
 // Test a correct createAccount request
 func (s *ServerSuite) TestCreateAccount_OK(c *C) {
-	correctAccount := utils.CorrectAccount()
+	correctAccount := CorrectAccount()
 	payload := fmt.Sprintf(`{"name":"%s", "description":"%s"}`, correctAccount.Name, correctAccount.Description)
 
 	routeName := "createAccount"
@@ -69,7 +68,7 @@ func (s *ServerSuite) TestCreateAccount_OK(c *C) {
 
 // Test a correct updateAccount request
 func (s *ServerSuite) TestUpdateAccount_OK(c *C) {
-	correctAccount, err := utils.AddCorrectAccount()
+	correctAccount, err := AddCorrectAccount(true)
 	description := "changed"
 	payload := fmt.Sprintf(`{"name":"%s", "description":"%s","enabled":true}`, correctAccount.Name, description)
 
@@ -96,7 +95,7 @@ func (s *ServerSuite) TestUpdateAccount_OK(c *C) {
 
 // Test a correct updateAccount request with a wrong id
 func (s *ServerSuite) TestUpdateAccount_WrongID(c *C) {
-	correctAccount, err := utils.AddCorrectAccount()
+	correctAccount, err := AddCorrectAccount(true)
 	description := "changed"
 	payload := fmt.Sprintf(`{"name":"%s", "description":"%s","enabled":true}`, correctAccount.Name, description)
 
@@ -110,7 +109,7 @@ func (s *ServerSuite) TestUpdateAccount_WrongID(c *C) {
 
 // Test a correct updateAccount request with an invalid description
 func (s *ServerSuite) TestUpdateAccount_Invalid(c *C) {
-	correctAccount, err := utils.AddCorrectAccount()
+	correctAccount, err := AddCorrectAccount(true)
 	payload := fmt.Sprintf(`{"name":"%s", "description":"","enabled":true}`, correctAccount.Name)
 
 	routeName := "updateAccount"
@@ -124,7 +123,7 @@ func (s *ServerSuite) TestUpdateAccount_Invalid(c *C) {
 
 // Test a correct deleteAccount request
 func (s *ServerSuite) TestDeleteAccount_OK(c *C) {
-	account, err := utils.AddCorrectAccount()
+	account, err := AddCorrectAccount(true)
 	c.Assert(err, IsNil)
 
 	routeName := "deleteAccount"
@@ -137,7 +136,7 @@ func (s *ServerSuite) TestDeleteAccount_OK(c *C) {
 
 // Test a correct deleteAccount request with a wrong id
 func (s *ServerSuite) TestDeleteAccount_WrongID(c *C) {
-	account, err := utils.AddCorrectAccount()
+	account, err := AddCorrectAccount(true)
 	c.Assert(err, IsNil)
 
 	routeName := "deleteAccount"
@@ -150,7 +149,7 @@ func (s *ServerSuite) TestDeleteAccount_WrongID(c *C) {
 
 // Test a correct getAccount request
 func (s *ServerSuite) TestGetAccount_OK(c *C) {
-	correctAccount, err := utils.AddCorrectAccount()
+	correctAccount, err := AddCorrectAccount(true)
 	c.Assert(err, IsNil)
 
 	routeName := "getAccount"
@@ -173,7 +172,7 @@ func (s *ServerSuite) TestGetAccount_OK(c *C) {
 
 // Test a correct getAccount request with a wrong id
 func (s *ServerSuite) TestGetAccount_WrongID(c *C) {
-	correctAccount, err := utils.AddCorrectAccount()
+	correctAccount, err := AddCorrectAccount(true)
 	c.Assert(err, IsNil)
 
 	routeName := "getAccount"

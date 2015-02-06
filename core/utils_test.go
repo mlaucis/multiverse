@@ -2,17 +2,15 @@
  * @author Onur Akpolat <onurakpolat@gmail.com>
  */
 
-// Package utils holds supportive functions for tests etc.
-package utils
+package core
 
 import (
-	"github.com/tapglue/backend/core"
 	"github.com/tapglue/backend/core/entity"
 )
 
 // AddCorrectAccount creates a correct account
-func AddCorrectAccount() (acc *entity.Account, err error) {
-	account, err := core.WriteAccount(correctAccount, true)
+func AddCorrectAccount(fetchAccount bool) (acc *entity.Account, err error) {
+	account, err := WriteAccount(correctAccount, fetchAccount)
 	if err != nil {
 		return nil, err
 	}
@@ -21,10 +19,10 @@ func AddCorrectAccount() (acc *entity.Account, err error) {
 }
 
 // AddCorrectAccountUser creates a correct account user
-func AddCorrectAccountUser(accountID int64) (acc *entity.AccountUser, err error) {
+func AddCorrectAccountUser(accountID int64, fetchUser bool) (acc *entity.AccountUser, err error) {
 	accountUserWithAccountID := correctAccountUser
 	accountUserWithAccountID.AccountID = accountID
-	accountUser, err := core.WriteAccountUser(accountUserWithAccountID, true)
+	accountUser, err := WriteAccountUser(accountUserWithAccountID, fetchUser)
 	if err != nil {
 		return nil, err
 	}

@@ -10,13 +10,12 @@ import (
 	"net/http"
 
 	"github.com/tapglue/backend/core/entity"
-	"github.com/tapglue/backend/utils"
 	. "gopkg.in/check.v1"
 )
 
 // Test create acccountUser request with a wrong key
 func (s *ServerSuite) TestCreateAccountUser_WrongKey(c *C) {
-	correctAccount, err := utils.AddCorrectAccount()
+	correctAccount, err := AddCorrectAccount(true)
 	payload := "{usrnamae:''}"
 
 	token, err := storageClient.GenerateAccountToken(correctAccount)
@@ -33,7 +32,7 @@ func (s *ServerSuite) TestCreateAccountUser_WrongKey(c *C) {
 
 // Test create acccountUser request with an wrong name
 func (s *ServerSuite) TestCreateAccountUser_WrongValue(c *C) {
-	correctAccount, err := utils.AddCorrectAccount()
+	correctAccount, err := AddCorrectAccount(true)
 	payload := `{"user_name":""}`
 
 	token, err := storageClient.GenerateAccountToken(correctAccount)
@@ -50,8 +49,8 @@ func (s *ServerSuite) TestCreateAccountUser_WrongValue(c *C) {
 
 // Test a correct createAccountUser request
 func (s *ServerSuite) TestCreateAccountUser_OK(c *C) {
-	correctAccount, err := utils.AddCorrectAccount()
-	correctAccountUser := utils.CorrectAccountUser()
+	correctAccount, err := AddCorrectAccount(true)
+	correctAccountUser := CorrectAccountUser()
 
 	payload := fmt.Sprintf(
 		`{"user_name":"%s", "password":"%s", "first_name": "%s", "last_name": "%s", "email": "%s"}`,
@@ -86,8 +85,8 @@ func (s *ServerSuite) TestCreateAccountUser_OK(c *C) {
 
 // Test a correct updateAccountUser request
 func (s *ServerSuite) TestUpdateAccountUser_OK(c *C) {
-	correctAccount, err := utils.AddCorrectAccount()
-	correctAccountUser, err := utils.AddCorrectAccountUser(correctAccount.ID)
+	correctAccount, err := AddCorrectAccount(true)
+	correctAccountUser, err := AddCorrectAccountUser(correctAccount.ID, true)
 	payload := fmt.Sprintf(
 		`{"user_name":"%s", "password":"changed", "first_name": "%s", "last_name": "%s", "email": "%s", "enabled": true}`,
 		correctAccountUser.Username,
@@ -120,8 +119,8 @@ func (s *ServerSuite) TestUpdateAccountUser_OK(c *C) {
 
 // Test a correct updateAccountUser request with a wrong id
 func (s *ServerSuite) TestUpdateAccountUser_WrongID(c *C) {
-	correctAccount, err := utils.AddCorrectAccount()
-	correctAccountUser, err := utils.AddCorrectAccountUser(correctAccount.ID)
+	correctAccount, err := AddCorrectAccount(true)
+	correctAccountUser, err := AddCorrectAccountUser(correctAccount.ID, true)
 	payload := fmt.Sprintf(
 		`{"user_name":"%s", "password":"changed", "first_name": "%s", "last_name": "%s", "email": "%s", "enabled": true}`,
 		correctAccountUser.Username,
@@ -143,8 +142,8 @@ func (s *ServerSuite) TestUpdateAccountUser_WrongID(c *C) {
 
 // Test a correct updateAccountUser request with an invalid description
 func (s *ServerSuite) TestUpdateAccountUser_WrongValue(c *C) {
-	correctAccount, err := utils.AddCorrectAccount()
-	correctAccountUser, err := utils.AddCorrectAccountUser(correctAccount.ID)
+	correctAccount, err := AddCorrectAccount(true)
+	correctAccountUser, err := AddCorrectAccountUser(correctAccount.ID, true)
 	payload := fmt.Sprintf(
 		`{"user_name":"%s", "password":"", "first_name": "%s", "last_name": "%s", "email": "%s", "enabled": true}`,
 		correctAccountUser.Username,
@@ -169,8 +168,8 @@ func (s *ServerSuite) TestUpdateAccountUser_WrongValue(c *C) {
 
 // Test a correct updateAccountUser request with a wrong token
 func (s *ServerSuite) TestUpdateAccountUser_WrongToken(c *C) {
-	correctAccount, err := utils.AddCorrectAccount()
-	correctAccountUser, err := utils.AddCorrectAccountUser(correctAccount.ID)
+	correctAccount, err := AddCorrectAccount(true)
+	correctAccountUser, err := AddCorrectAccountUser(correctAccount.ID, true)
 	payload := fmt.Sprintf(
 		`{"user_name":"%s", "password":"", "first_name": "%s", "last_name": "%s", "email": "%s", "enabled": true}`,
 		correctAccountUser.Username,
@@ -189,8 +188,8 @@ func (s *ServerSuite) TestUpdateAccountUser_WrongToken(c *C) {
 
 // Test a correct deleteAccountUser request
 func (s *ServerSuite) TestDeleteAccountUser_OK(c *C) {
-	correctAccount, err := utils.AddCorrectAccount()
-	correctAccountUser, err := utils.AddCorrectAccountUser(correctAccount.ID)
+	correctAccount, err := AddCorrectAccount(true)
+	correctAccountUser, err := AddCorrectAccountUser(correctAccount.ID, true)
 	c.Assert(err, IsNil)
 
 	token, err := storageClient.GenerateAccountToken(correctAccount)
@@ -206,8 +205,8 @@ func (s *ServerSuite) TestDeleteAccountUser_OK(c *C) {
 
 // Test a correct deleteAccountUser request with a wrong id
 func (s *ServerSuite) TestDeleteAccountUser_WrongID(c *C) {
-	correctAccount, err := utils.AddCorrectAccount()
-	correctAccountUser, err := utils.AddCorrectAccountUser(correctAccount.ID)
+	correctAccount, err := AddCorrectAccount(true)
+	correctAccountUser, err := AddCorrectAccountUser(correctAccount.ID, true)
 	c.Assert(err, IsNil)
 
 	token, err := storageClient.GenerateAccountToken(correctAccount)
@@ -224,8 +223,8 @@ func (s *ServerSuite) TestDeleteAccountUser_WrongID(c *C) {
 
 // Test a correct deleteAccountUser request with a wrong token
 func (s *ServerSuite) TestDeleteAccountUser_WrongToken(c *C) {
-	correctAccount, err := utils.AddCorrectAccount()
-	correctAccountUser, err := utils.AddCorrectAccountUser(correctAccount.ID)
+	correctAccount, err := AddCorrectAccount(true)
+	correctAccountUser, err := AddCorrectAccountUser(correctAccount.ID, true)
 	c.Assert(err, IsNil)
 
 	routeName := "deleteAccountUser"
@@ -237,8 +236,8 @@ func (s *ServerSuite) TestDeleteAccountUser_WrongToken(c *C) {
 
 // Test a correct getAccountUser request
 func (s *ServerSuite) TestGetAccountUser_OK(c *C) {
-	correctAccount, err := utils.AddCorrectAccount()
-	correctAccountUser, err := utils.AddCorrectAccountUser(correctAccount.ID)
+	correctAccount, err := AddCorrectAccount(true)
+	correctAccountUser, err := AddCorrectAccountUser(correctAccount.ID, true)
 	c.Assert(err, IsNil)
 
 	token, err := storageClient.GenerateAccountToken(correctAccount)
@@ -262,8 +261,8 @@ func (s *ServerSuite) TestGetAccountUser_OK(c *C) {
 
 // Test a correct getAccountUser request with a wrong id
 func (s *ServerSuite) TestGetAccountUser_WrongID(c *C) {
-	correctAccount, err := utils.AddCorrectAccount()
-	correctAccountUser, err := utils.AddCorrectAccountUser(correctAccount.ID)
+	correctAccount, err := AddCorrectAccount(true)
+	correctAccountUser, err := AddCorrectAccountUser(correctAccount.ID, true)
 	c.Assert(err, IsNil)
 
 	token, err := storageClient.GenerateAccountToken(correctAccount)
@@ -278,8 +277,8 @@ func (s *ServerSuite) TestGetAccountUser_WrongID(c *C) {
 
 // Test a correct getAccountUser request with a wrong token
 func (s *ServerSuite) TestGetAccountUser_WrongToken(c *C) {
-	correctAccount, err := utils.AddCorrectAccount()
-	correctAccountUser, err := utils.AddCorrectAccountUser(correctAccount.ID)
+	correctAccount, err := AddCorrectAccount(true)
+	correctAccountUser, err := AddCorrectAccountUser(correctAccount.ID, true)
 	c.Assert(err, IsNil)
 
 	routeName := "getAccountUser"

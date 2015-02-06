@@ -2,7 +2,7 @@
  * @author Onur Akpolat <onurakpolat@gmail.com>
  */
 
-package utils
+package server
 
 import "github.com/tapglue/backend/core/entity"
 
