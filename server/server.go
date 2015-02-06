@@ -18,8 +18,18 @@ import (
 	"strings"
 	"time"
 
+	"github.com/tapglue/backend/validator"
+
 	"github.com/gorilla/mux"
 	"github.com/yvasiyarov/gorelic"
+)
+
+const (
+	userAgentNotSet           = "User-Agent header must be set"
+	contentLengthNotSet       = "Content-Length header must be set"
+	contentLengthNotDecodable = "Content-Length header value could not be decoded. %q"
+	contentLengthSizeNotMatch = "Content-Length header value is different fromt the received value"
+	requestBodyCannotBeEmpty  = "request body cannot be empty"
 )
 
 var (
@@ -31,69 +41,96 @@ func getReqAuthToken(r *http.Request) string {
 }
 
 // validateGetCommon runs a series of predefinied, common, tests for GET requests
-func validateGetCommon(w http.ResponseWriter, r *http.Request) error {
+func validateGetCommon(w http.ResponseWriter, r *http.Request) {
 	if r.Header.Get("User-Agent") == "" {
-		return fmt.Errorf("User-Agent header must be set")
+		errorHappened(userAgentNotSet, http.StatusBadRequest, r, w)
+		return
 	}
-
-	return nil
 }
 
 // validatePutCommon runs a series of predefinied, common, tests for PUT requests
-func validatePutCommon(w http.ResponseWriter, r *http.Request) error {
+func validatePutCommon(w http.ResponseWriter, r *http.Request) {
 	if r.Header.Get("User-Agent") == "" {
-		return fmt.Errorf("User-Agent header must be set")
+		errorHappened(userAgentNotSet, http.StatusBadRequest, r, w)
+		return
 	}
 
 	if r.Header.Get("Content-Length") == "" {
-		return fmt.Errorf("Content-Length header must be set")
+		errorHappened(contentLengthNotSet, http.StatusBadRequest, r, w)
+		return
 	}
 
 	reqCL, err := strconv.ParseInt(r.Header.Get("Content-Length"), 10, 64)
 	if err != nil {
-		return fmt.Errorf("Content-Length header value could not be decoded. %q", err)
+		errorHappened(fmt.Sprintf(contentLengthNotDecodable, err), http.StatusBadRequest, r, w)
+		return
 	}
 
 	if reqCL != r.ContentLength {
-		fmt.Errorf("Content-Length header value is different fromt the received value")
+		errorHappened(contentLengthSizeNotMatch, http.StatusBadRequest, r, w)
+		return
 	}
 
-	return nil
+	if r.Body == nil {
+		errorHappened(requestBodyCannotBeEmpty, http.StatusBadRequest, r, w)
+		return
+	}
 }
 
 // validateDeleteCommon runs a series of predefinied, common, tests for DELETE requests
-func validateDeleteCommon(w http.ResponseWriter, r *http.Request) error {
+func validateDeleteCommon(w http.ResponseWriter, r *http.Request) {
 	if r.Header.Get("User-Agent") == "" {
-		return fmt.Errorf("User-Agent header must be set")
+		errorHappened(userAgentNotSet, http.StatusBadRequest, r, w)
+		return
 	}
-
-	return nil
 }
 
 // validatePostCommon runs a series of predefined, common, tests for the POST requests
-func validatePostCommon(w http.ResponseWriter, r *http.Request) error {
+func validatePostCommon(w http.ResponseWriter, r *http.Request) {
 	if r.Header.Get("User-Agent") == "" {
-		return fmt.Errorf("User-Agent header must be set")
-	}
-
-	if r.ContentLength < 1 {
-		return fmt.Errorf("invalid Content-Length size")
+		errorHappened(userAgentNotSet, http.StatusBadRequest, r, w)
+		return
 	}
 
 	if r.Header.Get("Content-Length") == "" {
-		return fmt.Errorf("Content-Length header must be set")
+		errorHappened(contentLengthNotSet, http.StatusBadRequest, r, w)
+		return
 	}
 
 	reqCL, err := strconv.ParseInt(r.Header.Get("Content-Length"), 10, 64)
 	if err != nil {
-		return fmt.Errorf("Content-Length header value could not be decoded. %q", err)
+		errorHappened(fmt.Sprintf(contentLengthNotDecodable, err), http.StatusBadRequest, r, w)
+		return
 	}
 
 	if reqCL != r.ContentLength {
-		fmt.Errorf("Content-Length header value is different fromt the received value")
+		errorHappened(contentLengthSizeNotMatch, http.StatusBadRequest, r, w)
+		return
 	}
 
-	return nil
+	if r.Body == nil {
+		errorHappened(requestBodyCannotBeEmpty, http.StatusBadRequest, r, w)
+		return
+	}
+}
+
+// validateAccountRequestToken validates that the request contains a valid request token
+func validateAccountRequestToken(w http.ResponseWriter, r *http.Request) {
+	var (
+		accountID int64
+		err       error
+	)
+	vars := mux.Vars(r)
+
+	if accountID, err = strconv.ParseInt(vars["accountId"], 10, 64); err != nil {
+		errorHappened("invalid accountId number", http.StatusBadRequest, r, w)
+		return
+	}
+
+	if !validator.ValidateAccountRequestToken(accountID, getReqAuthToken(r)) {
+		errorHappened("request is not properly signed", http.StatusBadRequest, r, w)
+		return
+	}
 }
 
 // writeCacheHeaders will add the corresponding cache headers based on the time supplied (in seconds)
@@ -145,22 +182,21 @@ func writeResponse(response interface{}, code int, cacheTime uint, w http.Respon
 }
 
 // errorHappened handles the error message
-func errorHappened(err error, code int, r *http.Request, w http.ResponseWriter) {
+func errorHappened(message string, code int, r *http.Request, w http.ResponseWriter) {
 	writeCacheHeaders(0, w)
 	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	// Write response
 	if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
 		// No gzip support
 		w.WriteHeader(code)
-		fmt.Fprintf(w, "%d %s", code, err)
+		fmt.Fprintf(w, "%d %s", code, message)
 	} else {
 		w.Header().Set("Content-Encoding", "gzip")
 		w.WriteHeader(code)
 		gz := gzip.NewWriter(w)
-		fmt.Fprintf(gz, "%d %s", code, err)
+		fmt.Fprintf(gz, "%d %s", code, message)
 		gz.Close()
 	}
-
 	_, filename, line, ok := runtime.Caller(1)
 	if !ok {
 		return
@@ -170,7 +206,7 @@ func errorHappened(err error, code int, r *http.Request, w http.ResponseWriter) 
 
 	log.Printf(
 		"Error %q in %s/%s:%d while %s\t%s\t%+v\n",
-		err,
+		message,
 		filepath.Base(filepath.Dir(filename)),
 		filepath.Base(filename),
 		line,
@@ -184,11 +220,6 @@ func errorHappened(err error, code int, r *http.Request, w http.ResponseWriter) 
 // Request: GET /
 // Test with: `curl -i localhost/`
 func home(w http.ResponseWriter, r *http.Request) {
-	if err := validateGetCommon(w, r); err != nil {
-		errorHappened(err, http.StatusBadRequest, r, w)
-		return
-	}
-
 	writeCacheHeaders(10*24*3600, w)
 	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	w.Write([]byte(`these aren't the droids you're looking for`))
@@ -198,11 +229,6 @@ func home(w http.ResponseWriter, r *http.Request) {
 // Request: GET /humans.txt
 // Test with: curl -i localhost/humans.txt
 func humans(w http.ResponseWriter, r *http.Request) {
-	if err := validateGetCommon(w, r); err != nil {
-		errorHappened(err, http.StatusBadRequest, r, w)
-		return
-	}
-
 	writeCacheHeaders(10*24*3600, w)
 	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	w.Write([]byte(`/* TEAM */
@@ -224,11 +250,6 @@ Software: Go`))
 // Request: GET /robots.txt
 // Test with: curl -i localhost/robots.txt
 func robots(w http.ResponseWriter, r *http.Request) {
-	if err := validateGetCommon(w, r); err != nil {
-		errorHappened(err, http.StatusBadRequest, r, w)
-		return
-	}
-
 	writeCacheHeaders(10*24*3600, w)
 	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	w.Write([]byte(`User-agent: *
@@ -240,6 +261,28 @@ func signRequest(token string, req *http.Request) {
 }
 
 func customHandler(routeName string, r *route, newRelicAgent *gorelic.Agent, logChan chan *LogMsg) http.HandlerFunc {
+	var extraHandlers []http.HandlerFunc
+	switch r.method {
+	case "DELETE":
+		{
+			extraHandlers = append(extraHandlers, validateDeleteCommon)
+		}
+	case "GET":
+		{
+			extraHandlers = append(extraHandlers, validateGetCommon)
+		}
+	case "PUT":
+		{
+			extraHandlers = append(extraHandlers, validatePutCommon)
+		}
+	case "POST":
+		{
+			extraHandlers = append(extraHandlers, validatePostCommon)
+		}
+	}
+
+	r.handlers = append(extraHandlers, r.handlers...)
+
 	handlerFunc := func(resp http.ResponseWriter, req *http.Request) {
 		start := time.Now()
 

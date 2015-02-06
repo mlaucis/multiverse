@@ -21,11 +21,6 @@ import (
 // Request: GET /application/:AppID/event/:ID
 // Test with: curl -i localhost/0.1/application/:AppID/event/:ID
 func getEvent(w http.ResponseWriter, r *http.Request) {
-	if err := validateGetCommon(w, r); err != nil {
-		errorHappened(err, http.StatusBadRequest, r, w)
-		return
-	}
-
 	var (
 		event   = &entity.Event{}
 		appID   int64
@@ -36,22 +31,22 @@ func getEvent(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	if appID, err = strconv.ParseInt(vars["appId"], 10, 64); err != nil {
-		errorHappened(fmt.Errorf("appId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
+		errorHappened("appId is not set or the value is incorrect", http.StatusBadRequest, r, w)
 		return
 	}
 
 	if userID, err = strconv.ParseInt(vars["userId"], 10, 64); err != nil {
-		errorHappened(fmt.Errorf("userId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
+		errorHappened("userId is not set or the value is incorrect", http.StatusBadRequest, r, w)
 		return
 	}
 
 	if eventID, err = strconv.ParseInt(vars["eventId"], 10, 64); err != nil {
-		errorHappened(fmt.Errorf("eventId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
+		errorHappened("eventId is not set or the value is incorrect", http.StatusBadRequest, r, w)
 		return
 	}
 
 	if event, err = core.ReadEvent(appID, userID, eventID); err != nil {
-		errorHappened(err, http.StatusInternalServerError, r, w)
+		errorHappened(fmt.Sprintf("%s", err), http.StatusInternalServerError, r, w)
 		return
 	}
 
@@ -62,11 +57,6 @@ func getEvent(w http.ResponseWriter, r *http.Request) {
 // Request: PUT /application/:AppID/user/:UserID/event/:EventID
 // Test with: curl -i -H "Content-Type: application/json" -d '{"type": "like", "item_id": "item1", "item_name": "item-name", "item_url": "app://url", "thumbnail_url": "gravatar", "custom": "{}", "nth": 1}' -X PUT localhost/0.1/application/:AppID/user/:UserID/event/:EventID
 func updateEvent(w http.ResponseWriter, r *http.Request) {
-	if err := validatePutCommon(w, r); err != nil {
-		errorHappened(err, http.StatusBadRequest, r, w)
-		return
-	}
-
 	var (
 		event   = &entity.Event{}
 		appID   int64
@@ -77,23 +67,23 @@ func updateEvent(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	if appID, err = strconv.ParseInt(vars["appId"], 10, 64); err != nil {
-		errorHappened(fmt.Errorf("appId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
+		errorHappened("appId is not set or the value is incorrect", http.StatusBadRequest, r, w)
 		return
 	}
 
 	if userID, err = strconv.ParseInt(vars["userId"], 10, 64); err != nil {
-		errorHappened(fmt.Errorf("userId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
+		errorHappened("userId is not set or the value is incorrect", http.StatusBadRequest, r, w)
 		return
 	}
 
 	if eventID, err = strconv.ParseInt(vars["eventId"], 10, 64); err != nil {
-		errorHappened(fmt.Errorf("eventId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
+		errorHappened("eventId is not set or the value is incorrect", http.StatusBadRequest, r, w)
 		return
 	}
 
 	decoder := json.NewDecoder(r.Body)
 	if err = decoder.Decode(event); err != nil {
-		errorHappened(err, http.StatusBadRequest, r, w)
+		errorHappened(fmt.Sprintf("%s", err), http.StatusBadRequest, r, w)
 		return
 	}
 
@@ -108,12 +98,12 @@ func updateEvent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err = validator.UpdateEvent(event); err != nil {
-		errorHappened(err, http.StatusBadRequest, r, w)
+		errorHappened(fmt.Sprintf("%s", err), http.StatusBadRequest, r, w)
 		return
 	}
 
 	if event, err = core.UpdateEvent(event, true); err != nil {
-		errorHappened(err, http.StatusInternalServerError, r, w)
+		errorHappened(fmt.Sprintf("%s", err), http.StatusInternalServerError, r, w)
 		return
 	}
 
@@ -124,11 +114,6 @@ func updateEvent(w http.ResponseWriter, r *http.Request) {
 // Request: DELETE /application/:AppID/user/:UserID/event/:EventID
 // Test with: curl -i -X DELETE localhost/0.1/application/:AppID/user/:UserID/event/:EventID
 func deleteEvent(w http.ResponseWriter, r *http.Request) {
-	if err := validateDeleteCommon(w, r); err != nil {
-		errorHappened(err, http.StatusBadRequest, r, w)
-		return
-	}
-
 	var (
 		appID   int64
 		userID  int64
@@ -139,22 +124,22 @@ func deleteEvent(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	if appID, err = strconv.ParseInt(vars["appId"], 10, 64); err != nil {
-		errorHappened(fmt.Errorf("appId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
+		errorHappened("appId is not set or the value is incorrect", http.StatusBadRequest, r, w)
 		return
 	}
 
 	if userID, err = strconv.ParseInt(vars["userId"], 10, 64); err != nil {
-		errorHappened(fmt.Errorf("userId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
+		errorHappened("userId is not set or the value is incorrect", http.StatusBadRequest, r, w)
 		return
 	}
 
 	if eventID, err = strconv.ParseInt(vars["eventId"], 10, 64); err != nil {
-		errorHappened(fmt.Errorf("eventId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
+		errorHappened("eventId is not set or the value is incorrect", http.StatusBadRequest, r, w)
 		return
 	}
 
 	if err = core.DeleteEvent(appID, userID, eventID); err != nil {
-		errorHappened(err, http.StatusInternalServerError, r, w)
+		errorHappened(fmt.Sprintf("%s", err), http.StatusInternalServerError, r, w)
 		return
 	}
 
@@ -165,11 +150,6 @@ func deleteEvent(w http.ResponseWriter, r *http.Request) {
 // Request: GET /application/:AppID/user/:UserID/events
 // Test with: curl -i localhost/0.1/application/:AppID/user/:UserID/events
 func getEventList(w http.ResponseWriter, r *http.Request) {
-	if err := validateGetCommon(w, r); err != nil {
-		errorHappened(err, http.StatusBadRequest, r, w)
-		return
-	}
-
 	var (
 		events []*entity.Event
 		user   *entity.User
@@ -180,22 +160,22 @@ func getEventList(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	if appID, err = strconv.ParseInt(vars["appId"], 10, 64); err != nil {
-		errorHappened(fmt.Errorf("appId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
+		errorHappened("appId is not set or the value is incorrect", http.StatusBadRequest, r, w)
 		return
 	}
 
 	if userID, err = strconv.ParseInt(vars["userId"], 10, 64); err != nil {
-		errorHappened(fmt.Errorf("userId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
+		errorHappened("userId is not set or the value is incorrect", http.StatusBadRequest, r, w)
 		return
 	}
 
 	if user, err = core.ReadUser(appID, userID); err != nil {
-		errorHappened(err, http.StatusInternalServerError, r, w)
+		errorHappened(fmt.Sprintf("%s", err), http.StatusInternalServerError, r, w)
 		return
 	}
 
 	if events, err = core.ReadEventList(appID, userID); err != nil {
-		errorHappened(err, http.StatusBadRequest, r, w)
+		errorHappened(fmt.Sprintf("%s", err), http.StatusBadRequest, r, w)
 		return
 	}
 
@@ -216,11 +196,6 @@ func getEventList(w http.ResponseWriter, r *http.Request) {
 // Request: GET /application/:AppID/user/:UserID/connections/events
 // Test with: curl -i localhost/0.1/application/:AppID/user/:UserID/connections/events
 func getConnectionEventList(w http.ResponseWriter, r *http.Request) {
-	if err := validateGetCommon(w, r); err != nil {
-		errorHappened(err, http.StatusBadRequest, r, w)
-		return
-	}
-
 	var (
 		events = []*entity.Event{}
 		appID  int64
@@ -231,17 +206,17 @@ func getConnectionEventList(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	if appID, err = strconv.ParseInt(vars["appId"], 10, 64); err != nil {
-		errorHappened(fmt.Errorf("appId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
+		errorHappened("appId is not set or the value is incorrect", http.StatusBadRequest, r, w)
 		return
 	}
 
 	if userID, err = strconv.ParseInt(vars["userId"], 10, 64); err != nil {
-		errorHappened(fmt.Errorf("userId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
+		errorHappened("userId is not set or the value is incorrect", http.StatusBadRequest, r, w)
 		return
 	}
 
 	if events, err = core.ReadConnectionEventList(appID, userID); err != nil {
-		errorHappened(err, http.StatusInternalServerError, r, w)
+		errorHappened(fmt.Sprintf("%s", err), http.StatusInternalServerError, r, w)
 		return
 	}
 
@@ -262,11 +237,6 @@ func getConnectionEventList(w http.ResponseWriter, r *http.Request) {
 // Request: POST /application/:AppID/user/:UserID/events
 // Test with: curl -i -H "Content-Type: application/json" -d '{"type": "like", "item_id": "item1", "item_name": "item-name", "item_url": "app://url", "thumbnail_url": "gravatar", "custom": "{}", "nth": 1}' localhost/0.1/application/:AppID/user/:UserID/events
 func createEvent(w http.ResponseWriter, r *http.Request) {
-	if err := validatePostCommon(w, r); err != nil {
-		errorHappened(err, http.StatusBadRequest, r, w)
-		return
-	}
-
 	var (
 		event  = &entity.Event{}
 		appID  int64
@@ -276,18 +246,18 @@ func createEvent(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	if appID, err = strconv.ParseInt(vars["appId"], 10, 64); err != nil {
-		errorHappened(fmt.Errorf("appId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
+		errorHappened("appId is not set or the value is incorrect", http.StatusBadRequest, r, w)
 		return
 	}
 
 	if userID, err = strconv.ParseInt(vars["userId"], 10, 64); err != nil {
-		errorHappened(fmt.Errorf("userId is not set or the value is incorrect"), http.StatusBadRequest, r, w)
+		errorHappened("userId is not set or the value is incorrect", http.StatusBadRequest, r, w)
 		return
 	}
 
 	decoder := json.NewDecoder(r.Body)
 	if err = decoder.Decode(event); err != nil {
-		errorHappened(err, http.StatusBadRequest, r, w)
+		errorHappened(fmt.Sprintf("%s", err), http.StatusBadRequest, r, w)
 		return
 	}
 
@@ -295,12 +265,12 @@ func createEvent(w http.ResponseWriter, r *http.Request) {
 	event.UserID = userID
 
 	if err = validator.CreateEvent(event); err != nil {
-		errorHappened(err, http.StatusBadRequest, r, w)
+		errorHappened(fmt.Sprintf("%s", err), http.StatusBadRequest, r, w)
 		return
 	}
 
 	if event, err = core.WriteEvent(event, true); err != nil {
-		errorHappened(err, http.StatusInternalServerError, r, w)
+		errorHappened(fmt.Sprintf("%s", err), http.StatusInternalServerError, r, w)
 		return
 	}
 

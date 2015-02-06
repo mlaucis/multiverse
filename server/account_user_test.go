@@ -20,9 +20,7 @@ func (s *ServerSuite) TestCreateAccountUser_WrongKey(c *C) {
 	payload := "{usrnamae:''}"
 
 	token, err := storageClient.GenerateAccountToken(correctAccount)
-	if err != nil {
-		panic(err)
-	}
+	c.Assert(err, IsNil)
 
 	routeName := "createAccountUser"
 	route := getComposedRoute(routeName, correctAccount.ID)
@@ -39,9 +37,7 @@ func (s *ServerSuite) TestCreateAccountUser_WrongValue(c *C) {
 	payload := `{"user_name":""}`
 
 	token, err := storageClient.GenerateAccountToken(correctAccount)
-	if err != nil {
-		panic(err)
-	}
+	c.Assert(err, IsNil)
 
 	routeName := "createAccountUser"
 	route := getComposedRoute(routeName, correctAccount.ID)
@@ -67,9 +63,7 @@ func (s *ServerSuite) TestCreateAccountUser_OK(c *C) {
 	)
 
 	token, err := storageClient.GenerateAccountToken(correctAccount)
-	if err != nil {
-		panic(err)
-	}
+	c.Assert(err, IsNil)
 
 	routeName := "createAccountUser"
 	route := getComposedRoute(routeName, correctAccount.ID)
@@ -103,9 +97,7 @@ func (s *ServerSuite) TestUpdateAccountUser_OK(c *C) {
 	)
 
 	token, err := storageClient.GenerateAccountToken(correctAccount)
-	if err != nil {
-		panic(err)
-	}
+	c.Assert(err, IsNil)
 
 	routeName := "updateAccountUser"
 	route := getComposedRoute(routeName, correctAccountUser.AccountID, correctAccountUser.ID)
@@ -139,9 +131,7 @@ func (s *ServerSuite) TestUpdateAccountUser_WrongID(c *C) {
 	)
 
 	token, err := storageClient.GenerateAccountToken(correctAccount)
-	if err != nil {
-		panic(err)
-	}
+	c.Assert(err, IsNil)
 
 	routeName := "updateAccountUser"
 	route := getComposedRoute(routeName, correctAccountUser.AccountID, correctAccountUser.ID+1)
@@ -204,9 +194,7 @@ func (s *ServerSuite) TestDeleteAccountUser_OK(c *C) {
 	c.Assert(err, IsNil)
 
 	token, err := storageClient.GenerateAccountToken(correctAccount)
-	if err != nil {
-		panic(err)
-	}
+	c.Assert(err, IsNil)
 
 	routeName := "deleteAccountUser"
 	route := getComposedRoute(routeName, correctAccountUser.AccountID, correctAccountUser.ID)
@@ -223,9 +211,7 @@ func (s *ServerSuite) TestDeleteAccountUser_WrongID(c *C) {
 	c.Assert(err, IsNil)
 
 	token, err := storageClient.GenerateAccountToken(correctAccount)
-	if err != nil {
-		panic(err)
-	}
+	c.Assert(err, IsNil)
 
 	routeName := "deleteAccountUser"
 	route := getComposedRoute(routeName, correctAccountUser.AccountID, correctAccountUser.ID+1)
@@ -256,9 +242,7 @@ func (s *ServerSuite) TestGetAccountUser_OK(c *C) {
 	c.Assert(err, IsNil)
 
 	token, err := storageClient.GenerateAccountToken(correctAccount)
-	if err != nil {
-		panic(err)
-	}
+	c.Assert(err, IsNil)
 
 	routeName := "getAccountUser"
 	route := getComposedRoute(routeName, correctAccountUser.AccountID, correctAccountUser.ID)
@@ -283,9 +267,7 @@ func (s *ServerSuite) TestGetAccountUser_WrongID(c *C) {
 	c.Assert(err, IsNil)
 
 	token, err := storageClient.GenerateAccountToken(correctAccount)
-	if err != nil {
-		panic(err)
-	}
+	c.Assert(err, IsNil)
 
 	routeName := "getAccountUser"
 	route := getComposedRoute(routeName, correctAccountUser.AccountID, correctAccountUser.ID+1)
