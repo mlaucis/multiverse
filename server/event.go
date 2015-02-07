@@ -180,11 +180,11 @@ func getEventList(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := &struct {
-		appID  int64 `json: "appId"`
+		AppID  int64 `json:"appId"`
 		User   *entity.User
 		Events []*entity.Event
 	}{
-		appID:  appID,
+		AppID:  appID,
 		User:   user,
 		Events: events,
 	}
