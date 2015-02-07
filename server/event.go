@@ -23,14 +23,20 @@ import (
 func getEvent(w http.ResponseWriter, r *http.Request) {
 	var (
 		event         = &entity.Event{}
-		applicationId int64
+		accountID     int64
+		applicationID int64
 		userID        int64
 		eventID       int64
 		err           error
 	)
 	vars := mux.Vars(r)
 
-	if applicationId, err = strconv.ParseInt(vars["applicationId"], 10, 64); err != nil {
+	if accountID, err = strconv.ParseInt(vars["accountId"], 10, 64); err != nil {
+		errorHappened("accountId is not set or the value is incorrect", http.StatusBadRequest, r, w)
+		return
+	}
+
+	if applicationID, err = strconv.ParseInt(vars["applicationId"], 10, 64); err != nil {
 		errorHappened("applicationId is not set or the value is incorrect", http.StatusBadRequest, r, w)
 		return
 	}
@@ -45,7 +51,7 @@ func getEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if event, err = core.ReadEvent(applicationId, userID, eventID); err != nil {
+	if event, err = core.ReadEvent(accountID, applicationID, userID, eventID); err != nil {
 		errorHappened(fmt.Sprintf("%s", err), http.StatusInternalServerError, r, w)
 		return
 	}
@@ -59,14 +65,20 @@ func getEvent(w http.ResponseWriter, r *http.Request) {
 func updateEvent(w http.ResponseWriter, r *http.Request) {
 	var (
 		event         = &entity.Event{}
-		applicationId int64
+		accountID     int64
+		applicationID int64
 		userID        int64
 		eventID       int64
 		err           error
 	)
 	vars := mux.Vars(r)
 
-	if applicationId, err = strconv.ParseInt(vars["applicationId"], 10, 64); err != nil {
+	if accountID, err = strconv.ParseInt(vars["accountId"], 10, 64); err != nil {
+		errorHappened("accountId is not set or the value is incorrect", http.StatusBadRequest, r, w)
+		return
+	}
+
+	if applicationID, err = strconv.ParseInt(vars["applicationId"], 10, 64); err != nil {
 		errorHappened("applicationId is not set or the value is incorrect", http.StatusBadRequest, r, w)
 		return
 	}
@@ -90,8 +102,11 @@ func updateEvent(w http.ResponseWriter, r *http.Request) {
 	if event.ID == 0 {
 		event.ID = eventID
 	}
+	if event.AccountID == 0 {
+		event.AccountID = accountID
+	}
 	if event.ApplicationID == 0 {
-		event.ApplicationID = applicationId
+		event.ApplicationID = applicationID
 	}
 	if event.UserID == 0 {
 		event.UserID = userID
@@ -115,7 +130,8 @@ func updateEvent(w http.ResponseWriter, r *http.Request) {
 // Test with: curl -i -X DELETE localhost/0.1/application/:applicationId/user/:UserID/event/:EventID
 func deleteEvent(w http.ResponseWriter, r *http.Request) {
 	var (
-		applicationId int64
+		accountID     int64
+		applicationID int64
 		userID        int64
 		eventID       int64
 		err           error
@@ -123,7 +139,12 @@ func deleteEvent(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 
-	if applicationId, err = strconv.ParseInt(vars["applicationId"], 10, 64); err != nil {
+	if accountID, err = strconv.ParseInt(vars["accountId"], 10, 64); err != nil {
+		errorHappened("accountId is not set or the value is incorrect", http.StatusBadRequest, r, w)
+		return
+	}
+
+	if applicationID, err = strconv.ParseInt(vars["applicationId"], 10, 64); err != nil {
 		errorHappened("applicationId is not set or the value is incorrect", http.StatusBadRequest, r, w)
 		return
 	}
@@ -138,7 +159,7 @@ func deleteEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = core.DeleteEvent(applicationId, userID, eventID); err != nil {
+	if err = core.DeleteEvent(accountID, applicationID, userID, eventID); err != nil {
 		errorHappened(fmt.Sprintf("%s", err), http.StatusInternalServerError, r, w)
 		return
 	}
@@ -153,13 +174,19 @@ func getEventList(w http.ResponseWriter, r *http.Request) {
 	var (
 		events        []*entity.Event
 		user          *entity.User
-		applicationId int64
+		accountID     int64
+		applicationID int64
 		userID        int64
 		err           error
 	)
 	vars := mux.Vars(r)
 
-	if applicationId, err = strconv.ParseInt(vars["applicationId"], 10, 64); err != nil {
+	if accountID, err = strconv.ParseInt(vars["accountId"], 10, 64); err != nil {
+		errorHappened("accountId is not set or the value is incorrect", http.StatusBadRequest, r, w)
+		return
+	}
+
+	if applicationID, err = strconv.ParseInt(vars["applicationId"], 10, 64); err != nil {
 		errorHappened("applicationId is not set or the value is incorrect", http.StatusBadRequest, r, w)
 		return
 	}
@@ -169,22 +196,22 @@ func getEventList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if user, err = core.ReadUser(applicationId, userID); err != nil {
+	if user, err = core.ReadUser(accountID, applicationID, userID); err != nil {
 		errorHappened(fmt.Sprintf("%s", err), http.StatusInternalServerError, r, w)
 		return
 	}
 
-	if events, err = core.ReadEventList(applicationId, userID); err != nil {
+	if events, err = core.ReadEventList(accountID, applicationID, userID); err != nil {
 		errorHappened(fmt.Sprintf("%s", err), http.StatusBadRequest, r, w)
 		return
 	}
 
 	response := &struct {
-		applicationId int64 `json:"applicationId"`
+		applicationID int64 `json:"applicationId"`
 		User          *entity.User
 		Events        []*entity.Event
 	}{
-		applicationId: applicationId,
+		applicationID: applicationID,
 		User:          user,
 		Events:        events,
 	}
@@ -198,14 +225,20 @@ func getEventList(w http.ResponseWriter, r *http.Request) {
 func getConnectionEventList(w http.ResponseWriter, r *http.Request) {
 	var (
 		events        = []*entity.Event{}
-		applicationId int64
+		accountID     int64
+		applicationID int64
 		userID        int64
 		err           error
 	)
 
 	vars := mux.Vars(r)
 
-	if applicationId, err = strconv.ParseInt(vars["applicationId"], 10, 64); err != nil {
+	if accountID, err = strconv.ParseInt(vars["accountId"], 10, 64); err != nil {
+		errorHappened("accountId is not set or the value is incorrect", http.StatusBadRequest, r, w)
+		return
+	}
+
+	if applicationID, err = strconv.ParseInt(vars["applicationId"], 10, 64); err != nil {
 		errorHappened("applicationId is not set or the value is incorrect", http.StatusBadRequest, r, w)
 		return
 	}
@@ -215,17 +248,17 @@ func getConnectionEventList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if events, err = core.ReadConnectionEventList(applicationId, userID); err != nil {
+	if events, err = core.ReadConnectionEventList(accountID, applicationID, userID); err != nil {
 		errorHappened(fmt.Sprintf("%s", err), http.StatusInternalServerError, r, w)
 		return
 	}
 
 	response := struct {
-		applicationId int64           `json:"applicationId"`
+		applicationID int64           `json:"applicationId"`
 		UserID        int64           `json:"userId"`
 		Events        []*entity.Event `json:"events"`
 	}{
-		applicationId: applicationId,
+		applicationID: applicationID,
 		UserID:        userID,
 		Events:        events,
 	}
@@ -239,13 +272,19 @@ func getConnectionEventList(w http.ResponseWriter, r *http.Request) {
 func createEvent(w http.ResponseWriter, r *http.Request) {
 	var (
 		event         = &entity.Event{}
-		applicationId int64
+		accountID     int64
+		applicationID int64
 		userID        int64
 		err           error
 	)
 	vars := mux.Vars(r)
 
-	if applicationId, err = strconv.ParseInt(vars["applicationId"], 10, 64); err != nil {
+	if accountID, err = strconv.ParseInt(vars["accountId"], 10, 64); err != nil {
+		errorHappened("accountId is not set or the value is incorrect", http.StatusBadRequest, r, w)
+		return
+	}
+
+	if applicationID, err = strconv.ParseInt(vars["applicationId"], 10, 64); err != nil {
 		errorHappened("applicationId is not set or the value is incorrect", http.StatusBadRequest, r, w)
 		return
 	}
@@ -261,7 +300,8 @@ func createEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	event.ApplicationID = applicationId
+	event.AccountID = accountID
+	event.ApplicationID = applicationID
 	event.UserID = userID
 
 	if err = validator.CreateEvent(event); err != nil {

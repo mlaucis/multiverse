@@ -87,7 +87,9 @@ func CreateUser(user *entity.User) error {
 		}
 	}
 
-	// TODO: Check if Application exists
+	if !applicationExists(user.AccountID, user.ApplicationID) {
+		errs = append(errs, &errorApplicationDoesNotExists)
+	}
 
 	return packErrors(errs)
 }
@@ -140,7 +142,9 @@ func UpdateUser(user *entity.User) error {
 		}
 	}
 
-	// TODO: Check if Application exists
+	if !applicationExists(user.AccountID, user.ApplicationID) {
+		errs = append(errs, &errorApplicationDoesNotExists)
+	}
 
 	return packErrors(errs)
 }

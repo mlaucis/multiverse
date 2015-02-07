@@ -34,11 +34,11 @@ func CreateConnection(connection *entity.Connection) error {
 		errs = append(errs, &errorUserToIDZero)
 	}
 
-	if !userExists(connection.ApplicationID, connection.UserFromID) {
+	if !userExists(connection.AccountID, connection.ApplicationID, connection.UserFromID) {
 		errs = append(errs, &errorUserDoesNotExists)
 	}
 
-	if !userExists(connection.ApplicationID, connection.UserToID) {
+	if !userExists(connection.AccountID, connection.ApplicationID, connection.UserToID) {
 		errs = append(errs, &errorUserDoesNotExists)
 	}
 
@@ -57,11 +57,11 @@ func UpdateConnection(connection *entity.Connection) error {
 		errs = append(errs, &errorUserToIDZero)
 	}
 
-	if !userExists(connection.ApplicationID, connection.UserFromID) {
+	if !userExists(connection.AccountID, connection.ApplicationID, connection.UserFromID) {
 		errs = append(errs, &errorUserDoesNotExists)
 	}
 
-	if !userExists(connection.ApplicationID, connection.UserToID) {
+	if !userExists(connection.AccountID, connection.ApplicationID, connection.UserToID) {
 		errs = append(errs, &errorUserDoesNotExists)
 	}
 

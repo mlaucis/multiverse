@@ -24,7 +24,7 @@ func UpdateConnection(connection *entity.Connection, retrieve bool) (con *entity
 		return nil, err
 	}
 
-	key := storageClient.Connection(connection.ApplicationID, connection.UserFromID, connection.UserToID)
+	key := storageClient.Connection(connection.AccountID, connection.ApplicationID, connection.UserFromID, connection.UserToID)
 	exist, err := storageEngine.Exists(key).Result()
 	if !exist {
 		return nil, fmt.Errorf("connection does not exist")
@@ -38,17 +38,17 @@ func UpdateConnection(connection *entity.Connection, retrieve bool) (con *entity
 	}
 
 	if !connection.Enabled {
-		listKey := storageClient.Connections(connection.ApplicationID, connection.UserFromID)
+		listKey := storageClient.Connections(connection.AccountID, connection.ApplicationID, connection.UserFromID)
 		if err = storageEngine.LRem(listKey, 0, key).Err(); err != nil {
 			return nil, err
 		}
-		userListKey := storageClient.ConnectionUsers(connection.ApplicationID, connection.UserFromID)
-		userKey := storageClient.User(connection.ApplicationID, connection.UserToID)
+		userListKey := storageClient.ConnectionUsers(connection.AccountID, connection.ApplicationID, connection.UserFromID)
+		userKey := storageClient.User(connection.AccountID, connection.ApplicationID, connection.UserToID)
 		if err = storageEngine.LRem(userListKey, 0, userKey).Err(); err != nil {
 			return nil, err
 		}
-		followerListKey := storageClient.FollowedByUsers(connection.ApplicationID, connection.UserToID)
-		followerKey := storageClient.User(connection.ApplicationID, connection.UserFromID)
+		followerListKey := storageClient.FollowedByUsers(connection.AccountID, connection.ApplicationID, connection.UserToID)
+		followerKey := storageClient.User(connection.AccountID, connection.ApplicationID, connection.UserFromID)
 		if err = storageEngine.LRem(followerListKey, 0, followerKey).Err(); err != nil {
 			return nil, err
 		}
@@ -62,8 +62,8 @@ func UpdateConnection(connection *entity.Connection, retrieve bool) (con *entity
 }
 
 // DeleteConnection deletes the connection matching the IDs or an error
-func DeleteConnection(applicationId, userFromID, userToID int64) (err error) {
-	key := storageClient.Connection(applicationId, userFromID, userToID)
+func DeleteConnection(accountID, applicationID, userFromID, userToID int64) (err error) {
+	key := storageClient.Connection(accountID, applicationID, userFromID, userToID)
 	result, err := storageEngine.Del(key).Result()
 	if err != nil {
 		return err
@@ -73,22 +73,22 @@ func DeleteConnection(applicationId, userFromID, userToID int64) (err error) {
 		return fmt.Errorf("The resource for the provided id doesn't exist")
 	}
 
-	listKey := storageClient.Connections(applicationId, userFromID)
+	listKey := storageClient.Connections(accountID, applicationID, userFromID)
 	if err = storageEngine.LRem(listKey, 0, key).Err(); err != nil {
 		return err
 	}
-	userListKey := storageClient.ConnectionUsers(applicationId, userFromID)
-	userKey := storageClient.User(applicationId, userToID)
+	userListKey := storageClient.ConnectionUsers(accountID, applicationID, userFromID)
+	userKey := storageClient.User(accountID, applicationID, userToID)
 	if err = storageEngine.LRem(userListKey, 0, userKey).Err(); err != nil {
 		return err
 	}
-	followerListKey := storageClient.FollowedByUsers(applicationId, userToID)
-	followerKey := storageClient.User(applicationId, userFromID)
+	followerListKey := storageClient.FollowedByUsers(accountID, applicationID, userToID)
+	followerKey := storageClient.User(accountID, applicationID, userFromID)
 	if err = storageEngine.LRem(followerListKey, 0, followerKey).Err(); err != nil {
 		return err
 	}
 
-	if err = DeleteConnectionEventsFromLists(applicationId, userFromID, userToID); err != nil {
+	if err = DeleteConnectionEventsFromLists(accountID, applicationID, userFromID, userToID); err != nil {
 		return err
 	}
 
@@ -96,8 +96,8 @@ func DeleteConnection(applicationId, userFromID, userToID int64) (err error) {
 }
 
 // ReadConnectionList returns all connections from a certain user
-func ReadConnectionList(applicationID, userID int64) (users []*entity.User, err error) {
-	key := storageClient.ConnectionUsers(applicationID, userID)
+func ReadConnectionList(accountID, applicationID, userID int64) (users []*entity.User, err error) {
+	key := storageClient.ConnectionUsers(accountID, applicationID, userID)
 	result, err := storageEngine.LRange(key, 0, -1).Result()
 	if err != nil {
 		return nil, err
@@ -137,7 +137,7 @@ func WriteConnection(connection *entity.Connection, retrieve bool) (con *entity.
 		return nil, err
 	}
 
-	key := storageClient.Connection(connection.ApplicationID, connection.UserFromID, connection.UserToID)
+	key := storageClient.Connection(connection.AccountID, connection.ApplicationID, connection.UserFromID, connection.UserToID)
 
 	exist, err := storageEngine.SetNX(key, string(val)).Result()
 	if !exist {
@@ -147,23 +147,23 @@ func WriteConnection(connection *entity.Connection, retrieve bool) (con *entity.
 		return nil, err
 	}
 
-	listKey := storageClient.Connections(connection.ApplicationID, connection.UserFromID)
+	listKey := storageClient.Connections(connection.AccountID, connection.ApplicationID, connection.UserFromID)
 
 	if err = storageEngine.LPush(listKey, key).Err(); err != nil {
 		return nil, err
 	}
 
-	userListKey := storageClient.ConnectionUsers(connection.ApplicationID, connection.UserFromID)
+	userListKey := storageClient.ConnectionUsers(connection.AccountID, connection.ApplicationID, connection.UserFromID)
 
-	userKey := storageClient.User(connection.ApplicationID, connection.UserToID)
+	userKey := storageClient.User(connection.AccountID, connection.ApplicationID, connection.UserToID)
 
 	if err = storageEngine.LPush(userListKey, userKey).Err(); err != nil {
 		return nil, err
 	}
 
-	followerListKey := storageClient.FollowedByUsers(connection.ApplicationID, connection.UserToID)
+	followerListKey := storageClient.FollowedByUsers(connection.AccountID, connection.ApplicationID, connection.UserToID)
 
-	followerKey := storageClient.User(connection.ApplicationID, connection.UserFromID)
+	followerKey := storageClient.User(connection.AccountID, connection.ApplicationID, connection.UserFromID)
 
 	if err = storageEngine.LPush(followerListKey, followerKey).Err(); err != nil {
 		return nil, err
@@ -182,9 +182,9 @@ func WriteConnection(connection *entity.Connection, retrieve bool) (con *entity.
 
 // WriteConnectionEventsToList takes a connection and writes the events to the lists
 func WriteConnectionEventsToList(connection *entity.Connection) (err error) {
-	connectionEventsKey := storageClient.ConnectionEvents(connection.ApplicationID, connection.UserFromID)
+	connectionEventsKey := storageClient.ConnectionEvents(connection.AccountID, connection.ApplicationID, connection.UserFromID)
 
-	eventsKey := storageClient.Events(connection.ApplicationID, connection.UserToID)
+	eventsKey := storageClient.Events(connection.AccountID, connection.ApplicationID, connection.UserToID)
 
 	events, err := storageEngine.ZRevRangeWithScores(eventsKey, "0", "-1").Result()
 	if err != nil {
@@ -208,10 +208,10 @@ func WriteConnectionEventsToList(connection *entity.Connection) (err error) {
 }
 
 // DeleteConnectionEventsFromLists takes a connection and deletes the events from the lists
-func DeleteConnectionEventsFromLists(applicationId, userFromID, userToID int64) (err error) {
-	connectionEventsKey := storageClient.ConnectionEvents(applicationId, userFromID)
+func DeleteConnectionEventsFromLists(accountID, applicationID, userFromID, userToID int64) (err error) {
+	connectionEventsKey := storageClient.ConnectionEvents(accountID, applicationID, userFromID)
 
-	eventsKey := storageClient.Events(applicationId, userToID)
+	eventsKey := storageClient.Events(accountID, applicationID, userToID)
 
 	events, err := storageEngine.ZRevRangeWithScores(eventsKey, "0", "-1").Result()
 	if err != nil {

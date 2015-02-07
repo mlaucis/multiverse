@@ -49,7 +49,7 @@ func CreateEvent(event *entity.Event) error {
 		errs = append(errs, &errorEventIDIsAlreadySet)
 	}
 
-	if !userExists(event.ApplicationID, event.UserID) {
+	if !userExists(event.AccountID, event.ApplicationID, event.UserID) {
 		errs = append(errs, &errorUserDoesNotExists)
 	}
 
@@ -68,7 +68,7 @@ func UpdateEvent(event *entity.Event) error {
 		errs = append(errs, &errorVerbType)
 	}
 
-	if !userExists(event.ApplicationID, event.UserID) {
+	if !userExists(event.AccountID, event.ApplicationID, event.UserID) {
 		errs = append(errs, &errorUserDoesNotExists)
 	}
 

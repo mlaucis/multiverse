@@ -93,6 +93,7 @@ type (
 	// User structure
 	User struct {
 		ID            int64     `json:"id"`
+		AccountID     int64     `json:"account_id"`
 		ApplicationID int64     `json:"application_id"`
 		AuthToken     string    `json:"auth_token"`
 		FacebookID    string    `json:"facebook_id,omitempty"`
@@ -109,6 +110,7 @@ type (
 
 	// Connection structure holds the connections of the users
 	Connection struct {
+		AccountID     int64 `json:"account_id"`
 		ApplicationID int64 `json:"application_id"`
 		UserFromID    int64 `json:"user_from_id"`
 		UserToID      int64 `json:"user_to_id"`
@@ -147,6 +149,7 @@ type (
 	// Event structure
 	Event struct {
 		ID            int64          `json:"id"`
+		AccountID     int64          `json:"account_id"`
 		ApplicationID int64          `json:"application_id"`
 		UserID        int64          `json:"user_id"`
 		Verb          string         `json:"verb"`

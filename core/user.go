@@ -19,8 +19,8 @@ func generateUserID(applicationID int64) (int64, error) {
 }
 
 // ReadUser returns the user matching the ID or an error
-func ReadUser(applicationID int64, userID int64) (user *entity.User, err error) {
-	key := storageClient.User(applicationID, userID)
+func ReadUser(accountID, applicationID, userID int64) (user *entity.User, err error) {
+	key := storageClient.User(accountID, applicationID, userID)
 
 	result, err := storageEngine.Get(key).Result()
 	if err != nil {
@@ -43,7 +43,7 @@ func UpdateUser(user *entity.User, retrieve bool) (usr *entity.User, err error) 
 		return nil, err
 	}
 
-	key := storageClient.User(user.ApplicationID, user.ID)
+	key := storageClient.User(user.AccountID, user.ApplicationID, user.ID)
 	exist, err := storageEngine.Exists(key).Result()
 	if !exist {
 		return nil, fmt.Errorf("user does not exist")
@@ -57,7 +57,7 @@ func UpdateUser(user *entity.User, retrieve bool) (usr *entity.User, err error) 
 	}
 
 	if !user.Enabled {
-		listKey := storageClient.Users(user.ApplicationID)
+		listKey := storageClient.Users(user.AccountID, user.ApplicationID)
 		if err = storageEngine.LRem(listKey, 0, key).Err(); err != nil {
 			return nil, err
 		}
@@ -67,12 +67,12 @@ func UpdateUser(user *entity.User, retrieve bool) (usr *entity.User, err error) 
 		return user, nil
 	}
 
-	return ReadUser(user.ApplicationID, user.ID)
+	return ReadUser(user.AccountID, user.ApplicationID, user.ID)
 }
 
 // DeleteUser deletes the user matching the IDs or an error
-func DeleteUser(applicationId, userID int64) (err error) {
-	key := storageClient.User(applicationId, userID)
+func DeleteUser(accountID, applicationID, userID int64) (err error) {
+	key := storageClient.User(accountID, applicationID, userID)
 	result, err := storageEngine.Del(key).Result()
 	if err != nil {
 		return err
@@ -82,7 +82,7 @@ func DeleteUser(applicationId, userID int64) (err error) {
 		return fmt.Errorf("The resource for the provided id doesn't exist")
 	}
 
-	listKey := storageClient.Users(applicationId)
+	listKey := storageClient.Users(accountID, applicationID)
 	if err = storageEngine.LRem(listKey, 0, key).Err(); err != nil {
 		return err
 	}
@@ -97,8 +97,8 @@ func DeleteUser(applicationId, userID int64) (err error) {
 }
 
 // ReadUserList returns all users from a certain account
-func ReadUserList(applicationID int64) (users []*entity.User, err error) {
-	key := storageClient.Users(applicationID)
+func ReadUserList(accountID, applicationID int64) (users []*entity.User, err error) {
+	key := storageClient.Users(accountID, applicationID)
 
 	result, err := storageEngine.LRange(key, 0, -1).Result()
 	if err != nil {
@@ -142,7 +142,7 @@ func WriteUser(user *entity.User, retrieve bool) (usr *entity.User, err error) {
 		return nil, err
 	}
 
-	key := storageClient.User(user.ApplicationID, user.ID)
+	key := storageClient.User(user.AccountID, user.ApplicationID, user.ID)
 
 	exist, err := storageEngine.SetNX(key, string(val)).Result()
 	if !exist {
@@ -152,7 +152,7 @@ func WriteUser(user *entity.User, retrieve bool) (usr *entity.User, err error) {
 		return nil, err
 	}
 
-	listKey := storageClient.Users(user.ApplicationID)
+	listKey := storageClient.Users(user.AccountID, user.ApplicationID)
 
 	if err = storageEngine.LPush(listKey, key).Err(); err != nil {
 		return nil, err
@@ -162,5 +162,5 @@ func WriteUser(user *entity.User, retrieve bool) (usr *entity.User, err error) {
 		return user, nil
 	}
 
-	return ReadUser(user.ApplicationID, user.ID)
+	return ReadUser(user.AccountID, user.ApplicationID, user.ID)
 }

@@ -77,9 +77,19 @@ func accountExists(accountID int64) bool {
 	return account.Enabled
 }
 
+// applicationExists validates if an application exists and returns the application or an error
+func applicationExists(accountID, applicationID int64) bool {
+	application, err := core.ReadApplication(accountID, applicationID)
+	if err != nil {
+		return false
+	}
+
+	return application.Enabled
+}
+
 // userExists validates if a user exists and returns it or an error
-func userExists(applicationID, userID int64) bool {
-	user, err := core.ReadUser(applicationID, userID)
+func userExists(accountID, applicationID, userID int64) bool {
+	user, err := core.ReadUser(accountID, applicationID, userID)
 	if err != nil {
 		return false
 	}
