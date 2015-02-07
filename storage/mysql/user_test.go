@@ -57,7 +57,7 @@ func (dbs *DatabaseSuite) TestAddApplicationUser_Correct(c *C) {
 		c.Assert(savedUser.Provider, Equals, correctUser.Provider)
 		c.Assert(savedUser.Custom, Equals, correctUser.Custom)
 		// Test types
-		c.Assert(savedUser.AppID, FitsTypeOf, uint64(0))
+		c.Assert(savedUser.applicationId, FitsTypeOf, uint64(0))
 		c.Assert(savedUser.Token, FitsTypeOf, string(""))
 		c.Assert(savedUser.Name, FitsTypeOf, string(""))
 		c.Assert(savedUser.Password, FitsTypeOf, string(""))
@@ -76,7 +76,7 @@ func (dbs *DatabaseSuite) TestGetApplicationUserByToken_Correct(c *C) {
 		savedUser := AddCorrectApplicationUser()
 
 		// Get account user by id
-		getApplicationUser, err := GetApplicationUserByToken(savedUser.AppID, savedUser.Token)
+		getApplicationUser, err := GetApplicationUserByToken(savedUser.applicationId, savedUser.Token)
 
 		// Perform tests
 		c.Assert(err, IsNil)
@@ -94,10 +94,10 @@ func (dbs *DatabaseSuite) TestGetApplicationUsers_Correct(c *C) {
 		// Perform tests
 		c.Assert(savedUser1, NotNil)
 		c.Assert(savedUser2, NotNil)
-		c.Assert(savedUser1.AppID, Equals, savedUser2.AppID)
+		c.Assert(savedUser1.applicationId, Equals, savedUser2.applicationId)
 
 		// Get account user by id
-		getUsers, err := GetApplicationUsers(savedUser1.AppID)
+		getUsers, err := GetApplicationUsers(savedUser1.applicationId)
 
 		// Perform tests
 		c.Assert(err, IsNil)

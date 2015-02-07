@@ -76,8 +76,8 @@ func UpdateEvent(event *entity.Event, retrieve bool) (evn *entity.Event, err err
 }
 
 // DeleteEvent deletes the event matching the IDs or an error
-func DeleteEvent(appID, userID, eventID int64) (err error) {
-	key := storageClient.Event(appID, userID, eventID)
+func DeleteEvent(applicationId, userID, eventID int64) (err error) {
+	key := storageClient.Event(applicationId, userID, eventID)
 	result, err := storageEngine.Del(key).Result()
 	if err != nil {
 		return err
@@ -87,12 +87,12 @@ func DeleteEvent(appID, userID, eventID int64) (err error) {
 		return fmt.Errorf("The resource for the provided id doesn't exist")
 	}
 
-	listKey := storageClient.Events(appID, userID)
+	listKey := storageClient.Events(applicationId, userID)
 	if err = storageEngine.ZRem(listKey, key).Err(); err != nil {
 		return err
 	}
 
-	if err = DeleteEventFromConnectionsLists(appID, userID, key); err != nil {
+	if err = DeleteEventFromConnectionsLists(applicationId, userID, key); err != nil {
 		return err
 	}
 
@@ -221,8 +221,8 @@ func WriteEventToConnectionsLists(event *entity.Event, key string) (err error) {
 }
 
 // DeleteEventFromConnectionsLists takes a user id and key and deletes it to the user connections list
-func DeleteEventFromConnectionsLists(appID, userID int64, key string) (err error) {
-	connectionsKey := storageClient.FollowedByUsers(appID, userID)
+func DeleteEventFromConnectionsLists(applicationId, userID int64, key string) (err error) {
+	connectionsKey := storageClient.FollowedByUsers(applicationId, userID)
 
 	connections, err := storageEngine.LRange(connectionsKey, 0, -1).Result()
 	if err != nil {

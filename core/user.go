@@ -71,8 +71,8 @@ func UpdateUser(user *entity.User, retrieve bool) (usr *entity.User, err error) 
 }
 
 // DeleteUser deletes the user matching the IDs or an error
-func DeleteUser(appID, userID int64) (err error) {
-	key := storageClient.User(appID, userID)
+func DeleteUser(applicationId, userID int64) (err error) {
+	key := storageClient.User(applicationId, userID)
 	result, err := storageEngine.Del(key).Result()
 	if err != nil {
 		return err
@@ -82,7 +82,7 @@ func DeleteUser(appID, userID int64) (err error) {
 		return fmt.Errorf("The resource for the provided id doesn't exist")
 	}
 
-	listKey := storageClient.Users(appID)
+	listKey := storageClient.Users(applicationId)
 	if err = storageEngine.LRem(listKey, 0, key).Err(); err != nil {
 		return err
 	}

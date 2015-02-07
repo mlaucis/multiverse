@@ -116,7 +116,7 @@ var routes = map[string]map[string]*route{
 		// Application
 		"getApplication": &route{
 			"GET",
-			"/account/{accountId:[0-9]{1,20}}/application/{appId:[0-9]{1,20}}",
+			"/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}",
 			"/account/%d/application/%d",
 			[]http.HandlerFunc{
 				validateAccountRequestToken,
@@ -125,7 +125,7 @@ var routes = map[string]map[string]*route{
 		},
 		"updateApplication": &route{
 			"PUT",
-			"/account/{accountId:[0-9]{1,20}}/application/{appId:[0-9]{1,20}}",
+			"/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}",
 			"/account/%d/application/%d",
 			[]http.HandlerFunc{
 				validateAccountRequestToken,
@@ -134,7 +134,7 @@ var routes = map[string]map[string]*route{
 		},
 		"deleteApplication": &route{
 			"DELETE",
-			"/account/{accountId:[0-9]{1,20}}/application/{appId:[0-9]{1,20}}",
+			"/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}",
 			"/account/%d/application/%d",
 			[]http.HandlerFunc{
 				validateAccountRequestToken,
@@ -162,7 +162,7 @@ var routes = map[string]map[string]*route{
 		// User
 		"getUser": &route{
 			"GET",
-			"/account/{accountId:[0-9]{1,20}}/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}",
+			"/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}",
 			"/account/%d/application/%d/user/%d",
 			[]http.HandlerFunc{
 				validateApplicationRequestToken,
@@ -171,7 +171,7 @@ var routes = map[string]map[string]*route{
 		},
 		"updateUser": &route{
 			"PUT",
-			"/account/{accountId:[0-9]{1,20}}/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}",
+			"/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}",
 			"/account/%d/application/%d/user/%d",
 			[]http.HandlerFunc{
 				validateApplicationRequestToken,
@@ -180,7 +180,7 @@ var routes = map[string]map[string]*route{
 		},
 		"deleteUser": &route{
 			"DELETE",
-			"/account/{accountId:[0-9]{1,20}}/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}",
+			"/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}",
 			"/account/%d/application/%d/user/%d",
 			[]http.HandlerFunc{
 				validateApplicationRequestToken,
@@ -189,7 +189,7 @@ var routes = map[string]map[string]*route{
 		},
 		"createUser": &route{
 			"POST",
-			"/account/{accountId:[0-9]{1,20}}/application/{appId:[0-9]{1,20}}/users",
+			"/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/users",
 			"/account/%d/application/%d/users",
 			[]http.HandlerFunc{
 				validateApplicationRequestToken,
@@ -200,14 +200,14 @@ var routes = map[string]map[string]*route{
 			"getUserList": &route{
 				"getUserList",
 				"GET",
-				"/application/{appId:[0-9]{1,20}}/users",
+				"/application/{applicationId:[0-9]{1,20}}/users",
 				getUserList,
 			},
 		*/
 		// UserConnection
 		"createConnection": &route{
 			"POST",
-			"/account/{accountId:[0-9]{1,20}}/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/connections",
+			"/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/connections",
 			"/account/%d/application/%d/connections",
 			[]http.HandlerFunc{
 				validateApplicationRequestToken,
@@ -216,7 +216,7 @@ var routes = map[string]map[string]*route{
 		},
 		"updateConnection": &route{
 			"PUT",
-			"/account/{accountId:[0-9]{1,20}}/application/{appId:[0-9]{1,20}}/user/{userFromId:[a-zA-Z0-9]+}/connection/{userToId:[a-zA-Z0-9]+}",
+			"/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userFromId:[a-zA-Z0-9]+}/connection/{userToId:[a-zA-Z0-9]+}",
 			"/account/%d/application/%d/user/%d/connection/%d",
 			[]http.HandlerFunc{
 				validateApplicationRequestToken,
@@ -225,7 +225,7 @@ var routes = map[string]map[string]*route{
 		},
 		"deleteConnection": &route{
 			"DELETE",
-			"/account/{accountId:[0-9]{1,20}}/application/{appId:[0-9]{1,20}}/user/{userFromId:[a-zA-Z0-9]+}/connection/{userToId:[a-zA-Z0-9]+}",
+			"/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userFromId:[a-zA-Z0-9]+}/connection/{userToId:[a-zA-Z0-9]+}",
 			"/account/%d/application/%d/user/%d/connection/%d",
 			[]http.HandlerFunc{
 				validateApplicationRequestToken,
@@ -234,7 +234,7 @@ var routes = map[string]map[string]*route{
 		},
 		"getConnectionList": &route{
 			"GET",
-			"/account/{accountId:[0-9]{1,20}}/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/connections",
+			"/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/connections",
 			"/account/%d/application/%d/user/%s/connections",
 			[]http.HandlerFunc{
 				validateApplicationRequestToken,
@@ -244,7 +244,7 @@ var routes = map[string]map[string]*route{
 		// Event
 		"getEvent": &route{
 			"GET",
-			"/account/{accountId:[0-9]{1,20}}/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/event/{eventId:[0-9]{1,20}}",
+			"/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/event/{eventId:[0-9]{1,20}}",
 			"/account/%d/application/%d/user/%s/event/%d",
 			[]http.HandlerFunc{
 				validateApplicationRequestToken,
@@ -253,7 +253,7 @@ var routes = map[string]map[string]*route{
 		},
 		"updateEvent": &route{
 			"PUT",
-			"/account/{accountId:[0-9]{1,20}}/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/event/{eventId:[0-9]{1,20}}",
+			"/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/event/{eventId:[0-9]{1,20}}",
 			"/account/%d/application/%d/user/%s/event/%d",
 			[]http.HandlerFunc{
 				validateApplicationRequestToken,
@@ -262,7 +262,7 @@ var routes = map[string]map[string]*route{
 		},
 		"deleteEvent": &route{
 			"DELETE",
-			"/account/{accountId:[0-9]{1,20}}/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/event/{eventId:[0-9]{1,20}}",
+			"/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/event/{eventId:[0-9]{1,20}}",
 			"/account/%d/application/%d/user/%s/event/%d",
 			[]http.HandlerFunc{
 				validateApplicationRequestToken,
@@ -271,7 +271,7 @@ var routes = map[string]map[string]*route{
 		},
 		"createEvent": &route{
 			"POST",
-			"/account/{accountId:[0-9]{1,20}}/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/events",
+			"/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/events",
 			"/account/%d/application/%d/user/%s/events",
 			[]http.HandlerFunc{
 				validateApplicationRequestToken,
@@ -280,7 +280,7 @@ var routes = map[string]map[string]*route{
 		},
 		"getEventList": &route{
 			"GET",
-			"/account/{accountId:[0-9]{1,20}}/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/events",
+			"/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/events",
 			"/account/%d/application/%d/user/%s/events",
 			[]http.HandlerFunc{
 				validateApplicationRequestToken,
@@ -289,7 +289,7 @@ var routes = map[string]map[string]*route{
 		},
 		"getConnectionEventList": &route{
 			"GET",
-			"/account/{accountId:[0-9]{1,20}}/application/{appId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/connections/events",
+			"/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/connections/events",
 			"/account/%d/application/%d/user/%s/connections/events",
 			[]http.HandlerFunc{
 				validateApplicationRequestToken,

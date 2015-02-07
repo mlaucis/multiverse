@@ -62,8 +62,8 @@ func UpdateConnection(connection *entity.Connection, retrieve bool) (con *entity
 }
 
 // DeleteConnection deletes the connection matching the IDs or an error
-func DeleteConnection(appID, userFromID, userToID int64) (err error) {
-	key := storageClient.Connection(appID, userFromID, userToID)
+func DeleteConnection(applicationId, userFromID, userToID int64) (err error) {
+	key := storageClient.Connection(applicationId, userFromID, userToID)
 	result, err := storageEngine.Del(key).Result()
 	if err != nil {
 		return err
@@ -73,22 +73,22 @@ func DeleteConnection(appID, userFromID, userToID int64) (err error) {
 		return fmt.Errorf("The resource for the provided id doesn't exist")
 	}
 
-	listKey := storageClient.Connections(appID, userFromID)
+	listKey := storageClient.Connections(applicationId, userFromID)
 	if err = storageEngine.LRem(listKey, 0, key).Err(); err != nil {
 		return err
 	}
-	userListKey := storageClient.ConnectionUsers(appID, userFromID)
-	userKey := storageClient.User(appID, userToID)
+	userListKey := storageClient.ConnectionUsers(applicationId, userFromID)
+	userKey := storageClient.User(applicationId, userToID)
 	if err = storageEngine.LRem(userListKey, 0, userKey).Err(); err != nil {
 		return err
 	}
-	followerListKey := storageClient.FollowedByUsers(appID, userToID)
-	followerKey := storageClient.User(appID, userFromID)
+	followerListKey := storageClient.FollowedByUsers(applicationId, userToID)
+	followerKey := storageClient.User(applicationId, userFromID)
 	if err = storageEngine.LRem(followerListKey, 0, followerKey).Err(); err != nil {
 		return err
 	}
 
-	if err = DeleteConnectionEventsFromLists(appID, userFromID, userToID); err != nil {
+	if err = DeleteConnectionEventsFromLists(applicationId, userFromID, userToID); err != nil {
 		return err
 	}
 
@@ -208,10 +208,10 @@ func WriteConnectionEventsToList(connection *entity.Connection) (err error) {
 }
 
 // DeleteConnectionEventsFromLists takes a connection and deletes the events from the lists
-func DeleteConnectionEventsFromLists(appID, userFromID, userToID int64) (err error) {
-	connectionEventsKey := storageClient.ConnectionEvents(appID, userFromID)
+func DeleteConnectionEventsFromLists(applicationId, userFromID, userToID int64) (err error) {
+	connectionEventsKey := storageClient.ConnectionEvents(applicationId, userFromID)
 
-	eventsKey := storageClient.Events(appID, userToID)
+	eventsKey := storageClient.Events(applicationId, userToID)
 
 	events, err := storageEngine.ZRevRangeWithScores(eventsKey, "0", "-1").Result()
 	if err != nil {

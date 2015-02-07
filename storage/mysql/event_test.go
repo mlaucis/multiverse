@@ -12,7 +12,7 @@ func (dbs *DatabaseSuite) TestAddSessionEvent_Empty(c *C) {
 	/*
 		// Write session
 		savedSession := AddCorrectUserSession()
-		UpdateEvent(savedSession.AppID, savedSession.ID, savedSession.UserToken)
+		UpdateEvent(savedSession.applicationId, savedSession.ID, savedSession.UserToken)
 
 		// Write event
 		savedEvent, err := AddSessionEvent(emptyEvent)
@@ -29,7 +29,7 @@ func (dbs *DatabaseSuite) TestAddSessionEvent_Correct(c *C) {
 	/*
 		// Prepare data
 		savedSession := AddCorrectUserSession()
-		UpdateEvent(savedSession.AppID, savedSession.ID, savedSession.UserToken)
+		UpdateEvent(savedSession.applicationId, savedSession.ID, savedSession.UserToken)
 
 		// Write event
 		savedEvent, err := AddSessionEvent(correctEvent)

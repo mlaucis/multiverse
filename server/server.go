@@ -148,7 +148,7 @@ func validateApplicationRequestToken(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if applicationID, err = strconv.ParseInt(vars["applicationId"], 10, 64); err != nil {
-		errorHappened("invalid accountId number", http.StatusBadRequest, r, w)
+		errorHappened("invalid applicationId number", http.StatusBadRequest, r, w)
 		return
 	}
 

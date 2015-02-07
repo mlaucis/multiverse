@@ -24,8 +24,8 @@ func GetEventByID(eventID uint64) (event *entity.Event, err error) {
 }
 
 // GetAllUserAppEvents returns all the events of a user for a certain app
-func GetAllUserAppEvents(appID uint64, userID string) (user *entity.User, err error) {
-	if user, err = GetApplicationUserByToken(appID, userID); err != nil {
+func GetAllUserAppEvents(applicationId uint64, userID string) (user *entity.User, err error) {
+	if user, err = GetApplicationUserByToken(applicationId, userID); err != nil {
 		if config.Conf().Env() == "dev" {
 			return nil, err
 		}
@@ -36,13 +36,13 @@ func GetAllUserAppEvents(appID uint64, userID string) (user *entity.User, err er
 
 	// Execture query to get events
 	err = GetSlave().
-		Select(&user.Events, "SELECT * FROM `events` WHERE `application_id`=? AND `user_token`=?", appID, userID)
+		Select(&user.Events, "SELECT * FROM `events` WHERE `application_id`=? AND `user_token`=?", applicationId, userID)
 
 	return
 }
 
 // GetUserConnectionsEvents returns the events of all the users connected to the specified user
-func GetUserConnectionsEvents(appID uint64, userToken string) (events []*entity.Event, err error) {
+func GetUserConnectionsEvents(applicationId uint64, userToken string) (events []*entity.Event, err error) {
 	events = []*entity.Event{}
 
 	// Execute query to get connection events
@@ -54,7 +54,7 @@ func GetUserConnectionsEvents(appID uint64, userToken string) (events []*entity.
 		"WHERE `guc`.`application_id`=? AND `guc`.`user_id1`=?"
 
 	err = GetSlave().
-		Select(&events, query, appID, userToken)
+		Select(&events, query, applicationId, userToken)
 
 	return
 }

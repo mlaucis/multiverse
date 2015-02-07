@@ -22,10 +22,10 @@ import (
 // Test with: curl -i localhost/0.1/account/:AccountID/application/:ID
 func getApplication(w http.ResponseWriter, r *http.Request) {
 	var (
-		application *entity.Application
-		accountID   int64
-		appID       int64
-		err         error
+		application   *entity.Application
+		accountID     int64
+		applicationId int64
+		err           error
 	)
 
 	vars := mux.Vars(r)
@@ -35,12 +35,12 @@ func getApplication(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if appID, err = strconv.ParseInt(vars["appId"], 10, 64); err != nil {
-		errorHappened("appId is not set or the value is incorrect", http.StatusBadRequest, r, w)
+	if applicationId, err = strconv.ParseInt(vars["applicationId"], 10, 64); err != nil {
+		errorHappened("applicationId is not set or the value is incorrect", http.StatusBadRequest, r, w)
 		return
 	}
 
-	if application, err = core.ReadApplication(accountID, appID); err != nil {
+	if application, err = core.ReadApplication(accountID, applicationId); err != nil {
 		errorHappened(fmt.Sprintf("%s", err), http.StatusInternalServerError, r, w)
 		return
 	}
@@ -53,10 +53,10 @@ func getApplication(w http.ResponseWriter, r *http.Request) {
 // Test with: curl -i -H "Content-Type: application/json" -d '{"key": "hmac(256)", "name":"New App"}' -X PUT localhost/0.1/account/:AccountID/application/:ID
 func updateApplication(w http.ResponseWriter, r *http.Request) {
 	var (
-		application = &entity.Application{}
-		accountID   int64
-		appID       int64
-		err         error
+		application   = &entity.Application{}
+		accountID     int64
+		applicationId int64
+		err           error
 	)
 	vars := mux.Vars(r)
 
@@ -65,8 +65,8 @@ func updateApplication(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if appID, err = strconv.ParseInt(vars["appId"], 10, 64); err != nil {
-		errorHappened("appId is not set or the value is incorrect", http.StatusBadRequest, r, w)
+	if applicationId, err = strconv.ParseInt(vars["applicationId"], 10, 64); err != nil {
+		errorHappened("applicationId is not set or the value is incorrect", http.StatusBadRequest, r, w)
 		return
 	}
 
@@ -77,7 +77,7 @@ func updateApplication(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if application.ID == 0 {
-		application.ID = appID
+		application.ID = applicationId
 	}
 	if application.AccountID == 0 {
 		application.AccountID = accountID
@@ -101,9 +101,9 @@ func updateApplication(w http.ResponseWriter, r *http.Request) {
 // Test with: curl -i -X DELETE localhost/0.1/account/:AccountID/application/:ID
 func deleteApplication(w http.ResponseWriter, r *http.Request) {
 	var (
-		accountID int64
-		appID     int64
-		err       error
+		accountID     int64
+		applicationId int64
+		err           error
 	)
 	vars := mux.Vars(r)
 
@@ -112,12 +112,12 @@ func deleteApplication(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if appID, err = strconv.ParseInt(vars["appId"], 10, 64); err != nil {
-		errorHappened("appId is not set or the value is incorrect", http.StatusBadRequest, r, w)
+	if applicationId, err = strconv.ParseInt(vars["applicationId"], 10, 64); err != nil {
+		errorHappened("applicationId is not set or the value is incorrect", http.StatusBadRequest, r, w)
 		return
 	}
 
-	if err = core.DeleteApplication(accountID, appID); err != nil {
+	if err = core.DeleteApplication(accountID, applicationId); err != nil {
 		errorHappened(fmt.Sprintf("%s", err), http.StatusInternalServerError, r, w)
 		return
 	}

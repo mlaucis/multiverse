@@ -101,7 +101,7 @@ func AddCorrectApplicationUsers() (user1, user2 *entity.User) {
 // Create a correct event
 func AddCorrectEvent() *entity.Event {
 	savedSession := AddCorrectUserSession()
-	UpdateEvent(savedSession.AppID, savedSession.ID, savedSession.UserToken)
+	UpdateEvent(savedSession.applicationId, savedSession.ID, savedSession.UserToken)
 	savedEvent, err := AddSessionEvent(correctEvent)
 	if err != nil {
 		panic(err)
@@ -113,7 +113,7 @@ func AddCorrectEvent() *entity.Event {
 // Create correct events
 func AddCorrectEvents() (event1, event2 *entity.Event) {
 	savedSession := AddCorrectUserSession()
-	UpdateEvent(savedSession.AppID, savedSession.ID, savedSession.UserToken)
+	UpdateEvent(savedSession.applicationId, savedSession.ID, savedSession.UserToken)
 	savedEvent1, err := AddSessionEvent(correctEvent)
 	if err != nil {
 		panic(err)
@@ -148,8 +148,8 @@ func RandomToken() string {
 
 /*
 // UpdateEvent updates correctEvent struct
-func UpdateEvent(appID, sessionID uint64, token string) {
-	correctEvent.AppID = appID
+func UpdateEvent(applicationId, sessionID uint64, token string) {
+	correctEvent.applicationId = applicationId
 	correctEvent.SessionID = sessionID
 	correctEvent.UserToken = token
 }

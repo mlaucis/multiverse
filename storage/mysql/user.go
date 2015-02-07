@@ -11,31 +11,31 @@ import (
 	"github.com/tapglue/backend/core/entity"
 )
 
-// GetApplicationUserByToken returns the user corresponding to the appID / userToken combination or an error
-func GetApplicationUserByToken(appID uint64, userID string) (user *entity.User, err error) {
+// GetApplicationUserByToken returns the user corresponding to the applicationId / userToken combination or an error
+func GetApplicationUserByToken(applicationId uint64, userID string) (user *entity.User, err error) {
 	user = &entity.User{}
 
 	// Execute query to get user
 	err = GetSlave().
-		QueryRowx("SELECT * FROM `users` WHERE `application_id`=? AND `token`=?", appID, userID).
+		QueryRowx("SELECT * FROM `users` WHERE `application_id`=? AND `token`=?", applicationId, userID).
 		StructScan(user)
 
 	return
 }
 
-// GetApplicationUsers returns all the users corresponding to the appID / userToken combination or an error
-func GetApplicationUsers(appID uint64) (users []*entity.User, err error) {
+// GetApplicationUsers returns all the users corresponding to the applicationId / userToken combination or an error
+func GetApplicationUsers(applicationId uint64) (users []*entity.User, err error) {
 	users = []*entity.User{}
 
 	// Execute query to get users
 	err = GetSlave().
-		Select(&users, "SELECT * FROM `users` WHERE `application_id`=?", appID)
+		Select(&users, "SELECT * FROM `users` WHERE `application_id`=?", applicationId)
 
 	return
 }
 
 // AddApplicationUser creates a user for an account and returns the created entry or an error
-func AddApplicationUser(appID uint64, user *entity.User) (*entity.User, error) {
+func AddApplicationUser(applicationId uint64, user *entity.User) (*entity.User, error) {
 	// Check if token empty
 	if user.AuthToken == "" {
 		return nil, fmt.Errorf("empty user token is not allowed")
@@ -53,7 +53,7 @@ func AddApplicationUser(appID uint64, user *entity.User) (*entity.User, error) {
 	query := "INSERT INTO `users` (`application_id`, `token`, `username`, `name`, `password`, `email`, `url`, `thumbnail_url`, `custom`)" +
 		"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 	_, err := GetMaster().
-		Exec(query, appID, user.AuthToken, user.Username, user.FirstName, user.Password, user.Email, user.URL, user.Image[0].URL, user.Metadata)
+		Exec(query, applicationId, user.AuthToken, user.Username, user.FirstName, user.Password, user.Email, user.URL, user.Image[0].URL, user.Metadata)
 	if err != nil {
 		if config.Conf().Env() == "dev" {
 			return nil, err
@@ -62,17 +62,17 @@ func AddApplicationUser(appID uint64, user *entity.User) (*entity.User, error) {
 	}
 
 	// Return application user
-	return GetApplicationUserByToken(appID, user.AuthToken)
+	return GetApplicationUserByToken(applicationId, user.AuthToken)
 }
 
 // GetApplicationUserWithConnections returns the user and it's connections to other users or an error
-func GetApplicationUserWithConnections(appID uint64, userID string) (user *entity.User, err error) {
+func GetApplicationUserWithConnections(applicationId uint64, userID string) (user *entity.User, err error) {
 	// Check if token empty
 	if userID == "" {
 		return nil, fmt.Errorf("empty user token is not allowed")
 	}
 	// Retrieve user
-	if user, err = GetApplicationUserByToken(appID, userID); err != nil {
+	if user, err = GetApplicationUserByToken(applicationId, userID); err != nil {
 		return
 	}
 	user.Connections = []*entity.User{}
@@ -87,7 +87,7 @@ func GetApplicationUserWithConnections(appID uint64, userID string) (user *entit
 			"ON `users`.`application_id` = `guc`.`application_id` AND "+
 			"`users`.`token` = `guc`.`user_id2` "+
 			"WHERE `guc`.`application_id`=? AND `guc`.`user_id1`=?",
-		appID,
+		applicationId,
 		userID,
 	)
 
@@ -95,7 +95,7 @@ func GetApplicationUserWithConnections(appID uint64, userID string) (user *entit
 }
 
 // AddApplicationUserConnection will add a new connection between users or returns an error
-func AddApplicationUserConnection(appID uint64, connection *entity.Connection) (err error) {
+func AddApplicationUserConnection(applicationId uint64, connection *entity.Connection) (err error) {
 	// Check if token1 empty
 	if connection.UserFromID == 0 {
 		return fmt.Errorf("empty user1 token is not allowed")
@@ -107,7 +107,7 @@ func AddApplicationUserConnection(appID uint64, connection *entity.Connection) (
 	// Write to db
 	query := "INSERT INTO `user_connections` (`application_id`, `user_id1`, `user_id2`) VALUES (?, ?, ?)"
 	_, err = GetMaster().
-		Exec(query, appID, connection.UserFromID, connection.UserToID)
+		Exec(query, applicationId, connection.UserFromID, connection.UserToID)
 	if err != nil {
 		if config.Conf().Env() == "dev" {
 			return err

@@ -11,12 +11,12 @@ import (
 )
 
 // GetApplicationByID returns the user matching the account or an error
-func GetApplicationByID(appID uint64) (application *entity.Application, err error) {
+func GetApplicationByID(applicationId uint64) (application *entity.Application, err error) {
 	application = &entity.Application{}
 
 	// Execute query to get application
 	err = GetSlave().
-		QueryRowx("SELECT * FROM `applications` WHERE `id`=?", appID).
+		QueryRowx("SELECT * FROM `applications` WHERE `id`=?", applicationId).
 		StructScan(application)
 
 	return
