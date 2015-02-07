@@ -35,3 +35,31 @@ func ValidateAccountRequestToken(accountID int64, requestToken string) bool {
 
 	return token == requestToken
 }
+
+// ValidateApplicationRequestToken checks if the provided request token is valid or not for the specified app
+func ValidateApplicationRequestToken(accountID, applicationID int64, requestToken string) bool {
+	if len(requestToken) < 7 {
+		return false
+	}
+
+	if requestToken[:7] != "Bearer " {
+		return false
+	}
+
+	application, err := core.ReadApplication(accountID, applicationID)
+	if err != nil {
+		return false
+	}
+
+	token, err := storageClient.GenerateApplicationToken(application)
+	if err != nil {
+		return false
+	}
+
+	// TODO account token is actually the secret that we never want to transfer in plain text (or base64)
+	// so this needs to actually generate a JWT signature with the account token as the secret
+
+	requestToken = requestToken[7:]
+
+	return token == requestToken
+}

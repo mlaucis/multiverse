@@ -81,10 +81,10 @@ func (client *Client) GenerateApplicationID(accountID int64) (int64, error) {
 }
 
 // GenerateApplicationToken returns a token for the specified application of an account
-func (client *Client) GenerateApplicationToken(accountID int64, application *entity.Application) (string, error) {
+func (client *Client) GenerateApplicationToken(application *entity.Application) (string, error) {
 	return fmt.Sprintf(
 		"token_%d_%d_%s",
-		accountID,
+		application.AccountID,
 		application.ID,
 		base64Encode(application.Name),
 	), nil

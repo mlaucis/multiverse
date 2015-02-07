@@ -133,6 +133,31 @@ func validateAccountRequestToken(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// validateApplicationRequestToken validates that the request contains a valid request token
+func validateApplicationRequestToken(w http.ResponseWriter, r *http.Request) {
+	var (
+		accountID     int64
+		applicationID int64
+		err           error
+	)
+	vars := mux.Vars(r)
+
+	if accountID, err = strconv.ParseInt(vars["accountId"], 10, 64); err != nil {
+		errorHappened("invalid accountId number", http.StatusBadRequest, r, w)
+		return
+	}
+
+	if applicationID, err = strconv.ParseInt(vars["applicationId"], 10, 64); err != nil {
+		errorHappened("invalid accountId number", http.StatusBadRequest, r, w)
+		return
+	}
+
+	if !validator.ValidateApplicationRequestToken(accountID, applicationID, getReqAuthToken(r)) {
+		errorHappened("request is not properly signed", http.StatusBadRequest, r, w)
+		return
+	}
+}
+
 // writeCacheHeaders will add the corresponding cache headers based on the time supplied (in seconds)
 func writeCacheHeaders(cacheTime uint, w http.ResponseWriter) {
 	if cacheTime > 0 {
