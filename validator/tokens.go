@@ -5,6 +5,9 @@
 package validator
 
 import (
+	"encoding/base64"
+	"strconv"
+
 	"github.com/tapglue/backend/core"
 )
 
@@ -46,20 +49,47 @@ func ValidateApplicationRequestToken(accountID, applicationID int64, requestToke
 		return false
 	}
 
-	application, err := core.ReadApplication(accountID, applicationID)
-	if err != nil {
-		return false
-	}
-
-	token, err := storageClient.GenerateApplicationToken(application)
-	if err != nil {
-		return false
-	}
-
-	// TODO account token is actually the secret that we never want to transfer in plain text (or base64)
-	// so this needs to actually generate a JWT signature with the account token as the secret
-
 	requestToken = requestToken[7:]
 
-	return token == requestToken
+	// Store the token details in redis
+	storedToken, err := storageEngine.HMGet(
+		"apps:"+base64.URLEncoding.EncodeToString([]byte(requestToken)),
+		"acc",
+		"app",
+	).Result()
+	if err != nil {
+		panic("err != nil")
+		return false
+	}
+
+	if storedToken == nil {
+		panic("storedToken == nil")
+		return false
+	}
+
+	var acc, app int64
+
+	switch storedToken[0].(type) {
+	case nil:
+		return false
+	case string:
+		acc, err = strconv.ParseInt(storedToken[0].(string), 10, 64)
+		if err != nil {
+			return false
+		}
+	}
+
+	switch storedToken[1].(type) {
+	case nil:
+		return false
+	case string:
+		app, err = strconv.ParseInt(storedToken[1].(string), 10, 64)
+		if err != nil {
+			return false
+		}
+	}
+
+	_, _ = acc, app
+
+	return true
 }

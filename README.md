@@ -104,6 +104,13 @@ $ go test -bench=. -benchmem
 $ bin/ab/*.sh
 ```
 
+## Code commit
+
+Before doing a commit, please run the following in the ```$GOPATH/src/github.com/tapglue/backend```  
+```shell
+goimports -w ./.. && golint ./... && go vet ./...
+```
+
 ## Deployment
 
 TBD

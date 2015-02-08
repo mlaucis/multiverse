@@ -73,7 +73,6 @@ var routes = map[string]map[string]*route{
 			"/account/{accountId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}",
 			"/account/%d/user/%d",
 			[]http.HandlerFunc{
-				validateAccountRequestToken,
 				getAccountUser,
 			},
 		},
@@ -82,7 +81,6 @@ var routes = map[string]map[string]*route{
 			"/account/{accountId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}",
 			"/account/%d/user/%d",
 			[]http.HandlerFunc{
-				validateAccountRequestToken,
 				updateAccountUser,
 			},
 		},
@@ -91,7 +89,6 @@ var routes = map[string]map[string]*route{
 			"/account/{accountId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}",
 			"/account/%d/user/%d",
 			[]http.HandlerFunc{
-				validateAccountRequestToken,
 				deleteAccountUser,
 			},
 		},
@@ -100,7 +97,6 @@ var routes = map[string]map[string]*route{
 			"/account/{accountId:[0-9]{1,20}}/users",
 			"/account/%d/users",
 			[]http.HandlerFunc{
-				validateAccountRequestToken,
 				createAccountUser,
 			},
 		},
@@ -109,7 +105,6 @@ var routes = map[string]map[string]*route{
 			"/account/{accountId:[0-9]{1,20}}/users",
 			"/account/%d/users",
 			[]http.HandlerFunc{
-				validateAccountRequestToken,
 				getAccountUserList,
 			},
 		},
@@ -119,7 +114,6 @@ var routes = map[string]map[string]*route{
 			"/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}",
 			"/account/%d/application/%d",
 			[]http.HandlerFunc{
-				validateAccountRequestToken,
 				getApplication,
 			},
 		},
@@ -128,7 +122,6 @@ var routes = map[string]map[string]*route{
 			"/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}",
 			"/account/%d/application/%d",
 			[]http.HandlerFunc{
-				validateAccountRequestToken,
 				updateApplication,
 			},
 		},
@@ -137,7 +130,6 @@ var routes = map[string]map[string]*route{
 			"/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}",
 			"/account/%d/application/%d",
 			[]http.HandlerFunc{
-				validateAccountRequestToken,
 				deleteApplication,
 			},
 		},
@@ -146,7 +138,6 @@ var routes = map[string]map[string]*route{
 			"/account/{accountId:[0-9]{1,20}}/applications",
 			"/account/%d/applications",
 			[]http.HandlerFunc{
-				validateAccountRequestToken,
 				createApplication,
 			},
 		},
@@ -155,7 +146,6 @@ var routes = map[string]map[string]*route{
 			"/account/{accountId:[0-9]{1,20}}/applications",
 			"/account/%d/applications",
 			[]http.HandlerFunc{
-				validateAccountRequestToken,
 				getApplicationList,
 			},
 		},

@@ -10,6 +10,9 @@ import (
 	"fmt"
 	"time"
 
+	"encoding/base64"
+	"strconv"
+
 	"github.com/tapglue/backend/core/entity"
 )
 
@@ -151,6 +154,16 @@ func WriteApplication(application *entity.Application, retrieve bool) (app *enti
 	listKey := storageClient.Applications(application.AccountID)
 
 	if err = storageEngine.LPush(listKey, key).Err(); err != nil {
+		return nil, err
+	}
+
+	// Store the token details in redis
+	_, err = storageEngine.HMSet(
+		"tokens:"+base64.URLEncoding.EncodeToString([]byte(application.AuthToken)),
+		"acc", strconv.FormatInt(application.AccountID, 10),
+		"app", strconv.FormatInt(application.ID, 10),
+	).Result()
+	if err != nil {
 		return nil, err
 	}
 
