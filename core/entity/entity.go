@@ -154,7 +154,7 @@ type (
 		UserID        int64          `json:"user_id"`
 		Verb          string         `json:"verb"`
 		Language      string         `json:"language"`
-		Prioritity    string         `json:"priority"`
+		Prioritity    string         `json:"priority,omitempty"`
 		Location      string         `json:"location,omitempty"`
 		Object        *Object        `json:"object"`
 		Target        *Object        `json:"target,omitempty"`

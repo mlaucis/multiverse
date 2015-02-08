@@ -20,7 +20,7 @@ func AddCorrectAccount(fetchAccount bool) (acc *entity.Account, err error) {
 }
 
 // AddCorrectAccountUser creates a correct account user
-func AddCorrectAccountUser(accountID int64, fetchUser bool) (acc *entity.AccountUser, err error) {
+func AddCorrectAccountUser(accountID int64, fetchUser bool) (accUsr *entity.AccountUser, err error) {
 	accountUserWithAccountID := correctAccountUser
 	accountUserWithAccountID.AccountID = accountID
 	accountUser, err := core.WriteAccountUser(accountUserWithAccountID, fetchUser)
@@ -31,6 +31,18 @@ func AddCorrectAccountUser(accountID int64, fetchUser bool) (acc *entity.Account
 	return accountUser, nil
 }
 
+// AddCorrectApplication creates a correct application
+func AddCorrectApplication(accountID int64, fetchApplication bool) (app *entity.Application, err error) {
+	applicationWithAccountID := correctApplication
+	applicationWithAccountID.AccountID = accountID
+	application, err := core.WriteApplication(applicationWithAccountID, fetchApplication)
+	if err != nil {
+		return nil, err
+	}
+
+	return application, nil
+}
+
 // CorrectAccount returns a correct account
 func CorrectAccount() *entity.Account {
 	return correctAccount
@@ -39,4 +51,9 @@ func CorrectAccount() *entity.Account {
 // CorrectAccountUser returns a correct account user
 func CorrectAccountUser() *entity.AccountUser {
 	return correctAccountUser
+}
+
+// CorrectApplication returns a correct application
+func CorrectApplication() *entity.Application {
+	return correctApplication
 }

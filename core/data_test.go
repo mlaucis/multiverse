@@ -36,8 +36,9 @@ var (
 		},
 	}
 	correctApplication = &entity.Application{
-		Name:      "Demo App",
-		AuthToken: "imanappkey12345",
+		Name:        "Demo App",
+		Description: "This is the best application",
+		URL:         "http://app.co",
 	}
 	correctUser = &entity.User{
 		AuthToken: "userToken123",
