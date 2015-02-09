@@ -34,11 +34,11 @@ var (
 func CreateAccount(account *entity.Account) error {
 	errs := []*error{}
 
-	if !stringBetween(account.Name, accountNameMin, accountNameMax) {
+	if !stringLenghtBetween(account.Name, accountNameMin, accountNameMax) {
 		errs = append(errs, &errorAccountNameSize)
 	}
 
-	if !stringBetween(account.Description, accountDescriptionMin, accountDescriptionMax) {
+	if !stringLenghtBetween(account.Description, accountDescriptionMin, accountDescriptionMax) {
 		errs = append(errs, &errorAccountDescriptionSize)
 	}
 
@@ -73,11 +73,11 @@ func CreateAccount(account *entity.Account) error {
 func UpdateAccount(account *entity.Account) error {
 	errs := []*error{}
 
-	if !stringBetween(account.Name, accountNameMin, accountNameMax) {
+	if !stringLenghtBetween(account.Name, accountNameMin, accountNameMax) {
 		errs = append(errs, &errorAccountNameSize)
 	}
 
-	if !stringBetween(account.Description, accountDescriptionMin, accountDescriptionMax) {
+	if !stringLenghtBetween(account.Description, accountDescriptionMin, accountDescriptionMax) {
 		errs = append(errs, &errorAccountDescriptionSize)
 	}
 

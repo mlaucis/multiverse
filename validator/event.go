@@ -37,7 +37,7 @@ func CreateEvent(event *entity.Event) error {
 		errs = append(errs, &errorUserIDZero)
 	}
 
-	if !stringBetween(event.Verb, verbMin, verbMax) {
+	if !stringLenghtBetween(event.Verb, verbMin, verbMax) {
 		errs = append(errs, &errorVerbSize)
 	}
 
@@ -60,7 +60,7 @@ func CreateEvent(event *entity.Event) error {
 func UpdateEvent(event *entity.Event) error {
 	errs := []*error{}
 
-	if !stringBetween(event.Verb, verbMin, verbMax) {
+	if !stringLenghtBetween(event.Verb, verbMin, verbMax) {
 		errs = append(errs, &errorVerbSize)
 	}
 

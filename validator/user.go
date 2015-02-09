@@ -39,15 +39,15 @@ var (
 func CreateUser(user *entity.User) error {
 	errs := []*error{}
 
-	if !stringBetween(user.FirstName, userNameMin, userNameMax) {
+	if !stringLenghtBetween(user.FirstName, userNameMin, userNameMax) {
 		errs = append(errs, &errorUserFirstNameSize)
 	}
 
-	if !stringBetween(user.LastName, userNameMin, userNameMax) {
+	if !stringLenghtBetween(user.LastName, userNameMin, userNameMax) {
 		errs = append(errs, &errorUserLastNameSize)
 	}
 
-	if !stringBetween(user.Username, userNameMin, userNameMax) {
+	if !stringLenghtBetween(user.Username, userNameMin, userNameMax) {
 		errs = append(errs, &errorUserUsernameSize)
 	}
 
@@ -98,15 +98,15 @@ func CreateUser(user *entity.User) error {
 func UpdateUser(user *entity.User) error {
 	errs := []*error{}
 
-	if !stringBetween(user.FirstName, userNameMin, userNameMax) {
+	if !stringLenghtBetween(user.FirstName, userNameMin, userNameMax) {
 		errs = append(errs, &errorUserFirstNameSize)
 	}
 
-	if !stringBetween(user.LastName, userNameMin, userNameMax) {
+	if !stringLenghtBetween(user.LastName, userNameMin, userNameMax) {
 		errs = append(errs, &errorUserLastNameSize)
 	}
 
-	if !stringBetween(user.Username, userNameMin, userNameMax) {
+	if !stringLenghtBetween(user.Username, userNameMin, userNameMax) {
 		errs = append(errs, &errorUserUsernameSize)
 	}
 

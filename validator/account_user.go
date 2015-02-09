@@ -41,19 +41,19 @@ var (
 func CreateAccountUser(accountUser *entity.AccountUser) error {
 	errs := []*error{}
 
-	if !stringBetween(accountUser.FirstName, accountUserNameMin, accountUserNameMax) {
+	if !stringLenghtBetween(accountUser.FirstName, accountUserNameMin, accountUserNameMax) {
 		errs = append(errs, &errorAccountUserFirstNameSize)
 	}
 
-	if !stringBetween(accountUser.LastName, accountUserNameMin, accountUserNameMax) {
+	if !stringLenghtBetween(accountUser.LastName, accountUserNameMin, accountUserNameMax) {
 		errs = append(errs, &errorAccountUserLastNameSize)
 	}
 
-	if !stringBetween(accountUser.Username, accountUserNameMin, accountUserNameMax) {
+	if !stringLenghtBetween(accountUser.Username, accountUserNameMin, accountUserNameMax) {
 		errs = append(errs, &errorAccountUserUsernameSize)
 	}
 
-	if !stringBetween(accountUser.Password, accountUserPasswordMin, accountUserPasswordMax) {
+	if !stringLenghtBetween(accountUser.Password, accountUserPasswordMin, accountUserPasswordMax) {
 		errs = append(errs, &errorAccountUserPasswordSize)
 	}
 
@@ -102,19 +102,19 @@ func CreateAccountUser(accountUser *entity.AccountUser) error {
 func UpdateAccountUser(accountUser *entity.AccountUser) error {
 	errs := []*error{}
 
-	if !stringBetween(accountUser.FirstName, accountUserNameMin, accountUserNameMax) {
+	if !stringLenghtBetween(accountUser.FirstName, accountUserNameMin, accountUserNameMax) {
 		errs = append(errs, &errorAccountUserFirstNameSize)
 	}
 
-	if !stringBetween(accountUser.LastName, accountUserNameMin, accountUserNameMax) {
+	if !stringLenghtBetween(accountUser.LastName, accountUserNameMin, accountUserNameMax) {
 		errs = append(errs, &errorAccountUserLastNameSize)
 	}
 
-	if !stringBetween(accountUser.Username, accountUserNameMin, accountUserNameMax) {
+	if !stringLenghtBetween(accountUser.Username, accountUserNameMin, accountUserNameMax) {
 		errs = append(errs, &errorAccountUserUsernameSize)
 	}
 
-	if !stringBetween(accountUser.Password, accountUserPasswordMin, accountUserPasswordMax) {
+	if !stringLenghtBetween(accountUser.Password, accountUserPasswordMin, accountUserPasswordMax) {
 		errs = append(errs, &errorAccountUserPasswordSize)
 	}
 

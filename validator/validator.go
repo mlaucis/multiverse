@@ -52,8 +52,8 @@ func packErrors(errs []*error) error {
 	return fmt.Errorf(er[:len(er)-1])
 }
 
-// stringBetween validates the a strings length
-func stringBetween(value string, minLength, maxLength int) bool {
+// stringLenghtBetween validates the a strings length
+func stringLenghtBetween(value string, minLength, maxLength int) bool {
 	valueLen := len(value)
 
 	if valueLen < minLength {

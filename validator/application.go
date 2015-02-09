@@ -34,11 +34,11 @@ var (
 func CreateApplication(application *entity.Application) error {
 	errs := []*error{}
 
-	if !stringBetween(application.Name, applicationNameMin, applicationNameMax) {
+	if !stringLenghtBetween(application.Name, applicationNameMin, applicationNameMax) {
 		errs = append(errs, &errorApplicationNameSize)
 	}
 
-	if !stringBetween(application.Description, applicationDescriptionMin, applicationDescriptionMax) {
+	if !stringLenghtBetween(application.Description, applicationDescriptionMin, applicationDescriptionMax) {
 		errs = append(errs, &errorApplicationDescriptionSize)
 	}
 
@@ -81,11 +81,11 @@ func CreateApplication(application *entity.Application) error {
 func UpdateApplication(application *entity.Application) error {
 	errs := []*error{}
 
-	if !stringBetween(application.Name, applicationNameMin, applicationNameMax) {
+	if !stringLenghtBetween(application.Name, applicationNameMin, applicationNameMax) {
 		errs = append(errs, &errorApplicationNameSize)
 	}
 
-	if !stringBetween(application.Description, applicationDescriptionMin, applicationDescriptionMax) {
+	if !stringLenghtBetween(application.Description, applicationDescriptionMin, applicationDescriptionMax) {
 		errs = append(errs, &errorApplicationDescriptionSize)
 	}
 
