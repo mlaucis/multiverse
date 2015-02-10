@@ -18,14 +18,8 @@ const alpha1 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ~!@#$%^&*()_+{}:\"|<>?"
 const alpha2 = "abcdefghijklmnopqrstuvwxyz0123456789`-=[];'\\,./"
 
 var (
-	alpha1Len                  = rand.Intn(len(alpha1))
-	alpha2Len                  = rand.Intn(len(alpha2))
-	accountID int64 = 1
-	applicationID        int64 = 1
-	applicationTokenSalt       = ""
-	applicationCreatedAt       = time.Now().Format(time.RFC3339)
-	applicationSecretKey       = "application_secret_key"
-	requestVersion             = "tg_0.1_request"
+	alpha1Len = rand.Intn(len(alpha1))
+	alpha2Len = rand.Intn(len(alpha2))
 )
 
 func sha256String(value []byte) string {
@@ -35,7 +29,7 @@ func sha256String(value []byte) string {
 	return base64.URLEncoding.EncodeToString(hasher.Sum(nil))
 }
 
-func generateTokenSalt() string {
+func generateTokenSalt(applicationID int64) string {
 	rand.Seed(time.Now().UnixNano())
 	salt := ""
 
@@ -53,26 +47,26 @@ func generateTokenSalt() string {
 	return salt
 }
 
-func generateSecretKey() string {
+func generateSecretKey(accountID, applicationID int64, applicationTokenSalt string, applicationCreatedAt time.Time) string {
 	hasher := sha256.New()
 	hasher.Write([]byte(fmt.Sprintf(
 		"%d%d%s%s",
-	accountID,
+		accountID,
 		applicationID,
 		applicationTokenSalt,
-		applicationCreatedAt,
+		applicationCreatedAt.Format(time.RFC3339),
 	)))
 
 	return base64.URLEncoding.EncodeToString([]byte(
 		fmt.Sprintf(
 			"%d:%d:%s",
-		accountID,
+			accountID,
 			applicationID,
 			string(hasher.Sum(nil)),
 		)))
 }
 
-func addHeaders(r *http.Request) {
+func addHeaders(applicationID int64, r *http.Request) {
 	body, _ := ioutil.ReadAll(r.Body)
 
 	r.Header.Add("x-tagplue-date", time.Now().Format(time.RFC3339))
@@ -80,7 +74,7 @@ func addHeaders(r *http.Request) {
 	r.Header.Add("x-tapglue-id", fmt.Sprintf("%d", applicationID))
 }
 
-func getScope(date, scope string) string {
+func getScope(date, scope, requestVersion string) string {
 	return date + "/" + scope + "/" + requestVersion
 }
 
@@ -98,14 +92,14 @@ func canonicalRequest(r *http.Request) []byte {
 	return []byte(req)
 }
 
-func generateSigningString(r *http.Request, scope string) string {
+func generateSigningString(scope, requestVersion string, r *http.Request) string {
 	return requestVersion + "\n" +
 		r.Header.Get("x-tapglue-date") + "\n" +
-		getScope(r.Header.Get("x-tapglue-date"), scope) + "\n" +
+		getScope(r.Header.Get("x-tapglue-date"), scope, requestVersion) + "\n" +
 		sha256String(canonicalRequest(r))
 }
 
-func generateSigningKey(r *http.Request) string {
+func generateSigningKey(applicationSecretKey, requestVersion string, r *http.Request) string {
 	return sha256String([]byte(
 		sha256String([]byte(
 			sha256String([]byte(
@@ -117,15 +111,15 @@ func generateSigningKey(r *http.Request) string {
 	))
 }
 
-func signRequest(r *http.Request, scope string) {
+func signRequest(applicationID int64, applicationSecretKey, scope, requestVersion string, r *http.Request) {
 	// Add extra headers
-	addHeaders(r)
+	addHeaders(applicationID, r)
 
 	// Generate signing string
-	signString := generateSigningString(r, scope)
+	signString := generateSigningString(scope, requestVersion, r)
 
 	// Generate signing key
-	signningKey := generateSigningKey(r)
+	signningKey := generateSigningKey(applicationSecretKey, requestVersion, r)
 
 	// Sign the request
 	r.Header.Add("x-tapglue-signature", sha256String([]byte(signningKey+signString)))
@@ -134,9 +128,19 @@ func signRequest(r *http.Request, scope string) {
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
-	applicationTokenSalt = generateTokenSalt()
+	var (
+		accountID            int64 = 1
+		applicationID        int64 = 1
+		applicationTokenSalt       = ""
+		applicationCreatedAt       = time.Now()
+		applicationSecretKey       = "application_secret_key"
+		requestVersion             = "tg_0.1_request"
+		requestScope               = "user/login"
+	)
 
-	applicationSecretKey = generateSecretKey()
+	applicationTokenSalt = generateTokenSalt(applicationID)
+
+	applicationSecretKey = generateSecretKey(accountID, applicationID, applicationTokenSalt, applicationCreatedAt)
 
 	jsonStr := []byte(`{"username": "florin", "password": "passwd"}`)
 
@@ -148,7 +152,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	signRequest(req, "user/login")
+	signRequest(applicationID, applicationSecretKey, requestScope, requestVersion, req)
 
 	pretty.Printf("%# v\n", req)
 
