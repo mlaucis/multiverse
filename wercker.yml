@@ -7,8 +7,7 @@ build:
     - script:
         name: initializing go dependencies
         code: |-
-          cd $WERCKER_SOURCE_DIR
-          $WERCKER_SOURCE_DIR/bin/godeps.sh
+          go get -v -u github.com/tools/godep
     - script:
         name: getting code coverage tool
         code: |-
@@ -26,7 +25,7 @@ build:
         code: |-
           export WERCKER_SOURCE_DIR=${GOPATH}/src/github.com/tapglue/backend
           cd $WERCKER_SOURCE_DIR
-          go build -o tapglue-backend backend.go
+          godep go build -o tapglue-backend backend.go
           rm -f tapglue-backend
 #    - script:
 #        name: test core
@@ -39,7 +38,7 @@ build:
         code: |-
           export WERCKER_SOURCE_DIR=${GOPATH}/src/github.com/tapglue/backend
           cd $WERCKER_SOURCE_DIR/server
-          gocov test -race -check.v | gocov-xml > coverage.xml
+          GOPATH=`godep path`:$GOPATH gocov test -race -check.v | GOPATH=`godep path`:$GOPATH gocov-xml > coverage.xml
     - script:
         name: codecov
         code: |-
