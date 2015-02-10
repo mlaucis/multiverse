@@ -66,12 +66,10 @@ func ValidateApplicationRequestToken(accountID, applicationID int64, requestToke
 		"app",
 	).Result()
 	if err != nil {
-		panic("err != nil")
 		return false
 	}
 
 	if storedToken == nil {
-		panic("storedToken == nil")
 		return false
 	}
 
@@ -97,7 +95,9 @@ func ValidateApplicationRequestToken(accountID, applicationID int64, requestToke
 		}
 	}
 
-	_, _ = acc, app
+	if acc != accountID || app != applicationID {
+		return false
+	}
 
 	return true
 }
