@@ -21,6 +21,12 @@ func ValidateAccountRequestToken(accountID int64, requestToken string) bool {
 		return false
 	}
 
+	requestToken = requestToken[7:]
+
+	if requestToken == "" {
+		return false
+	}
+
 	account, err := core.ReadAccount(accountID)
 	if err != nil {
 		return false
@@ -33,8 +39,6 @@ func ValidateAccountRequestToken(accountID int64, requestToken string) bool {
 
 	// TODO account token is actually the secret that we never want to transfer in plain text (or base64)
 	// so this needs to actually generate a JWT signature with the account token as the secret
-
-	requestToken = requestToken[7:]
 
 	return token == requestToken
 }
@@ -50,6 +54,10 @@ func ValidateApplicationRequestToken(accountID, applicationID int64, requestToke
 	}
 
 	requestToken = requestToken[7:]
+
+	if requestToken == "" {
+		return false
+	}
 
 	// Store the token details in redis
 	storedToken, err := storageEngine.HMGet(

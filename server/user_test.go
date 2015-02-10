@@ -15,9 +15,6 @@ import (
 
 // Test createUser request with a wrong key
 func (s *ServerSuite) TestCreateUser_WrongKey(c *C) {
-	c.Skip("To be refactored to use sessions")
-	return
-
 	correctAccount, err := AddCorrectAccount(true)
 	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
 

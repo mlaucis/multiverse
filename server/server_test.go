@@ -17,6 +17,7 @@ import (
 	"github.com/tapglue/backend/core"
 	"github.com/tapglue/backend/storage"
 	"github.com/tapglue/backend/storage/redis"
+	"github.com/tapglue/backend/validator"
 
 	"github.com/gorilla/mux"
 	. "gopkg.in/check.v1"
@@ -46,6 +47,7 @@ func (s *ServerSuite) SetUpTest(c *C) {
 	redis.Client().FlushDb()
 	storageClient = storage.Init(redis.Client())
 	core.Init(storageClient)
+	validator.Init(storageClient)
 
 	go TGLog(logChan)
 }
