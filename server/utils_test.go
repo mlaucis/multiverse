@@ -73,5 +73,5 @@ func CorrectApplication() *entity.Application {
 
 // CorrectUser returns a correct user
 func CorrectUser() *entity.User {
-	return CorrectUser()
+	return correctUser
 }

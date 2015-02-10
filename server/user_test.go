@@ -34,9 +34,6 @@ func (s *ServerSuite) TestCreateUser_WrongKey(c *C) {
 
 // Test a correct createUser request
 func (s *ServerSuite) TestCreateUser_OK(c *C) {
-	c.Skip("To be refactored to use sessions")
-	return
-
 	correctAccount, err := AddCorrectAccount(true)
 	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
 	correctUser := CorrectUser()
