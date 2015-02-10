@@ -59,6 +59,11 @@ var (
 			Metadata: "{\"more\":\"data\"}",
 		},
 	}
+	correctConnection = &entity.Connection{
+		Common: entity.Common{
+			Enabled: true,
+		},
+	}
 	correctEvent = &entity.Event{
 		ApplicationID: 1,
 		UserID:        correctUser.ID,

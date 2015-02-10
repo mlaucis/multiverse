@@ -56,6 +56,21 @@ func AddCorrectUser(accountID, applicationID int64, fetchUser bool) (usr *entity
 	return user, nil
 }
 
+// AddCorrectConnection creates a correct user connection
+func AddCorrectConnection(accountID, applicationID, userFromID, userToID int64, fetchConnection bool) (con *entity.Connection, err error) {
+	connectionWithIDs := correctConnection
+	connectionWithIDs.AccountID = accountID
+	connectionWithIDs.ApplicationID = applicationID
+	connectionWithIDs.UserFromID = userFromID
+	connectionWithIDs.UserToID = userToID
+	connection, err := core.WriteConnection(connectionWithIDs, fetchConnection)
+	if err != nil {
+		return nil, err
+	}
+
+	return connection, nil
+}
+
 // CorrectAccount returns a correct account
 func CorrectAccount() *entity.Account {
 	return correctAccount

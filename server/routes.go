@@ -198,7 +198,7 @@ var routes = map[string]map[string]*route{
 		"createConnection": &route{
 			"POST",
 			"/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/connections",
-			"/account/%d/application/%d/connections",
+			"/account/%d/application/%d/user/%d/connections",
 			[]http.HandlerFunc{
 				validateApplicationRequestToken,
 				createConnection,
