@@ -16,6 +16,7 @@ import (
 // Test createApplication request with a wrong key
 func (s *ServerSuite) TestCreateApplication_WrongKey(c *C) {
 	correctAccount, err := AddCorrectAccount(true)
+	c.Assert(err, IsNil)
 	payload := "{namae:''}"
 
 	token, err := storageClient.GenerateAccountToken(correctAccount)
@@ -33,6 +34,8 @@ func (s *ServerSuite) TestCreateApplication_WrongKey(c *C) {
 // Test createApplication request with an wrong name
 func (s *ServerSuite) TestCreateApplication_WrongValue(c *C) {
 	correctAccount, err := AddCorrectAccount(true)
+	c.Assert(err, IsNil)
+
 	payload := `{"name":""}`
 
 	token, err := storageClient.GenerateAccountToken(correctAccount)
@@ -58,6 +61,7 @@ func (s *ServerSuite) TestCreateApplication_OK(c *C) {
 		correctApplication.Description,
 		correctApplication.URL,
 	)
+	c.Assert(err, IsNil)
 
 	token, err := storageClient.GenerateAccountToken(correctAccount)
 	c.Assert(err, IsNil)
@@ -92,6 +96,7 @@ func (s *ServerSuite) TestUpdateApplication_OK(c *C) {
 		correctApplication.Name,
 		correctApplication.URL,
 	)
+	c.Assert(err, IsNil)
 
 	token, err := storageClient.GenerateAccountToken(correctAccount)
 	c.Assert(err, IsNil)
@@ -111,6 +116,8 @@ func (s *ServerSuite) TestUpdateApplication_OK(c *C) {
 	if application.ID < 1 {
 		c.Fail()
 	}
+
+	c.Assert(err, IsNil)
 	c.Assert(application.Name, Equals, correctApplication.Name)
 	c.Assert(application.URL, Equals, correctApplication.URL)
 	c.Assert(application.Enabled, Equals, true)
@@ -125,6 +132,7 @@ func (s *ServerSuite) TestUpdateApplication_WrongID(c *C) {
 		correctApplication.Name,
 		correctApplication.URL,
 	)
+	c.Assert(err, IsNil)
 
 	token, err := storageClient.GenerateAccountToken(correctAccount)
 	c.Assert(err, IsNil)
@@ -146,6 +154,7 @@ func (s *ServerSuite) TestUpdateApplication_WrongValue(c *C) {
 		correctApplication.Name,
 		correctApplication.URL,
 	)
+	c.Assert(err, IsNil)
 
 	token, err := storageClient.GenerateAccountToken(correctAccount)
 	c.Assert(err, IsNil)
@@ -213,7 +222,6 @@ func (s *ServerSuite) TestDeleteApplication_WrongID(c *C) {
 	w, err := runRequest(routeName, route, "", token)
 
 	c.Assert(err, IsNil)
-
 	c.Assert(w.Code, Equals, http.StatusInternalServerError)
 }
 
@@ -247,6 +255,7 @@ func (s *ServerSuite) TestGetApplication_OK(c *C) {
 	routeName := "getApplication"
 	route := getComposedRoute(routeName, correctApplication.AccountID, correctApplication.ID)
 	w, err := runRequest(routeName, route, "", token)
+	c.Assert(err, IsNil)
 
 	c.Assert(w.Code, Equals, http.StatusOK)
 	response := w.Body.String()
@@ -273,6 +282,7 @@ func (s *ServerSuite) TestGetApplication_WrongID(c *C) {
 	routeName := "getApplication"
 	route := getComposedRoute(routeName, correctApplication.AccountID, correctApplication.ID+1)
 	w, err := runRequest(routeName, route, "", token)
+	c.Assert(err, IsNil)
 
 	c.Assert(w.Code, Equals, http.StatusInternalServerError)
 }
@@ -289,6 +299,7 @@ func (s *ServerSuite) TestGetApplication_WrongToken(c *C) {
 	routeName := "getApplication"
 	route := getComposedRoute(routeName, correctApplication.AccountID, correctApplication.ID)
 	w, err := runRequest(routeName, route, "", "")
+	c.Assert(err, IsNil)
 
 	c.Assert(w.Code, Equals, http.StatusBadRequest)
 }
