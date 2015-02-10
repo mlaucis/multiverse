@@ -157,5 +157,8 @@ func main() {
 	pretty.Printf("%# v\n", req)
 
 	decodedKey, _ := base64.URLEncoding.DecodeString(applicationSecretKey)
-	fmt.Printf("\nApplication salt: %v\nApplication key: %#v\nDecoded application key: %#v", applicationTokenSalt, applicationSecretKey, string(decodedKey))
+	fmt.Printf("\nApplication salt: %v\nApplication key: %#v\nDecoded application key: %#v\n", applicationTokenSalt, applicationSecretKey, string(decodedKey))
+
+	decodedTgSign, _ := base64.URLEncoding.DecodeString(req.Header.Get("X-Tapglue-Signature"))
+	fmt.Printf("\n%X-Tapglue-Signature: #v\nbase64Decode X-Tapglue-Signature: %#v\n", req.Header.Get("X-Tapglue-Signature"), string(decodedTgSign))
 }
