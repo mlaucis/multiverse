@@ -1,25 +1,31 @@
 package main
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
-	"net/http"
-	"time"
-
-	"bytes"
 	"io/ioutil"
+	"math/rand"
+	"net/http"
+	"runtime"
+	"time"
 
 	"github.com/kr/pretty"
 )
 
+const alpha1 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ~!@#$%^&*()_+{}:\"|<>?"
+const alpha2 = "abcdefghijklmnopqrstuvwxyz0123456789`-=[];'\\,./"
+
 var (
-	accountId               int64 = 1
-	applicationID           int64 = 1
-	applicationOriginalName       = "Demo app"
-	applicationCreatedAt          = time.Now().Format(time.RFC3339)
-	applicationSecretKey          = "application_secret_key"
-	requestVersion                = "tg_0.1_request"
+	alpha1Len                  = rand.Intn(len(alpha1))
+	alpha2Len                  = rand.Intn(len(alpha2))
+	accountId            int64 = 1
+	applicationID        int64 = 1
+	applicationTokenSalt       = ""
+	applicationCreatedAt       = time.Now().Format(time.RFC3339)
+	applicationSecretKey       = "application_secret_key"
+	requestVersion             = "tg_0.1_request"
 )
 
 func sha256String(value []byte) string {
@@ -29,13 +35,31 @@ func sha256String(value []byte) string {
 	return base64.URLEncoding.EncodeToString(hasher.Sum(nil))
 }
 
+func generateTokenSalt() string {
+	rand.Seed(time.Now().UnixNano())
+	salt := ""
+
+	for i := 0; i < 5; i++ {
+		if applicationID%2 == 0 {
+			salt += string(alpha1[rand.Intn(alpha1Len)])
+			salt += string(alpha2[rand.Intn(alpha2Len)])
+		} else {
+			salt += string(alpha2[rand.Intn(alpha2Len)])
+			salt += string(alpha1[rand.Intn(alpha1Len)])
+		}
+
+	}
+
+	return salt
+}
+
 func generateSecretKey() string {
 	hasher := sha256.New()
 	hasher.Write([]byte(fmt.Sprintf(
 		"%d%d%s%s",
 		accountId,
 		applicationID,
-		applicationOriginalName,
+		applicationTokenSalt,
 		applicationCreatedAt,
 	)))
 
@@ -108,6 +132,9 @@ func signRequest(r *http.Request, scope string) {
 }
 
 func main() {
+	runtime.GOMAXPROCS(runtime.NumCPU())
+
+	applicationTokenSalt = generateTokenSalt()
 
 	applicationSecretKey = generateSecretKey()
 
@@ -126,5 +153,5 @@ func main() {
 	pretty.Printf("%# v\n", req)
 
 	decodedKey, _ := base64.URLEncoding.DecodeString(applicationSecretKey)
-	fmt.Printf("\nAccount key: %#v\nDecoded key: %#v", applicationSecretKey, string(decodedKey))
+	fmt.Printf("\nApplication salt: %v\nApplication key: %#v\nDecoded application key: %#v", applicationTokenSalt, applicationSecretKey, string(decodedKey))
 }
