@@ -13,7 +13,7 @@ import (
 	. "gopkg.in/check.v1"
 )
 
-// Test create application request with a wrong key
+// Test createApplication request with a wrong key
 func (s *ServerSuite) TestCreateApplication_WrongKey(c *C) {
 	correctAccount, err := AddCorrectAccount(true)
 	payload := "{namae:''}"
