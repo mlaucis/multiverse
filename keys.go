@@ -30,7 +30,8 @@ func sha256String(value []byte) string {
 }
 
 func generateSecretKey() string {
-	hash := sha256String([]byte(fmt.Sprintf(
+	hasher := sha256.New()
+	hasher.Write([]byte(fmt.Sprintf(
 		"%d%d%s%s",
 		accountId,
 		applicationID,
@@ -43,7 +44,7 @@ func generateSecretKey() string {
 			"%d:%d:%s",
 			accountId,
 			applicationID,
-			hash,
+			string(hasher.Sum(nil)),
 		)))
 }
 
@@ -124,5 +125,6 @@ func main() {
 
 	pretty.Printf("%# v\n", req)
 
-	fmt.Printf("\nAccount key%#v\n", applicationSecretKey)
+	decodedKey, _ := base64.URLEncoding.DecodeString(applicationSecretKey)
+	fmt.Printf("\nAccount key: %#v\nDecoded key: %#v", applicationSecretKey, string(decodedKey))
 }
