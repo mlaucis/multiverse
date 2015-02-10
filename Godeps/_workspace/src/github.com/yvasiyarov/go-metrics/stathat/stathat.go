@@ -5,8 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/rcrowley/go-metrics"
-	"github.com/stathat/go"
+	"github.com/yvasiyarov/go-metrics"
 )
 
 func Stathat(r metrics.Registry, d time.Duration, userkey string) {

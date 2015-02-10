@@ -6,7 +6,7 @@ import (
 	"time"
 
 	influxClient "github.com/influxdb/influxdb/client"
-	"github.com/rcrowley/go-metrics"
+	"github.com/yvasiyarov/go-metrics"
 )
 
 type Config struct {
