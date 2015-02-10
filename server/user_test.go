@@ -228,7 +228,6 @@ func (s *ServerSuite) TestDeleteUser_WrongID(c *C) {
 	routeName := "deleteUser"
 	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID+1)
 	w, err := runRequest(routeName, route, "", token)
-	c.Assert(err, IsNil)
 
 	c.Assert(err, IsNil)
 	c.Assert(w.Code, Equals, http.StatusInternalServerError)
