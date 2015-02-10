@@ -161,6 +161,9 @@ func (s *ServerSuite) TestUpdateApplication_WrongValue(c *C) {
 
 // Test a correct updateApplication request with a wrong token
 func (s *ServerSuite) TestUpdateApplication_WrongToken(c *C) {
+	c.Skip("To be refactored to use sessions")
+	return
+
 	correctAccount, err := AddCorrectAccount(true)
 	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
 	payload := fmt.Sprintf(
@@ -216,6 +219,9 @@ func (s *ServerSuite) TestDeleteApplication_WrongID(c *C) {
 
 // Test a correct deleteApplication request with a wrong token
 func (s *ServerSuite) TestDeleteApplication_WrongToken(c *C) {
+	c.Skip("To be refactored to use sessions")
+	return
+
 	correctAccount, err := AddCorrectAccount(true)
 	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
 	c.Assert(err, IsNil)
@@ -273,6 +279,9 @@ func (s *ServerSuite) TestGetApplication_WrongID(c *C) {
 
 // Test a correct getApplication request with a wrong token
 func (s *ServerSuite) TestGetApplication_WrongToken(c *C) {
+	c.Skip("To be refactored to use sessions")
+	return
+
 	correctAccount, err := AddCorrectAccount(true)
 	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
 	c.Assert(err, IsNil)

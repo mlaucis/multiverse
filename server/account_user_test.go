@@ -223,6 +223,9 @@ func (s *ServerSuite) TestDeleteAccountUser_WrongID(c *C) {
 
 // Test a correct deleteAccountUser request with a wrong token
 func (s *ServerSuite) TestDeleteAccountUser_WrongToken(c *C) {
+	c.Skip("To be refactored to use sessions")
+	return
+
 	correctAccount, err := AddCorrectAccount(true)
 	correctAccountUser, err := AddCorrectAccountUser(correctAccount.ID, true)
 	c.Assert(err, IsNil)
@@ -277,6 +280,9 @@ func (s *ServerSuite) TestGetAccountUser_WrongID(c *C) {
 
 // Test a correct getAccountUser request with a wrong token
 func (s *ServerSuite) TestGetAccountUser_WrongToken(c *C) {
+	c.Skip("To be refactored to use sessions")
+	return
+
 	correctAccount, err := AddCorrectAccount(true)
 	correctAccountUser, err := AddCorrectAccountUser(correctAccount.ID, true)
 	c.Assert(err, IsNil)
