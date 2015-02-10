@@ -61,7 +61,7 @@ func ValidateApplicationRequestToken(accountID, applicationID int64, requestToke
 
 	// Store the token details in redis
 	storedToken, err := storageEngine.HMGet(
-		"apps:"+base64.URLEncoding.EncodeToString([]byte(requestToken)),
+		"tokens:"+base64.URLEncoding.EncodeToString([]byte(requestToken)),
 		"acc",
 		"app",
 	).Result()

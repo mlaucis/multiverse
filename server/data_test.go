@@ -45,9 +45,10 @@ var (
 		UserCommon: entity.UserCommon{
 			Username:  "Demo User",
 			FirstName: "Florin",
+			LastName:  "Patan",
 			Password:  "password",
 			Email:     "d@m.o",
-			URL:       "app://link.to/userToken123",
+			URL:       "http://link.to/userToken123",
 		},
 		Common: entity.Common{
 			Image: []*entity.Image{
