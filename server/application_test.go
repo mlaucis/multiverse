@@ -220,8 +220,8 @@ func (s *ServerSuite) TestDeleteApplication_WrongID(c *C) {
 	routeName := "deleteApplication"
 	route := getComposedRoute(routeName, correctApplication.AccountID, correctApplication.ID+1)
 	w, err := runRequest(routeName, route, "", token)
-
 	c.Assert(err, IsNil)
+
 	c.Assert(w.Code, Equals, http.StatusInternalServerError)
 }
 
@@ -237,7 +237,6 @@ func (s *ServerSuite) TestDeleteApplication_WrongToken(c *C) {
 	routeName := "deleteApplication"
 	route := getComposedRoute(routeName, correctApplication.AccountID, correctApplication.ID)
 	w, err := runRequest(routeName, route, "", "")
-
 	c.Assert(err, IsNil)
 
 	c.Assert(w.Code, Equals, http.StatusBadRequest)
@@ -264,6 +263,7 @@ func (s *ServerSuite) TestGetApplication_OK(c *C) {
 	application := &entity.Application{}
 	err = json.Unmarshal([]byte(response), application)
 	c.Assert(err, IsNil)
+
 	c.Assert(application.ID, Equals, correctApplication.ID)
 	c.Assert(application.Name, Equals, correctApplication.Name)
 	c.Assert(application.Description, Equals, correctApplication.Description)
