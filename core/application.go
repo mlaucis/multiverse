@@ -67,13 +67,13 @@ func UpdateApplication(application *entity.Application, retrieve bool) (app *ent
 }
 
 // DeleteApplication deletes the application matching the IDs or an error
-func DeleteApplication(accountID, applicationId int64) (err error) {
+func DeleteApplication(accountID, applicationID int64) (err error) {
 	// TODO: Disable application users?
 	// TODO: User connections?
 	// TODO: Application lists?
 	// TODO: Application events?
 
-	key := storageClient.Application(accountID, applicationId)
+	key := storageClient.Application(accountID, applicationID)
 	result, err := storageEngine.Del(key).Result()
 	if err != nil {
 		return err

@@ -20,7 +20,7 @@ const alpha2 = "abcdefghijklmnopqrstuvwxyz0123456789`-=[];'\\,./"
 var (
 	alpha1Len                  = rand.Intn(len(alpha1))
 	alpha2Len                  = rand.Intn(len(alpha2))
-	accountId            int64 = 1
+	accountID int64 = 1
 	applicationID        int64 = 1
 	applicationTokenSalt       = ""
 	applicationCreatedAt       = time.Now().Format(time.RFC3339)
@@ -57,7 +57,7 @@ func generateSecretKey() string {
 	hasher := sha256.New()
 	hasher.Write([]byte(fmt.Sprintf(
 		"%d%d%s%s",
-		accountId,
+	accountID,
 		applicationID,
 		applicationTokenSalt,
 		applicationCreatedAt,
@@ -66,7 +66,7 @@ func generateSecretKey() string {
 	return base64.URLEncoding.EncodeToString([]byte(
 		fmt.Sprintf(
 			"%d:%d:%s",
-			accountId,
+		accountID,
 			applicationID,
 			string(hasher.Sum(nil)),
 		)))
@@ -142,7 +142,7 @@ func main() {
 
 	req, err := http.NewRequest(
 		"GET",
-		fmt.Sprintf("https://api.tagpglue.com/acc/%d/app/%d/user/login", accountId, applicationID),
+		fmt.Sprintf("https://api.tagpglue.com/acc/%d/app/%d/user/login", accountID, applicationID),
 		bytes.NewBuffer(jsonStr),
 	)
 	if err != nil {

@@ -160,10 +160,10 @@ func getConnectionList(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := &struct {
-		applicationID int64 `json:"applicationId"`
+		ApplicationID int64 `json:"applicationId"`
 		Users         []*entity.User
 	}{
-		applicationID: applicationID,
+		ApplicationID: applicationID,
 		Users:         users,
 	}
 

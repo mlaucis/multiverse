@@ -24,7 +24,7 @@ func getApplication(w http.ResponseWriter, r *http.Request) {
 	var (
 		application   *entity.Application
 		accountID     int64
-		applicationId int64
+		applicationID int64
 		err           error
 	)
 
@@ -35,12 +35,12 @@ func getApplication(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if applicationId, err = strconv.ParseInt(vars["applicationId"], 10, 64); err != nil {
+	if applicationID, err = strconv.ParseInt(vars["applicationId"], 10, 64); err != nil {
 		errorHappened("applicationId is not set or the value is incorrect", http.StatusBadRequest, r, w)
 		return
 	}
 
-	if application, err = core.ReadApplication(accountID, applicationId); err != nil {
+	if application, err = core.ReadApplication(accountID, applicationID); err != nil {
 		errorHappened(fmt.Sprintf("%s", err), http.StatusInternalServerError, r, w)
 		return
 	}
@@ -55,7 +55,7 @@ func updateApplication(w http.ResponseWriter, r *http.Request) {
 	var (
 		application   = &entity.Application{}
 		accountID     int64
-		applicationId int64
+		applicationID int64
 		err           error
 	)
 	vars := mux.Vars(r)
@@ -65,7 +65,7 @@ func updateApplication(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if applicationId, err = strconv.ParseInt(vars["applicationId"], 10, 64); err != nil {
+	if applicationID, err = strconv.ParseInt(vars["applicationId"], 10, 64); err != nil {
 		errorHappened("applicationId is not set or the value is incorrect", http.StatusBadRequest, r, w)
 		return
 	}
@@ -77,7 +77,7 @@ func updateApplication(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if application.ID == 0 {
-		application.ID = applicationId
+		application.ID = applicationID
 	}
 	if application.AccountID == 0 {
 		application.AccountID = accountID
@@ -102,7 +102,7 @@ func updateApplication(w http.ResponseWriter, r *http.Request) {
 func deleteApplication(w http.ResponseWriter, r *http.Request) {
 	var (
 		accountID     int64
-		applicationId int64
+		applicationID int64
 		err           error
 	)
 	vars := mux.Vars(r)
@@ -112,12 +112,12 @@ func deleteApplication(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if applicationId, err = strconv.ParseInt(vars["applicationId"], 10, 64); err != nil {
+	if applicationID, err = strconv.ParseInt(vars["applicationId"], 10, 64); err != nil {
 		errorHappened("applicationId is not set or the value is incorrect", http.StatusBadRequest, r, w)
 		return
 	}
 
-	if err = core.DeleteApplication(accountID, applicationId); err != nil {
+	if err = core.DeleteApplication(accountID, applicationID); err != nil {
 		errorHappened(fmt.Sprintf("%s", err), http.StatusInternalServerError, r, w)
 		return
 	}

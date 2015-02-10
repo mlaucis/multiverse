@@ -207,11 +207,11 @@ func getEventList(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := &struct {
-		applicationID int64 `json:"applicationId"`
+		ApplicationID int64 `json:"applicationId"`
 		User          *entity.User
 		Events        []*entity.Event
 	}{
-		applicationID: applicationID,
+		ApplicationID: applicationID,
 		User:          user,
 		Events:        events,
 	}
@@ -254,11 +254,11 @@ func getConnectionEventList(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := struct {
-		applicationID int64           `json:"applicationId"`
+		ApplicationID int64           `json:"applicationId"`
 		UserID        int64           `json:"userId"`
 		Events        []*entity.Event `json:"events"`
 	}{
-		applicationID: applicationID,
+		ApplicationID: applicationID,
 		UserID:        userID,
 		Events:        events,
 	}

@@ -52,10 +52,10 @@ func getUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := &struct {
-		applicationID int64 `json:"applicationId"`
+		ApplicationID int64 `json:"applicationId"`
 		*entity.User
 	}{
-		applicationID: applicationID,
+		ApplicationID: applicationID,
 		User:          user,
 	}
 
@@ -185,10 +185,10 @@ func getUserList(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := &struct {
-		applicationID int64 `json:"applicationId"`
+		ApplicationID int64 `json:"applicationId"`
 		Users         []*entity.User
 	}{
-		applicationID: applicationID,
+		ApplicationID: applicationID,
 		Users:         users,
 	}
 
