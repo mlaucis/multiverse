@@ -336,7 +336,7 @@ func customHandler(routeName string, r *route, newRelicAgent *gorelic.Agent, log
 }
 
 // GetRouter creates the router
-func GetRouter(debugMode bool, newRelicAgent *gorelic.Agent, logChan chan *LogMsg) *mux.Router {
+func GetRouter(debugMode bool, newRelicAgent *gorelic.Agent, logChan chan *LogMsg) (*mux.Router, error) {
 	dbgMode = debugMode
 	router := mux.NewRouter().StrictSlash(true)
 
@@ -357,5 +357,5 @@ func GetRouter(debugMode bool, newRelicAgent *gorelic.Agent, logChan chan *LogMs
 		router.Handle("/debug/pprof/symbol", http.HandlerFunc(pprof.Symbol))
 	}
 
-	return router
+	return router, nil
 }

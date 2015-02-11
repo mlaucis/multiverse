@@ -132,7 +132,7 @@ func (s *ServerSuite) TestUpdateConnection_OK(c *C) {
 	c.Assert(connection.Enabled, Equals, false)
 }
 
-// Test an updateConnection request with a wrong id
+// Test updateConnection request with a wrong id
 func (s *ServerSuite) TestUpdateConnection_WrongID(c *C) {
 	correctAccount, err := AddCorrectAccount(true)
 	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
@@ -158,7 +158,7 @@ func (s *ServerSuite) TestUpdateConnection_WrongID(c *C) {
 	c.Assert(w.Code, Equals, http.StatusInternalServerError)
 }
 
-// Test a updateConnection request with an invalid name
+// Test updateConnection request with an invalid name
 func (s *ServerSuite) TestUpdateConnection_WrongValue(c *C) {
 	correctAccount, err := AddCorrectAccount(true)
 	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
@@ -205,7 +205,7 @@ func (s *ServerSuite) TestDeleteConnection_OK(c *C) {
 	c.Assert(w.Code, Equals, http.StatusNoContent)
 }
 
-// Test a correct deleteConnection request with a wrong id
+// Test deleteConnection request with a wrong id
 func (s *ServerSuite) TestDeleteConnection_WrongID(c *C) {
 	correctAccount, err := AddCorrectAccount(true)
 	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)

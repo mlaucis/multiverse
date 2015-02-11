@@ -71,6 +71,20 @@ func AddCorrectConnection(accountID, applicationID, userFromID, userToID int64, 
 	return connection, nil
 }
 
+// AddCorrectEvent creates a correct event
+func AddCorrectEvent(accountID, applicationID, userID int64, fetchEvent bool) (evn *entity.Event, err error) {
+	eventWithIDs := correctEvent
+	eventWithIDs.AccountID = accountID
+	eventWithIDs.ApplicationID = applicationID
+	eventWithIDs.UserID = userID
+	event, err := core.WriteEvent(eventWithIDs, fetchEvent)
+	if err != nil {
+		return nil, err
+	}
+
+	return event, nil
+}
+
 // CorrectAccount returns a correct account
 func CorrectAccount() *entity.Account {
 	return correctAccount
@@ -89,4 +103,9 @@ func CorrectApplication() *entity.Application {
 // CorrectUser returns a correct user
 func CorrectUser() *entity.User {
 	return correctUser
+}
+
+// CorrectEvent returns a correct event
+func CorrectEvent() *entity.Event {
+	return correctEvent
 }

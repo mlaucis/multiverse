@@ -6,8 +6,10 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"math/rand"
+	"net"
 	"net/http"
 	_ "net/http/pprof"
 	"runtime"
@@ -68,7 +70,11 @@ func main() {
 	go server.TGLog(logChan)
 
 	// Get router
-	router := server.GetRouter(conf.Environment != "prod", newRelicAgent, logChan)
+	router, err := server.GetRouter(conf.Environment != "prod", newRelicAgent, logChan)
+
+	if err != nil {
+		panic(err)
+	}
 
 	if conf.UseArtwork {
 		log.Printf(`
@@ -87,6 +93,23 @@ func main() {
 
   	`)
 	}
-	log.Printf("Starting the server at port %s", conf.ListenHostPort)
+
+	// Get IP Address
+	addrs, err := net.InterfaceAddrs()
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	var localIP string
+	for _, address := range addrs {
+		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+			if ipnet.IP.To4() != nil {
+				localIP = ipnet.IP.String()
+			}
+		}
+	}
+
+	log.Printf("Starting the server at %s%s", localIP, conf.ListenHostPort)
 	log.Fatal(http.ListenAndServe(conf.ListenHostPort, router))
 }

@@ -251,6 +251,38 @@ func (s *ServerSuite) TestValidateDeleteCommon_NoCLHeader(c *C) {
 	c.Assert(w.Body.String(), Equals, "400 User-Agent header must be set")
 }
 
+// Test a correct humans request
+func (s *ServerSuite) TestHumans_OK(c *C) {
+	routeName := "humans"
+	route := getComposedRoute(routeName)
+	w, err := runRequest(routeName, route, "", "")
+	c.Assert(err, IsNil)
+
+	c.Assert(w.Code, Equals, http.StatusOK)
+	response := w.Body.String()
+	c.Assert(response, Not(Equals), "")
+}
+
+// Test a correct robots request
+func (s *ServerSuite) TestRobots_OK(c *C) {
+	routeName := "robots"
+	route := getComposedRoute(routeName)
+	w, err := runRequest(routeName, route, "", "")
+	c.Assert(err, IsNil)
+
+	c.Assert(w.Code, Equals, http.StatusOK)
+	response := w.Body.String()
+	c.Assert(response, Not(Equals), "")
+}
+
+// Test GetRouter
+func (s *ServerSuite) TestGetRouter_OK(c *C) {
+	logChan := make(chan *LogMsg, 100000)
+	_, err := GetRouter(true, nil, logChan)
+
+	c.Assert(err, IsNil)
+}
+
 // createCommonRequestHeaders create a correct request header
 func createCommonRequestHeaders(payload string, req *http.Request) {
 	req.Header.Add("User-Agent", "go test (+localhost)")

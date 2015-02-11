@@ -225,7 +225,7 @@ var routes = map[string]map[string]*route{
 		"getConnectionList": &route{
 			"GET",
 			"/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/connections",
-			"/account/%d/application/%d/user/%s/connections",
+			"/account/%d/application/%d/user/%d/connections",
 			[]http.HandlerFunc{
 				validateApplicationRequestToken,
 				getConnectionList,
@@ -235,7 +235,7 @@ var routes = map[string]map[string]*route{
 		"getEvent": &route{
 			"GET",
 			"/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/event/{eventId:[0-9]{1,20}}",
-			"/account/%d/application/%d/user/%s/event/%d",
+			"/account/%d/application/%d/user/%d/event/%d",
 			[]http.HandlerFunc{
 				validateApplicationRequestToken,
 				getEvent,
@@ -244,7 +244,7 @@ var routes = map[string]map[string]*route{
 		"updateEvent": &route{
 			"PUT",
 			"/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/event/{eventId:[0-9]{1,20}}",
-			"/account/%d/application/%d/user/%s/event/%d",
+			"/account/%d/application/%d/user/%d/event/%d",
 			[]http.HandlerFunc{
 				validateApplicationRequestToken,
 				updateEvent,
@@ -253,7 +253,7 @@ var routes = map[string]map[string]*route{
 		"deleteEvent": &route{
 			"DELETE",
 			"/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/event/{eventId:[0-9]{1,20}}",
-			"/account/%d/application/%d/user/%s/event/%d",
+			"/account/%d/application/%d/user/%d/event/%d",
 			[]http.HandlerFunc{
 				validateApplicationRequestToken,
 				deleteEvent,
@@ -262,7 +262,7 @@ var routes = map[string]map[string]*route{
 		"createEvent": &route{
 			"POST",
 			"/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/events",
-			"/account/%d/application/%d/user/%s/events",
+			"/account/%d/application/%d/user/%d/events",
 			[]http.HandlerFunc{
 				validateApplicationRequestToken,
 				createEvent,
@@ -271,7 +271,7 @@ var routes = map[string]map[string]*route{
 		"getEventList": &route{
 			"GET",
 			"/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/events",
-			"/account/%d/application/%d/user/%s/events",
+			"/account/%d/application/%d/user/%d/events",
 			[]http.HandlerFunc{
 				validateApplicationRequestToken,
 				getEventList,
@@ -280,14 +280,14 @@ var routes = map[string]map[string]*route{
 		"getConnectionEventList": &route{
 			"GET",
 			"/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/connections/events",
-			"/account/%d/application/%d/user/%s/connections/events",
+			"/account/%d/application/%d/user/%d/connections/events",
 			[]http.HandlerFunc{
 				validateApplicationRequestToken,
 				getConnectionEventList,
 			},
 		},
 		// Other
-		"humans.txt": &route{
+		"humans": &route{
 			"GET",
 			"/humans.txt",
 			"/humans.txt",

@@ -65,8 +65,8 @@ var (
 		},
 	}
 	correctEvent = &entity.Event{
-		ApplicationID: 1,
-		UserID:        correctUser.ID,
+		Verb:     "like",
+		Language: "en",
 		Object: &entity.Object{
 			DisplayName: map[string]string{
 				"en": "Event performed",
