@@ -202,8 +202,7 @@ func createConnection(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	decoder := json.NewDecoder(r.Body)
-	if err = decoder.Decode(connection); err != nil {
+	if err = json.NewDecoder(r.Body).Decode(connection); err != nil {
 		errorHappened(fmt.Sprintf("%s", err), http.StatusBadRequest, r, w)
 		return
 	}

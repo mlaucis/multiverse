@@ -164,3 +164,25 @@ func WriteUser(user *entity.User, retrieve bool) (usr *entity.User, err error) {
 
 	return ReadUser(user.AccountID, user.ApplicationID, user.ID)
 }
+
+// CreateUserSession handles the creation of a user session and returns the session token
+func CreateUserSession(user *entity.User) (string, error) {
+	// TODO properly generate this
+	// It should look like this: base64(dateGenerated:randomToken)
+
+	// TODO rate limit this to x / per day?
+	// TODO rate limit this to be at least x minutes after the logout
+	return "fake-token", nil
+}
+
+// RefreshUserSession generates a new session token for the user session
+func RefreshUserSession(sessionToken string, user *entity.User) (string, error) {
+	// TODO rate limit this to one per 6 hours as we generally want to have sessions that last at least a day/month/year/decade?
+	return "new-fake-token", nil
+}
+
+// DestroyUserSession removes the user session
+func DestroyUserSession(sessionToken string, user *entity.User) error {
+	// TODO properly implement this
+	return nil
+}

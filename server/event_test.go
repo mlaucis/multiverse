@@ -22,16 +22,13 @@ func (s *ServerSuite) TestCreateEvent_WrongKey(c *C) {
 
 	payload := "{verbea:''}"
 
-	token, err := storageClient.GenerateApplicationToken(correctApplication)
-	c.Assert(err, IsNil)
-
 	routeName := "createEvent"
 	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID)
-	w, err := runRequest(routeName, route, payload, token)
+	code, body, err := runRequest(routeName, route, payload, correctApplication.AuthToken)
 	c.Assert(err, IsNil)
 
-	c.Assert(w.Code, Equals, http.StatusBadRequest)
-	c.Assert(w.Body.String(), Not(Equals), "")
+	c.Assert(code, Equals, http.StatusBadRequest)
+	c.Assert(body, Not(Equals), "")
 }
 
 // Test createEvent request with an wrong name
@@ -43,15 +40,12 @@ func (s *ServerSuite) TestCreateEvent_WrongValue(c *C) {
 
 	payload := `{"verb":"","language":""}`
 
-	token, err := storageClient.GenerateApplicationToken(correctApplication)
-	c.Assert(err, IsNil)
-
 	routeName := "createEvent"
 	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID)
-	w, err := runRequest(routeName, route, payload, token)
+	code, body, err := runRequest(routeName, route, payload, correctApplication.AuthToken)
 	c.Assert(err, IsNil)
-	c.Assert(w.Code, Equals, http.StatusBadRequest)
-	c.Assert(w.Body.String(), Not(Equals), "")
+	c.Assert(code, Equals, http.StatusBadRequest)
+	c.Assert(body, Not(Equals), "")
 }
 
 // Test a correct createEvent request
@@ -68,20 +62,17 @@ func (s *ServerSuite) TestCreateEvent_OK(c *C) {
 		correctEvent.Language,
 	)
 
-	token, err := storageClient.GenerateApplicationToken(correctApplication)
-	c.Assert(err, IsNil)
-
 	routeName := "createEvent"
 	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID)
-	w, err := runRequest(routeName, route, payload, token)
+	code, body, err := runRequest(routeName, route, payload, correctApplication.AuthToken)
 	c.Assert(err, IsNil)
 
-	c.Assert(w.Code, Equals, http.StatusCreated)
-	response := w.Body.String()
-	c.Assert(response, Not(Equals), "")
+	c.Assert(code, Equals, http.StatusCreated)
+
+	c.Assert(body, Not(Equals), "")
 
 	event := &entity.Event{}
-	err = json.Unmarshal([]byte(response), event)
+	err = json.Unmarshal([]byte(body), event)
 	c.Assert(err, IsNil)
 
 	c.Assert(err, IsNil)
@@ -105,20 +96,17 @@ func (s *ServerSuite) TestUpdateEvent_OK(c *C) {
 		correctEvent.Language,
 	)
 
-	token, err := storageClient.GenerateApplicationToken(correctApplication)
-	c.Assert(err, IsNil)
-
 	routeName := "updateEvent"
 	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID, correctEvent.ID)
-	w, err := runRequest(routeName, route, payload, token)
+	code, body, err := runRequest(routeName, route, payload, correctApplication.AuthToken)
 	c.Assert(err, IsNil)
 
-	c.Assert(w.Code, Equals, http.StatusCreated)
-	response := w.Body.String()
-	c.Assert(response, Not(Equals), "")
+	c.Assert(code, Equals, http.StatusCreated)
+
+	c.Assert(body, Not(Equals), "")
 
 	event := &entity.Event{}
-	err = json.Unmarshal([]byte(response), event)
+	err = json.Unmarshal([]byte(body), event)
 	c.Assert(err, IsNil)
 
 	c.Assert(err, IsNil)
@@ -142,15 +130,12 @@ func (s *ServerSuite) TestUpdateEvent_WrongID(c *C) {
 		correctEvent.Language,
 	)
 
-	token, err := storageClient.GenerateApplicationToken(correctApplication)
-	c.Assert(err, IsNil)
-
 	routeName := "updateEvent"
 	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID, correctEvent.ID+1)
-	w, err := runRequest(routeName, route, payload, token)
+	code, _, err := runRequest(routeName, route, payload, correctApplication.AuthToken)
 	c.Assert(err, IsNil)
 
-	c.Assert(w.Code, Equals, http.StatusInternalServerError)
+	c.Assert(code, Equals, http.StatusInternalServerError)
 }
 
 // Test updateEvent request with a wrong value
@@ -166,16 +151,13 @@ func (s *ServerSuite) TestUpdateEvent_WrongValue(c *C) {
 		correctEvent.Language,
 	)
 
-	token, err := storageClient.GenerateApplicationToken(correctApplication)
-	c.Assert(err, IsNil)
-
 	routeName := "updateEvent"
 	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID, correctEvent.ID)
-	w, err := runRequest(routeName, route, payload, token)
+	code, body, err := runRequest(routeName, route, payload, correctApplication.AuthToken)
 	c.Assert(err, IsNil)
 
-	c.Assert(w.Code, Equals, http.StatusBadRequest)
-	c.Assert(w.Body.String(), Not(Equals), "")
+	c.Assert(code, Equals, http.StatusBadRequest)
+	c.Assert(body, Not(Equals), "")
 }
 
 // Test a correct deleteEvent request
@@ -186,16 +168,13 @@ func (s *ServerSuite) TestDeleteEvent_OK(c *C) {
 	correctEvent, err := AddCorrectEvent(correctAccount.ID, correctApplication.ID, correctUser.ID, true)
 	c.Assert(err, IsNil)
 
-	token, err := storageClient.GenerateApplicationToken(correctApplication)
-	c.Assert(err, IsNil)
-
 	routeName := "deleteEvent"
 	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID, correctEvent.ID)
-	w, err := runRequest(routeName, route, "", token)
+	code, _, err := runRequest(routeName, route, "", correctApplication.AuthToken)
 	c.Assert(err, IsNil)
 
 	c.Assert(err, IsNil)
-	c.Assert(w.Code, Equals, http.StatusNoContent)
+	c.Assert(code, Equals, http.StatusNoContent)
 }
 
 // Test deleteEvent request with a wrong id
@@ -206,16 +185,13 @@ func (s *ServerSuite) TestDeleteEvent_WrongID(c *C) {
 	correctEvent, err := AddCorrectEvent(correctAccount.ID, correctApplication.ID, correctUser.ID, true)
 	c.Assert(err, IsNil)
 
-	token, err := storageClient.GenerateApplicationToken(correctApplication)
-	c.Assert(err, IsNil)
-
 	routeName := "deleteEvent"
 	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID, correctEvent.ID+1)
-	w, err := runRequest(routeName, route, "", token)
+	code, _, err := runRequest(routeName, route, "", correctApplication.AuthToken)
 	c.Assert(err, IsNil)
 
 	c.Assert(err, IsNil)
-	c.Assert(w.Code, Equals, http.StatusInternalServerError)
+	c.Assert(code, Equals, http.StatusInternalServerError)
 }
 
 // Test a correct getEvent request
@@ -226,20 +202,17 @@ func (s *ServerSuite) TestGetEvent_OK(c *C) {
 	correctEvent, err := AddCorrectEvent(correctAccount.ID, correctApplication.ID, correctUser.ID, true)
 	c.Assert(err, IsNil)
 
-	token, err := storageClient.GenerateApplicationToken(correctApplication)
-	c.Assert(err, IsNil)
-
 	routeName := "getEvent"
 	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID, correctEvent.ID)
-	w, err := runRequest(routeName, route, "", token)
+	code, body, err := runRequest(routeName, route, "", correctApplication.AuthToken)
 	c.Assert(err, IsNil)
 
-	c.Assert(w.Code, Equals, http.StatusOK)
-	response := w.Body.String()
-	c.Assert(response, Not(Equals), "")
+	c.Assert(code, Equals, http.StatusOK)
+
+	c.Assert(body, Not(Equals), "")
 
 	event := &entity.Event{}
-	err = json.Unmarshal([]byte(response), event)
+	err = json.Unmarshal([]byte(body), event)
 
 	c.Assert(err, IsNil)
 	c.Assert(event.AccountID, Equals, correctAccount.ID)
@@ -259,22 +232,19 @@ func (s *ServerSuite) TestGetEventList_OK(c *C) {
 	AddCorrectEvent(correctAccount.ID, correctApplication.ID, correctUser.ID, true)
 	c.Assert(err, IsNil)
 
-	token, err := storageClient.GenerateApplicationToken(correctApplication)
-	c.Assert(err, IsNil)
-
 	routeName := "getEventList"
 	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID)
-	w, err := runRequest(routeName, route, "", token)
+	code, body, err := runRequest(routeName, route, "", correctApplication.AuthToken)
 	c.Assert(err, IsNil)
 
-	c.Assert(w.Code, Equals, http.StatusOK)
-	response := w.Body.String()
-	c.Assert(response, Not(Equals), "")
+	c.Assert(code, Equals, http.StatusOK)
 
-	// TODO Check EventList response
+	c.Assert(body, Not(Equals), "")
+
+	// TODO Check EventList body
 
 	// event := &entity.Event{}
-	// err = json.Unmarshal([]byte(response), event)
+	// err = json.Unmarshal([]byte(body), event)
 
 	// c.Assert(err, IsNil)
 	// c.Assert(event.AccountID, Equals, correctAccount.ID)
@@ -291,13 +261,10 @@ func (s *ServerSuite) TestGetEvent_WrongID(c *C) {
 	correctEvent, err := AddCorrectEvent(correctAccount.ID, correctApplication.ID, correctUser.ID, true)
 	c.Assert(err, IsNil)
 
-	token, err := storageClient.GenerateApplicationToken(correctApplication)
-	c.Assert(err, IsNil)
-
 	routeName := "getEvent"
 	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID, correctEvent.ID+1)
-	w, err := runRequest(routeName, route, "", token)
+	code, _, err := runRequest(routeName, route, "", correctApplication.AuthToken)
 	c.Assert(err, IsNil)
 
-	c.Assert(w.Code, Equals, http.StatusInternalServerError)
+	c.Assert(code, Equals, http.StatusInternalServerError)
 }

@@ -6,8 +6,11 @@
 package storage
 
 import (
+	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
+	"math/rand"
+	"time"
 
 	"github.com/tapglue/backend/core/entity"
 
@@ -50,24 +53,32 @@ const (
 
 	connectionEvents     = "acc:%d:app:%d:user:%d:connectionEvents"
 	connectionEventsLoop = "%s:connectionEvents"
+
+	alpha1 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ~!@#$%^&*()_+{}:\"|<>?"
+	alpha2 = "abcdefghijklmnopqrstuvwxyz0123456789`-=[];'\\,./"
 )
 
 var (
-	instance *Client
+	alpha1Len = rand.Intn(len(alpha1))
+	alpha2Len = rand.Intn(len(alpha2))
+	instance  *Client
 )
+
+func generateTokenSalt(size int) string {
+	rand.Seed(time.Now().UnixNano())
+	salt := ""
+
+	for i := 0; i < size/2; i++ {
+		salt += string(alpha1[rand.Intn(alpha1Len)])
+		salt += string(alpha2[rand.Intn(alpha2Len)])
+	}
+
+	return salt
+}
 
 // GenerateAccountID generates a new account ID
 func (client *Client) GenerateAccountID() (int64, error) {
 	return client.engine.Incr(idAccount).Result()
-}
-
-// GenerateAccountToken returns a token for the specified account
-func (client *Client) GenerateAccountToken(account *entity.Account) (string, error) {
-	return fmt.Sprintf(
-		"token_%d_%s",
-		account.ID,
-		base64Encode(account.Name),
-	), nil
 }
 
 // GenerateAccountUserID generates a new account user id for a specified account
@@ -80,14 +91,28 @@ func (client *Client) GenerateApplicationID(accountID int64) (int64, error) {
 	return client.engine.Incr(fmt.Sprintf(idAccountApp, accountID)).Result()
 }
 
-// GenerateApplicationToken returns a token for the specified application of an account
-func (client *Client) GenerateApplicationToken(application *entity.Application) (string, error) {
-	return fmt.Sprintf(
-		"token_%d_%d_%s",
+// GenerateApplicationSecretKey returns a token for the specified application of an account
+func (client *Client) GenerateApplicationSecretKey(application *entity.Application) (string, error) {
+	// Generate a random salt for the token
+	keySalt := generateTokenSalt(8)
+
+	// Generate the token itself
+	hasher := sha256.New()
+	hasher.Write([]byte(fmt.Sprintf(
+		"%d%d%s%s",
 		application.AccountID,
 		application.ID,
-		base64Encode(application.Name),
-	), nil
+		keySalt,
+		application.CreatedAt.Format(time.RFC3339),
+	)))
+	token := hasher.Sum(nil)
+
+	return base64Encode(fmt.Sprintf(
+		"%d:%d:%s",
+		application.AccountID,
+		application.ID,
+		string(token),
+	)), nil
 }
 
 // GenerateApplicationUserID generates the user id in the specified app

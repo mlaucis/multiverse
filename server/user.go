@@ -51,6 +51,9 @@ func getUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Don't return the password to the users
+	user.Password = ""
+
 	response := &struct {
 		ApplicationID int64 `json:"applicationId"`
 		*entity.User
@@ -116,6 +119,9 @@ func updateUser(w http.ResponseWriter, r *http.Request) {
 		errorHappened(fmt.Sprintf("%s", err), http.StatusInternalServerError, r, w)
 		return
 	}
+
+	// Don't return the password to the users
+	user.Password = ""
 
 	writeResponse(user, http.StatusCreated, 0, w, r)
 }
@@ -184,6 +190,8 @@ func getUserList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// TODO iterate the users and strip their password
+
 	response := &struct {
 		ApplicationID int64 `json:"applicationId"`
 		Users         []*entity.User
@@ -237,5 +245,168 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Don't return the password to the users
+	user.Password = ""
+
 	writeResponse(user, http.StatusCreated, 0, w, r)
+}
+
+// loginUser handles the requests to login the user in the system
+func loginUser(w http.ResponseWriter, r *http.Request) {
+	var (
+		loginPayload struct {
+			Password string `json:"password"`
+		}
+		user          = &entity.User{}
+		accountID     int64
+		applicationID int64
+		userID        int64
+		sessionToken  string
+		err           error
+	)
+	vars := mux.Vars(r)
+
+	if accountID, err = strconv.ParseInt(vars["accountId"], 10, 64); err != nil {
+		errorHappened("accountId is not set or the value is incorrect", http.StatusBadRequest, r, w)
+		return
+	}
+
+	if applicationID, err = strconv.ParseInt(vars["applicationId"], 10, 64); err != nil {
+		errorHappened("applicationId is not set or the value is incorrect", http.StatusBadRequest, r, w)
+		return
+	}
+
+	if userID, err = strconv.ParseInt(vars["userId"], 10, 64); err != nil {
+		errorHappened("userId is not set or the value is incorrect", http.StatusBadRequest, r, w)
+		return
+	}
+
+	if user, err = core.ReadUser(accountID, applicationID, userID); err != nil {
+		errorHappened(fmt.Sprintf("%s", err), http.StatusInternalServerError, r, w)
+		return
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	if err = decoder.Decode(loginPayload); err != nil {
+		errorHappened(fmt.Sprintf("%s", err), http.StatusBadRequest, r, w)
+		return
+	}
+
+	if err = validator.UserCredentialsValid(loginPayload.Password, user); err != nil {
+		errorHappened(fmt.Sprintf("%s", err), http.StatusUnauthorized, r, w)
+		return
+	}
+
+	if sessionToken, err = core.CreateUserSession(user); err != nil {
+		errorHappened(fmt.Sprintf("%s", err), http.StatusInternalServerError, r, w)
+		return
+	}
+
+	writeResponse(struct {
+		Token string `json:"token"`
+	}{Token: sessionToken}, http.StatusCreated, 0, w, r)
+}
+
+// refreshUserSession handles the requests to refresh the user session token
+func refreshUserSession(w http.ResponseWriter, r *http.Request) {
+	var (
+		payload struct {
+			Token string `json:"token"`
+		}
+		user          = &entity.User{}
+		accountID     int64
+		applicationID int64
+		userID        int64
+		sessionToken  string
+		err           error
+	)
+	vars := mux.Vars(r)
+
+	if accountID, err = strconv.ParseInt(vars["accountId"], 10, 64); err != nil {
+		errorHappened("accountId is not set or the value is incorrect", http.StatusBadRequest, r, w)
+		return
+	}
+
+	if applicationID, err = strconv.ParseInt(vars["applicationId"], 10, 64); err != nil {
+		errorHappened("applicationId is not set or the value is incorrect", http.StatusBadRequest, r, w)
+		return
+	}
+
+	if userID, err = strconv.ParseInt(vars["userId"], 10, 64); err != nil {
+		errorHappened("userId is not set or the value is incorrect", http.StatusBadRequest, r, w)
+		return
+	}
+
+	if user, err = core.ReadUser(accountID, applicationID, userID); err != nil {
+		errorHappened(fmt.Sprintf("%s", err), http.StatusInternalServerError, r, w)
+		return
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	if err = decoder.Decode(payload); err != nil {
+		errorHappened(fmt.Sprintf("%s", err), http.StatusBadRequest, r, w)
+		return
+	}
+
+	if sessionToken, err = core.RefreshUserSession(payload.Token, user); err != nil {
+		errorHappened(fmt.Sprintf("%s", err), http.StatusInternalServerError, r, w)
+		return
+	}
+
+	writeResponse(struct {
+		Token string `json:"token"`
+	}{Token: sessionToken}, http.StatusCreated, 0, w, r)
+}
+
+// logoutUser handles the requests to logout the user from the system
+func logoutUser(w http.ResponseWriter, r *http.Request) {
+	var (
+		logoutPayload struct {
+			Token string `json:"token"`
+		}
+		user          = &entity.User{}
+		accountID     int64
+		applicationID int64
+		userID        int64
+		err           error
+	)
+	vars := mux.Vars(r)
+
+	if accountID, err = strconv.ParseInt(vars["accountId"], 10, 64); err != nil {
+		errorHappened("accountId is not set or the value is incorrect", http.StatusBadRequest, r, w)
+		return
+	}
+
+	if applicationID, err = strconv.ParseInt(vars["applicationId"], 10, 64); err != nil {
+		errorHappened("applicationId is not set or the value is incorrect", http.StatusBadRequest, r, w)
+		return
+	}
+
+	if userID, err = strconv.ParseInt(vars["userId"], 10, 64); err != nil {
+		errorHappened("userId is not set or the value is incorrect", http.StatusBadRequest, r, w)
+		return
+	}
+
+	if user, err = core.ReadUser(accountID, applicationID, userID); err != nil {
+		errorHappened(fmt.Sprintf("%s", err), http.StatusInternalServerError, r, w)
+		return
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	if err = decoder.Decode(logoutPayload); err != nil {
+		errorHappened(fmt.Sprintf("%s", err), http.StatusBadRequest, r, w)
+		return
+	}
+
+	if err = validator.UserCredentialsValid(logoutPayload.Token, user); err != nil {
+		errorHappened(fmt.Sprintf("%s", err), http.StatusUnauthorized, r, w)
+		return
+	}
+
+	if err = core.DestroyUserSession(logoutPayload.Token, user); err != nil {
+		errorHappened(fmt.Sprintf("%s", err), http.StatusInternalServerError, r, w)
+		return
+	}
+
+	writeResponse("logged out", http.StatusOK, 0, w, r)
 }

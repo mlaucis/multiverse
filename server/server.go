@@ -6,10 +6,11 @@
 package server
 
 import (
+	"bytes"
 	"compress/gzip"
 	"encoding/json"
 	"fmt"
-	"log"
+	"io/ioutil"
 	"net/http"
 	"net/http/pprof"
 	"path/filepath"
@@ -18,32 +19,71 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tapglue/backend/validator"
-
 	"github.com/gorilla/mux"
-	"github.com/yvasiyarov/gorelic"
+	"github.com/tapglue/backend/validator"
+	"github.com/tapglue/backend/validator/keys"
 )
 
+// We have to have our own type so that we can break what go forces us to do
+type noCloseReaderCloser struct {
+	*bytes.Buffer
+}
+
 const (
-	userAgentNotSet           = "User-Agent header must be set"
-	contentLengthNotSet       = "Content-Length header must be set"
-	contentLengthNotDecodable = "Content-Length header value could not be decoded. %q"
-	contentLengthSizeNotMatch = "Content-Length header value is different fromt the received value"
-	requestBodyCannotBeEmpty  = "request body cannot be empty"
+	apiRequestVersionString = "tg%s"
+
+	errUserAgentNotSet           = "User-Agent header must be set"
+	errContentLengthNotSet       = "Content-Length header must be set"
+	errContentTypeNotSet         = "Content-Type header must be set"
+	errContentLengthNotDecodable = "Content-Length header value could not be decoded. %q"
+	errContentLengthSizeNotMatch = "Content-Length header value is different fromt the received value"
+	errRequestBodyCannotBeEmpty  = "Request body cannot be empty"
+	errWrongContentType          = "Wrong Content-Type header value"
 )
 
 var (
 	dbgMode bool
+	logChan = make(chan *LogMsg, 100000)
 )
 
-func getReqAuthToken(r *http.Request) string {
-	return r.Header.Get("Authorization")
+// We should do some closing here but then again, that's what we want to prevent
+func (m noCloseReaderCloser) Close() error {
+	return nil
 }
 
-// validateGetCommon runs a series of predefinied, common, tests for GET requests
+// peakBody allows us to look at the request body and get the values without closing the body
+func peakBody(r *http.Request) *bytes.Buffer {
+	buf, _ := ioutil.ReadAll(r.Body)
+	buff := noCloseReaderCloser{bytes.NewBuffer(buf)}
+	r.Body = noCloseReaderCloser{bytes.NewBuffer(buf)}
+	return buff.Buffer
+}
+
+// isRequestExpired checks if the request is expired or not
+func isRequestExpired(w http.ResponseWriter, r *http.Request) {
+	// Check that the request is not older than 3 days
+	// TODO check if we should lower the interval
+	requestDate := r.Header.Get("x-tapglue-date")
+	if requestDate == "" {
+		errorHappened("request date is invalid", http.StatusBadRequest, r, w)
+		return
+	}
+
+	parsedRequestDate, err := time.Parse(time.RFC3339, requestDate)
+	if err != nil {
+		errorHappened("request date is invalid", http.StatusBadRequest, r, w)
+		return
+	}
+
+	if time.Since(parsedRequestDate) > time.Duration(3*24*time.Hour) {
+		errorHappened("request is expired", http.StatusExpectationFailed, r, w)
+	}
+}
+
+// validateGetCommon runs a series of predefined, common, tests for GET requests
 func validateGetCommon(w http.ResponseWriter, r *http.Request) {
 	if r.Header.Get("User-Agent") == "" {
-		errorHappened(userAgentNotSet, http.StatusBadRequest, r, w)
+		errorHappened(errUserAgentNotSet, http.StatusBadRequest, r, w)
 		return
 	}
 }
@@ -51,28 +91,38 @@ func validateGetCommon(w http.ResponseWriter, r *http.Request) {
 // validatePutCommon runs a series of predefinied, common, tests for PUT requests
 func validatePutCommon(w http.ResponseWriter, r *http.Request) {
 	if r.Header.Get("User-Agent") == "" {
-		errorHappened(userAgentNotSet, http.StatusBadRequest, r, w)
+		errorHappened(errUserAgentNotSet, http.StatusBadRequest, r, w)
 		return
 	}
 
 	if r.Header.Get("Content-Length") == "" {
-		errorHappened(contentLengthNotSet, http.StatusBadRequest, r, w)
+		errorHappened(errContentLengthNotSet, http.StatusBadRequest, r, w)
+		return
+	}
+
+	if r.Header.Get("Content-Type") == "" {
+		errorHappened(errContentTypeNotSet, http.StatusBadRequest, r, w)
+		return
+	}
+
+	if r.Header.Get("Content-Type") != "application/json" {
+		errorHappened(errWrongContentType, http.StatusBadRequest, r, w)
 		return
 	}
 
 	reqCL, err := strconv.ParseInt(r.Header.Get("Content-Length"), 10, 64)
 	if err != nil {
-		errorHappened(fmt.Sprintf(contentLengthNotDecodable, err), http.StatusBadRequest, r, w)
+		errorHappened(fmt.Sprintf(errContentLengthNotDecodable, err), http.StatusBadRequest, r, w)
 		return
 	}
 
 	if reqCL != r.ContentLength {
-		errorHappened(contentLengthSizeNotMatch, http.StatusBadRequest, r, w)
+		errorHappened(errContentLengthSizeNotMatch, http.StatusBadRequest, r, w)
 		return
 	}
 
 	if r.Body == nil {
-		errorHappened(requestBodyCannotBeEmpty, http.StatusBadRequest, r, w)
+		errorHappened(errRequestBodyCannotBeEmpty, http.StatusBadRequest, r, w)
 		return
 	}
 }
@@ -80,7 +130,7 @@ func validatePutCommon(w http.ResponseWriter, r *http.Request) {
 // validateDeleteCommon runs a series of predefinied, common, tests for DELETE requests
 func validateDeleteCommon(w http.ResponseWriter, r *http.Request) {
 	if r.Header.Get("User-Agent") == "" {
-		errorHappened(userAgentNotSet, http.StatusBadRequest, r, w)
+		errorHappened(errUserAgentNotSet, http.StatusBadRequest, r, w)
 		return
 	}
 }
@@ -88,74 +138,58 @@ func validateDeleteCommon(w http.ResponseWriter, r *http.Request) {
 // validatePostCommon runs a series of predefined, common, tests for the POST requests
 func validatePostCommon(w http.ResponseWriter, r *http.Request) {
 	if r.Header.Get("User-Agent") == "" {
-		errorHappened(userAgentNotSet, http.StatusBadRequest, r, w)
+		errorHappened(errUserAgentNotSet, http.StatusBadRequest, r, w)
 		return
 	}
 
 	if r.Header.Get("Content-Length") == "" {
-		errorHappened(contentLengthNotSet, http.StatusBadRequest, r, w)
+		errorHappened(errContentLengthNotSet, http.StatusBadRequest, r, w)
+		return
+	}
+
+	if r.Header.Get("Content-Type") == "" {
+		errorHappened(errContentTypeNotSet, http.StatusBadRequest, r, w)
+		return
+	}
+
+	if r.Header.Get("Content-Type") != "application/json" {
+		errorHappened(errWrongContentType, http.StatusBadRequest, r, w)
 		return
 	}
 
 	reqCL, err := strconv.ParseInt(r.Header.Get("Content-Length"), 10, 64)
 	if err != nil {
-		errorHappened(fmt.Sprintf(contentLengthNotDecodable, err), http.StatusBadRequest, r, w)
+		errorHappened(fmt.Sprintf(errContentLengthNotDecodable, err), http.StatusLengthRequired, r, w)
 		return
 	}
 
 	if reqCL != r.ContentLength {
-		errorHappened(contentLengthSizeNotMatch, http.StatusBadRequest, r, w)
+		errorHappened(errContentLengthSizeNotMatch, http.StatusBadRequest, r, w)
 		return
 	}
 
 	if r.Body == nil {
-		errorHappened(requestBodyCannotBeEmpty, http.StatusBadRequest, r, w)
-		return
-	}
-}
-
-// validateAccountRequestToken validates that the request contains a valid request token
-func validateAccountRequestToken(w http.ResponseWriter, r *http.Request) {
-	var (
-		accountID int64
-		err       error
-	)
-	vars := mux.Vars(r)
-
-	if accountID, err = strconv.ParseInt(vars["accountId"], 10, 64); err != nil {
-		errorHappened("invalid accountId number", http.StatusBadRequest, r, w)
-		return
-	}
-
-	if !validator.ValidateAccountRequestToken(accountID, getReqAuthToken(r)) {
-		errorHappened("request is not properly signed", http.StatusBadRequest, r, w)
+		errorHappened(errRequestBodyCannotBeEmpty, http.StatusBadRequest, r, w)
 		return
 	}
 }
 
 // validateApplicationRequestToken validates that the request contains a valid request token
-func validateApplicationRequestToken(w http.ResponseWriter, r *http.Request) {
-	var (
-		accountID     int64
-		applicationID int64
-		err           error
-	)
-	vars := mux.Vars(r)
-
-	if accountID, err = strconv.ParseInt(vars["accountId"], 10, 64); err != nil {
-		errorHappened("invalid accountId number", http.StatusBadRequest, r, w)
+func validateApplicationRequestToken(requestScope, requestVersion string, w http.ResponseWriter, r *http.Request) {
+	if keys.VerifyRequest(requestScope, requestVersion, r) {
 		return
 	}
 
-	if applicationID, err = strconv.ParseInt(vars["applicationId"], 10, 64); err != nil {
-		errorHappened("invalid applicationId number", http.StatusBadRequest, r, w)
+	errorHappened("request is not properly signed", http.StatusUnauthorized, r, w)
+}
+
+// isSessionValid checks if the session token is valid or not
+func isSessionValid(w http.ResponseWriter, r *http.Request) {
+	if err := validator.IsSessionValid(r); err == nil {
 		return
 	}
 
-	if !validator.ValidateApplicationRequestToken(accountID, applicationID, getReqAuthToken(r)) {
-		errorHappened("request is not properly signed", http.StatusBadRequest, r, w)
-		return
-	}
+	errorHappened("invalid session", http.StatusUnauthorized, r, w)
 }
 
 // writeCacheHeaders will add the corresponding cache headers based on the time supplied (in seconds)
@@ -227,18 +261,21 @@ func errorHappened(message string, code int, r *http.Request, w http.ResponseWri
 		return
 	}
 
-	headers := getSanitizedHeaders(r.Header)
-
-	log.Printf(
-		"Error %q in %s/%s:%d while %s\t%s\t%+v\n",
-		message,
-		filepath.Base(filepath.Dir(filename)),
-		filepath.Base(filename),
-		line,
-		r.Method,
-		r.RequestURI,
-		headers,
-	)
+	logChan <- &LogMsg{
+		method:     r.Method,
+		requestURI: r.RequestURI,
+		headers:    r.Header,
+		name:       "-",
+		start:      time.Now(),
+		end:        time.Now(),
+		message: fmt.Sprintf(
+			"Error %q in %s/%s:%d",
+			message,
+			filepath.Base(filepath.Dir(filename)),
+			filepath.Base(filename),
+			line,
+		),
+	}
 }
 
 // home handles request to API root
@@ -281,11 +318,7 @@ func robots(w http.ResponseWriter, r *http.Request) {
 Disallow: /`))
 }
 
-func signRequest(token string, req *http.Request) {
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token))
-}
-
-func customHandler(routeName string, r *route, newRelicAgent *gorelic.Agent, logChan chan *LogMsg) http.HandlerFunc {
+func customHandler(routeName string, r *route) http.HandlerFunc {
 	var extraHandlers []http.HandlerFunc
 	switch r.method {
 	case "DELETE":
@@ -308,7 +341,7 @@ func customHandler(routeName string, r *route, newRelicAgent *gorelic.Agent, log
 
 	r.handlers = append(extraHandlers, r.handlers...)
 
-	handlerFunc := func(resp http.ResponseWriter, req *http.Request) {
+	return func(resp http.ResponseWriter, req *http.Request) {
 		start := time.Now()
 
 		for _, handler := range r.handlers {
@@ -328,15 +361,10 @@ func customHandler(routeName string, r *route, newRelicAgent *gorelic.Agent, log
 			end:        time.Now(),
 		}
 	}
-
-	if newRelicAgent != nil {
-		return http.HandlerFunc(newRelicAgent.WrapHTTPHandlerFunc(handlerFunc))
-	}
-	return handlerFunc
 }
 
 // GetRouter creates the router
-func GetRouter(debugMode bool, newRelicAgent *gorelic.Agent, logChan chan *LogMsg) (*mux.Router, error) {
+func GetRouter(debugMode bool) (*mux.Router, chan *LogMsg, error) {
 	dbgMode = debugMode
 	router := mux.NewRouter().StrictSlash(true)
 
@@ -346,7 +374,7 @@ func GetRouter(debugMode bool, newRelicAgent *gorelic.Agent, logChan chan *LogMs
 				Methods(route.method).
 				Path(route.routePattern(version)).
 				Name(routeName).
-				HandlerFunc(customHandler(routeName, route, newRelicAgent, logChan))
+				HandlerFunc(customHandler(routeName, route))
 		}
 	}
 
@@ -357,5 +385,5 @@ func GetRouter(debugMode bool, newRelicAgent *gorelic.Agent, logChan chan *LogMs
 		router.Handle("/debug/pprof/symbol", http.HandlerFunc(pprof.Symbol))
 	}
 
-	return router, nil
+	return router, logChan, nil
 }

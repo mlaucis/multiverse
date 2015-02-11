@@ -128,7 +128,7 @@ func WriteApplication(application *entity.Application, retrieve bool) (app *enti
 		return nil, err
 	}
 
-	if application.AuthToken, err = storageClient.GenerateApplicationToken(application); err != nil {
+	if application.AuthToken, err = storageClient.GenerateApplicationSecretKey(application); err != nil {
 		return nil, err
 	}
 

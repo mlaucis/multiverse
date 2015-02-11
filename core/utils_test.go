@@ -5,6 +5,7 @@
 package core
 
 import (
+	"github.com/tapglue/backend/core"
 	"github.com/tapglue/backend/core/entity"
 )
 

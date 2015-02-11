@@ -21,11 +21,10 @@ func (s *ServerSuite) TestCreateAccount_WrongKey(c *C) {
 
 	routeName := "createAccount"
 	route := getComposedRoute(routeName)
-	w, err := runRequest(routeName, route, payload, "")
+	code, body, err := runRequest(routeName, route, payload, "")
 	c.Assert(err, IsNil)
-
-	c.Assert(w.Code, Equals, http.StatusBadRequest)
-	c.Assert(w.Body.String(), Not(Equals), "")
+	c.Assert(code, Equals, http.StatusBadRequest)
+	c.Assert(body, Not(Equals), "")
 }
 
 // Test createAcccount request with an wrong name
@@ -34,11 +33,11 @@ func (s *ServerSuite) TestCreateAccount_WrongValue(c *C) {
 
 	routeName := "createAccount"
 	route := getComposedRoute(routeName)
-	w, err := runRequest(routeName, route, payload, "")
+	code, body, err := runRequest(routeName, route, payload, "")
 	c.Assert(err, IsNil)
 
-	c.Assert(w.Code, Equals, http.StatusBadRequest)
-	c.Assert(w.Body.String(), Not(Equals), "")
+	c.Assert(code, Equals, http.StatusBadRequest)
+	c.Assert(body, Not(Equals), "")
 }
 
 // Test a correct createAccount request
@@ -48,22 +47,20 @@ func (s *ServerSuite) TestCreateAccount_OK(c *C) {
 
 	routeName := "createAccount"
 	route := getComposedRoute(routeName)
-	w, err := runRequest(routeName, route, payload, "")
+	code, body, err := runRequest(routeName, route, payload, "")
 	c.Assert(err, IsNil)
 
-	c.Assert(w.Code, Equals, http.StatusCreated)
-	response := w.Body.String()
-	c.Assert(response, Not(Equals), "")
+	c.Assert(code, Equals, http.StatusCreated)
+	c.Assert(body, Not(Equals), "")
 
 	account := &entity.Account{}
-	err = json.Unmarshal([]byte(response), account)
+	err = json.Unmarshal([]byte(body), account)
 	c.Assert(err, IsNil)
 	if account.ID < 1 {
 		c.Fail()
 	}
 	c.Assert(account.Name, Equals, correctAccount.Name)
 	c.Assert(account.Enabled, Equals, true)
-	c.Assert(account.Token, Not(Equals), "")
 }
 
 // Test a correct updateAccount request
@@ -74,15 +71,14 @@ func (s *ServerSuite) TestUpdateAccount_OK(c *C) {
 
 	routeName := "updateAccount"
 	route := getComposedRoute(routeName, correctAccount.ID)
-	w, err := runRequest(routeName, route, payload, "")
+	code, body, err := runRequest(routeName, route, payload, "")
 	c.Assert(err, IsNil)
 
-	c.Assert(w.Code, Equals, http.StatusOK)
-	response := w.Body.String()
-	c.Assert(response, Not(Equals), "")
+	c.Assert(code, Equals, http.StatusOK)
+	c.Assert(body, Not(Equals), "")
 
 	account := &entity.Account{}
-	err = json.Unmarshal([]byte(response), account)
+	err = json.Unmarshal([]byte(body), account)
 	c.Assert(err, IsNil)
 	if account.ID < 1 {
 		c.Fail()
@@ -90,7 +86,6 @@ func (s *ServerSuite) TestUpdateAccount_OK(c *C) {
 	c.Assert(account.Name, Equals, correctAccount.Name)
 	c.Assert(account.Description, Equals, description)
 	c.Assert(account.Enabled, Equals, true)
-	//c.Assert(account.Token, Not(Equals), "")
 }
 
 // Test a correct updateAccount request with a wrong id
@@ -101,10 +96,10 @@ func (s *ServerSuite) TestUpdateAccount_WrongID(c *C) {
 
 	routeName := "updateAccount"
 	route := getComposedRoute(routeName, correctAccount.ID+1)
-	w, err := runRequest(routeName, route, payload, "")
+	code, _, err := runRequest(routeName, route, payload, "")
 	c.Assert(err, IsNil)
 
-	c.Assert(w.Code, Equals, http.StatusInternalServerError)
+	c.Assert(code, Equals, http.StatusInternalServerError)
 }
 
 // Test a correct updateAccount request with an invalid description
@@ -114,11 +109,11 @@ func (s *ServerSuite) TestUpdateAccount_Invalid(c *C) {
 
 	routeName := "updateAccount"
 	route := getComposedRoute(routeName, correctAccount.ID)
-	w, err := runRequest(routeName, route, payload, "")
+	code, body, err := runRequest(routeName, route, payload, "")
 	c.Assert(err, IsNil)
 
-	c.Assert(w.Code, Equals, http.StatusBadRequest)
-	c.Assert(w.Body.String(), Not(Equals), "")
+	c.Assert(code, Equals, http.StatusBadRequest)
+	c.Assert(body, Not(Equals), "")
 }
 
 // Test a correct deleteAccount request
@@ -128,10 +123,10 @@ func (s *ServerSuite) TestDeleteAccount_OK(c *C) {
 
 	routeName := "deleteAccount"
 	route := getComposedRoute(routeName, account.ID)
-	w, err := runRequest(routeName, route, "", "")
+	code, _, err := runRequest(routeName, route, "", "")
 	c.Assert(err, IsNil)
 
-	c.Assert(w.Code, Equals, http.StatusNoContent)
+	c.Assert(code, Equals, http.StatusNoContent)
 }
 
 // Test a correct deleteAccount request with a wrong id
@@ -141,10 +136,10 @@ func (s *ServerSuite) TestDeleteAccount_WrongID(c *C) {
 
 	routeName := "deleteAccount"
 	route := getComposedRoute(routeName, account.ID+1)
-	w, err := runRequest(routeName, route, "", "")
+	code, _, err := runRequest(routeName, route, "", "")
 	c.Assert(err, IsNil)
 
-	c.Assert(w.Code, Equals, http.StatusInternalServerError)
+	c.Assert(code, Equals, http.StatusInternalServerError)
 }
 
 // Test a correct getAccount request
@@ -154,20 +149,19 @@ func (s *ServerSuite) TestGetAccount_OK(c *C) {
 
 	routeName := "getAccount"
 	route := getComposedRoute(routeName, correctAccount.ID)
-	w, err := runRequest(routeName, route, "", "")
+	code, body, err := runRequest(routeName, route, "", "")
 	c.Assert(err, IsNil)
 
-	c.Assert(w.Code, Equals, http.StatusOK)
-	response := w.Body.String()
-	c.Assert(response, Not(Equals), "")
+	c.Assert(code, Equals, http.StatusOK)
+
+	c.Assert(body, Not(Equals), "")
 
 	account := &entity.Account{}
-	err = json.Unmarshal([]byte(response), account)
+	err = json.Unmarshal([]byte(body), account)
 	c.Assert(err, IsNil)
 	c.Assert(account.ID, Equals, correctAccount.ID)
 	c.Assert(account.Name, Equals, correctAccount.Name)
 	c.Assert(account.Enabled, Equals, true)
-	c.Assert(account.Token, Not(Equals), "")
 }
 
 // Test a correct getAccount request with a wrong id
@@ -177,8 +171,8 @@ func (s *ServerSuite) TestGetAccount_WrongID(c *C) {
 
 	routeName := "getAccount"
 	route := getComposedRoute(routeName, correctAccount.ID+1)
-	w, err := runRequest(routeName, route, "", "")
+	code, _, err := runRequest(routeName, route, "", "")
 	c.Assert(err, IsNil)
 
-	c.Assert(w.Code, Equals, http.StatusInternalServerError)
+	c.Assert(code, Equals, http.StatusInternalServerError)
 }

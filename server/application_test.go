@@ -19,16 +19,13 @@ func (s *ServerSuite) TestCreateApplication_WrongKey(c *C) {
 	c.Assert(err, IsNil)
 	payload := "{namae:''}"
 
-	token, err := storageClient.GenerateAccountToken(correctAccount)
-	c.Assert(err, IsNil)
-
 	routeName := "createApplication"
 	route := getComposedRoute(routeName, correctAccount.ID)
-	w, err := runRequest(routeName, route, payload, token)
+	code, body, err := runRequest(routeName, route, payload, "")
 	c.Assert(err, IsNil)
 
-	c.Assert(w.Code, Equals, http.StatusBadRequest)
-	c.Assert(w.Body.String(), Not(Equals), "")
+	c.Assert(code, Equals, http.StatusBadRequest)
+	c.Assert(body, Not(Equals), "")
 }
 
 // Test createApplication request with an wrong name
@@ -38,16 +35,13 @@ func (s *ServerSuite) TestCreateApplication_WrongValue(c *C) {
 
 	payload := `{"name":""}`
 
-	token, err := storageClient.GenerateAccountToken(correctAccount)
-	c.Assert(err, IsNil)
-
 	routeName := "createApplication"
 	route := getComposedRoute(routeName, correctAccount.ID)
-	w, err := runRequest(routeName, route, payload, token)
+	code, body, err := runRequest(routeName, route, payload, "")
 	c.Assert(err, IsNil)
 
-	c.Assert(w.Code, Equals, http.StatusBadRequest)
-	c.Assert(w.Body.String(), Not(Equals), "")
+	c.Assert(code, Equals, http.StatusBadRequest)
+	c.Assert(body, Not(Equals), "")
 }
 
 // Test a correct createApplication request
@@ -63,20 +57,17 @@ func (s *ServerSuite) TestCreateApplication_OK(c *C) {
 	)
 	c.Assert(err, IsNil)
 
-	token, err := storageClient.GenerateAccountToken(correctAccount)
-	c.Assert(err, IsNil)
-
 	routeName := "createApplication"
 	route := getComposedRoute(routeName, correctAccount.ID)
-	w, err := runRequest(routeName, route, payload, token)
+	code, body, err := runRequest(routeName, route, payload, "")
 	c.Assert(err, IsNil)
 
-	c.Assert(w.Code, Equals, http.StatusCreated)
-	response := w.Body.String()
-	c.Assert(response, Not(Equals), "")
+	c.Assert(code, Equals, http.StatusCreated)
+
+	c.Assert(body, Not(Equals), "")
 
 	application := &entity.Application{}
-	err = json.Unmarshal([]byte(response), application)
+	err = json.Unmarshal([]byte(body), application)
 	c.Assert(err, IsNil)
 	if application.ID < 1 {
 		c.Fail()
@@ -98,20 +89,17 @@ func (s *ServerSuite) TestUpdateApplication_OK(c *C) {
 	)
 	c.Assert(err, IsNil)
 
-	token, err := storageClient.GenerateAccountToken(correctAccount)
-	c.Assert(err, IsNil)
-
 	routeName := "updateApplication"
 	route := getComposedRoute(routeName, correctApplication.AccountID, correctApplication.ID)
-	w, err := runRequest(routeName, route, payload, token)
+	code, body, err := runRequest(routeName, route, payload, "")
 	c.Assert(err, IsNil)
 
-	c.Assert(w.Code, Equals, http.StatusCreated)
-	response := w.Body.String()
-	c.Assert(response, Not(Equals), "")
+	c.Assert(code, Equals, http.StatusCreated)
+
+	c.Assert(body, Not(Equals), "")
 
 	application := &entity.Application{}
-	err = json.Unmarshal([]byte(response), application)
+	err = json.Unmarshal([]byte(body), application)
 	c.Assert(err, IsNil)
 	if application.ID < 1 {
 		c.Fail()
@@ -134,15 +122,12 @@ func (s *ServerSuite) TestUpdateApplication_WrongID(c *C) {
 	)
 	c.Assert(err, IsNil)
 
-	token, err := storageClient.GenerateAccountToken(correctAccount)
-	c.Assert(err, IsNil)
-
 	routeName := "updateApplication"
 	route := getComposedRoute(routeName, correctApplication.AccountID, correctApplication.ID+1)
-	w, err := runRequest(routeName, route, payload, token)
+	code, _, err := runRequest(routeName, route, payload, "")
 	c.Assert(err, IsNil)
 
-	c.Assert(w.Code, Equals, http.StatusInternalServerError)
+	c.Assert(code, Equals, http.StatusInternalServerError)
 }
 
 // Test a correct updateApplication request with an invalid description
@@ -156,16 +141,13 @@ func (s *ServerSuite) TestUpdateApplication_WrongValue(c *C) {
 	)
 	c.Assert(err, IsNil)
 
-	token, err := storageClient.GenerateAccountToken(correctAccount)
-	c.Assert(err, IsNil)
-
 	routeName := "updateApplication"
 	route := getComposedRoute(routeName, correctApplication.AccountID, correctApplication.ID)
-	w, err := runRequest(routeName, route, payload, token)
+	code, body, err := runRequest(routeName, route, payload, "")
 	c.Assert(err, IsNil)
 
-	c.Assert(w.Code, Equals, http.StatusBadRequest)
-	c.Assert(w.Body.String(), Not(Equals), "")
+	c.Assert(code, Equals, http.StatusBadRequest)
+	c.Assert(body, Not(Equals), "")
 }
 
 // Test a correct updateApplication request with a wrong token
@@ -184,11 +166,11 @@ func (s *ServerSuite) TestUpdateApplication_WrongToken(c *C) {
 
 	routeName := "updateApplication"
 	route := getComposedRoute(routeName, correctApplication.AccountID, correctApplication.ID)
-	w, err := runRequest(routeName, route, payload, "")
+	code, body, err := runRequest(routeName, route, payload, "")
 	c.Assert(err, IsNil)
 
-	c.Assert(w.Code, Equals, http.StatusBadRequest)
-	c.Assert(w.Body.String(), Not(Equals), "")
+	c.Assert(code, Equals, http.StatusBadRequest)
+	c.Assert(body, Not(Equals), "")
 }
 
 // Test a correct deleteApplication request
@@ -197,15 +179,12 @@ func (s *ServerSuite) TestDeleteApplication_OK(c *C) {
 	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
 	c.Assert(err, IsNil)
 
-	token, err := storageClient.GenerateAccountToken(correctAccount)
-	c.Assert(err, IsNil)
-
 	routeName := "deleteApplication"
 	route := getComposedRoute(routeName, correctApplication.AccountID, correctApplication.ID)
-	w, err := runRequest(routeName, route, "", token)
+	code, _, err := runRequest(routeName, route, "", "")
 
 	c.Assert(err, IsNil)
-	c.Assert(w.Code, Equals, http.StatusNoContent)
+	c.Assert(code, Equals, http.StatusNoContent)
 }
 
 // Test a correct deleteApplication request with a wrong id
@@ -214,15 +193,12 @@ func (s *ServerSuite) TestDeleteApplication_WrongID(c *C) {
 	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
 	c.Assert(err, IsNil)
 
-	token, err := storageClient.GenerateAccountToken(correctAccount)
-	c.Assert(err, IsNil)
-
 	routeName := "deleteApplication"
 	route := getComposedRoute(routeName, correctApplication.AccountID, correctApplication.ID+1)
-	w, err := runRequest(routeName, route, "", token)
+	code, _, err := runRequest(routeName, route, "", "")
 	c.Assert(err, IsNil)
 
-	c.Assert(w.Code, Equals, http.StatusInternalServerError)
+	c.Assert(code, Equals, http.StatusInternalServerError)
 }
 
 // Test a correct deleteApplication request with a wrong token
@@ -236,10 +212,10 @@ func (s *ServerSuite) TestDeleteApplication_WrongToken(c *C) {
 
 	routeName := "deleteApplication"
 	route := getComposedRoute(routeName, correctApplication.AccountID, correctApplication.ID)
-	w, err := runRequest(routeName, route, "", "")
+	code, _, err := runRequest(routeName, route, "", "")
 	c.Assert(err, IsNil)
 
-	c.Assert(w.Code, Equals, http.StatusBadRequest)
+	c.Assert(code, Equals, http.StatusBadRequest)
 }
 
 // Test a correct getApplication request
@@ -248,20 +224,17 @@ func (s *ServerSuite) TestGetApplication_OK(c *C) {
 	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
 	c.Assert(err, IsNil)
 
-	token, err := storageClient.GenerateAccountToken(correctAccount)
-	c.Assert(err, IsNil)
-
 	routeName := "getApplication"
 	route := getComposedRoute(routeName, correctApplication.AccountID, correctApplication.ID)
-	w, err := runRequest(routeName, route, "", token)
+	code, body, err := runRequest(routeName, route, "", "")
 	c.Assert(err, IsNil)
 
-	c.Assert(w.Code, Equals, http.StatusOK)
-	response := w.Body.String()
-	c.Assert(response, Not(Equals), "")
+	c.Assert(code, Equals, http.StatusOK)
+
+	c.Assert(body, Not(Equals), "")
 
 	application := &entity.Application{}
-	err = json.Unmarshal([]byte(response), application)
+	err = json.Unmarshal([]byte(body), application)
 	c.Assert(err, IsNil)
 
 	c.Assert(application.ID, Equals, correctApplication.ID)
@@ -276,15 +249,12 @@ func (s *ServerSuite) TestGetApplication_WrongID(c *C) {
 	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
 	c.Assert(err, IsNil)
 
-	token, err := storageClient.GenerateAccountToken(correctAccount)
-	c.Assert(err, IsNil)
-
 	routeName := "getApplication"
 	route := getComposedRoute(routeName, correctApplication.AccountID, correctApplication.ID+1)
-	w, err := runRequest(routeName, route, "", token)
+	code, _, err := runRequest(routeName, route, "", "")
 	c.Assert(err, IsNil)
 
-	c.Assert(w.Code, Equals, http.StatusInternalServerError)
+	c.Assert(code, Equals, http.StatusInternalServerError)
 }
 
 // Test a correct getApplication request with a wrong token
@@ -298,8 +268,8 @@ func (s *ServerSuite) TestGetApplication_WrongToken(c *C) {
 
 	routeName := "getApplication"
 	route := getComposedRoute(routeName, correctApplication.AccountID, correctApplication.ID)
-	w, err := runRequest(routeName, route, "", "")
+	code, _, err := runRequest(routeName, route, "", "")
 	c.Assert(err, IsNil)
 
-	c.Assert(w.Code, Equals, http.StatusBadRequest)
+	c.Assert(code, Equals, http.StatusBadRequest)
 }

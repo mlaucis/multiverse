@@ -7,7 +7,10 @@ package validator
 import (
 	"fmt"
 
+	"net/http"
+
 	"github.com/tapglue/backend/core/entity"
+	"github.com/tapglue/backend/utils"
 )
 
 const (
@@ -147,4 +150,20 @@ func UpdateUser(user *entity.User) error {
 	}
 
 	return packErrors(errs)
+}
+
+// UserCredentialsValid checks is a certain user has the right credentials
+func UserCredentialsValid(password string, user *entity.User) error {
+	// TODO improve this with a salt and stuff
+	if utils.Base64Encode(utils.Sha256String([]byte(password))) != user.Password {
+		return fmt.Errorf("invalid user credentials")
+	}
+
+	return nil
+}
+
+// IsSessionValid checks if the session is valid or not
+func IsSessionValid(r *http.Request) error {
+	// TODO properly implement this
+	return nil
 }
