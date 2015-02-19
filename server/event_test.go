@@ -248,6 +248,41 @@ func (s *ServerSuite) TestGetEvent_OK(c *C) {
 	c.Assert(event.Enabled, Equals, true)
 }
 
+// Test a correct getEventList request
+func (s *ServerSuite) TestGetEventList_OK(c *C) {
+	correctAccount, err := AddCorrectAccount(true)
+	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
+	correctUser, err := AddCorrectUser(correctAccount.ID, correctApplication.ID, true)
+	AddCorrectEvent(correctAccount.ID, correctApplication.ID, correctUser.ID, true)
+	AddCorrectEvent(correctAccount.ID, correctApplication.ID, correctUser.ID, true)
+	AddCorrectEvent(correctAccount.ID, correctApplication.ID, correctUser.ID, true)
+	AddCorrectEvent(correctAccount.ID, correctApplication.ID, correctUser.ID, true)
+	c.Assert(err, IsNil)
+
+	token, err := storageClient.GenerateApplicationToken(correctApplication)
+	c.Assert(err, IsNil)
+
+	routeName := "getEventList"
+	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID)
+	w, err := runRequest(routeName, route, "", token)
+	c.Assert(err, IsNil)
+
+	c.Assert(w.Code, Equals, http.StatusOK)
+	response := w.Body.String()
+	c.Assert(response, Not(Equals), "")
+
+	// TODO Check EventList response
+
+	// event := &entity.Event{}
+	// err = json.Unmarshal([]byte(response), event)
+
+	// c.Assert(err, IsNil)
+	// c.Assert(event.AccountID, Equals, correctAccount.ID)
+	// c.Assert(event.ApplicationID, Equals, correctApplication.ID)
+	// c.Assert(event.UserID, Equals, correctUser.ID)
+	// c.Assert(event.Enabled, Equals, true)
+}
+
 // Test getEvent request with a wrong id
 func (s *ServerSuite) TestGetEvent_WrongID(c *C) {
 	correctAccount, err := AddCorrectAccount(true)
