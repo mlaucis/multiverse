@@ -56,10 +56,13 @@ func (s *ServerSuite) SetUpTest(c *C) {
 
 	if *doLogTest {
 		// overwrite log channel to make it blocking
-		logChan = make(chan *LogMsg)
-		go TGLog(logChan)
+		mainLogChan = make(chan *LogMsg)
+		errorLogChan = make(chan *LogMsg)
+		go TGLog(mainLogChan)
+		go TGLog(errorLogChan)
 	} else {
-		go tgSilentLog(logChan)
+		go tgSilentLog(mainLogChan)
+		go tgSilentLog(errorLogChan)
 	}
 }
 
@@ -91,7 +94,9 @@ func (s *ServerSuite) TestValidatePostCommon_NoCLHeader(c *C) {
 	w := httptest.NewRecorder()
 	m := mux.NewRouter()
 
-	m.HandleFunc(routePath, customHandler(routeName, requestRoute)).Methods(requestRoute.method)
+	m.
+		HandleFunc(routePath, customHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan)).
+		Methods(requestRoute.method)
 	m.ServeHTTP(w, req)
 
 	c.Assert(w.Code, Equals, http.StatusBadRequest)
@@ -117,7 +122,9 @@ func (s *ServerSuite) TestValidatePostCommon_CLHeader(c *C) {
 	w := httptest.NewRecorder()
 	m := mux.NewRouter()
 
-	m.HandleFunc(routePath, customHandler(routeName, requestRoute)).Methods(requestRoute.method)
+	m.
+		HandleFunc(routePath, customHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan)).
+		Methods(requestRoute.method)
 	m.ServeHTTP(w, req)
 
 	c.Assert(w.Code, Equals, http.StatusBadRequest)
@@ -143,7 +150,9 @@ func (s *ServerSuite) TestValidateGetCommon_CLHeader(c *C) {
 	w := httptest.NewRecorder()
 	m := mux.NewRouter()
 
-	m.HandleFunc(routePath, customHandler(routeName, requestRoute)).Methods(requestRoute.method)
+	m.
+		HandleFunc(routePath, customHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan)).
+		Methods(requestRoute.method)
 	m.ServeHTTP(w, req)
 
 	c.Assert(w.Code, Equals, http.StatusOK)
@@ -166,7 +175,9 @@ func (s *ServerSuite) TestValidateGetCommon_NoCLHeader(c *C) {
 	w := httptest.NewRecorder()
 	m := mux.NewRouter()
 
-	m.HandleFunc(routePath, customHandler(routeName, requestRoute)).Methods(requestRoute.method)
+	m.
+		HandleFunc(routePath, customHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan)).
+		Methods(requestRoute.method)
 	m.ServeHTTP(w, req)
 
 	c.Assert(w.Code, Equals, http.StatusBadRequest)
@@ -192,7 +203,9 @@ func (s *ServerSuite) TestValidatePutCommon_CLHeader(c *C) {
 	w := httptest.NewRecorder()
 	m := mux.NewRouter()
 
-	m.HandleFunc(routePath, customHandler(routeName, requestRoute)).Methods(requestRoute.method)
+	m.
+		HandleFunc(routePath, customHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan)).
+		Methods(requestRoute.method)
 	m.ServeHTTP(w, req)
 
 	c.Assert(w.Code, Equals, http.StatusBadRequest)
@@ -216,7 +229,9 @@ func (s *ServerSuite) TestValidatePutCommon_NoCLHeader(c *C) {
 	w := httptest.NewRecorder()
 	m := mux.NewRouter()
 
-	m.HandleFunc(routePath, customHandler(routeName, requestRoute)).Methods(requestRoute.method)
+	m.
+		HandleFunc(routePath, customHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan)).
+		Methods(requestRoute.method)
 	m.ServeHTTP(w, req)
 
 	c.Assert(w.Code, Equals, http.StatusBadRequest)
@@ -242,7 +257,9 @@ func (s *ServerSuite) TestValidateDeleteCommon_CLHeader(c *C) {
 	w := httptest.NewRecorder()
 	m := mux.NewRouter()
 
-	m.HandleFunc(routePath, customHandler(routeName, requestRoute)).Methods(requestRoute.method)
+	m.
+		HandleFunc(routePath, customHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan)).
+		Methods(requestRoute.method)
 	m.ServeHTTP(w, req)
 
 	c.Assert(w.Code, Equals, http.StatusBadRequest)
@@ -266,7 +283,9 @@ func (s *ServerSuite) TestValidateDeleteCommon_NoCLHeader(c *C) {
 	w := httptest.NewRecorder()
 	m := mux.NewRouter()
 
-	m.HandleFunc(routePath, customHandler(routeName, requestRoute)).Methods(requestRoute.method)
+	m.
+		HandleFunc(routePath, customHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan)).
+		Methods(requestRoute.method)
 	m.ServeHTTP(w, req)
 
 	c.Assert(w.Code, Equals, http.StatusBadRequest)
@@ -293,13 +312,6 @@ func (s *ServerSuite) TestRobots_OK(c *C) {
 
 	c.Assert(code, Equals, http.StatusOK)
 	c.Assert(body, Not(Equals), "")
-}
-
-// Test GetRouter
-func (s *ServerSuite) TestGetRouter_OK(c *C) {
-	_, _, err := GetRouter(true)
-
-	c.Assert(err, IsNil)
 }
 
 // createCommonRequestHeaders create a correct request header
@@ -354,7 +366,9 @@ func runRequest(routeName, routePath, payload, secretKey string) (int, string, e
 	w := httptest.NewRecorder()
 	m := mux.NewRouter()
 
-	m.HandleFunc(requestRoute.routePattern(apiVersion), customHandler(routeName, requestRoute)).Methods(requestRoute.method)
+	m.
+		HandleFunc(requestRoute.routePattern(apiVersion), customHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan)).
+		Methods(requestRoute.method)
 	m.ServeHTTP(w, req)
 
 	return w.Code, w.Body.String(), nil

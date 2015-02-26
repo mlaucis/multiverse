@@ -54,11 +54,12 @@ func init() {
 
 func main() {
 	// Get router
-	router, logChan, err := server.GetRouter(conf.Environment != "prod")
+	router, mainLogChan, errorLogChan, err := server.GetRouter(conf.Environment != "prod")
 	if err != nil {
 		panic(err)
 	}
-	go server.TGLog(logChan)
+	go server.TGLog(mainLogChan)
+	go server.TGLog(errorLogChan)
 
 	if conf.UseArtwork {
 		log.Printf(`
