@@ -6,11 +6,9 @@
 package server
 
 import (
-	"bytes"
 	"compress/gzip"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/http/pprof"
 	"path/filepath"
@@ -19,16 +17,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gorilla/mux"
 	"github.com/tapglue/backend/validator"
 	"github.com/tapglue/backend/validator/keys"
-)
 
-type (
-	// We have to have our own type so that we can break what go forces us to do
-	noCloseReaderCloser struct {
-		*bytes.Buffer
-	}
+	"github.com/gorilla/mux"
 )
 
 const (
@@ -48,19 +40,6 @@ var (
 	mainLogChan  = make(chan *LogMsg, 100000)
 	errorLogChan = make(chan *LogMsg, 100000)
 )
-
-// We should do some closing here but then again, that's what we want to prevent
-func (m noCloseReaderCloser) Close() error {
-	return nil
-}
-
-// peakBody allows us to look at the request body and get the values without closing the body
-func peakBody(r *http.Request) *bytes.Buffer {
-	buf, _ := ioutil.ReadAll(r.Body)
-	buff := noCloseReaderCloser{bytes.NewBuffer(buf)}
-	r.Body = noCloseReaderCloser{bytes.NewBuffer(buf)}
-	return buff.Buffer
-}
 
 // isRequestExpired checks if the request is expired or not
 func isRequestExpired(ctx *context) {

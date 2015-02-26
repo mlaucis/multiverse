@@ -24,7 +24,13 @@ func (m noCloseReaderCloser) Close() error {
 
 // PeakBody allows us to look at the request body and get the values without closing the body
 func PeakBody(r *http.Request) *bytes.Buffer {
-	buf, _ := ioutil.ReadAll(r.Body)
+	if r.Body == nil {
+		return new(bytes.Buffer)
+	}
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return new(bytes.Buffer)
+	}
 	buff := noCloseReaderCloser{bytes.NewBuffer(buf)}
 	r.Body = noCloseReaderCloser{bytes.NewBuffer(buf)}
 	return buff.Buffer

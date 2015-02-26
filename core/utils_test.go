@@ -5,13 +5,12 @@
 package core
 
 import (
-	"github.com/tapglue/backend/core"
 	"github.com/tapglue/backend/core/entity"
 )
 
 // AddCorrectAccount creates a correct account
 func AddCorrectAccount(fetchAccount bool) (acc *entity.Account, err error) {
-	account, err := core.WriteAccount(correctAccount, fetchAccount)
+	account, err := WriteAccount(correctAccount, fetchAccount)
 	if err != nil {
 		return nil, err
 	}
@@ -23,7 +22,7 @@ func AddCorrectAccount(fetchAccount bool) (acc *entity.Account, err error) {
 func AddCorrectAccountUser(accountID int64, fetchUser bool) (accUsr *entity.AccountUser, err error) {
 	accountUserWithAccountID := correctAccountUser
 	accountUserWithAccountID.AccountID = accountID
-	accountUser, err := core.WriteAccountUser(accountUserWithAccountID, fetchUser)
+	accountUser, err := WriteAccountUser(accountUserWithAccountID, fetchUser)
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +34,7 @@ func AddCorrectAccountUser(accountID int64, fetchUser bool) (accUsr *entity.Acco
 func AddCorrectApplication(accountID int64, fetchApplication bool) (app *entity.Application, err error) {
 	applicationWithAccountID := correctApplication
 	applicationWithAccountID.AccountID = accountID
-	application, err := core.WriteApplication(applicationWithAccountID, fetchApplication)
+	application, err := WriteApplication(applicationWithAccountID, fetchApplication)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +47,7 @@ func AddCorrectUser(accountID, applicationID int64, fetchUser bool) (usr *entity
 	userWithIDs := correctUser
 	userWithIDs.AccountID = accountID
 	userWithIDs.ApplicationID = applicationID
-	user, err := core.WriteUser(userWithIDs, fetchUser)
+	user, err := WriteUser(userWithIDs, fetchUser)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +62,7 @@ func AddCorrectConnection(accountID, applicationID, userFromID, userToID int64, 
 	connectionWithIDs.ApplicationID = applicationID
 	connectionWithIDs.UserFromID = userFromID
 	connectionWithIDs.UserToID = userToID
-	connection, err := core.WriteConnection(connectionWithIDs, fetchConnection)
+	connection, err := WriteConnection(connectionWithIDs, fetchConnection)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +76,7 @@ func AddCorrectEvent(accountID, applicationID, userID int64, fetchEvent bool) (e
 	eventWithIDs.AccountID = accountID
 	eventWithIDs.ApplicationID = applicationID
 	eventWithIDs.UserID = userID
-	event, err := core.WriteEvent(eventWithIDs, fetchEvent)
+	event, err := WriteEvent(eventWithIDs, fetchEvent)
 	if err != nil {
 		return nil, err
 	}

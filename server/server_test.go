@@ -5,6 +5,7 @@
 package server
 
 import (
+	"flag"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -17,10 +18,9 @@ import (
 	"github.com/tapglue/backend/core"
 	"github.com/tapglue/backend/storage"
 	"github.com/tapglue/backend/storage/redis"
+	. "github.com/tapglue/backend/utils"
 	"github.com/tapglue/backend/validator"
 	"github.com/tapglue/backend/validator/keys"
-
-	"flag"
 
 	"github.com/gorilla/mux"
 	. "gopkg.in/check.v1"
@@ -317,7 +317,7 @@ func (s *ServerSuite) TestRobots_OK(c *C) {
 // createCommonRequestHeaders create a correct request header
 func createCommonRequestHeaders(req *http.Request) {
 	req.Header.Add("User-Agent", "go test (+localhost)")
-	payload := peakBody(req).Bytes()
+	payload := PeakBody(req).Bytes()
 	if len(payload) > 0 {
 		req.Header.Add("Content-Type", "application/json")
 		req.Header.Add("Content-Length", strconv.FormatInt(int64(len(payload)), 10))

@@ -9,7 +9,13 @@ import (
 	"fmt"
 	"net/http"
 
+	"net/http/httptest"
+	"strings"
+	"testing"
+
+	"github.com/gorilla/mux"
 	"github.com/tapglue/backend/core/entity"
+	"github.com/tapglue/backend/validator/keys"
 	. "gopkg.in/check.v1"
 )
 
@@ -267,4 +273,111 @@ func (s *ServerSuite) TestGetEvent_WrongID(c *C) {
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusInternalServerError)
+}
+
+func BenchmarkCreateEvent1_Write(b *testing.B) {
+	correctAccount, err := AddCorrectAccount(true)
+	if err != nil {
+		panic(err)
+	}
+	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
+	if err != nil {
+		panic(err)
+	}
+	correctUser, err := AddCorrectUser(correctAccount.ID, correctApplication.ID, true)
+	if err != nil {
+		panic(err)
+	}
+	correctEvent := CorrectEvent()
+
+	payload := fmt.Sprintf(
+		`{"verb":"%s", "language":"%s"}`,
+		correctEvent.Verb,
+		correctEvent.Language,
+	)
+
+	routeName := "createEvent"
+	routePath := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID)
+
+	requestRoute := getRoute(routeName)
+
+	req, err := http.NewRequest(
+		requestRoute.method,
+		routePath,
+		strings.NewReader(payload),
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	createCommonRequestHeaders(req)
+	if correctApplication.AuthToken != "" {
+		err := keys.SignRequest(correctApplication.AuthToken, requestRoute.scope, apiVersion, req)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	w := httptest.NewRecorder()
+	m := mux.NewRouter()
+
+	m.
+		HandleFunc(requestRoute.routePattern(apiVersion), customHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan)).
+		Methods(requestRoute.method)
+
+	for i := 1; i <= b.N; i++ {
+		m.ServeHTTP(w, req)
+	}
+}
+
+func BenchmarkCreateEvent2_Read(b *testing.B) {
+	correctAccount, err := AddCorrectAccount(true)
+	if err != nil {
+		panic(err)
+	}
+	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
+	if err != nil {
+		panic(err)
+	}
+	correctUser, err := AddCorrectUser(correctAccount.ID, correctApplication.ID, true)
+	if err != nil {
+		panic(err)
+	}
+	correctEvent, err := AddCorrectEvent(correctAccount.ID, correctApplication.ID, correctUser.ID, true)
+	if err != nil {
+		panic(err)
+	}
+
+	routeName := "getEvent"
+	routePath := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID, correctEvent.ID)
+
+	requestRoute := getRoute(routeName)
+
+	req, err := http.NewRequest(
+		requestRoute.method,
+		routePath,
+		nil,
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	createCommonRequestHeaders(req)
+	if correctApplication.AuthToken != "" {
+		err := keys.SignRequest(correctApplication.AuthToken, requestRoute.scope, apiVersion, req)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	w := httptest.NewRecorder()
+	m := mux.NewRouter()
+
+	m.
+		HandleFunc(requestRoute.routePattern(apiVersion), customHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan)).
+		Methods(requestRoute.method)
+
+	for i := 1; i <= b.N; i++ {
+		m.ServeHTTP(w, req)
+	}
 }
