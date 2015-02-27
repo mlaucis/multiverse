@@ -9,10 +9,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"path"
 	"path/filepath"
-	"log"
+	"runtime"
 )
 
 type (
@@ -85,13 +86,20 @@ func (config *Config) Load(configEnvPath string) {
 	// Read config.json
 	configContents, err := ioutil.ReadFile(path.Join(configDir, "config.json"))
 	if err != nil {
-		configContents = []byte(os.Getenv("TAPGLUE_CONFIG_VARS"))
-
-		if len(configContents) < 1 {
-			panic(fmt.Errorf("no suitable config file was found"))
+		_, currentFilename, _, ok := runtime.Caller(2)
+		if !ok {
+			panic("Could not retrieve the caller for loading config")
 		}
-	} else {
-		path.Join(configDir, "config.json")
+
+		configDir = path.Dir(currentFilename)
+		configContents, err = ioutil.ReadFile(path.Join(configDir, "config.json"))
+		if err != nil {
+			configContents = []byte(os.Getenv("TAPGLUE_CONFIG_VARS"))
+
+			if len(configContents) < 1 {
+				panic(fmt.Errorf("no suitable config file was found"))
+			}
+		}
 	}
 
 	// Overwrite with user configuration from file
