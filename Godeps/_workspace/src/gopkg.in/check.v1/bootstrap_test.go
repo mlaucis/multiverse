@@ -14,9 +14,8 @@ package check_test
 
 import (
 	"fmt"
-	"strings"
-
 	"gopkg.in/check.v1"
+	"strings"
 )
 
 type BootstrapS struct{}

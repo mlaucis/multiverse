@@ -14,11 +14,6 @@ import (
 	red "gopkg.in/redis.v2"
 )
 
-// generateEventID generates a new event ID
-func generateEventID(applicationID int64) (int64, error) {
-	return storageEngine.Incr(storageClient.GenerateApplicationEventID(applicationID)).Result()
-}
-
 // ReadEvent returns the event matching the ID or an error
 func ReadEvent(accountID, applicationID, userID, eventID int64) (event *entity.Event, err error) {
 	key := storageClient.Event(accountID, applicationID, userID, eventID)
@@ -167,7 +162,7 @@ func WriteEvent(event *entity.Event, retrieve bool) (evn *entity.Event, err erro
 	event.CreatedAt = time.Now()
 	event.UpdatedAt, event.ReceivedAt = event.CreatedAt, event.CreatedAt
 
-	if event.ID, err = generateEventID(event.ApplicationID); err != nil {
+	if event.ID, err = storageClient.GenerateApplicationEventID(event.ApplicationID); err != nil {
 		return nil, err
 	}
 

@@ -13,14 +13,12 @@ import (
 	"github.com/tapglue/backend/core"
 	"github.com/tapglue/backend/core/entity"
 	"github.com/tapglue/backend/validator"
-
-	"github.com/gorilla/mux"
 )
 
 // updateConnection handles requests to update a user connection
 // Request: PUT /application/:applicationId/user/:UserFromID/connection/:UserToID
 // Test with: curl -i -H "Content-Type: application/json" -d '{"user_from_id":1,"user_to_id":2, "enabled":false}' -X PUT localhost/0.1/application/:applicationId/user/:UserFromID/connection/:UserToID
-func updateConnection(w http.ResponseWriter, r *http.Request) {
+func updateConnection(ctx *context) {
 	var (
 		connection    = &entity.Connection{}
 		accountID     int64
@@ -30,31 +28,29 @@ func updateConnection(w http.ResponseWriter, r *http.Request) {
 		err           error
 	)
 
-	vars := mux.Vars(r)
-
-	if accountID, err = strconv.ParseInt(vars["accountId"], 10, 64); err != nil {
-		errorHappened("accountId is not set or the value is incorrect", http.StatusBadRequest, r, w)
+	if accountID, err = strconv.ParseInt(ctx.vars["accountId"], 10, 64); err != nil {
+		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest)
 		return
 	}
 
-	if applicationID, err = strconv.ParseInt(vars["applicationId"], 10, 64); err != nil {
-		errorHappened("applicationId is not set or the value is incorrect", http.StatusBadRequest, r, w)
+	if applicationID, err = strconv.ParseInt(ctx.vars["applicationId"], 10, 64); err != nil {
+		errorHappened(ctx, "applicationId is not set or the value is incorrect", http.StatusBadRequest)
 		return
 	}
 
-	if userFromID, err = strconv.ParseInt(vars["userFromId"], 10, 64); err != nil {
-		errorHappened("userFromId is not set or the value is incorrect", http.StatusBadRequest, r, w)
+	if userFromID, err = strconv.ParseInt(ctx.vars["userFromId"], 10, 64); err != nil {
+		errorHappened(ctx, "userFromId is not set or the value is incorrect", http.StatusBadRequest)
 		return
 	}
 
-	if userToID, err = strconv.ParseInt(vars["userToId"], 10, 64); err != nil {
-		errorHappened("userToId is not set or the value is incorrect", http.StatusBadRequest, r, w)
+	if userToID, err = strconv.ParseInt(ctx.vars["userToId"], 10, 64); err != nil {
+		errorHappened(ctx, "userToId is not set or the value is incorrect", http.StatusBadRequest)
 		return
 	}
 
-	decoder := json.NewDecoder(r.Body)
+	decoder := json.NewDecoder(ctx.body)
 	if err = decoder.Decode(connection); err != nil {
-		errorHappened(fmt.Sprintf("%s", err), http.StatusBadRequest, r, w)
+		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusBadRequest)
 		return
 	}
 
@@ -72,22 +68,22 @@ func updateConnection(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err = validator.UpdateConnection(connection); err != nil {
-		errorHappened(fmt.Sprintf("%s", err), http.StatusBadRequest, r, w)
+		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusBadRequest)
 		return
 	}
 
 	if connection, err = core.UpdateConnection(connection, false); err != nil {
-		errorHappened(fmt.Sprintf("%s", err), http.StatusInternalServerError, r, w)
+		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
 		return
 	}
 
-	writeResponse(connection, http.StatusCreated, 0, w, r)
+	writeResponse(ctx, connection, http.StatusCreated, 0)
 }
 
 // deleteConnection handles requests to delete a single connection
 // Request: DELETE /application/:applicationId/user/:UserFromID/connection/:UserToID
 // Test with: curl -i -X DELETE localhost/0.1/application/:applicationId/user/:UserFromID/connection/:UserToID
-func deleteConnection(w http.ResponseWriter, r *http.Request) {
+func deleteConnection(ctx *context) {
 	var (
 		accountID     int64
 		applicationID int64
@@ -96,40 +92,38 @@ func deleteConnection(w http.ResponseWriter, r *http.Request) {
 		err           error
 	)
 
-	vars := mux.Vars(r)
-
-	if accountID, err = strconv.ParseInt(vars["accountId"], 10, 64); err != nil {
-		errorHappened("accountId is not set or the value is incorrect", http.StatusBadRequest, r, w)
+	if accountID, err = strconv.ParseInt(ctx.vars["accountId"], 10, 64); err != nil {
+		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest)
 		return
 	}
 
-	if applicationID, err = strconv.ParseInt(vars["applicationId"], 10, 64); err != nil {
-		errorHappened("applicationId is not set or the value is incorrect", http.StatusBadRequest, r, w)
+	if applicationID, err = strconv.ParseInt(ctx.vars["applicationId"], 10, 64); err != nil {
+		errorHappened(ctx, "applicationId is not set or the value is incorrect", http.StatusBadRequest)
 		return
 	}
 
-	if userFromID, err = strconv.ParseInt(vars["userFromId"], 10, 64); err != nil {
-		errorHappened("userFromId is not set or the value is incorrect", http.StatusBadRequest, r, w)
+	if userFromID, err = strconv.ParseInt(ctx.vars["userFromId"], 10, 64); err != nil {
+		errorHappened(ctx, "userFromId is not set or the value is incorrect", http.StatusBadRequest)
 		return
 	}
 
-	if userToID, err = strconv.ParseInt(vars["userToId"], 10, 64); err != nil {
-		errorHappened("userToId is not set or the value is incorrect", http.StatusBadRequest, r, w)
+	if userToID, err = strconv.ParseInt(ctx.vars["userToId"], 10, 64); err != nil {
+		errorHappened(ctx, "userToId is not set or the value is incorrect", http.StatusBadRequest)
 		return
 	}
 
 	if err = core.DeleteConnection(accountID, applicationID, userFromID, userToID); err != nil {
-		errorHappened(fmt.Sprintf("%s", err), http.StatusInternalServerError, r, w)
+		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
 		return
 	}
 
-	writeResponse("", http.StatusNoContent, 10, w, r)
+	writeResponse(ctx, "", http.StatusNoContent, 10)
 }
 
 // getConnectionList handles requests to list a users connections
 // Request: GET /application/:applicationId/user/:UserID/connections
 // Test with: curl -i localhost/0.1/application/:applicationId/user/:UserID/connections
-func getConnectionList(w http.ResponseWriter, r *http.Request) {
+func getConnectionList(ctx *context) {
 	var (
 		users         []*entity.User
 		accountID     int64
@@ -137,25 +131,24 @@ func getConnectionList(w http.ResponseWriter, r *http.Request) {
 		userID        int64
 		err           error
 	)
-	vars := mux.Vars(r)
 
-	if accountID, err = strconv.ParseInt(vars["accountId"], 10, 64); err != nil {
-		errorHappened("accountId is not set or the value is incorrect", http.StatusBadRequest, r, w)
+	if accountID, err = strconv.ParseInt(ctx.vars["accountId"], 10, 64); err != nil {
+		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest)
 		return
 	}
 
-	if applicationID, err = strconv.ParseInt(vars["applicationId"], 10, 64); err != nil {
-		errorHappened("applicationId is not set or the value is incorrect", http.StatusBadRequest, r, w)
+	if applicationID, err = strconv.ParseInt(ctx.vars["applicationId"], 10, 64); err != nil {
+		errorHappened(ctx, "applicationId is not set or the value is incorrect", http.StatusBadRequest)
 		return
 	}
 
-	if userID, err = strconv.ParseInt(vars["userId"], 10, 64); err != nil {
-		errorHappened("userId is not set or the value is incorrect", http.StatusBadRequest, r, w)
+	if userID, err = strconv.ParseInt(ctx.vars["userId"], 10, 64); err != nil {
+		errorHappened(ctx, "userId is not set or the value is incorrect", http.StatusBadRequest)
 		return
 	}
 
 	if users, err = core.ReadConnectionList(accountID, applicationID, userID); err != nil {
-		errorHappened(fmt.Sprintf("%s", err), http.StatusInternalServerError, r, w)
+		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
 		return
 	}
 
@@ -167,7 +160,7 @@ func getConnectionList(w http.ResponseWriter, r *http.Request) {
 		Users:         users,
 	}
 
-	writeResponse(response, http.StatusOK, 10, w, r)
+	writeResponse(ctx, response, http.StatusOK, 10)
 }
 
 // TODO: GET FOLLOWER LIST (followedbyid users)
@@ -176,7 +169,7 @@ func getConnectionList(w http.ResponseWriter, r *http.Request) {
 // createConnection handles requests to create a user connection
 // Request: POST /application/:applicationId/user/:UserID/connections
 // Test with: curl -i -H "Content-Type: application/json" -d '{"user_from_id":1,"user_to_id":2}' localhost/0.1/application/:applicationId/user/:UserID/connections
-func createConnection(w http.ResponseWriter, r *http.Request) {
+func createConnection(ctx *context) {
 	var (
 		connection    = &entity.Connection{}
 		accountID     int64
@@ -185,26 +178,23 @@ func createConnection(w http.ResponseWriter, r *http.Request) {
 		err           error
 	)
 
-	vars := mux.Vars(r)
-
-	if accountID, err = strconv.ParseInt(vars["accountId"], 10, 64); err != nil {
-		errorHappened("accountId is not set or the value is incorrect", http.StatusBadRequest, r, w)
+	if accountID, err = strconv.ParseInt(ctx.vars["accountId"], 10, 64); err != nil {
+		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest)
 		return
 	}
 
-	if applicationID, err = strconv.ParseInt(vars["applicationId"], 10, 64); err != nil {
-		errorHappened("applicationId is not set or the value is incorrect", http.StatusBadRequest, r, w)
+	if applicationID, err = strconv.ParseInt(ctx.vars["applicationId"], 10, 64); err != nil {
+		errorHappened(ctx, "applicationId is not set or the value is incorrect", http.StatusBadRequest)
 		return
 	}
 
-	if userFromID, err = strconv.ParseInt(vars["userId"], 10, 64); err != nil {
-		errorHappened("userId is not set or the value is incorrect", http.StatusBadRequest, r, w)
+	if userFromID, err = strconv.ParseInt(ctx.vars["userId"], 10, 64); err != nil {
+		errorHappened(ctx, "userId is not set or the value is incorrect", http.StatusBadRequest)
 		return
 	}
 
-	decoder := json.NewDecoder(r.Body)
-	if err = decoder.Decode(connection); err != nil {
-		errorHappened(fmt.Sprintf("%s", err), http.StatusBadRequest, r, w)
+	if err = json.NewDecoder(ctx.body).Decode(connection); err != nil {
+		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusBadRequest)
 		return
 	}
 
@@ -213,14 +203,14 @@ func createConnection(w http.ResponseWriter, r *http.Request) {
 	connection.UserFromID = userFromID
 
 	if err = validator.CreateConnection(connection); err != nil {
-		errorHappened(fmt.Sprintf("%s", err), http.StatusBadRequest, r, w)
+		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusBadRequest)
 		return
 	}
 
 	if connection, err = core.WriteConnection(connection, false); err != nil {
-		errorHappened(fmt.Sprintf("%s", err), http.StatusInternalServerError, r, w)
+		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
 		return
 	}
 
-	writeResponse(connection, http.StatusCreated, 0, w, r)
+	writeResponse(ctx, connection, http.StatusCreated, 0)
 }

@@ -9,7 +9,6 @@ import (
 	"compress/gzip"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"net/http/pprof"
 	"path/filepath"
@@ -19,143 +18,162 @@ import (
 	"time"
 
 	"github.com/tapglue/backend/validator"
+	"github.com/tapglue/backend/validator/keys"
 
 	"github.com/gorilla/mux"
-	"github.com/yvasiyarov/gorelic"
 )
 
 const (
-	userAgentNotSet           = "User-Agent header must be set"
-	contentLengthNotSet       = "Content-Length header must be set"
-	contentLengthNotDecodable = "Content-Length header value could not be decoded. %q"
-	contentLengthSizeNotMatch = "Content-Length header value is different fromt the received value"
-	requestBodyCannotBeEmpty  = "request body cannot be empty"
+	apiRequestVersionString = "tg%s"
+
+	errUserAgentNotSet           = "User-Agent header must be set"
+	errContentLengthNotSet       = "Content-Length header must be set"
+	errContentTypeNotSet         = "Content-Type header must be set"
+	errContentLengthNotDecodable = "Content-Length header value could not be decoded. %q"
+	errContentLengthSizeNotMatch = "Content-Length header value is different fromt the received value"
+	errRequestBodyCannotBeEmpty  = "Request body cannot be empty"
+	errWrongContentType          = "Wrong Content-Type header value"
 )
 
 var (
-	dbgMode bool
+	dbgMode      bool
+	mainLogChan  = make(chan *LogMsg, 100000)
+	errorLogChan = make(chan *LogMsg, 100000)
 )
 
-func getReqAuthToken(r *http.Request) string {
-	return r.Header.Get("Authorization")
+// isRequestExpired checks if the request is expired or not
+func isRequestExpired(ctx *context) {
+	// Check that the request is not older than 3 days
+	// TODO check if we should lower the interval
+	requestDate := ctx.r.Header.Get("x-tapglue-date")
+	if requestDate == "" {
+		errorHappened(ctx, "request date is invalid", http.StatusBadRequest)
+		return
+	}
+
+	parsedRequestDate, err := time.Parse(time.RFC3339, requestDate)
+	if err != nil {
+		errorHappened(ctx, "request date is invalid", http.StatusBadRequest)
+		return
+	}
+
+	if time.Since(parsedRequestDate) > time.Duration(3*24*time.Hour) {
+		errorHappened(ctx, "request is expired", http.StatusExpectationFailed)
+	}
 }
 
-// validateGetCommon runs a series of predefinied, common, tests for GET requests
-func validateGetCommon(w http.ResponseWriter, r *http.Request) {
-	if r.Header.Get("User-Agent") == "" {
-		errorHappened(userAgentNotSet, http.StatusBadRequest, r, w)
+// validateGetCommon runs a series of predefined, common, tests for GET requests
+func validateGetCommon(ctx *context) {
+	if ctx.r.Header.Get("User-Agent") == "" {
+		errorHappened(ctx, errUserAgentNotSet, http.StatusBadRequest)
 		return
 	}
 }
 
 // validatePutCommon runs a series of predefinied, common, tests for PUT requests
-func validatePutCommon(w http.ResponseWriter, r *http.Request) {
-	if r.Header.Get("User-Agent") == "" {
-		errorHappened(userAgentNotSet, http.StatusBadRequest, r, w)
+func validatePutCommon(ctx *context) {
+	if ctx.r.Header.Get("User-Agent") == "" {
+		errorHappened(ctx, errUserAgentNotSet, http.StatusBadRequest)
 		return
 	}
 
-	if r.Header.Get("Content-Length") == "" {
-		errorHappened(contentLengthNotSet, http.StatusBadRequest, r, w)
+	if ctx.r.Header.Get("Content-Length") == "" {
+		errorHappened(ctx, errContentLengthNotSet, http.StatusBadRequest)
 		return
 	}
 
-	reqCL, err := strconv.ParseInt(r.Header.Get("Content-Length"), 10, 64)
+	if ctx.r.Header.Get("Content-Type") == "" {
+		errorHappened(ctx, errContentTypeNotSet, http.StatusBadRequest)
+		return
+	}
+
+	if ctx.r.Header.Get("Content-Type") != "application/json" {
+		errorHappened(ctx, errWrongContentType, http.StatusBadRequest)
+		return
+	}
+
+	reqCL, err := strconv.ParseInt(ctx.r.Header.Get("Content-Length"), 10, 64)
 	if err != nil {
-		errorHappened(fmt.Sprintf(contentLengthNotDecodable, err), http.StatusBadRequest, r, w)
+		errorHappened(ctx, fmt.Sprintf(errContentLengthNotDecodable, err), http.StatusBadRequest)
 		return
 	}
 
-	if reqCL != r.ContentLength {
-		errorHappened(contentLengthSizeNotMatch, http.StatusBadRequest, r, w)
+	if reqCL != ctx.r.ContentLength {
+		errorHappened(ctx, errContentLengthSizeNotMatch, http.StatusBadRequest)
 		return
 	}
 
-	if r.Body == nil {
-		errorHappened(requestBodyCannotBeEmpty, http.StatusBadRequest, r, w)
+	if ctx.r.Body == nil {
+		errorHappened(ctx, errRequestBodyCannotBeEmpty, http.StatusBadRequest)
 		return
 	}
 }
 
 // validateDeleteCommon runs a series of predefinied, common, tests for DELETE requests
-func validateDeleteCommon(w http.ResponseWriter, r *http.Request) {
-	if r.Header.Get("User-Agent") == "" {
-		errorHappened(userAgentNotSet, http.StatusBadRequest, r, w)
+func validateDeleteCommon(ctx *context) {
+	if ctx.r.Header.Get("User-Agent") == "" {
+		errorHappened(ctx, errUserAgentNotSet, http.StatusBadRequest)
 		return
 	}
 }
 
 // validatePostCommon runs a series of predefined, common, tests for the POST requests
-func validatePostCommon(w http.ResponseWriter, r *http.Request) {
-	if r.Header.Get("User-Agent") == "" {
-		errorHappened(userAgentNotSet, http.StatusBadRequest, r, w)
+func validatePostCommon(ctx *context) {
+	if ctx.r.Header.Get("User-Agent") == "" {
+		errorHappened(ctx, errUserAgentNotSet, http.StatusBadRequest)
 		return
 	}
 
-	if r.Header.Get("Content-Length") == "" {
-		errorHappened(contentLengthNotSet, http.StatusBadRequest, r, w)
+	if ctx.r.Header.Get("Content-Length") == "" {
+		errorHappened(ctx, errContentLengthNotSet, http.StatusBadRequest)
 		return
 	}
 
-	reqCL, err := strconv.ParseInt(r.Header.Get("Content-Length"), 10, 64)
+	if ctx.r.Header.Get("Content-Type") == "" {
+		errorHappened(ctx, errContentTypeNotSet, http.StatusBadRequest)
+		return
+	}
+
+	if ctx.r.Header.Get("Content-Type") != "application/json" {
+		errorHappened(ctx, errWrongContentType, http.StatusBadRequest)
+		return
+	}
+
+	reqCL, err := strconv.ParseInt(ctx.r.Header.Get("Content-Length"), 10, 64)
 	if err != nil {
-		errorHappened(fmt.Sprintf(contentLengthNotDecodable, err), http.StatusBadRequest, r, w)
+		errorHappened(ctx, fmt.Sprintf(errContentLengthNotDecodable, err), http.StatusLengthRequired)
 		return
 	}
 
-	if reqCL != r.ContentLength {
-		errorHappened(contentLengthSizeNotMatch, http.StatusBadRequest, r, w)
+	if reqCL != ctx.r.ContentLength {
+		errorHappened(ctx, errContentLengthSizeNotMatch, http.StatusBadRequest)
 		return
 	}
 
-	if r.Body == nil {
-		errorHappened(requestBodyCannotBeEmpty, http.StatusBadRequest, r, w)
-		return
-	}
-}
-
-// validateAccountRequestToken validates that the request contains a valid request token
-func validateAccountRequestToken(w http.ResponseWriter, r *http.Request) {
-	var (
-		accountID int64
-		err       error
-	)
-	vars := mux.Vars(r)
-
-	if accountID, err = strconv.ParseInt(vars["accountId"], 10, 64); err != nil {
-		errorHappened("invalid accountId number", http.StatusBadRequest, r, w)
-		return
-	}
-
-	if !validator.ValidateAccountRequestToken(accountID, getReqAuthToken(r)) {
-		errorHappened("request is not properly signed", http.StatusBadRequest, r, w)
+	if ctx.r.Body == nil {
+		errorHappened(ctx, errRequestBodyCannotBeEmpty, http.StatusBadRequest)
 		return
 	}
 }
 
 // validateApplicationRequestToken validates that the request contains a valid request token
-func validateApplicationRequestToken(w http.ResponseWriter, r *http.Request) {
-	var (
-		accountID     int64
-		applicationID int64
-		err           error
-	)
-	vars := mux.Vars(r)
-
-	if accountID, err = strconv.ParseInt(vars["accountId"], 10, 64); err != nil {
-		errorHappened("invalid accountId number", http.StatusBadRequest, r, w)
+func validateApplicationRequestToken(ctx *context) {
+	if keys.VerifyRequest(ctx.scope, ctx.version, ctx.r) {
 		return
 	}
 
-	if applicationID, err = strconv.ParseInt(vars["applicationId"], 10, 64); err != nil {
-		errorHappened("invalid applicationId number", http.StatusBadRequest, r, w)
+	errorHappened(ctx, "request is not properly signed", http.StatusUnauthorized)
+}
+
+// isSessionValid checks if the session token is valid or not
+func checkSession(ctx *context) {
+	sessionToken, err := validator.CheckSession(ctx.r)
+	if err == nil {
+		ctx.sessionToken = sessionToken
 		return
 	}
 
-	if !validator.ValidateApplicationRequestToken(accountID, applicationID, getReqAuthToken(r)) {
-		errorHappened("request is not properly signed", http.StatusBadRequest, r, w)
-		return
-	}
+	errorHappened(ctx, "invalid session", http.StatusUnauthorized)
 }
 
 // writeCacheHeaders will add the corresponding cache headers based on the time supplied (in seconds)
@@ -182,43 +200,48 @@ func getSanitizedHeaders(headers http.Header) http.Header {
 }
 
 // writeResponse handles the http responses and returns the data
-func writeResponse(response interface{}, code int, cacheTime uint, w http.ResponseWriter, r *http.Request) {
+func writeResponse(ctx *context, response interface{}, code int, cacheTime uint) {
 	// Set the response headers
-	writeCacheHeaders(cacheTime, w)
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding")
-	w.Header().Set("Access-Control-Allow-Credentials", "true")
+	writeCacheHeaders(cacheTime, ctx.w)
+	ctx.w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	ctx.w.Header().Set("Access-Control-Allow-Origin", "*")
+	ctx.w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+	ctx.w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding")
+	ctx.w.Header().Set("Access-Control-Allow-Credentials", "true")
+
+	//Check if we have a session enable and if so write it back
+	if ctx.sessionToken != "" {
+		ctx.w.Header().Set("x-tapglue-session", ctx.sessionToken)
+	}
 
 	// Write response
-	if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+	if !strings.Contains(ctx.r.Header.Get("Accept-Encoding"), "gzip") {
 		// No gzip support
-		w.WriteHeader(code)
-		json.NewEncoder(w).Encode(response)
+		ctx.w.WriteHeader(code)
+		json.NewEncoder(ctx.w).Encode(response)
 		return
 	}
 
-	w.Header().Set("Content-Encoding", "gzip")
-	w.WriteHeader(code)
-	gz := gzip.NewWriter(w)
+	ctx.w.Header().Set("Content-Encoding", "gzip")
+	ctx.w.WriteHeader(code)
+	gz := gzip.NewWriter(ctx.w)
 	json.NewEncoder(gz).Encode(response)
 	gz.Close()
 }
 
 // errorHappened handles the error message
-func errorHappened(message string, code int, r *http.Request, w http.ResponseWriter) {
-	writeCacheHeaders(0, w)
-	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
+func errorHappened(ctx *context, message string, code int) {
+	writeCacheHeaders(0, ctx.w)
+	ctx.w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	// Write response
-	if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+	if !strings.Contains(ctx.r.Header.Get("Accept-Encoding"), "gzip") {
 		// No gzip support
-		w.WriteHeader(code)
-		fmt.Fprintf(w, "%d %s", code, message)
+		ctx.w.WriteHeader(code)
+		fmt.Fprintf(ctx.w, "%d %s", code, message)
 	} else {
-		w.Header().Set("Content-Encoding", "gzip")
-		w.WriteHeader(code)
-		gz := gzip.NewWriter(w)
+		ctx.w.Header().Set("Content-Encoding", "gzip")
+		ctx.w.WriteHeader(code)
+		gz := gzip.NewWriter(ctx.w)
 		fmt.Fprintf(gz, "%d %s", code, message)
 		gz.Close()
 	}
@@ -227,36 +250,39 @@ func errorHappened(message string, code int, r *http.Request, w http.ResponseWri
 		return
 	}
 
-	headers := getSanitizedHeaders(r.Header)
-
-	log.Printf(
-		"Error %q in %s/%s:%d while %s\t%s\t%+v\n",
-		message,
-		filepath.Base(filepath.Dir(filename)),
-		filepath.Base(filename),
-		line,
-		r.Method,
-		r.RequestURI,
-		headers,
-	)
+	ctx.errorLog <- &LogMsg{
+		method:     ctx.r.Method,
+		requestURI: ctx.r.RequestURI,
+		headers:    ctx.r.Header,
+		name:       "-",
+		start:      time.Now(),
+		end:        time.Now(),
+		message: fmt.Sprintf(
+			"Error %q in %s/%s:%d",
+			message,
+			filepath.Base(filepath.Dir(filename)),
+			filepath.Base(filename),
+			line,
+		),
+	}
 }
 
 // home handles request to API root
 // Request: GET /
 // Test with: `curl -i localhost/`
-func home(w http.ResponseWriter, r *http.Request) {
-	writeCacheHeaders(10*24*3600, w)
-	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
-	w.Write([]byte(`these aren't the droids you're looking for`))
+func home(ctx *context) {
+	writeCacheHeaders(10*24*3600, ctx.w)
+	ctx.w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
+	ctx.w.Write([]byte(`these aren't the droids you're looking for`))
 }
 
 // humans handles requests to humans.txt
 // Request: GET /humans.txt
 // Test with: curl -i localhost/humans.txt
-func humans(w http.ResponseWriter, r *http.Request) {
-	writeCacheHeaders(10*24*3600, w)
-	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
-	w.Write([]byte(`/* TEAM */
+func humans(ctx *context) {
+	writeCacheHeaders(10*24*3600, ctx.w)
+	ctx.w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
+	ctx.w.Write([]byte(`/* TEAM */
 Founder: Normal Wiese, Onur Akpolat
 http://tapglue.co
 Location: Berlin, Germany.
@@ -274,20 +300,16 @@ Software: Go`))
 // robots handles requests to robots.txt
 // Request: GET /robots.txt
 // Test with: curl -i localhost/robots.txt
-func robots(w http.ResponseWriter, r *http.Request) {
-	writeCacheHeaders(10*24*3600, w)
-	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
-	w.Write([]byte(`User-agent: *
+func robots(ctx *context) {
+	writeCacheHeaders(10*24*3600, ctx.w)
+	ctx.w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
+	ctx.w.Write([]byte(`User-agent: *
 Disallow: /`))
 }
 
-func signRequest(token string, req *http.Request) {
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token))
-}
-
-func customHandler(routeName string, r *route, newRelicAgent *gorelic.Agent, logChan chan *LogMsg) http.HandlerFunc {
-	var extraHandlers []http.HandlerFunc
-	switch r.method {
+func customHandler(routeName, version string, route *route, mainLog, errorLog chan *LogMsg) http.HandlerFunc {
+	var extraHandlers []routeFunc
+	switch route.method {
 	case "DELETE":
 		{
 			extraHandlers = append(extraHandlers, validateDeleteCommon)
@@ -306,37 +328,27 @@ func customHandler(routeName string, r *route, newRelicAgent *gorelic.Agent, log
 		}
 	}
 
-	r.handlers = append(extraHandlers, r.handlers...)
+	route.handlers = append(extraHandlers, route.handlers...)
 
-	handlerFunc := func(resp http.ResponseWriter, req *http.Request) {
-		start := time.Now()
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx, err := NewContext(w, r, mainLog, errorLog, routeName, route.scope, version)
+		if err != nil {
+			errorHappened(ctx, "failed to get a request context", http.StatusInternalServerError)
+			return
+		}
 
-		for _, handler := range r.handlers {
+		for _, handler := range route.handlers {
 			// Any response that happens in a handler MUST send a Content-Type header
-			if resp.Header().Get("Content-Type") != "" {
+			if w.Header().Get("Content-Type") != "" {
 				break
 			}
-			handler(resp, req)
-		}
-
-		logChan <- &LogMsg{
-			method:     req.Method,
-			requestURI: req.RequestURI,
-			name:       routeName,
-			headers:    req.Header,
-			start:      start,
-			end:        time.Now(),
+			handler(ctx)
 		}
 	}
-
-	if newRelicAgent != nil {
-		return http.HandlerFunc(newRelicAgent.WrapHTTPHandlerFunc(handlerFunc))
-	}
-	return handlerFunc
 }
 
 // GetRouter creates the router
-func GetRouter(debugMode bool, newRelicAgent *gorelic.Agent, logChan chan *LogMsg) (*mux.Router, error) {
+func GetRouter(debugMode bool) (*mux.Router, chan *LogMsg, chan *LogMsg, error) {
 	dbgMode = debugMode
 	router := mux.NewRouter().StrictSlash(true)
 
@@ -346,7 +358,7 @@ func GetRouter(debugMode bool, newRelicAgent *gorelic.Agent, logChan chan *LogMs
 				Methods(route.method).
 				Path(route.routePattern(version)).
 				Name(routeName).
-				HandlerFunc(customHandler(routeName, route, newRelicAgent, logChan))
+				HandlerFunc(customHandler(routeName, version, route, mainLogChan, errorLogChan))
 		}
 	}
 
@@ -357,5 +369,5 @@ func GetRouter(debugMode bool, newRelicAgent *gorelic.Agent, logChan chan *LogMs
 		router.Handle("/debug/pprof/symbol", http.HandlerFunc(pprof.Symbol))
 	}
 
-	return router, nil
+	return router, mainLogChan, errorLogChan, nil
 }

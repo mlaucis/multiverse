@@ -22,8 +22,6 @@ import (
 	"github.com/tapglue/backend/storage/redis"
 	"github.com/tapglue/backend/validator"
 	"github.com/tapglue/backend/worker/channel"
-
-	"github.com/yvasiyarov/gorelic"
 )
 
 const (
@@ -32,8 +30,7 @@ const (
 )
 
 var (
-	conf          *config.Config
-	newRelicAgent *gorelic.Agent
+	conf *config.Config
 )
 
 func init() {
@@ -56,25 +53,13 @@ func init() {
 }
 
 func main() {
-	if conf.Newrelic.Enabled {
-		newRelicAgent = gorelic.NewAgent()
-		newRelicAgent.Verbose = true
-		newRelicAgent.NewrelicLicense = conf.Newrelic.Key
-		newRelicAgent.NewrelicName = conf.Newrelic.Name
-		newRelicAgent.Run()
-	} else {
-		newRelicAgent = nil
-	}
-
-	logChan := make(chan *server.LogMsg, 100000)
-	go server.TGLog(logChan)
-
 	// Get router
-	router, err := server.GetRouter(conf.Environment != "prod", newRelicAgent, logChan)
-
+	router, mainLogChan, errorLogChan, err := server.GetRouter(conf.Environment != "prod")
 	if err != nil {
 		panic(err)
 	}
+	go server.TGLog(mainLogChan)
+	go server.TGLog(errorLogChan)
 
 	if conf.UseArtwork {
 		log.Printf(`

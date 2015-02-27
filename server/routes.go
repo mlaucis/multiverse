@@ -4,15 +4,18 @@
 
 package server
 
-import "net/http"
-
 // Route structure
-type route struct {
-	method   string
-	pattern  string
-	cPattern string
-	handlers []http.HandlerFunc
-}
+type (
+	routeFunc func(*context)
+
+	route struct {
+		method   string
+		pattern  string
+		cPattern string
+		scope    string
+		handlers []routeFunc
+	}
+)
 
 func (r *route) routePattern(version string) string {
 	return "/" + version + r.pattern
@@ -27,163 +30,224 @@ var routes = map[string]map[string]*route{
 	"0.1": {
 		// General
 		"index": &route{
-			"GET",
-			"/",
-			"/",
-			[]http.HandlerFunc{
+			method:   "GET",
+			pattern:  "/",
+			cPattern: "/",
+			scope:    "/",
+			handlers: []routeFunc{
 				home,
 			},
 		},
 		// Account
 		"getAccount": &route{
-			"GET",
-			"/account/{accountId:[0-9]{1,20}}",
-			"/account/%d",
-			[]http.HandlerFunc{
+			method:   "GET",
+			pattern:  "/account/{accountId:[0-9]{1,20}}",
+			cPattern: "/account/%d",
+			scope:    "account/index",
+			handlers: []routeFunc{
 				getAccount,
 			},
 		},
 		"updateAccount": &route{
-			"PUT",
-			"/account/{accountId:[0-9]{1,20}}",
-			"/account/%d",
-			[]http.HandlerFunc{
+			method:   "PUT",
+			pattern:  "/account/{accountId:[0-9]{1,20}}",
+			cPattern: "/account/%d",
+			scope:    "account/update",
+			handlers: []routeFunc{
 				updateAccount,
 			},
 		},
 		"deleteAccount": &route{
-			"DELETE",
-			"/account/{accountId:[0-9]{1,20}}",
-			"/account/%d",
-			[]http.HandlerFunc{
+			method:   "DELETE",
+			pattern:  "/account/{accountId:[0-9]{1,20}}",
+			cPattern: "/account/%d",
+			scope:    "account/delete",
+			handlers: []routeFunc{
 				deleteAccount,
 			},
 		},
 		"createAccount": &route{
-			"POST",
-			"/accounts",
-			"/accounts",
-			[]http.HandlerFunc{
+			method:   "POST",
+			pattern:  "/accounts",
+			cPattern: "/accounts",
+			scope:    "account/create",
+			handlers: []routeFunc{
 				createAccount,
 			},
 		},
 		// AccountUser
 		"getAccountUser": &route{
-			"GET",
-			"/account/{accountId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}",
-			"/account/%d/user/%d",
-			[]http.HandlerFunc{
+			method:   "GET",
+			pattern:  "/account/{accountId:[0-9]{1,20}}/user/{userId:[0-9]+}",
+			cPattern: "/account/%d/user/%d",
+			scope:    "account/user/index",
+			handlers: []routeFunc{
 				getAccountUser,
 			},
 		},
 		"updateAccountUser": &route{
-			"PUT",
-			"/account/{accountId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}",
-			"/account/%d/user/%d",
-			[]http.HandlerFunc{
+			method:   "PUT",
+			pattern:  "/account/{accountId:[0-9]{1,20}}/user/{userId:[0-9]+}",
+			cPattern: "/account/%d/user/%d",
+			scope:    "account/user/update",
+			handlers: []routeFunc{
 				updateAccountUser,
 			},
 		},
 		"deleteAccountUser": &route{
-			"DELETE",
-			"/account/{accountId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}",
-			"/account/%d/user/%d",
-			[]http.HandlerFunc{
+			method:   "DELETE",
+			pattern:  "/account/{accountId:[0-9]{1,20}}/user/{userId:[0-9]+}",
+			cPattern: "/account/%d/user/%d",
+			scope:    "account/user/delete",
+			handlers: []routeFunc{
 				deleteAccountUser,
 			},
 		},
 		"createAccountUser": &route{
-			"POST",
-			"/account/{accountId:[0-9]{1,20}}/users",
-			"/account/%d/users",
-			[]http.HandlerFunc{
+			method:   "POST",
+			pattern:  "/account/{accountId:[0-9]{1,20}}/users",
+			cPattern: "/account/%d/users",
+			scope:    "account/user/create",
+			handlers: []routeFunc{
 				createAccountUser,
 			},
 		},
 		"getAccountUserList": &route{
-			"GET",
-			"/account/{accountId:[0-9]{1,20}}/users",
-			"/account/%d/users",
-			[]http.HandlerFunc{
+			method:   "GET",
+			pattern:  "/account/{accountId:[0-9]{1,20}}/users",
+			cPattern: "/account/%d/users",
+			scope:    "account/user/list",
+			handlers: []routeFunc{
 				getAccountUserList,
 			},
 		},
 		// Application
 		"getApplication": &route{
-			"GET",
-			"/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}",
-			"/account/%d/application/%d",
-			[]http.HandlerFunc{
+			method:   "GET",
+			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}",
+			cPattern: "/account/%d/application/%d",
+			scope:    "application/index",
+			handlers: []routeFunc{
 				getApplication,
 			},
 		},
 		"updateApplication": &route{
-			"PUT",
-			"/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}",
-			"/account/%d/application/%d",
-			[]http.HandlerFunc{
+			method:   "PUT",
+			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}",
+			cPattern: "/account/%d/application/%d",
+			scope:    "application/update",
+			handlers: []routeFunc{
 				updateApplication,
 			},
 		},
 		"deleteApplication": &route{
-			"DELETE",
-			"/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}",
-			"/account/%d/application/%d",
-			[]http.HandlerFunc{
+			method:   "DELETE",
+			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}",
+			cPattern: "/account/%d/application/%d",
+			scope:    "application/delete",
+			handlers: []routeFunc{
 				deleteApplication,
 			},
 		},
 		"createApplication": &route{
-			"POST",
-			"/account/{accountId:[0-9]{1,20}}/applications",
-			"/account/%d/applications",
-			[]http.HandlerFunc{
+			method:   "POST",
+			pattern:  "/account/{accountId:[0-9]{1,20}}/applications",
+			cPattern: "/account/%d/applications",
+			scope:    "application/create",
+			handlers: []routeFunc{
 				createApplication,
 			},
 		},
 		"getApplications": &route{
-			"GET",
-			"/account/{accountId:[0-9]{1,20}}/applications",
-			"/account/%d/applications",
-			[]http.HandlerFunc{
+			method:   "GET",
+			pattern:  "/account/{accountId:[0-9]{1,20}}/applications",
+			cPattern: "/account/%d/applications",
+			scope:    "account/applications/list",
+			handlers: []routeFunc{
 				getApplicationList,
 			},
 		},
 		// User
 		"getUser": &route{
-			"GET",
-			"/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}",
-			"/account/%d/application/%d/user/%d",
-			[]http.HandlerFunc{
+			method:   "GET",
+			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]+}",
+			cPattern: "/account/%d/application/%d/user/%d",
+			scope:    "application/user/index",
+			handlers: []routeFunc{
+				isRequestExpired,
 				validateApplicationRequestToken,
+				checkSession,
 				getUser,
 			},
 		},
 		"updateUser": &route{
-			"PUT",
-			"/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}",
-			"/account/%d/application/%d/user/%d",
-			[]http.HandlerFunc{
+			method:   "PUT",
+			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]+}",
+			cPattern: "/account/%d/application/%d/user/%d",
+			scope:    "application/user/update",
+			handlers: []routeFunc{
+				isRequestExpired,
 				validateApplicationRequestToken,
+				checkSession,
 				updateUser,
 			},
 		},
 		"deleteUser": &route{
-			"DELETE",
-			"/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}",
-			"/account/%d/application/%d/user/%d",
-			[]http.HandlerFunc{
+			method:   "DELETE",
+			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]+}",
+			cPattern: "/account/%d/application/%d/user/%d",
+			scope:    "application/user/delete",
+			handlers: []routeFunc{
+				isRequestExpired,
 				validateApplicationRequestToken,
+				checkSession,
 				deleteUser,
 			},
 		},
 		"createUser": &route{
-			"POST",
-			"/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/users",
-			"/account/%d/application/%d/users",
-			[]http.HandlerFunc{
+			method:   "POST",
+			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/users",
+			cPattern: "/account/%d/application/%d/users",
+			scope:    "application/user/create",
+			handlers: []routeFunc{
+				isRequestExpired,
 				validateApplicationRequestToken,
 				createUser,
+			},
+		},
+		"loginUser": &route{
+			method:   "POST",
+			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/login",
+			cPattern: "/account/%d/application/%d/user/login",
+			scope:    "application/user/login",
+			handlers: []routeFunc{
+				isRequestExpired,
+				validateApplicationRequestToken,
+				loginUser,
+			},
+		},
+		"refreshUserSession": &route{
+			method:   "POST",
+			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/login",
+			cPattern: "/account/%d/application/%d/user/refreshsession",
+			scope:    "application/user/refreshToken",
+			handlers: []routeFunc{
+				isRequestExpired,
+				validateApplicationRequestToken,
+				checkSession,
+				refreshUserSession,
+			},
+		},
+		"logoutUser": &route{
+			method:   "POST",
+			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/login",
+			cPattern: "/account/%d/application/%d/user/logout",
+			scope:    "application/user/logout",
+			handlers: []routeFunc{
+				isRequestExpired,
+				validateApplicationRequestToken,
+				checkSession,
+				logoutUser,
 			},
 		},
 		/*
@@ -196,110 +260,141 @@ var routes = map[string]map[string]*route{
 		*/
 		// UserConnection
 		"createConnection": &route{
-			"POST",
-			"/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/connections",
-			"/account/%d/application/%d/user/%d/connections",
-			[]http.HandlerFunc{
+			method:   "POST",
+			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]+}/connections",
+			cPattern: "/account/%d/application/%d/user/%d/connections",
+			scope:    "application/user/connection/create",
+			handlers: []routeFunc{
+				isRequestExpired,
 				validateApplicationRequestToken,
+				checkSession,
 				createConnection,
 			},
 		},
 		"updateConnection": &route{
-			"PUT",
-			"/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userFromId:[a-zA-Z0-9]+}/connection/{userToId:[a-zA-Z0-9]+}",
-			"/account/%d/application/%d/user/%d/connection/%d",
-			[]http.HandlerFunc{
+			method:   "PUT",
+			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userFromId:[a-zA-Z0-9]+}/connection/{userToId:[a-zA-Z0-9]+}",
+			cPattern: "/account/%d/application/%d/user/%d/connection/%d",
+			scope:    "application/user/connection/update",
+			handlers: []routeFunc{
+				isRequestExpired,
 				validateApplicationRequestToken,
+				checkSession,
 				updateConnection,
 			},
 		},
 		"deleteConnection": &route{
-			"DELETE",
-			"/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userFromId:[a-zA-Z0-9]+}/connection/{userToId:[a-zA-Z0-9]+}",
-			"/account/%d/application/%d/user/%d/connection/%d",
-			[]http.HandlerFunc{
+			method:   "DELETE",
+			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userFromId:[a-zA-Z0-9]+}/connection/{userToId:[a-zA-Z0-9]+}",
+			cPattern: "/account/%d/application/%d/user/%d/connection/%d",
+			scope:    "application/user/connection/delete",
+			handlers: []routeFunc{
+				isRequestExpired,
 				validateApplicationRequestToken,
+				checkSession,
 				deleteConnection,
 			},
 		},
 		"getConnectionList": &route{
-			"GET",
-			"/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/connections",
-			"/account/%d/application/%d/user/%d/connections",
-			[]http.HandlerFunc{
+			method:   "GET",
+			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]+}/connections",
+			cPattern: "/account/%d/application/%d/user/%d/connections",
+			scope:    "application/user/connections/list",
+			handlers: []routeFunc{
+				isRequestExpired,
 				validateApplicationRequestToken,
+				checkSession,
 				getConnectionList,
 			},
 		},
 		// Event
 		"getEvent": &route{
-			"GET",
-			"/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/event/{eventId:[0-9]{1,20}}",
-			"/account/%d/application/%d/user/%d/event/%d",
-			[]http.HandlerFunc{
+			method:   "GET",
+			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]+}/event/{eventId:[0-9]{1,20}}",
+			cPattern: "/account/%d/application/%d/user/%d/event/%d",
+			scope:    "application/user/event/index",
+			handlers: []routeFunc{
+				isRequestExpired,
 				validateApplicationRequestToken,
+				checkSession,
 				getEvent,
 			},
 		},
 		"updateEvent": &route{
-			"PUT",
-			"/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/event/{eventId:[0-9]{1,20}}",
-			"/account/%d/application/%d/user/%d/event/%d",
-			[]http.HandlerFunc{
+			method:   "PUT",
+			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]+}/event/{eventId:[0-9]{1,20}}",
+			cPattern: "/account/%d/application/%d/user/%d/event/%d",
+			scope:    "application/user/event/update",
+			handlers: []routeFunc{
 				validateApplicationRequestToken,
+				checkSession,
 				updateEvent,
 			},
 		},
 		"deleteEvent": &route{
-			"DELETE",
-			"/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/event/{eventId:[0-9]{1,20}}",
-			"/account/%d/application/%d/user/%d/event/%d",
-			[]http.HandlerFunc{
+			method:   "DELETE",
+			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]+}/event/{eventId:[0-9]{1,20}}",
+			cPattern: "/account/%d/application/%d/user/%d/event/%d",
+			scope:    "application/user/event/delete",
+			handlers: []routeFunc{
+				isRequestExpired,
 				validateApplicationRequestToken,
+				checkSession,
 				deleteEvent,
 			},
 		},
 		"createEvent": &route{
-			"POST",
-			"/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/events",
-			"/account/%d/application/%d/user/%d/events",
-			[]http.HandlerFunc{
+			method:   "POST",
+			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]+}/events",
+			cPattern: "/account/%d/application/%d/user/%d/events",
+			scope:    "application/user/event/create",
+			handlers: []routeFunc{
+				isRequestExpired,
 				validateApplicationRequestToken,
+				checkSession,
 				createEvent,
 			},
 		},
 		"getEventList": &route{
-			"GET",
-			"/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/events",
-			"/account/%d/application/%d/user/%d/events",
-			[]http.HandlerFunc{
+			method:   "GET",
+			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]+}/events",
+			cPattern: "/account/%d/application/%d/user/%d/events",
+			scope:    "application/user/events/list",
+			handlers: []routeFunc{
+				isRequestExpired,
 				validateApplicationRequestToken,
+				checkSession,
 				getEventList,
 			},
 		},
 		"getConnectionEventList": &route{
-			"GET",
-			"/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[a-zA-Z0-9]+}/connections/events",
-			"/account/%d/application/%d/user/%d/connections/events",
-			[]http.HandlerFunc{
+			method:   "GET",
+			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]+}/connections/events",
+			cPattern: "/account/%d/application/%d/user/%d/connections/events",
+			scope:    "application/user/connection/events",
+			handlers: []routeFunc{
+				isRequestExpired,
 				validateApplicationRequestToken,
+				checkSession,
 				getConnectionEventList,
 			},
 		},
 		// Other
 		"humans": &route{
-			"GET",
-			"/humans.txt",
-			"/humans.txt",
-			[]http.HandlerFunc{
+			method:   "GET",
+			pattern:  "/humans.txt",
+			cPattern: "/humans.txt",
+			scope:    "humans",
+			handlers: []routeFunc{
 				humans,
 			},
 		},
 		"robots": &route{
-			"GET",
-			"/robots.txt",
-			"/robots.txt",
-			[]http.HandlerFunc{
+			method:   "GET",
+			pattern:  "/robots.txt",
+			cPattern: "/robots.txt",
+			scope:    "robots",
+			handlers: []routeFunc{
 				robots,
 			},
 		},

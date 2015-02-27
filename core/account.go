@@ -78,10 +78,6 @@ func WriteAccount(account *entity.Account, retrieve bool) (acc *entity.Account, 
 		return nil, err
 	}
 
-	if account.Token, err = storageClient.GenerateAccountToken(account); err != nil {
-		return nil, err
-	}
-
 	account.Enabled = true
 	account.CreatedAt = time.Now()
 	account.UpdatedAt, account.ReceivedAt = account.CreatedAt, account.CreatedAt

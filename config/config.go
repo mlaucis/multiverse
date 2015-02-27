@@ -28,12 +28,7 @@ type (
 		Environment    string `json:"env"`
 		UseArtwork     bool   `json:"use_artwork"`
 		ListenHostPort string `json:"listenHost"`
-		Newrelic       struct {
-			Key     string `json:"key"`
-			Name    string `json:"name"`
-			Enabled bool   `json:"enabled"`
-		} `json:"newrelic"`
-		Redis *Redis `json:"redis"`
+		Redis          *Redis `json:"redis"`
 	}
 )
 
@@ -45,9 +40,6 @@ func defaultConfig() *Config {
 	cfg.Environment = "dev"
 	cfg.UseArtwork = true
 	cfg.ListenHostPort = ":8082"
-
-	cfg.Newrelic.Key = "demo"
-	cfg.Newrelic.Name = "tapglue - stub"
 
 	cfg.Redis = &Redis{}
 	cfg.Redis.Hosts = append(cfg.Redis.Hosts, "127.0.0.1:6379")

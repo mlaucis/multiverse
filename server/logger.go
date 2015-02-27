@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	logFormat = "%s\t%s\t%+v\t%s\t%s\n"
+	logFormat = "%s\t%s\t%+v\t%s\t%s\t%s\n"
 )
 
 type (
@@ -20,6 +20,7 @@ type (
 		method     string
 		requestURI string
 		name       string
+		message    string
 		headers    http.Header
 		start      time.Time
 		end        time.Time
@@ -39,6 +40,7 @@ func TGLog(msg chan *LogMsg) {
 					getSanitizedHeaders(m.headers),
 					m.name,
 					m.end.Sub(m.start),
+					m.message,
 				)
 			}
 		}
