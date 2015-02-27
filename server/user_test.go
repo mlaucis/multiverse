@@ -10,6 +10,7 @@ import (
 	"net/http"
 
 	"github.com/tapglue/backend/core/entity"
+
 	. "gopkg.in/check.v1"
 )
 
@@ -23,7 +24,7 @@ func (s *ServerSuite) TestCreateUser_WrongKey(c *C) {
 
 	routeName := "createUser"
 	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID)
-	code, body, err := runRequest(routeName, route, payload, correctApplication.AuthToken)
+	code, body, err := runRequest(routeName, route, payload, correctApplication.AuthToken, "")
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusBadRequest)
@@ -40,7 +41,7 @@ func (s *ServerSuite) TestCreateUser_WrongValue(c *C) {
 
 	routeName := "createUser"
 	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID)
-	code, body, err := runRequest(routeName, route, payload, correctApplication.AuthToken)
+	code, body, err := runRequest(routeName, route, payload, correctApplication.AuthToken, "")
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusBadRequest)
@@ -68,7 +69,7 @@ func (s *ServerSuite) TestCreateUser_OK(c *C) {
 
 	routeName := "createUser"
 	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID)
-	code, body, err := runRequest(routeName, route, payload, correctApplication.AuthToken)
+	code, body, err := runRequest(routeName, route, payload, correctApplication.AuthToken, "")
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusCreated)
@@ -108,7 +109,7 @@ func (s *ServerSuite) TestUpdateUser_OK(c *C) {
 
 	routeName := "updateUser"
 	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID)
-	code, body, err := runRequest(routeName, route, payload, correctApplication.AuthToken)
+	code, body, err := runRequest(routeName, route, payload, correctApplication.AuthToken, getSessionToken(correctUser))
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusCreated)
@@ -146,7 +147,7 @@ func (s *ServerSuite) TestUpdateUser_WrongID(c *C) {
 
 	routeName := "updateUser"
 	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID+1)
-	code, _, err := runRequest(routeName, route, payload, correctApplication.AuthToken)
+	code, _, err := runRequest(routeName, route, payload, correctApplication.AuthToken, getSessionToken(correctUser))
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusInternalServerError)
@@ -171,7 +172,7 @@ func (s *ServerSuite) TestUpdateUser_WrongValue(c *C) {
 
 	routeName := "updateUser"
 	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID)
-	code, body, err := runRequest(routeName, route, payload, correctApplication.AuthToken)
+	code, body, err := runRequest(routeName, route, payload, correctApplication.AuthToken, getSessionToken(correctUser))
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusBadRequest)
@@ -187,7 +188,7 @@ func (s *ServerSuite) TestDeleteUser_OK(c *C) {
 
 	routeName := "deleteUser"
 	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID)
-	code, _, err := runRequest(routeName, route, "", correctApplication.AuthToken)
+	code, _, err := runRequest(routeName, route, "", correctApplication.AuthToken, getSessionToken(correctUser))
 	c.Assert(err, IsNil)
 
 	c.Assert(err, IsNil)
@@ -203,7 +204,7 @@ func (s *ServerSuite) TestDeleteUser_WrongID(c *C) {
 
 	routeName := "deleteUser"
 	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID+1)
-	code, _, err := runRequest(routeName, route, "", correctApplication.AuthToken)
+	code, _, err := runRequest(routeName, route, "", correctApplication.AuthToken, getSessionToken(correctUser))
 	c.Assert(err, IsNil)
 
 	c.Assert(err, IsNil)
@@ -219,7 +220,7 @@ func (s *ServerSuite) TestGetUser_OK(c *C) {
 
 	routeName := "getUser"
 	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID)
-	code, body, err := runRequest(routeName, route, "", correctApplication.AuthToken)
+	code, body, err := runRequest(routeName, route, "", correctApplication.AuthToken, getSessionToken(correctUser))
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusOK)
@@ -245,7 +246,7 @@ func (s *ServerSuite) TestGetUser_WrongID(c *C) {
 
 	routeName := "getUser"
 	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID+1)
-	code, _, err := runRequest(routeName, route, "", correctApplication.AuthToken)
+	code, _, err := runRequest(routeName, route, "", correctApplication.AuthToken, getSessionToken(correctUser))
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusInternalServerError)

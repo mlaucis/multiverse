@@ -10,6 +10,7 @@ import (
 	"net/http"
 
 	"github.com/tapglue/backend/core/entity"
+
 	. "gopkg.in/check.v1"
 )
 
@@ -20,7 +21,7 @@ func (s *ServerSuite) TestCreateAccountUser_WrongKey(c *C) {
 
 	routeName := "createAccountUser"
 	route := getComposedRoute(routeName, correctAccount.ID)
-	code, body, err := runRequest(routeName, route, payload, "")
+	code, body, err := runRequest(routeName, route, payload, "", "")
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusBadRequest)
@@ -34,7 +35,7 @@ func (s *ServerSuite) TestCreateAccountUser_WrongValue(c *C) {
 
 	routeName := "createAccountUser"
 	route := getComposedRoute(routeName, correctAccount.ID)
-	code, body, err := runRequest(routeName, route, payload, "")
+	code, body, err := runRequest(routeName, route, payload, "", "")
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusBadRequest)
@@ -57,7 +58,7 @@ func (s *ServerSuite) TestCreateAccountUser_OK(c *C) {
 
 	routeName := "createAccountUser"
 	route := getComposedRoute(routeName, correctAccount.ID)
-	code, body, err := runRequest(routeName, route, payload, "")
+	code, body, err := runRequest(routeName, route, payload, "", "")
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusCreated)
@@ -88,7 +89,7 @@ func (s *ServerSuite) TestUpdateAccountUser_OK(c *C) {
 
 	routeName := "updateAccountUser"
 	route := getComposedRoute(routeName, correctAccountUser.AccountID, correctAccountUser.ID)
-	code, body, err := runRequest(routeName, route, payload, "")
+	code, body, err := runRequest(routeName, route, payload, "", "")
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusCreated)
@@ -119,7 +120,7 @@ func (s *ServerSuite) TestUpdateAccountUser_WrongID(c *C) {
 
 	routeName := "updateAccountUser"
 	route := getComposedRoute(routeName, correctAccountUser.AccountID, correctAccountUser.ID+1)
-	code, _, err := runRequest(routeName, route, payload, "")
+	code, _, err := runRequest(routeName, route, payload, "", "")
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusInternalServerError)
@@ -139,7 +140,7 @@ func (s *ServerSuite) TestUpdateAccountUser_WrongValue(c *C) {
 
 	routeName := "updateAccountUser"
 	route := getComposedRoute(routeName, correctAccountUser.AccountID, correctAccountUser.ID)
-	code, body, err := runRequest(routeName, route, payload, "")
+	code, body, err := runRequest(routeName, route, payload, "", "")
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusBadRequest)
@@ -161,7 +162,7 @@ func (s *ServerSuite) TestUpdateAccountUser_WrongToken(c *C) {
 
 	routeName := "updateAccountUser"
 	route := getComposedRoute(routeName, correctAccountUser.AccountID, correctAccountUser.ID)
-	code, _, err := runRequest(routeName, route, payload, "")
+	code, _, err := runRequest(routeName, route, payload, "", "")
 
 	c.Assert(code, Equals, http.StatusBadRequest)
 }
@@ -174,7 +175,7 @@ func (s *ServerSuite) TestDeleteAccountUser_OK(c *C) {
 
 	routeName := "deleteAccountUser"
 	route := getComposedRoute(routeName, correctAccountUser.AccountID, correctAccountUser.ID)
-	code, _, err := runRequest(routeName, route, "", "")
+	code, _, err := runRequest(routeName, route, "", "", "")
 
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusNoContent)
@@ -188,7 +189,7 @@ func (s *ServerSuite) TestDeleteAccountUser_WrongID(c *C) {
 
 	routeName := "deleteAccountUser"
 	route := getComposedRoute(routeName, correctAccountUser.AccountID, correctAccountUser.ID+1)
-	code, _, err := runRequest(routeName, route, "", "")
+	code, _, err := runRequest(routeName, route, "", "", "")
 
 	c.Assert(err, IsNil)
 
@@ -206,7 +207,7 @@ func (s *ServerSuite) TestDeleteAccountUser_WrongToken(c *C) {
 
 	routeName := "deleteAccountUser"
 	route := getComposedRoute(routeName, correctAccountUser.AccountID, correctAccountUser.ID)
-	code, _, err := runRequest(routeName, route, "", "")
+	code, _, err := runRequest(routeName, route, "", "", "")
 
 	c.Assert(code, Equals, http.StatusBadRequest)
 }
@@ -219,7 +220,7 @@ func (s *ServerSuite) TestGetAccountUser_OK(c *C) {
 
 	routeName := "getAccountUser"
 	route := getComposedRoute(routeName, correctAccountUser.AccountID, correctAccountUser.ID)
-	code, body, err := runRequest(routeName, route, "", "")
+	code, body, err := runRequest(routeName, route, "", "", "")
 
 	c.Assert(code, Equals, http.StatusOK)
 
@@ -241,7 +242,7 @@ func (s *ServerSuite) TestGetAccountUser_WrongID(c *C) {
 
 	routeName := "getAccountUser"
 	route := getComposedRoute(routeName, correctAccountUser.AccountID, correctAccountUser.ID+1)
-	code, _, err := runRequest(routeName, route, "", "")
+	code, _, err := runRequest(routeName, route, "", "", "")
 
 	c.Assert(code, Equals, http.StatusInternalServerError)
 }
@@ -257,7 +258,7 @@ func (s *ServerSuite) TestGetAccountUser_WrongToken(c *C) {
 
 	routeName := "getAccountUser"
 	route := getComposedRoute(routeName, correctAccountUser.AccountID, correctAccountUser.ID)
-	code, _, err := runRequest(routeName, route, "", "")
+	code, _, err := runRequest(routeName, route, "", "", "")
 
 	c.Assert(code, Equals, http.StatusBadRequest)
 }

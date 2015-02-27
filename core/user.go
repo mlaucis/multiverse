@@ -14,10 +14,6 @@ import (
 	"github.com/tapglue/backend/core/entity"
 )
 
-func generateUserID(applicationID int64) (int64, error) {
-	return storageEngine.Incr(storageClient.GenerateApplicationUserID(applicationID)).Result()
-}
-
 // ReadUser returns the user matching the ID or an error
 func ReadUser(accountID, applicationID, userID int64) (user *entity.User, err error) {
 	key := storageClient.User(accountID, applicationID, userID)
@@ -133,7 +129,7 @@ func WriteUser(user *entity.User, retrieve bool) (usr *entity.User, err error) {
 	user.CreatedAt = time.Now()
 	user.UpdatedAt, user.ReceivedAt = user.CreatedAt, user.CreatedAt
 
-	if user.ID, err = generateUserID(user.ApplicationID); err != nil {
+	if user.ID, err = storageClient.GenerateApplicationUserID(user.ApplicationID); err != nil {
 		return nil, err
 	}
 
@@ -167,22 +163,92 @@ func WriteUser(user *entity.User, retrieve bool) (usr *entity.User, err error) {
 
 // CreateUserSession handles the creation of a user session and returns the session token
 func CreateUserSession(user *entity.User) (string, error) {
-	// TODO properly generate this
-	// It should look like this: base64(dateGenerated:randomToken)
-
+	// TODO support multiple sessions?
 	// TODO rate limit this to x / per day?
 	// TODO rate limit this to be at least x minutes after the logout
-	return "fake-token", nil
+	// TODO do we customize the key session timeout per app
+
+	sessionKey := storageClient.SessionKey(user.AccountID, user.ApplicationID, user.ID)
+	token := storageClient.GenerateSessionID(user)
+
+	stored, err := storageEngine.SetNX(sessionKey, token).Result()
+	if err != nil {
+		return "", err
+	}
+
+	if !stored {
+		return "", fmt.Errorf("previous session not terminated")
+	}
+
+	expired, err := storageEngine.Expire(sessionKey, storageClient.SessionTimeoutDuration()).Result()
+	if err != nil {
+		return "", err
+	}
+	if !expired {
+		return "", fmt.Errorf("could not set expire time")
+	}
+
+	return token, nil
 }
 
 // RefreshUserSession generates a new session token for the user session
 func RefreshUserSession(sessionToken string, user *entity.User) (string, error) {
-	// TODO rate limit this to one per 6 hours as we generally want to have sessions that last at least a day/month/year/decade?
-	return "new-fake-token", nil
+	// TODO support multiple sessions?
+	// TODO rate limit this to x / per day?
+	// TODO rate limit this to be at least x minutes after the logout
+	// TODO do we customize the key session timeout per app
+
+	sessionKey := storageClient.SessionKey(user.AccountID, user.ApplicationID, user.ID)
+
+	storedToken, err := storageEngine.Get(sessionKey).Result()
+	if err != nil {
+		return "", err
+	}
+
+	if storedToken != sessionToken {
+		return "", fmt.Errorf("session token mismatch")
+	}
+
+	token := storageClient.GenerateSessionID(user)
+
+	if err := storageEngine.Set(sessionKey, token).Err(); err != nil {
+		return "", err
+	}
+
+	expired, err := storageEngine.Expire(sessionKey, storageClient.SessionTimeoutDuration()).Result()
+	if err != nil {
+		return "", err
+	}
+	if !expired {
+		return "", fmt.Errorf("could not set expire time")
+	}
+
+	return token, nil
 }
 
 // DestroyUserSession removes the user session
 func DestroyUserSession(sessionToken string, user *entity.User) error {
-	// TODO properly implement this
+	// TODO support multiple sessions?
+	// TODO rate limit this to x / per day?
+	sessionKey := storageClient.SessionKey(user.AccountID, user.ApplicationID, user.ID)
+
+	storedToken, err := storageEngine.Get(sessionKey).Result()
+	if err != nil {
+		return err
+	}
+
+	if storedToken != sessionToken {
+		return fmt.Errorf("session token mismatch")
+	}
+
+	result, err := storageEngine.Del(sessionKey).Result()
+	if err != nil {
+		return err
+	}
+
+	if result != 1 {
+		return fmt.Errorf("invalid session")
+	}
+
 	return nil
 }

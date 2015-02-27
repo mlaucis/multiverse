@@ -166,8 +166,10 @@ func validateApplicationRequestToken(ctx *context) {
 }
 
 // isSessionValid checks if the session token is valid or not
-func isSessionValid(ctx *context) {
-	if err := validator.IsSessionValid(ctx.r); err == nil {
+func checkSession(ctx *context) {
+	sessionToken, err := validator.CheckSession(ctx.r)
+	if err == nil {
+		ctx.sessionToken = sessionToken
 		return
 	}
 
@@ -206,6 +208,11 @@ func writeResponse(ctx *context, response interface{}, code int, cacheTime uint)
 	ctx.w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 	ctx.w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding")
 	ctx.w.Header().Set("Access-Control-Allow-Credentials", "true")
+
+	//Check if we have a session enable and if so write it back
+	if ctx.sessionToken != "" {
+		ctx.w.Header().Set("x-tapglue-session", ctx.sessionToken)
+	}
 
 	// Write response
 	if !strings.Contains(ctx.r.Header.Get("Accept-Encoding"), "gzip") {

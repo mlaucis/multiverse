@@ -8,14 +8,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-
 	"net/http/httptest"
 	"strings"
 	"testing"
 
-	"github.com/gorilla/mux"
 	"github.com/tapglue/backend/core/entity"
 	"github.com/tapglue/backend/validator/keys"
+
+	"github.com/gorilla/mux"
 	. "gopkg.in/check.v1"
 )
 
@@ -30,7 +30,7 @@ func (s *ServerSuite) TestCreateEvent_WrongKey(c *C) {
 
 	routeName := "createEvent"
 	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID)
-	code, body, err := runRequest(routeName, route, payload, correctApplication.AuthToken)
+	code, body, err := runRequest(routeName, route, payload, correctApplication.AuthToken, getSessionToken(correctUser))
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusBadRequest)
@@ -48,7 +48,7 @@ func (s *ServerSuite) TestCreateEvent_WrongValue(c *C) {
 
 	routeName := "createEvent"
 	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID)
-	code, body, err := runRequest(routeName, route, payload, correctApplication.AuthToken)
+	code, body, err := runRequest(routeName, route, payload, correctApplication.AuthToken, getSessionToken(correctUser))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusBadRequest)
 	c.Assert(body, Not(Equals), "")
@@ -70,7 +70,7 @@ func (s *ServerSuite) TestCreateEvent_OK(c *C) {
 
 	routeName := "createEvent"
 	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID)
-	code, body, err := runRequest(routeName, route, payload, correctApplication.AuthToken)
+	code, body, err := runRequest(routeName, route, payload, correctApplication.AuthToken, getSessionToken(correctUser))
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusCreated)
@@ -104,7 +104,7 @@ func (s *ServerSuite) TestUpdateEvent_OK(c *C) {
 
 	routeName := "updateEvent"
 	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID, correctEvent.ID)
-	code, body, err := runRequest(routeName, route, payload, correctApplication.AuthToken)
+	code, body, err := runRequest(routeName, route, payload, correctApplication.AuthToken, getSessionToken(correctUser))
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusCreated)
@@ -138,7 +138,7 @@ func (s *ServerSuite) TestUpdateEvent_WrongID(c *C) {
 
 	routeName := "updateEvent"
 	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID, correctEvent.ID+1)
-	code, _, err := runRequest(routeName, route, payload, correctApplication.AuthToken)
+	code, _, err := runRequest(routeName, route, payload, correctApplication.AuthToken, getSessionToken(correctUser))
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusInternalServerError)
@@ -159,7 +159,7 @@ func (s *ServerSuite) TestUpdateEvent_WrongValue(c *C) {
 
 	routeName := "updateEvent"
 	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID, correctEvent.ID)
-	code, body, err := runRequest(routeName, route, payload, correctApplication.AuthToken)
+	code, body, err := runRequest(routeName, route, payload, correctApplication.AuthToken, getSessionToken(correctUser))
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusBadRequest)
@@ -176,7 +176,7 @@ func (s *ServerSuite) TestDeleteEvent_OK(c *C) {
 
 	routeName := "deleteEvent"
 	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID, correctEvent.ID)
-	code, _, err := runRequest(routeName, route, "", correctApplication.AuthToken)
+	code, _, err := runRequest(routeName, route, "", correctApplication.AuthToken, getSessionToken(correctUser))
 	c.Assert(err, IsNil)
 
 	c.Assert(err, IsNil)
@@ -193,7 +193,7 @@ func (s *ServerSuite) TestDeleteEvent_WrongID(c *C) {
 
 	routeName := "deleteEvent"
 	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID, correctEvent.ID+1)
-	code, _, err := runRequest(routeName, route, "", correctApplication.AuthToken)
+	code, _, err := runRequest(routeName, route, "", correctApplication.AuthToken, getSessionToken(correctUser))
 	c.Assert(err, IsNil)
 
 	c.Assert(err, IsNil)
@@ -210,7 +210,7 @@ func (s *ServerSuite) TestGetEvent_OK(c *C) {
 
 	routeName := "getEvent"
 	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID, correctEvent.ID)
-	code, body, err := runRequest(routeName, route, "", correctApplication.AuthToken)
+	code, body, err := runRequest(routeName, route, "", correctApplication.AuthToken, getSessionToken(correctUser))
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusOK)
@@ -240,7 +240,7 @@ func (s *ServerSuite) TestGetEventList_OK(c *C) {
 
 	routeName := "getEventList"
 	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID)
-	code, body, err := runRequest(routeName, route, "", correctApplication.AuthToken)
+	code, body, err := runRequest(routeName, route, "", correctApplication.AuthToken, getSessionToken(correctUser))
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusOK)
@@ -269,7 +269,7 @@ func (s *ServerSuite) TestGetEvent_WrongID(c *C) {
 
 	routeName := "getEvent"
 	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID, correctEvent.ID+1)
-	code, _, err := runRequest(routeName, route, "", correctApplication.AuthToken)
+	code, _, err := runRequest(routeName, route, "", correctApplication.AuthToken, getSessionToken(correctUser))
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusInternalServerError)
@@ -317,6 +317,7 @@ func BenchmarkCreateEvent1_Write(b *testing.B) {
 			panic(err)
 		}
 	}
+	req.Header.Set("x-tapglue-session", getSessionToken(correctUser))
 
 	w := httptest.NewRecorder()
 	m := mux.NewRouter()
@@ -369,6 +370,7 @@ func BenchmarkCreateEvent2_Read(b *testing.B) {
 			panic(err)
 		}
 	}
+	req.Header.Set("x-tapglue-session", getSessionToken(correctUser))
 
 	w := httptest.NewRecorder()
 	m := mux.NewRouter()

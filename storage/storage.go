@@ -7,12 +7,12 @@ package storage
 
 import (
 	"crypto/sha256"
-	"encoding/base64"
 	"fmt"
 	"math/rand"
 	"time"
 
 	"github.com/tapglue/backend/core/entity"
+	. "github.com/tapglue/backend/utils"
 
 	red "gopkg.in/redis.v2"
 )
@@ -42,6 +42,8 @@ const (
 
 	user  = "acc:%d:app:%d:user:%d"
 	users = "acc:%d:app:%d:user"
+
+	session = "acc:%d:app:%d:sess:%d"
 
 	connection      = "acc:%d:app:%d:user:%d:connection:%d"
 	connections     = "acc:%d:app:%d:user:%d:connections"
@@ -107,7 +109,7 @@ func (client *Client) GenerateApplicationSecretKey(application *entity.Applicati
 	)))
 	token := hasher.Sum(nil)
 
-	return base64Encode(fmt.Sprintf(
+	return Base64Encode(fmt.Sprintf(
 		"%d:%d:%s",
 		application.AccountID,
 		application.ID,
@@ -116,13 +118,27 @@ func (client *Client) GenerateApplicationSecretKey(application *entity.Applicati
 }
 
 // GenerateApplicationUserID generates the user id in the specified app
-func (client *Client) GenerateApplicationUserID(applicationID int64) string {
-	return fmt.Sprintf(idApplicationUser, applicationID)
+func (client *Client) GenerateApplicationUserID(applicationID int64) (int64, error) {
+	return client.engine.Incr(fmt.Sprintf(idApplicationUser, applicationID)).Result()
 }
 
 // GenerateApplicationEventID generates the event id in the specified app
-func (client *Client) GenerateApplicationEventID(applicationID int64) string {
-	return fmt.Sprintf(idApplicationEvent, applicationID)
+func (client *Client) GenerateApplicationEventID(applicationID int64) (int64, error) {
+	return client.engine.Incr(fmt.Sprintf(idApplicationEvent, applicationID)).Result()
+}
+
+// GenerateSessionID generated the session id for the specific
+func (client *Client) GenerateSessionID(user *entity.User) string {
+	randomToken := generateTokenSalt(16)
+
+	return Base64Encode(fmt.Sprintf(
+		"%d:%d:%d:%s:%s",
+		user.AccountID,
+		user.ApplicationID,
+		user.ID,
+		time.Now().Format(time.RFC3339),
+		randomToken,
+	))
 }
 
 // Account returns the key for a specified account
@@ -200,6 +216,16 @@ func (client *Client) ConnectionEventsLoop(userID string) string {
 	return fmt.Sprintf(connectionEventsLoop, userID)
 }
 
+// SessionKey returns the key to be used for a certain session
+func (client *Client) SessionKey(accountID, applicationID, userID int64) string {
+	return fmt.Sprintf(session, accountID, applicationID, userID)
+}
+
+// SessionTimeoutDuration returns how much a session can be alive before it's auto-removed from the system
+func (client *Client) SessionTimeoutDuration() time.Duration {
+	return time.Duration(time.Hour * 24 * 356 * 10)
+}
+
 // Engine returns the storage engine used
 func (client *Client) Engine() *red.Client {
 	return client.engine
@@ -214,8 +240,4 @@ func Init(engine *red.Client) *Client {
 	}
 
 	return instance
-}
-
-func base64Encode(value string) string {
-	return base64.StdEncoding.EncodeToString([]byte(value))
 }

@@ -23,6 +23,7 @@ import (
 	"github.com/tapglue/backend/validator/keys"
 
 	"github.com/gorilla/mux"
+	"github.com/tapglue/backend/core/entity"
 	. "gopkg.in/check.v1"
 )
 
@@ -296,7 +297,7 @@ func (s *ServerSuite) TestValidateDeleteCommon_NoCLHeader(c *C) {
 func (s *ServerSuite) TestHumans_OK(c *C) {
 	routeName := "humans"
 	route := getComposedRoute(routeName)
-	code, body, err := runRequest(routeName, route, "", "")
+	code, body, err := runRequest(routeName, route, "", "", "")
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusOK)
@@ -307,7 +308,7 @@ func (s *ServerSuite) TestHumans_OK(c *C) {
 func (s *ServerSuite) TestRobots_OK(c *C) {
 	routeName := "robots"
 	route := getComposedRoute(routeName)
-	code, body, err := runRequest(routeName, route, "", "")
+	code, body, err := runRequest(routeName, route, "", "", "")
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusOK)
@@ -343,7 +344,7 @@ func getComposedRoute(routeName string, params ...interface{}) string {
 }
 
 // runRequest takes a route, path, payload and token, performs a request and return a response recorder
-func runRequest(routeName, routePath, payload, secretKey string) (int, string, error) {
+func runRequest(routeName, routePath, payload, secretKey, sessionToken string) (int, string, error) {
 	requestRoute := getRoute(routeName)
 
 	req, err := http.NewRequest(
@@ -363,6 +364,10 @@ func runRequest(routeName, routePath, payload, secretKey string) (int, string, e
 		}
 	}
 
+	if sessionToken != "" {
+		req.Header.Set("x-tapglue-session", sessionToken)
+	}
+
 	w := httptest.NewRecorder()
 	m := mux.NewRouter()
 
@@ -372,4 +377,13 @@ func runRequest(routeName, routePath, payload, secretKey string) (int, string, e
 	m.ServeHTTP(w, req)
 
 	return w.Code, w.Body.String(), nil
+}
+
+func getSessionToken(user *entity.User) string {
+	sessionToken, err := core.CreateUserSession(correctUser)
+	if err != nil {
+		panic(err)
+	}
+
+	return sessionToken
 }
