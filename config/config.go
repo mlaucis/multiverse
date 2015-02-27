@@ -11,7 +11,8 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
-	"runtime"
+	"path/filepath"
+	"log"
 )
 
 type (
@@ -69,16 +70,17 @@ func (config *Config) Load(configEnvPath string) {
 
 	// If empty set path to path of current file
 	if configDir == "" {
-		_, currentFilename, _, ok := runtime.Caller(2)
-		if !ok {
-			panic("Could not retrieve the caller for loading config")
+		var err error
+		configDir, err = filepath.Abs(filepath.Dir(os.Args[0]))
+		if err != nil {
+			log.Fatal(err)
 		}
-
-		configDir = path.Dir(currentFilename)
 	}
 
 	// Get the default configuration
 	cfg = defaultConfig()
+
+	fmt.Printf("Config loaded from: %s\n", path.Join(configDir, "config.json"))
 
 	// Read config.json
 	configContents, err := ioutil.ReadFile(path.Join(configDir, "config.json"))
@@ -88,6 +90,8 @@ func (config *Config) Load(configEnvPath string) {
 		if len(configContents) < 1 {
 			panic(fmt.Errorf("no suitable config file was found"))
 		}
+	} else {
+		path.Join(configDir, "config.json")
 	}
 
 	// Overwrite with user configuration from file
