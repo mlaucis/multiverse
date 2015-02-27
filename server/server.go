@@ -362,6 +362,19 @@ func GetRouter(debugMode bool) (*mux.Router, chan *LogMsg, chan *LogMsg, error) 
 		}
 	}
 
+	for _, routeName := range []string{"index", "humans", "robots"} {
+		version := ""
+		route := routes["0.1"][routeName]
+		if route == nil {
+			panic(fmt.Sprintf("route %s not found", routeName))
+		}
+		router.
+			Methods(route.method).
+			Path(route.pattern).
+			Name(routeName).
+			HandlerFunc(customHandler(routeName, version, route, mainLogChan, errorLogChan))
+	}
+
 	if debugMode {
 		router.Handle("/debug/pprof/", http.HandlerFunc(pprof.Index))
 		router.Handle("/debug/pprof/cmdline", http.HandlerFunc(pprof.Cmdline))
