@@ -251,11 +251,12 @@ func errorHappened(ctx *context, message string, code int) {
 	}
 
 	ctx.errorLog <- &LogMsg{
+		remoteAddr: ctx.r.RemoteAddr,
 		method:     ctx.r.Method,
 		requestURI: ctx.r.RequestURI,
 		headers:    ctx.r.Header,
-		name:       "-",
-		start:      time.Now(),
+		name:       ctx.routeName,
+		start:      ctx.startTime,
 		end:        time.Now(),
 		message: fmt.Sprintf(
 			"Error %q in %s/%s:%d",
@@ -343,6 +344,16 @@ func customHandler(routeName, version string, route *route, mainLog, errorLog ch
 				break
 			}
 			handler(ctx)
+		}
+
+		ctx.mainLog <- &LogMsg{
+			remoteAddr: ctx.r.RemoteAddr,
+			method:     ctx.r.Method,
+			requestURI: ctx.r.RequestURI,
+			headers:    ctx.r.Header,
+			name:       ctx.routeName,
+			start:      ctx.startTime,
+			end:        time.Now(),
 		}
 	}
 }

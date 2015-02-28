@@ -11,12 +11,13 @@ import (
 )
 
 const (
-	logFormat = "%s\t%s\t%+v\t%s\t%s\t%s\n"
+	logFormat = "%s\t%s\t%+v\t%s\t%s\t%s\t%s\n"
 )
 
 type (
 	//LogMsg defines the log message fields
 	LogMsg struct {
+		remoteAddr string
 		method     string
 		requestURI string
 		name       string
@@ -35,6 +36,7 @@ func TGLog(msg chan *LogMsg) {
 			{
 				log.Printf(
 					logFormat,
+					m.remoteAddr,
 					m.method,
 					m.requestURI,
 					getSanitizedHeaders(m.headers),
