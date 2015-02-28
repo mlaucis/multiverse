@@ -82,7 +82,7 @@ func (s *ServerSuite) TestCreateConnection_OK(c *C) {
 	c.Assert(connection.ApplicationID, Equals, correctApplication.ID)
 	c.Assert(connection.UserFromID, Equals, correctUserFrom.ID)
 	c.Assert(connection.UserToID, Equals, correctUserTo.ID)
-	c.Assert(connection.Enabled, Equals, true)
+	c.Assert(connection.Enabled, Equals, false)
 }
 
 // Test a correct updateConnection request

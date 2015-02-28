@@ -125,10 +125,11 @@ func ReadConnectionList(accountID, applicationID, userID int64) (users []*entity
 	return
 }
 
-// WriteConnection adds a user connection to the database and returns the created user connection or an error
+// WriteConnection adds a user connection and returns the created connection or an error
 func WriteConnection(connection *entity.Connection, retrieve bool) (con *entity.Connection, err error) {
-
-	connection.Enabled = true
+	// We confirm the connection in the past forcefully so that we can update it at the confirmation time
+	connection.ConfirmedAt = time.Date(2014, time.January, 1, 1, 1, 1, 1, time.UTC)
+	connection.Enabled = false
 	connection.CreatedAt = time.Now()
 	connection.UpdatedAt, connection.ReceivedAt = connection.CreatedAt, connection.CreatedAt
 
@@ -143,6 +144,30 @@ func WriteConnection(connection *entity.Connection, retrieve bool) (con *entity.
 	if !exist {
 		return nil, fmt.Errorf("user connection already exists")
 	}
+	if err != nil {
+		return nil, err
+	}
+
+	return connection, nil
+}
+
+// ConfirmConnection confirms a user connection and returns the connection or an error
+func ConfirmConnection(connection *entity.Connection, retrieve bool) (con *entity.Connection, err error) {
+	// We confirm the connection in the past forcefully so that we can update it at the confirmation time
+	connection.Enabled = true
+	connection.ConfirmedAt = time.Now()
+	connection.UpdatedAt = connection.ConfirmedAt
+
+	val, err := json.Marshal(connection)
+	if err != nil {
+		return nil, err
+	}
+
+	key := storageClient.Connection(connection.AccountID, connection.ApplicationID, connection.UserFromID, connection.UserToID)
+
+	cmd := red.NewStringCmd(key, string(val), "XX")
+	storageEngine.Process(cmd)
+	err = cmd.Err()
 	if err != nil {
 		return nil, err
 	}

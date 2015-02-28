@@ -110,10 +110,11 @@ type (
 
 	// Connection structure holds the connections of the users
 	Connection struct {
-		AccountID     int64 `json:"account_id"`
-		ApplicationID int64 `json:"application_id"`
-		UserFromID    int64 `json:"user_from_id"`
-		UserToID      int64 `json:"user_to_id"`
+		AccountID     int64     `json:"account_id"`
+		ApplicationID int64     `json:"application_id"`
+		UserFromID    int64     `json:"user_from_id"`
+		UserToID      int64     `json:"user_to_id"`
+		ConfirmedAt   time.Time `json:"confirmed_at"`
 		Common
 	}
 

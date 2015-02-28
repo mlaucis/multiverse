@@ -214,3 +214,52 @@ func createConnection(ctx *context) {
 
 	writeResponse(ctx, connection, http.StatusCreated, 0)
 }
+
+// confirmConnection handles requests to confirm a user connection
+// Request: POST /application/:applicationId/user/:UserID/connection/confirm
+// Test with: curl -i -H "Content-Type: application/json" -d '{"user_from_id":1,"user_to_id":2}' localhost/0.1/application/:applicationId/user/:UserID/connection/confirm
+func confirmConnection(ctx *context) {
+	var (
+		connection    = &entity.Connection{}
+		accountID     int64
+		applicationID int64
+		userFromID    int64
+		err           error
+	)
+
+	if accountID, err = strconv.ParseInt(ctx.vars["accountId"], 10, 64); err != nil {
+		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest)
+		return
+	}
+
+	if applicationID, err = strconv.ParseInt(ctx.vars["applicationId"], 10, 64); err != nil {
+		errorHappened(ctx, "applicationId is not set or the value is incorrect", http.StatusBadRequest)
+		return
+	}
+
+	if userFromID, err = strconv.ParseInt(ctx.vars["userId"], 10, 64); err != nil {
+		errorHappened(ctx, "userId is not set or the value is incorrect", http.StatusBadRequest)
+		return
+	}
+
+	if err = json.NewDecoder(ctx.body).Decode(connection); err != nil {
+		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusBadRequest)
+		return
+	}
+
+	connection.AccountID = accountID
+	connection.ApplicationID = applicationID
+	connection.UserFromID = userFromID
+
+	if err = validator.ConfirmConnection(connection); err != nil {
+		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusBadRequest)
+		return
+	}
+
+	if connection, err = core.ConfirmConnection(connection, false); err != nil {
+		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
+		return
+	}
+
+	writeResponse(ctx, connection, http.StatusCreated, 0)
+}

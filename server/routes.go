@@ -271,6 +271,18 @@ var routes = map[string]map[string]*route{
 				createConnection,
 			},
 		},
+		"confirmConnection": &route{
+			method:   "POST",
+			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]+}/connection/confirm",
+			cPattern: "/application/:applicationId/user/:UserID/connection/confirm",
+			scope:    "application/user/connection/confirm",
+			handlers: []routeFunc{
+				isRequestExpired,
+				validateApplicationRequestToken,
+				checkSession,
+				confirmConnection,
+			},
+		},
 		"updateConnection": &route{
 			method:   "PUT",
 			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userFromId:[a-zA-Z0-9]+}/connection/{userToId:[a-zA-Z0-9]+}",

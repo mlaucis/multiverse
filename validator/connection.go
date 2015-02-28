@@ -45,6 +45,33 @@ func CreateConnection(connection *entity.Connection) error {
 	return packErrors(errs)
 }
 
+// ConfirmConnection validates a connection on confirmation
+func ConfirmConnection(connection *entity.Connection) error {
+	errs := []*error{}
+
+	if connection.ApplicationID == 0 {
+		errs = append(errs, &errorApplicationIDZero)
+	}
+
+	if connection.UserFromID == 0 {
+		errs = append(errs, &errorUserFromIDZero)
+	}
+
+	if connection.UserToID == 0 {
+		errs = append(errs, &errorUserToIDZero)
+	}
+
+	if !userExists(connection.AccountID, connection.ApplicationID, connection.UserFromID) {
+		errs = append(errs, &errorUserDoesNotExists)
+	}
+
+	if !userExists(connection.AccountID, connection.ApplicationID, connection.UserToID) {
+		errs = append(errs, &errorUserDoesNotExists)
+	}
+
+	return packErrors(errs)
+}
+
 // UpdateConnection validates a connection on update
 func UpdateConnection(connection *entity.Connection) error {
 	errs := []*error{}
