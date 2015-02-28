@@ -60,7 +60,7 @@ func generateSigningKey(applicationSecretKey, requestVersion string, r *http.Req
 				Sha256String(
 					[]byte(
 						Sha256String([]byte(key))+
-						r.Header.Get("x-tapglue-session"),
+							r.Header.Get("x-tapglue-session"),
 					),
 				)+"user/log",
 			))+"api",

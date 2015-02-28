@@ -32,27 +32,27 @@ func ReadUser(accountID, applicationID, userID int64) (user *entity.User, err er
 
 // UpdateUser updates a user in the database and returns the updates user or an error
 func UpdateUser(user *entity.User, retrieve bool) (usr *entity.User, err error) {
-	user.UpdatedAt = time.Now()
+	storedUser, err := ReadUser(user.AccountID, user.ApplicationID, user.ID)
+	if err != nil {
+		return nil, err
+	}
 
-	val, err := json.Marshal(user)
+	storedUser = user
+
+	// Encrypt password - we should do this only if the password changes
+	storedUser.Password = storageClient.EncryptPassword(user.Password)
+
+	val, err := json.Marshal(storedUser)
 	if err != nil {
 		return nil, err
 	}
 
 	key := storageClient.User(user.AccountID, user.ApplicationID, user.ID)
-	exist, err := storageEngine.Exists(key).Result()
-	if !exist {
-		return nil, fmt.Errorf("user does not exist")
-	}
-	if err != nil {
-		return nil, err
-	}
-
 	if err = storageEngine.Set(key, string(val)).Err(); err != nil {
 		return nil, err
 	}
 
-	if !user.Enabled {
+	if !storedUser.Enabled {
 		listKey := storageClient.Users(user.AccountID, user.ApplicationID)
 		if err = storageEngine.LRem(listKey, 0, key).Err(); err != nil {
 			return nil, err
@@ -60,7 +60,7 @@ func UpdateUser(user *entity.User, retrieve bool) (usr *entity.User, err error) 
 	}
 
 	if !retrieve {
-		return user, nil
+		return storedUser, nil
 	}
 
 	return ReadUser(user.AccountID, user.ApplicationID, user.ID)
@@ -132,6 +132,9 @@ func WriteUser(user *entity.User, retrieve bool) (usr *entity.User, err error) {
 	if user.ID, err = storageClient.GenerateApplicationUserID(user.ApplicationID); err != nil {
 		return nil, err
 	}
+
+	// Encrypt password
+	user.Password = storageClient.EncryptPassword(user.Password)
 
 	val, err := json.Marshal(user)
 	if err != nil {

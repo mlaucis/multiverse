@@ -141,6 +141,17 @@ func (client *Client) GenerateSessionID(user *entity.User) string {
 	))
 }
 
+// EncryptPassword will encrypt a string with the password encryption algorithm
+func (client *Client) EncryptPassword(password string) string {
+	return Base64Encode(Sha256String(
+		[]byte(Sha256String(
+			[]byte(Sha256String(
+				[]byte(password+generateTokenSalt(32)),
+			)+time.Now().Format(time.RFC3339)),
+		) + "passwd"),
+	))
+}
+
 // Account returns the key for a specified account
 func (client *Client) Account(accountID int64) string {
 	return fmt.Sprintf(account, accountID)
