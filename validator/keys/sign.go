@@ -49,12 +49,20 @@ func generateSigningString(scope, requestVersion string, r *http.Request) string
 
 // generateSigningKey returns the key used to sign the request
 func generateSigningKey(applicationSecretKey, requestVersion string, r *http.Request) string {
+	key := fmt.Sprintf(
+		"tapglue:%s:%s",
+		applicationSecretKey,
+		r.Header.Get("x-tapglue-date"),
+	)
 	return Sha256String([]byte(
 		Sha256String([]byte(
 			Sha256String([]byte(
-				Sha256String([]byte(
-					"tapglue:"+applicationSecretKey+":"+r.Header.Get("x-tapglue-date"),
-				))+"user/log",
+				Sha256String(
+					[]byte(
+						Sha256String([]byte(key))+
+						r.Header.Get("x-tapglue-session"),
+					),
+				)+"user/log",
 			))+"api",
 		)) + requestVersion,
 	))

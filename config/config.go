@@ -81,8 +81,6 @@ func (config *Config) Load(configEnvPath string) {
 	// Get the default configuration
 	cfg = defaultConfig()
 
-	fmt.Printf("Config loaded from: %s\n", path.Join(configDir, "config.json"))
-
 	// Read config.json
 	configContents, err := ioutil.ReadFile(path.Join(configDir, "config.json"))
 	if err != nil {

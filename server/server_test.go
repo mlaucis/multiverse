@@ -356,16 +356,16 @@ func runRequest(routeName, routePath, payload, secretKey, sessionToken string) (
 		panic(err)
 	}
 
+	if sessionToken != "" {
+		req.Header.Set("x-tapglue-session", sessionToken)
+	}
+
 	createCommonRequestHeaders(req)
 	if secretKey != "" {
 		err := keys.SignRequest(secretKey, requestRoute.scope, apiVersion, req)
 		if err != nil {
 			panic(err)
 		}
-	}
-
-	if sessionToken != "" {
-		req.Header.Set("x-tapglue-session", sessionToken)
 	}
 
 	w := httptest.NewRecorder()
