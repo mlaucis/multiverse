@@ -15,6 +15,8 @@ import (
 	"runtime"
 	"time"
 
+	"flag"
+
 	"github.com/tapglue/backend/config"
 	"github.com/tapglue/backend/core"
 	"github.com/tapglue/backend/server"
@@ -30,7 +32,8 @@ const (
 )
 
 var (
-	conf *config.Config
+	conf       *config.Config
+	forceNoSec = flag.Bool("force-no-sec", false, "Force no sec enables launching the backend in production without security checks")
 )
 
 func init() {
@@ -40,7 +43,19 @@ func init() {
 	// Seed random generator
 	rand.Seed(time.Now().UTC().UnixNano())
 
+	flag.Parse()
+
 	conf = config.NewConf(EnvConfigVar)
+
+	if conf.SkipSecurity && conf.Environment == "prod" {
+		if !*forceNoSec {
+			panic("attempted to launch in production with no security checks enabled")
+		}
+	}
+
+	if conf.SkipSecurity {
+		log.Printf("launching with no security checks enabled\n")
+	}
 
 	redis.Init(conf.Redis.Hosts[0], conf.Redis.Password, conf.Redis.DB, conf.Redis.PoolSize)
 	storageClient := storage.Init(redis.Client())
@@ -54,7 +69,7 @@ func init() {
 
 func main() {
 	// Get router
-	router, mainLogChan, errorLogChan, err := server.GetRouter(conf.Environment != "prod")
+	router, mainLogChan, errorLogChan, err := server.GetRouter(conf.Environment != "prod", conf.SkipSecurity)
 	if err != nil {
 		panic(err)
 	}

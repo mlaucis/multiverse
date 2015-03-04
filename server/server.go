@@ -39,6 +39,7 @@ var (
 	dbgMode      bool
 	mainLogChan  = make(chan *LogMsg, 100000)
 	errorLogChan = make(chan *LogMsg, 100000)
+	skipSecurity = false
 )
 
 // isRequestExpired checks if the request is expired or not
@@ -158,6 +159,10 @@ func validatePostCommon(ctx *context) {
 
 // validateApplicationRequestToken validates that the request contains a valid request token
 func validateApplicationRequestToken(ctx *context) {
+	if skipSecurity {
+		return
+	}
+
 	if keys.VerifyRequest(ctx.scope, ctx.version, ctx.r) {
 		return
 	}
@@ -167,6 +172,10 @@ func validateApplicationRequestToken(ctx *context) {
 
 // isSessionValid checks if the session token is valid or not
 func checkSession(ctx *context) {
+	if skipSecurity {
+		return
+	}
+
 	sessionToken, err := validator.CheckSession(ctx.r)
 	if err == nil {
 		ctx.sessionToken = sessionToken
@@ -359,8 +368,9 @@ func customHandler(routeName, version string, route *route, mainLog, errorLog ch
 }
 
 // GetRouter creates the router
-func GetRouter(debugMode bool) (*mux.Router, chan *LogMsg, chan *LogMsg, error) {
+func GetRouter(debugMode, skipSecurityChecks bool) (*mux.Router, chan *LogMsg, chan *LogMsg, error) {
 	dbgMode = debugMode
+	skipSecurity = skipSecurityChecks
 	router := mux.NewRouter().StrictSlash(true)
 
 	for version, innerRoutes := range routes {

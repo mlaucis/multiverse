@@ -29,6 +29,7 @@ type (
 	Config struct {
 		Environment    string `json:"env"`
 		UseArtwork     bool   `json:"use_artwork"`
+		SkipSecurity   bool   `json:"skip_security"`
 		ListenHostPort string `json:"listenHost"`
 		Redis          *Redis `json:"redis"`
 	}
@@ -41,6 +42,7 @@ func defaultConfig() *Config {
 	cfg := &Config{}
 	cfg.Environment = "dev"
 	cfg.UseArtwork = true
+	cfg.SkipSecurity = false
 	cfg.ListenHostPort = ":8082"
 
 	cfg.Redis = &Redis{}
