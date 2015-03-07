@@ -143,3 +143,95 @@ func WriteAccountUser(accountUser *entity.AccountUser, retrieve bool) (accUser *
 
 	return ReadAccountUser(accountUser.AccountID, accountUser.ID)
 }
+
+// CreateUserSession handles the creation of a user session and returns the session token
+func CreateAccountUserSession(user *entity.AccountUser) (string, error) {
+	// TODO support multiple sessions?
+	// TODO rate limit this to x / per day?
+	// TODO rate limit this to be at least x minutes after the logout
+	// TODO do we customize the key session timeout per app
+
+	sessionKey := storageClient.AccountSessionKey(user.AccountID, user.ID)
+	token := storageClient.GenerateAccountSessionID(user)
+
+	stored, err := storageEngine.SetNX(sessionKey, token).Result()
+	if err != nil {
+		return "", err
+	}
+
+	if !stored {
+		return "", fmt.Errorf("previous session not terminated")
+	}
+
+	expired, err := storageEngine.Expire(sessionKey, storageClient.SessionTimeoutDuration()).Result()
+	if err != nil {
+		return "", err
+	}
+	if !expired {
+		return "", fmt.Errorf("could not set expire time")
+	}
+
+	return token, nil
+}
+
+// RefreshUserSession generates a new session token for the user session
+func RefreshAccountUserSession(sessionToken string, user *entity.AccountUser) (string, error) {
+	// TODO support multiple sessions?
+	// TODO rate limit this to x / per day?
+	// TODO rate limit this to be at least x minutes after the logout
+	// TODO do we customize the key session timeout per app
+
+	sessionKey := storageClient.AccountSessionKey(user.AccountID, user.ID)
+
+	storedToken, err := storageEngine.Get(sessionKey).Result()
+	if err != nil {
+		return "", err
+	}
+
+	if storedToken != sessionToken {
+		return "", fmt.Errorf("session token mismatch")
+	}
+
+	token := storageClient.GenerateAccountSessionID(user)
+
+	if err := storageEngine.Set(sessionKey, token).Err(); err != nil {
+		return "", err
+	}
+
+	expired, err := storageEngine.Expire(sessionKey, storageClient.SessionTimeoutDuration()).Result()
+	if err != nil {
+		return "", err
+	}
+	if !expired {
+		return "", fmt.Errorf("could not set expire time")
+	}
+
+	return token, nil
+}
+
+// DestroyUserSession removes the user session
+func DestroyAccountUserSession(sessionToken string, user *entity.AccountUser) error {
+	// TODO support multiple sessions?
+	// TODO rate limit this to x / per day?
+	sessionKey := storageClient.AccountSessionKey(user.AccountID, user.ID)
+
+	storedToken, err := storageEngine.Get(sessionKey).Result()
+	if err != nil {
+		return err
+	}
+
+	if storedToken != sessionToken {
+		return fmt.Errorf("session token mismatch")
+	}
+
+	result, err := storageEngine.Del(sessionKey).Result()
+	if err != nil {
+		return err
+	}
+
+	if result != 1 {
+		return fmt.Errorf("invalid session")
+	}
+
+	return nil
+}

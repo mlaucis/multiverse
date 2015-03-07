@@ -189,7 +189,7 @@ func getEventList(ctx *context) {
 		return
 	}
 
-	if user, err = core.ReadUser(accountID, applicationID, userID); err != nil {
+	if user, err = core.ReadApplicationUser(accountID, applicationID, userID); err != nil {
 		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
 		return
 	}

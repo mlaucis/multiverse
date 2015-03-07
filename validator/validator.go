@@ -89,7 +89,7 @@ func applicationExists(accountID, applicationID int64) bool {
 
 // userExists validates if a user exists and returns it or an error
 func userExists(accountID, applicationID, userID int64) bool {
-	user, err := core.ReadUser(accountID, applicationID, userID)
+	user, err := core.ReadApplicationUser(accountID, applicationID, userID)
 	if err != nil {
 		return false
 	}

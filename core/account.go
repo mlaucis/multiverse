@@ -7,9 +7,11 @@ package core
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/tapglue/backend/core/entity"
+	. "github.com/tapglue/backend/utils"
 )
 
 // ReadAccount returns the account matching the ID or an error
@@ -78,6 +80,10 @@ func WriteAccount(account *entity.Account, retrieve bool) (acc *entity.Account, 
 		return nil, err
 	}
 
+	if account.AuthToken, err = storageClient.GenerateAccountSecretKey(account); err != nil {
+		return nil, err
+	}
+
 	account.Enabled = true
 	account.CreatedAt = time.Now()
 	account.UpdatedAt, account.ReceivedAt = account.CreatedAt, account.CreatedAt
@@ -92,6 +98,15 @@ func WriteAccount(account *entity.Account, retrieve bool) (acc *entity.Account, 
 	if !exist {
 		return nil, fmt.Errorf("account already exists")
 	}
+	if err != nil {
+		return nil, err
+	}
+
+	// Store the token details in redis
+	_, err = storageEngine.HMSet(
+		"tokens:"+Base64Encode(account.AuthToken),
+		"acc", strconv.FormatInt(account.ID, 10),
+	).Result()
 	if err != nil {
 		return nil, err
 	}

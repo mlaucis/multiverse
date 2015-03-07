@@ -8,12 +8,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
 	"time"
 
-	"encoding/base64"
-	"strconv"
-
 	"github.com/tapglue/backend/core/entity"
+	. "github.com/tapglue/backend/utils"
 )
 
 // ReadApplication returns the application matching the ID or an error
@@ -128,13 +127,13 @@ func WriteApplication(application *entity.Application, retrieve bool) (app *enti
 		return nil, err
 	}
 
-	if application.AuthToken, err = storageClient.GenerateApplicationSecretKey(application); err != nil {
-		return nil, err
-	}
-
 	application.Enabled = true
 	application.CreatedAt = time.Now()
 	application.UpdatedAt, application.ReceivedAt = application.CreatedAt, application.CreatedAt
+
+	if application.AuthToken, err = storageClient.GenerateApplicationSecretKey(application); err != nil {
+		return nil, err
+	}
 
 	val, err := json.Marshal(application)
 	if err != nil {
@@ -159,7 +158,7 @@ func WriteApplication(application *entity.Application, retrieve bool) (app *enti
 
 	// Store the token details in redis
 	_, err = storageEngine.HMSet(
-		"tokens:"+base64.URLEncoding.EncodeToString([]byte(application.AuthToken)),
+		"tokens:"+Base64Encode(application.AuthToken),
 		"acc", strconv.FormatInt(application.AccountID, 10),
 		"app", strconv.FormatInt(application.ID, 10),
 	).Result()

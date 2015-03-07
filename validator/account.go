@@ -54,7 +54,7 @@ func CreateAccount(account *entity.Account) error {
 		errs = append(errs, &errorAccountIDIsAlreadySet)
 	}
 
-	if account.Token != "" {
+	if account.AuthToken != "" {
 		errs = append(errs, &errorAccountTokenAlreadySet)
 	}
 

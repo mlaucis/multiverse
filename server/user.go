@@ -18,7 +18,7 @@ import (
 // getUser handles requests to retrieve a single user
 // Request: GET /application/:applicationId/user/:ID
 // Test with: curl -i localhost/0.1/application/:applicationId/user/:ID
-func getUser(ctx *context) {
+func getApplicationUser(ctx *context) {
 	var (
 		user          *entity.User
 		accountID     int64
@@ -42,7 +42,7 @@ func getUser(ctx *context) {
 		return
 	}
 
-	if user, err = core.ReadUser(accountID, applicationID, userID); err != nil {
+	if user, err = core.ReadApplicationUser(accountID, applicationID, userID); err != nil {
 		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
 		return
 	}
@@ -64,7 +64,7 @@ func getUser(ctx *context) {
 // updateUser handles requests to update a user
 // Request: PUT /application/:applicationId/user/:ID
 // Test with: curl -i -H "Content-Type: application/json" -d '{"auth_token": "token1flo", "username": "flo", "name": "Florin", "password": "passwd", "email": "fl@r.in", "url": "blogger", "metadata": "{}"}'  -X PUT localhost/0.1/application/:applicationId/user/:ID
-func updateUser(ctx *context) {
+func updateApplicationUser(ctx *context) {
 	var (
 		user          = &entity.User{}
 		accountID     int64
@@ -123,7 +123,7 @@ func updateUser(ctx *context) {
 // deleteUser handles requests to delete a single user
 // Request: DELETE /application/:applicationId/user/:ID
 // Test with: curl -i -X DELETE localhost/0.1/application/:applicationId/user/:ID
-func deleteUser(ctx *context) {
+func deleteApplicationUser(ctx *context) {
 	var (
 		accountID     int64
 		applicationID int64
@@ -158,7 +158,7 @@ func deleteUser(ctx *context) {
 // THIS ROUTE IS NOT YET ACTIVATED
 // Request: GET /application/:applicationId/users
 // Test with: curl -i localhost/0.1/application/:applicationId/users
-func getUserList(ctx *context) {
+func getApplicationUserList(ctx *context) {
 	var (
 		accountID     int64
 		applicationID int64
@@ -197,7 +197,7 @@ func getUserList(ctx *context) {
 // createUser handles requests to create a user
 // Request: POST /application/:applicationId/users
 // Test with: curl -i -H "Content-Type: application/json" -d '{"auth_token": "token1flo", "username": "flo", "name": "Florin", "password": "passwd", "email": "fl@r.in", "url": "blogger", "metadata": "{}"}' localhost/0.1/application/:applicationId/users
-func createUser(ctx *context) {
+func createApplicationUser(ctx *context) {
 	var (
 		user          = &entity.User{}
 		accountID     int64
@@ -240,8 +240,8 @@ func createUser(ctx *context) {
 	writeResponse(ctx, user, http.StatusCreated, 0)
 }
 
-// loginUser handles the requests to login the user in the system
-func loginUser(ctx *context) {
+// loginApplicationUser handles the requests to login the user in the system
+func loginApplicationUser(ctx *context) {
 	var (
 		loginPayload struct {
 			Password string `json:"password"`
@@ -269,7 +269,7 @@ func loginUser(ctx *context) {
 		return
 	}
 
-	if user, err = core.ReadUser(accountID, applicationID, userID); err != nil {
+	if user, err = core.ReadApplicationUser(accountID, applicationID, userID); err != nil {
 		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
 		return
 	}
@@ -280,12 +280,12 @@ func loginUser(ctx *context) {
 		return
 	}
 
-	if err = validator.UserCredentialsValid(loginPayload.Password, user); err != nil {
+	if err = validator.ApplicationUserCredentialsValid(loginPayload.Password, user); err != nil {
 		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusUnauthorized)
 		return
 	}
 
-	if sessionToken, err = core.CreateUserSession(user); err != nil {
+	if sessionToken, err = core.CreateApplicationUserSession(user); err != nil {
 		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
 		return
 	}
@@ -295,8 +295,8 @@ func loginUser(ctx *context) {
 	}{Token: sessionToken}, http.StatusCreated, 0)
 }
 
-// refreshUserSession handles the requests to refresh the user session token
-func refreshUserSession(ctx *context) {
+// refreshApplicationUserSession handles the requests to refresh the user session token
+func refreshApplicationUserSession(ctx *context) {
 	var (
 		payload struct {
 			Token string `json:"token"`
@@ -324,7 +324,7 @@ func refreshUserSession(ctx *context) {
 		return
 	}
 
-	if user, err = core.ReadUser(accountID, applicationID, userID); err != nil {
+	if user, err = core.ReadApplicationUser(accountID, applicationID, userID); err != nil {
 		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
 		return
 	}
@@ -335,7 +335,7 @@ func refreshUserSession(ctx *context) {
 		return
 	}
 
-	if sessionToken, err = core.RefreshUserSession(payload.Token, user); err != nil {
+	if sessionToken, err = core.RefreshApplicationUserSession(payload.Token, user); err != nil {
 		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
 		return
 	}
@@ -345,8 +345,8 @@ func refreshUserSession(ctx *context) {
 	}{Token: sessionToken}, http.StatusCreated, 0)
 }
 
-// logoutUser handles the requests to logout the user from the system
-func logoutUser(ctx *context) {
+// logoutApplicationUser handles the requests to logout the user from the system
+func logoutApplicationUser(ctx *context) {
 	var (
 		logoutPayload struct {
 			Token string `json:"token"`
@@ -373,7 +373,7 @@ func logoutUser(ctx *context) {
 		return
 	}
 
-	if user, err = core.ReadUser(accountID, applicationID, userID); err != nil {
+	if user, err = core.ReadApplicationUser(accountID, applicationID, userID); err != nil {
 		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
 		return
 	}
@@ -384,12 +384,12 @@ func logoutUser(ctx *context) {
 		return
 	}
 
-	if err = validator.UserCredentialsValid(logoutPayload.Token, user); err != nil {
+	if err = validator.ApplicationUserCredentialsValid(logoutPayload.Token, user); err != nil {
 		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusUnauthorized)
 		return
 	}
 
-	if err = core.DestroyUserSession(logoutPayload.Token, user); err != nil {
+	if err = core.DestroyApplicationUserSession(logoutPayload.Token, user); err != nil {
 		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
 		return
 	}

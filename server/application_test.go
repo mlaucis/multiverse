@@ -18,11 +18,15 @@ import (
 func (s *ServerSuite) TestCreateApplication_WrongKey(c *C) {
 	correctAccount, err := AddCorrectAccount(true)
 	c.Assert(err, IsNil)
+
+	correctAccountUser, err := AddCorrectAccountUser(correctAccount.ID, true)
+	c.Assert(err, IsNil)
+
 	payload := "{namae:''}"
 
 	routeName := "createApplication"
 	route := getComposedRoute(routeName, correctAccount.ID)
-	code, body, err := runRequest(routeName, route, payload, "", "")
+	code, body, err := runRequest(routeName, route, payload, correctAccount.AuthToken, getAccountUserSessionToken(correctAccountUser), 2)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusBadRequest)
@@ -34,11 +38,14 @@ func (s *ServerSuite) TestCreateApplication_WrongValue(c *C) {
 	correctAccount, err := AddCorrectAccount(true)
 	c.Assert(err, IsNil)
 
+	correctAccountUser, err := AddCorrectAccountUser(correctAccount.ID, true)
+	c.Assert(err, IsNil)
+
 	payload := `{"name":""}`
 
 	routeName := "createApplication"
 	route := getComposedRoute(routeName, correctAccount.ID)
-	code, body, err := runRequest(routeName, route, payload, "", "")
+	code, body, err := runRequest(routeName, route, payload, correctAccount.AuthToken, getAccountUserSessionToken(correctAccountUser), 2)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusBadRequest)
@@ -48,7 +55,12 @@ func (s *ServerSuite) TestCreateApplication_WrongValue(c *C) {
 // Test a correct createApplication request
 func (s *ServerSuite) TestCreateApplication_OK(c *C) {
 	correctAccount, err := AddCorrectAccount(true)
+	c.Assert(err, IsNil)
+
 	correctApplication := CorrectApplication()
+
+	correctAccountUser, err := AddCorrectAccountUser(correctAccount.ID, true)
+	c.Assert(err, IsNil)
 
 	payload := fmt.Sprintf(
 		`{"name":"%s", "description":"%s", "url": "%s"}`,
@@ -60,7 +72,7 @@ func (s *ServerSuite) TestCreateApplication_OK(c *C) {
 
 	routeName := "createApplication"
 	route := getComposedRoute(routeName, correctAccount.ID)
-	code, body, err := runRequest(routeName, route, payload, "", "")
+	code, body, err := runRequest(routeName, route, payload, correctAccount.AuthToken, getAccountUserSessionToken(correctAccountUser), 2)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusCreated)
@@ -82,7 +94,14 @@ func (s *ServerSuite) TestCreateApplication_OK(c *C) {
 // Test a correct updateApplication request
 func (s *ServerSuite) TestUpdateApplication_OK(c *C) {
 	correctAccount, err := AddCorrectAccount(true)
+	c.Assert(err, IsNil)
+
+	correctAccountUser, err := AddCorrectAccountUser(correctAccount.ID, true)
+	c.Assert(err, IsNil)
+
 	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
+	c.Assert(err, IsNil)
+
 	payload := fmt.Sprintf(
 		`{"name":"%s", "description":"i changed the description", "url": "%s", "enabled": true}`,
 		correctApplication.Name,
@@ -92,7 +111,7 @@ func (s *ServerSuite) TestUpdateApplication_OK(c *C) {
 
 	routeName := "updateApplication"
 	route := getComposedRoute(routeName, correctApplication.AccountID, correctApplication.ID)
-	code, body, err := runRequest(routeName, route, payload, "", "")
+	code, body, err := runRequest(routeName, route, payload, correctAccount.AuthToken, getAccountUserSessionToken(correctAccountUser), 2)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusCreated)
@@ -115,6 +134,11 @@ func (s *ServerSuite) TestUpdateApplication_OK(c *C) {
 // Test a correct updateApplication request with a wrong id
 func (s *ServerSuite) TestUpdateApplication_WrongID(c *C) {
 	correctAccount, err := AddCorrectAccount(true)
+	c.Assert(err, IsNil)
+
+	correctAccountUser, err := AddCorrectAccountUser(correctAccount.ID, true)
+	c.Assert(err, IsNil)
+
 	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
 	payload := fmt.Sprintf(
 		`{"name":"%s", "description":"i changed the description", "url": "%s", "enabled": true}`,
@@ -125,7 +149,7 @@ func (s *ServerSuite) TestUpdateApplication_WrongID(c *C) {
 
 	routeName := "updateApplication"
 	route := getComposedRoute(routeName, correctApplication.AccountID, correctApplication.ID+1)
-	code, _, err := runRequest(routeName, route, payload, "", "")
+	code, _, err := runRequest(routeName, route, payload, correctAccount.AuthToken, getAccountUserSessionToken(correctAccountUser), 2)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusInternalServerError)
@@ -144,7 +168,7 @@ func (s *ServerSuite) TestUpdateApplication_WrongValue(c *C) {
 
 	routeName := "updateApplication"
 	route := getComposedRoute(routeName, correctApplication.AccountID, correctApplication.ID)
-	code, body, err := runRequest(routeName, route, payload, "", "")
+	code, body, err := runRequest(routeName, route, payload, correctAccount.AuthToken, getAccountUserSessionToken(correctAccountUser), 2)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusBadRequest)
@@ -157,6 +181,8 @@ func (s *ServerSuite) TestUpdateApplication_WrongToken(c *C) {
 	return
 
 	correctAccount, err := AddCorrectAccount(true)
+	correctAccountUser, err := AddCorrectAccountUser(correctAccount.ID, true)
+	c.Assert(err, IsNil)
 	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
 	payload := fmt.Sprintf(
 		`{"name":"%s", "description":"i changed the description", "url": "%s", "enabled": true}`,
@@ -167,7 +193,7 @@ func (s *ServerSuite) TestUpdateApplication_WrongToken(c *C) {
 
 	routeName := "updateApplication"
 	route := getComposedRoute(routeName, correctApplication.AccountID, correctApplication.ID)
-	code, body, err := runRequest(routeName, route, payload, "", "")
+	code, body, err := runRequest(routeName, route, payload, correctAccount.AuthToken, getAccountUserSessionToken(correctAccountUser), 2)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusBadRequest)
@@ -177,12 +203,14 @@ func (s *ServerSuite) TestUpdateApplication_WrongToken(c *C) {
 // Test a correct deleteApplication request
 func (s *ServerSuite) TestDeleteApplication_OK(c *C) {
 	correctAccount, err := AddCorrectAccount(true)
+	correctAccountUser, err := AddCorrectAccountUser(correctAccount.ID, true)
+	c.Assert(err, IsNil)
 	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
 	c.Assert(err, IsNil)
 
 	routeName := "deleteApplication"
 	route := getComposedRoute(routeName, correctApplication.AccountID, correctApplication.ID)
-	code, _, err := runRequest(routeName, route, "", "", "")
+	code, _, err := runRequest(routeName, route, "", correctAccount.AuthToken, getAccountUserSessionToken(correctAccountUser), 2)
 
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusNoContent)
@@ -191,12 +219,17 @@ func (s *ServerSuite) TestDeleteApplication_OK(c *C) {
 // Test a correct deleteApplication request with a wrong id
 func (s *ServerSuite) TestDeleteApplication_WrongID(c *C) {
 	correctAccount, err := AddCorrectAccount(true)
+	c.Assert(err, IsNil)
+
+	correctAccountUser, err := AddCorrectAccountUser(correctAccount.ID, true)
+	c.Assert(err, IsNil)
+
 	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
 	c.Assert(err, IsNil)
 
 	routeName := "deleteApplication"
 	route := getComposedRoute(routeName, correctApplication.AccountID, correctApplication.ID+1)
-	code, _, err := runRequest(routeName, route, "", "", "")
+	code, _, err := runRequest(routeName, route, "", correctAccount.AuthToken, getAccountUserSessionToken(correctAccountUser), 2)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusInternalServerError)
@@ -208,12 +241,14 @@ func (s *ServerSuite) TestDeleteApplication_WrongToken(c *C) {
 	return
 
 	correctAccount, err := AddCorrectAccount(true)
+	correctAccountUser, err := AddCorrectAccountUser(correctAccount.ID, true)
+	c.Assert(err, IsNil)
 	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
 	c.Assert(err, IsNil)
 
 	routeName := "deleteApplication"
 	route := getComposedRoute(routeName, correctApplication.AccountID, correctApplication.ID)
-	code, _, err := runRequest(routeName, route, "", "", "")
+	code, _, err := runRequest(routeName, route, "", correctAccount.AuthToken, getAccountUserSessionToken(correctAccountUser), 2)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusBadRequest)
@@ -222,12 +257,14 @@ func (s *ServerSuite) TestDeleteApplication_WrongToken(c *C) {
 // Test a correct getApplication request
 func (s *ServerSuite) TestGetApplication_OK(c *C) {
 	correctAccount, err := AddCorrectAccount(true)
+	correctAccountUser, err := AddCorrectAccountUser(correctAccount.ID, true)
+	c.Assert(err, IsNil)
 	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
 	c.Assert(err, IsNil)
 
 	routeName := "getApplication"
 	route := getComposedRoute(routeName, correctApplication.AccountID, correctApplication.ID)
-	code, body, err := runRequest(routeName, route, "", "", "")
+	code, body, err := runRequest(routeName, route, "", correctAccount.AuthToken, getAccountUserSessionToken(correctAccountUser), 2)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusOK)
@@ -247,12 +284,14 @@ func (s *ServerSuite) TestGetApplication_OK(c *C) {
 // Test a correct getApplication request with a wrong id
 func (s *ServerSuite) TestGetApplication_WrongID(c *C) {
 	correctAccount, err := AddCorrectAccount(true)
+	correctAccountUser, err := AddCorrectAccountUser(correctAccount.ID, true)
+	c.Assert(err, IsNil)
 	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
 	c.Assert(err, IsNil)
 
 	routeName := "getApplication"
 	route := getComposedRoute(routeName, correctApplication.AccountID, correctApplication.ID+1)
-	code, _, err := runRequest(routeName, route, "", "", "")
+	code, _, err := runRequest(routeName, route, "", correctAccount.AuthToken, getAccountUserSessionToken(correctAccountUser), 2)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusInternalServerError)
@@ -264,12 +303,14 @@ func (s *ServerSuite) TestGetApplication_WrongToken(c *C) {
 	return
 
 	correctAccount, err := AddCorrectAccount(true)
+	correctAccountUser, err := AddCorrectAccountUser(correctAccount.ID, true)
+	c.Assert(err, IsNil)
 	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
 	c.Assert(err, IsNil)
 
 	routeName := "getApplication"
 	route := getComposedRoute(routeName, correctApplication.AccountID, correctApplication.ID)
-	code, _, err := runRequest(routeName, route, "", "", "")
+	code, _, err := runRequest(routeName, route, "", correctAccount.AuthToken, getAccountUserSessionToken(correctAccountUser), 2)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusBadRequest)

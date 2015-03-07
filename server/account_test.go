@@ -20,7 +20,7 @@ func (s *ServerSuite) TestCreateAccount_WrongKey(c *C) {
 
 	routeName := "createAccount"
 	route := getComposedRoute(routeName)
-	code, body, err := runRequest(routeName, route, payload, "", "")
+	code, body, err := runRequest(routeName, route, payload, "", "", 0)
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusBadRequest)
 	c.Assert(body, Not(Equals), "")
@@ -32,7 +32,7 @@ func (s *ServerSuite) TestCreateAccount_WrongValue(c *C) {
 
 	routeName := "createAccount"
 	route := getComposedRoute(routeName)
-	code, body, err := runRequest(routeName, route, payload, "", "")
+	code, body, err := runRequest(routeName, route, payload, "", "", 0)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusBadRequest)
@@ -46,7 +46,7 @@ func (s *ServerSuite) TestCreateAccount_OK(c *C) {
 
 	routeName := "createAccount"
 	route := getComposedRoute(routeName)
-	code, body, err := runRequest(routeName, route, payload, "", "")
+	code, body, err := runRequest(routeName, route, payload, "", "", 0)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusCreated)
@@ -65,12 +65,13 @@ func (s *ServerSuite) TestCreateAccount_OK(c *C) {
 // Test a correct updateAccount request
 func (s *ServerSuite) TestUpdateAccount_OK(c *C) {
 	correctAccount, err := AddCorrectAccount(true)
+	correctAccountUser, err := AddCorrectAccountUser(correctAccount.ID, true)
 	description := "changed"
 	payload := fmt.Sprintf(`{"name":"%s", "description":"%s","enabled":true}`, correctAccount.Name, description)
 
 	routeName := "updateAccount"
 	route := getComposedRoute(routeName, correctAccount.ID)
-	code, body, err := runRequest(routeName, route, payload, "", "")
+	code, body, err := runRequest(routeName, route, payload, correctAccount.AuthToken, getAccountUserSessionToken(correctAccountUser), 2)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusOK)
@@ -90,12 +91,13 @@ func (s *ServerSuite) TestUpdateAccount_OK(c *C) {
 // Test a correct updateAccount request with a wrong id
 func (s *ServerSuite) TestUpdateAccount_WrongID(c *C) {
 	correctAccount, err := AddCorrectAccount(true)
+	correctAccountUser, err := AddCorrectAccountUser(correctAccount.ID, true)
 	description := "changed"
 	payload := fmt.Sprintf(`{"name":"%s", "description":"%s","enabled":true}`, correctAccount.Name, description)
 
 	routeName := "updateAccount"
 	route := getComposedRoute(routeName, correctAccount.ID+1)
-	code, _, err := runRequest(routeName, route, payload, "", "")
+	code, _, err := runRequest(routeName, route, payload, correctAccount.AuthToken, getAccountUserSessionToken(correctAccountUser), 2)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusInternalServerError)
@@ -104,11 +106,12 @@ func (s *ServerSuite) TestUpdateAccount_WrongID(c *C) {
 // Test a correct updateAccount request with an invalid description
 func (s *ServerSuite) TestUpdateAccount_Invalid(c *C) {
 	correctAccount, err := AddCorrectAccount(true)
+	correctAccountUser, err := AddCorrectAccountUser(correctAccount.ID, true)
 	payload := fmt.Sprintf(`{"name":"%s", "description":"","enabled":true}`, correctAccount.Name)
 
 	routeName := "updateAccount"
 	route := getComposedRoute(routeName, correctAccount.ID)
-	code, body, err := runRequest(routeName, route, payload, "", "")
+	code, body, err := runRequest(routeName, route, payload, correctAccount.AuthToken, getAccountUserSessionToken(correctAccountUser), 2)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusBadRequest)
@@ -118,11 +121,12 @@ func (s *ServerSuite) TestUpdateAccount_Invalid(c *C) {
 // Test a correct deleteAccount request
 func (s *ServerSuite) TestDeleteAccount_OK(c *C) {
 	account, err := AddCorrectAccount(true)
+	correctAccountUser, err := AddCorrectAccountUser(correctAccount.ID, true)
 	c.Assert(err, IsNil)
 
 	routeName := "deleteAccount"
 	route := getComposedRoute(routeName, account.ID)
-	code, _, err := runRequest(routeName, route, "", "", "")
+	code, _, err := runRequest(routeName, route, "", correctAccount.AuthToken, getAccountUserSessionToken(correctAccountUser), 2)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusNoContent)
@@ -131,11 +135,12 @@ func (s *ServerSuite) TestDeleteAccount_OK(c *C) {
 // Test a correct deleteAccount request with a wrong id
 func (s *ServerSuite) TestDeleteAccount_WrongID(c *C) {
 	account, err := AddCorrectAccount(true)
+	correctAccountUser, err := AddCorrectAccountUser(correctAccount.ID, true)
 	c.Assert(err, IsNil)
 
 	routeName := "deleteAccount"
 	route := getComposedRoute(routeName, account.ID+1)
-	code, _, err := runRequest(routeName, route, "", "", "")
+	code, _, err := runRequest(routeName, route, "", correctAccount.AuthToken, getAccountUserSessionToken(correctAccountUser), 2)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusInternalServerError)
@@ -144,11 +149,12 @@ func (s *ServerSuite) TestDeleteAccount_WrongID(c *C) {
 // Test a correct getAccount request
 func (s *ServerSuite) TestGetAccount_OK(c *C) {
 	correctAccount, err := AddCorrectAccount(true)
+	correctAccountUser, err := AddCorrectAccountUser(correctAccount.ID, true)
 	c.Assert(err, IsNil)
 
 	routeName := "getAccount"
 	route := getComposedRoute(routeName, correctAccount.ID)
-	code, body, err := runRequest(routeName, route, "", "", "")
+	code, body, err := runRequest(routeName, route, "", correctAccount.AuthToken, getAccountUserSessionToken(correctAccountUser), 2)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusOK)
@@ -166,11 +172,12 @@ func (s *ServerSuite) TestGetAccount_OK(c *C) {
 // Test a correct getAccount request with a wrong id
 func (s *ServerSuite) TestGetAccount_WrongID(c *C) {
 	correctAccount, err := AddCorrectAccount(true)
+	correctAccountUser, err := AddCorrectAccountUser(correctAccount.ID, true)
 	c.Assert(err, IsNil)
 
 	routeName := "getAccount"
 	route := getComposedRoute(routeName, correctAccount.ID+1)
-	code, _, err := runRequest(routeName, route, "", "", "")
+	code, _, err := runRequest(routeName, route, "", correctAccount.AuthToken, getAccountUserSessionToken(correctAccountUser), 2)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusInternalServerError)
