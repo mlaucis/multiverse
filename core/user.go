@@ -15,7 +15,7 @@ import (
 )
 
 // ReadUser returns the user matching the ID or an error
-func ReadUser(accountID, applicationID, userID int64) (user *entity.User, err error) {
+func ReadApplicationUser(accountID, applicationID, userID int64) (user *entity.User, err error) {
 	key := storageClient.User(accountID, applicationID, userID)
 
 	result, err := storageEngine.Get(key).Result()
@@ -32,7 +32,7 @@ func ReadUser(accountID, applicationID, userID int64) (user *entity.User, err er
 
 // UpdateUser updates a user in the database and returns the updates user or an error
 func UpdateUser(user *entity.User, retrieve bool) (usr *entity.User, err error) {
-	storedUser, err := ReadUser(user.AccountID, user.ApplicationID, user.ID)
+	storedUser, err := ReadApplicationUser(user.AccountID, user.ApplicationID, user.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +63,7 @@ func UpdateUser(user *entity.User, retrieve bool) (usr *entity.User, err error) 
 		return storedUser, nil
 	}
 
-	return ReadUser(user.AccountID, user.ApplicationID, user.ID)
+	return ReadApplicationUser(user.AccountID, user.ApplicationID, user.ID)
 }
 
 // DeleteUser deletes the user matching the IDs or an error
@@ -161,18 +161,18 @@ func WriteUser(user *entity.User, retrieve bool) (usr *entity.User, err error) {
 		return user, nil
 	}
 
-	return ReadUser(user.AccountID, user.ApplicationID, user.ID)
+	return ReadApplicationUser(user.AccountID, user.ApplicationID, user.ID)
 }
 
 // CreateUserSession handles the creation of a user session and returns the session token
-func CreateUserSession(user *entity.User) (string, error) {
+func CreateApplicationUserSession(user *entity.User) (string, error) {
 	// TODO support multiple sessions?
 	// TODO rate limit this to x / per day?
 	// TODO rate limit this to be at least x minutes after the logout
 	// TODO do we customize the key session timeout per app
 
-	sessionKey := storageClient.SessionKey(user.AccountID, user.ApplicationID, user.ID)
-	token := storageClient.GenerateSessionID(user)
+	sessionKey := storageClient.ApplicationSessionKey(user.AccountID, user.ApplicationID, user.ID)
+	token := storageClient.GenerateApplicationSessionID(user)
 
 	stored, err := storageEngine.SetNX(sessionKey, token).Result()
 	if err != nil {
@@ -195,13 +195,13 @@ func CreateUserSession(user *entity.User) (string, error) {
 }
 
 // RefreshUserSession generates a new session token for the user session
-func RefreshUserSession(sessionToken string, user *entity.User) (string, error) {
+func RefreshApplicationUserSession(sessionToken string, user *entity.User) (string, error) {
 	// TODO support multiple sessions?
 	// TODO rate limit this to x / per day?
 	// TODO rate limit this to be at least x minutes after the logout
 	// TODO do we customize the key session timeout per app
 
-	sessionKey := storageClient.SessionKey(user.AccountID, user.ApplicationID, user.ID)
+	sessionKey := storageClient.ApplicationSessionKey(user.AccountID, user.ApplicationID, user.ID)
 
 	storedToken, err := storageEngine.Get(sessionKey).Result()
 	if err != nil {
@@ -212,7 +212,7 @@ func RefreshUserSession(sessionToken string, user *entity.User) (string, error) 
 		return "", fmt.Errorf("session token mismatch")
 	}
 
-	token := storageClient.GenerateSessionID(user)
+	token := storageClient.GenerateApplicationSessionID(user)
 
 	if err := storageEngine.Set(sessionKey, token).Err(); err != nil {
 		return "", err
@@ -230,10 +230,10 @@ func RefreshUserSession(sessionToken string, user *entity.User) (string, error) 
 }
 
 // DestroyUserSession removes the user session
-func DestroyUserSession(sessionToken string, user *entity.User) error {
+func DestroyApplicationUserSession(sessionToken string, user *entity.User) error {
 	// TODO support multiple sessions?
 	// TODO rate limit this to x / per day?
-	sessionKey := storageClient.SessionKey(user.AccountID, user.ApplicationID, user.ID)
+	sessionKey := storageClient.ApplicationSessionKey(user.AccountID, user.ApplicationID, user.ID)
 
 	storedToken, err := storageEngine.Get(sessionKey).Result()
 	if err != nil {

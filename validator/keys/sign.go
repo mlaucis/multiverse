@@ -10,16 +10,18 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
 
 	. "github.com/tapglue/backend/utils"
 )
 
 // addHeaders adds the additional headers to the request before being signed
 func addHeaders(accountID, applicationID int64, r *http.Request) error {
-	r.Header.Add("x-tapglue-date", time.Now().Format(time.RFC3339))
 	r.Header.Add("x-tapglue-payload-hash", Base64Encode(Sha256String(PeakBody(r).Bytes())))
-	r.Header.Add("x-tapglue-id", Base64Encode(fmt.Sprintf("%d:%d", accountID, applicationID)))
+	if applicationID == 0 {
+		r.Header.Add("x-tapglue-id", Base64Encode(fmt.Sprintf("%d", accountID)))
+	} else {
+		r.Header.Add("x-tapglue-id", Base64Encode(fmt.Sprintf("%d:%d", accountID, applicationID)))
+	}
 
 	return nil
 }
@@ -48,10 +50,10 @@ func generateSigningString(scope, requestVersion string, r *http.Request) string
 }
 
 // generateSigningKey returns the key used to sign the request
-func generateSigningKey(applicationSecretKey, requestVersion string, r *http.Request) string {
+func generateSigningKey(secretKey, requestVersion string, r *http.Request) string {
 	key := fmt.Sprintf(
 		"tapglue:%s:%s",
-		applicationSecretKey,
+		secretKey,
 		r.Header.Get("x-tapglue-date"),
 	)
 	return Sha256String([]byte(
@@ -69,14 +71,14 @@ func generateSigningKey(applicationSecretKey, requestVersion string, r *http.Req
 }
 
 // SignRequest runs the signature algorithm on the request and adds the things it's missing
-func SignRequest(applicationSecretKey, requestScope, requestVersion string, r *http.Request) error {
-	rawKey, err := Base64Decode(applicationSecretKey)
+func SignRequest(secretKey, requestScope, requestVersion string, numKeyParts int, r *http.Request) error {
+	rawKey, err := Base64Decode(secretKey)
 	if err != nil {
 		return err
 	}
 
-	keyParts := strings.SplitN(string(rawKey), `:`, 3)
-	if len(keyParts) != 3 {
+	keyParts := strings.SplitN(string(rawKey), `:`, numKeyParts)
+	if len(keyParts) != numKeyParts {
 		return fmt.Errorf("not enough key parts")
 	}
 
@@ -85,9 +87,12 @@ func SignRequest(applicationSecretKey, requestScope, requestVersion string, r *h
 		return err
 	}
 
-	applicationID, err := strconv.ParseInt(keyParts[1], 10, 64)
-	if err != nil {
-		return err
+	var applicationID int64
+	if numKeyParts == 3 {
+		applicationID, err = strconv.ParseInt(keyParts[1], 10, 64)
+		if err != nil {
+			return err
+		}
 	}
 
 	// Add extra headers
@@ -100,7 +105,7 @@ func SignRequest(applicationSecretKey, requestScope, requestVersion string, r *h
 	signString := generateSigningString(requestScope, requestVersion, r)
 
 	// Generate signing key
-	signingKey := generateSigningKey(applicationSecretKey, requestVersion, r)
+	signingKey := generateSigningKey(secretKey, requestVersion, r)
 
 	// Sign the request
 	r.Header.Add("x-tapglue-signature", Base64Encode(Sha256String([]byte(signingKey+signString))))

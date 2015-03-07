@@ -46,6 +46,8 @@ var routes = map[string]map[string]*route{
 			scope:    "account/index",
 			handlers: []routeFunc{
 				isRequestExpired,
+				validateAccountRequestToken,
+				checkAccountSession,
 				getAccount,
 			},
 		},
@@ -56,6 +58,8 @@ var routes = map[string]map[string]*route{
 			scope:    "account/update",
 			handlers: []routeFunc{
 				isRequestExpired,
+				validateAccountRequestToken,
+				checkAccountSession,
 				updateAccount,
 			},
 		},
@@ -66,6 +70,8 @@ var routes = map[string]map[string]*route{
 			scope:    "account/delete",
 			handlers: []routeFunc{
 				isRequestExpired,
+				validateAccountRequestToken,
+				checkAccountSession,
 				deleteAccount,
 			},
 		},
@@ -75,6 +81,7 @@ var routes = map[string]map[string]*route{
 			cPattern: "/accounts",
 			scope:    "account/create",
 			handlers: []routeFunc{
+				isRequestExpired,
 				createAccount,
 			},
 		},
@@ -86,6 +93,8 @@ var routes = map[string]map[string]*route{
 			scope:    "account/user/index",
 			handlers: []routeFunc{
 				isRequestExpired,
+				validateAccountRequestToken,
+				checkAccountSession,
 				getAccountUser,
 			},
 		},
@@ -96,6 +105,8 @@ var routes = map[string]map[string]*route{
 			scope:    "account/user/update",
 			handlers: []routeFunc{
 				isRequestExpired,
+				validateAccountRequestToken,
+				checkAccountSession,
 				updateAccountUser,
 			},
 		},
@@ -106,6 +117,8 @@ var routes = map[string]map[string]*route{
 			scope:    "account/user/delete",
 			handlers: []routeFunc{
 				isRequestExpired,
+				validateAccountRequestToken,
+				checkAccountSession,
 				deleteAccountUser,
 			},
 		},
@@ -116,6 +129,7 @@ var routes = map[string]map[string]*route{
 			scope:    "account/user/create",
 			handlers: []routeFunc{
 				isRequestExpired,
+				validateAccountRequestToken,
 				createAccountUser,
 			},
 		},
@@ -126,6 +140,8 @@ var routes = map[string]map[string]*route{
 			scope:    "account/user/list",
 			handlers: []routeFunc{
 				isRequestExpired,
+				validateAccountRequestToken,
+				checkAccountSession,
 				getAccountUserList,
 			},
 		},
@@ -137,6 +153,8 @@ var routes = map[string]map[string]*route{
 			scope:    "application/index",
 			handlers: []routeFunc{
 				isRequestExpired,
+				validateAccountRequestToken,
+				checkAccountSession,
 				getApplication,
 			},
 		},
@@ -147,6 +165,8 @@ var routes = map[string]map[string]*route{
 			scope:    "application/update",
 			handlers: []routeFunc{
 				isRequestExpired,
+				validateAccountRequestToken,
+				checkAccountSession,
 				updateApplication,
 			},
 		},
@@ -157,6 +177,8 @@ var routes = map[string]map[string]*route{
 			scope:    "application/delete",
 			handlers: []routeFunc{
 				isRequestExpired,
+				validateAccountRequestToken,
+				checkAccountSession,
 				deleteApplication,
 			},
 		},
@@ -167,6 +189,8 @@ var routes = map[string]map[string]*route{
 			scope:    "application/create",
 			handlers: []routeFunc{
 				isRequestExpired,
+				validateAccountRequestToken,
+				checkAccountSession,
 				createApplication,
 			},
 		},
@@ -177,6 +201,8 @@ var routes = map[string]map[string]*route{
 			scope:    "account/applications/list",
 			handlers: []routeFunc{
 				isRequestExpired,
+				validateAccountRequestToken,
+				checkAccountSession,
 				getApplicationList,
 			},
 		},
@@ -189,8 +215,8 @@ var routes = map[string]map[string]*route{
 			handlers: []routeFunc{
 				isRequestExpired,
 				validateApplicationRequestToken,
-				checkSession,
-				getUser,
+				checkApplicationSession,
+				getApplicationUser,
 			},
 		},
 		"updateUser": &route{
@@ -201,8 +227,8 @@ var routes = map[string]map[string]*route{
 			handlers: []routeFunc{
 				isRequestExpired,
 				validateApplicationRequestToken,
-				checkSession,
-				updateUser,
+				checkApplicationSession,
+				updateApplicationUser,
 			},
 		},
 		"deleteUser": &route{
@@ -213,8 +239,8 @@ var routes = map[string]map[string]*route{
 			handlers: []routeFunc{
 				isRequestExpired,
 				validateApplicationRequestToken,
-				checkSession,
-				deleteUser,
+				checkApplicationSession,
+				deleteApplicationUser,
 			},
 		},
 		"createUser": &route{
@@ -225,7 +251,7 @@ var routes = map[string]map[string]*route{
 			handlers: []routeFunc{
 				isRequestExpired,
 				validateApplicationRequestToken,
-				createUser,
+				createApplicationUser,
 			},
 		},
 		"loginUser": &route{
@@ -236,7 +262,7 @@ var routes = map[string]map[string]*route{
 			handlers: []routeFunc{
 				isRequestExpired,
 				validateApplicationRequestToken,
-				loginUser,
+				loginApplicationUser,
 			},
 		},
 		"refreshUserSession": &route{
@@ -247,8 +273,8 @@ var routes = map[string]map[string]*route{
 			handlers: []routeFunc{
 				isRequestExpired,
 				validateApplicationRequestToken,
-				checkSession,
-				refreshUserSession,
+				checkApplicationSession,
+				refreshApplicationUserSession,
 			},
 		},
 		"logoutUser": &route{
@@ -259,8 +285,8 @@ var routes = map[string]map[string]*route{
 			handlers: []routeFunc{
 				isRequestExpired,
 				validateApplicationRequestToken,
-				checkSession,
-				logoutUser,
+				checkApplicationSession,
+				logoutApplicationUser,
 			},
 		},
 		/*
@@ -280,7 +306,7 @@ var routes = map[string]map[string]*route{
 			handlers: []routeFunc{
 				isRequestExpired,
 				validateApplicationRequestToken,
-				checkSession,
+				checkApplicationSession,
 				createConnection,
 			},
 		},
@@ -292,7 +318,7 @@ var routes = map[string]map[string]*route{
 			handlers: []routeFunc{
 				isRequestExpired,
 				validateApplicationRequestToken,
-				checkSession,
+				checkApplicationSession,
 				confirmConnection,
 			},
 		},
@@ -304,7 +330,7 @@ var routes = map[string]map[string]*route{
 			handlers: []routeFunc{
 				isRequestExpired,
 				validateApplicationRequestToken,
-				checkSession,
+				checkApplicationSession,
 				updateConnection,
 			},
 		},
@@ -316,7 +342,7 @@ var routes = map[string]map[string]*route{
 			handlers: []routeFunc{
 				isRequestExpired,
 				validateApplicationRequestToken,
-				checkSession,
+				checkApplicationSession,
 				deleteConnection,
 			},
 		},
@@ -328,7 +354,7 @@ var routes = map[string]map[string]*route{
 			handlers: []routeFunc{
 				isRequestExpired,
 				validateApplicationRequestToken,
-				checkSession,
+				checkApplicationSession,
 				getConnectionList,
 			},
 		},
@@ -341,7 +367,7 @@ var routes = map[string]map[string]*route{
 			handlers: []routeFunc{
 				isRequestExpired,
 				validateApplicationRequestToken,
-				checkSession,
+				checkApplicationSession,
 				getEvent,
 			},
 		},
@@ -352,7 +378,7 @@ var routes = map[string]map[string]*route{
 			scope:    "application/user/event/update",
 			handlers: []routeFunc{
 				validateApplicationRequestToken,
-				checkSession,
+				checkApplicationSession,
 				updateEvent,
 			},
 		},
@@ -364,7 +390,7 @@ var routes = map[string]map[string]*route{
 			handlers: []routeFunc{
 				isRequestExpired,
 				validateApplicationRequestToken,
-				checkSession,
+				checkApplicationSession,
 				deleteEvent,
 			},
 		},
@@ -376,7 +402,7 @@ var routes = map[string]map[string]*route{
 			handlers: []routeFunc{
 				isRequestExpired,
 				validateApplicationRequestToken,
-				checkSession,
+				checkApplicationSession,
 				createEvent,
 			},
 		},
@@ -388,7 +414,7 @@ var routes = map[string]map[string]*route{
 			handlers: []routeFunc{
 				isRequestExpired,
 				validateApplicationRequestToken,
-				checkSession,
+				checkApplicationSession,
 				getEventList,
 			},
 		},
@@ -400,7 +426,7 @@ var routes = map[string]map[string]*route{
 			handlers: []routeFunc{
 				isRequestExpired,
 				validateApplicationRequestToken,
-				checkSession,
+				checkApplicationSession,
 				getConnectionEventList,
 			},
 		},

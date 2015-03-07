@@ -155,7 +155,7 @@ func UpdateUser(user *entity.User) error {
 }
 
 // UserCredentialsValid checks is a certain user has the right credentials
-func UserCredentialsValid(password string, user *entity.User) error {
+func ApplicationUserCredentialsValid(password string, user *entity.User) error {
 	// TODO improve this with a salt and stuff
 	if Base64Encode(Sha256String([]byte(password))) != user.Password {
 		return fmt.Errorf("invalid user credentials")
@@ -164,8 +164,8 @@ func UserCredentialsValid(password string, user *entity.User) error {
 	return nil
 }
 
-// IsSessionValid checks if the session is valid or not
-func CheckSession(r *http.Request) (string, error) {
+// CheckApplicationSession checks if the session is valid or not
+func CheckApplicationSession(r *http.Request) (string, error) {
 	encodedSessionToken := r.Header.Get("x-tapglue-session")
 	if encodedSessionToken == "" {
 		return "", fmt.Errorf("missing session token")
@@ -225,7 +225,7 @@ func CheckSession(r *http.Request) (string, error) {
 		return "", fmt.Errorf("session token mismatch(2)")
 	}
 
-	sessionKey := storageClient.SessionKey(accountID, applicationID, userID)
+	sessionKey := storageClient.ApplicationSessionKey(accountID, applicationID, userID)
 	storedSessionToken, err := storageEngine.Get(sessionKey).Result()
 	if err != nil {
 		return "", fmt.Errorf("could not fetch session from storage")

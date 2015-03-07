@@ -191,3 +191,142 @@ func createAccountUser(ctx *context) {
 
 	writeResponse(ctx, accountUser, http.StatusCreated, 0)
 }
+
+// loginAccountUser handles the requests to login the user in the system
+func loginAccountUser(ctx *context) {
+	var (
+		loginPayload struct {
+			Password string `json:"password"`
+		}
+		user         = &entity.AccountUser{}
+		accountID    int64
+		userID       int64
+		sessionToken string
+		err          error
+	)
+
+	if accountID, err = strconv.ParseInt(ctx.vars["accountId"], 10, 64); err != nil {
+		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest)
+		return
+	}
+
+	if userID, err = strconv.ParseInt(ctx.vars["userId"], 10, 64); err != nil {
+		errorHappened(ctx, "userId is not set or the value is incorrect", http.StatusBadRequest)
+		return
+	}
+
+	if user, err = core.ReadAccountUser(accountID, userID); err != nil {
+		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
+		return
+	}
+
+	decoder := json.NewDecoder(ctx.body)
+	if err = decoder.Decode(loginPayload); err != nil {
+		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusBadRequest)
+		return
+	}
+
+	if err = validator.AccountUserCredentialsValid(loginPayload.Password, user); err != nil {
+		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusUnauthorized)
+		return
+	}
+
+	if sessionToken, err = core.CreateAccountUserSession(user); err != nil {
+		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
+		return
+	}
+
+	writeResponse(ctx, struct {
+		Token string `json:"token"`
+	}{Token: sessionToken}, http.StatusCreated, 0)
+}
+
+// refreshApplicationUserSession handles the requests to refresh the user session token
+func refreshAccountUserSession(ctx *context) {
+	var (
+		payload struct {
+			Token string `json:"token"`
+		}
+		user         = &entity.AccountUser{}
+		accountID    int64
+		userID       int64
+		sessionToken string
+		err          error
+	)
+
+	if accountID, err = strconv.ParseInt(ctx.vars["accountId"], 10, 64); err != nil {
+		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest)
+		return
+	}
+
+	if userID, err = strconv.ParseInt(ctx.vars["userId"], 10, 64); err != nil {
+		errorHappened(ctx, "userId is not set or the value is incorrect", http.StatusBadRequest)
+		return
+	}
+
+	if user, err = core.ReadAccountUser(accountID, userID); err != nil {
+		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
+		return
+	}
+
+	decoder := json.NewDecoder(ctx.body)
+	if err = decoder.Decode(payload); err != nil {
+		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusBadRequest)
+		return
+	}
+
+	if sessionToken, err = core.RefreshAccountUserSession(payload.Token, user); err != nil {
+		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
+		return
+	}
+
+	writeResponse(ctx, struct {
+		Token string `json:"token"`
+	}{Token: sessionToken}, http.StatusCreated, 0)
+}
+
+// logoutApplicationUser handles the requests to logout the user from the system
+func logoutAccountUser(ctx *context) {
+	var (
+		logoutPayload struct {
+			Token string `json:"token"`
+		}
+		user      = &entity.AccountUser{}
+		accountID int64
+		userID    int64
+		err       error
+	)
+
+	if accountID, err = strconv.ParseInt(ctx.vars["accountId"], 10, 64); err != nil {
+		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest)
+		return
+	}
+
+	if userID, err = strconv.ParseInt(ctx.vars["userId"], 10, 64); err != nil {
+		errorHappened(ctx, "userId is not set or the value is incorrect", http.StatusBadRequest)
+		return
+	}
+
+	if user, err = core.ReadAccountUser(accountID, userID); err != nil {
+		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
+		return
+	}
+
+	decoder := json.NewDecoder(ctx.body)
+	if err = decoder.Decode(logoutPayload); err != nil {
+		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusBadRequest)
+		return
+	}
+
+	if err = validator.AccountUserCredentialsValid(logoutPayload.Token, user); err != nil {
+		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusUnauthorized)
+		return
+	}
+
+	if err = core.DestroyAccountUserSession(logoutPayload.Token, user); err != nil {
+		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
+		return
+	}
+
+	writeResponse(ctx, "logged out", http.StatusOK, 0)
+}

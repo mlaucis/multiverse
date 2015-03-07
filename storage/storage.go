@@ -43,7 +43,8 @@ const (
 	user  = "acc:%d:app:%d:user:%d"
 	users = "acc:%d:app:%d:user"
 
-	session = "acc:%d:app:%d:sess:%d"
+	accountSession     = "acc:%d:sess:%d"
+	applicationSession = "acc:%d:app:%d:sess:%d"
 
 	connection      = "acc:%d:app:%d:user:%d:connection:%d"
 	connections     = "acc:%d:app:%d:user:%d:connections"
@@ -93,6 +94,28 @@ func (client *Client) GenerateApplicationID(accountID int64) (int64, error) {
 	return client.engine.Incr(fmt.Sprintf(idAccountApp, accountID)).Result()
 }
 
+// GenerateAccountSecretKey returns a token for the specified application of an account
+func (client *Client) GenerateAccountSecretKey(account *entity.Account) (string, error) {
+	// Generate a random salt for the token
+	keySalt := generateTokenSalt(8)
+
+	// Generate the token itself
+	hasher := sha256.New()
+	hasher.Write([]byte(fmt.Sprintf(
+		"%d%s%s",
+		account.ID,
+		keySalt,
+		account.CreatedAt.Format(time.RFC3339),
+	)))
+	token := hasher.Sum(nil)
+
+	return Base64Encode(fmt.Sprintf(
+		"%d:%s",
+		account.ID,
+		string(token),
+	)), nil
+}
+
 // GenerateApplicationSecretKey returns a token for the specified application of an account
 func (client *Client) GenerateApplicationSecretKey(application *entity.Application) (string, error) {
 	// Generate a random salt for the token
@@ -127,8 +150,21 @@ func (client *Client) GenerateApplicationEventID(applicationID int64) (int64, er
 	return client.engine.Incr(fmt.Sprintf(idApplicationEvent, applicationID)).Result()
 }
 
-// GenerateSessionID generated the session id for the specific
-func (client *Client) GenerateSessionID(user *entity.User) string {
+// GenerateAccountSessionID generated the session id for the specific
+func (client *Client) GenerateAccountSessionID(user *entity.AccountUser) string {
+	randomToken := generateTokenSalt(16)
+
+	return Base64Encode(fmt.Sprintf(
+		"%d:%d:%s:%s",
+		user.AccountID,
+		user.ID,
+		time.Now().Format(time.RFC3339),
+		randomToken,
+	))
+}
+
+// GenerateApplicationSessionID generated the session id for the specific
+func (client *Client) GenerateApplicationSessionID(user *entity.User) string {
 	randomToken := generateTokenSalt(16)
 
 	return Base64Encode(fmt.Sprintf(
@@ -227,9 +263,14 @@ func (client *Client) ConnectionEventsLoop(userID string) string {
 	return fmt.Sprintf(connectionEventsLoop, userID)
 }
 
-// SessionKey returns the key to be used for a certain session
-func (client *Client) SessionKey(accountID, applicationID, userID int64) string {
-	return fmt.Sprintf(session, accountID, applicationID, userID)
+// AccountSessionKey returns the key to be used for a certain session
+func (client *Client) AccountSessionKey(accountID, userID int64) string {
+	return fmt.Sprintf(accountSession, accountID, userID)
+}
+
+// ApplicationSessionKey returns the key to be used for a certain session
+func (client *Client) ApplicationSessionKey(accountID, applicationID, userID int64) string {
+	return fmt.Sprintf(applicationSession, accountID, applicationID, userID)
 }
 
 // SessionTimeoutDuration returns how much a session can be alive before it's auto-removed from the system

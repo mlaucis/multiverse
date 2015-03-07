@@ -170,25 +170,55 @@ func validatePostCommon(ctx *context) {
 }
 
 // validateApplicationRequestToken validates that the request contains a valid request token
-func validateApplicationRequestToken(ctx *context) {
+func validateAccountRequestToken(ctx *context) {
 	if skipSecurity {
 		return
 	}
 
-	if keys.VerifyRequest(ctx.scope, ctx.version, ctx.r) {
+	if keys.VerifyRequest(ctx.scope, ctx.version, ctx.r, 1) {
 		return
 	}
 
 	errorHappened(ctx, "request is not properly signed", http.StatusUnauthorized)
 }
 
-// isSessionValid checks if the session token is valid or not
-func checkSession(ctx *context) {
+// validateApplicationRequestToken validates that the request contains a valid request token
+func validateApplicationRequestToken(ctx *context) {
 	if skipSecurity {
 		return
 	}
 
-	sessionToken, err := validator.CheckSession(ctx.r)
+	if keys.VerifyRequest(ctx.scope, ctx.version, ctx.r, 2) {
+		return
+	}
+
+	errorHappened(ctx, "request is not properly signed", http.StatusUnauthorized)
+}
+
+// checkAccountSession checks if the session token is valid or not
+func checkAccountSession(ctx *context) {
+	if skipSecurity {
+		return
+	}
+
+	sessionToken, err := validator.CheckAccountSession(ctx.r)
+	if err == nil {
+		ctx.sessionToken = sessionToken
+		return
+	}
+
+	panic(err)
+
+	errorHappened(ctx, "invalid session", http.StatusUnauthorized)
+}
+
+// checkApplicationSession checks if the session token is valid or not
+func checkApplicationSession(ctx *context) {
+	if skipSecurity {
+		return
+	}
+
+	sessionToken, err := validator.CheckApplicationSession(ctx.r)
 	if err == nil {
 		ctx.sessionToken = sessionToken
 		return
@@ -271,15 +301,20 @@ func errorHappened(ctx *context, message string, code int) {
 		return
 	}
 
+	requestPath := ctx.r.RequestURI
+	if requestPath == "" {
+		requestPath = ctx.r.URL.Path
+	}
+
 	ctx.errorLog <- &LogMsg{
-		remoteAddr: ctx.r.RemoteAddr,
-		method:     ctx.r.Method,
-		requestURI: ctx.r.RequestURI,
-		headers:    ctx.r.Header,
-		name:       ctx.routeName,
-		start:      ctx.startTime,
-		end:        time.Now(),
-		message: fmt.Sprintf(
+		RemoteAddr: ctx.r.RemoteAddr,
+		Method:     ctx.r.Method,
+		RequestURI: requestPath,
+		Headers:    ctx.r.Header,
+		Name:       ctx.routeName,
+		Start:      ctx.startTime,
+		End:        time.Now(),
+		Message: fmt.Sprintf(
 			"Error %q in %s/%s:%d",
 			message,
 			filepath.Base(filepath.Dir(filename)),
@@ -367,14 +402,19 @@ func customHandler(routeName, version string, route *route, mainLog, errorLog ch
 			handler(ctx)
 		}
 
+		requestPath := ctx.r.RequestURI
+		if requestPath == "" {
+			requestPath = ctx.r.URL.Path
+		}
+
 		ctx.mainLog <- &LogMsg{
-			remoteAddr: ctx.r.RemoteAddr,
-			method:     ctx.r.Method,
-			requestURI: ctx.r.RequestURI,
-			headers:    ctx.r.Header,
-			name:       ctx.routeName,
-			start:      ctx.startTime,
-			end:        time.Now(),
+			RemoteAddr: ctx.r.RemoteAddr,
+			Method:     ctx.r.Method,
+			RequestURI: requestPath,
+			Headers:    ctx.r.Header,
+			Name:       ctx.routeName,
+			Start:      ctx.startTime,
+			End:        time.Now(),
 		}
 	}
 }

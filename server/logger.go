@@ -11,20 +11,20 @@ import (
 )
 
 const (
-	logFormat = "%s\t%s\t%+v\t%s\t%s\t%s\t%s\n"
+	logFormat = "%s\t%s\t%s\t%+v\t%s\t%s\t%s\n"
 )
 
 type (
 	//LogMsg defines the log message fields
 	LogMsg struct {
-		remoteAddr string
-		method     string
-		requestURI string
-		name       string
-		message    string
-		headers    http.Header
-		start      time.Time
-		end        time.Time
+		RemoteAddr string
+		Method     string
+		RequestURI string
+		Name       string
+		Message    string
+		Headers    http.Header
+		Start      time.Time
+		End        time.Time
 	}
 )
 
@@ -36,13 +36,13 @@ func TGLog(msg chan *LogMsg) {
 			{
 				log.Printf(
 					logFormat,
-					m.remoteAddr,
-					m.method,
-					m.requestURI,
-					getSanitizedHeaders(m.headers),
-					m.name,
-					m.end.Sub(m.start),
-					m.message,
+					m.RemoteAddr,
+					m.Method,
+					m.RequestURI,
+					getSanitizedHeaders(m.Headers),
+					m.Name,
+					m.End.Sub(m.Start),
+					m.Message,
 				)
 			}
 		}

@@ -25,7 +25,7 @@ func (s *ServerSuite) TestCreateConnection_WrongKey(c *C) {
 
 	routeName := "createConnection"
 	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID)
-	code, body, err := runRequest(routeName, route, payload, correctApplication.AuthToken, getSessionToken(correctUser))
+	code, body, err := runRequest(routeName, route, payload, correctApplication.AuthToken, getApplicationUserSessionToken(correctUser), 3)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusBadRequest)
@@ -43,7 +43,7 @@ func (s *ServerSuite) TestCreateConnection_WrongValue(c *C) {
 
 	routeName := "createConnection"
 	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID)
-	code, body, err := runRequest(routeName, route, payload, correctApplication.AuthToken, getSessionToken(correctUser))
+	code, body, err := runRequest(routeName, route, payload, correctApplication.AuthToken, getApplicationUserSessionToken(correctUser), 3)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusBadRequest)
@@ -66,7 +66,7 @@ func (s *ServerSuite) TestCreateConnection_OK(c *C) {
 
 	routeName := "createConnection"
 	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUserFrom.ID)
-	code, body, err := runRequest(routeName, route, payload, correctApplication.AuthToken, getSessionToken(correctUser))
+	code, body, err := runRequest(routeName, route, payload, correctApplication.AuthToken, getApplicationUserSessionToken(correctUser), 3)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusCreated)
@@ -102,7 +102,7 @@ func (s *ServerSuite) TestUpdateConnection_OK(c *C) {
 
 	routeName := "updateConnection"
 	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUserFrom.ID, correctUserTo.ID)
-	code, body, err := runRequest(routeName, route, payload, correctApplication.AuthToken, getSessionToken(correctUser))
+	code, body, err := runRequest(routeName, route, payload, correctApplication.AuthToken, getApplicationUserSessionToken(correctUser), 3)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusCreated)
@@ -138,7 +138,7 @@ func (s *ServerSuite) TestUpdateConnection_WrongID(c *C) {
 
 	routeName := "updateConnection"
 	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUserFrom.ID, correctUserTo.ID)
-	code, _, err := runRequest(routeName, route, payload, correctApplication.AuthToken, getSessionToken(correctUser))
+	code, _, err := runRequest(routeName, route, payload, correctApplication.AuthToken, getApplicationUserSessionToken(correctUser), 3)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusInternalServerError)
@@ -160,7 +160,7 @@ func (s *ServerSuite) TestUpdateConnection_WrongValue(c *C) {
 
 	routeName := "updateConnection"
 	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUserFrom.ID, correctUserTo.ID)
-	code, body, err := runRequest(routeName, route, payload, correctApplication.AuthToken, getSessionToken(correctUser))
+	code, body, err := runRequest(routeName, route, payload, correctApplication.AuthToken, getApplicationUserSessionToken(correctUser), 3)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusBadRequest)
@@ -178,7 +178,7 @@ func (s *ServerSuite) TestDeleteConnection_OK(c *C) {
 
 	routeName := "deleteConnection"
 	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUserFrom.ID, correctUserTo.ID)
-	code, _, err := runRequest(routeName, route, "", correctApplication.AuthToken, getSessionToken(correctUser))
+	code, _, err := runRequest(routeName, route, "", correctApplication.AuthToken, getApplicationUserSessionToken(correctUser), 3)
 	c.Assert(err, IsNil)
 
 	c.Assert(err, IsNil)
@@ -196,7 +196,7 @@ func (s *ServerSuite) TestDeleteConnection_WrongID(c *C) {
 
 	routeName := "deleteConnection"
 	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUserFrom.ID+1, correctUserTo.ID)
-	code, _, err := runRequest(routeName, route, "", correctApplication.AuthToken, getSessionToken(correctUser))
+	code, _, err := runRequest(routeName, route, "", correctApplication.AuthToken, getApplicationUserSessionToken(correctUser), 3)
 	c.Assert(err, IsNil)
 
 	c.Assert(err, IsNil)
