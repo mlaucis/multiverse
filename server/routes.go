@@ -45,6 +45,7 @@ var routes = map[string]map[string]*route{
 			cPattern: "/account/%d",
 			scope:    "account/index",
 			handlers: []routeFunc{
+				isRequestExpired,
 				getAccount,
 			},
 		},
@@ -54,6 +55,7 @@ var routes = map[string]map[string]*route{
 			cPattern: "/account/%d",
 			scope:    "account/update",
 			handlers: []routeFunc{
+				isRequestExpired,
 				updateAccount,
 			},
 		},
@@ -63,6 +65,7 @@ var routes = map[string]map[string]*route{
 			cPattern: "/account/%d",
 			scope:    "account/delete",
 			handlers: []routeFunc{
+				isRequestExpired,
 				deleteAccount,
 			},
 		},
@@ -82,6 +85,7 @@ var routes = map[string]map[string]*route{
 			cPattern: "/account/%d/user/%d",
 			scope:    "account/user/index",
 			handlers: []routeFunc{
+				isRequestExpired,
 				getAccountUser,
 			},
 		},
@@ -91,6 +95,7 @@ var routes = map[string]map[string]*route{
 			cPattern: "/account/%d/user/%d",
 			scope:    "account/user/update",
 			handlers: []routeFunc{
+				isRequestExpired,
 				updateAccountUser,
 			},
 		},
@@ -100,6 +105,7 @@ var routes = map[string]map[string]*route{
 			cPattern: "/account/%d/user/%d",
 			scope:    "account/user/delete",
 			handlers: []routeFunc{
+				isRequestExpired,
 				deleteAccountUser,
 			},
 		},
@@ -109,6 +115,7 @@ var routes = map[string]map[string]*route{
 			cPattern: "/account/%d/users",
 			scope:    "account/user/create",
 			handlers: []routeFunc{
+				isRequestExpired,
 				createAccountUser,
 			},
 		},
@@ -118,6 +125,7 @@ var routes = map[string]map[string]*route{
 			cPattern: "/account/%d/users",
 			scope:    "account/user/list",
 			handlers: []routeFunc{
+				isRequestExpired,
 				getAccountUserList,
 			},
 		},
@@ -128,6 +136,7 @@ var routes = map[string]map[string]*route{
 			cPattern: "/account/%d/application/%d",
 			scope:    "application/index",
 			handlers: []routeFunc{
+				isRequestExpired,
 				getApplication,
 			},
 		},
@@ -137,6 +146,7 @@ var routes = map[string]map[string]*route{
 			cPattern: "/account/%d/application/%d",
 			scope:    "application/update",
 			handlers: []routeFunc{
+				isRequestExpired,
 				updateApplication,
 			},
 		},
@@ -146,6 +156,7 @@ var routes = map[string]map[string]*route{
 			cPattern: "/account/%d/application/%d",
 			scope:    "application/delete",
 			handlers: []routeFunc{
+				isRequestExpired,
 				deleteApplication,
 			},
 		},
@@ -155,6 +166,7 @@ var routes = map[string]map[string]*route{
 			cPattern: "/account/%d/applications",
 			scope:    "application/create",
 			handlers: []routeFunc{
+				isRequestExpired,
 				createApplication,
 			},
 		},
@@ -164,6 +176,7 @@ var routes = map[string]map[string]*route{
 			cPattern: "/account/%d/applications",
 			scope:    "account/applications/list",
 			handlers: []routeFunc{
+				isRequestExpired,
 				getApplicationList,
 			},
 		},

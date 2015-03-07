@@ -44,6 +44,10 @@ var (
 
 // isRequestExpired checks if the request is expired or not
 func isRequestExpired(ctx *context) {
+	if skipSecurity {
+		return
+	}
+
 	// Check that the request is not older than 3 days
 	// TODO check if we should lower the interval
 	requestDate := ctx.r.Header.Get("x-tapglue-date")
@@ -73,6 +77,10 @@ func validateGetCommon(ctx *context) {
 
 // validatePutCommon runs a series of predefinied, common, tests for PUT requests
 func validatePutCommon(ctx *context) {
+	if skipSecurity {
+		return
+	}
+
 	if ctx.r.Header.Get("User-Agent") == "" {
 		errorHappened(ctx, errUserAgentNotSet, http.StatusBadRequest)
 		return
@@ -120,6 +128,10 @@ func validateDeleteCommon(ctx *context) {
 
 // validatePostCommon runs a series of predefined, common, tests for the POST requests
 func validatePostCommon(ctx *context) {
+	if skipSecurity {
+		return
+	}
+
 	if ctx.r.Header.Get("User-Agent") == "" {
 		errorHappened(ctx, errUserAgentNotSet, http.StatusBadRequest)
 		return
