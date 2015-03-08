@@ -177,15 +177,24 @@ func (client *Client) GenerateApplicationSessionID(user *entity.User) string {
 	))
 }
 
-// EncryptPassword will encrypt a string with the password encryption algorithm
-func (client *Client) EncryptPassword(password string) string {
+// GenerateEncryptedPassword generates and encrypted password using the specific salt and time
+func (client *Client) GenerateEncryptedPassword(password, salt, time string) string {
 	return Base64Encode(Sha256String(
 		[]byte(Sha256String(
 			[]byte(Sha256String(
-				[]byte(password+generateTokenSalt(32)),
-			)+time.Now().Format(time.RFC3339)),
+				[]byte(password+salt),
+			)+time),
 		) + "passwd"),
 	))
+}
+
+// EncryptPassword will encrypt a string with the password encryption algorithm
+func (client *Client) EncryptPassword(password string) string {
+	salt := generateTokenSalt(32)
+	timestamp := time.Now().Format(time.RFC3339)
+	encryptedPassword := client.GenerateEncryptedPassword(password, salt, timestamp)
+
+	return Base64Encode(fmt.Sprintf("%s:%s:%s", Base64Encode(salt), Base64Encode(timestamp), encryptedPassword))
 }
 
 // Account returns the key for a specified account

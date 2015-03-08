@@ -118,6 +118,9 @@ func WriteAccountUser(accountUser *entity.AccountUser, retrieve bool) (accUser *
 	accountUser.CreatedAt = time.Now()
 	accountUser.UpdatedAt, accountUser.ReceivedAt = accountUser.CreatedAt, accountUser.CreatedAt
 
+	// Encrypt password
+	accountUser.Password = storageClient.EncryptPassword(accountUser.Password)
+
 	val, err := json.Marshal(accountUser)
 	if err != nil {
 		return nil, err

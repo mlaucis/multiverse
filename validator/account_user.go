@@ -161,8 +161,24 @@ func UpdateAccountUser(accountUser *entity.AccountUser) error {
 
 // UserCredentialsValid checks is a certain user has the right credentials
 func AccountUserCredentialsValid(password string, user *entity.AccountUser) error {
-	// TODO improve this with a salt and stuff
-	if Base64Encode(Sha256String([]byte(password))) != user.Password {
+	passwordParts := strings.SplitN(user.Password, ":", 3)
+	if len(passwordParts) != 3 {
+		return fmt.Errorf("invalid password parts")
+	}
+
+	salt, err := Base64Decode(passwordParts[0])
+	if err != nil {
+		return err
+	}
+
+	timestamp, err := Base64Decode(passwordParts[1])
+	if err != nil {
+		return err
+	}
+
+	encryptedPassword := storageClient.GenerateEncryptedPassword(password, string(salt), string(timestamp))
+
+	if encryptedPassword != passwordParts[2] {
 		return fmt.Errorf("invalid user credentials")
 	}
 
