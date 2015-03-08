@@ -32,7 +32,8 @@ const (
 	idApplicationUser  = "ids:a:%d:u"
 	idApplicationEvent = "ids:a:%d:e"
 
-	account = "acc:%d"
+	account        = "acc:%d"
+	accountByEmail = "acc:byemail:%s"
 
 	accountUser  = "acc:%d:user:%d"
 	accountUsers = "acc:%d:users"
@@ -210,6 +211,11 @@ func (client *Client) AccountUser(accountID, accountUserID int64) string {
 // AccountUsers returns the key for account users
 func (client *Client) AccountUsers(accountID int64) string {
 	return fmt.Sprintf(accountUsers, accountID)
+}
+
+// AccountByEmail returns the key for accounts by email
+func (client *Client) AccountByEmail(email string) string {
+	return fmt.Sprintf(accountByEmail, email)
 }
 
 // Application returns the key for one account app

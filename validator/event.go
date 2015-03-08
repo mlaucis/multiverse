@@ -37,7 +37,7 @@ func CreateEvent(event *entity.Event) error {
 		errs = append(errs, &errorUserIDZero)
 	}
 
-	if !stringLenghtBetween(event.Verb, verbMin, verbMax) {
+	if !StringLengthBetween(event.Verb, verbMin, verbMax) {
 		errs = append(errs, &errorVerbSize)
 	}
 
@@ -49,7 +49,7 @@ func CreateEvent(event *entity.Event) error {
 		errs = append(errs, &errorEventIDIsAlreadySet)
 	}
 
-	if !userExists(event.AccountID, event.ApplicationID, event.UserID) {
+	if !UserExists(event.AccountID, event.ApplicationID, event.UserID) {
 		errs = append(errs, &errorUserDoesNotExists)
 	}
 
@@ -60,7 +60,7 @@ func CreateEvent(event *entity.Event) error {
 func UpdateEvent(event *entity.Event) error {
 	errs := []*error{}
 
-	if !stringLenghtBetween(event.Verb, verbMin, verbMax) {
+	if !StringLengthBetween(event.Verb, verbMin, verbMax) {
 		errs = append(errs, &errorVerbSize)
 	}
 
@@ -68,7 +68,7 @@ func UpdateEvent(event *entity.Event) error {
 		errs = append(errs, &errorVerbType)
 	}
 
-	if !userExists(event.AccountID, event.ApplicationID, event.UserID) {
+	if !UserExists(event.AccountID, event.ApplicationID, event.UserID) {
 		errs = append(errs, &errorUserDoesNotExists)
 	}
 

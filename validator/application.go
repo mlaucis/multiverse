@@ -34,11 +34,11 @@ var (
 func CreateApplication(application *entity.Application) error {
 	errs := []*error{}
 
-	if !stringLenghtBetween(application.Name, applicationNameMin, applicationNameMax) {
+	if !StringLengthBetween(application.Name, applicationNameMin, applicationNameMax) {
 		errs = append(errs, &errorApplicationNameSize)
 	}
 
-	if !stringLenghtBetween(application.Description, applicationDescriptionMin, applicationDescriptionMax) {
+	if !StringLengthBetween(application.Description, applicationDescriptionMin, applicationDescriptionMax) {
 		errs = append(errs, &errorApplicationDescriptionSize)
 	}
 
@@ -70,7 +70,7 @@ func CreateApplication(application *entity.Application) error {
 		}
 	}
 
-	if !accountExists(application.AccountID) {
+	if !AccountExists(application.AccountID) {
 		errs = append(errs, &errorAccountDoesNotExists)
 	}
 
@@ -81,11 +81,11 @@ func CreateApplication(application *entity.Application) error {
 func UpdateApplication(application *entity.Application) error {
 	errs := []*error{}
 
-	if !stringLenghtBetween(application.Name, applicationNameMin, applicationNameMax) {
+	if !StringLengthBetween(application.Name, applicationNameMin, applicationNameMax) {
 		errs = append(errs, &errorApplicationNameSize)
 	}
 
-	if !stringLenghtBetween(application.Description, applicationDescriptionMin, applicationDescriptionMax) {
+	if !StringLengthBetween(application.Description, applicationDescriptionMin, applicationDescriptionMax) {
 		errs = append(errs, &errorApplicationDescriptionSize)
 	}
 
@@ -109,7 +109,7 @@ func UpdateApplication(application *entity.Application) error {
 		}
 	}
 
-	if !accountExists(application.AccountID) {
+	if !AccountExists(application.AccountID) {
 		errs = append(errs, &errorAccountDoesNotExists)
 	}
 

@@ -52,8 +52,13 @@ func packErrors(errs []*error) error {
 	return fmt.Errorf(er[:len(er)-1])
 }
 
-// stringLenghtBetween validates the a strings length
-func stringLenghtBetween(value string, minLength, maxLength int) bool {
+// IsValidEmail checks if a string is a valid email address
+func IsValidEmail(eMail string) bool {
+	return email.MatchString(eMail)
+}
+
+// StringLengthBetween validates the a strings length
+func StringLengthBetween(value string, minLength, maxLength int) bool {
 	valueLen := len(value)
 
 	if valueLen < minLength {
@@ -68,7 +73,7 @@ func stringLenghtBetween(value string, minLength, maxLength int) bool {
 }
 
 // accountExists validates if an account exists and returns the account or an error
-func accountExists(accountID int64) bool {
+func AccountExists(accountID int64) bool {
 	account, err := core.ReadAccount(accountID)
 	if err != nil {
 		return false
@@ -77,8 +82,8 @@ func accountExists(accountID int64) bool {
 	return account.Enabled
 }
 
-// applicationExists validates if an application exists and returns the application or an error
-func applicationExists(accountID, applicationID int64) bool {
+// ApplicationExists validates if an application exists and returns the application or an error
+func ApplicationExists(accountID, applicationID int64) bool {
 	application, err := core.ReadApplication(accountID, applicationID)
 	if err != nil {
 		return false
@@ -88,7 +93,7 @@ func applicationExists(accountID, applicationID int64) bool {
 }
 
 // userExists validates if a user exists and returns it or an error
-func userExists(accountID, applicationID, userID int64) bool {
+func UserExists(accountID, applicationID, userID int64) bool {
 	user, err := core.ReadApplicationUser(accountID, applicationID, userID)
 	if err != nil {
 		return false

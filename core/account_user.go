@@ -9,7 +9,10 @@ import (
 	"fmt"
 	"time"
 
+	"strconv"
+
 	"github.com/tapglue/backend/core/entity"
+	"github.com/tapglue/backend/utils"
 )
 
 // ReadAccountUser returns the account matching the ID or an error
@@ -135,8 +138,19 @@ func WriteAccountUser(accountUser *entity.AccountUser, retrieve bool) (accUser *
 		return nil, err
 	}
 
-	listKey := storageClient.AccountUsers(accountUser.AccountID)
-	if err = storageEngine.LPush(listKey, key).Err(); err != nil {
+	idListKey := storageClient.AccountUsers(accountUser.AccountID)
+	if err = storageEngine.LPush(idListKey, key).Err(); err != nil {
+		return nil, err
+	}
+
+	emailListKey := storageClient.AccountByEmail(utils.Base64Encode(accountUser.Email))
+	err = storageEngine.HMSet(
+		emailListKey,
+		"acc", fmt.Sprintf("%d", accountUser.AccountID),
+		"usr", fmt.Sprintf("%d", accountUser.ID),
+	).Err()
+
+	if err != nil {
 		return nil, err
 	}
 
@@ -237,4 +251,36 @@ func DestroyAccountUserSession(sessionToken string, user *entity.AccountUser) er
 	}
 
 	return nil
+}
+
+// FindAccountAndUserByEmail returns the account and account user for a certain e-mail address
+func FindAccountAndUserByEmail(email string) (*entity.Account, *entity.AccountUser, error) {
+	emailListKey := storageClient.AccountByEmail(utils.Base64Encode(email))
+
+	details, err := storageEngine.HMGet(emailListKey, "acc", "usr").Result()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	accountID, err := strconv.ParseInt(details[0].(string), 10, 64)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	userID, err := strconv.ParseInt(details[1].(string), 10, 64)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	account, err := ReadAccount(accountID)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	accountUser, err := ReadAccountUser(accountID, userID)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return account, accountUser, nil
 }

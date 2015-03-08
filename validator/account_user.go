@@ -45,19 +45,19 @@ var (
 func CreateAccountUser(accountUser *entity.AccountUser) error {
 	errs := []*error{}
 
-	if !stringLenghtBetween(accountUser.FirstName, accountUserNameMin, accountUserNameMax) {
+	if !StringLengthBetween(accountUser.FirstName, accountUserNameMin, accountUserNameMax) {
 		errs = append(errs, &errorAccountUserFirstNameSize)
 	}
 
-	if !stringLenghtBetween(accountUser.LastName, accountUserNameMin, accountUserNameMax) {
+	if !StringLengthBetween(accountUser.LastName, accountUserNameMin, accountUserNameMax) {
 		errs = append(errs, &errorAccountUserLastNameSize)
 	}
 
-	if !stringLenghtBetween(accountUser.Username, accountUserNameMin, accountUserNameMax) {
+	if !StringLengthBetween(accountUser.Username, accountUserNameMin, accountUserNameMax) {
 		errs = append(errs, &errorAccountUserUsernameSize)
 	}
 
-	if !stringLenghtBetween(accountUser.Password, accountUserPasswordMin, accountUserPasswordMax) {
+	if !StringLengthBetween(accountUser.Password, accountUserPasswordMin, accountUserPasswordMax) {
 		errs = append(errs, &errorAccountUserPasswordSize)
 	}
 
@@ -95,7 +95,7 @@ func CreateAccountUser(accountUser *entity.AccountUser) error {
 		}
 	}
 
-	if !accountExists(accountUser.AccountID) {
+	if !AccountExists(accountUser.AccountID) {
 		errs = append(errs, &errorAccountDoesNotExists)
 	}
 
@@ -106,19 +106,19 @@ func CreateAccountUser(accountUser *entity.AccountUser) error {
 func UpdateAccountUser(accountUser *entity.AccountUser) error {
 	errs := []*error{}
 
-	if !stringLenghtBetween(accountUser.FirstName, accountUserNameMin, accountUserNameMax) {
+	if !StringLengthBetween(accountUser.FirstName, accountUserNameMin, accountUserNameMax) {
 		errs = append(errs, &errorAccountUserFirstNameSize)
 	}
 
-	if !stringLenghtBetween(accountUser.LastName, accountUserNameMin, accountUserNameMax) {
+	if !StringLengthBetween(accountUser.LastName, accountUserNameMin, accountUserNameMax) {
 		errs = append(errs, &errorAccountUserLastNameSize)
 	}
 
-	if !stringLenghtBetween(accountUser.Username, accountUserNameMin, accountUserNameMax) {
+	if !StringLengthBetween(accountUser.Username, accountUserNameMin, accountUserNameMax) {
 		errs = append(errs, &errorAccountUserUsernameSize)
 	}
 
-	if !stringLenghtBetween(accountUser.Password, accountUserPasswordMin, accountUserPasswordMax) {
+	if !StringLengthBetween(accountUser.Password, accountUserPasswordMin, accountUserPasswordMax) {
 		errs = append(errs, &errorAccountUserPasswordSize)
 	}
 
@@ -152,7 +152,7 @@ func UpdateAccountUser(accountUser *entity.AccountUser) error {
 		}
 	}
 
-	if !accountExists(accountUser.AccountID) {
+	if !AccountExists(accountUser.AccountID) {
 		errs = append(errs, &errorAccountDoesNotExists)
 	}
 

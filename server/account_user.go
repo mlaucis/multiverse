@@ -196,33 +196,27 @@ func createAccountUser(ctx *context) {
 func loginAccountUser(ctx *context) {
 	var (
 		loginPayload struct {
+			Email    string `json:"email"`
 			Password string `json:"password"`
 		}
-		user         = &entity.AccountUser{}
-		accountID    int64
-		userID       int64
 		sessionToken string
 		err          error
 	)
 
-	if accountID, err = strconv.ParseInt(ctx.vars["accountId"], 10, 64); err != nil {
-		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest)
-		return
-	}
-
-	if userID, err = strconv.ParseInt(ctx.vars["userId"], 10, 64); err != nil {
-		errorHappened(ctx, "userId is not set or the value is incorrect", http.StatusBadRequest)
-		return
-	}
-
-	if user, err = core.ReadAccountUser(accountID, userID); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
-		return
-	}
-
 	decoder := json.NewDecoder(ctx.body)
 	if err = decoder.Decode(loginPayload); err != nil {
 		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusBadRequest)
+		return
+	}
+
+	if !validator.IsValidEmail(loginPayload.Email) {
+		errorHappened(ctx, "invalid e-mail", http.StatusBadRequest)
+		return
+	}
+
+	_, user, err := core.FindAccountAndUserByEmail(loginPayload.Email)
+	if err != nil {
+		errorHappened(ctx, err.Error(), http.StatusBadRequest)
 		return
 	}
 

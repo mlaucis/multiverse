@@ -44,15 +44,15 @@ var (
 func CreateUser(user *entity.User) error {
 	errs := []*error{}
 
-	if !stringLenghtBetween(user.FirstName, userNameMin, userNameMax) {
+	if !StringLengthBetween(user.FirstName, userNameMin, userNameMax) {
 		errs = append(errs, &errorUserFirstNameSize)
 	}
 
-	if !stringLenghtBetween(user.LastName, userNameMin, userNameMax) {
+	if !StringLengthBetween(user.LastName, userNameMin, userNameMax) {
 		errs = append(errs, &errorUserLastNameSize)
 	}
 
-	if !stringLenghtBetween(user.Username, userNameMin, userNameMax) {
+	if !StringLengthBetween(user.Username, userNameMin, userNameMax) {
 		errs = append(errs, &errorUserUsernameSize)
 	}
 
@@ -92,7 +92,7 @@ func CreateUser(user *entity.User) error {
 		}
 	}
 
-	if !applicationExists(user.AccountID, user.ApplicationID) {
+	if !ApplicationExists(user.AccountID, user.ApplicationID) {
 		errs = append(errs, &errorApplicationDoesNotExists)
 	}
 
@@ -103,15 +103,15 @@ func CreateUser(user *entity.User) error {
 func UpdateUser(user *entity.User) error {
 	errs := []*error{}
 
-	if !stringLenghtBetween(user.FirstName, userNameMin, userNameMax) {
+	if !StringLengthBetween(user.FirstName, userNameMin, userNameMax) {
 		errs = append(errs, &errorUserFirstNameSize)
 	}
 
-	if !stringLenghtBetween(user.LastName, userNameMin, userNameMax) {
+	if !StringLengthBetween(user.LastName, userNameMin, userNameMax) {
 		errs = append(errs, &errorUserLastNameSize)
 	}
 
-	if !stringLenghtBetween(user.Username, userNameMin, userNameMax) {
+	if !StringLengthBetween(user.Username, userNameMin, userNameMax) {
 		errs = append(errs, &errorUserUsernameSize)
 	}
 
@@ -147,7 +147,7 @@ func UpdateUser(user *entity.User) error {
 		}
 	}
 
-	if !applicationExists(user.AccountID, user.ApplicationID) {
+	if !ApplicationExists(user.AccountID, user.ApplicationID) {
 		errs = append(errs, &errorApplicationDoesNotExists)
 	}
 
