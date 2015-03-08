@@ -204,7 +204,7 @@ func loginAccountUser(ctx *context) {
 	)
 
 	decoder := json.NewDecoder(ctx.body)
-	if err = decoder.Decode(loginPayload); err != nil {
+	if err = decoder.Decode(&loginPayload); err != nil {
 		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusBadRequest)
 		return
 	}
@@ -264,7 +264,7 @@ func refreshAccountUserSession(ctx *context) {
 	}
 
 	decoder := json.NewDecoder(ctx.body)
-	if err = decoder.Decode(payload); err != nil {
+	if err = decoder.Decode(&payload); err != nil {
 		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusBadRequest)
 		return
 	}
@@ -307,7 +307,7 @@ func logoutAccountUser(ctx *context) {
 	}
 
 	decoder := json.NewDecoder(ctx.body)
-	if err = decoder.Decode(logoutPayload); err != nil {
+	if err = decoder.Decode(&logoutPayload); err != nil {
 		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusBadRequest)
 		return
 	}

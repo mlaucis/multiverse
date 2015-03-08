@@ -156,7 +156,11 @@ func UpdateUser(user *entity.User) error {
 
 // UserCredentialsValid checks is a certain user has the right credentials
 func ApplicationUserCredentialsValid(password string, user *entity.User) error {
-	passwordParts := strings.SplitN(user.Password, ":", 3)
+	pass, err := Base64Decode(user.Password)
+	if err != nil {
+		return err
+	}
+	passwordParts := strings.SplitN(string(pass), ":", 3)
 	if len(passwordParts) != 3 {
 		return fmt.Errorf("invalid password parts")
 	}
