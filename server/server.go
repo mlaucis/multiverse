@@ -385,6 +385,10 @@ func customHandler(routeName, version string, route *route, mainLog, errorLog ch
 		}
 	}
 
+	if routeName != "home" && routeName != "humans" && routeName != "robots" {
+		extraHandlers = append(extraHandlers, isRequestExpired)
+	}
+
 	route.handlers = append(extraHandlers, route.handlers...)
 
 	return func(w http.ResponseWriter, r *http.Request) {

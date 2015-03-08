@@ -45,7 +45,6 @@ var routes = map[string]map[string]*route{
 			cPattern: "/account/%d",
 			scope:    "account/index",
 			handlers: []routeFunc{
-				isRequestExpired,
 				validateAccountRequestToken,
 				checkAccountSession,
 				getAccount,
@@ -57,7 +56,6 @@ var routes = map[string]map[string]*route{
 			cPattern: "/account/%d",
 			scope:    "account/update",
 			handlers: []routeFunc{
-				isRequestExpired,
 				validateAccountRequestToken,
 				checkAccountSession,
 				updateAccount,
@@ -69,7 +67,6 @@ var routes = map[string]map[string]*route{
 			cPattern: "/account/%d",
 			scope:    "account/delete",
 			handlers: []routeFunc{
-				isRequestExpired,
 				validateAccountRequestToken,
 				checkAccountSession,
 				deleteAccount,
@@ -81,7 +78,6 @@ var routes = map[string]map[string]*route{
 			cPattern: "/accounts",
 			scope:    "account/create",
 			handlers: []routeFunc{
-				isRequestExpired,
 				createAccount,
 			},
 		},
@@ -92,7 +88,6 @@ var routes = map[string]map[string]*route{
 			cPattern: "/account/%d/user/%d",
 			scope:    "account/user/index",
 			handlers: []routeFunc{
-				isRequestExpired,
 				validateAccountRequestToken,
 				checkAccountSession,
 				getAccountUser,
@@ -104,7 +99,6 @@ var routes = map[string]map[string]*route{
 			cPattern: "/account/%d/user/%d",
 			scope:    "account/user/update",
 			handlers: []routeFunc{
-				isRequestExpired,
 				validateAccountRequestToken,
 				checkAccountSession,
 				updateAccountUser,
@@ -116,7 +110,6 @@ var routes = map[string]map[string]*route{
 			cPattern: "/account/%d/user/%d",
 			scope:    "account/user/delete",
 			handlers: []routeFunc{
-				isRequestExpired,
 				validateAccountRequestToken,
 				checkAccountSession,
 				deleteAccountUser,
@@ -128,7 +121,6 @@ var routes = map[string]map[string]*route{
 			cPattern: "/account/%d/users",
 			scope:    "account/user/create",
 			handlers: []routeFunc{
-				isRequestExpired,
 				validateAccountRequestToken,
 				createAccountUser,
 			},
@@ -139,7 +131,6 @@ var routes = map[string]map[string]*route{
 			cPattern: "/account/user/login",
 			scope:    "account/user/login",
 			handlers: []routeFunc{
-				isRequestExpired,
 				loginAccountUser,
 			},
 		},
@@ -149,7 +140,6 @@ var routes = map[string]map[string]*route{
 			cPattern: "/account/%d/application/%d/user/refreshsession",
 			scope:    "account/user/refreshAccountUserSession",
 			handlers: []routeFunc{
-				isRequestExpired,
 				validateAccountRequestToken,
 				checkAccountSession,
 				refreshAccountUserSession,
@@ -161,7 +151,6 @@ var routes = map[string]map[string]*route{
 			cPattern: "/account/%d/application/%d/user/logout",
 			scope:    "account/user/logout",
 			handlers: []routeFunc{
-				isRequestExpired,
 				validateAccountRequestToken,
 				checkAccountSession,
 				logoutAccountUser,
@@ -173,7 +162,6 @@ var routes = map[string]map[string]*route{
 			cPattern: "/account/%d/users",
 			scope:    "account/user/list",
 			handlers: []routeFunc{
-				isRequestExpired,
 				validateAccountRequestToken,
 				checkAccountSession,
 				getAccountUserList,
@@ -186,7 +174,6 @@ var routes = map[string]map[string]*route{
 			cPattern: "/account/%d/application/%d",
 			scope:    "application/index",
 			handlers: []routeFunc{
-				isRequestExpired,
 				validateAccountRequestToken,
 				checkAccountSession,
 				getApplication,
@@ -198,7 +185,6 @@ var routes = map[string]map[string]*route{
 			cPattern: "/account/%d/application/%d",
 			scope:    "application/update",
 			handlers: []routeFunc{
-				isRequestExpired,
 				validateAccountRequestToken,
 				checkAccountSession,
 				updateApplication,
@@ -210,7 +196,6 @@ var routes = map[string]map[string]*route{
 			cPattern: "/account/%d/application/%d",
 			scope:    "application/delete",
 			handlers: []routeFunc{
-				isRequestExpired,
 				validateAccountRequestToken,
 				checkAccountSession,
 				deleteApplication,
@@ -222,7 +207,6 @@ var routes = map[string]map[string]*route{
 			cPattern: "/account/%d/applications",
 			scope:    "application/create",
 			handlers: []routeFunc{
-				isRequestExpired,
 				validateAccountRequestToken,
 				checkAccountSession,
 				createApplication,
@@ -234,7 +218,6 @@ var routes = map[string]map[string]*route{
 			cPattern: "/account/%d/applications",
 			scope:    "account/applications/list",
 			handlers: []routeFunc{
-				isRequestExpired,
 				validateAccountRequestToken,
 				checkAccountSession,
 				getApplicationList,
@@ -247,7 +230,6 @@ var routes = map[string]map[string]*route{
 			cPattern: "/account/%d/application/%d/user/%d",
 			scope:    "application/user/index",
 			handlers: []routeFunc{
-				isRequestExpired,
 				validateApplicationRequestToken,
 				checkApplicationSession,
 				getApplicationUser,
@@ -259,7 +241,6 @@ var routes = map[string]map[string]*route{
 			cPattern: "/account/%d/application/%d/user/%d",
 			scope:    "application/user/update",
 			handlers: []routeFunc{
-				isRequestExpired,
 				validateApplicationRequestToken,
 				checkApplicationSession,
 				updateApplicationUser,
@@ -271,7 +252,6 @@ var routes = map[string]map[string]*route{
 			cPattern: "/account/%d/application/%d/user/%d",
 			scope:    "application/user/delete",
 			handlers: []routeFunc{
-				isRequestExpired,
 				validateApplicationRequestToken,
 				checkApplicationSession,
 				deleteApplicationUser,
@@ -283,7 +263,6 @@ var routes = map[string]map[string]*route{
 			cPattern: "/account/%d/application/%d/users",
 			scope:    "application/user/create",
 			handlers: []routeFunc{
-				isRequestExpired,
 				validateApplicationRequestToken,
 				createApplicationUser,
 			},
@@ -294,7 +273,6 @@ var routes = map[string]map[string]*route{
 			cPattern: "/account/%d/application/%d/user/login",
 			scope:    "application/user/login",
 			handlers: []routeFunc{
-				isRequestExpired,
 				validateApplicationRequestToken,
 				loginApplicationUser,
 			},
@@ -305,7 +283,6 @@ var routes = map[string]map[string]*route{
 			cPattern: "/account/%d/application/%d/user/refreshsession",
 			scope:    "application/user/refreshSession",
 			handlers: []routeFunc{
-				isRequestExpired,
 				validateApplicationRequestToken,
 				checkApplicationSession,
 				refreshApplicationUserSession,
@@ -317,7 +294,6 @@ var routes = map[string]map[string]*route{
 			cPattern: "/account/%d/application/%d/user/logout",
 			scope:    "application/user/logout",
 			handlers: []routeFunc{
-				isRequestExpired,
 				validateApplicationRequestToken,
 				checkApplicationSession,
 				logoutApplicationUser,
@@ -338,7 +314,6 @@ var routes = map[string]map[string]*route{
 			cPattern: "/account/%d/application/%d/user/%d/connections",
 			scope:    "application/user/connection/create",
 			handlers: []routeFunc{
-				isRequestExpired,
 				validateApplicationRequestToken,
 				checkApplicationSession,
 				createConnection,
@@ -350,7 +325,6 @@ var routes = map[string]map[string]*route{
 			cPattern: "/application/:applicationId/user/:UserID/connection/confirm",
 			scope:    "application/user/connection/confirm",
 			handlers: []routeFunc{
-				isRequestExpired,
 				validateApplicationRequestToken,
 				checkApplicationSession,
 				confirmConnection,
@@ -362,7 +336,6 @@ var routes = map[string]map[string]*route{
 			cPattern: "/account/%d/application/%d/user/%d/connection/%d",
 			scope:    "application/user/connection/update",
 			handlers: []routeFunc{
-				isRequestExpired,
 				validateApplicationRequestToken,
 				checkApplicationSession,
 				updateConnection,
@@ -374,7 +347,6 @@ var routes = map[string]map[string]*route{
 			cPattern: "/account/%d/application/%d/user/%d/connection/%d",
 			scope:    "application/user/connection/delete",
 			handlers: []routeFunc{
-				isRequestExpired,
 				validateApplicationRequestToken,
 				checkApplicationSession,
 				deleteConnection,
@@ -386,7 +358,6 @@ var routes = map[string]map[string]*route{
 			cPattern: "/account/%d/application/%d/user/%d/connections",
 			scope:    "application/user/connections/list",
 			handlers: []routeFunc{
-				isRequestExpired,
 				validateApplicationRequestToken,
 				checkApplicationSession,
 				getConnectionList,
@@ -399,7 +370,6 @@ var routes = map[string]map[string]*route{
 			cPattern: "/account/%d/application/%d/user/%d/event/%d",
 			scope:    "application/user/event/index",
 			handlers: []routeFunc{
-				isRequestExpired,
 				validateApplicationRequestToken,
 				checkApplicationSession,
 				getEvent,
@@ -422,7 +392,6 @@ var routes = map[string]map[string]*route{
 			cPattern: "/account/%d/application/%d/user/%d/event/%d",
 			scope:    "application/user/event/delete",
 			handlers: []routeFunc{
-				isRequestExpired,
 				validateApplicationRequestToken,
 				checkApplicationSession,
 				deleteEvent,
@@ -434,7 +403,6 @@ var routes = map[string]map[string]*route{
 			cPattern: "/account/%d/application/%d/user/%d/events",
 			scope:    "application/user/event/create",
 			handlers: []routeFunc{
-				isRequestExpired,
 				validateApplicationRequestToken,
 				checkApplicationSession,
 				createEvent,
@@ -446,7 +414,6 @@ var routes = map[string]map[string]*route{
 			cPattern: "/account/%d/application/%d/user/%d/events",
 			scope:    "application/user/events/list",
 			handlers: []routeFunc{
-				isRequestExpired,
 				validateApplicationRequestToken,
 				checkApplicationSession,
 				getEventList,
@@ -458,7 +425,6 @@ var routes = map[string]map[string]*route{
 			cPattern: "/account/%d/application/%d/user/%d/connections/events",
 			scope:    "application/user/connection/events",
 			handlers: []routeFunc{
-				isRequestExpired,
 				validateApplicationRequestToken,
 				checkApplicationSession,
 				getConnectionEventList,
