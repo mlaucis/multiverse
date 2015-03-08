@@ -133,6 +133,40 @@ var routes = map[string]map[string]*route{
 				createAccountUser,
 			},
 		},
+		"loginAccountUser": &route{
+			method:   "POST",
+			pattern:  "/account/user/login",
+			cPattern: "/account/user/login",
+			scope:    "account/user/login",
+			handlers: []routeFunc{
+				isRequestExpired,
+				loginAccountUser,
+			},
+		},
+		"refreshAccountUserSession": &route{
+			method:   "POST",
+			pattern:  "/account/{accountId:[0-9]{1,20}}/user/refreshSession",
+			cPattern: "/account/%d/application/%d/user/refreshsession",
+			scope:    "account/user/refreshAccountUserSession",
+			handlers: []routeFunc{
+				isRequestExpired,
+				validateAccountRequestToken,
+				checkAccountSession,
+				refreshAccountUserSession,
+			},
+		},
+		"logoutAccountUser": &route{
+			method:   "POST",
+			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/logout",
+			cPattern: "/account/%d/application/%d/user/logout",
+			scope:    "account/user/logout",
+			handlers: []routeFunc{
+				isRequestExpired,
+				validateAccountRequestToken,
+				checkAccountSession,
+				logoutAccountUser,
+			},
+		},
 		"getAccountUserList": &route{
 			method:   "GET",
 			pattern:  "/account/{accountId:[0-9]{1,20}}/users",
@@ -267,9 +301,9 @@ var routes = map[string]map[string]*route{
 		},
 		"refreshUserSession": &route{
 			method:   "POST",
-			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/login",
+			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/refreshSession",
 			cPattern: "/account/%d/application/%d/user/refreshsession",
-			scope:    "application/user/refreshToken",
+			scope:    "application/user/refreshSession",
 			handlers: []routeFunc{
 				isRequestExpired,
 				validateApplicationRequestToken,
@@ -279,7 +313,7 @@ var routes = map[string]map[string]*route{
 		},
 		"logoutUser": &route{
 			method:   "POST",
-			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/login",
+			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/logout",
 			cPattern: "/account/%d/application/%d/user/logout",
 			scope:    "application/user/logout",
 			handlers: []routeFunc{
