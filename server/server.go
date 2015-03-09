@@ -228,14 +228,14 @@ func checkApplicationSession(ctx *context) {
 }
 
 // writeCacheHeaders will add the corresponding cache headers based on the time supplied (in seconds)
-func writeCacheHeaders(cacheTime uint, w http.ResponseWriter) {
+func writeCacheHeaders(cacheTime uint, ctx *context) {
 	if cacheTime > 0 {
-		w.Header().Set("Cache-Control", fmt.Sprintf(`"max-age=%d, public"`, cacheTime))
-		w.Header().Set("Expires", time.Now().Add(time.Duration(cacheTime)*time.Second).Format(http.TimeFormat))
+		ctx.w.Header().Set("Cache-Control", fmt.Sprintf(`"max-age=%d, public"`, cacheTime))
+		ctx.w.Header().Set("Expires", time.Now().Add(time.Duration(cacheTime)*time.Second).Format(http.TimeFormat))
 	} else {
-		w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-		w.Header().Set("Pragma", "no-cache")
-		w.Header().Set("Expires", "0")
+		ctx.w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+		ctx.w.Header().Set("Pragma", "no-cache")
+		ctx.w.Header().Set("Expires", "0")
 	}
 }
 
@@ -250,15 +250,19 @@ func getSanitizedHeaders(headers http.Header) http.Header {
 	return headers
 }
 
-// writeResponse handles the http responses and returns the data
-func writeResponse(ctx *context, response interface{}, code int, cacheTime uint) {
-	// Set the response headers
-	writeCacheHeaders(cacheTime, ctx.w)
-	ctx.w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+func writeCorsHeaders(ctx *context) {
 	ctx.w.Header().Set("Access-Control-Allow-Origin", "*")
 	ctx.w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 	ctx.w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding")
 	ctx.w.Header().Set("Access-Control-Allow-Credentials", "true")
+}
+
+// writeResponse handles the http responses and returns the data
+func writeResponse(ctx *context, response interface{}, code int, cacheTime uint) {
+	// Set the response headers
+	writeCacheHeaders(cacheTime, ctx)
+	writeCorsHeaders(ctx)
+	ctx.w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 	//Check if we have a session enable and if so write it back
 	if ctx.sessionToken != "" {
@@ -282,7 +286,7 @@ func writeResponse(ctx *context, response interface{}, code int, cacheTime uint)
 
 // errorHappened handles the error message
 func errorHappened(ctx *context, message string, code int) {
-	writeCacheHeaders(0, ctx.w)
+	writeCacheHeaders(0, ctx)
 	ctx.w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	// Write response
 	if !strings.Contains(ctx.r.Header.Get("Accept-Encoding"), "gzip") {
@@ -328,7 +332,7 @@ func errorHappened(ctx *context, message string, code int) {
 // Request: GET /
 // Test with: `curl -i localhost/`
 func home(ctx *context) {
-	writeCacheHeaders(10*24*3600, ctx.w)
+	writeCacheHeaders(10*24*3600, ctx)
 	ctx.w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	ctx.w.Write([]byte(`these aren't the droids you're looking for`))
 }
@@ -337,7 +341,7 @@ func home(ctx *context) {
 // Request: GET /humans.txt
 // Test with: curl -i localhost/humans.txt
 func humans(ctx *context) {
-	writeCacheHeaders(10*24*3600, ctx.w)
+	writeCacheHeaders(10*24*3600, ctx)
 	ctx.w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	ctx.w.Write([]byte(`/* TEAM */
 Founder: Normal Wiese, Onur Akpolat
@@ -358,14 +362,24 @@ Software: Go`))
 // Request: GET /robots.txt
 // Test with: curl -i localhost/robots.txt
 func robots(ctx *context) {
-	writeCacheHeaders(10*24*3600, ctx.w)
+	writeCacheHeaders(10*24*3600, ctx)
 	ctx.w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	ctx.w.Write([]byte(`User-agent: *
 Disallow: /`))
 }
 
+func corsHandler(ctx *context) {
+	if (ctx.r.Method != "OPTIONS") {
+		return
+	}
+
+	writeCacheHeaders(100, ctx)
+	writeCorsHeaders(ctx)
+	ctx.w.Header().Set("Content-Type", "application/json")
+}
+
 func customHandler(routeName, version string, route *route, mainLog, errorLog chan *LogMsg) http.HandlerFunc {
-	var extraHandlers []routeFunc
+	var extraHandlers []routeFunc = []routeFunc{corsHandler}
 	switch route.method {
 	case "DELETE":
 		{
@@ -432,7 +446,7 @@ func GetRouter(debugMode, skipSecurityChecks bool) (*mux.Router, chan *LogMsg, c
 	for version, innerRoutes := range routes {
 		for routeName, route := range innerRoutes {
 			router.
-				Methods(route.method).
+				Methods(route.method, "OPTIONS").
 				Path(route.routePattern(version)).
 				Name(routeName).
 				HandlerFunc(customHandler(routeName, version, route, mainLogChan, errorLogChan))
@@ -446,7 +460,7 @@ func GetRouter(debugMode, skipSecurityChecks bool) (*mux.Router, chan *LogMsg, c
 			panic(fmt.Sprintf("route %s not found", routeName))
 		}
 		router.
-			Methods(route.method).
+			Methods(route.method, "OPTIONS").
 			Path(route.pattern).
 			Name(routeName).
 			HandlerFunc(customHandler(routeName, version, route, mainLogChan, errorLogChan))
