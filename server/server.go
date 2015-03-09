@@ -385,7 +385,7 @@ func customHandler(routeName, version string, route *route, mainLog, errorLog ch
 		}
 	}
 
-	if routeName != "home" && routeName != "humans" && routeName != "robots" {
+	if routeName != "index" && routeName != "humans" && routeName != "robots" {
 		extraHandlers = append(extraHandlers, isRequestExpired)
 	}
 
