@@ -110,6 +110,14 @@ func main() {
 		}
 	}
 
+	server := &http.Server{
+		Addr:           conf.ListenHostPort,
+		Handler:        router,
+		ReadTimeout:    5 * time.Second,
+		WriteTimeout:   10 * time.Second,
+		MaxHeaderBytes: 1 << 20,
+	}
+
 	log.Printf("Starting the server at %s%s", localIP, conf.ListenHostPort)
-	log.Fatal(http.ListenAndServe(conf.ListenHostPort, router))
+	log.Fatal(server.ListenAndServe())
 }

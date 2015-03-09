@@ -96,7 +96,8 @@ func validatePutCommon(ctx *context) {
 		return
 	}
 
-	if ctx.r.Header.Get("Content-Type") != "application/json" {
+	if ctx.r.Header.Get("Content-Type") != "application/json" &&
+		ctx.r.Header.Get("Content-Type") != "application/json; charset=UTF-8" {
 		errorHappened(ctx, errWrongContentType, http.StatusBadRequest)
 		return
 	}
@@ -147,7 +148,8 @@ func validatePostCommon(ctx *context) {
 		return
 	}
 
-	if ctx.r.Header.Get("Content-Type") != "application/json" {
+	if ctx.r.Header.Get("Content-Type") != "application/json" &&
+		ctx.r.Header.Get("Content-Type") != "application/json; charset=UTF-8" {
 		errorHappened(ctx, errWrongContentType, http.StatusBadRequest)
 		return
 	}
@@ -207,8 +209,6 @@ func checkAccountSession(ctx *context) {
 		return
 	}
 
-	panic(err)
-
 	errorHappened(ctx, "invalid session", http.StatusUnauthorized)
 }
 
@@ -253,7 +253,7 @@ func getSanitizedHeaders(headers http.Header) http.Header {
 func writeCorsHeaders(ctx *context) {
 	ctx.w.Header().Set("Access-Control-Allow-Origin", "*")
 	ctx.w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-	ctx.w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding")
+	ctx.w.Header().Set("Access-Control-Allow-Headers", "User-Agent, Content-Type, Content-Length, Accept-Encoding, x-tapglue-id, x-tapglue-date, x-tapglue-session, x-tapglue-payload-hash, x-tapglue-signature")
 	ctx.w.Header().Set("Access-Control-Allow-Credentials", "true")
 }
 
@@ -369,13 +369,13 @@ Disallow: /`))
 }
 
 func corsHandler(ctx *context) {
-	if (ctx.r.Method != "OPTIONS") {
+	if ctx.r.Method != "OPTIONS" {
 		return
 	}
 
 	writeCacheHeaders(100, ctx)
 	writeCorsHeaders(ctx)
-	ctx.w.Header().Set("Content-Type", "application/json")
+	ctx.w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 }
 
 func customHandler(routeName, version string, route *route, mainLog, errorLog chan *LogMsg) http.HandlerFunc {
@@ -406,6 +406,7 @@ func customHandler(routeName, version string, route *route, mainLog, errorLog ch
 	route.handlers = append(extraHandlers, route.handlers...)
 
 	return func(w http.ResponseWriter, r *http.Request) {
+
 		ctx, err := NewContext(w, r, mainLog, errorLog, routeName, route.scope, version)
 		if err != nil {
 			errorHappened(ctx, "failed to get a request context", http.StatusInternalServerError)
