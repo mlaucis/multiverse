@@ -16,8 +16,7 @@ import (
 )
 
 // getAccount handles requests to a single account
-// Request: GET /account/:ID
-// Test with: curl -i localhost/0.1/account/:ID
+// Request: GET /account/:AccountID
 func getAccount(ctx *context) {
 	var (
 		accountID int64
@@ -39,8 +38,7 @@ func getAccount(ctx *context) {
 }
 
 // updateAccount handles requests to update a single account
-// Request: PUT /account/:ID
-// Test with: curl -i -H "Content-Type: application/json" -d '{"token":"token_1_TmV3IEFjY291bnQ=", "name":"New Account","description":"Description of the account", "enabled": true, "created_at":"2015-02-02T19:13:18.239759449Z", "received_at":"2015-02-02T19:13:18.239759449Z", "metadata":"{}"}' -X PUT localhost/0.1/account/:ID
+// Request: PUT /account/:AccountID
 func updateAccount(ctx *context) {
 	var (
 		accountID int64
@@ -77,8 +75,7 @@ func updateAccount(ctx *context) {
 }
 
 // deleteAccount handles requests to delete a single account
-// Request: DELETE /account/:ID
-// Test with: curl -i -X DELETE localhost/0.1/account/:ID
+// Request: DELETE /account/:AccountID
 func deleteAccount(ctx *context) {
 	var (
 		accountID int64
@@ -100,7 +97,6 @@ func deleteAccount(ctx *context) {
 
 // createAccount handles requests create an account
 // Request: POST /accounts
-// Test with: curl -i -H "Content-Type: application/json" -d '{"name":"New Account"}' localhost/0.1/accounts
 func createAccount(ctx *context) {
 	var (
 		account = &entity.Account{}

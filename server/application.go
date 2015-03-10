@@ -16,8 +16,7 @@ import (
 )
 
 // getApplication handles requests to a single application
-// Request: GET /account/:AccountID/application/:ID
-// Test with: curl -i localhost/0.1/account/:AccountID/application/:ID
+// Request: GET /account/:AccountID/application/:ApplicatonID
 func getApplication(ctx *context) {
 	var (
 		application   *entity.Application
@@ -45,8 +44,7 @@ func getApplication(ctx *context) {
 }
 
 // updateApplication handles requests updates an application
-// Request: PUT /account/:AccountID/application/:ID
-// Test with: curl -i -H "Content-Type: application/json" -d '{"key": "hmac(256)", "name":"New App"}' -X PUT localhost/0.1/account/:AccountID/application/:ID
+// Request: PUT /account/:AccountID/application/:ApplicatonID
 func updateApplication(ctx *context) {
 	var (
 		application   = &entity.Application{}
@@ -92,8 +90,7 @@ func updateApplication(ctx *context) {
 }
 
 // deleteApplication handles requests to delete a single application
-// Request: DELETE /account/:AccountID/application/:ID
-// Test with: curl -i -X DELETE localhost/0.1/account/:AccountID/application/:ID
+// Request: DELETE /account/:AccountID/application/:ApplicatonID
 func deleteApplication(ctx *context) {
 	var (
 		accountID     int64
@@ -119,9 +116,43 @@ func deleteApplication(ctx *context) {
 	writeResponse(ctx, "", http.StatusNoContent, 10)
 }
 
+// createApplication handles requests create an application
+// Request: POST /account/:AccountID/applications
+func createApplication(ctx *context) {
+	var (
+		application = &entity.Application{}
+		accountID   int64
+		err         error
+	)
+
+	if accountID, err = strconv.ParseInt(ctx.vars["accountId"], 10, 64); err != nil {
+		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest)
+		return
+	}
+
+	decoder := json.NewDecoder(ctx.body)
+	if err = decoder.Decode(application); err != nil {
+		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusBadRequest)
+		return
+	}
+
+	application.AccountID = accountID
+
+	if err = validator.CreateApplication(application); err != nil {
+		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusBadRequest)
+		return
+	}
+
+	if application, err = core.WriteApplication(application, true); err != nil {
+		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
+		return
+	}
+
+	writeResponse(ctx, application, http.StatusCreated, 0)
+}
+
 // getApplicationList handles requests list all account applications
 // Request: GET /account/:AccountID/applications
-// Test with: curl -i localhost/0.1/account/:AccountID/applications
 func getApplicationList(ctx *context) {
 	var (
 		account      *entity.Account
@@ -154,40 +185,4 @@ func getApplicationList(ctx *context) {
 	}
 
 	writeResponse(ctx, response, http.StatusOK, 10)
-}
-
-// createApplication handles requests create an application
-// Request: POST /account/:AccountID/applications
-// Test with: curl -i -H "Content-Type: application/json" -d '{"key": "hmac(256)", "name":"New App"}' localhost/0.1/account/:AccountID/applications
-func createApplication(ctx *context) {
-	var (
-		application = &entity.Application{}
-		accountID   int64
-		err         error
-	)
-
-	if accountID, err = strconv.ParseInt(ctx.vars["accountId"], 10, 64); err != nil {
-		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest)
-		return
-	}
-
-	decoder := json.NewDecoder(ctx.body)
-	if err = decoder.Decode(application); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusBadRequest)
-		return
-	}
-
-	application.AccountID = accountID
-
-	if err = validator.CreateApplication(application); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusBadRequest)
-		return
-	}
-
-	if application, err = core.WriteApplication(application, true); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
-		return
-	}
-
-	writeResponse(ctx, application, http.StatusCreated, 0)
 }

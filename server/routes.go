@@ -125,6 +125,17 @@ var routes = map[string]map[string]*route{
 				createAccountUser,
 			},
 		},
+		"getAccountUserList": &route{
+			method:   "GET",
+			pattern:  "/account/{accountId:[0-9]{1,20}}/users",
+			cPattern: "/account/%d/users",
+			scope:    "account/user/list",
+			handlers: []routeFunc{
+				validateAccountRequestToken,
+				checkAccountSession,
+				getAccountUserList,
+			},
+		},
 		"loginAccountUser": &route{
 			method:   "POST",
 			pattern:  "/account/user/login",
@@ -154,17 +165,6 @@ var routes = map[string]map[string]*route{
 				validateAccountRequestToken,
 				checkAccountSession,
 				logoutAccountUser,
-			},
-		},
-		"getAccountUserList": &route{
-			method:   "GET",
-			pattern:  "/account/{accountId:[0-9]{1,20}}/users",
-			cPattern: "/account/%d/users",
-			scope:    "account/user/list",
-			handlers: []routeFunc{
-				validateAccountRequestToken,
-				checkAccountSession,
-				getAccountUserList,
 			},
 		},
 		// Application
@@ -319,17 +319,6 @@ var routes = map[string]map[string]*route{
 				createConnection,
 			},
 		},
-		"confirmConnection": &route{
-			method:   "POST",
-			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]+}/connection/confirm",
-			cPattern: "/application/:applicationId/user/:UserID/connection/confirm",
-			scope:    "application/user/connection/confirm",
-			handlers: []routeFunc{
-				validateApplicationRequestToken,
-				checkApplicationSession,
-				confirmConnection,
-			},
-		},
 		"updateConnection": &route{
 			method:   "PUT",
 			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userFromId:[a-zA-Z0-9]+}/connection/{userToId:[a-zA-Z0-9]+}",
@@ -361,6 +350,17 @@ var routes = map[string]map[string]*route{
 				validateApplicationRequestToken,
 				checkApplicationSession,
 				getConnectionList,
+			},
+		},
+		"confirmConnection": &route{
+			method:   "POST",
+			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]+}/connection/confirm",
+			cPattern: "/application/:applicationId/user/:UserID/connection/confirm",
+			scope:    "application/user/connection/confirm",
+			handlers: []routeFunc{
+				validateApplicationRequestToken,
+				checkApplicationSession,
+				confirmConnection,
 			},
 		},
 		// Event

@@ -16,8 +16,7 @@ import (
 )
 
 // getEvent handles requests to retrieve a single event
-// Request: GET /application/:applicationId/event/:ID
-// Test with: curl -i localhost/0.1/application/:applicationId/event/:ID
+// Request: GET account/:AccountID/application/:ApplicationID/event/:EventID
 func getEvent(ctx *context) {
 	var (
 		event         = &entity.Event{}
@@ -57,8 +56,7 @@ func getEvent(ctx *context) {
 }
 
 // updateEvent handles requests to update an event
-// Request: PUT /application/:applicationId/user/:UserID/event/:EventID
-// Test with: curl -i -H "Content-Type: application/json" -d '{"type": "like", "item_id": "item1", "item_name": "item-name", "item_url": "app://url", "thumbnail_url": "gravatar", "custom": "{}", "nth": 1}' -X PUT localhost/0.1/application/:applicationId/user/:UserID/event/:EventID
+// Request: PUT account/:AccountID/application/:ApplicationID/event/:EventID
 func updateEvent(ctx *context) {
 	var (
 		event         = &entity.Event{}
@@ -122,8 +120,7 @@ func updateEvent(ctx *context) {
 }
 
 // deleteEvent handles requests to delete a single event
-// Request: DELETE /application/:applicationId/user/:UserID/event/:EventID
-// Test with: curl -i -X DELETE localhost/0.1/application/:applicationId/user/:UserID/event/:EventID
+// Request: DELETE account/:AccountID/application/:ApplicationID/event/:EventID
 func deleteEvent(ctx *context) {
 	var (
 		accountID     int64
@@ -162,8 +159,7 @@ func deleteEvent(ctx *context) {
 }
 
 // getEventList handles requests to retrieve a users events
-// Request: GET /application/:applicationId/user/:UserID/events
-// Test with: curl -i localhost/0.1/application/:applicationId/user/:UserID/events
+// Request: GET account/:AccountID/application/:ApplicationID/user/:UserID/events
 func getEventList(ctx *context) {
 	var (
 		events        []*entity.Event
@@ -213,8 +209,7 @@ func getEventList(ctx *context) {
 }
 
 // getConnectionEventList handles requests to retrieve a users connections events
-// Request: GET /application/:applicationId/user/:UserID/connections/events
-// Test with: curl -i localhost/0.1/application/:applicationId/user/:UserID/connections/events
+// Request: GET account/:AccountID/application/:ApplicationID/user/:UserID/connections/events
 func getConnectionEventList(ctx *context) {
 	var (
 		events        = []*entity.Event{}
@@ -258,8 +253,7 @@ func getConnectionEventList(ctx *context) {
 }
 
 // createEvent handles requests to create an event
-// Request: POST /application/:applicationId/user/:UserID/events
-// Test with: curl -i -H "Content-Type: application/json" -d '{"type": "like", "item_id": "item1", "item_name": "item-name", "item_url": "app://url", "thumbnail_url": "gravatar", "custom": "{}", "nth": 1}' localhost/0.1/application/:applicationId/user/:UserID/events
+// Request: POST account/:AccountID/application/:ApplicationID/user/:UserID/events
 func createEvent(ctx *context) {
 	var (
 		event         = &entity.Event{}
@@ -306,3 +300,6 @@ func createEvent(ctx *context) {
 
 	writeResponse(ctx, event, http.StatusCreated, 0)
 }
+
+// TODO: Endpoint to retrieve events per object
+// TODO: Endpoint to retrieve events per geo location + radius
