@@ -241,10 +241,6 @@ func writeCacheHeaders(cacheTime uint, ctx *context) {
 
 // getSanitizedHeaders returns the sanitized request headers
 func getSanitizedHeaders(headers http.Header) http.Header {
-	if !dbgMode {
-		headers.Del("Authorization")
-	}
-
 	// TODO sanitize headers that shouldn't not appear in the logs
 
 	return headers
@@ -315,6 +311,7 @@ func errorHappened(ctx *context, message string, code int) {
 		Method:     ctx.r.Method,
 		RequestURI: requestPath,
 		Headers:    ctx.r.Header,
+		Payload:    ctx.bodyString,
 		Name:       ctx.routeName,
 		Start:      ctx.startTime,
 		End:        time.Now(),
@@ -431,6 +428,7 @@ func customHandler(routeName, version string, route *route, mainLog, errorLog ch
 			Method:     ctx.r.Method,
 			RequestURI: requestPath,
 			Headers:    ctx.r.Header,
+			Payload:    ctx.bodyString,
 			Name:       ctx.routeName,
 			Start:      ctx.startTime,
 			End:        time.Now(),

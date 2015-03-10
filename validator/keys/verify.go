@@ -70,5 +70,12 @@ func VerifyRequest(requestScope, requestVersion string, r *http.Request, numKeyP
 
 	signingKey := generateSigningKey(authToken, requestScope, requestVersion, r)
 
+	/* TODO Debug content, don't remove unless you want to redo it later
+	fmt.Printf("\nPayload %s - %s \n", r.Header.Get("x-tapglue-payload-hash"), Base64Encode(Sha256String(payload)))
+	fmt.Printf("\nSession %s\n", r.Header.Get("x-tapglue-session"))
+	fmt.Printf("\nSignature parts %s - %s \n", Base64Encode(signingKey), Base64Encode(signString))
+	fmt.Printf("\nSignature %s - %s \n\n", r.Header.Get("x-tapglue-signature"), Base64Encode(Sha256String([]byte(signingKey+signString))))
+	*/
+
 	return r.Header.Get("x-tapglue-signature") == Base64Encode(Sha256String([]byte(signingKey+signString)))
 }

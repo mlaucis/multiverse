@@ -42,12 +42,17 @@ var (
 	_             = Suite(&ServerSuite{})
 	conf          *config.Config
 	storageClient *storage.Client
-	doLogTest     = flag.Bool("lt", false, "Set flag in order to get output from the tests")
+	doLogTest     = flag.Bool("lt", false, "Set flag in order to get logs output from the tests")
+	doCurlLogs    = flag.Bool("ct", false, "Set flag in order to get logs output from the tests as curl requests, sets -lt=true")
 )
 
 // Setup once when the suite starts running
 func (s *ServerSuite) SetUpTest(c *C) {
 	flag.Parse()
+
+	if *doCurlLogs {
+		*doLogTest = true
+	}
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	conf = config.NewConf("")
@@ -61,7 +66,11 @@ func (s *ServerSuite) SetUpTest(c *C) {
 		// overwrite log channel to make it blocking
 		mainLogChan = make(chan *LogMsg)
 		errorLogChan = make(chan *LogMsg)
-		go TGLog(mainLogChan)
+		if *doCurlLogs {
+			go TGCurlLog(mainLogChan)
+		} else {
+			go TGLog(mainLogChan)
+		}
 		go TGLog(errorLogChan)
 	} else {
 		go tgSilentLog(mainLogChan)

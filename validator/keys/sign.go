@@ -28,6 +28,11 @@ func addHeaders(accountID, applicationID int64, r *http.Request) error {
 
 // canonicalRequest returns the full canonical request and its headers
 func canonicalRequest(r *http.Request) []byte {
+	// TODO don't allow this in prod environment
+	if r.Host == "" {
+		r.Host = "localhost:8082"
+	}
+
 	req := fmt.Sprintf(
 		"%s\n%s\nhost:%s\nx-tapglue-date:%s\nx-tapglue-payload-hash:%s\nx-tapglue-id:%s",
 		r.Method,

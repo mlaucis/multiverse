@@ -22,6 +22,7 @@ type (
 		sessionToken string
 		vars         map[string]string
 		body         *bytes.Buffer
+		bodyString   string
 		mainLog      chan *LogMsg
 		errorLog     chan *LogMsg
 		w            http.ResponseWriter
@@ -44,6 +45,7 @@ func NewContext(w http.ResponseWriter, r *http.Request, mainLog, errorLog chan *
 	ctx.errorLog = errorLog
 	ctx.vars = mux.Vars(r)
 	ctx.body = utils.PeakBody(r)
+	ctx.bodyString = utils.PeakBody(r).String()
 	ctx.routeName = routeName
 	ctx.scope = scope
 	ctx.version = version
