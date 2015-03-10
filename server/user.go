@@ -244,12 +244,11 @@ func createApplicationUser(ctx *context) {
 func loginApplicationUser(ctx *context) {
 	var (
 		loginPayload struct {
+			Email    string `json:"email"`
 			Password string `json:"password"`
 		}
-		user          = &entity.User{}
 		accountID     int64
 		applicationID int64
-		userID        int64
 		sessionToken  string
 		err           error
 	)
@@ -264,19 +263,20 @@ func loginApplicationUser(ctx *context) {
 		return
 	}
 
-	if userID, err = strconv.ParseInt(ctx.vars["userId"], 10, 64); err != nil {
-		errorHappened(ctx, "userId is not set or the value is incorrect", http.StatusBadRequest)
-		return
-	}
-
-	if user, err = core.ReadApplicationUser(accountID, applicationID, userID); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
-		return
-	}
-
 	decoder := json.NewDecoder(ctx.body)
 	if err = decoder.Decode(&loginPayload); err != nil {
 		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusBadRequest)
+		return
+	}
+
+	if !validator.IsValidEmail(loginPayload.Email) {
+		errorHappened(ctx, "invalid e-mail", http.StatusBadRequest)
+		return
+	}
+
+	user, err := core.FindApplicationUserByEmail(accountID, applicationID, loginPayload.Email)
+	if err != nil {
+		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
 		return
 	}
 

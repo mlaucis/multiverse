@@ -11,7 +11,10 @@ import (
 
 	"fmt"
 
+	"strconv"
+
 	"github.com/tapglue/backend/core/entity"
+	"github.com/tapglue/backend/utils"
 )
 
 // ReadUser returns the user matching the ID or an error
@@ -152,10 +155,15 @@ func WriteUser(user *entity.User, retrieve bool) (usr *entity.User, err error) {
 	}
 
 	listKey := storageClient.Users(user.AccountID, user.ApplicationID)
-
 	if err = storageEngine.LPush(listKey, key).Err(); err != nil {
 		return nil, err
 	}
+
+	emailListKey := storageClient.ApplicationUserByEmail(user.AccountID, user.ApplicationID, utils.Base64Encode(user.Email))
+	err = storageEngine.HMSet(
+		emailListKey,
+		"usr", fmt.Sprintf("%d", user.ID),
+	).Err()
 
 	if !retrieve {
 		return user, nil
@@ -254,4 +262,25 @@ func DestroyApplicationUserSession(sessionToken string, user *entity.User) error
 	}
 
 	return nil
+}
+
+func FindApplicationUserByEmail(accountID, applicationID int64, email string) (*entity.User, error) {
+	emailListKey := storageClient.ApplicationUserByEmail(accountID, applicationID, utils.Base64Encode(email))
+
+	details, err := storageEngine.HMGet(emailListKey, "usr").Result()
+	if err != nil {
+		return nil, err
+	}
+
+	userID, err := strconv.ParseInt(details[0].(string), 10, 64)
+	if err != nil {
+		return nil, err
+	}
+
+	applicationUser, err := ReadApplicationUser(accountID, applicationID, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	return applicationUser, nil
 }

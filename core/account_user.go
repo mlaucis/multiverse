@@ -143,7 +143,7 @@ func WriteAccountUser(accountUser *entity.AccountUser, retrieve bool) (accUser *
 		return nil, err
 	}
 
-	emailListKey := storageClient.AccountByEmail(utils.Base64Encode(accountUser.Email))
+	emailListKey := storageClient.AccountUserByEmail(utils.Base64Encode(accountUser.Email))
 	err = storageEngine.HMSet(
 		emailListKey,
 		"acc", fmt.Sprintf("%d", accountUser.AccountID),
@@ -251,7 +251,7 @@ func DestroyAccountUserSession(sessionToken string, user *entity.AccountUser) er
 
 // FindAccountAndUserByEmail returns the account and account user for a certain e-mail address
 func FindAccountAndUserByEmail(email string) (*entity.Account, *entity.AccountUser, error) {
-	emailListKey := storageClient.AccountByEmail(utils.Base64Encode(email))
+	emailListKey := storageClient.AccountUserByEmail(utils.Base64Encode(email))
 
 	details, err := storageEngine.HMGet(emailListKey, "acc", "usr").Result()
 	if err != nil {

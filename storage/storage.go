@@ -32,8 +32,8 @@ const (
 	idApplicationUser  = "ids:a:%d:u"
 	idApplicationEvent = "ids:a:%d:e"
 
-	account        = "acc:%d"
-	accountByEmail = "acc:byemail:%s"
+	account            = "acc:%d"
+	accountUserByEmail = "acc:byemail:%s"
 
 	accountUser  = "acc:%d:user:%d"
 	accountUsers = "acc:%d:users"
@@ -41,8 +41,9 @@ const (
 	application  = "acc:%d:app:%d"
 	applications = "acc:%d:apps"
 
-	user  = "acc:%d:app:%d:user:%d"
-	users = "acc:%d:app:%d:user"
+	applicationUser        = "acc:%d:app:%d:user:%d"
+	applicationUsers       = "acc:%d:app:%d:user"
+	applicationUserByEmail = "acc:%d:app:%d:byemail:%s"
 
 	accountSession     = "acc:%d:sess:%d"
 	applicationSession = "acc:%d:app:%d:sess:%d"
@@ -213,9 +214,9 @@ func (client *Client) AccountUsers(accountID int64) string {
 	return fmt.Sprintf(accountUsers, accountID)
 }
 
-// AccountByEmail returns the key for accounts by email
-func (client *Client) AccountByEmail(email string) string {
-	return fmt.Sprintf(accountByEmail, email)
+// AccountUserByEmail returns the key for accounts by email
+func (client *Client) AccountUserByEmail(email string) string {
+	return fmt.Sprintf(accountUserByEmail, email)
 }
 
 // Application returns the key for one account app
@@ -238,7 +239,7 @@ func (client *Client) Connections(accountID, applicationID, userFromID int64) st
 	return fmt.Sprintf(connections, accountID, applicationID, userFromID)
 }
 
-// ConnectionUsers gets the key for the connectioned users list
+// ConnectionUsers gets the key for the connection users list
 func (client *Client) ConnectionUsers(accountID, applicationID, userFromID int64) string {
 	return fmt.Sprintf(followsUsers, accountID, applicationID, userFromID)
 }
@@ -250,12 +251,17 @@ func (client *Client) FollowedByUsers(accountID, applicationID, userToID int64) 
 
 // User gets the key for the user
 func (client *Client) User(accountID, applicationID, userID int64) string {
-	return fmt.Sprintf(user, accountID, applicationID, userID)
+	return fmt.Sprintf(applicationUser, accountID, applicationID, userID)
+}
+
+// ApplicationUserByEmail returns the key for accounts by email
+func (client *Client) ApplicationUserByEmail(accountID, applicationID int64, email string) string {
+	return fmt.Sprintf(applicationUserByEmail, accountID, applicationID, email)
 }
 
 // Users gets the key the app users list
 func (client *Client) Users(accountID, applicationID int64) string {
-	return fmt.Sprintf(users, accountID, applicationID)
+	return fmt.Sprintf(applicationUsers, accountID, applicationID)
 }
 
 // Event gets the key for an event
