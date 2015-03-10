@@ -68,7 +68,7 @@ func VerifyRequest(requestScope, requestVersion string, r *http.Request, numKeyP
 
 	signString := generateSigningString(requestScope, requestVersion, r)
 
-	signingKey := generateSigningKey(authToken, requestVersion, r)
+	signingKey := generateSigningKey(authToken, requestScope, requestVersion, r)
 
 	return r.Header.Get("x-tapglue-signature") == Base64Encode(Sha256String([]byte(signingKey+signString)))
 }
