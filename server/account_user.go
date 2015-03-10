@@ -16,8 +16,7 @@ import (
 )
 
 // getAccountUser handles requests to a single account user
-// Request: GET /account/:AccountID/user/:ID
-// Test with: curl -i localhost/0.1/account/:AccountID/user/:ID
+// Request: GET /account/:AccountID/user/:UserID
 func getAccountUser(ctx *context) {
 	var (
 		accountID   int64
@@ -45,8 +44,7 @@ func getAccountUser(ctx *context) {
 }
 
 // updateAccountUser handles requests update an account user
-// Request: PUT /account/:AccountID/user/:ID
-// Test with: curl -i -H "Content-Type: application/json" -d '{"user_name":"User name", "password":"hmac(256)", "email":"de@m.o"}' -X PUT localhost/0.1/account/:AccountID/user/:ID
+// Request: PUT /account/:AccountID/user/:UserID
 func updateAccountUser(ctx *context) {
 	var (
 		accountUser = &entity.AccountUser{}
@@ -92,8 +90,7 @@ func updateAccountUser(ctx *context) {
 }
 
 // deleteAccountUser handles requests to delete a single account user
-// Request: DELETE /account/:AccountID/user/:ID
-// Test with: curl -i -X DELETE localhost/0.1/account/:AccountID/user/:ID
+// Request: DELETE /account/:AccountID/user/:UserID
 func deleteAccountUser(ctx *context) {
 	var (
 		accountID int64
@@ -119,9 +116,43 @@ func deleteAccountUser(ctx *context) {
 	writeResponse(ctx, "", http.StatusNoContent, 10)
 }
 
+// createAccountUser handles requests create an account user
+// Request: POST /account/:AccountID/users
+func createAccountUser(ctx *context) {
+	var (
+		accountUser = &entity.AccountUser{}
+		accountID   int64
+		err         error
+	)
+
+	if accountID, err = strconv.ParseInt(ctx.vars["accountId"], 10, 64); err != nil {
+		errorHappened(ctx, fmt.Sprintf("accountId is not set or the value is incorrect %v", ctx.vars["accountId"]), http.StatusBadRequest)
+		return
+	}
+
+	decoder := json.NewDecoder(ctx.body)
+	if err = decoder.Decode(accountUser); err != nil {
+		errorHappened(ctx, fmt.Sprintf("%q", err), http.StatusBadRequest)
+		return
+	}
+
+	accountUser.AccountID = accountID
+
+	if err = validator.CreateAccountUser(accountUser); err != nil {
+		errorHappened(ctx, fmt.Sprintf("%q", err), http.StatusBadRequest)
+		return
+	}
+
+	if accountUser, err = core.WriteAccountUser(accountUser, true); err != nil {
+		errorHappened(ctx, fmt.Sprintf("%q", err), http.StatusInternalServerError)
+		return
+	}
+
+	writeResponse(ctx, accountUser, http.StatusCreated, 0)
+}
+
 // getAccountUserList handles requests to list all account users
 // Request: GET /account/:AccountID/users
-// Test with: curl -i localhost/0.1/account/:AccountID/users
 func getAccountUserList(ctx *context) {
 	var (
 		accountID    int64
@@ -156,43 +187,8 @@ func getAccountUserList(ctx *context) {
 	writeResponse(ctx, response, http.StatusOK, 10)
 }
 
-// createAccountUser handles requests create an account user
-// Request: POST /account/:AccountID/users
-// Test with: curl -i -H "Content-Type: application/json" -d '{"user_name":"User name", "password":"hmac(256)", "email":"de@m.o"}' localhost/0.1/account/:AccountID/users
-func createAccountUser(ctx *context) {
-	var (
-		accountUser = &entity.AccountUser{}
-		accountID   int64
-		err         error
-	)
-
-	if accountID, err = strconv.ParseInt(ctx.vars["accountId"], 10, 64); err != nil {
-		errorHappened(ctx, fmt.Sprintf("accountId is not set or the value is incorrect %v", ctx.vars["accountId"]), http.StatusBadRequest)
-		return
-	}
-
-	decoder := json.NewDecoder(ctx.body)
-	if err = decoder.Decode(accountUser); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%q", err), http.StatusBadRequest)
-		return
-	}
-
-	accountUser.AccountID = accountID
-
-	if err = validator.CreateAccountUser(accountUser); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%q", err), http.StatusBadRequest)
-		return
-	}
-
-	if accountUser, err = core.WriteAccountUser(accountUser, true); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%q", err), http.StatusInternalServerError)
-		return
-	}
-
-	writeResponse(ctx, accountUser, http.StatusCreated, 0)
-}
-
 // loginAccountUser handles the requests to login the user in the system
+// Request: POST /account/user/login
 func loginAccountUser(ctx *context) {
 	var (
 		loginPayload struct {
@@ -236,6 +232,7 @@ func loginAccountUser(ctx *context) {
 }
 
 // refreshApplicationUserSession handles the requests to refresh the user session token
+// Request: Post /account/:AccountID/application/:ApplicationID/user/refreshsession
 func refreshAccountUserSession(ctx *context) {
 	var (
 		payload struct {
@@ -280,6 +277,7 @@ func refreshAccountUserSession(ctx *context) {
 }
 
 // logoutApplicationUser handles the requests to logout the user from the system
+// Request: Post /account/:AccountID/application/:ApplicationID/user/logout
 func logoutAccountUser(ctx *context) {
 	var (
 		logoutPayload struct {

@@ -15,9 +15,8 @@ import (
 	"github.com/tapglue/backend/validator"
 )
 
-// getUser handles requests to retrieve a single user
-// Request: GET /application/:applicationId/user/:ID
-// Test with: curl -i localhost/0.1/application/:applicationId/user/:ID
+// getApplicationUser handles requests to retrieve a single user
+// Request: GET account/:AccountID/application/:ApplicationID/user/:UserID
 func getApplicationUser(ctx *context) {
 	var (
 		user          *entity.User
@@ -61,9 +60,8 @@ func getApplicationUser(ctx *context) {
 	writeResponse(ctx, response, http.StatusOK, 10)
 }
 
-// updateUser handles requests to update a user
-// Request: PUT /application/:applicationId/user/:ID
-// Test with: curl -i -H "Content-Type: application/json" -d '{"auth_token": "token1flo", "username": "flo", "name": "Florin", "password": "passwd", "email": "fl@r.in", "url": "blogger", "metadata": "{}"}'  -X PUT localhost/0.1/application/:applicationId/user/:ID
+// updateApplicationUser handles requests to update a user
+// Request: PUT account/:AccountID/application/:ApplicationID/user/:UserID
 func updateApplicationUser(ctx *context) {
 	var (
 		user          = &entity.User{}
@@ -120,9 +118,8 @@ func updateApplicationUser(ctx *context) {
 	writeResponse(ctx, user, http.StatusCreated, 0)
 }
 
-// deleteUser handles requests to delete a single user
-// Request: DELETE /application/:applicationId/user/:ID
-// Test with: curl -i -X DELETE localhost/0.1/application/:applicationId/user/:ID
+// deleteApplicationUser handles requests to delete a single user
+// Request: DELETE account/:AccountID/application/:ApplicationID/user/:UserID
 func deleteApplicationUser(ctx *context) {
 	var (
 		accountID     int64
@@ -154,49 +151,8 @@ func deleteApplicationUser(ctx *context) {
 	writeResponse(ctx, "", http.StatusNoContent, 10)
 }
 
-// getUserList handles requests to retrieve all users of an app
-// THIS ROUTE IS NOT YET ACTIVATED
-// Request: GET /application/:applicationId/users
-// Test with: curl -i localhost/0.1/application/:applicationId/users
-func getApplicationUserList(ctx *context) {
-	var (
-		accountID     int64
-		applicationID int64
-		users         []*entity.User
-		err           error
-	)
-
-	if accountID, err = strconv.ParseInt(ctx.vars["accountId"], 10, 64); err != nil {
-		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest)
-		return
-	}
-
-	if applicationID, err = strconv.ParseInt(ctx.vars["applicationId"], 10, 64); err != nil {
-		errorHappened(ctx, "applicationId is not set or the value is incorrect", http.StatusBadRequest)
-		return
-	}
-
-	if users, err = core.ReadUserList(accountID, applicationID); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
-		return
-	}
-
-	// TODO iterate the users and strip their password
-
-	response := &struct {
-		ApplicationID int64 `json:"applicationId"`
-		Users         []*entity.User
-	}{
-		ApplicationID: applicationID,
-		Users:         users,
-	}
-
-	writeResponse(ctx, response, http.StatusOK, 10)
-}
-
-// createUser handles requests to create a user
-// Request: POST /application/:applicationId/users
-// Test with: curl -i -H "Content-Type: application/json" -d '{"auth_token": "token1flo", "username": "flo", "name": "Florin", "password": "passwd", "email": "fl@r.in", "url": "blogger", "metadata": "{}"}' localhost/0.1/application/:applicationId/users
+// createApplicationUser handles requests to create a user
+// Request: POST account/:AccountID/application/:ApplicationID/users
 func createApplicationUser(ctx *context) {
 	var (
 		user          = &entity.User{}
@@ -240,7 +196,47 @@ func createApplicationUser(ctx *context) {
 	writeResponse(ctx, user, http.StatusCreated, 0)
 }
 
+// getApplicationUserList handles requests to retrieve all users of an app
+// THIS ROUTE IS NOT YET ACTIVATED
+// Request: GET account/:AccountID/application/:ApplicationID/users
+func getApplicationUserList(ctx *context) {
+	var (
+		accountID     int64
+		applicationID int64
+		users         []*entity.User
+		err           error
+	)
+
+	if accountID, err = strconv.ParseInt(ctx.vars["accountId"], 10, 64); err != nil {
+		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest)
+		return
+	}
+
+	if applicationID, err = strconv.ParseInt(ctx.vars["applicationId"], 10, 64); err != nil {
+		errorHappened(ctx, "applicationId is not set or the value is incorrect", http.StatusBadRequest)
+		return
+	}
+
+	if users, err = core.ReadUserList(accountID, applicationID); err != nil {
+		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
+		return
+	}
+
+	// TODO iterate the users and strip their password
+
+	response := &struct {
+		ApplicationID int64 `json:"applicationId"`
+		Users         []*entity.User
+	}{
+		ApplicationID: applicationID,
+		Users:         users,
+	}
+
+	writeResponse(ctx, response, http.StatusOK, 10)
+}
+
 // loginApplicationUser handles the requests to login the user in the system
+// Request: POST account/:AccountID/application/:ApplicationID/user/login
 func loginApplicationUser(ctx *context) {
 	var (
 		loginPayload struct {
@@ -296,6 +292,7 @@ func loginApplicationUser(ctx *context) {
 }
 
 // refreshApplicationUserSession handles the requests to refresh the user session token
+// Request: POST account/:AccountID/application/:ApplicationID/user/refreshsession
 func refreshApplicationUserSession(ctx *context) {
 	var (
 		payload struct {
@@ -346,6 +343,7 @@ func refreshApplicationUserSession(ctx *context) {
 }
 
 // logoutApplicationUser handles the requests to logout the user from the system
+// Request: POST account/:AccountID/application/:ApplicationID/user/logout
 func logoutApplicationUser(ctx *context) {
 	var (
 		logoutPayload struct {

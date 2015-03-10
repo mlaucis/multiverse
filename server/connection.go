@@ -16,8 +16,7 @@ import (
 )
 
 // updateConnection handles requests to update a user connection
-// Request: PUT /application/:applicationId/user/:UserFromID/connection/:UserToID
-// Test with: curl -i -H "Content-Type: application/json" -d '{"user_from_id":1,"user_to_id":2, "enabled":false}' -X PUT localhost/0.1/application/:applicationId/user/:UserFromID/connection/:UserToID
+// Request: PUT account/:AccountID/application/:ApplicationID/user/:UserFromID/connection/:UserToID
 func updateConnection(ctx *context) {
 	var (
 		connection    = &entity.Connection{}
@@ -81,8 +80,7 @@ func updateConnection(ctx *context) {
 }
 
 // deleteConnection handles requests to delete a single connection
-// Request: DELETE /application/:applicationId/user/:UserFromID/connection/:UserToID
-// Test with: curl -i -X DELETE localhost/0.1/application/:applicationId/user/:UserFromID/connection/:UserToID
+// Request: DELETE account/:AccountID/application/:ApplicationID/user/:UserFromID/connection/:UserToID
 func deleteConnection(ctx *context) {
 	var (
 		accountID     int64
@@ -120,55 +118,8 @@ func deleteConnection(ctx *context) {
 	writeResponse(ctx, "", http.StatusNoContent, 10)
 }
 
-// getConnectionList handles requests to list a users connections
-// Request: GET /application/:applicationId/user/:UserID/connections
-// Test with: curl -i localhost/0.1/application/:applicationId/user/:UserID/connections
-func getConnectionList(ctx *context) {
-	var (
-		users         []*entity.User
-		accountID     int64
-		applicationID int64
-		userID        int64
-		err           error
-	)
-
-	if accountID, err = strconv.ParseInt(ctx.vars["accountId"], 10, 64); err != nil {
-		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest)
-		return
-	}
-
-	if applicationID, err = strconv.ParseInt(ctx.vars["applicationId"], 10, 64); err != nil {
-		errorHappened(ctx, "applicationId is not set or the value is incorrect", http.StatusBadRequest)
-		return
-	}
-
-	if userID, err = strconv.ParseInt(ctx.vars["userId"], 10, 64); err != nil {
-		errorHappened(ctx, "userId is not set or the value is incorrect", http.StatusBadRequest)
-		return
-	}
-
-	if users, err = core.ReadConnectionList(accountID, applicationID, userID); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
-		return
-	}
-
-	response := &struct {
-		ApplicationID int64 `json:"applicationId"`
-		Users         []*entity.User
-	}{
-		ApplicationID: applicationID,
-		Users:         users,
-	}
-
-	writeResponse(ctx, response, http.StatusOK, 10)
-}
-
-// TODO: GET FOLLOWER LIST (followedbyid users)
-// TODO: GET FOLLOWING USERS LIST
-
 // createConnection handles requests to create a user connection
 // Request: POST /application/:applicationId/user/:UserID/connections
-// Test with: curl -i -H "Content-Type: application/json" -d '{"user_from_id":1,"user_to_id":2}' localhost/0.1/application/:applicationId/user/:UserID/connections
 func createConnection(ctx *context) {
 	var (
 		connection    = &entity.Connection{}
@@ -215,9 +166,50 @@ func createConnection(ctx *context) {
 	writeResponse(ctx, connection, http.StatusCreated, 0)
 }
 
+// getConnectionList handles requests to list a users connections
+// Request: GET account/:AccountID/application/:ApplicationID/user/:UserID/connections
+func getConnectionList(ctx *context) {
+	var (
+		users         []*entity.User
+		accountID     int64
+		applicationID int64
+		userID        int64
+		err           error
+	)
+
+	if accountID, err = strconv.ParseInt(ctx.vars["accountId"], 10, 64); err != nil {
+		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest)
+		return
+	}
+
+	if applicationID, err = strconv.ParseInt(ctx.vars["applicationId"], 10, 64); err != nil {
+		errorHappened(ctx, "applicationId is not set or the value is incorrect", http.StatusBadRequest)
+		return
+	}
+
+	if userID, err = strconv.ParseInt(ctx.vars["userId"], 10, 64); err != nil {
+		errorHappened(ctx, "userId is not set or the value is incorrect", http.StatusBadRequest)
+		return
+	}
+
+	if users, err = core.ReadConnectionList(accountID, applicationID, userID); err != nil {
+		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
+		return
+	}
+
+	response := &struct {
+		ApplicationID int64 `json:"applicationId"`
+		Users         []*entity.User
+	}{
+		ApplicationID: applicationID,
+		Users:         users,
+	}
+
+	writeResponse(ctx, response, http.StatusOK, 10)
+}
+
 // confirmConnection handles requests to confirm a user connection
-// Request: POST /application/:applicationId/user/:UserID/connection/confirm
-// Test with: curl -i -H "Content-Type: application/json" -d '{"user_from_id":1,"user_to_id":2}' localhost/0.1/application/:applicationId/user/:UserID/connection/confirm
+// Request: POST account/:AccountID/application/:ApplicationID/user/:UserID/connection/confirm
 func confirmConnection(ctx *context) {
 	var (
 		connection    = &entity.Connection{}
@@ -263,3 +255,6 @@ func confirmConnection(ctx *context) {
 
 	writeResponse(ctx, connection, http.StatusCreated, 0)
 }
+
+// TODO: GET FOLLOWER LIST (followedbyid users)
+// TODO: GET FOLLOWING USERS LIST
