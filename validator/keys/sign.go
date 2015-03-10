@@ -50,7 +50,7 @@ func generateSigningString(scope, requestVersion string, r *http.Request) string
 }
 
 // generateSigningKey returns the key used to sign the request
-func generateSigningKey(secretKey, requestVersion string, r *http.Request) string {
+func generateSigningKey(secretKey, scope, requestVersion string, r *http.Request) string {
 	key := fmt.Sprintf(
 		"tapglue:%s:%s",
 		secretKey,
@@ -64,7 +64,7 @@ func generateSigningKey(secretKey, requestVersion string, r *http.Request) strin
 						Sha256String([]byte(key))+
 							r.Header.Get("x-tapglue-session"),
 					),
-				)+"user/log",
+				)+scope,
 			))+"api",
 		)) + requestVersion,
 	))
@@ -105,7 +105,7 @@ func SignRequest(secretKey, requestScope, requestVersion string, numKeyParts int
 	signString := generateSigningString(requestScope, requestVersion, r)
 
 	// Generate signing key
-	signingKey := generateSigningKey(secretKey, requestVersion, r)
+	signingKey := generateSigningKey(secretKey, requestScope, requestVersion, r)
 
 	// Sign the request
 	r.Header.Add("x-tapglue-signature", Base64Encode(Sha256String([]byte(signingKey+signString))))
