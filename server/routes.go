@@ -279,8 +279,8 @@ var routes = map[string]map[string]*route{
 		},
 		"refreshUserSession": &route{
 			method:   "POST",
-			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/refreshSession",
-			cPattern: "/account/%d/application/%d/user/refreshsession",
+			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]{1,20}}/refreshSession",
+			cPattern: "/account/%d/application/%d/user/%d/refreshsession",
 			scope:    "application/user/refreshSession",
 			handlers: []routeFunc{
 				validateApplicationRequestToken,
@@ -290,8 +290,8 @@ var routes = map[string]map[string]*route{
 		},
 		"logoutUser": &route{
 			method:   "POST",
-			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/logout",
-			cPattern: "/account/%d/application/%d/user/logout",
+			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]{1,20}}/logout",
+			cPattern: "/account/%d/application/%d/user/%d/logout",
 			scope:    "application/user/logout",
 			handlers: []routeFunc{
 				validateApplicationRequestToken,

@@ -45,6 +45,7 @@ func AddCorrectApplication(accountID int64, fetchApplication bool) (app *entity.
 
 // AddCorrectUser creates a correct user
 func AddCorrectUser(accountID, applicationID int64, fetchUser bool) (usr *entity.User, err error) {
+	correctUser.Password = "password"
 	userWithIDs := correctUser
 	userWithIDs.AccountID = accountID
 	userWithIDs.ApplicationID = applicationID

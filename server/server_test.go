@@ -333,13 +333,13 @@ func (s *ServerSuite) TestRobots_OK(c *C) {
 
 // createCommonRequestHeaders create a correct request header
 func createCommonRequestHeaders(req *http.Request) {
+	payload := PeakBody(req).Bytes()
+
 	//req.Header.Add("x-tapglue-date", time.Now().Format(time.RFC3339))
 	req.Header.Add("User-Agent", "Tapglue Test UA")
-	payload := PeakBody(req).Bytes()
-	if len(payload) > 0 {
-		req.Header.Add("Content-Type", "application/json")
-		req.Header.Add("Content-Length", strconv.FormatInt(int64(len(payload)), 10))
-	}
+
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Content-Length", strconv.FormatInt(int64(len(payload)), 10))
 }
 
 // getRoute takes a route name and returns the route including the version

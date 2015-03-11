@@ -302,8 +302,8 @@ func (s *ServerSuite) TestLogoutUser_OK(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	routeName = "logoutUser"
-	route = getComposedRoute(routeName, correctAccount.ID, correctApplication.ID)
-	code, body, err = runRequest(routeName, route, payload, correctApplication.AuthToken, getApplicationUserSessionToken(correctUser), 3)
+	route = getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID)
+	code, body, err = runRequest(routeName, route, "", correctApplication.AuthToken, getApplicationUserSessionToken(correctUser), 3)
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusOK)
 	c.Assert(body, Not(Equals), "")

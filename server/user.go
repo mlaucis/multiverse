@@ -295,9 +295,6 @@ func loginApplicationUser(ctx *context) {
 // Request: POST account/:AccountID/application/:ApplicationID/user/refreshsession
 func refreshApplicationUserSession(ctx *context) {
 	var (
-		payload struct {
-			Token string `json:"token"`
-		}
 		user          = &entity.User{}
 		accountID     int64
 		applicationID int64
@@ -326,13 +323,7 @@ func refreshApplicationUserSession(ctx *context) {
 		return
 	}
 
-	decoder := json.NewDecoder(ctx.body)
-	if err = decoder.Decode(&payload); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusBadRequest)
-		return
-	}
-
-	if sessionToken, err = core.RefreshApplicationUserSession(payload.Token, user); err != nil {
+	if sessionToken, err = core.RefreshApplicationUserSession(ctx.sessionToken, user); err != nil {
 		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
 		return
 	}
@@ -346,9 +337,6 @@ func refreshApplicationUserSession(ctx *context) {
 // Request: POST account/:AccountID/application/:ApplicationID/user/logout
 func logoutApplicationUser(ctx *context) {
 	var (
-		logoutPayload struct {
-			Token string `json:"token"`
-		}
 		user          = &entity.User{}
 		accountID     int64
 		applicationID int64
@@ -376,18 +364,7 @@ func logoutApplicationUser(ctx *context) {
 		return
 	}
 
-	decoder := json.NewDecoder(ctx.body)
-	if err = decoder.Decode(&logoutPayload); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusBadRequest)
-		return
-	}
-
-	if err = validator.ApplicationUserCredentialsValid(logoutPayload.Token, user); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusUnauthorized)
-		return
-	}
-
-	if err = core.DestroyApplicationUserSession(logoutPayload.Token, user); err != nil {
+	if err = core.DestroyApplicationUserSession(ctx.sessionToken, user); err != nil {
 		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
 		return
 	}
