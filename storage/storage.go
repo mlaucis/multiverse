@@ -53,9 +53,11 @@ const (
 	followsUsers    = "acc:%d:app:%d:user:%d:followsUsers"
 	followedByUsers = "acc:%d:app:%d:user:%d:follwedByUsers"
 
-	event       = "acc:%d:app:%d:user:%d:event:%d"
-	eventGeoKey = "acc:%d:app:%d:geoevents"
-	events      = "acc:%d:app:%d:user:%d:events"
+	event            = "acc:%d:app:%d:user:%d:event:%d"
+	events           = "acc:%d:app:%d:user:%d:events"
+	eventGeoKey      = "acc:%d:app:%d:events:geo"
+	eventObjectKey   = "acc:%d:app:%d:events:object:%s"
+	eventLocationKey = "acc:%d:app:%d:events:location:%s"
 
 	connectionEvents     = "acc:%d:app:%d:user:%d:connectionEvents"
 	connectionEventsLoop = "%s:connectionEvents"
@@ -270,9 +272,19 @@ func (client *Client) Event(accountID, applicationID, userID, eventID int64) str
 	return fmt.Sprintf(event, accountID, applicationID, userID, eventID)
 }
 
-// Event gets the key for an event
+// EventGeoKey gets the key for geo events list
 func (client *Client) EventGeoKey(accountID, applicationID int64) string {
 	return fmt.Sprintf(eventGeoKey, accountID, applicationID)
+}
+
+// EventObjectKey gets the key for geo events list
+func (client *Client) EventObjectKey(accountID, applicationID int64, objectKey string) string {
+	return fmt.Sprintf(eventObjectKey, accountID, applicationID, objectKey)
+}
+
+// EventLocationKey gets the key for geo events list
+func (client *Client) EventLocationKey(accountID, applicationID int64, location string) string {
+	return fmt.Sprintf(eventLocationKey, accountID, applicationID, location)
 }
 
 // Events get the key for the events list

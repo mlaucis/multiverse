@@ -432,13 +432,35 @@ var routes = map[string]map[string]*route{
 		},
 		"getGeoEventList": &route{
 			method:   "GET",
-			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/geo/{latitude:[0-9.]+}/{longitude:[0-9.]+}/{radius:[0-9.]+}",
-			cPattern: "/account/%d/application/%d/geo/%.5f/%.5f/%.5f",
-			scope:    "application/geo/events",
+			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/events/geo/{latitude:[0-9.]+}/{longitude:[0-9.]+}/{radius:[0-9.]+}",
+			cPattern: "/account/%d/application/%d/events/geo/%.5f/%.5f/%.5f",
+			scope:    "application/events/geo",
 			handlers: []routeFunc{
 				validateApplicationRequestToken,
 				checkApplicationSession,
 				getGeoEventList,
+			},
+		},
+		"getObjectEventList": &route{
+			method:   "GET",
+			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/events/object/{objectKey:[0-9a-zA-Z]+}",
+			cPattern: "/account/%d/application/%d/events/object/%s",
+			scope:    "application/events/object",
+			handlers: []routeFunc{
+				validateApplicationRequestToken,
+				checkApplicationSession,
+				getObjectEventList,
+			},
+		},
+		"getLocationEventList": &route{
+			method:   "GET",
+			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/events/location/{location:[0-9a-zA-Z]}",
+			cPattern: "/account/%d/application/%d/events/location/%s",
+			scope:    "application/events/location",
+			handlers: []routeFunc{
+				validateApplicationRequestToken,
+				checkApplicationSession,
+				getLocationEventList,
 			},
 		},
 		// Other

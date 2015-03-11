@@ -66,6 +66,23 @@ func UpdateEvent(event *entity.Event, retrieve bool) (evn *entity.Event, err err
 	georedis.RemoveCoordinatesByKeys(storageEngine, geoEventKey, key)
 	georedis.AddCoordinates(storageEngine, geoEventKey, 52, coordinates)
 
+	objectEventKey := storageClient.EventObjectKey(event.AccountID, event.ApplicationID, event.Object.ID)
+	if err = storageEngine.SRem(objectEventKey, key).Err(); err != nil {
+		return nil, err
+	}
+
+	if err = storageEngine.SAdd(objectEventKey, key).Err(); err != nil {
+		return nil, err
+	}
+
+	locationEventKey := storageClient.EventLocationKey(event.AccountID, event.ApplicationID, event.Location)
+	if err = storageEngine.SRem(locationEventKey, key).Err(); err != nil {
+		return nil, err
+	}
+	if err = storageEngine.SAdd(locationEventKey, key).Err(); err != nil {
+		return nil, err
+	}
+
 	if !event.Enabled {
 		listKey := storageClient.Events(event.AccountID, event.ApplicationID, event.UserID)
 		if err = storageEngine.ZRem(listKey, key).Err(); err != nil {
@@ -87,6 +104,12 @@ func UpdateEvent(event *entity.Event, retrieve bool) (evn *entity.Event, err err
 // DeleteEvent deletes the event matching the IDs or an error
 func DeleteEvent(accountID, applicationID, userID, eventID int64) (err error) {
 	key := storageClient.Event(accountID, applicationID, userID, eventID)
+
+	event, err := ReadEvent(accountID, applicationID, userID, eventID)
+	if err != nil {
+		return err
+	}
+
 	result, err := storageEngine.Del(key).Result()
 	if err != nil {
 		return err
@@ -106,8 +129,19 @@ func DeleteEvent(accountID, applicationID, userID, eventID int64) (err error) {
 	}
 
 	geoEventKey := storageClient.EventGeoKey(accountID, applicationID)
+	if _, err = georedis.RemoveCoordinatesByKeys(storageEngine, geoEventKey, key); err != nil {
+		return err
+	}
 
-	georedis.RemoveCoordinatesByKeys(storageEngine, geoEventKey, key)
+	objectEventKey := storageClient.EventObjectKey(accountID, applicationID, event.Object.ID)
+	if err = storageEngine.SRem(objectEventKey, key).Err(); err != nil {
+		return err
+	}
+
+	locationEventKey := storageClient.EventLocationKey(accountID, applicationID, event.Location)
+	if err = storageEngine.SRem(locationEventKey, key).Err(); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -131,16 +165,7 @@ func ReadEventList(accountID, applicationID, userID int64) (events []*entity.Eve
 		return nil, err
 	}
 
-	event := &entity.Event{}
-	for _, result := range resultList {
-		if err = json.Unmarshal([]byte(result.(string)), event); err != nil {
-			return nil, err
-		}
-		events = append(events, event)
-		event = &entity.Event{}
-	}
-
-	return
+	return toEvents(resultList)
 }
 
 // ReadConnectionEventList returns all events from connections
@@ -163,16 +188,7 @@ func ReadConnectionEventList(accountID, applicationID, userID int64) (events []*
 		return nil, err
 	}
 
-	event := &entity.Event{}
-	for _, result := range resultList {
-		if err = json.Unmarshal([]byte(result.(string)), event); err != nil {
-			return nil, err
-		}
-		events = append(events, event)
-		event = &entity.Event{}
-	}
-
-	return
+	return toEvents(resultList)
 }
 
 // WriteEvent adds an event to the database and returns the created event or an error
@@ -209,8 +225,17 @@ func WriteEvent(event *entity.Event, retrieve bool) (evn *entity.Event, err erro
 	}
 
 	geoEventKey := storageClient.EventGeoKey(event.AccountID, event.ApplicationID)
-
 	georedis.AddCoordinates(storageEngine, geoEventKey, 52, coordinates)
+
+	objectEventKey := storageClient.EventObjectKey(event.AccountID, event.ApplicationID, event.Object.ID)
+	if err = storageEngine.SAdd(objectEventKey, key).Err(); err != nil {
+		return nil, err
+	}
+
+	locationEventKey := storageClient.EventLocationKey(event.AccountID, event.ApplicationID, event.Location)
+	if err = storageEngine.SAdd(locationEventKey, key).Err(); err != nil {
+		return nil, err
+	}
 
 	if err = WriteEventToConnectionsLists(event, key); err != nil {
 		return nil, err
@@ -277,14 +302,53 @@ func SearchGeoEvents(accountID, applicationID int64, latitude, longitude, radius
 		return nil, err
 	}
 
-	event := &entity.Event{}
+	return toEvents(resultList)
+}
+
+// SearchObjectEvents returns all the events for a specific object
+func SearchObjectEvents(accountID, applicationID int64, objectKey string) ([]*entity.Event, error) {
+	objectEventKey := storageClient.EventObjectKey(accountID, applicationID, objectKey)
+
+	return fetchEventsFromKeys(accountID, applicationID, objectEventKey, objectKey)
+}
+
+// SearchLocationEvents returns all the events for a specific object
+func SearchLocationEvents(accountID, applicationID int64, locationKey string) ([]*entity.Event, error) {
+	locationEventKey := storageClient.EventLocationKey(accountID, applicationID, locationKey)
+
+	return fetchEventsFromKeys(accountID, applicationID, locationEventKey, locationKey)
+}
+
+// fetchEventsFromKeys returns all the events matching a certain search key from the specified bucket
+func fetchEventsFromKeys(accountID, applicationID int64, bucketName, searchKey string) ([]*entity.Event, error) {
+	_, keys, err := storageEngine.SScan(bucketName, 0, searchKey, 300).Result()
+	if err != nil {
+		return nil, err
+	}
+
+	if len(keys) == 0 {
+		return []*entity.Event{}, nil
+	}
+
+	resultList, err := storageEngine.MGet(keys...).Result()
+	if err != nil {
+		return nil, err
+	}
+
+	return toEvents(resultList)
+}
+
+// toEvents converts the events from json format to go structs
+func toEvents(resultList []interface{}) ([]*entity.Event, error) {
+	events := []*entity.Event{}
 	for _, result := range resultList {
-		if err = json.Unmarshal([]byte(result.(string)), event); err != nil {
-			return nil, err
+		event := &entity.Event{}
+		if err := json.Unmarshal([]byte(result.(string)), event); err != nil {
+			return []*entity.Event{}, err
 		}
 		events = append(events, event)
 		event = &entity.Event{}
 	}
 
-	return
+	return events, nil
 }
