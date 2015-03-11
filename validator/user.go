@@ -261,3 +261,52 @@ func CheckApplicationSession(r *http.Request) (string, error) {
 
 	return encodedSessionToken, nil
 }
+
+// CheckApplicationSimpleSession checks if the session is valid or not
+func CheckApplicationSimpleSession(r *http.Request) (string, error) {
+	encodedSessionToken := r.Header.Get("x-tapglue-session")
+	if encodedSessionToken == "" {
+		return "", fmt.Errorf("missing session token")
+	}
+
+	sessionToken, err := Base64Decode(encodedSessionToken)
+	if err != nil {
+		return "", fmt.Errorf("malformed session token")
+	}
+
+	splitSessionToken := strings.SplitN(string(sessionToken), ":", 5)
+	if len(splitSessionToken) != 5 {
+		return "", fmt.Errorf("malformed session token")
+	}
+
+	accountID, err := strconv.ParseInt(splitSessionToken[0], 10, 64)
+	if err != nil {
+		return "", fmt.Errorf("malformed session token")
+	}
+
+	applicationID, err := strconv.ParseInt(splitSessionToken[1], 10, 64)
+	if err != nil {
+		return "", fmt.Errorf("malformed session token")
+	}
+
+	userID, err := strconv.ParseInt(splitSessionToken[2], 10, 64)
+	if err != nil {
+		return "", fmt.Errorf("malformed session token")
+	}
+
+	sessionKey := storageClient.ApplicationSessionKey(accountID, applicationID, userID)
+	storedSessionToken, err := storageEngine.Get(sessionKey).Result()
+	if err != nil {
+		return "", fmt.Errorf("could not fetch session from storage")
+	}
+
+	if storedSessionToken == "" {
+		return "", fmt.Errorf("session not found")
+	}
+
+	if storedSessionToken != encodedSessionToken {
+		return "", fmt.Errorf("session token mismatch(3)")
+	}
+
+	return encodedSessionToken, nil
+}

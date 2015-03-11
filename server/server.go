@@ -19,6 +19,7 @@ import (
 
 	"github.com/tapglue/backend/validator"
 	"github.com/tapglue/backend/validator/keys"
+	"github.com/tapglue/backend/validator/tokens"
 
 	"github.com/gorilla/mux"
 )
@@ -190,8 +191,14 @@ func validateApplicationRequestToken(ctx *context) {
 		return
 	}
 
-	if keys.VerifyRequest(ctx.scope, ctx.version, ctx.r, 2) {
-		return
+	if ctx.version == "0.1" {
+		if tokens.VerifyRequest(ctx.scope, ctx.version, ctx.r, 3) {
+			return
+		}
+	} else {
+		if keys.VerifyRequest(ctx.scope, ctx.version, ctx.r, 2) {
+			return
+		}
 	}
 
 	errorHappened(ctx, "request is not properly signed", http.StatusUnauthorized)
@@ -218,7 +225,17 @@ func checkApplicationSession(ctx *context) {
 		return
 	}
 
-	sessionToken, err := validator.CheckApplicationSession(ctx.r)
+	var (
+		sessionToken string
+		err          error
+	)
+
+	if ctx.version == "0.1" {
+		sessionToken, err = validator.CheckApplicationSimpleSession(ctx.r)
+	} else {
+		sessionToken, err = validator.CheckApplicationSession(ctx.r)
+	}
+
 	if err == nil {
 		ctx.sessionToken = sessionToken
 		return

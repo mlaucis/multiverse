@@ -13,19 +13,19 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/tapglue/backend/config"
 	"github.com/tapglue/backend/core"
+	"github.com/tapglue/backend/core/entity"
 	"github.com/tapglue/backend/storage"
 	"github.com/tapglue/backend/storage/redis"
 	. "github.com/tapglue/backend/utils"
 	"github.com/tapglue/backend/validator"
 	"github.com/tapglue/backend/validator/keys"
-
-	"time"
+	"github.com/tapglue/backend/validator/tokens"
 
 	"github.com/gorilla/mux"
-	"github.com/tapglue/backend/core/entity"
 	. "gopkg.in/check.v1"
 )
 
@@ -386,7 +386,13 @@ func runRequest(routeName, routePath, payload, secretKey, sessionToken string, n
 
 	createCommonRequestHeaders(req)
 	if secretKey != "" {
-		err := keys.SignRequest(secretKey, requestRoute.scope, apiVersion, numKeyParts, req)
+		var err error = nil
+		if numKeyParts == 3 {
+			err = tokens.SignRequest(secretKey, requestRoute.scope, apiVersion, numKeyParts, req)
+		} else {
+			err = keys.SignRequest(secretKey, requestRoute.scope, apiVersion, numKeyParts, req)
+		}
+
 		if err != nil {
 			panic(err)
 		}
