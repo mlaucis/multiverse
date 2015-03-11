@@ -89,7 +89,7 @@ func DeleteAccountUser(accountID, userID int64) (err error) {
 
 // ReadAccountUserList returns all the users from a certain account
 func ReadAccountUserList(accountID int64) (accountUsers []*entity.AccountUser, err error) {
-	result, err := storageEngine.LRange(storageClient.Account(accountID), 0, -1).Result()
+	result, err := storageEngine.LRange(storageClient.AccountUsers(accountID), 0, -1).Result()
 	if err != nil {
 		return nil, err
 	}
