@@ -430,6 +430,17 @@ var routes = map[string]map[string]*route{
 				getConnectionEventList,
 			},
 		},
+		"getGeoEventList": &route{
+			method:   "GET",
+			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/geo/{latitude:[0-9.]+}/{longitude:[0-9.]+}/{radius:[0-9.]+}",
+			cPattern: "/account/%d/application/%d/geo/%.5f/%.5f/%.5f",
+			scope:    "application/geo/events",
+			handlers: []routeFunc{
+				validateApplicationRequestToken,
+				checkApplicationSession,
+				getGeoEventList,
+			},
+		},
 		// Other
 		"humans": &route{
 			method:   "GET",

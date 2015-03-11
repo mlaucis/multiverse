@@ -11,6 +11,9 @@ import (
 	"time"
 
 	"github.com/tapglue/backend/core/entity"
+
+	"github.com/tapglue/georedis"
+
 	red "gopkg.in/redis.v2"
 )
 
@@ -52,6 +55,17 @@ func UpdateEvent(event *entity.Event, retrieve bool) (evn *entity.Event, err err
 		return nil, err
 	}
 
+	coordinates := georedis.GeoKey{
+		Lat:   event.Latitude,
+		Lon:   event.Longitude,
+		Label: key,
+	}
+
+	geoEventKey := storageClient.EventGeoKey(event.AccountID, event.ApplicationID)
+
+	georedis.RemoveCoordinatesByKeys(storageEngine, geoEventKey, key)
+	georedis.AddCoordinates(storageEngine, geoEventKey, 52, coordinates)
+
 	if !event.Enabled {
 		listKey := storageClient.Events(event.AccountID, event.ApplicationID, event.UserID)
 		if err = storageEngine.ZRem(listKey, key).Err(); err != nil {
@@ -90,6 +104,10 @@ func DeleteEvent(accountID, applicationID, userID, eventID int64) (err error) {
 	if err = DeleteEventFromConnectionsLists(accountID, applicationID, userID, key); err != nil {
 		return err
 	}
+
+	geoEventKey := storageClient.EventGeoKey(accountID, applicationID)
+
+	georedis.RemoveCoordinatesByKeys(storageEngine, geoEventKey, key)
 
 	return nil
 }
@@ -134,6 +152,7 @@ func ReadConnectionEventList(accountID, applicationID, userID int64) (events []*
 		return nil, err
 	}
 
+	// TODO maybe this shouldn't be an error but rather return that there are no events from connections
 	if len(result) == 0 {
 		err := errors.New("There are no events from connections")
 		return nil, err
@@ -182,6 +201,16 @@ func WriteEvent(event *entity.Event, retrieve bool) (evn *entity.Event, err erro
 	if err = storageEngine.ZAdd(listKey, setVal).Err(); err != nil {
 		return nil, err
 	}
+
+	coordinates := georedis.GeoKey{
+		Lat:   event.Latitude,
+		Lon:   event.Longitude,
+		Label: key,
+	}
+
+	geoEventKey := storageClient.EventGeoKey(event.AccountID, event.ApplicationID)
+
+	georedis.AddCoordinates(storageEngine, geoEventKey, 52, coordinates)
 
 	if err = WriteEventToConnectionsLists(event, key); err != nil {
 		return nil, err
@@ -232,4 +261,29 @@ func DeleteEventFromConnectionsLists(accountID, applicationID, userID int64, key
 	}
 
 	return nil
+}
+
+func SearchGeoEvents(accountID, applicationID int64, latitude, longitude, radius float64) (events []*entity.Event, err error) {
+	geoEventKey := storageClient.EventGeoKey(accountID, applicationID)
+
+	eventKeys, err := georedis.SearchByRadius(storageEngine, geoEventKey, latitude, longitude, radius, 52)
+	if err != nil {
+		return events, err
+	}
+
+	resultList, err := storageEngine.MGet(eventKeys...).Result()
+	if err != nil {
+		return nil, err
+	}
+
+	event := &entity.Event{}
+	for _, result := range resultList {
+		if err = json.Unmarshal([]byte(result.(string)), event); err != nil {
+			return nil, err
+		}
+		events = append(events, event)
+		event = &entity.Event{}
+	}
+
+	return
 }

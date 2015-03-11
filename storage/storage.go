@@ -53,8 +53,9 @@ const (
 	followsUsers    = "acc:%d:app:%d:user:%d:followsUsers"
 	followedByUsers = "acc:%d:app:%d:user:%d:follwedByUsers"
 
-	event  = "acc:%d:app:%d:user:%d:event:%d"
-	events = "acc:%d:app:%d:user:%d:events"
+	event       = "acc:%d:app:%d:user:%d:event:%d"
+	eventGeoKey = "acc:%d:app:%d:geoevents"
+	events      = "acc:%d:app:%d:user:%d:events"
 
 	connectionEvents     = "acc:%d:app:%d:user:%d:connectionEvents"
 	connectionEventsLoop = "%s:connectionEvents"
@@ -267,6 +268,11 @@ func (client *Client) Users(accountID, applicationID int64) string {
 // Event gets the key for an event
 func (client *Client) Event(accountID, applicationID, userID, eventID int64) string {
 	return fmt.Sprintf(event, accountID, applicationID, userID, eventID)
+}
+
+// Event gets the key for an event
+func (client *Client) EventGeoKey(accountID, applicationID int64) string {
+	return fmt.Sprintf(eventGeoKey, accountID, applicationID)
 }
 
 // Events get the key for the events list

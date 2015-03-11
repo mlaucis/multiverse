@@ -157,6 +157,8 @@ type (
 		Language      string         `json:"language"`
 		Prioritity    string         `json:"priority,omitempty"`
 		Location      string         `json:"location,omitempty"`
+		Latitude      float64        `json:"latitude,omitempty"`
+		Longitude     float64        `json:"longitude,omitempty"`
 		Object        *Object        `json:"object"`
 		Target        *Object        `json:"target,omitempty"`
 		Instrument    *Object        `json:"instrument,omitempty"`

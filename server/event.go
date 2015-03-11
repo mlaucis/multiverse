@@ -301,5 +301,55 @@ func createEvent(ctx *context) {
 	writeResponse(ctx, event, http.StatusCreated, 0)
 }
 
+// getConnectionEventList handles requests to retrieve a users connections events
+// Request: GET account/:AccountID/application/:ApplicationID/user/:UserID/connections/events
+func getGeoEventList(ctx *context) {
+	var (
+		events                      = []*entity.Event{}
+		accountID, applicationID    int64
+		latitude, longitude, radius float64
+		err                         error
+	)
+
+	if accountID, err = strconv.ParseInt(ctx.vars["accountId"], 10, 64); err != nil {
+		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest)
+		return
+	}
+
+	if applicationID, err = strconv.ParseInt(ctx.vars["applicationId"], 10, 64); err != nil {
+		errorHappened(ctx, "applicationId is not set or the value is incorrect", http.StatusBadRequest)
+		return
+	}
+
+	if latitude, err = strconv.ParseFloat(ctx.vars["latitude"], 64); err != nil {
+		errorHappened(ctx, "latitude is not set or the value is incorrect", http.StatusBadRequest)
+		return
+	}
+
+	if longitude, err = strconv.ParseFloat(ctx.vars["longitude"], 64); err != nil {
+		errorHappened(ctx, "longitude is not set or the value is incorrect", http.StatusBadRequest)
+		return
+	}
+
+	if radius, err = strconv.ParseFloat(ctx.vars["radius"], 64); err != nil {
+		errorHappened(ctx, "radius is not set or the value is incorrect", http.StatusBadRequest)
+		return
+	}
+
+	if events, err = core.SearchGeoEvents(accountID, applicationID, latitude, longitude, radius); err != nil {
+		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
+		return
+	}
+
+	response := struct {
+		ApplicationID int64           `json:"applicationId"`
+		Events        []*entity.Event `json:"events"`
+	}{
+		ApplicationID: applicationID,
+		Events:        events,
+	}
+
+	writeResponse(ctx, response, http.StatusOK, 10)
+}
+
 // TODO: Endpoint to retrieve events per object
-// TODO: Endpoint to retrieve events per geo location + radius
