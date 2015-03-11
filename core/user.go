@@ -182,13 +182,8 @@ func CreateApplicationUserSession(user *entity.User) (string, error) {
 	sessionKey := storageClient.ApplicationSessionKey(user.AccountID, user.ApplicationID, user.ID)
 	token := storageClient.GenerateApplicationSessionID(user)
 
-	stored, err := storageEngine.SetNX(sessionKey, token).Result()
-	if err != nil {
+	if err := storageEngine.Set(sessionKey, token).Err(); err != nil {
 		return "", err
-	}
-
-	if !stored {
-		return "", fmt.Errorf("previous session not terminated")
 	}
 
 	expired, err := storageEngine.Expire(sessionKey, storageClient.SessionTimeoutDuration()).Result()

@@ -251,3 +251,60 @@ func (s *ServerSuite) TestGetUser_WrongID(c *C) {
 
 	c.Assert(code, Equals, http.StatusInternalServerError)
 }
+
+// Test a correct loginUser request
+func (s *ServerSuite) TestLoginUser_OK(c *C) {
+	correctAccount, err := AddCorrectAccount(true)
+	c.Assert(err, IsNil)
+
+	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
+	c.Assert(err, IsNil)
+
+	correctUser, err := AddCorrectUser(correctAccount.ID, correctApplication.ID, true)
+	c.Assert(err, IsNil)
+
+	payload := fmt.Sprintf(
+		`{"email": "%s", "password": "%s"}`,
+		correctUser.Email,
+		"password",
+	)
+
+	routeName := "loginUser"
+	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID)
+	code, body, err := runRequest(routeName, route, payload, correctApplication.AuthToken, "", 3)
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusCreated)
+	c.Assert(body, Not(Equals), "")
+}
+
+// Test a correct logoutUser request
+func (s *ServerSuite) TestLogoutUser_OK(c *C) {
+	correctAccount, err := AddCorrectAccount(true)
+	c.Assert(err, IsNil)
+
+	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
+	c.Assert(err, IsNil)
+
+	correctUser, err := AddCorrectUser(correctAccount.ID, correctApplication.ID, true)
+	c.Assert(err, IsNil)
+
+	payload := fmt.Sprintf(
+		`{"email": "%s", "password": "%s"}`,
+		correctUser.Email,
+		"password",
+	)
+
+	routeName := "loginUser"
+	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID)
+	code, body, err := runRequest(routeName, route, payload, correctApplication.AuthToken, "", 3)
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusCreated)
+	c.Assert(body, Not(Equals), "")
+
+	routeName = "logoutUser"
+	route = getComposedRoute(routeName, correctAccount.ID, correctApplication.ID)
+	code, body, err = runRequest(routeName, route, payload, correctApplication.AuthToken, getApplicationUserSessionToken(correctUser), 3)
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusOK)
+	c.Assert(body, Not(Equals), "")
+}

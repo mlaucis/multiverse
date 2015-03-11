@@ -12,9 +12,11 @@ import (
 )
 
 const (
-	logFormat      = "%s\t%s\t%s\t%s\t%s\t%+v\t%s\t%s\n"
-	curlGetFormat  = "curl -i %s http://localhost:8082%s"
-	curlPostFormat = "curl -i -X POST %s -d '%s' http://localhost:8082%s"
+	logFormat        = "%s\t%s\t%s\t%s\t%s\t%+v\t%s\t%s\n"
+	curlGetFormat    = "curl -i %s http://api.tapglue.com%s"
+	curlPostFormat   = "curl -i -X POST %s -d '%s' http://api.tapglue.com%s"
+	curlPutFormat    = "curl -i -X PUT %s -d '%s' http://api.tapglue.com%s"
+	curlDeleteFormat = "curl -i -X DELETE %s http://api.tapglue.com%s"
 )
 
 type (
@@ -76,6 +78,10 @@ func TGCurlLog(msg chan *LogMsg) {
 					log.Printf(curlGetFormat, getCurlHeaders(m.Headers), m.RequestURI)
 				case "POST":
 					log.Printf(curlPostFormat, getCurlHeaders(m.Headers), m.Payload, m.RequestURI)
+				case "PUT":
+					log.Printf(curlPutFormat, getCurlHeaders(m.Headers), m.Payload, m.RequestURI)
+				case "DELETE":
+					log.Printf(curlDeleteFormat, getCurlHeaders(m.Headers), m.RequestURI)
 				default:
 					log.Printf("unexpected curl request\n")
 				}

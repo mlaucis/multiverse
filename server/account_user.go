@@ -210,7 +210,7 @@ func loginAccountUser(ctx *context) {
 		return
 	}
 
-	_, user, err := core.FindAccountAndUserByEmail(loginPayload.Email)
+	account, user, err := core.FindAccountAndUserByEmail(loginPayload.Email)
 	if err != nil {
 		errorHappened(ctx, err.Error(), http.StatusBadRequest)
 		return
@@ -227,8 +227,12 @@ func loginAccountUser(ctx *context) {
 	}
 
 	writeResponse(ctx, struct {
-		Token string `json:"token"`
-	}{Token: sessionToken}, http.StatusCreated, 0)
+		AccountToken string `json:"account_token"`
+		Token        string `json:"token"`
+	}{
+		AccountToken: account.AuthToken,
+		Token:        sessionToken,
+	}, http.StatusCreated, 0)
 }
 
 // refreshApplicationUserSession handles the requests to refresh the user session token

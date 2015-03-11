@@ -358,7 +358,13 @@ func getComposedRoute(routeName string, params ...interface{}) string {
 		panic(fmt.Errorf("You requested a route, %s, that does not exists in the routing table for version %s\n", routeName, apiVersion))
 	}
 
-	return fmt.Sprintf(routes[apiVersion][routeName].composePattern(apiVersion), params...)
+	pattern := routes[apiVersion][routeName].composePattern(apiVersion)
+
+	if len(params) == 0 {
+		return pattern
+	}
+
+	return fmt.Sprintf(pattern, params...)
 }
 
 // runRequest takes a route, path, payload and token, performs a request and return a response recorder
