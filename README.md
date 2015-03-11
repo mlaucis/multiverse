@@ -3,7 +3,7 @@
 This repository contains the implementation of tapglues backend.
 
 [![wercker status](https://app.wercker.com/status/30d0fe9ba708b77cf2bc5334458490ed/s/master "wercker status")](https://app.wercker.com/project/bykey/30d0fe9ba708b77cf2bc5334458490ed)
-[![codecov.io](https://codecov.io/github/tapglue/backend/coverage.svg?token=OHlqgNOv66&branch=HEAD)](https://codecov.io/github/tapglue/backend?branch=HEAD)
+[![codecov.io](https://codecov.io/github/tapglue/backend/coverage.svg?token=OHlqgNOv66&branch=master)](https://codecov.io/github/tapglue/backend?branch=master)
 
 ## Documentation
 
