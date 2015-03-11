@@ -74,7 +74,7 @@ func (s *ServerSuite) TestUpdateAccount_OK(c *C) {
 	code, body, err := runRequest(routeName, route, payload, correctAccount.AuthToken, getAccountUserSessionToken(correctAccountUser), 2)
 	c.Assert(err, IsNil)
 
-	c.Assert(code, Equals, http.StatusOK)
+	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
 
 	account := &entity.Account{}
