@@ -263,6 +263,7 @@ func DeleteEventFromConnectionsLists(accountID, applicationID, userID int64, key
 	return nil
 }
 
+// SearchGeoEvents retrieves all the events from an application within a radius of the provided coordinates
 func SearchGeoEvents(accountID, applicationID int64, latitude, longitude, radius float64) (events []*entity.Event, err error) {
 	geoEventKey := storageClient.EventGeoKey(accountID, applicationID)
 

@@ -155,7 +155,7 @@ type (
 		UserID        int64          `json:"user_id"`
 		Verb          string         `json:"verb"`
 		Language      string         `json:"language"`
-		Prioritity    string         `json:"priority,omitempty"`
+		Priority      string         `json:"priority,omitempty"`
 		Location      string         `json:"location,omitempty"`
 		Latitude      float64        `json:"latitude,omitempty"`
 		Longitude     float64        `json:"longitude,omitempty"`
