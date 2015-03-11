@@ -71,7 +71,7 @@ func updateAccount(ctx *context) {
 		return
 	}
 
-	writeResponse(ctx, account, http.StatusOK, 10)
+	writeResponse(ctx, account, http.StatusCreated, 10)
 }
 
 // deleteAccount handles requests to delete a single account
