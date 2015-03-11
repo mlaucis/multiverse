@@ -41,22 +41,22 @@ var (
 		URL:         "http://app.co",
 	}
 	correctUser = &entity.User{
-		AuthToken: "userToken123",
+		AuthToken: "customSecureTokne",
 		UserCommon: entity.UserCommon{
-			Username:  "Demo User",
-			FirstName: "Florin",
-			LastName:  "Patan",
+			Username:  "demouser",
+			FirstName: "Demo",
+			LastName:  "User",
 			Password:  "password",
-			Email:     "d@m.o",
-			URL:       "http://link.to/userToken123",
+			Email:     "user@tapglue.com",
+			URL:       "http://tapglue.com/users/1/demouser",
 		},
 		Common: entity.Common{
 			Image: []*entity.Image{
 				&entity.Image{
-					URL: "http://link.to/userthumbnail.jpg",
+					URL: "http://images.tapglue.com/1/demouser/profile.jpg",
 				},
 			},
-			Metadata: "{\"more\":\"data\"}",
+			Metadata: "{\"customData\":\"customValue\"}",
 		},
 	}
 	correctConnection = &entity.Connection{

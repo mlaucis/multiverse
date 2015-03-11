@@ -13,7 +13,6 @@ import (
 	"strconv"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/tapglue/backend/config"
 	"github.com/tapglue/backend/core"
@@ -334,8 +333,8 @@ func (s *ServerSuite) TestRobots_OK(c *C) {
 
 // createCommonRequestHeaders create a correct request header
 func createCommonRequestHeaders(req *http.Request) {
-	req.Header.Add("x-tapglue-date", time.Now().Format(time.RFC3339))
-	req.Header.Add("User-Agent", "go test (+localhost)")
+	//req.Header.Add("x-tapglue-date", time.Now().Format(time.RFC3339))
+	req.Header.Add("User-Agent", "Tapglue Test UA")
 	payload := PeakBody(req).Bytes()
 	if len(payload) > 0 {
 		req.Header.Add("Content-Type", "application/json")
