@@ -66,13 +66,14 @@ func UpdateEvent(event *entity.Event, retrieve bool) (evn *entity.Event, err err
 	georedis.RemoveCoordinatesByKeys(storageEngine, geoEventKey, key)
 	georedis.AddCoordinates(storageEngine, geoEventKey, 52, coordinates)
 
-	objectEventKey := storageClient.EventObjectKey(event.AccountID, event.ApplicationID, event.Object.ID)
-	if err = storageEngine.SRem(objectEventKey, key).Err(); err != nil {
-		return nil, err
-	}
-
-	if err = storageEngine.SAdd(objectEventKey, key).Err(); err != nil {
-		return nil, err
+	if event.Object != nil {
+		objectEventKey := storageClient.EventObjectKey(event.AccountID, event.ApplicationID, event.Object.ID)
+		if err = storageEngine.SRem(objectEventKey, key).Err(); err != nil {
+			return nil, err
+		}
+		if err = storageEngine.SAdd(objectEventKey, key).Err(); err != nil {
+			return nil, err
+		}
 	}
 
 	locationEventKey := storageClient.EventLocationKey(event.AccountID, event.ApplicationID, event.Location)
@@ -227,9 +228,11 @@ func WriteEvent(event *entity.Event, retrieve bool) (evn *entity.Event, err erro
 	geoEventKey := storageClient.EventGeoKey(event.AccountID, event.ApplicationID)
 	georedis.AddCoordinates(storageEngine, geoEventKey, 52, coordinates)
 
-	objectEventKey := storageClient.EventObjectKey(event.AccountID, event.ApplicationID, event.Object.ID)
-	if err = storageEngine.SAdd(objectEventKey, key).Err(); err != nil {
-		return nil, err
+	if event.Object != nil {
+		objectEventKey := storageClient.EventObjectKey(event.AccountID, event.ApplicationID, event.Object.ID)
+		if err = storageEngine.SAdd(objectEventKey, key).Err(); err != nil {
+			return nil, err
+		}
 	}
 
 	locationEventKey := storageClient.EventLocationKey(event.AccountID, event.ApplicationID, event.Location)
