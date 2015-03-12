@@ -17,6 +17,7 @@ import (
 	"github.com/tapglue/backend/config"
 	"github.com/tapglue/backend/core"
 	"github.com/tapglue/backend/core/entity"
+	"github.com/tapglue/backend/logger"
 	"github.com/tapglue/backend/storage"
 	"github.com/tapglue/backend/storage/redis"
 	. "github.com/tapglue/backend/utils"
@@ -63,28 +64,17 @@ func (s *ServerSuite) SetUpTest(c *C) {
 
 	if *doLogTest {
 		// overwrite log channel to make it blocking
-		mainLogChan = make(chan *LogMsg)
-		errorLogChan = make(chan *LogMsg)
+		mainLogChan = make(chan *logger.LogMsg)
+		errorLogChan = make(chan *logger.LogMsg)
 		if *doCurlLogs {
-			go TGCurlLog(mainLogChan)
+			go logger.TGCurlLog(mainLogChan)
 		} else {
-			go TGLog(mainLogChan)
+			go logger.TGLog(mainLogChan)
 		}
-		go TGLog(errorLogChan)
+		go logger.TGLog(errorLogChan)
 	} else {
-		go tgSilentLog(mainLogChan)
-		go tgSilentLog(errorLogChan)
-	}
-}
-
-func tgSilentLog(msg chan *LogMsg) {
-	for {
-		select {
-		case m := <-msg:
-			{
-				_ = m
-			}
-		}
+		go logger.TGSilentLog(mainLogChan)
+		go logger.TGSilentLog(errorLogChan)
 	}
 }
 

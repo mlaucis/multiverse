@@ -19,6 +19,7 @@ import (
 
 	"github.com/tapglue/backend/config"
 	"github.com/tapglue/backend/core"
+	"github.com/tapglue/backend/logger"
 	"github.com/tapglue/backend/server"
 	"github.com/tapglue/backend/storage"
 	"github.com/tapglue/backend/storage/redis"
@@ -73,8 +74,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	go server.TGLog(mainLogChan)
-	go server.TGLog(errorLogChan)
+	go logger.TGLog(mainLogChan)
+	go logger.TGLog(errorLogChan)
 
 	if conf.UseArtwork {
 		log.Printf(`

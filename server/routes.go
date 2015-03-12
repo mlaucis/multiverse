@@ -4,9 +4,11 @@
 
 package server
 
+import "github.com/tapglue/backend/context"
+
 // Route structure
 type (
-	routeFunc func(*context)
+	routeFunc func(*context.Context)
 
 	route struct {
 		method   string

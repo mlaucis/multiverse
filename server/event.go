@@ -6,10 +6,10 @@ package server
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 
+	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/core"
 	"github.com/tapglue/backend/core/entity"
 	"github.com/tapglue/backend/validator"
@@ -17,7 +17,7 @@ import (
 
 // getEvent handles requests to retrieve a single event
 // Request: GET account/:AccountID/application/:ApplicationID/event/:EventID
-func getEvent(ctx *context) {
+func getEvent(ctx *context.Context) {
 	var (
 		event         = &entity.Event{}
 		accountID     int64
@@ -27,28 +27,28 @@ func getEvent(ctx *context) {
 		err           error
 	)
 
-	if accountID, err = strconv.ParseInt(ctx.vars["accountId"], 10, 64); err != nil {
-		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest)
+	if accountID, err = strconv.ParseInt(ctx.Vars["accountId"], 10, 64); err != nil {
+		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest, err)
 		return
 	}
 
-	if applicationID, err = strconv.ParseInt(ctx.vars["applicationId"], 10, 64); err != nil {
-		errorHappened(ctx, "applicationId is not set or the value is incorrect", http.StatusBadRequest)
+	if applicationID, err = strconv.ParseInt(ctx.Vars["applicationId"], 10, 64); err != nil {
+		errorHappened(ctx, "applicationId is not set or the value is incorrect", http.StatusBadRequest, err)
 		return
 	}
 
-	if userID, err = strconv.ParseInt(ctx.vars["userId"], 10, 64); err != nil {
-		errorHappened(ctx, "userId is not set or the value is incorrect", http.StatusBadRequest)
+	if userID, err = strconv.ParseInt(ctx.Vars["userId"], 10, 64); err != nil {
+		errorHappened(ctx, "userId is not set or the value is incorrect", http.StatusBadRequest, err)
 		return
 	}
 
-	if eventID, err = strconv.ParseInt(ctx.vars["eventId"], 10, 64); err != nil {
-		errorHappened(ctx, "eventId is not set or the value is incorrect", http.StatusBadRequest)
+	if eventID, err = strconv.ParseInt(ctx.Vars["eventId"], 10, 64); err != nil {
+		errorHappened(ctx, "eventId is not set or the value is incorrect", http.StatusBadRequest, err)
 		return
 	}
 
 	if event, err = core.ReadEvent(accountID, applicationID, userID, eventID); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
+		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
 		return
 	}
 
@@ -57,7 +57,7 @@ func getEvent(ctx *context) {
 
 // updateEvent handles requests to update an event
 // Request: PUT account/:AccountID/application/:ApplicationID/event/:EventID
-func updateEvent(ctx *context) {
+func updateEvent(ctx *context.Context) {
 	var (
 		event         = &entity.Event{}
 		accountID     int64
@@ -67,29 +67,29 @@ func updateEvent(ctx *context) {
 		err           error
 	)
 
-	if accountID, err = strconv.ParseInt(ctx.vars["accountId"], 10, 64); err != nil {
-		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest)
+	if accountID, err = strconv.ParseInt(ctx.Vars["accountId"], 10, 64); err != nil {
+		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest, err)
 		return
 	}
 
-	if applicationID, err = strconv.ParseInt(ctx.vars["applicationId"], 10, 64); err != nil {
-		errorHappened(ctx, "applicationId is not set or the value is incorrect", http.StatusBadRequest)
+	if applicationID, err = strconv.ParseInt(ctx.Vars["applicationId"], 10, 64); err != nil {
+		errorHappened(ctx, "applicationId is not set or the value is incorrect", http.StatusBadRequest, err)
 		return
 	}
 
-	if userID, err = strconv.ParseInt(ctx.vars["userId"], 10, 64); err != nil {
-		errorHappened(ctx, "userId is not set or the value is incorrect", http.StatusBadRequest)
+	if userID, err = strconv.ParseInt(ctx.Vars["userId"], 10, 64); err != nil {
+		errorHappened(ctx, "userId is not set or the value is incorrect", http.StatusBadRequest, err)
 		return
 	}
 
-	if eventID, err = strconv.ParseInt(ctx.vars["eventId"], 10, 64); err != nil {
-		errorHappened(ctx, "eventId is not set or the value is incorrect", http.StatusBadRequest)
+	if eventID, err = strconv.ParseInt(ctx.Vars["eventId"], 10, 64); err != nil {
+		errorHappened(ctx, "eventId is not set or the value is incorrect", http.StatusBadRequest, err)
 		return
 	}
 
-	decoder := json.NewDecoder(ctx.body)
+	decoder := json.NewDecoder(ctx.Body)
 	if err = decoder.Decode(event); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusBadRequest)
+		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
@@ -107,12 +107,12 @@ func updateEvent(ctx *context) {
 	}
 
 	if err = validator.UpdateEvent(event); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusBadRequest)
+		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
 	if event, err = core.UpdateEvent(event, true); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
+		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
 		return
 	}
 
@@ -121,7 +121,7 @@ func updateEvent(ctx *context) {
 
 // deleteEvent handles requests to delete a single event
 // Request: DELETE account/:AccountID/application/:ApplicationID/event/:EventID
-func deleteEvent(ctx *context) {
+func deleteEvent(ctx *context.Context) {
 	var (
 		accountID     int64
 		applicationID int64
@@ -130,28 +130,28 @@ func deleteEvent(ctx *context) {
 		err           error
 	)
 
-	if accountID, err = strconv.ParseInt(ctx.vars["accountId"], 10, 64); err != nil {
-		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest)
+	if accountID, err = strconv.ParseInt(ctx.Vars["accountId"], 10, 64); err != nil {
+		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest, err)
 		return
 	}
 
-	if applicationID, err = strconv.ParseInt(ctx.vars["applicationId"], 10, 64); err != nil {
-		errorHappened(ctx, "applicationId is not set or the value is incorrect", http.StatusBadRequest)
+	if applicationID, err = strconv.ParseInt(ctx.Vars["applicationId"], 10, 64); err != nil {
+		errorHappened(ctx, "applicationId is not set or the value is incorrect", http.StatusBadRequest, err)
 		return
 	}
 
-	if userID, err = strconv.ParseInt(ctx.vars["userId"], 10, 64); err != nil {
-		errorHappened(ctx, "userId is not set or the value is incorrect", http.StatusBadRequest)
+	if userID, err = strconv.ParseInt(ctx.Vars["userId"], 10, 64); err != nil {
+		errorHappened(ctx, "userId is not set or the value is incorrect", http.StatusBadRequest, err)
 		return
 	}
 
-	if eventID, err = strconv.ParseInt(ctx.vars["eventId"], 10, 64); err != nil {
-		errorHappened(ctx, "eventId is not set or the value is incorrect", http.StatusBadRequest)
+	if eventID, err = strconv.ParseInt(ctx.Vars["eventId"], 10, 64); err != nil {
+		errorHappened(ctx, "eventId is not set or the value is incorrect", http.StatusBadRequest, err)
 		return
 	}
 
 	if err = core.DeleteEvent(accountID, applicationID, userID, eventID); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
+		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
 		return
 	}
 
@@ -160,7 +160,7 @@ func deleteEvent(ctx *context) {
 
 // getEventList handles requests to retrieve a users events
 // Request: GET account/:AccountID/application/:ApplicationID/user/:UserID/events
-func getEventList(ctx *context) {
+func getEventList(ctx *context.Context) {
 	var (
 		events        []*entity.Event
 		user          *entity.User
@@ -170,28 +170,28 @@ func getEventList(ctx *context) {
 		err           error
 	)
 
-	if accountID, err = strconv.ParseInt(ctx.vars["accountId"], 10, 64); err != nil {
-		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest)
+	if accountID, err = strconv.ParseInt(ctx.Vars["accountId"], 10, 64); err != nil {
+		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest, err)
 		return
 	}
 
-	if applicationID, err = strconv.ParseInt(ctx.vars["applicationId"], 10, 64); err != nil {
-		errorHappened(ctx, "applicationId is not set or the value is incorrect", http.StatusBadRequest)
+	if applicationID, err = strconv.ParseInt(ctx.Vars["applicationId"], 10, 64); err != nil {
+		errorHappened(ctx, "applicationId is not set or the value is incorrect", http.StatusBadRequest, err)
 		return
 	}
 
-	if userID, err = strconv.ParseInt(ctx.vars["userId"], 10, 64); err != nil {
-		errorHappened(ctx, "userId is not set or the value is incorrect", http.StatusBadRequest)
+	if userID, err = strconv.ParseInt(ctx.Vars["userId"], 10, 64); err != nil {
+		errorHappened(ctx, "userId is not set or the value is incorrect", http.StatusBadRequest, err)
 		return
 	}
 
 	if user, err = core.ReadApplicationUser(accountID, applicationID, userID); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
+		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
 		return
 	}
 
 	if events, err = core.ReadEventList(accountID, applicationID, userID); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusBadRequest)
+		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
@@ -210,7 +210,7 @@ func getEventList(ctx *context) {
 
 // getConnectionEventList handles requests to retrieve a users connections events
 // Request: GET account/:AccountID/application/:ApplicationID/user/:UserID/connections/events
-func getConnectionEventList(ctx *context) {
+func getConnectionEventList(ctx *context.Context) {
 	var (
 		events        = []*entity.Event{}
 		accountID     int64
@@ -219,23 +219,23 @@ func getConnectionEventList(ctx *context) {
 		err           error
 	)
 
-	if accountID, err = strconv.ParseInt(ctx.vars["accountId"], 10, 64); err != nil {
-		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest)
+	if accountID, err = strconv.ParseInt(ctx.Vars["accountId"], 10, 64); err != nil {
+		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest, err)
 		return
 	}
 
-	if applicationID, err = strconv.ParseInt(ctx.vars["applicationId"], 10, 64); err != nil {
-		errorHappened(ctx, "applicationId is not set or the value is incorrect", http.StatusBadRequest)
+	if applicationID, err = strconv.ParseInt(ctx.Vars["applicationId"], 10, 64); err != nil {
+		errorHappened(ctx, "applicationId is not set or the value is incorrect", http.StatusBadRequest, err)
 		return
 	}
 
-	if userID, err = strconv.ParseInt(ctx.vars["userId"], 10, 64); err != nil {
-		errorHappened(ctx, "userId is not set or the value is incorrect", http.StatusBadRequest)
+	if userID, err = strconv.ParseInt(ctx.Vars["userId"], 10, 64); err != nil {
+		errorHappened(ctx, "userId is not set or the value is incorrect", http.StatusBadRequest, err)
 		return
 	}
 
 	if events, err = core.ReadConnectionEventList(accountID, applicationID, userID); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
+		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
 		return
 	}
 
@@ -254,7 +254,7 @@ func getConnectionEventList(ctx *context) {
 
 // createEvent handles requests to create an event
 // Request: POST account/:AccountID/application/:ApplicationID/user/:UserID/events
-func createEvent(ctx *context) {
+func createEvent(ctx *context.Context) {
 	var (
 		event         = &entity.Event{}
 		accountID     int64
@@ -263,24 +263,24 @@ func createEvent(ctx *context) {
 		err           error
 	)
 
-	if accountID, err = strconv.ParseInt(ctx.vars["accountId"], 10, 64); err != nil {
-		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest)
+	if accountID, err = strconv.ParseInt(ctx.Vars["accountId"], 10, 64); err != nil {
+		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest, err)
 		return
 	}
 
-	if applicationID, err = strconv.ParseInt(ctx.vars["applicationId"], 10, 64); err != nil {
-		errorHappened(ctx, "applicationId is not set or the value is incorrect", http.StatusBadRequest)
+	if applicationID, err = strconv.ParseInt(ctx.Vars["applicationId"], 10, 64); err != nil {
+		errorHappened(ctx, "applicationId is not set or the value is incorrect", http.StatusBadRequest, err)
 		return
 	}
 
-	if userID, err = strconv.ParseInt(ctx.vars["userId"], 10, 64); err != nil {
-		errorHappened(ctx, "userId is not set or the value is incorrect", http.StatusBadRequest)
+	if userID, err = strconv.ParseInt(ctx.Vars["userId"], 10, 64); err != nil {
+		errorHappened(ctx, "userId is not set or the value is incorrect", http.StatusBadRequest, err)
 		return
 	}
 
-	decoder := json.NewDecoder(ctx.body)
+	decoder := json.NewDecoder(ctx.Body)
 	if err = decoder.Decode(event); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusBadRequest)
+		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
@@ -289,12 +289,12 @@ func createEvent(ctx *context) {
 	event.UserID = userID
 
 	if err = validator.CreateEvent(event); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusBadRequest)
+		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
 	if event, err = core.WriteEvent(event, true); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
+		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
 		return
 	}
 
@@ -303,7 +303,7 @@ func createEvent(ctx *context) {
 
 // getConnectionEventList handles requests to retrieve a users connections events
 // Request: GET account/:accountID/application/:applicationID/events/geo/:latitude/:longitude/:radis
-func getGeoEventList(ctx *context) {
+func getGeoEventList(ctx *context.Context) {
 	var (
 		events                      = []*entity.Event{}
 		accountID, applicationID    int64
@@ -311,33 +311,33 @@ func getGeoEventList(ctx *context) {
 		err                         error
 	)
 
-	if accountID, err = strconv.ParseInt(ctx.vars["accountId"], 10, 64); err != nil {
-		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest)
+	if accountID, err = strconv.ParseInt(ctx.Vars["accountId"], 10, 64); err != nil {
+		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest, err)
 		return
 	}
 
-	if applicationID, err = strconv.ParseInt(ctx.vars["applicationId"], 10, 64); err != nil {
-		errorHappened(ctx, "applicationId is not set or the value is incorrect", http.StatusBadRequest)
+	if applicationID, err = strconv.ParseInt(ctx.Vars["applicationId"], 10, 64); err != nil {
+		errorHappened(ctx, "applicationId is not set or the value is incorrect", http.StatusBadRequest, err)
 		return
 	}
 
-	if latitude, err = strconv.ParseFloat(ctx.vars["latitude"], 64); err != nil {
-		errorHappened(ctx, "latitude is not set or the value is incorrect", http.StatusBadRequest)
+	if latitude, err = strconv.ParseFloat(ctx.Vars["latitude"], 64); err != nil {
+		errorHappened(ctx, "latitude is not set or the value is incorrect", http.StatusBadRequest, err)
 		return
 	}
 
-	if longitude, err = strconv.ParseFloat(ctx.vars["longitude"], 64); err != nil {
-		errorHappened(ctx, "longitude is not set or the value is incorrect", http.StatusBadRequest)
+	if longitude, err = strconv.ParseFloat(ctx.Vars["longitude"], 64); err != nil {
+		errorHappened(ctx, "longitude is not set or the value is incorrect", http.StatusBadRequest, err)
 		return
 	}
 
-	if radius, err = strconv.ParseFloat(ctx.vars["radius"], 64); err != nil {
-		errorHappened(ctx, "radius is not set or the value is incorrect", http.StatusBadRequest)
+	if radius, err = strconv.ParseFloat(ctx.Vars["radius"], 64); err != nil {
+		errorHappened(ctx, "radius is not set or the value is incorrect", http.StatusBadRequest, err)
 		return
 	}
 
 	if events, err = core.SearchGeoEvents(accountID, applicationID, latitude, longitude, radius); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
+		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
 		return
 	}
 
@@ -354,7 +354,7 @@ func getGeoEventList(ctx *context) {
 
 // getConnectionEventList handles requests to retrieve a users connections events
 // Request: GET account/:accountID/application/:applicationID/events/geo/:latitude/:longitude/:radis
-func getObjectEventList(ctx *context) {
+func getObjectEventList(ctx *context.Context) {
 	var (
 		events                   = []*entity.Event{}
 		accountID, applicationID int64
@@ -362,20 +362,20 @@ func getObjectEventList(ctx *context) {
 		err                      error
 	)
 
-	if accountID, err = strconv.ParseInt(ctx.vars["accountId"], 10, 64); err != nil {
-		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest)
+	if accountID, err = strconv.ParseInt(ctx.Vars["accountId"], 10, 64); err != nil {
+		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest, err)
 		return
 	}
 
-	if applicationID, err = strconv.ParseInt(ctx.vars["applicationId"], 10, 64); err != nil {
-		errorHappened(ctx, "applicationId is not set or the value is incorrect", http.StatusBadRequest)
+	if applicationID, err = strconv.ParseInt(ctx.Vars["applicationId"], 10, 64); err != nil {
+		errorHappened(ctx, "applicationId is not set or the value is incorrect", http.StatusBadRequest, err)
 		return
 	}
 
-	objectKey = ctx.vars["objectKey"]
+	objectKey = ctx.Vars["objectKey"]
 
 	if events, err = core.SearchObjectEvents(accountID, applicationID, objectKey); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
+		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
 		return
 	}
 
@@ -392,7 +392,7 @@ func getObjectEventList(ctx *context) {
 
 // getConnectionEventList handles requests to retrieve a users connections events
 // Request: GET account/:accountID/application/:applicationID/events/geo/:latitude/:longitude/:radis
-func getLocationEventList(ctx *context) {
+func getLocationEventList(ctx *context.Context) {
 	var (
 		events                   = []*entity.Event{}
 		accountID, applicationID int64
@@ -400,20 +400,20 @@ func getLocationEventList(ctx *context) {
 		err                      error
 	)
 
-	if accountID, err = strconv.ParseInt(ctx.vars["accountId"], 10, 64); err != nil {
-		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest)
+	if accountID, err = strconv.ParseInt(ctx.Vars["accountId"], 10, 64); err != nil {
+		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest, err)
 		return
 	}
 
-	if applicationID, err = strconv.ParseInt(ctx.vars["applicationId"], 10, 64); err != nil {
-		errorHappened(ctx, "applicationId is not set or the value is incorrect", http.StatusBadRequest)
+	if applicationID, err = strconv.ParseInt(ctx.Vars["applicationId"], 10, 64); err != nil {
+		errorHappened(ctx, "applicationId is not set or the value is incorrect", http.StatusBadRequest, err)
 		return
 	}
 
-	location = ctx.vars["location"]
+	location = ctx.Vars["location"]
 
 	if events, err = core.SearchLocationEvents(accountID, applicationID, location); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
+		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
 		return
 	}
 

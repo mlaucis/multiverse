@@ -184,13 +184,13 @@ func (client *Client) GenerateApplicationSessionID(user *entity.User) string {
 
 // GenerateEncryptedPassword generates and encrypted password using the specific salt and time
 func (client *Client) GenerateEncryptedPassword(password, salt, time string) string {
-	return Base64Encode(Sha256String(
-		[]byte(Sha256String(
-			[]byte(Sha256String(
-				[]byte(password+salt),
-			)+time),
-		) + "passwd"),
-	))
+	return Base64Encode(
+		Sha256String(
+			Sha256String(
+				Sha256String(password+salt)+
+					time) +
+				"passwd"),
+	)
 }
 
 // EncryptPassword will encrypt a string with the password encryption algorithm

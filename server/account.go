@@ -6,10 +6,10 @@ package server
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 
+	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/core"
 	"github.com/tapglue/backend/core/entity"
 	"github.com/tapglue/backend/validator"
@@ -17,20 +17,20 @@ import (
 
 // getAccount handles requests to a single account
 // Request: GET /account/:AccountID
-func getAccount(ctx *context) {
+func getAccount(ctx *context.Context) {
 	var (
 		accountID int64
 		account   *entity.Account
 		err       error
 	)
 
-	if accountID, err = strconv.ParseInt(ctx.vars["accountId"], 10, 64); err != nil {
-		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest)
+	if accountID, err = strconv.ParseInt(ctx.Vars["accountId"], 10, 64); err != nil {
+		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest, err)
 		return
 	}
 
 	if account, err = core.ReadAccount(accountID); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
+		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
 		return
 	}
 
@@ -39,21 +39,21 @@ func getAccount(ctx *context) {
 
 // updateAccount handles requests to update a single account
 // Request: PUT /account/:AccountID
-func updateAccount(ctx *context) {
+func updateAccount(ctx *context.Context) {
 	var (
 		accountID int64
 		account   = &entity.Account{}
 		err       error
 	)
 
-	if accountID, err = strconv.ParseInt(ctx.vars["accountId"], 10, 64); err != nil {
-		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest)
+	if accountID, err = strconv.ParseInt(ctx.Vars["accountId"], 10, 64); err != nil {
+		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest, err)
 		return
 	}
 
-	decoder := json.NewDecoder(ctx.r.Body)
+	decoder := json.NewDecoder(ctx.R.Body)
 	if err = decoder.Decode(account); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusBadRequest)
+		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
@@ -62,12 +62,12 @@ func updateAccount(ctx *context) {
 	}
 
 	if err = validator.UpdateAccount(account); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusBadRequest)
+		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
 	if account, err = core.UpdateAccount(account, true); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
+		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
 		return
 	}
 
@@ -76,19 +76,19 @@ func updateAccount(ctx *context) {
 
 // deleteAccount handles requests to delete a single account
 // Request: DELETE /account/:AccountID
-func deleteAccount(ctx *context) {
+func deleteAccount(ctx *context.Context) {
 	var (
 		accountID int64
 		err       error
 	)
 
-	if accountID, err = strconv.ParseInt(ctx.vars["accountId"], 10, 64); err != nil {
-		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest)
+	if accountID, err = strconv.ParseInt(ctx.Vars["accountId"], 10, 64); err != nil {
+		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest, err)
 		return
 	}
 
 	if err = core.DeleteAccount(accountID); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
+		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
 		return
 	}
 
@@ -97,25 +97,25 @@ func deleteAccount(ctx *context) {
 
 // createAccount handles requests create an account
 // Request: POST /accounts
-func createAccount(ctx *context) {
+func createAccount(ctx *context.Context) {
 	var (
 		account = &entity.Account{}
 		err     error
 	)
 
-	decoder := json.NewDecoder(ctx.body)
+	decoder := json.NewDecoder(ctx.Body)
 	if err = decoder.Decode(account); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusBadRequest)
+		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
 	if err = validator.CreateAccount(account); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusBadRequest)
+		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
 	if account, err = core.WriteAccount(account, true); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
+		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
 		return
 	}
 

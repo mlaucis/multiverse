@@ -1,8 +1,10 @@
 /**
  * @author Onur Akpolat <onurakpolat@gmail.com>
+ * @author Florin Patan <florinpatan@gmail.com>
  */
 
-package server
+// Package logger provides logging functionality to the backend
+package logger
 
 import (
 	"fmt"
@@ -12,7 +14,7 @@ import (
 )
 
 const (
-	logFormat        = "%s\t%s\t%s\t%s\t%s\t%+v\t%s\t%s\n"
+	logFormat        = "%s\t%s\t%d\t%s\t%s\t%s\t%+v\t%s\t%s\t%s\n"
 	curlGetFormat    = "curl -i %s http://api.tapglue.com%s"
 	curlPostFormat   = "curl -i -X POST %s -d '%s' http://api.tapglue.com%s"
 	curlPutFormat    = "curl -i -X PUT %s -d '%s' http://api.tapglue.com%s"
@@ -23,12 +25,15 @@ type (
 	//LogMsg defines the log message fields
 	LogMsg struct {
 		RemoteAddr string
+		StatusCode int
 		Method     string
 		RequestURI string
 		Name       string
 		Message    string
+		RawError   error
 		Headers    http.Header
 		Payload    string
+		Location   string
 		Start      time.Time
 		End        time.Time
 	}
@@ -44,13 +49,25 @@ func TGLog(msg chan *LogMsg) {
 					logFormat,
 					m.Message,
 					m.RemoteAddr,
+					m.StatusCode,
 					m.Method,
 					m.RequestURI,
 					m.Payload,
 					getSanitizedHeaders(m.Headers),
 					m.Name,
+					m.Location,
 					m.End.Sub(m.Start),
 				)
+			}
+		}
+	}
+}
+
+func TGSilentLog(msg chan *LogMsg) {
+	for {
+		select {
+		case _ = <-msg:
+			{
 			}
 		}
 	}
@@ -88,4 +105,11 @@ func TGCurlLog(msg chan *LogMsg) {
 			}
 		}
 	}
+}
+
+// getSanitizedHeaders returns the sanitized request headers
+func getSanitizedHeaders(headers http.Header) http.Header {
+	// TODO sanitize headers that shouldn't not appear in the logs
+
+	return headers
 }
