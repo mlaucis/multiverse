@@ -43,6 +43,8 @@ type (
 		RouteName     string
 		Scope         string
 		Version       string
+		Environment   string
+		DebugMode     bool
 	}
 )
 
@@ -114,7 +116,10 @@ func NewContext(
 	r *http.Request,
 	mainLog, errorLog chan *logger.LogMsg,
 	routeName, scope, version string,
-	extraContext []ExtraContext) (ctx *Context, err error) {
+	extraContext []ExtraContext,
+	environment string,
+	debugMode bool) (ctx *Context, err error) {
+
 	ctx = new(Context)
 	ctx.StartTime = time.Now()
 	ctx.R = r
@@ -127,6 +132,8 @@ func NewContext(
 	ctx.RouteName = routeName
 	ctx.Scope = scope
 	ctx.Version = version
+	ctx.Environment = environment
+	ctx.DebugMode = debugMode
 
 	for _, extraContext := range extraContext {
 		err = extraContext(ctx)

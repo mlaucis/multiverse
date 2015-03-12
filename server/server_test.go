@@ -96,7 +96,7 @@ func (s *ServerSuite) TestValidatePostCommon_NoCLHeader(c *C) {
 	m := mux.NewRouter()
 
 	m.
-		HandleFunc(routePath, customHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan)).
+		HandleFunc(routePath, customHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan, "test", true)).
 		Methods(requestRoute.method)
 	m.ServeHTTP(w, req)
 
@@ -124,7 +124,7 @@ func (s *ServerSuite) TestValidatePostCommon_CLHeader(c *C) {
 	m := mux.NewRouter()
 
 	m.
-		HandleFunc(routePath, customHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan)).
+		HandleFunc(routePath, customHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan, "test", true)).
 		Methods(requestRoute.method)
 	m.ServeHTTP(w, req)
 
@@ -152,7 +152,7 @@ func (s *ServerSuite) TestValidateGetCommon_CLHeader(c *C) {
 	m := mux.NewRouter()
 
 	m.
-		HandleFunc(routePath, customHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan)).
+		HandleFunc(routePath, customHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan, "test", true)).
 		Methods(requestRoute.method)
 	m.ServeHTTP(w, req)
 
@@ -177,7 +177,7 @@ func (s *ServerSuite) TestValidateGetCommon_NoCLHeader(c *C) {
 	m := mux.NewRouter()
 
 	m.
-		HandleFunc(routePath, customHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan)).
+		HandleFunc(routePath, customHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan, "test", true)).
 		Methods(requestRoute.method)
 	m.ServeHTTP(w, req)
 
@@ -208,7 +208,7 @@ func (s *ServerSuite) TestValidatePutCommon_CLHeader(c *C) {
 	m := mux.NewRouter()
 
 	m.
-		HandleFunc(routePath, customHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan)).
+		HandleFunc(routePath, customHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan, "test", true)).
 		Methods(requestRoute.method)
 	m.ServeHTTP(w, req)
 
@@ -237,7 +237,7 @@ func (s *ServerSuite) TestValidatePutCommon_NoCLHeader(c *C) {
 	m := mux.NewRouter()
 
 	m.
-		HandleFunc(routePath, customHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan)).
+		HandleFunc(routePath, customHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan, "test", true)).
 		Methods(requestRoute.method)
 	m.ServeHTTP(w, req)
 
@@ -268,7 +268,7 @@ func (s *ServerSuite) TestValidateDeleteCommon_CLHeader(c *C) {
 	m := mux.NewRouter()
 
 	m.
-		HandleFunc(routePath, customHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan)).
+		HandleFunc(routePath, customHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan, "test", true)).
 		Methods(requestRoute.method)
 	m.ServeHTTP(w, req)
 
@@ -294,7 +294,7 @@ func (s *ServerSuite) TestValidateDeleteCommon_NoCLHeader(c *C) {
 	m := mux.NewRouter()
 
 	m.
-		HandleFunc(routePath, customHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan)).
+		HandleFunc(routePath, customHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan, "test", true)).
 		Methods(requestRoute.method)
 	m.ServeHTTP(w, req)
 
@@ -394,7 +394,7 @@ func runRequest(routeName, routePath, payload, secretKey, sessionToken string, n
 	m := mux.NewRouter()
 
 	m.
-		HandleFunc(requestRoute.routePattern(apiVersion), customHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan)).
+		HandleFunc(requestRoute.routePattern(apiVersion), customHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan, "test", true)).
 		Methods(requestRoute.method)
 	m.ServeHTTP(w, req)
 

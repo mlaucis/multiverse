@@ -37,7 +37,6 @@ const (
 )
 
 var (
-	dbgMode      bool
 	mainLogChan  = make(chan *logger.LogMsg, 100000)
 	errorLogChan = make(chan *logger.LogMsg, 100000)
 	skipSecurity = false
@@ -364,7 +363,7 @@ func corsHandler(ctx *context.Context) {
 	ctx.W.Header().Set("Content-Type", "application/json; charset=UTF-8")
 }
 
-func customHandler(routeName, version string, route *route, mainLog, errorLog chan *logger.LogMsg) http.HandlerFunc {
+func customHandler(routeName, version string, route *route, mainLog, errorLog chan *logger.LogMsg, environment string, debugMode bool) http.HandlerFunc {
 	var extraHandlers []routeFunc = []routeFunc{corsHandler}
 	switch route.method {
 	case "DELETE":
@@ -393,7 +392,7 @@ func customHandler(routeName, version string, route *route, mainLog, errorLog ch
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		ctx, err := context.NewContext(w, r, mainLog, errorLog, routeName, route.scope, version, route.extraContext)
+		ctx, err := context.NewContext(w, r, mainLog, errorLog, routeName, route.scope, version, route.extraContext, environment, debugMode)
 		if err != nil {
 			errorHappened(ctx, "failed to get a request context", http.StatusInternalServerError, err)
 			return
@@ -412,8 +411,7 @@ func customHandler(routeName, version string, route *route, mainLog, errorLog ch
 }
 
 // GetRouter creates the router
-func GetRouter(debugMode, skipSecurityChecks bool) (*mux.Router, chan *logger.LogMsg, chan *logger.LogMsg, error) {
-	dbgMode = debugMode
+func GetRouter(environment string, debugMode, skipSecurityChecks bool) (*mux.Router, chan *logger.LogMsg, chan *logger.LogMsg, error) {
 	skipSecurity = skipSecurityChecks
 	router := mux.NewRouter().StrictSlash(true)
 
@@ -423,7 +421,7 @@ func GetRouter(debugMode, skipSecurityChecks bool) (*mux.Router, chan *logger.Lo
 				Methods(route.method, "OPTIONS").
 				Path(route.routePattern(version)).
 				Name(routeName).
-				HandlerFunc(customHandler(routeName, version, route, mainLogChan, errorLogChan))
+				HandlerFunc(customHandler(routeName, version, route, mainLogChan, errorLogChan, environment, debugMode))
 		}
 	}
 
@@ -437,7 +435,7 @@ func GetRouter(debugMode, skipSecurityChecks bool) (*mux.Router, chan *logger.Lo
 			Methods(route.method, "OPTIONS").
 			Path(route.pattern).
 			Name(routeName).
-			HandlerFunc(customHandler(routeName, version, route, mainLogChan, errorLogChan))
+			HandlerFunc(customHandler(routeName, version, route, mainLogChan, errorLogChan, environment, debugMode))
 	}
 
 	if debugMode {

@@ -70,7 +70,7 @@ func init() {
 
 func main() {
 	// Get router
-	router, mainLogChan, errorLogChan, err := server.GetRouter(conf.Environment != "prod", conf.SkipSecurity)
+	router, mainLogChan, errorLogChan, err := server.GetRouter(conf.Environment, conf.Environment != "prod", conf.SkipSecurity)
 	if err != nil {
 		panic(err)
 	}

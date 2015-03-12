@@ -329,7 +329,7 @@ func BenchmarkCreateEvent1_Write(b *testing.B) {
 	m := mux.NewRouter()
 
 	m.
-		HandleFunc(requestRoute.routePattern(apiVersion), customHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan)).
+		HandleFunc(requestRoute.routePattern(apiVersion), customHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan, "test", true)).
 		Methods(requestRoute.method)
 
 	for i := 1; i <= b.N; i++ {
@@ -382,7 +382,7 @@ func BenchmarkCreateEvent2_Read(b *testing.B) {
 	m := mux.NewRouter()
 
 	m.
-		HandleFunc(requestRoute.routePattern(apiVersion), customHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan)).
+		HandleFunc(requestRoute.routePattern(apiVersion), customHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan, "test", true)).
 		Methods(requestRoute.method)
 
 	for i := 1; i <= b.N; i++ {
