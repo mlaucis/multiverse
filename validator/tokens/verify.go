@@ -5,19 +5,19 @@
 package tokens
 
 import (
-	"net/http"
 	"strconv"
 	"strings"
 
 	"fmt"
 
+	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/core"
 	. "github.com/tapglue/backend/utils"
 )
 
 // VerifyRequest verifies if a request is properly signed or not
-func VerifyRequest(requestScope, requestVersion string, r *http.Request, numKeyParts int) error {
-	encodedIds := r.Header.Get("x-tapglue-app-key")
+func VerifyRequest(ctx *context.Context, numKeyParts int) error {
+	encodedIds := ctx.R.Header.Get("x-tapglue-app-key")
 	decodedIds, err := Base64Decode(encodedIds)
 	if err != nil {
 		return fmt.Errorf("signature failed on 2")
@@ -33,6 +33,10 @@ func VerifyRequest(requestScope, requestVersion string, r *http.Request, numKeyP
 		return fmt.Errorf("signature failed on 3")
 	}
 
+	if accountID != ctx.AccountID {
+		return fmt.Errorf("account ids mismatch")
+	}
+
 	authToken := ""
 	if numKeyParts == 1 {
 		account, err := core.ReadAccount(accountID)
@@ -44,6 +48,10 @@ func VerifyRequest(requestScope, requestVersion string, r *http.Request, numKeyP
 		applicationID, err := strconv.ParseInt(ids[1], 10, 64)
 		if err != nil {
 			return fmt.Errorf("signature failed on 5")
+		}
+
+		if applicationID != ctx.ApplicationID {
+			return fmt.Errorf("application ids mismatch")
 		}
 
 		application, err := core.ReadApplication(accountID, applicationID)
@@ -61,7 +69,7 @@ func VerifyRequest(requestScope, requestVersion string, r *http.Request, numKeyP
 	   fmt.Printf("\nSignature %s - %s \n\n", r.Header.Get("x-tapglue-signature"), Base64Encode(Sha256String([]byte(signingKey+signString))))
 	*/
 
-	if r.Header.Get("x-tapglue-app-key") != authToken {
+	if ctx.R.Header.Get("x-tapglue-app-key") != authToken {
 		return fmt.Errorf("signature failed on 7")
 	}
 	return nil

@@ -20,25 +20,29 @@ import (
 )
 
 type (
+	// ExtraContext callbacks return extra information to the context
+	ExtraContext func(*Context) error
+
+	// Request context
 	Context struct {
-		AccID        int64
-		Acc          *entity.Account
-		AppID        int64
-		App          *entity.Application
-		UserID       int64
-		User         *entity.User
-		SessionToken string
-		Vars         map[string]string
-		Body         *bytes.Buffer
-		BodyString   string
-		MainLog      chan *logger.LogMsg
-		ErrorLog     chan *logger.LogMsg
-		W            http.ResponseWriter
-		R            *http.Request
-		StartTime    time.Time
-		RouteName    string
-		Scope        string
-		Version      string
+		AccountID     int64
+		Account       *entity.Account
+		ApplicationID int64
+		App           *entity.Application
+		UserID        int64
+		User          *entity.User
+		SessionToken  string
+		Vars          map[string]string
+		Body          *bytes.Buffer
+		BodyString    string
+		MainLog       chan *logger.LogMsg
+		ErrorLog      chan *logger.LogMsg
+		W             http.ResponseWriter
+		R             *http.Request
+		StartTime     time.Time
+		RouteName     string
+		Scope         string
+		Version       string
 	}
 )
 
@@ -105,9 +109,13 @@ func (ctx *Context) GetRequestPath() string {
 }
 
 // NewContext creates a new context from the current request
-func NewContext(w http.ResponseWriter, r *http.Request, mainLog, errorLog chan *logger.LogMsg, routeName, scope, version string) (*Context, error) {
-	ctx := new(Context)
-
+func NewContext(
+	w http.ResponseWriter,
+	r *http.Request,
+	mainLog, errorLog chan *logger.LogMsg,
+	routeName, scope, version string,
+	extraContext []ExtraContext) (ctx *Context, err error) {
+	ctx = new(Context)
 	ctx.StartTime = time.Now()
 	ctx.R = r
 	ctx.W = w
@@ -120,5 +128,12 @@ func NewContext(w http.ResponseWriter, r *http.Request, mainLog, errorLog chan *
 	ctx.Scope = scope
 	ctx.Version = version
 
-	return ctx, nil
+	for _, extraContext := range extraContext {
+		err = extraContext(ctx)
+		if err != nil {
+			break
+		}
+	}
+
+	return ctx, err
 }

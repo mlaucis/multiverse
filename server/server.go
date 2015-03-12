@@ -178,7 +178,7 @@ func validateAccountRequestToken(ctx *context.Context) {
 		return
 	}
 
-	if err := keys.VerifyRequest(ctx.Scope, ctx.Version, ctx.R, 1); err != nil {
+	if err := keys.VerifyRequest(ctx, 1); err != nil {
 		errorHappened(ctx, "request is not properly signed", http.StatusUnauthorized, err)
 	}
 }
@@ -191,9 +191,9 @@ func validateApplicationRequestToken(ctx *context.Context) {
 
 	var err error
 	if ctx.Version == "0.1" {
-		err = tokens.VerifyRequest(ctx.Scope, ctx.Version, ctx.R, 3)
+		err = tokens.VerifyRequest(ctx, 3)
 	} else {
-		err = keys.VerifyRequest(ctx.Scope, ctx.Version, ctx.R, 2)
+		err = keys.VerifyRequest(ctx, 2)
 	}
 
 	if err != nil {
@@ -393,7 +393,7 @@ func customHandler(routeName, version string, route *route, mainLog, errorLog ch
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		ctx, err := context.NewContext(w, r, mainLog, errorLog, routeName, route.scope, version)
+		ctx, err := context.NewContext(w, r, mainLog, errorLog, routeName, route.scope, version, route.extraContext)
 		if err != nil {
 			errorHappened(ctx, "failed to get a request context", http.StatusInternalServerError, err)
 			return

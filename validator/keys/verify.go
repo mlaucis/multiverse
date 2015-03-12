@@ -5,19 +5,18 @@
 package keys
 
 import (
-	"net/http"
+	"fmt"
 	"strconv"
 	"strings"
 
-	"fmt"
-
+	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/core"
 	. "github.com/tapglue/backend/utils"
 )
 
 // VerifyRequest verifies if a request is properly signed or not
-func VerifyRequest(requestScope, requestVersion string, r *http.Request, numKeyParts int) error {
-	signature := r.Header.Get("x-tapglue-signature")
+func VerifyRequest(ctx *context.Context, numKeyParts int) error {
+	signature := ctx.R.Header.Get("x-tapglue-signature")
 	if signature == "" {
 		return fmt.Errorf("signature failed on 1")
 	}
@@ -26,12 +25,11 @@ func VerifyRequest(requestScope, requestVersion string, r *http.Request, numKeyP
 		return fmt.Errorf("signature failed on 2")
 	}
 
-	payload := PeakBody(r).String()
-	if Base64Encode(Sha256String(payload)) != r.Header.Get("x-tapglue-payload-hash") {
+	if Base64Encode(Sha256String(ctx.BodyString)) != ctx.R.Header.Get("x-tapglue-payload-hash") {
 		return fmt.Errorf("signature failed on 3")
 	}
 
-	encodedIds := r.Header.Get("x-tapglue-id")
+	encodedIds := ctx.R.Header.Get("x-tapglue-id")
 	decodedIds, err := Base64Decode(encodedIds)
 	if err != nil {
 		return fmt.Errorf("signature failed on 4")
@@ -68,9 +66,9 @@ func VerifyRequest(requestScope, requestVersion string, r *http.Request, numKeyP
 		authToken = application.AuthToken
 	}
 
-	signString := generateSigningString(requestScope, requestVersion, r)
+	signString := generateSigningString(ctx.Scope, ctx.Version, ctx.R)
 
-	signingKey := generateSigningKey(authToken, requestScope, requestVersion, r)
+	signingKey := generateSigningKey(authToken, ctx.Scope, ctx.Version, ctx.R)
 
 	/* TODO Debug content, don't remove unless you want to redo it later ** /
 	fmt.Printf("\nURL %s\n", r.URL.Path)
@@ -80,7 +78,7 @@ func VerifyRequest(requestScope, requestVersion string, r *http.Request, numKeyP
 	fmt.Printf("\nSignature %s - %s \n\n", r.Header.Get("x-tapglue-signature"), Base64Encode(Sha256String(signingKey+signString)))
 	/**/
 
-	if r.Header.Get("x-tapglue-signature") != Base64Encode(Sha256String(signingKey+signString)) {
+	if ctx.R.Header.Get("x-tapglue-signature") != Base64Encode(Sha256String(signingKey+signString)) {
 		return fmt.Errorf("signature failed on 10")
 	}
 	return nil

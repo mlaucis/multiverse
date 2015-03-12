@@ -11,11 +11,12 @@ type (
 	routeFunc func(*context.Context)
 
 	route struct {
-		method   string
-		pattern  string
-		cPattern string
-		scope    string
-		handlers []routeFunc
+		method       string
+		pattern      string
+		cPattern     string
+		scope        string
+		handlers     []routeFunc
+		extraContext []context.ExtraContext
 	}
 )
 
@@ -51,6 +52,9 @@ var routes = map[string]map[string]*route{
 				checkAccountSession,
 				getAccount,
 			},
+			extraContext: []context.ExtraContext{
+				contextHasAccount,
+			},
 		},
 		"updateAccount": &route{
 			method:   "PUT",
@@ -61,6 +65,9 @@ var routes = map[string]map[string]*route{
 				validateAccountRequestToken,
 				checkAccountSession,
 				updateAccount,
+			},
+			extraContext: []context.ExtraContext{
+				contextHasAccount,
 			},
 		},
 		"deleteAccount": &route{
@@ -94,6 +101,9 @@ var routes = map[string]map[string]*route{
 				checkAccountSession,
 				getAccountUser,
 			},
+			extraContext: []context.ExtraContext{
+				contextHasAccount,
+			},
 		},
 		"updateAccountUser": &route{
 			method:   "PUT",
@@ -104,6 +114,9 @@ var routes = map[string]map[string]*route{
 				validateAccountRequestToken,
 				checkAccountSession,
 				updateAccountUser,
+			},
+			extraContext: []context.ExtraContext{
+				contextHasAccount,
 			},
 		},
 		"deleteAccountUser": &route{
@@ -116,6 +129,9 @@ var routes = map[string]map[string]*route{
 				checkAccountSession,
 				deleteAccountUser,
 			},
+			extraContext: []context.ExtraContext{
+				contextHasAccount,
+			},
 		},
 		"createAccountUser": &route{
 			method:   "POST",
@@ -125,6 +141,9 @@ var routes = map[string]map[string]*route{
 			handlers: []routeFunc{
 				validateAccountRequestToken,
 				createAccountUser,
+			},
+			extraContext: []context.ExtraContext{
+				contextHasAccount,
 			},
 		},
 		"getAccountUserList": &route{
@@ -137,6 +156,9 @@ var routes = map[string]map[string]*route{
 				checkAccountSession,
 				getAccountUserList,
 			},
+			extraContext: []context.ExtraContext{
+				contextHasAccount,
+			},
 		},
 		"loginAccountUser": &route{
 			method:   "POST",
@@ -145,6 +167,9 @@ var routes = map[string]map[string]*route{
 			scope:    "account/user/login",
 			handlers: []routeFunc{
 				loginAccountUser,
+			},
+			extraContext: []context.ExtraContext{
+				contextHasAccount,
 			},
 		},
 		"refreshAccountUserSession": &route{
@@ -157,6 +182,9 @@ var routes = map[string]map[string]*route{
 				checkAccountSession,
 				refreshAccountUserSession,
 			},
+			extraContext: []context.ExtraContext{
+				contextHasAccount,
+			},
 		},
 		"logoutAccountUser": &route{
 			method:   "POST",
@@ -167,6 +195,9 @@ var routes = map[string]map[string]*route{
 				validateAccountRequestToken,
 				checkAccountSession,
 				logoutAccountUser,
+			},
+			extraContext: []context.ExtraContext{
+				contextHasAccount,
 			},
 		},
 		// Application
@@ -180,6 +211,10 @@ var routes = map[string]map[string]*route{
 				checkAccountSession,
 				getApplication,
 			},
+			extraContext: []context.ExtraContext{
+				contextHasAccount,
+				contextHasApplication,
+			},
 		},
 		"updateApplication": &route{
 			method:   "PUT",
@@ -190,6 +225,10 @@ var routes = map[string]map[string]*route{
 				validateAccountRequestToken,
 				checkAccountSession,
 				updateApplication,
+			},
+			extraContext: []context.ExtraContext{
+				contextHasAccount,
+				contextHasApplication,
 			},
 		},
 		"deleteApplication": &route{
@@ -202,6 +241,10 @@ var routes = map[string]map[string]*route{
 				checkAccountSession,
 				deleteApplication,
 			},
+			extraContext: []context.ExtraContext{
+				contextHasAccount,
+				contextHasApplication,
+			},
 		},
 		"createApplication": &route{
 			method:   "POST",
@@ -213,6 +256,9 @@ var routes = map[string]map[string]*route{
 				checkAccountSession,
 				createApplication,
 			},
+			extraContext: []context.ExtraContext{
+				contextHasAccount,
+			},
 		},
 		"getApplications": &route{
 			method:   "GET",
@@ -223,6 +269,10 @@ var routes = map[string]map[string]*route{
 				validateAccountRequestToken,
 				checkAccountSession,
 				getApplicationList,
+			},
+			extraContext: []context.ExtraContext{
+				contextHasAccount,
+				contextHasApplication,
 			},
 		},
 		// User
@@ -236,6 +286,10 @@ var routes = map[string]map[string]*route{
 				checkApplicationSession,
 				getApplicationUser,
 			},
+			extraContext: []context.ExtraContext{
+				contextHasAccount,
+				contextHasApplication,
+			},
 		},
 		"updateUser": &route{
 			method:   "PUT",
@@ -246,6 +300,10 @@ var routes = map[string]map[string]*route{
 				validateApplicationRequestToken,
 				checkApplicationSession,
 				updateApplicationUser,
+			},
+			extraContext: []context.ExtraContext{
+				contextHasAccount,
+				contextHasApplication,
 			},
 		},
 		"deleteUser": &route{
@@ -258,6 +316,10 @@ var routes = map[string]map[string]*route{
 				checkApplicationSession,
 				deleteApplicationUser,
 			},
+			extraContext: []context.ExtraContext{
+				contextHasAccount,
+				contextHasApplication,
+			},
 		},
 		"createUser": &route{
 			method:   "POST",
@@ -268,6 +330,10 @@ var routes = map[string]map[string]*route{
 				validateApplicationRequestToken,
 				createApplicationUser,
 			},
+			extraContext: []context.ExtraContext{
+				contextHasAccount,
+				contextHasApplication,
+			},
 		},
 		"loginUser": &route{
 			method:   "POST",
@@ -277,6 +343,10 @@ var routes = map[string]map[string]*route{
 			handlers: []routeFunc{
 				validateApplicationRequestToken,
 				loginApplicationUser,
+			},
+			extraContext: []context.ExtraContext{
+				contextHasAccount,
+				contextHasApplication,
 			},
 		},
 		"refreshUserSession": &route{
@@ -289,6 +359,10 @@ var routes = map[string]map[string]*route{
 				checkApplicationSession,
 				refreshApplicationUserSession,
 			},
+			extraContext: []context.ExtraContext{
+				contextHasAccount,
+				contextHasApplication,
+			},
 		},
 		"logoutUser": &route{
 			method:   "POST",
@@ -299,6 +373,10 @@ var routes = map[string]map[string]*route{
 				validateApplicationRequestToken,
 				checkApplicationSession,
 				logoutApplicationUser,
+			},
+			extraContext: []context.ExtraContext{
+				contextHasAccount,
+				contextHasApplication,
 			},
 		},
 		/*
@@ -320,6 +398,10 @@ var routes = map[string]map[string]*route{
 				checkApplicationSession,
 				createConnection,
 			},
+			extraContext: []context.ExtraContext{
+				contextHasAccount,
+				contextHasApplication,
+			},
 		},
 		"updateConnection": &route{
 			method:   "PUT",
@@ -330,6 +412,10 @@ var routes = map[string]map[string]*route{
 				validateApplicationRequestToken,
 				checkApplicationSession,
 				updateConnection,
+			},
+			extraContext: []context.ExtraContext{
+				contextHasAccount,
+				contextHasApplication,
 			},
 		},
 		"deleteConnection": &route{
@@ -342,6 +428,10 @@ var routes = map[string]map[string]*route{
 				checkApplicationSession,
 				deleteConnection,
 			},
+			extraContext: []context.ExtraContext{
+				contextHasAccount,
+				contextHasApplication,
+			},
 		},
 		"getConnectionList": &route{
 			method:   "GET",
@@ -353,6 +443,10 @@ var routes = map[string]map[string]*route{
 				checkApplicationSession,
 				getConnectionList,
 			},
+			extraContext: []context.ExtraContext{
+				contextHasAccount,
+				contextHasApplication,
+			},
 		},
 		"confirmConnection": &route{
 			method:   "POST",
@@ -363,6 +457,10 @@ var routes = map[string]map[string]*route{
 				validateApplicationRequestToken,
 				checkApplicationSession,
 				confirmConnection,
+			},
+			extraContext: []context.ExtraContext{
+				contextHasAccount,
+				contextHasApplication,
 			},
 		},
 		// Event
@@ -376,6 +474,10 @@ var routes = map[string]map[string]*route{
 				checkApplicationSession,
 				getEvent,
 			},
+			extraContext: []context.ExtraContext{
+				contextHasAccount,
+				contextHasApplication,
+			},
 		},
 		"updateEvent": &route{
 			method:   "PUT",
@@ -386,6 +488,10 @@ var routes = map[string]map[string]*route{
 				validateApplicationRequestToken,
 				checkApplicationSession,
 				updateEvent,
+			},
+			extraContext: []context.ExtraContext{
+				contextHasAccount,
+				contextHasApplication,
 			},
 		},
 		"deleteEvent": &route{
@@ -398,6 +504,10 @@ var routes = map[string]map[string]*route{
 				checkApplicationSession,
 				deleteEvent,
 			},
+			extraContext: []context.ExtraContext{
+				contextHasAccount,
+				contextHasApplication,
+			},
 		},
 		"createEvent": &route{
 			method:   "POST",
@@ -408,6 +518,10 @@ var routes = map[string]map[string]*route{
 				validateApplicationRequestToken,
 				checkApplicationSession,
 				createEvent,
+			},
+			extraContext: []context.ExtraContext{
+				contextHasAccount,
+				contextHasApplication,
 			},
 		},
 		"getEventList": &route{
@@ -420,6 +534,10 @@ var routes = map[string]map[string]*route{
 				checkApplicationSession,
 				getEventList,
 			},
+			extraContext: []context.ExtraContext{
+				contextHasAccount,
+				contextHasApplication,
+			},
 		},
 		"getConnectionEventList": &route{
 			method:   "GET",
@@ -430,6 +548,10 @@ var routes = map[string]map[string]*route{
 				validateApplicationRequestToken,
 				checkApplicationSession,
 				getConnectionEventList,
+			},
+			extraContext: []context.ExtraContext{
+				contextHasAccount,
+				contextHasApplication,
 			},
 		},
 		"getGeoEventList": &route{
@@ -442,6 +564,10 @@ var routes = map[string]map[string]*route{
 				checkApplicationSession,
 				getGeoEventList,
 			},
+			extraContext: []context.ExtraContext{
+				contextHasAccount,
+				contextHasApplication,
+			},
 		},
 		"getObjectEventList": &route{
 			method:   "GET",
@@ -453,6 +579,10 @@ var routes = map[string]map[string]*route{
 				checkApplicationSession,
 				getObjectEventList,
 			},
+			extraContext: []context.ExtraContext{
+				contextHasAccount,
+				contextHasApplication,
+			},
 		},
 		"getLocationEventList": &route{
 			method:   "GET",
@@ -463,6 +593,10 @@ var routes = map[string]map[string]*route{
 				validateApplicationRequestToken,
 				checkApplicationSession,
 				getLocationEventList,
+			},
+			extraContext: []context.ExtraContext{
+				contextHasAccount,
+				contextHasApplication,
 			},
 		},
 		// Other
