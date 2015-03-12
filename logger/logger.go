@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	logFormat        = "%s\t%s\t%d\t%s\t%s\t%s\t%+v\t%s\t%s\t%s\n"
+	logFormat        = "%s\t%s\t%d\t%s\t%s\t%s\t%+v\t%s\t%s\t%s\t%s\n"
 	curlGetFormat    = "curl -i %s http://api.tapglue.com%s"
 	curlPostFormat   = "curl -i -X POST %s -d '%s' http://api.tapglue.com%s"
 	curlPutFormat    = "curl -i -X PUT %s -d '%s' http://api.tapglue.com%s"
@@ -45,6 +45,11 @@ func TGLog(msg chan *LogMsg) {
 		select {
 		case m := <-msg:
 			{
+				rawError := ""
+				if m.RawError != nil {
+					rawError = m.RawError.Error()
+				}
+
 				log.Printf(
 					logFormat,
 					m.Message,
@@ -57,6 +62,7 @@ func TGLog(msg chan *LogMsg) {
 					m.Name,
 					m.Location,
 					m.End.Sub(m.Start),
+					rawError,
 				)
 			}
 		}
