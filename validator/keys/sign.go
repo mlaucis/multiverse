@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	. "github.com/tapglue/backend/utils"
+	"log"
 )
 
 // addHeaders adds the additional headers to the request before being signed
@@ -55,12 +56,20 @@ func generateSigningKey(secretKey, scope, requestVersion string, r *http.Request
 		r.Header.Get("x-tapglue-date"),
 	)
 
+	log.Printf("sign:\tkey\t%s", key)
 	key = Sha256String(key)
+	log.Printf("sign:\tsha key\t%s", key)
 	key = Sha256String(key + r.Header.Get("x-tapglue-session"))
+	log.Printf("sign:\tkey + session\t%s", key)
 	key = Sha256String(key + scope)
+	log.Printf("sign:\tkey + scope\t%s", key)
 	key = Sha256String(key + "api")
+	log.Printf("sign:\tkey + \"api\"\t%s", key)
 
-	return Sha256String(key + requestVersion)
+	key = Sha256String(key + requestVersion)
+	log.Printf("sign:\tkey + requestVersion\t%s", key)
+
+	return key
 }
 
 // SignRequest runs the signature algorithm on the request and adds the things it's missing

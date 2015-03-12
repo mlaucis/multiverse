@@ -272,7 +272,6 @@ var routes = map[string]map[string]*route{
 			},
 			extraContext: []context.ExtraContext{
 				contextHasAccount,
-				contextHasApplication,
 			},
 		},
 		// User

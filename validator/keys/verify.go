@@ -70,12 +70,12 @@ func VerifyRequest(ctx *context.Context, numKeyParts int) error {
 
 	signingKey := generateSigningKey(authToken, ctx.Scope, ctx.Version, ctx.R)
 
-	/* TODO Debug content, don't remove unless you want to redo it later ** /
-	fmt.Printf("\nURL %s\n", r.URL.Path)
-	fmt.Printf("\nPayload %s - %s \n", r.Header.Get("x-tapglue-payload-hash"), Base64Encode(Sha256String(payload)))
-	fmt.Printf("\nSession %s\n", r.Header.Get("x-tapglue-session"))
+	/* TODO Debug content, don't remove unless you want to redo it later **/
+	fmt.Printf("\nURL %s\n", ctx.R.URL.Path)
+	fmt.Printf("\nPayload %s - %s \n", ctx.R.Header.Get("x-tapglue-payload-hash"), Base64Encode(Sha256String(ctx.BodyString)))
+	fmt.Printf("\nSession %s\n", ctx.R.Header.Get("x-tapglue-session"))
 	fmt.Printf("\nSignature parts %s - %s \n", Base64Encode(signingKey), Base64Encode(signString))
-	fmt.Printf("\nSignature %s - %s \n\n", r.Header.Get("x-tapglue-signature"), Base64Encode(Sha256String(signingKey+signString)))
+	fmt.Printf("\nSignature %s - %s \n\n", ctx.R.Header.Get("x-tapglue-signature"), Base64Encode(Sha256String(signingKey+signString)))
 	/**/
 
 	if ctx.R.Header.Get("x-tapglue-signature") != Base64Encode(Sha256String(signingKey+signString)) {
