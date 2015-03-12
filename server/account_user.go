@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/core"
 	"github.com/tapglue/backend/core/entity"
 	"github.com/tapglue/backend/validator"
@@ -17,7 +18,7 @@ import (
 
 // getAccountUser handles requests to a single account user
 // Request: GET /account/:AccountID/user/:UserID
-func getAccountUser(ctx *context) {
+func getAccountUser(ctx *context.Context) {
 	var (
 		accountID   int64
 		userID      int64
@@ -25,18 +26,18 @@ func getAccountUser(ctx *context) {
 		err         error
 	)
 
-	if accountID, err = strconv.ParseInt(ctx.vars["accountId"], 10, 64); err != nil {
-		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest)
+	if accountID, err = strconv.ParseInt(ctx.Vars["accountId"], 10, 64); err != nil {
+		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest, err)
 		return
 	}
 
-	if userID, err = strconv.ParseInt(ctx.vars["userId"], 10, 64); err != nil {
-		errorHappened(ctx, "userId is not set or the value is incorrect", http.StatusBadRequest)
+	if userID, err = strconv.ParseInt(ctx.Vars["userId"], 10, 64); err != nil {
+		errorHappened(ctx, "userId is not set or the value is incorrect", http.StatusBadRequest, err)
 		return
 	}
 
 	if accountUser, err = core.ReadAccountUser(accountID, userID); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
+		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
 		return
 	}
 
@@ -45,7 +46,7 @@ func getAccountUser(ctx *context) {
 
 // updateAccountUser handles requests update an account user
 // Request: PUT /account/:AccountID/user/:UserID
-func updateAccountUser(ctx *context) {
+func updateAccountUser(ctx *context.Context) {
 	var (
 		accountUser = &entity.AccountUser{}
 		accountID   int64
@@ -53,19 +54,19 @@ func updateAccountUser(ctx *context) {
 		err         error
 	)
 
-	if accountID, err = strconv.ParseInt(ctx.vars["accountId"], 10, 64); err != nil {
-		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest)
+	if accountID, err = strconv.ParseInt(ctx.Vars["accountId"], 10, 64); err != nil {
+		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest, err)
 		return
 	}
 
-	if userID, err = strconv.ParseInt(ctx.vars["userId"], 10, 64); err != nil {
-		errorHappened(ctx, "userId is not set or the value is incorrect", http.StatusBadRequest)
+	if userID, err = strconv.ParseInt(ctx.Vars["userId"], 10, 64); err != nil {
+		errorHappened(ctx, "userId is not set or the value is incorrect", http.StatusBadRequest, err)
 		return
 	}
 
-	decoder := json.NewDecoder(ctx.body)
+	decoder := json.NewDecoder(ctx.Body)
 	if err = decoder.Decode(accountUser); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%q", err), http.StatusBadRequest)
+		errorHappened(ctx, fmt.Sprintf("%q", err), http.StatusBadRequest, err)
 		return
 	}
 
@@ -77,12 +78,12 @@ func updateAccountUser(ctx *context) {
 	}
 
 	if err = validator.UpdateAccountUser(accountUser); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%q", err), http.StatusBadRequest)
+		errorHappened(ctx, fmt.Sprintf("%q", err), http.StatusBadRequest, err)
 		return
 	}
 
 	if accountUser, err = core.UpdateAccountUser(accountUser, true); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%q", err), http.StatusInternalServerError)
+		errorHappened(ctx, fmt.Sprintf("%q", err), http.StatusInternalServerError, err)
 		return
 	}
 
@@ -91,25 +92,25 @@ func updateAccountUser(ctx *context) {
 
 // deleteAccountUser handles requests to delete a single account user
 // Request: DELETE /account/:AccountID/user/:UserID
-func deleteAccountUser(ctx *context) {
+func deleteAccountUser(ctx *context.Context) {
 	var (
 		accountID int64
 		userID    int64
 		err       error
 	)
 
-	if accountID, err = strconv.ParseInt(ctx.vars["accountId"], 10, 64); err != nil {
-		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest)
+	if accountID, err = strconv.ParseInt(ctx.Vars["accountId"], 10, 64); err != nil {
+		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest, err)
 		return
 	}
 
-	if userID, err = strconv.ParseInt(ctx.vars["userId"], 10, 64); err != nil {
-		errorHappened(ctx, "userId is not set or the value is incorrect", http.StatusBadRequest)
+	if userID, err = strconv.ParseInt(ctx.Vars["userId"], 10, 64); err != nil {
+		errorHappened(ctx, "userId is not set or the value is incorrect", http.StatusBadRequest, err)
 		return
 	}
 
 	if err = core.DeleteAccountUser(accountID, userID); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%q", err), http.StatusInternalServerError)
+		errorHappened(ctx, fmt.Sprintf("%q", err), http.StatusInternalServerError, err)
 		return
 	}
 
@@ -118,33 +119,33 @@ func deleteAccountUser(ctx *context) {
 
 // createAccountUser handles requests create an account user
 // Request: POST /account/:AccountID/users
-func createAccountUser(ctx *context) {
+func createAccountUser(ctx *context.Context) {
 	var (
 		accountUser = &entity.AccountUser{}
 		accountID   int64
 		err         error
 	)
 
-	if accountID, err = strconv.ParseInt(ctx.vars["accountId"], 10, 64); err != nil {
-		errorHappened(ctx, fmt.Sprintf("accountId is not set or the value is incorrect %v", ctx.vars["accountId"]), http.StatusBadRequest)
+	if accountID, err = strconv.ParseInt(ctx.Vars["accountId"], 10, 64); err != nil {
+		errorHappened(ctx, fmt.Sprintf("accountId is not set or the value is incorrect %v", ctx.Vars["accountId"]), http.StatusBadRequest, err)
 		return
 	}
 
-	decoder := json.NewDecoder(ctx.body)
+	decoder := json.NewDecoder(ctx.Body)
 	if err = decoder.Decode(accountUser); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%q", err), http.StatusBadRequest)
+		errorHappened(ctx, fmt.Sprintf("%q", err), http.StatusBadRequest, err)
 		return
 	}
 
 	accountUser.AccountID = accountID
 
 	if err = validator.CreateAccountUser(accountUser); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%q", err), http.StatusBadRequest)
+		errorHappened(ctx, fmt.Sprintf("%q", err), http.StatusBadRequest, err)
 		return
 	}
 
 	if accountUser, err = core.WriteAccountUser(accountUser, true); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%q", err), http.StatusInternalServerError)
+		errorHappened(ctx, fmt.Sprintf("%q", err), http.StatusInternalServerError, err)
 		return
 	}
 
@@ -153,7 +154,7 @@ func createAccountUser(ctx *context) {
 
 // getAccountUserList handles requests to list all account users
 // Request: GET /account/:AccountID/users
-func getAccountUserList(ctx *context) {
+func getAccountUserList(ctx *context.Context) {
 	var (
 		accountID    int64
 		account      *entity.Account
@@ -161,18 +162,18 @@ func getAccountUserList(ctx *context) {
 		err          error
 	)
 
-	if accountID, err = strconv.ParseInt(ctx.vars["accountId"], 10, 64); err != nil {
-		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest)
+	if accountID, err = strconv.ParseInt(ctx.Vars["accountId"], 10, 64); err != nil {
+		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest, err)
 		return
 	}
 
 	if account, err = core.ReadAccount(accountID); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%q", err), http.StatusInternalServerError)
+		errorHappened(ctx, fmt.Sprintf("%q", err), http.StatusInternalServerError, err)
 		return
 	}
 
 	if accountUsers, err = core.ReadAccountUserList(accountID); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%q", err), http.StatusInternalServerError)
+		errorHappened(ctx, fmt.Sprintf("%q", err), http.StatusInternalServerError, err)
 		return
 	}
 
@@ -189,7 +190,7 @@ func getAccountUserList(ctx *context) {
 
 // loginAccountUser handles the requests to login the user in the system
 // Request: POST /account/user/login
-func loginAccountUser(ctx *context) {
+func loginAccountUser(ctx *context.Context) {
 	var (
 		loginPayload struct {
 			Email    string `json:"email"`
@@ -199,30 +200,30 @@ func loginAccountUser(ctx *context) {
 		err          error
 	)
 
-	decoder := json.NewDecoder(ctx.body)
+	decoder := json.NewDecoder(ctx.Body)
 	if err = decoder.Decode(&loginPayload); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusBadRequest)
+		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
 	if !validator.IsValidEmail(loginPayload.Email) {
-		errorHappened(ctx, "invalid e-mail", http.StatusBadRequest)
+		errorHappened(ctx, "invalid e-mail", http.StatusBadRequest, nil)
 		return
 	}
 
 	account, user, err := core.FindAccountAndUserByEmail(loginPayload.Email)
 	if err != nil {
-		errorHappened(ctx, err.Error(), http.StatusBadRequest)
+		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
 	if err = validator.AccountUserCredentialsValid(loginPayload.Password, user); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusUnauthorized)
+		errorHappened(ctx, err.Error(), http.StatusUnauthorized, err)
 		return
 	}
 
 	if sessionToken, err = core.CreateAccountUserSession(user); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
+		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
 		return
 	}
 
@@ -237,7 +238,7 @@ func loginAccountUser(ctx *context) {
 
 // refreshApplicationUserSession handles the requests to refresh the user session token
 // Request: Post /account/:AccountID/application/:ApplicationID/user/refreshsession
-func refreshAccountUserSession(ctx *context) {
+func refreshAccountUserSession(ctx *context.Context) {
 	var (
 		payload struct {
 			Token string `json:"token"`
@@ -249,29 +250,29 @@ func refreshAccountUserSession(ctx *context) {
 		err          error
 	)
 
-	if accountID, err = strconv.ParseInt(ctx.vars["accountId"], 10, 64); err != nil {
-		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest)
+	if accountID, err = strconv.ParseInt(ctx.Vars["accountId"], 10, 64); err != nil {
+		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest, err)
 		return
 	}
 
-	if userID, err = strconv.ParseInt(ctx.vars["userId"], 10, 64); err != nil {
-		errorHappened(ctx, "userId is not set or the value is incorrect", http.StatusBadRequest)
+	if userID, err = strconv.ParseInt(ctx.Vars["userId"], 10, 64); err != nil {
+		errorHappened(ctx, "userId is not set or the value is incorrect", http.StatusBadRequest, err)
 		return
 	}
 
 	if user, err = core.ReadAccountUser(accountID, userID); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
+		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
 		return
 	}
 
-	decoder := json.NewDecoder(ctx.body)
+	decoder := json.NewDecoder(ctx.Body)
 	if err = decoder.Decode(&payload); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusBadRequest)
+		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
 	if sessionToken, err = core.RefreshAccountUserSession(payload.Token, user); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
+		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
 		return
 	}
 
@@ -282,7 +283,7 @@ func refreshAccountUserSession(ctx *context) {
 
 // logoutApplicationUser handles the requests to logout the user from the system
 // Request: Post /account/:AccountID/application/:ApplicationID/user/logout
-func logoutAccountUser(ctx *context) {
+func logoutAccountUser(ctx *context.Context) {
 	var (
 		logoutPayload struct {
 			Token string `json:"token"`
@@ -293,34 +294,34 @@ func logoutAccountUser(ctx *context) {
 		err       error
 	)
 
-	if accountID, err = strconv.ParseInt(ctx.vars["accountId"], 10, 64); err != nil {
-		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest)
+	if accountID, err = strconv.ParseInt(ctx.Vars["accountId"], 10, 64); err != nil {
+		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest, err)
 		return
 	}
 
-	if userID, err = strconv.ParseInt(ctx.vars["userId"], 10, 64); err != nil {
-		errorHappened(ctx, "userId is not set or the value is incorrect", http.StatusBadRequest)
+	if userID, err = strconv.ParseInt(ctx.Vars["userId"], 10, 64); err != nil {
+		errorHappened(ctx, "userId is not set or the value is incorrect", http.StatusBadRequest, err)
 		return
 	}
 
 	if user, err = core.ReadAccountUser(accountID, userID); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
+		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
 		return
 	}
 
-	decoder := json.NewDecoder(ctx.body)
+	decoder := json.NewDecoder(ctx.Body)
 	if err = decoder.Decode(&logoutPayload); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusBadRequest)
+		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
 	if err = validator.AccountUserCredentialsValid(logoutPayload.Token, user); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusUnauthorized)
+		errorHappened(ctx, err.Error(), http.StatusUnauthorized, err)
 		return
 	}
 
 	if err = core.DestroyAccountUserSession(logoutPayload.Token, user); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%s", err), http.StatusInternalServerError)
+		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
 		return
 	}
 
