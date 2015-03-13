@@ -7,7 +7,6 @@ package server
 import (
 	"encoding/json"
 	"net/http"
-	"strconv"
 
 	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/core"
@@ -18,50 +17,16 @@ import (
 // getApplication handles requests to a single application
 // Request: GET /account/:AccountID/application/:ApplicatonID
 func getApplication(ctx *context.Context) {
-	var (
-		application   *entity.Application
-		accountID     int64
-		applicationID int64
-		err           error
-	)
-
-	if accountID, err = strconv.ParseInt(ctx.Vars["accountId"], 10, 64); err != nil {
-		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest, err)
-		return
-	}
-
-	if applicationID, err = strconv.ParseInt(ctx.Vars["applicationId"], 10, 64); err != nil {
-		errorHappened(ctx, "applicationId is not set or the value is incorrect", http.StatusBadRequest, err)
-		return
-	}
-
-	if application, err = core.ReadApplication(accountID, applicationID); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
-		return
-	}
-
-	writeResponse(ctx, application, http.StatusOK, 10)
+	writeResponse(ctx, ctx.Application, http.StatusOK, 10)
 }
 
 // updateApplication handles requests updates an application
 // Request: PUT /account/:AccountID/application/:ApplicatonID
 func updateApplication(ctx *context.Context) {
 	var (
-		application   = &entity.Application{}
-		accountID     int64
-		applicationID int64
-		err           error
+		application = &entity.Application{}
+		err         error
 	)
-
-	if accountID, err = strconv.ParseInt(ctx.Vars["accountId"], 10, 64); err != nil {
-		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest, err)
-		return
-	}
-
-	if applicationID, err = strconv.ParseInt(ctx.Vars["applicationId"], 10, 64); err != nil {
-		errorHappened(ctx, "applicationId is not set or the value is incorrect", http.StatusBadRequest, err)
-		return
-	}
 
 	decoder := json.NewDecoder(ctx.Body)
 	if err = decoder.Decode(application); err != nil {
@@ -69,12 +34,8 @@ func updateApplication(ctx *context.Context) {
 		return
 	}
 
-	if application.ID == 0 {
-		application.ID = applicationID
-	}
-	if application.AccountID == 0 {
-		application.AccountID = accountID
-	}
+	application.ID = ctx.ApplicationID
+	application.AccountID = ctx.AccountID
 
 	if err = validator.UpdateApplication(application); err != nil {
 		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
@@ -92,23 +53,7 @@ func updateApplication(ctx *context.Context) {
 // deleteApplication handles requests to delete a single application
 // Request: DELETE /account/:AccountID/application/:ApplicatonID
 func deleteApplication(ctx *context.Context) {
-	var (
-		accountID     int64
-		applicationID int64
-		err           error
-	)
-
-	if accountID, err = strconv.ParseInt(ctx.Vars["accountId"], 10, 64); err != nil {
-		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest, err)
-		return
-	}
-
-	if applicationID, err = strconv.ParseInt(ctx.Vars["applicationId"], 10, 64); err != nil {
-		errorHappened(ctx, "applicationId is not set or the value is incorrect", http.StatusBadRequest, err)
-		return
-	}
-
-	if err = core.DeleteApplication(accountID, applicationID); err != nil {
+	if err := core.DeleteApplication(ctx.AccountID, ctx.ApplicationID); err != nil {
 		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
 		return
 	}
@@ -121,14 +66,8 @@ func deleteApplication(ctx *context.Context) {
 func createApplication(ctx *context.Context) {
 	var (
 		application = &entity.Application{}
-		accountID   int64
 		err         error
 	)
-
-	if accountID, err = strconv.ParseInt(ctx.Vars["accountId"], 10, 64); err != nil {
-		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest, err)
-		return
-	}
 
 	decoder := json.NewDecoder(ctx.Body)
 	if err = decoder.Decode(application); err != nil {
@@ -136,7 +75,7 @@ func createApplication(ctx *context.Context) {
 		return
 	}
 
-	application.AccountID = accountID
+	application.AccountID = ctx.AccountID
 
 	if err = validator.CreateApplication(application); err != nil {
 		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
@@ -155,32 +94,18 @@ func createApplication(ctx *context.Context) {
 // Request: GET /account/:AccountID/applications
 func getApplicationList(ctx *context.Context) {
 	var (
-		account      *entity.Account
 		applications []*entity.Application
-		accountID    int64
 		err          error
 	)
 
-	if accountID, err = strconv.ParseInt(ctx.Vars["accountId"], 10, 64); err != nil {
-		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest, err)
-		return
-	}
-
-	if account, err = core.ReadAccount(accountID); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
-		return
-	}
-
-	if applications, err = core.ReadApplicationList(accountID); err != nil {
+	if applications, err = core.ReadApplicationList(ctx.AccountID); err != nil {
 		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
 		return
 	}
 
 	response := &struct {
-		entity.Account
 		Applications []*entity.Application `json:"applications"`
 	}{
-		Account:      *account,
 		Applications: applications,
 	}
 

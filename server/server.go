@@ -242,14 +242,14 @@ func checkApplicationSession(ctx *context.Context) {
 
 // writeCacheHeaders will add the corresponding cache headers based on the time supplied (in seconds)
 func writeCacheHeaders(cacheTime uint, ctx *context.Context) {
-	if cacheTime > 0 {
+	/*if cacheTime > 0 {
 		ctx.W.Header().Set("Cache-Control", fmt.Sprintf(`"max-age=%d, public"`, cacheTime))
 		ctx.W.Header().Set("Expires", time.Now().Add(time.Duration(cacheTime)*time.Second).Format(http.TimeFormat))
-	} else {
-		ctx.W.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-		ctx.W.Header().Set("Pragma", "no-cache")
-		ctx.W.Header().Set("Expires", "0")
-	}
+	} else {*/
+	ctx.W.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	ctx.W.Header().Set("Pragma", "no-cache")
+	ctx.W.Header().Set("Expires", "0")
+	//}
 }
 
 // getSanitizedHeaders returns the sanitized request headers
@@ -392,7 +392,7 @@ func customHandler(routeName, version string, route *route, mainLog, errorLog ch
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		ctx, err := context.NewContext(w, r, mainLog, errorLog, routeName, route.scope, version, route.extraContext, environment, debugMode)
+		ctx, err := context.NewContext(w, r, mainLog, errorLog, routeName, route.scope, version, route.contextFilters, environment, debugMode)
 		if err != nil {
 			errorHappened(ctx, "failed to get a request context", http.StatusInternalServerError, err)
 			return

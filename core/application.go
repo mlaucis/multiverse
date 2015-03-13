@@ -6,7 +6,6 @@ package core
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"strconv"
 	"time"
@@ -100,8 +99,7 @@ func ReadApplicationList(accountID int64) (applications []*entity.Application, e
 	}
 
 	if len(result) == 0 {
-		err := errors.New("There are no apps for this account")
-		return nil, err
+		return
 	}
 
 	resultList, err := storageEngine.MGet(result...).Result()

@@ -12,7 +12,6 @@ import (
 	"strings"
 
 	. "github.com/tapglue/backend/utils"
-	"log"
 )
 
 // addHeaders adds the additional headers to the request before being signed
@@ -29,7 +28,7 @@ func addHeaders(accountID, applicationID int64, r *http.Request) error {
 
 // canonicalRequest returns the full canonical request and its headers
 func canonicalRequest(r *http.Request) string {
-	return fmt.Sprintf(
+	result := fmt.Sprintf(
 		"%s\n%s\nhost:%s\nx-tapglue-date:%s\nx-tapglue-payload-hash:%s\nx-tapglue-id:%s",
 		r.Method,
 		r.URL.Path,
@@ -38,6 +37,8 @@ func canonicalRequest(r *http.Request) string {
 		r.Header.Get("x-tapglue-payload-hash"),
 		r.Header.Get("x-tapglue-id"),
 	)
+
+	return result
 }
 
 // generateSigningString returns the string used to
@@ -56,18 +57,18 @@ func generateSigningKey(secretKey, scope, requestVersion string, r *http.Request
 		r.Header.Get("x-tapglue-date"),
 	)
 
-	log.Printf("sign:\tkey\t%s", key)
-	key = Sha256String(key)
-	log.Printf("sign:\tsha key\t%s", key)
-	key = Sha256String(key + r.Header.Get("x-tapglue-session"))
-	log.Printf("sign:\tkey + session\t%s", key)
-	key = Sha256String(key + scope)
-	log.Printf("sign:\tkey + scope\t%s", key)
-	key = Sha256String(key + "api")
-	log.Printf("sign:\tkey + \"api\"\t%s", key)
+	//log.Printf("sign:\tkey\t%s", key)
+	key = Base64Encode(Sha256String(key))
+	//log.Printf("sign:\tsha key\t%s", key)
+	key = Base64Encode(Sha256String(key + r.Header.Get("x-tapglue-session")))
+	//log.Printf("sign:\tkey + session\t%s", key)
+	key = Base64Encode(Sha256String(key + scope))
+	//log.Printf("sign:\tkey + scope\t%s", key)
+	key = Base64Encode(Sha256String(key + "api"))
+	//log.Printf("sign:\tkey + \"api\"\t%s", key)
 
-	key = Sha256String(key + requestVersion)
-	log.Printf("sign:\tkey + requestVersion\t%s", key)
+	key = Base64Encode(Sha256String(key + requestVersion))
+	//log.Printf("sign:\tkey + requestVersion\t%s", key)
 
 	return key
 }

@@ -21,30 +21,32 @@ import (
 
 type (
 	// ExtraContext callbacks return extra information to the context
-	ExtraContext func(*Context) error
+	ContextFilter func(*Context) error
 
 	// Request context
 	Context struct {
-		AccountID     int64
-		Account       *entity.Account
-		ApplicationID int64
-		App           *entity.Application
-		UserID        int64
-		User          *entity.User
-		SessionToken  string
-		Vars          map[string]string
-		Body          *bytes.Buffer
-		BodyString    string
-		MainLog       chan *logger.LogMsg
-		ErrorLog      chan *logger.LogMsg
-		W             http.ResponseWriter
-		R             *http.Request
-		StartTime     time.Time
-		RouteName     string
-		Scope         string
-		Version       string
-		Environment   string
-		DebugMode     bool
+		AccountID         int64
+		Account           *entity.Account
+		AccountUserID     int64
+		AccountUser       *entity.AccountUser
+		ApplicationID     int64
+		Application       *entity.Application
+		ApplicationUserID int64
+		ApplicationUser   *entity.User
+		SessionToken      string
+		Vars              map[string]string
+		Body              *bytes.Buffer
+		BodyString        string
+		MainLog           chan *logger.LogMsg
+		ErrorLog          chan *logger.LogMsg
+		W                 http.ResponseWriter
+		R                 *http.Request
+		StartTime         time.Time
+		RouteName         string
+		Scope             string
+		Version           string
+		Environment       string
+		DebugMode         bool
 	}
 )
 
@@ -116,7 +118,7 @@ func NewContext(
 	r *http.Request,
 	mainLog, errorLog chan *logger.LogMsg,
 	routeName, scope, version string,
-	extraContext []ExtraContext,
+	contextFilters []ContextFilter,
 	environment string,
 	debugMode bool) (ctx *Context, err error) {
 
@@ -135,9 +137,10 @@ func NewContext(
 	ctx.Environment = environment
 	ctx.DebugMode = debugMode
 
-	for _, extraContext := range extraContext {
+	for contextIndex, extraContext := range contextFilters {
 		err = extraContext(ctx)
 		if err != nil {
+			err = fmt.Errorf("%s in context filter %d", err.Error(), contextIndex+1)
 			break
 		}
 	}

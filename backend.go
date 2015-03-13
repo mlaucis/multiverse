@@ -6,6 +6,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"math/rand"
@@ -14,8 +15,6 @@ import (
 	_ "net/http/pprof"
 	"runtime"
 	"time"
-
-	"flag"
 
 	"github.com/tapglue/backend/config"
 	"github.com/tapglue/backend/core"

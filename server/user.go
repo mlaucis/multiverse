@@ -7,7 +7,6 @@ package server
 import (
 	"encoding/json"
 	"net/http"
-	"strconv"
 
 	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/core"
@@ -18,73 +17,20 @@ import (
 // getApplicationUser handles requests to retrieve a single user
 // Request: GET account/:AccountID/application/:ApplicationID/user/:UserID
 func getApplicationUser(ctx *context.Context) {
-	var (
-		user          *entity.User
-		accountID     int64
-		applicationID int64
-		userID        int64
-		err           error
-	)
-
-	if accountID, err = strconv.ParseInt(ctx.Vars["accountId"], 10, 64); err != nil {
-		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest, err)
-		return
-	}
-
-	if applicationID, err = strconv.ParseInt(ctx.Vars["applicationId"], 10, 64); err != nil {
-		errorHappened(ctx, "applicationId is not set or the value is incorrect", http.StatusBadRequest, err)
-		return
-	}
-
-	if userID, err = strconv.ParseInt(ctx.Vars["userId"], 10, 64); err != nil {
-		errorHappened(ctx, "userId is not set or the value is incorrect", http.StatusBadRequest, err)
-		return
-	}
-
-	if user, err = core.ReadApplicationUser(accountID, applicationID, userID); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
-		return
-	}
-
 	// Don't return the password to the users
+	user := ctx.ApplicationUser
 	user.Password = ""
 
-	response := &struct {
-		ApplicationID int64 `json:"applicationId"`
-		*entity.User
-	}{
-		ApplicationID: applicationID,
-		User:          user,
-	}
-
-	writeResponse(ctx, response, http.StatusOK, 10)
+	writeResponse(ctx, user, http.StatusOK, 10)
 }
 
 // updateApplicationUser handles requests to update a user
 // Request: PUT account/:AccountID/application/:ApplicationID/user/:UserID
 func updateApplicationUser(ctx *context.Context) {
 	var (
-		user          = &entity.User{}
-		accountID     int64
-		applicationID int64
-		userID        int64
-		err           error
+		user = &entity.User{}
+		err  error
 	)
-
-	if accountID, err = strconv.ParseInt(ctx.Vars["accountId"], 10, 64); err != nil {
-		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest, err)
-		return
-	}
-
-	if applicationID, err = strconv.ParseInt(ctx.Vars["applicationId"], 10, 64); err != nil {
-		errorHappened(ctx, "applicationId is not set or the value is incorrect", http.StatusBadRequest, err)
-		return
-	}
-
-	if userID, err = strconv.ParseInt(ctx.Vars["userId"], 10, 64); err != nil {
-		errorHappened(ctx, "userId is not set or the value is incorrect", http.StatusBadRequest, err)
-		return
-	}
 
 	decoder := json.NewDecoder(ctx.Body)
 	if err = decoder.Decode(user); err != nil {
@@ -92,15 +38,9 @@ func updateApplicationUser(ctx *context.Context) {
 		return
 	}
 
-	if user.ID == 0 {
-		user.ID = userID
-	}
-	if user.AccountID == 0 {
-		user.AccountID = accountID
-	}
-	if user.ApplicationID == 0 {
-		user.ApplicationID = applicationID
-	}
+	user.ID = ctx.ApplicationUserID
+	user.AccountID = ctx.AccountID
+	user.ApplicationID = ctx.ApplicationID
 
 	if err = validator.UpdateUser(user); err != nil {
 		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
@@ -121,29 +61,7 @@ func updateApplicationUser(ctx *context.Context) {
 // deleteApplicationUser handles requests to delete a single user
 // Request: DELETE account/:AccountID/application/:ApplicationID/user/:UserID
 func deleteApplicationUser(ctx *context.Context) {
-	var (
-		accountID     int64
-		applicationID int64
-		userID        int64
-		err           error
-	)
-
-	if accountID, err = strconv.ParseInt(ctx.Vars["accountId"], 10, 64); err != nil {
-		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest, err)
-		return
-	}
-
-	if applicationID, err = strconv.ParseInt(ctx.Vars["applicationId"], 10, 64); err != nil {
-		errorHappened(ctx, "applicationId is not set or the value is incorrect", http.StatusBadRequest, err)
-		return
-	}
-
-	if userID, err = strconv.ParseInt(ctx.Vars["userId"], 10, 64); err != nil {
-		errorHappened(ctx, "userId is not set or the value is incorrect", http.StatusBadRequest, err)
-		return
-	}
-
-	if err = core.DeleteUser(accountID, applicationID, userID); err != nil {
+	if err := core.DeleteUser(ctx.AccountID, ctx.ApplicationID, ctx.ApplicationUserID); err != nil {
 		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
 		return
 	}
@@ -155,21 +73,9 @@ func deleteApplicationUser(ctx *context.Context) {
 // Request: POST account/:AccountID/application/:ApplicationID/users
 func createApplicationUser(ctx *context.Context) {
 	var (
-		user          = &entity.User{}
-		accountID     int64
-		applicationID int64
-		err           error
+		user = &entity.User{}
+		err  error
 	)
-
-	if accountID, err = strconv.ParseInt(ctx.Vars["accountId"], 10, 64); err != nil {
-		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest, err)
-		return
-	}
-
-	if applicationID, err = strconv.ParseInt(ctx.Vars["applicationId"], 10, 64); err != nil {
-		errorHappened(ctx, "applicationId is not set or the value is incorrect", http.StatusBadRequest, err)
-		return
-	}
 
 	decoder := json.NewDecoder(ctx.Body)
 	if err = decoder.Decode(user); err != nil {
@@ -177,8 +83,8 @@ func createApplicationUser(ctx *context.Context) {
 		return
 	}
 
-	user.AccountID = accountID
-	user.ApplicationID = applicationID
+	user.AccountID = ctx.AccountID
+	user.ApplicationID = ctx.ApplicationID
 
 	if err = validator.CreateUser(user); err != nil {
 		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
@@ -201,34 +107,24 @@ func createApplicationUser(ctx *context.Context) {
 // Request: GET account/:AccountID/application/:ApplicationID/users
 func getApplicationUserList(ctx *context.Context) {
 	var (
-		accountID     int64
-		applicationID int64
-		users         []*entity.User
-		err           error
+		users []*entity.User
+		err   error
 	)
 
-	if accountID, err = strconv.ParseInt(ctx.Vars["accountId"], 10, 64); err != nil {
-		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest, err)
-		return
-	}
-
-	if applicationID, err = strconv.ParseInt(ctx.Vars["applicationId"], 10, 64); err != nil {
-		errorHappened(ctx, "applicationId is not set or the value is incorrect", http.StatusBadRequest, err)
-		return
-	}
-
-	if users, err = core.ReadUserList(accountID, applicationID); err != nil {
+	if users, err = core.ReadUserList(ctx.AccountID, ctx.ApplicationID); err != nil {
 		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
 		return
 	}
 
-	// TODO iterate the users and strip their password
+	for idx := range users {
+		users[idx].Password = ""
+	}
 
 	response := &struct {
 		ApplicationID int64 `json:"applicationId"`
 		Users         []*entity.User
 	}{
-		ApplicationID: applicationID,
+		ApplicationID: ctx.ApplicationID,
 		Users:         users,
 	}
 
@@ -243,21 +139,9 @@ func loginApplicationUser(ctx *context.Context) {
 			Email    string `json:"email"`
 			Password string `json:"password"`
 		}
-		accountID     int64
-		applicationID int64
-		sessionToken  string
-		err           error
+		sessionToken string
+		err          error
 	)
-
-	if accountID, err = strconv.ParseInt(ctx.Vars["accountId"], 10, 64); err != nil {
-		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest, err)
-		return
-	}
-
-	if applicationID, err = strconv.ParseInt(ctx.Vars["applicationId"], 10, 64); err != nil {
-		errorHappened(ctx, "applicationId is not set or the value is incorrect", http.StatusBadRequest, err)
-		return
-	}
 
 	decoder := json.NewDecoder(ctx.Body)
 	if err = decoder.Decode(&loginPayload); err != nil {
@@ -270,7 +154,7 @@ func loginApplicationUser(ctx *context.Context) {
 		return
 	}
 
-	user, err := core.FindApplicationUserByEmail(accountID, applicationID, loginPayload.Email)
+	user, err := core.FindApplicationUserByEmail(ctx.AccountID, ctx.ApplicationID, loginPayload.Email)
 	if err != nil {
 		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
 		return
@@ -295,35 +179,11 @@ func loginApplicationUser(ctx *context.Context) {
 // Request: POST account/:AccountID/application/:ApplicationID/user/refreshsession
 func refreshApplicationUserSession(ctx *context.Context) {
 	var (
-		user          = &entity.User{}
-		accountID     int64
-		applicationID int64
-		userID        int64
-		sessionToken  string
-		err           error
+		sessionToken string
+		err          error
 	)
 
-	if accountID, err = strconv.ParseInt(ctx.Vars["accountId"], 10, 64); err != nil {
-		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest, err)
-		return
-	}
-
-	if applicationID, err = strconv.ParseInt(ctx.Vars["applicationId"], 10, 64); err != nil {
-		errorHappened(ctx, "applicationId is not set or the value is incorrect", http.StatusBadRequest, err)
-		return
-	}
-
-	if userID, err = strconv.ParseInt(ctx.Vars["userId"], 10, 64); err != nil {
-		errorHappened(ctx, "userId is not set or the value is incorrect", http.StatusBadRequest, err)
-		return
-	}
-
-	if user, err = core.ReadApplicationUser(accountID, applicationID, userID); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
-		return
-	}
-
-	if sessionToken, err = core.RefreshApplicationUserSession(ctx.SessionToken, user); err != nil {
+	if sessionToken, err = core.RefreshApplicationUserSession(ctx.SessionToken, ctx.ApplicationUser); err != nil {
 		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
 		return
 	}
@@ -336,35 +196,7 @@ func refreshApplicationUserSession(ctx *context.Context) {
 // logoutApplicationUser handles the requests to logout the user from the system
 // Request: POST account/:AccountID/application/:ApplicationID/user/logout
 func logoutApplicationUser(ctx *context.Context) {
-	var (
-		user          = &entity.User{}
-		accountID     int64
-		applicationID int64
-		userID        int64
-		err           error
-	)
-
-	if accountID, err = strconv.ParseInt(ctx.Vars["accountId"], 10, 64); err != nil {
-		errorHappened(ctx, "accountId is not set or the value is incorrect", http.StatusBadRequest, err)
-		return
-	}
-
-	if applicationID, err = strconv.ParseInt(ctx.Vars["applicationId"], 10, 64); err != nil {
-		errorHappened(ctx, "applicationId is not set or the value is incorrect", http.StatusBadRequest, err)
-		return
-	}
-
-	if userID, err = strconv.ParseInt(ctx.Vars["userId"], 10, 64); err != nil {
-		errorHappened(ctx, "userId is not set or the value is incorrect", http.StatusBadRequest, err)
-		return
-	}
-
-	if user, err = core.ReadApplicationUser(accountID, applicationID, userID); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
-		return
-	}
-
-	if err = core.DestroyApplicationUserSession(ctx.SessionToken, user); err != nil {
+	if err := core.DestroyApplicationUserSession(ctx.SessionToken, ctx.ApplicationUser); err != nil {
 		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
 		return
 	}

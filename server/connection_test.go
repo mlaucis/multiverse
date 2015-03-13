@@ -123,6 +123,8 @@ func (s *ServerSuite) TestUpdateConnection_OK(c *C) {
 
 // Test updateConnection request with a wrong id
 func (s *ServerSuite) TestUpdateConnection_WrongID(c *C) {
+	c.Skip("forced the correct user id using the contexts")
+	return
 	correctAccount, err := AddCorrectAccount(true)
 	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
 	correctUserFrom, err := AddCorrectUser(correctAccount.ID, correctApplication.ID, true)
@@ -146,6 +148,8 @@ func (s *ServerSuite) TestUpdateConnection_WrongID(c *C) {
 
 // Test updateConnection request with an invalid name
 func (s *ServerSuite) TestUpdateConnection_WrongValue(c *C) {
+	c.Skip("skip because we now force things to be correct in the contexts")
+	return
 	correctAccount, err := AddCorrectAccount(true)
 	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
 	correctUserFrom, err := AddCorrectUser(correctAccount.ID, correctApplication.ID, true)

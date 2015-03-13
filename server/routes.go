@@ -11,12 +11,12 @@ type (
 	routeFunc func(*context.Context)
 
 	route struct {
-		method       string
-		pattern      string
-		cPattern     string
-		scope        string
-		handlers     []routeFunc
-		extraContext []context.ExtraContext
+		method         string
+		pattern        string
+		cPattern       string
+		scope          string
+		handlers       []routeFunc
+		contextFilters []context.ContextFilter
 	}
 )
 
@@ -52,7 +52,7 @@ var routes = map[string]map[string]*route{
 				checkAccountSession,
 				getAccount,
 			},
-			extraContext: []context.ExtraContext{
+			contextFilters: []context.ContextFilter{
 				contextHasAccount,
 			},
 		},
@@ -66,7 +66,7 @@ var routes = map[string]map[string]*route{
 				checkAccountSession,
 				updateAccount,
 			},
-			extraContext: []context.ExtraContext{
+			contextFilters: []context.ContextFilter{
 				contextHasAccount,
 			},
 		},
@@ -79,6 +79,9 @@ var routes = map[string]map[string]*route{
 				validateAccountRequestToken,
 				checkAccountSession,
 				deleteAccount,
+			},
+			contextFilters: []context.ContextFilter{
+				contextHasAccount,
 			},
 		},
 		"createAccount": &route{
@@ -101,8 +104,9 @@ var routes = map[string]map[string]*route{
 				checkAccountSession,
 				getAccountUser,
 			},
-			extraContext: []context.ExtraContext{
+			contextFilters: []context.ContextFilter{
 				contextHasAccount,
+				contextHasAccountUser,
 			},
 		},
 		"updateAccountUser": &route{
@@ -115,8 +119,9 @@ var routes = map[string]map[string]*route{
 				checkAccountSession,
 				updateAccountUser,
 			},
-			extraContext: []context.ExtraContext{
+			contextFilters: []context.ContextFilter{
 				contextHasAccount,
+				contextHasAccountUser,
 			},
 		},
 		"deleteAccountUser": &route{
@@ -129,8 +134,9 @@ var routes = map[string]map[string]*route{
 				checkAccountSession,
 				deleteAccountUser,
 			},
-			extraContext: []context.ExtraContext{
+			contextFilters: []context.ContextFilter{
 				contextHasAccount,
+				contextHasAccountUser,
 			},
 		},
 		"createAccountUser": &route{
@@ -142,7 +148,7 @@ var routes = map[string]map[string]*route{
 				validateAccountRequestToken,
 				createAccountUser,
 			},
-			extraContext: []context.ExtraContext{
+			contextFilters: []context.ContextFilter{
 				contextHasAccount,
 			},
 		},
@@ -156,7 +162,7 @@ var routes = map[string]map[string]*route{
 				checkAccountSession,
 				getAccountUserList,
 			},
-			extraContext: []context.ExtraContext{
+			contextFilters: []context.ContextFilter{
 				contextHasAccount,
 			},
 		},
@@ -167,9 +173,6 @@ var routes = map[string]map[string]*route{
 			scope:    "account/user/login",
 			handlers: []routeFunc{
 				loginAccountUser,
-			},
-			extraContext: []context.ExtraContext{
-				contextHasAccount,
 			},
 		},
 		"refreshAccountUserSession": &route{
@@ -182,22 +185,23 @@ var routes = map[string]map[string]*route{
 				checkAccountSession,
 				refreshAccountUserSession,
 			},
-			extraContext: []context.ExtraContext{
+			contextFilters: []context.ContextFilter{
 				contextHasAccount,
 			},
 		},
 		"logoutAccountUser": &route{
 			method:   "POST",
-			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/logout",
-			cPattern: "/account/%d/application/%d/user/logout",
+			pattern:  "/account/{accountId:[0-9]{1,20}}/user/{userId:[0-9]{1,20}}/logout",
+			cPattern: "/account/%d/user/%d/logout",
 			scope:    "account/user/logout",
 			handlers: []routeFunc{
 				validateAccountRequestToken,
 				checkAccountSession,
 				logoutAccountUser,
 			},
-			extraContext: []context.ExtraContext{
+			contextFilters: []context.ContextFilter{
 				contextHasAccount,
+				contextHasAccountUser,
 			},
 		},
 		// Application
@@ -211,7 +215,7 @@ var routes = map[string]map[string]*route{
 				checkAccountSession,
 				getApplication,
 			},
-			extraContext: []context.ExtraContext{
+			contextFilters: []context.ContextFilter{
 				contextHasAccount,
 				contextHasApplication,
 			},
@@ -226,7 +230,7 @@ var routes = map[string]map[string]*route{
 				checkAccountSession,
 				updateApplication,
 			},
-			extraContext: []context.ExtraContext{
+			contextFilters: []context.ContextFilter{
 				contextHasAccount,
 				contextHasApplication,
 			},
@@ -241,7 +245,7 @@ var routes = map[string]map[string]*route{
 				checkAccountSession,
 				deleteApplication,
 			},
-			extraContext: []context.ExtraContext{
+			contextFilters: []context.ContextFilter{
 				contextHasAccount,
 				contextHasApplication,
 			},
@@ -256,7 +260,7 @@ var routes = map[string]map[string]*route{
 				checkAccountSession,
 				createApplication,
 			},
-			extraContext: []context.ExtraContext{
+			contextFilters: []context.ContextFilter{
 				contextHasAccount,
 			},
 		},
@@ -270,7 +274,7 @@ var routes = map[string]map[string]*route{
 				checkAccountSession,
 				getApplicationList,
 			},
-			extraContext: []context.ExtraContext{
+			contextFilters: []context.ContextFilter{
 				contextHasAccount,
 			},
 		},
@@ -285,9 +289,10 @@ var routes = map[string]map[string]*route{
 				checkApplicationSession,
 				getApplicationUser,
 			},
-			extraContext: []context.ExtraContext{
+			contextFilters: []context.ContextFilter{
 				contextHasAccount,
 				contextHasApplication,
+				contextHasApplicationUser,
 			},
 		},
 		"updateUser": &route{
@@ -300,9 +305,10 @@ var routes = map[string]map[string]*route{
 				checkApplicationSession,
 				updateApplicationUser,
 			},
-			extraContext: []context.ExtraContext{
+			contextFilters: []context.ContextFilter{
 				contextHasAccount,
 				contextHasApplication,
+				contextHasApplicationUser,
 			},
 		},
 		"deleteUser": &route{
@@ -315,9 +321,10 @@ var routes = map[string]map[string]*route{
 				checkApplicationSession,
 				deleteApplicationUser,
 			},
-			extraContext: []context.ExtraContext{
+			contextFilters: []context.ContextFilter{
 				contextHasAccount,
 				contextHasApplication,
+				contextHasApplicationUser,
 			},
 		},
 		"createUser": &route{
@@ -329,7 +336,7 @@ var routes = map[string]map[string]*route{
 				validateApplicationRequestToken,
 				createApplicationUser,
 			},
-			extraContext: []context.ExtraContext{
+			contextFilters: []context.ContextFilter{
 				contextHasAccount,
 				contextHasApplication,
 			},
@@ -343,7 +350,7 @@ var routes = map[string]map[string]*route{
 				validateApplicationRequestToken,
 				loginApplicationUser,
 			},
-			extraContext: []context.ExtraContext{
+			contextFilters: []context.ContextFilter{
 				contextHasAccount,
 				contextHasApplication,
 			},
@@ -358,9 +365,10 @@ var routes = map[string]map[string]*route{
 				checkApplicationSession,
 				refreshApplicationUserSession,
 			},
-			extraContext: []context.ExtraContext{
+			contextFilters: []context.ContextFilter{
 				contextHasAccount,
 				contextHasApplication,
+				contextHasApplicationUser,
 			},
 		},
 		"logoutUser": &route{
@@ -373,9 +381,10 @@ var routes = map[string]map[string]*route{
 				checkApplicationSession,
 				logoutApplicationUser,
 			},
-			extraContext: []context.ExtraContext{
+			contextFilters: []context.ContextFilter{
 				contextHasAccount,
 				contextHasApplication,
+				contextHasApplicationUser,
 			},
 		},
 		/*
@@ -397,14 +406,15 @@ var routes = map[string]map[string]*route{
 				checkApplicationSession,
 				createConnection,
 			},
-			extraContext: []context.ExtraContext{
+			contextFilters: []context.ContextFilter{
 				contextHasAccount,
 				contextHasApplication,
+				contextHasApplicationUser,
 			},
 		},
 		"updateConnection": &route{
 			method:   "PUT",
-			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userFromId:[a-zA-Z0-9]+}/connection/{userToId:[a-zA-Z0-9]+}",
+			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]{1,20}}/connection/{userToId:[a-zA-Z0-9]+}",
 			cPattern: "/account/%d/application/%d/user/%d/connection/%d",
 			scope:    "application/user/connection/update",
 			handlers: []routeFunc{
@@ -412,14 +422,15 @@ var routes = map[string]map[string]*route{
 				checkApplicationSession,
 				updateConnection,
 			},
-			extraContext: []context.ExtraContext{
+			contextFilters: []context.ContextFilter{
 				contextHasAccount,
 				contextHasApplication,
+				contextHasApplicationUser,
 			},
 		},
 		"deleteConnection": &route{
 			method:   "DELETE",
-			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userFromId:[a-zA-Z0-9]+}/connection/{userToId:[a-zA-Z0-9]+}",
+			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]{1,20}}/connection/{userToId:[a-zA-Z0-9]+}",
 			cPattern: "/account/%d/application/%d/user/%d/connection/%d",
 			scope:    "application/user/connection/delete",
 			handlers: []routeFunc{
@@ -427,9 +438,10 @@ var routes = map[string]map[string]*route{
 				checkApplicationSession,
 				deleteConnection,
 			},
-			extraContext: []context.ExtraContext{
+			contextFilters: []context.ContextFilter{
 				contextHasAccount,
 				contextHasApplication,
+				contextHasApplicationUser,
 			},
 		},
 		"getConnectionList": &route{
@@ -442,9 +454,10 @@ var routes = map[string]map[string]*route{
 				checkApplicationSession,
 				getConnectionList,
 			},
-			extraContext: []context.ExtraContext{
+			contextFilters: []context.ContextFilter{
 				contextHasAccount,
 				contextHasApplication,
+				contextHasApplicationUser,
 			},
 		},
 		"confirmConnection": &route{
@@ -457,9 +470,10 @@ var routes = map[string]map[string]*route{
 				checkApplicationSession,
 				confirmConnection,
 			},
-			extraContext: []context.ExtraContext{
+			contextFilters: []context.ContextFilter{
 				contextHasAccount,
 				contextHasApplication,
+				contextHasApplicationUser,
 			},
 		},
 		// Event
@@ -473,9 +487,10 @@ var routes = map[string]map[string]*route{
 				checkApplicationSession,
 				getEvent,
 			},
-			extraContext: []context.ExtraContext{
+			contextFilters: []context.ContextFilter{
 				contextHasAccount,
 				contextHasApplication,
+				contextHasApplicationUser,
 			},
 		},
 		"updateEvent": &route{
@@ -488,9 +503,10 @@ var routes = map[string]map[string]*route{
 				checkApplicationSession,
 				updateEvent,
 			},
-			extraContext: []context.ExtraContext{
+			contextFilters: []context.ContextFilter{
 				contextHasAccount,
 				contextHasApplication,
+				contextHasApplicationUser,
 			},
 		},
 		"deleteEvent": &route{
@@ -503,9 +519,10 @@ var routes = map[string]map[string]*route{
 				checkApplicationSession,
 				deleteEvent,
 			},
-			extraContext: []context.ExtraContext{
+			contextFilters: []context.ContextFilter{
 				contextHasAccount,
 				contextHasApplication,
+				contextHasApplicationUser,
 			},
 		},
 		"createEvent": &route{
@@ -518,9 +535,10 @@ var routes = map[string]map[string]*route{
 				checkApplicationSession,
 				createEvent,
 			},
-			extraContext: []context.ExtraContext{
+			contextFilters: []context.ContextFilter{
 				contextHasAccount,
 				contextHasApplication,
+				contextHasApplicationUser,
 			},
 		},
 		"getEventList": &route{
@@ -533,9 +551,10 @@ var routes = map[string]map[string]*route{
 				checkApplicationSession,
 				getEventList,
 			},
-			extraContext: []context.ExtraContext{
+			contextFilters: []context.ContextFilter{
 				contextHasAccount,
 				contextHasApplication,
+				contextHasApplicationUser,
 			},
 		},
 		"getConnectionEventList": &route{
@@ -548,9 +567,10 @@ var routes = map[string]map[string]*route{
 				checkApplicationSession,
 				getConnectionEventList,
 			},
-			extraContext: []context.ExtraContext{
+			contextFilters: []context.ContextFilter{
 				contextHasAccount,
 				contextHasApplication,
+				contextHasApplicationUser,
 			},
 		},
 		"getGeoEventList": &route{
@@ -563,7 +583,7 @@ var routes = map[string]map[string]*route{
 				checkApplicationSession,
 				getGeoEventList,
 			},
-			extraContext: []context.ExtraContext{
+			contextFilters: []context.ContextFilter{
 				contextHasAccount,
 				contextHasApplication,
 			},
@@ -578,7 +598,7 @@ var routes = map[string]map[string]*route{
 				checkApplicationSession,
 				getObjectEventList,
 			},
-			extraContext: []context.ExtraContext{
+			contextFilters: []context.ContextFilter{
 				contextHasAccount,
 				contextHasApplication,
 			},
@@ -593,7 +613,7 @@ var routes = map[string]map[string]*route{
 				checkApplicationSession,
 				getLocationEventList,
 			},
-			extraContext: []context.ExtraContext{
+			contextFilters: []context.ContextFilter{
 				contextHasAccount,
 				contextHasApplication,
 			},

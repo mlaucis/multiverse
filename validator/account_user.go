@@ -241,6 +241,8 @@ func CheckAccountSession(r *http.Request) (string, error) {
 		return "", fmt.Errorf("session not found")
 	}
 
+	//fmt.Printf("storedSession\t%s\nencodedSession\t%s\n", storedSessionToken, encodedSessionToken)
+
 	if storedSessionToken != encodedSessionToken {
 		return "", fmt.Errorf("session token mismatch(3)")
 	}
