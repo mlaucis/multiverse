@@ -41,7 +41,6 @@ var (
 		URL:         "http://app.co",
 	}
 	correctUser = &entity.User{
-		AuthToken: "customSecureTokne",
 		UserCommon: entity.UserCommon{
 			Username:  "demouser",
 			FirstName: "Demo",

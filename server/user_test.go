@@ -57,14 +57,13 @@ func (s *ServerSuite) TestCreateUser_OK(c *C) {
 	correctUser := CorrectUser()
 
 	payload := fmt.Sprintf(
-		`{"user_name":"%s", "first_name":"%s", "last_name": "%s",  "email": "%s",  "url": "%s",  "password": "%s",  "auth_token": "%s"}`,
+		`{"user_name":"%s", "first_name":"%s", "last_name": "%s",  "email": "%s",  "url": "%s",  "password": "%s"}`,
 		correctUser.Username,
 		correctUser.FirstName,
 		correctUser.LastName,
 		correctUser.Email,
 		correctUser.URL,
 		correctUser.Password,
-		correctUser.AuthToken,
 	)
 
 	routeName := "createUser"
@@ -98,13 +97,12 @@ func (s *ServerSuite) TestUpdateUser_OK(c *C) {
 	c.Assert(err, IsNil)
 
 	payload := fmt.Sprintf(
-		`{"user_name":"%s", "first_name":"changed", "last_name": "%s",  "email": "%s",  "url": "%s",  "password": "%s",  "auth_token": "%s", "enabled": true}`,
+		`{"user_name":"%s", "first_name":"changed", "last_name": "%s",  "email": "%s",  "url": "%s",  "password": "%s", "enabled": true}`,
 		correctUser.Username,
 		correctUser.LastName,
 		correctUser.Email,
 		correctUser.URL,
 		correctUser.Password,
-		correctUser.AuthToken,
 	)
 
 	routeName := "updateUser"
@@ -136,13 +134,12 @@ func (s *ServerSuite) TestUpdateUser_WrongID(c *C) {
 	correctUser, err := AddCorrectUser(correctAccount.ID, correctApplication.ID, true)
 
 	payload := fmt.Sprintf(
-		`{"user_name":"%s", "first_name":"changed", "last_name": "%s",  "email": "%s",  "url": "%s",  "password": "%s",  "auth_token": "%s", "enabled": true}`,
+		`{"user_name":"%s", "first_name":"changed", "last_name": "%s",  "email": "%s",  "url": "%s",  "password": "%s",  "enabled": true}`,
 		correctUser.Username,
 		correctUser.LastName,
 		correctUser.Email,
 		correctUser.URL,
 		correctUser.Password,
-		correctUser.AuthToken,
 	)
 
 	routeName := "updateUser"
@@ -156,18 +153,21 @@ func (s *ServerSuite) TestUpdateUser_WrongID(c *C) {
 // Test a correct updateUser request with an invalid name
 func (s *ServerSuite) TestUpdateUser_WrongValue(c *C) {
 	correctAccount, err := AddCorrectAccount(true)
+	c.Assert(err, IsNil)
+
 	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
+	c.Assert(err, IsNil)
+
 	correctUser, err := AddCorrectUser(correctAccount.ID, correctApplication.ID, true)
 	c.Assert(err, IsNil)
 
 	payload := fmt.Sprintf(
-		`{"user_name":"%s", "first_name":"", "last_name": "%s",  "email": "%s",  "url": "%s",  "password": "%s",  "auth_token": "%s", "enabled": true}`,
+		`{"user_name":"%s", "first_name":"", "last_name": "%s",  "email": "%s",  "url": "%s",  "password": "%s",  "enabled": true}`,
 		correctUser.Username,
 		correctUser.LastName,
 		correctUser.Email,
 		correctUser.URL,
 		correctUser.Password,
-		correctUser.AuthToken,
 	)
 
 	routeName := "updateUser"
@@ -240,7 +240,11 @@ func (s *ServerSuite) TestGetUser_OK(c *C) {
 // Test a correct getUser request with a wrong id
 func (s *ServerSuite) TestGetUser_WrongID(c *C) {
 	correctAccount, err := AddCorrectAccount(true)
+	c.Assert(err, IsNil)
+
 	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
+	c.Assert(err, IsNil)
+
 	correctUser, err := AddCorrectUser(correctAccount.ID, correctApplication.ID, true)
 	c.Assert(err, IsNil)
 
@@ -301,9 +305,17 @@ func (s *ServerSuite) TestLogoutUser_OK(c *C) {
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
 
+	var sessionToken struct {
+		Token string `json:"token"`
+	} = struct {
+		Token string `json:"token"`
+	}{}
+	err = json.Unmarshal([]byte(body), &sessionToken)
+	c.Assert(err, IsNil)
+
 	routeName = "logoutUser"
 	route = getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID)
-	code, body, err = runRequest(routeName, route, "", correctApplication.AuthToken, getApplicationUserSessionToken(correctUser), 3)
+	code, body, err = runRequest(routeName, route, "", correctApplication.AuthToken, sessionToken.Token, 3)
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusOK)
 	c.Assert(body, Not(Equals), "")

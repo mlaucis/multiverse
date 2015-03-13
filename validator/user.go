@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/tapglue/backend/core"
 	"github.com/tapglue/backend/core/entity"
 	. "github.com/tapglue/backend/utils"
 )
@@ -72,10 +73,6 @@ func CreateUser(user *entity.User) error {
 		errs = append(errs, &errorApplicationIDZero)
 	}
 
-	if user.AuthToken == "" {
-		errs = append(errs, &errorAuthTokenInvalid)
-	}
-
 	if user.Email == "" || !email.Match([]byte(user.Email)) {
 		errs = append(errs, &errorUserEmailInvalid)
 	}
@@ -94,6 +91,14 @@ func CreateUser(user *entity.User) error {
 
 	if !ApplicationExists(user.AccountID, user.ApplicationID) {
 		errs = append(errs, &errorApplicationDoesNotExists)
+	}
+
+	if userExists, err := core.ApplicationUserByEmailExists(user.AccountID, user.ApplicationID, user.Email); userExists || err != nil {
+		if userExists {
+			errs = append(errs, &errorApplicationUserAlreadyExists)
+		} else {
+			errs = append(errs, &err)
+		}
 	}
 
 	return packErrors(errs)
@@ -125,10 +130,6 @@ func UpdateUser(user *entity.User) error {
 
 	if !alphaNumExtraCharFirst.Match([]byte(user.Username)) {
 		errs = append(errs, &errorUserUsernameType)
-	}
-
-	if user.AuthToken == "" {
-		errs = append(errs, &errorAuthTokenInvalid)
 	}
 
 	if user.Email == "" || !email.Match([]byte(user.Email)) {

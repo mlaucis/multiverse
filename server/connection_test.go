@@ -53,9 +53,15 @@ func (s *ServerSuite) TestCreateConnection_WrongValue(c *C) {
 // Test a correct createConnection request
 func (s *ServerSuite) TestCreateConnection_OK(c *C) {
 	correctAccount, err := AddCorrectAccount(true)
+	c.Assert(err, IsNil)
+
 	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
+	c.Assert(err, IsNil)
+
 	correctUserFrom, err := AddCorrectUser(correctAccount.ID, correctApplication.ID, true)
-	correctUserTo, err := AddCorrectUser(correctAccount.ID, correctApplication.ID, true)
+	c.Assert(err, IsNil)
+
+	correctUserTo, err := AddCorrectUser2(correctAccount.ID, correctApplication.ID, true)
 	c.Assert(err, IsNil)
 
 	payload := fmt.Sprintf(
@@ -82,15 +88,23 @@ func (s *ServerSuite) TestCreateConnection_OK(c *C) {
 	c.Assert(connection.ApplicationID, Equals, correctApplication.ID)
 	c.Assert(connection.UserFromID, Equals, correctUserFrom.ID)
 	c.Assert(connection.UserToID, Equals, correctUserTo.ID)
-	c.Assert(connection.Enabled, Equals, false)
+	c.Assert(connection.Enabled, Equals, true)
 }
 
 // Test a correct updateConnection request
 func (s *ServerSuite) TestUpdateConnection_OK(c *C) {
 	correctAccount, err := AddCorrectAccount(true)
+	c.Assert(err, IsNil)
+
 	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
+	c.Assert(err, IsNil)
+
 	correctUserFrom, err := AddCorrectUser(correctAccount.ID, correctApplication.ID, true)
-	correctUserTo, err := AddCorrectUser(correctAccount.ID, correctApplication.ID, true)
+	c.Assert(err, IsNil)
+
+	correctUserTo, err := AddCorrectUser2(correctAccount.ID, correctApplication.ID, true)
+	c.Assert(err, IsNil)
+
 	correctConnection, err := AddCorrectConnection(correctAccount.ID, correctApplication.ID, correctUserFrom.ID, correctUserTo.ID, true)
 	c.Assert(err, IsNil)
 
@@ -174,10 +188,18 @@ func (s *ServerSuite) TestUpdateConnection_WrongValue(c *C) {
 // Test a correct deleteConnection request
 func (s *ServerSuite) TestDeleteConnection_OK(c *C) {
 	correctAccount, err := AddCorrectAccount(true)
+	c.Assert(err, IsNil)
+
 	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
+	c.Assert(err, IsNil)
+
 	correctUserFrom, err := AddCorrectUser(correctAccount.ID, correctApplication.ID, true)
-	correctUserTo, err := AddCorrectUser(correctAccount.ID, correctApplication.ID, true)
-	AddCorrectConnection(correctAccount.ID, correctApplication.ID, correctUserFrom.ID, correctUserTo.ID, true)
+	c.Assert(err, IsNil)
+
+	correctUserTo, err := AddCorrectUser2(correctAccount.ID, correctApplication.ID, true)
+	c.Assert(err, IsNil)
+
+	_, err = AddCorrectConnection(correctAccount.ID, correctApplication.ID, correctUserFrom.ID, correctUserTo.ID, true)
 	c.Assert(err, IsNil)
 
 	routeName := "deleteConnection"
@@ -192,10 +214,18 @@ func (s *ServerSuite) TestDeleteConnection_OK(c *C) {
 // Test deleteConnection request with a wrong id
 func (s *ServerSuite) TestDeleteConnection_WrongID(c *C) {
 	correctAccount, err := AddCorrectAccount(true)
+	c.Assert(err, IsNil)
+
 	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
+	c.Assert(err, IsNil)
+
 	correctUserFrom, err := AddCorrectUser(correctAccount.ID, correctApplication.ID, true)
-	correctUserTo, err := AddCorrectUser(correctAccount.ID, correctApplication.ID, true)
-	AddCorrectConnection(correctAccount.ID, correctApplication.ID, correctUserFrom.ID, correctUserTo.ID, true)
+	c.Assert(err, IsNil)
+
+	correctUserTo, err := AddCorrectUser2(correctAccount.ID, correctApplication.ID, true)
+	c.Assert(err, IsNil)
+
+	_, err = AddCorrectConnection(correctAccount.ID, correctApplication.ID, correctUserFrom.ID, correctUserTo.ID, true)
 	c.Assert(err, IsNil)
 
 	routeName := "deleteConnection"

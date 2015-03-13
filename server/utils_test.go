@@ -57,6 +57,21 @@ func AddCorrectUser(accountID, applicationID int64, fetchUser bool) (usr *entity
 	return user, nil
 }
 
+// AddCorrectUser2 creates a correct user
+func AddCorrectUser2(accountID, applicationID int64, fetchUser bool) (usr *entity.User, err error) {
+	correctUser.Password = "password"
+	correctUser.Email = "user2@tapglue.com"
+	userWithIDs := correctUser
+	userWithIDs.AccountID = accountID
+	userWithIDs.ApplicationID = applicationID
+	user, err := core.WriteUser(userWithIDs, fetchUser)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
 // AddCorrectConnection creates a correct user connection
 func AddCorrectConnection(accountID, applicationID, userFromID, userToID int64, fetchConnection bool) (con *entity.Connection, err error) {
 	connectionWithIDs := correctConnection

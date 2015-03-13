@@ -157,8 +157,7 @@ func ReadEventList(accountID, applicationID, userID int64) (events []*entity.Eve
 	}
 
 	if len(result) == 0 {
-		err := errors.New("There are no events for this user")
-		return nil, err
+		return []*entity.Event{}, nil
 	}
 
 	resultList, err := storageEngine.MGet(result...).Result()
@@ -312,19 +311,19 @@ func SearchGeoEvents(accountID, applicationID int64, latitude, longitude, radius
 func SearchObjectEvents(accountID, applicationID int64, objectKey string) ([]*entity.Event, error) {
 	objectEventKey := storageClient.EventObjectKey(accountID, applicationID, objectKey)
 
-	return fetchEventsFromKeys(accountID, applicationID, objectEventKey, objectKey)
+	return fetchEventsFromKeys(accountID, applicationID, objectEventKey)
 }
 
 // SearchLocationEvents returns all the events for a specific object
 func SearchLocationEvents(accountID, applicationID int64, locationKey string) ([]*entity.Event, error) {
 	locationEventKey := storageClient.EventLocationKey(accountID, applicationID, locationKey)
 
-	return fetchEventsFromKeys(accountID, applicationID, locationEventKey, locationKey)
+	return fetchEventsFromKeys(accountID, applicationID, locationEventKey)
 }
 
 // fetchEventsFromKeys returns all the events matching a certain search key from the specified bucket
-func fetchEventsFromKeys(accountID, applicationID int64, bucketName, searchKey string) ([]*entity.Event, error) {
-	_, keys, err := storageEngine.SScan(bucketName, 0, searchKey, 300).Result()
+func fetchEventsFromKeys(accountID, applicationID int64, bucketName string) ([]*entity.Event, error) {
+	_, keys, err := storageEngine.SScan(bucketName, 0, "", 300).Result()
 	if err != nil {
 		return nil, err
 	}
@@ -345,6 +344,9 @@ func fetchEventsFromKeys(accountID, applicationID int64, bucketName, searchKey s
 func toEvents(resultList []interface{}) ([]*entity.Event, error) {
 	events := []*entity.Event{}
 	for _, result := range resultList {
+		if result == nil {
+			continue
+		}
 		event := &entity.Event{}
 		if err := json.Unmarshal([]byte(result.(string)), event); err != nil {
 			return []*entity.Event{}, err
