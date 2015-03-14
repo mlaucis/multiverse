@@ -128,7 +128,7 @@ func ReadConnectionList(accountID, applicationID, userID int64) (users []*entity
 // WriteConnection adds a user connection and returns the created connection or an error
 func WriteConnection(connection *entity.Connection, retrieve bool) (con *entity.Connection, err error) {
 	// We confirm the connection in the past forcefully so that we can update it at the confirmation time
-	connection.ConfirmedAt = time.Date(2014, time.January, 1, 1, 1, 1, 1, time.UTC)
+	connection.ConfirmedAt = time.Date(0, time.January, 1, 0, 0, 0, 0, time.UTC)
 	connection.Enabled = false
 	connection.CreatedAt = time.Now()
 	connection.UpdatedAt, connection.ReceivedAt = connection.CreatedAt, connection.CreatedAt
