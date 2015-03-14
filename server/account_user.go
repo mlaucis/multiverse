@@ -211,7 +211,7 @@ func loginAccountUser(ctx *context.Context) {
 // Request: Post /account/:AccountID/application/:ApplicationID/user/refreshsession
 func refreshAccountUserSession(ctx *context.Context) {
 	var (
-		payload struct {
+		tokenPayload struct {
 			Token string `json:"token"`
 		}
 		sessionToken string
@@ -219,12 +219,17 @@ func refreshAccountUserSession(ctx *context.Context) {
 	)
 
 	decoder := json.NewDecoder(ctx.Body)
-	if err = decoder.Decode(&payload); err != nil {
+	if err = decoder.Decode(&tokenPayload); err != nil {
 		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
-	if sessionToken, err = core.RefreshAccountUserSession(payload.Token, ctx.AccountUser); err != nil {
+	if ctx.SessionToken != tokenPayload.Token {
+		errorHappened(ctx, "session token mismatch", http.StatusBadRequest, fmt.Errorf("session token mismatch"))
+		return
+	}
+
+	if sessionToken, err = core.RefreshAccountUserSession(ctx.SessionToken, ctx.AccountUser); err != nil {
 		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
 		return
 	}
