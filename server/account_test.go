@@ -41,8 +41,8 @@ func (s *ServerSuite) TestCreateAccount_WrongValue(c *C) {
 
 // Test a correct createAccount request
 func (s *ServerSuite) TestCreateAccount_OK(c *C) {
-	correctAccount := CorrectAccount()
-	payload := fmt.Sprintf(`{"name":"%s", "description":"%s"}`, correctAccount.Name, correctAccount.Description)
+	account := CorrectAccount()
+	payload := fmt.Sprintf(`{"name":"%s", "description":"%s"}`, account.Name, account.Description)
 
 	routeName := "createAccount"
 	route := getComposedRoute(routeName)
@@ -52,52 +52,60 @@ func (s *ServerSuite) TestCreateAccount_OK(c *C) {
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
 
-	account := &entity.Account{}
-	err = json.Unmarshal([]byte(body), account)
+	receivedAccount := &entity.Account{}
+	err = json.Unmarshal([]byte(body), receivedAccount)
 	c.Assert(err, IsNil)
-	if account.ID < 1 {
+	if receivedAccount.ID < 1 {
 		c.Fail()
 	}
-	c.Assert(account.Name, Equals, correctAccount.Name)
-	c.Assert(account.Enabled, Equals, true)
+	c.Assert(receivedAccount.Name, Equals, account.Name)
+	c.Assert(receivedAccount.Enabled, Equals, true)
 }
 
 // Test a correct updateAccount request
 func (s *ServerSuite) TestUpdateAccount_OK(c *C) {
-	correctAccount, err := AddCorrectAccount(true)
-	correctAccountUser, err := AddCorrectAccountUser(correctAccount.ID, true)
+	account, err := AddCorrectAccount(true)
+	c.Assert(err, IsNil)
+
+	accountUser, err := AddCorrectAccountUser(account.ID, true)
+	c.Assert(err, IsNil)
+
 	description := "changed"
-	payload := fmt.Sprintf(`{"name":"%s", "description":"%s","enabled":true}`, correctAccount.Name, description)
+	payload := fmt.Sprintf(`{"name":"%s", "description":"%s","enabled":true}`, account.Name, description)
 
 	routeName := "updateAccount"
-	route := getComposedRoute(routeName, correctAccount.ID)
-	code, body, err := runRequest(routeName, route, payload, correctAccount.AuthToken, getAccountUserSessionToken(correctAccountUser), 2)
+	route := getComposedRoute(routeName, account.ID)
+	code, body, err := runRequest(routeName, route, payload, account.AuthToken, getAccountUserSessionToken(accountUser), 2)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
 
-	account := &entity.Account{}
-	err = json.Unmarshal([]byte(body), account)
+	receivedAccount := &entity.Account{}
+	err = json.Unmarshal([]byte(body), receivedAccount)
 	c.Assert(err, IsNil)
-	if account.ID < 1 {
+	if receivedAccount.ID < 1 {
 		c.Fail()
 	}
-	c.Assert(account.Name, Equals, correctAccount.Name)
-	c.Assert(account.Description, Equals, description)
-	c.Assert(account.Enabled, Equals, true)
+	c.Assert(receivedAccount.Name, Equals, account.Name)
+	c.Assert(receivedAccount.Description, Equals, description)
+	c.Assert(receivedAccount.Enabled, Equals, true)
 }
 
 // Test a correct updateAccount request with a wrong id
 func (s *ServerSuite) TestUpdateAccount_WrongID(c *C) {
-	correctAccount, err := AddCorrectAccount(true)
-	correctAccountUser, err := AddCorrectAccountUser(correctAccount.ID, true)
+	account, err := AddCorrectAccount(true)
+	c.Assert(err, IsNil)
+
+	accountUser, err := AddCorrectAccountUser(account.ID, true)
+	c.Assert(err, IsNil)
+
 	description := "changed"
-	payload := fmt.Sprintf(`{"name":"%s", "description":"%s","enabled":true}`, correctAccount.Name, description)
+	payload := fmt.Sprintf(`{"name":"%s", "description":"%s","enabled":true}`, account.Name, description)
 
 	routeName := "updateAccount"
-	route := getComposedRoute(routeName, correctAccount.ID+1)
-	code, _, err := runRequest(routeName, route, payload, correctAccount.AuthToken, getAccountUserSessionToken(correctAccountUser), 2)
+	route := getComposedRoute(routeName, account.ID+1)
+	code, _, err := runRequest(routeName, route, payload, account.AuthToken, getAccountUserSessionToken(accountUser), 2)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusInternalServerError)
@@ -105,13 +113,17 @@ func (s *ServerSuite) TestUpdateAccount_WrongID(c *C) {
 
 // Test a correct updateAccount request with an invalid description
 func (s *ServerSuite) TestUpdateAccount_Invalid(c *C) {
-	correctAccount, err := AddCorrectAccount(true)
-	correctAccountUser, err := AddCorrectAccountUser(correctAccount.ID, true)
-	payload := fmt.Sprintf(`{"name":"%s", "description":"","enabled":true}`, correctAccount.Name)
+	account, err := AddCorrectAccount(true)
+	c.Assert(err, IsNil)
+
+	accountUser, err := AddCorrectAccountUser(account.ID, true)
+	c.Assert(err, IsNil)
+
+	payload := fmt.Sprintf(`{"name":"%s", "description":"","enabled":true}`, account.Name)
 
 	routeName := "updateAccount"
-	route := getComposedRoute(routeName, correctAccount.ID)
-	code, body, err := runRequest(routeName, route, payload, correctAccount.AuthToken, getAccountUserSessionToken(correctAccountUser), 2)
+	route := getComposedRoute(routeName, account.ID)
+	code, body, err := runRequest(routeName, route, payload, account.AuthToken, getAccountUserSessionToken(accountUser), 2)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusBadRequest)
@@ -121,12 +133,14 @@ func (s *ServerSuite) TestUpdateAccount_Invalid(c *C) {
 // Test a correct deleteAccount request
 func (s *ServerSuite) TestDeleteAccount_OK(c *C) {
 	account, err := AddCorrectAccount(true)
-	correctAccountUser, err := AddCorrectAccountUser(correctAccount.ID, true)
+	c.Assert(err, IsNil)
+
+	accountUser, err := AddCorrectAccountUser(account.ID, true)
 	c.Assert(err, IsNil)
 
 	routeName := "deleteAccount"
 	route := getComposedRoute(routeName, account.ID)
-	code, _, err := runRequest(routeName, route, "", correctAccount.AuthToken, getAccountUserSessionToken(correctAccountUser), 2)
+	code, _, err := runRequest(routeName, route, "", account.AuthToken, getAccountUserSessionToken(accountUser), 2)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusNoContent)
@@ -135,12 +149,14 @@ func (s *ServerSuite) TestDeleteAccount_OK(c *C) {
 // Test a correct deleteAccount request with a wrong id
 func (s *ServerSuite) TestDeleteAccount_WrongID(c *C) {
 	account, err := AddCorrectAccount(true)
-	correctAccountUser, err := AddCorrectAccountUser(correctAccount.ID, true)
+	c.Assert(err, IsNil)
+
+	accountUser, err := AddCorrectAccountUser(account.ID, true)
 	c.Assert(err, IsNil)
 
 	routeName := "deleteAccount"
 	route := getComposedRoute(routeName, account.ID+1)
-	code, _, err := runRequest(routeName, route, "", correctAccount.AuthToken, getAccountUserSessionToken(correctAccountUser), 2)
+	code, _, err := runRequest(routeName, route, "", account.AuthToken, getAccountUserSessionToken(accountUser), 2)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusInternalServerError)
@@ -148,36 +164,40 @@ func (s *ServerSuite) TestDeleteAccount_WrongID(c *C) {
 
 // Test a correct getAccount request
 func (s *ServerSuite) TestGetAccount_OK(c *C) {
-	correctAccount, err := AddCorrectAccount(true)
-	correctAccountUser, err := AddCorrectAccountUser(correctAccount.ID, true)
+	account, err := AddCorrectAccount(true)
+	c.Assert(err, IsNil)
+
+	accountUser, err := AddCorrectAccountUser(account.ID, true)
 	c.Assert(err, IsNil)
 
 	routeName := "getAccount"
-	route := getComposedRoute(routeName, correctAccount.ID)
-	code, body, err := runRequest(routeName, route, "", correctAccount.AuthToken, getAccountUserSessionToken(correctAccountUser), 2)
+	route := getComposedRoute(routeName, account.ID)
+	code, body, err := runRequest(routeName, route, "", account.AuthToken, getAccountUserSessionToken(accountUser), 2)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusOK)
 
 	c.Assert(body, Not(Equals), "")
 
-	account := &entity.Account{}
-	err = json.Unmarshal([]byte(body), account)
+	receivedAccount := &entity.Account{}
+	err = json.Unmarshal([]byte(body), receivedAccount)
 	c.Assert(err, IsNil)
-	c.Assert(account.ID, Equals, correctAccount.ID)
-	c.Assert(account.Name, Equals, correctAccount.Name)
-	c.Assert(account.Enabled, Equals, true)
+	c.Assert(receivedAccount.ID, Equals, account.ID)
+	c.Assert(receivedAccount.Name, Equals, account.Name)
+	c.Assert(receivedAccount.Enabled, Equals, true)
 }
 
 // Test a correct getAccount request with a wrong id
 func (s *ServerSuite) TestGetAccount_WrongID(c *C) {
-	correctAccount, err := AddCorrectAccount(true)
-	correctAccountUser, err := AddCorrectAccountUser(correctAccount.ID, true)
+	account, err := AddCorrectAccount(true)
+	c.Assert(err, IsNil)
+
+	accountUser, err := AddCorrectAccountUser(account.ID, true)
 	c.Assert(err, IsNil)
 
 	routeName := "getAccount"
-	route := getComposedRoute(routeName, correctAccount.ID+1)
-	code, _, err := runRequest(routeName, route, "", correctAccount.AuthToken, getAccountUserSessionToken(correctAccountUser), 2)
+	route := getComposedRoute(routeName, account.ID+1)
+	code, _, err := runRequest(routeName, route, "", account.AuthToken, getAccountUserSessionToken(accountUser), 2)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusInternalServerError)

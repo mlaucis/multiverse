@@ -181,9 +181,6 @@ func CreateApplicationUserSession(user *entity.User) (string, error) {
 	// TODO do we customize the key session timeout per app
 
 	sessionKey := storageClient.ApplicationSessionKey(user.AccountID, user.ApplicationID, user.ID)
-	if user.ApplicationID == 0 {
-		panic(fmt.Sprintf("%#v", user))
-	}
 	token := storageClient.GenerateApplicationSessionID(user)
 
 	if err := storageEngine.Set(sessionKey, token).Err(); err != nil {

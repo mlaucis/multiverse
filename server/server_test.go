@@ -403,6 +403,7 @@ func runRequest(routeName, routePath, payload, secretKey, sessionToken string, n
 	return w.Code, w.Body.String(), nil
 }
 
+// getAccountUserSessionToken retrieves the session token for a certain user
 func getAccountUserSessionToken(user *entity.AccountUser) string {
 	sessionToken, err := core.CreateAccountUserSession(user)
 	if err != nil {
@@ -412,8 +413,9 @@ func getAccountUserSessionToken(user *entity.AccountUser) string {
 	return sessionToken
 }
 
-func getApplicationUserSessionToken(user *entity.User) string {
-	sessionToken, err := core.CreateApplicationUserSession(correctUser)
+// createApplicationUserSessionToken creates an application user session and returns the token
+func createApplicationUserSessionToken(user *entity.User) string {
+	sessionToken, err := core.CreateApplicationUserSession(user)
 	if err != nil {
 		panic(err)
 	}

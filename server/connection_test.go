@@ -16,16 +16,20 @@ import (
 
 // Test createConnection request with a wrong key
 func (s *ServerSuite) TestCreateConnection_WrongKey(c *C) {
-	correctAccount, err := AddCorrectAccount(true)
-	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
-	correctUser, err := AddCorrectUser(correctAccount.ID, correctApplication.ID, true)
+	account, err := AddCorrectAccount(true)
+	c.Assert(err, IsNil)
+
+	application, err := AddCorrectApplication(account.ID, true)
+	c.Assert(err, IsNil)
+
+	correctUser, err := AddCorrectUser(account.ID, application.ID, true)
 	c.Assert(err, IsNil)
 
 	payload := "{usrfromidea:''}"
 
 	routeName := "createConnection"
-	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID)
-	code, body, err := runRequest(routeName, route, payload, correctApplication.AuthToken, getApplicationUserSessionToken(correctUser), 3)
+	route := getComposedRoute(routeName, account.ID, application.ID, correctUser.ID)
+	code, body, err := runRequest(routeName, route, payload, application.AuthToken, createApplicationUserSessionToken(correctUser), 3)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusBadRequest)
@@ -34,16 +38,20 @@ func (s *ServerSuite) TestCreateConnection_WrongKey(c *C) {
 
 // Test createConnection request with an wrong name
 func (s *ServerSuite) TestCreateConnection_WrongValue(c *C) {
-	correctAccount, err := AddCorrectAccount(true)
-	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
-	correctUser, err := AddCorrectUser(correctAccount.ID, correctApplication.ID, true)
+	account, err := AddCorrectAccount(true)
+	c.Assert(err, IsNil)
+
+	application, err := AddCorrectApplication(account.ID, true)
+	c.Assert(err, IsNil)
+
+	correctUser, err := AddCorrectUser(account.ID, application.ID, true)
 	c.Assert(err, IsNil)
 
 	payload := `{"user_from_id":"","user_to_id":""}`
 
 	routeName := "createConnection"
-	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID)
-	code, body, err := runRequest(routeName, route, payload, correctApplication.AuthToken, getApplicationUserSessionToken(correctUser), 3)
+	route := getComposedRoute(routeName, account.ID, application.ID, correctUser.ID)
+	code, body, err := runRequest(routeName, route, payload, application.AuthToken, createApplicationUserSessionToken(correctUser), 3)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusBadRequest)
@@ -52,27 +60,27 @@ func (s *ServerSuite) TestCreateConnection_WrongValue(c *C) {
 
 // Test a correct createConnection request
 func (s *ServerSuite) TestCreateConnection_OK(c *C) {
-	correctAccount, err := AddCorrectAccount(true)
+	account, err := AddCorrectAccount(true)
 	c.Assert(err, IsNil)
 
-	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
+	application, err := AddCorrectApplication(account.ID, true)
 	c.Assert(err, IsNil)
 
-	correctUserFrom, err := AddCorrectUser(correctAccount.ID, correctApplication.ID, true)
+	userFrom, err := AddCorrectUser(account.ID, application.ID, true)
 	c.Assert(err, IsNil)
 
-	correctUserTo, err := AddCorrectUser2(correctAccount.ID, correctApplication.ID, true)
+	userTo, err := AddCorrectUser2(account.ID, application.ID, true)
 	c.Assert(err, IsNil)
 
 	payload := fmt.Sprintf(
 		`{"user_from_id":%d, "user_to_id":%d}`,
-		correctUserFrom.ID,
-		correctUserTo.ID,
+		userFrom.ID,
+		userTo.ID,
 	)
 
 	routeName := "createConnection"
-	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUserFrom.ID)
-	code, body, err := runRequest(routeName, route, payload, correctApplication.AuthToken, getApplicationUserSessionToken(correctUser), 3)
+	route := getComposedRoute(routeName, account.ID, application.ID, userFrom.ID)
+	code, body, err := runRequest(routeName, route, payload, application.AuthToken, createApplicationUserSessionToken(userFrom), 3)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusCreated)
@@ -84,28 +92,28 @@ func (s *ServerSuite) TestCreateConnection_OK(c *C) {
 	c.Assert(err, IsNil)
 
 	c.Assert(err, IsNil)
-	c.Assert(connection.AccountID, Equals, correctAccount.ID)
-	c.Assert(connection.ApplicationID, Equals, correctApplication.ID)
-	c.Assert(connection.UserFromID, Equals, correctUserFrom.ID)
-	c.Assert(connection.UserToID, Equals, correctUserTo.ID)
+	c.Assert(connection.AccountID, Equals, account.ID)
+	c.Assert(connection.ApplicationID, Equals, application.ID)
+	c.Assert(connection.UserFromID, Equals, userFrom.ID)
+	c.Assert(connection.UserToID, Equals, userTo.ID)
 	c.Assert(connection.Enabled, Equals, true)
 }
 
 // Test a correct updateConnection request
 func (s *ServerSuite) TestUpdateConnection_OK(c *C) {
-	correctAccount, err := AddCorrectAccount(true)
+	account, err := AddCorrectAccount(true)
 	c.Assert(err, IsNil)
 
-	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
+	application, err := AddCorrectApplication(account.ID, true)
 	c.Assert(err, IsNil)
 
-	correctUserFrom, err := AddCorrectUser(correctAccount.ID, correctApplication.ID, true)
+	userFrom, err := AddCorrectUser(account.ID, application.ID, true)
 	c.Assert(err, IsNil)
 
-	correctUserTo, err := AddCorrectUser2(correctAccount.ID, correctApplication.ID, true)
+	userTo, err := AddCorrectUser2(account.ID, application.ID, true)
 	c.Assert(err, IsNil)
 
-	correctConnection, err := AddCorrectConnection(correctAccount.ID, correctApplication.ID, correctUserFrom.ID, correctUserTo.ID, true)
+	correctConnection, err := AddCorrectConnection(account.ID, application.ID, userFrom.ID, userTo.ID, true)
 	c.Assert(err, IsNil)
 
 	payload := fmt.Sprintf(
@@ -115,8 +123,8 @@ func (s *ServerSuite) TestUpdateConnection_OK(c *C) {
 	)
 
 	routeName := "updateConnection"
-	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUserFrom.ID, correctUserTo.ID)
-	code, body, err := runRequest(routeName, route, payload, correctApplication.AuthToken, getApplicationUserSessionToken(correctUser), 3)
+	route := getComposedRoute(routeName, account.ID, application.ID, userFrom.ID, userTo.ID)
+	code, body, err := runRequest(routeName, route, payload, application.AuthToken, createApplicationUserSessionToken(userTo), 3)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusCreated)
@@ -128,10 +136,10 @@ func (s *ServerSuite) TestUpdateConnection_OK(c *C) {
 	c.Assert(err, IsNil)
 
 	c.Assert(err, IsNil)
-	c.Assert(connection.AccountID, Equals, correctAccount.ID)
-	c.Assert(connection.ApplicationID, Equals, correctApplication.ID)
-	c.Assert(connection.UserFromID, Equals, correctUserFrom.ID)
-	c.Assert(connection.UserToID, Equals, correctUserTo.ID)
+	c.Assert(connection.AccountID, Equals, account.ID)
+	c.Assert(connection.ApplicationID, Equals, application.ID)
+	c.Assert(connection.UserFromID, Equals, userFrom.ID)
+	c.Assert(connection.UserToID, Equals, userTo.ID)
 	c.Assert(connection.Enabled, Equals, false)
 }
 
@@ -139,11 +147,19 @@ func (s *ServerSuite) TestUpdateConnection_OK(c *C) {
 func (s *ServerSuite) TestUpdateConnection_WrongID(c *C) {
 	c.Skip("forced the correct user id using the contexts")
 	return
-	correctAccount, err := AddCorrectAccount(true)
-	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
-	correctUserFrom, err := AddCorrectUser(correctAccount.ID, correctApplication.ID, true)
-	correctUserTo, err := AddCorrectUser(correctAccount.ID, correctApplication.ID, true)
-	correctConnection, err := AddCorrectConnection(correctAccount.ID, correctApplication.ID, correctUserFrom.ID, correctUserTo.ID, true)
+	account, err := AddCorrectAccount(true)
+	c.Assert(err, IsNil)
+
+	application, err := AddCorrectApplication(account.ID, true)
+	c.Assert(err, IsNil)
+
+	userFrom, err := AddCorrectUser(account.ID, application.ID, true)
+	c.Assert(err, IsNil)
+
+	userTo, err := AddCorrectUser(account.ID, application.ID, true)
+	c.Assert(err, IsNil)
+
+	correctConnection, err := AddCorrectConnection(account.ID, application.ID, userFrom.ID, userTo.ID, true)
 	c.Assert(err, IsNil)
 
 	payload := fmt.Sprintf(
@@ -153,8 +169,8 @@ func (s *ServerSuite) TestUpdateConnection_WrongID(c *C) {
 	)
 
 	routeName := "updateConnection"
-	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUserFrom.ID, correctUserTo.ID)
-	code, _, err := runRequest(routeName, route, payload, correctApplication.AuthToken, getApplicationUserSessionToken(correctUser), 3)
+	route := getComposedRoute(routeName, account.ID, application.ID, userFrom.ID, userTo.ID)
+	code, _, err := runRequest(routeName, route, payload, application.AuthToken, createApplicationUserSessionToken(userFrom), 3)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusInternalServerError)
@@ -164,21 +180,29 @@ func (s *ServerSuite) TestUpdateConnection_WrongID(c *C) {
 func (s *ServerSuite) TestUpdateConnection_WrongValue(c *C) {
 	c.Skip("skip because we now force things to be correct in the contexts")
 	return
-	correctAccount, err := AddCorrectAccount(true)
-	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
-	correctUserFrom, err := AddCorrectUser(correctAccount.ID, correctApplication.ID, true)
-	correctUserTo, err := AddCorrectUser(correctAccount.ID, correctApplication.ID, true)
-	correctConnection, err := AddCorrectConnection(correctAccount.ID, correctApplication.ID, correctUserFrom.ID, correctUserTo.ID, true)
+	account, err := AddCorrectAccount(true)
+	c.Assert(err, IsNil)
+
+	application, err := AddCorrectApplication(account.ID, true)
+	c.Assert(err, IsNil)
+
+	userFrom, err := AddCorrectUser(account.ID, application.ID, true)
+	c.Assert(err, IsNil)
+
+	userTo, err := AddCorrectUser(account.ID, application.ID, true)
+	c.Assert(err, IsNil)
+
+	connection, err := AddCorrectConnection(account.ID, application.ID, userFrom.ID, userTo.ID, true)
 	c.Assert(err, IsNil)
 
 	payload := fmt.Sprintf(
 		`{"user_from_id":10, "user_to_id":%d, "enabled":false}`,
-		correctConnection.UserToID,
+		connection.UserToID,
 	)
 
 	routeName := "updateConnection"
-	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUserFrom.ID, correctUserTo.ID)
-	code, body, err := runRequest(routeName, route, payload, correctApplication.AuthToken, getApplicationUserSessionToken(correctUser), 3)
+	route := getComposedRoute(routeName, account.ID, application.ID, userFrom.ID, userTo.ID)
+	code, body, err := runRequest(routeName, route, payload, application.AuthToken, createApplicationUserSessionToken(userFrom), 3)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusBadRequest)
@@ -187,24 +211,24 @@ func (s *ServerSuite) TestUpdateConnection_WrongValue(c *C) {
 
 // Test a correct deleteConnection request
 func (s *ServerSuite) TestDeleteConnection_OK(c *C) {
-	correctAccount, err := AddCorrectAccount(true)
+	account, err := AddCorrectAccount(true)
 	c.Assert(err, IsNil)
 
-	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
+	application, err := AddCorrectApplication(account.ID, true)
 	c.Assert(err, IsNil)
 
-	correctUserFrom, err := AddCorrectUser(correctAccount.ID, correctApplication.ID, true)
+	userFrom, err := AddCorrectUser(account.ID, application.ID, true)
 	c.Assert(err, IsNil)
 
-	correctUserTo, err := AddCorrectUser2(correctAccount.ID, correctApplication.ID, true)
+	userTo, err := AddCorrectUser2(account.ID, application.ID, true)
 	c.Assert(err, IsNil)
 
-	_, err = AddCorrectConnection(correctAccount.ID, correctApplication.ID, correctUserFrom.ID, correctUserTo.ID, true)
+	_, err = AddCorrectConnection(account.ID, application.ID, userFrom.ID, userTo.ID, true)
 	c.Assert(err, IsNil)
 
 	routeName := "deleteConnection"
-	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUserFrom.ID, correctUserTo.ID)
-	code, _, err := runRequest(routeName, route, "", correctApplication.AuthToken, getApplicationUserSessionToken(correctUser), 3)
+	route := getComposedRoute(routeName, account.ID, application.ID, userFrom.ID, userTo.ID)
+	code, _, err := runRequest(routeName, route, "", application.AuthToken, createApplicationUserSessionToken(userFrom), 3)
 	c.Assert(err, IsNil)
 
 	c.Assert(err, IsNil)
@@ -213,24 +237,24 @@ func (s *ServerSuite) TestDeleteConnection_OK(c *C) {
 
 // Test deleteConnection request with a wrong id
 func (s *ServerSuite) TestDeleteConnection_WrongID(c *C) {
-	correctAccount, err := AddCorrectAccount(true)
+	account, err := AddCorrectAccount(true)
 	c.Assert(err, IsNil)
 
-	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
+	application, err := AddCorrectApplication(account.ID, true)
 	c.Assert(err, IsNil)
 
-	correctUserFrom, err := AddCorrectUser(correctAccount.ID, correctApplication.ID, true)
+	userFrom, err := AddCorrectUser(account.ID, application.ID, true)
 	c.Assert(err, IsNil)
 
-	correctUserTo, err := AddCorrectUser2(correctAccount.ID, correctApplication.ID, true)
+	userTo, err := AddCorrectUser2(account.ID, application.ID, true)
 	c.Assert(err, IsNil)
 
-	_, err = AddCorrectConnection(correctAccount.ID, correctApplication.ID, correctUserFrom.ID, correctUserTo.ID, true)
+	_, err = AddCorrectConnection(account.ID, application.ID, userFrom.ID, userTo.ID, true)
 	c.Assert(err, IsNil)
 
 	routeName := "deleteConnection"
-	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUserFrom.ID+1, correctUserTo.ID)
-	code, _, err := runRequest(routeName, route, "", correctApplication.AuthToken, getApplicationUserSessionToken(correctUser), 3)
+	route := getComposedRoute(routeName, account.ID, application.ID, userFrom.ID+1, userTo.ID)
+	code, _, err := runRequest(routeName, route, "", application.AuthToken, createApplicationUserSessionToken(userFrom), 3)
 	c.Assert(err, IsNil)
 
 	c.Assert(err, IsNil)

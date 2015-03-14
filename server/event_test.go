@@ -21,16 +21,20 @@ import (
 
 // Test createEvent request with a wrong key
 func (s *ServerSuite) TestCreateEvent_WrongKey(c *C) {
-	correctAccount, err := AddCorrectAccount(true)
-	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
-	correctUser, err := AddCorrectUser(correctAccount.ID, correctApplication.ID, true)
+	account, err := AddCorrectAccount(true)
+	c.Assert(err, IsNil)
+
+	application, err := AddCorrectApplication(account.ID, true)
+	c.Assert(err, IsNil)
+
+	user, err := AddCorrectUser(account.ID, application.ID, true)
 	c.Assert(err, IsNil)
 
 	payload := "{verbea:''}"
 
 	routeName := "createEvent"
-	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID)
-	code, body, err := runRequest(routeName, route, payload, correctApplication.AuthToken, getApplicationUserSessionToken(correctUser), 3)
+	route := getComposedRoute(routeName, account.ID, application.ID, user.ID)
+	code, body, err := runRequest(routeName, route, payload, application.AuthToken, createApplicationUserSessionToken(user), 3)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusBadRequest)
@@ -39,16 +43,20 @@ func (s *ServerSuite) TestCreateEvent_WrongKey(c *C) {
 
 // Test createEvent request with an wrong name
 func (s *ServerSuite) TestCreateEvent_WrongValue(c *C) {
-	correctAccount, err := AddCorrectAccount(true)
-	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
-	correctUser, err := AddCorrectUser(correctAccount.ID, correctApplication.ID, true)
+	account, err := AddCorrectAccount(true)
+	c.Assert(err, IsNil)
+
+	application, err := AddCorrectApplication(account.ID, true)
+	c.Assert(err, IsNil)
+
+	user, err := AddCorrectUser(account.ID, application.ID, true)
 	c.Assert(err, IsNil)
 
 	payload := `{"verb":"","language":""}`
 
 	routeName := "createEvent"
-	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID)
-	code, body, err := runRequest(routeName, route, payload, correctApplication.AuthToken, getApplicationUserSessionToken(correctUser), 3)
+	route := getComposedRoute(routeName, account.ID, application.ID, user.ID)
+	code, body, err := runRequest(routeName, route, payload, application.AuthToken, createApplicationUserSessionToken(user), 3)
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusBadRequest)
 	c.Assert(body, Not(Equals), "")
@@ -56,78 +64,98 @@ func (s *ServerSuite) TestCreateEvent_WrongValue(c *C) {
 
 // Test a correct createEvent request
 func (s *ServerSuite) TestCreateEvent_OK(c *C) {
-	correctAccount, err := AddCorrectAccount(true)
-	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
-	correctUser, err := AddCorrectUser(correctAccount.ID, correctApplication.ID, true)
-	correctEvent := CorrectEvent()
+	account, err := AddCorrectAccount(true)
+	c.Assert(err, IsNil)
+
+	application, err := AddCorrectApplication(account.ID, true)
+	c.Assert(err, IsNil)
+
+	user, err := AddCorrectUser(account.ID, application.ID, true)
+	c.Assert(err, IsNil)
+
+	event := CorrectEvent()
 	c.Assert(err, IsNil)
 
 	payload := fmt.Sprintf(
 		`{"verb":"%s", "language":"%s"}`,
-		correctEvent.Verb,
-		correctEvent.Language,
+		event.Verb,
+		event.Language,
 	)
 
 	routeName := "createEvent"
-	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID)
-	code, body, err := runRequest(routeName, route, payload, correctApplication.AuthToken, getApplicationUserSessionToken(correctUser), 3)
+	route := getComposedRoute(routeName, account.ID, application.ID, user.ID)
+	code, body, err := runRequest(routeName, route, payload, application.AuthToken, createApplicationUserSessionToken(user), 3)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusCreated)
 
 	c.Assert(body, Not(Equals), "")
 
-	event := &entity.Event{}
-	err = json.Unmarshal([]byte(body), event)
+	receivedEvent := &entity.Event{}
+	err = json.Unmarshal([]byte(body), receivedEvent)
 	c.Assert(err, IsNil)
 
 	c.Assert(err, IsNil)
-	c.Assert(event.AccountID, Equals, correctAccount.ID)
-	c.Assert(event.ApplicationID, Equals, correctApplication.ID)
-	c.Assert(event.UserID, Equals, correctUser.ID)
-	c.Assert(event.Enabled, Equals, true)
+	c.Assert(receivedEvent.AccountID, Equals, account.ID)
+	c.Assert(receivedEvent.ApplicationID, Equals, application.ID)
+	c.Assert(receivedEvent.UserID, Equals, user.ID)
+	c.Assert(receivedEvent.Enabled, Equals, true)
+	c.Assert(receivedEvent.Verb, Equals, event.Verb)
+	c.Assert(receivedEvent.Language, Equals, event.Language)
 }
 
 // Test a correct updateEvent request
 func (s *ServerSuite) TestUpdateEvent_OK(c *C) {
-	correctAccount, err := AddCorrectAccount(true)
-	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
-	correctUser, err := AddCorrectUser(correctAccount.ID, correctApplication.ID, true)
-	correctEvent, err := AddCorrectEvent(correctAccount.ID, correctApplication.ID, correctUser.ID, true)
+	account, err := AddCorrectAccount(true)
+	c.Assert(err, IsNil)
+
+	application, err := AddCorrectApplication(account.ID, true)
+	c.Assert(err, IsNil)
+
+	user, err := AddCorrectUser(account.ID, application.ID, true)
+	c.Assert(err, IsNil)
+
+	event, err := AddCorrectEvent(account.ID, application.ID, user.ID, true)
 	c.Assert(err, IsNil)
 
 	payload := fmt.Sprintf(
 		`{"verb":"%s", "language":"%s", "enabled":false}`,
-		correctEvent.Verb,
-		correctEvent.Language,
+		event.Verb,
+		event.Language,
 	)
 
 	routeName := "updateEvent"
-	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID, correctEvent.ID)
-	code, body, err := runRequest(routeName, route, payload, correctApplication.AuthToken, getApplicationUserSessionToken(correctUser), 3)
+	route := getComposedRoute(routeName, account.ID, application.ID, user.ID, event.ID)
+	code, body, err := runRequest(routeName, route, payload, application.AuthToken, createApplicationUserSessionToken(user), 3)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusCreated)
 
 	c.Assert(body, Not(Equals), "")
 
-	event := &entity.Event{}
-	err = json.Unmarshal([]byte(body), event)
+	receivedEvent := &entity.Event{}
+	err = json.Unmarshal([]byte(body), receivedEvent)
 	c.Assert(err, IsNil)
 
 	c.Assert(err, IsNil)
-	c.Assert(event.AccountID, Equals, correctAccount.ID)
-	c.Assert(event.ApplicationID, Equals, correctApplication.ID)
-	c.Assert(event.UserID, Equals, correctUser.ID)
-	c.Assert(event.Enabled, Equals, false)
+	c.Assert(receivedEvent.AccountID, Equals, account.ID)
+	c.Assert(receivedEvent.ApplicationID, Equals, application.ID)
+	c.Assert(receivedEvent.UserID, Equals, user.ID)
+	c.Assert(receivedEvent.Enabled, Equals, false)
 }
 
 // Test updateEvent request with a wrong id
 func (s *ServerSuite) TestUpdateEvent_WrongID(c *C) {
-	correctAccount, err := AddCorrectAccount(true)
-	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
-	correctUser, err := AddCorrectUser(correctAccount.ID, correctApplication.ID, true)
-	correctEvent, err := AddCorrectEvent(correctAccount.ID, correctApplication.ID, correctUser.ID, true)
+	account, err := AddCorrectAccount(true)
+	c.Assert(err, IsNil)
+
+	application, err := AddCorrectApplication(account.ID, true)
+	c.Assert(err, IsNil)
+
+	user, err := AddCorrectUser(account.ID, application.ID, true)
+	c.Assert(err, IsNil)
+
+	correctEvent, err := AddCorrectEvent(account.ID, application.ID, user.ID, true)
 	c.Assert(err, IsNil)
 
 	payload := fmt.Sprintf(
@@ -137,8 +165,8 @@ func (s *ServerSuite) TestUpdateEvent_WrongID(c *C) {
 	)
 
 	routeName := "updateEvent"
-	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID, correctEvent.ID+1)
-	code, _, err := runRequest(routeName, route, payload, correctApplication.AuthToken, getApplicationUserSessionToken(correctUser), 3)
+	route := getComposedRoute(routeName, account.ID, application.ID, user.ID, correctEvent.ID+1)
+	code, _, err := runRequest(routeName, route, payload, application.AuthToken, createApplicationUserSessionToken(user), 3)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusInternalServerError)
@@ -146,20 +174,26 @@ func (s *ServerSuite) TestUpdateEvent_WrongID(c *C) {
 
 // Test updateEvent request with a wrong value
 func (s *ServerSuite) TestUpdateEvent_WrongValue(c *C) {
-	correctAccount, err := AddCorrectAccount(true)
-	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
-	correctUser, err := AddCorrectUser(correctAccount.ID, correctApplication.ID, true)
-	correctEvent, err := AddCorrectEvent(correctAccount.ID, correctApplication.ID, correctUser.ID, true)
+	account, err := AddCorrectAccount(true)
+	c.Assert(err, IsNil)
+
+	application, err := AddCorrectApplication(account.ID, true)
+	c.Assert(err, IsNil)
+
+	user, err := AddCorrectUser(account.ID, application.ID, true)
+	c.Assert(err, IsNil)
+
+	event, err := AddCorrectEvent(account.ID, application.ID, user.ID, true)
 	c.Assert(err, IsNil)
 
 	payload := fmt.Sprintf(
 		`{"verb":"", "language":"%s", "enabled":false}`,
-		correctEvent.Language,
+		event.Language,
 	)
 
 	routeName := "updateEvent"
-	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID, correctEvent.ID)
-	code, body, err := runRequest(routeName, route, payload, correctApplication.AuthToken, getApplicationUserSessionToken(correctUser), 3)
+	route := getComposedRoute(routeName, account.ID, application.ID, user.ID, event.ID)
+	code, body, err := runRequest(routeName, route, payload, application.AuthToken, createApplicationUserSessionToken(user), 3)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusBadRequest)
@@ -168,15 +202,21 @@ func (s *ServerSuite) TestUpdateEvent_WrongValue(c *C) {
 
 // Test a correct deleteEvent request
 func (s *ServerSuite) TestDeleteEvent_OK(c *C) {
-	correctAccount, err := AddCorrectAccount(true)
-	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
-	correctUser, err := AddCorrectUser(correctAccount.ID, correctApplication.ID, true)
-	correctEvent, err := AddCorrectEvent(correctAccount.ID, correctApplication.ID, correctUser.ID, true)
+	account, err := AddCorrectAccount(true)
+	c.Assert(err, IsNil)
+
+	application, err := AddCorrectApplication(account.ID, true)
+	c.Assert(err, IsNil)
+
+	user, err := AddCorrectUser(account.ID, application.ID, true)
+	c.Assert(err, IsNil)
+
+	event, err := AddCorrectEvent(account.ID, application.ID, user.ID, true)
 	c.Assert(err, IsNil)
 
 	routeName := "deleteEvent"
-	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID, correctEvent.ID)
-	code, _, err := runRequest(routeName, route, "", correctApplication.AuthToken, getApplicationUserSessionToken(correctUser), 3)
+	route := getComposedRoute(routeName, account.ID, application.ID, user.ID, event.ID)
+	code, _, err := runRequest(routeName, route, "", application.AuthToken, createApplicationUserSessionToken(user), 3)
 	c.Assert(err, IsNil)
 
 	c.Assert(err, IsNil)
@@ -185,21 +225,21 @@ func (s *ServerSuite) TestDeleteEvent_OK(c *C) {
 
 // Test deleteEvent request with a wrong id
 func (s *ServerSuite) TestDeleteEvent_WrongID(c *C) {
-	correctAccount, err := AddCorrectAccount(true)
+	account, err := AddCorrectAccount(true)
 	c.Assert(err, IsNil)
 
-	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
+	application, err := AddCorrectApplication(account.ID, true)
 	c.Assert(err, IsNil)
 
-	correctUser, err := AddCorrectUser(correctAccount.ID, correctApplication.ID, true)
+	user, err := AddCorrectUser(account.ID, application.ID, true)
 	c.Assert(err, IsNil)
 
-	correctEvent, err := AddCorrectEvent(correctAccount.ID, correctApplication.ID, correctUser.ID, true)
+	event, err := AddCorrectEvent(account.ID, application.ID, user.ID, true)
 	c.Assert(err, IsNil)
 
 	routeName := "deleteEvent"
-	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID, correctEvent.ID+1)
-	code, _, err := runRequest(routeName, route, "", correctApplication.AuthToken, getApplicationUserSessionToken(correctUser), 3)
+	route := getComposedRoute(routeName, account.ID, application.ID, user.ID, event.ID+1)
+	code, _, err := runRequest(routeName, route, "", application.AuthToken, createApplicationUserSessionToken(user), 3)
 	c.Assert(err, IsNil)
 
 	c.Assert(err, IsNil)
@@ -208,50 +248,73 @@ func (s *ServerSuite) TestDeleteEvent_WrongID(c *C) {
 
 // Test a correct getEvent request
 func (s *ServerSuite) TestGetEvent_OK(c *C) {
-	correctAccount, err := AddCorrectAccount(true)
-	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
-	correctUser, err := AddCorrectUser(correctAccount.ID, correctApplication.ID, true)
-	correctEvent, err := AddCorrectEvent(correctAccount.ID, correctApplication.ID, correctUser.ID, true)
+	account, err := AddCorrectAccount(true)
+	c.Assert(err, IsNil)
+
+	application, err := AddCorrectApplication(account.ID, true)
+	c.Assert(err, IsNil)
+
+	user, err := AddCorrectUser(account.ID, application.ID, true)
+	c.Assert(err, IsNil)
+
+	event, err := AddCorrectEvent(account.ID, application.ID, user.ID, true)
 	c.Assert(err, IsNil)
 
 	routeName := "getEvent"
-	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID, correctEvent.ID)
-	code, body, err := runRequest(routeName, route, "", correctApplication.AuthToken, getApplicationUserSessionToken(correctUser), 3)
+	route := getComposedRoute(routeName, account.ID, application.ID, user.ID, event.ID)
+	code, body, err := runRequest(routeName, route, "", application.AuthToken, createApplicationUserSessionToken(user), 3)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusOK)
 
 	c.Assert(body, Not(Equals), "")
 
-	event := &entity.Event{}
-	err = json.Unmarshal([]byte(body), event)
+	receivedEvent := &entity.Event{}
+	err = json.Unmarshal([]byte(body), receivedEvent)
 
 	c.Assert(err, IsNil)
-	c.Assert(event.AccountID, Equals, correctAccount.ID)
-	c.Assert(event.ApplicationID, Equals, correctApplication.ID)
-	c.Assert(event.UserID, Equals, correctUser.ID)
-	c.Assert(event.Enabled, Equals, true)
+	c.Assert(receivedEvent.AccountID, Equals, account.ID)
+	c.Assert(receivedEvent.ApplicationID, Equals, application.ID)
+	c.Assert(receivedEvent.UserID, Equals, user.ID)
+	c.Assert(receivedEvent.Enabled, Equals, true)
 }
 
 // Test a correct getEventList request
 func (s *ServerSuite) TestGetEventList_OK(c *C) {
+	c.Skip("this should be implemented properly")
+	return
+
 	correctAccount, err := AddCorrectAccount(true)
+	c.Assert(err, IsNil)
+
 	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
+	c.Assert(err, IsNil)
+
 	correctUser, err := AddCorrectUser(correctAccount.ID, correctApplication.ID, true)
-	AddCorrectEvent(correctAccount.ID, correctApplication.ID, correctUser.ID, true)
-	AddCorrectEvent(correctAccount.ID, correctApplication.ID, correctUser.ID, true)
-	AddCorrectEvent(correctAccount.ID, correctApplication.ID, correctUser.ID, true)
-	AddCorrectEvent(correctAccount.ID, correctApplication.ID, correctUser.ID, true)
+	c.Assert(err, IsNil)
+
+	event1, err := AddCorrectEvent(correctAccount.ID, correctApplication.ID, correctUser.ID, true)
+	c.Assert(err, IsNil)
+
+	event2, err := AddCorrectEvent(correctAccount.ID, correctApplication.ID, correctUser.ID, true)
+	c.Assert(err, IsNil)
+
+	event3, err := AddCorrectEvent(correctAccount.ID, correctApplication.ID, correctUser.ID, true)
+	c.Assert(err, IsNil)
+
+	event4, err := AddCorrectEvent(correctAccount.ID, correctApplication.ID, correctUser.ID, true)
 	c.Assert(err, IsNil)
 
 	routeName := "getEventList"
 	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID)
-	code, body, err := runRequest(routeName, route, "", correctApplication.AuthToken, getApplicationUserSessionToken(correctUser), 3)
+	code, body, err := runRequest(routeName, route, "", correctApplication.AuthToken, createApplicationUserSessionToken(correctUser), 3)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusOK)
 
 	c.Assert(body, Not(Equals), "")
+
+	_, _, _, _ = event1, event2, event3, event4
 
 	// TODO Check EventList body
 
@@ -267,43 +330,49 @@ func (s *ServerSuite) TestGetEventList_OK(c *C) {
 
 // Test getEvent request with a wrong id
 func (s *ServerSuite) TestGetEvent_WrongID(c *C) {
-	correctAccount, err := AddCorrectAccount(true)
-	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
-	correctUser, err := AddCorrectUser(correctAccount.ID, correctApplication.ID, true)
-	correctEvent, err := AddCorrectEvent(correctAccount.ID, correctApplication.ID, correctUser.ID, true)
+	account, err := AddCorrectAccount(true)
+	c.Assert(err, IsNil)
+
+	application, err := AddCorrectApplication(account.ID, true)
+	c.Assert(err, IsNil)
+
+	user, err := AddCorrectUser(account.ID, application.ID, true)
+	c.Assert(err, IsNil)
+
+	event, err := AddCorrectEvent(account.ID, application.ID, user.ID, true)
 	c.Assert(err, IsNil)
 
 	routeName := "getEvent"
-	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID, correctEvent.ID+1)
-	code, _, err := runRequest(routeName, route, "", correctApplication.AuthToken, getApplicationUserSessionToken(correctUser), 3)
+	route := getComposedRoute(routeName, account.ID, application.ID, user.ID, event.ID+1)
+	code, _, err := runRequest(routeName, route, "", application.AuthToken, createApplicationUserSessionToken(user), 3)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusInternalServerError)
 }
 
 func BenchmarkCreateEvent1_Write(b *testing.B) {
-	correctAccount, err := AddCorrectAccount(true)
+	account, err := AddCorrectAccount(true)
 	if err != nil {
 		panic(err)
 	}
-	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
+	application, err := AddCorrectApplication(account.ID, true)
 	if err != nil {
 		panic(err)
 	}
-	correctUser, err := AddCorrectUser(correctAccount.ID, correctApplication.ID, true)
+	user, err := AddCorrectUser(account.ID, application.ID, true)
 	if err != nil {
 		panic(err)
 	}
-	correctEvent := CorrectEvent()
+	event := CorrectEvent()
 
 	payload := fmt.Sprintf(
 		`{"verb":"%s", "language":"%s"}`,
-		correctEvent.Verb,
-		correctEvent.Language,
+		event.Verb,
+		event.Language,
 	)
 
 	routeName := "createEvent"
-	routePath := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID)
+	routePath := getComposedRoute(routeName, account.ID, application.ID, user.ID)
 
 	requestRoute := getRoute(routeName)
 
@@ -317,13 +386,13 @@ func BenchmarkCreateEvent1_Write(b *testing.B) {
 	}
 
 	createCommonRequestHeaders(req)
-	if correctApplication.AuthToken != "" {
-		err := keys.SignRequest(correctApplication.AuthToken, requestRoute.scope, apiVersion, 2, req)
+	if application.AuthToken != "" {
+		err := keys.SignRequest(application.AuthToken, requestRoute.scope, apiVersion, 2, req)
 		if err != nil {
 			panic(err)
 		}
 	}
-	req.Header.Set("x-tapglue-session", getApplicationUserSessionToken(correctUser))
+	req.Header.Set("x-tapglue-session", createApplicationUserSessionToken(user))
 
 	w := httptest.NewRecorder()
 	m := mux.NewRouter()
@@ -338,25 +407,25 @@ func BenchmarkCreateEvent1_Write(b *testing.B) {
 }
 
 func BenchmarkCreateEvent2_Read(b *testing.B) {
-	correctAccount, err := AddCorrectAccount(true)
+	account, err := AddCorrectAccount(true)
 	if err != nil {
 		panic(err)
 	}
-	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
+	application, err := AddCorrectApplication(account.ID, true)
 	if err != nil {
 		panic(err)
 	}
-	correctUser, err := AddCorrectUser(correctAccount.ID, correctApplication.ID, true)
+	user, err := AddCorrectUser(account.ID, application.ID, true)
 	if err != nil {
 		panic(err)
 	}
-	correctEvent, err := AddCorrectEvent(correctAccount.ID, correctApplication.ID, correctUser.ID, true)
+	event, err := AddCorrectEvent(account.ID, application.ID, user.ID, true)
 	if err != nil {
 		panic(err)
 	}
 
 	routeName := "getEvent"
-	routePath := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID, correctEvent.ID)
+	routePath := getComposedRoute(routeName, account.ID, application.ID, user.ID, event.ID)
 
 	requestRoute := getRoute(routeName)
 
@@ -370,13 +439,13 @@ func BenchmarkCreateEvent2_Read(b *testing.B) {
 	}
 
 	createCommonRequestHeaders(req)
-	if correctApplication.AuthToken != "" {
-		err := keys.SignRequest(correctApplication.AuthToken, requestRoute.scope, apiVersion, 2, req)
+	if application.AuthToken != "" {
+		err := keys.SignRequest(application.AuthToken, requestRoute.scope, apiVersion, 2, req)
 		if err != nil {
 			panic(err)
 		}
 	}
-	req.Header.Set("x-tapglue-session", getApplicationUserSessionToken(correctUser))
+	req.Header.Set("x-tapglue-session", createApplicationUserSessionToken(user))
 
 	w := httptest.NewRecorder()
 	m := mux.NewRouter()
