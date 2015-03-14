@@ -129,6 +129,10 @@ func WriteUser(user *entity.User, retrieve bool) (usr *entity.User, err error) {
 	user.Enabled = true
 	user.CreatedAt = time.Now()
 	user.UpdatedAt, user.ReceivedAt = user.CreatedAt, user.CreatedAt
+	user.LastLogin, err = time.Parse(time.RFC3339, "0000-01-01T00:00:00Z")
+	if err != nil {
+		return nil, err
+	}
 
 	if user.ID, err = storageClient.GenerateApplicationUserID(user.ApplicationID); err != nil {
 		return nil, err

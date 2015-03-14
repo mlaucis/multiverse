@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/core"
@@ -155,6 +156,9 @@ func loginAccountUser(ctx *context.Context) {
 		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
 		return
 	}
+
+	user.LastLogin = time.Now()
+	_, err = core.UpdateAccountUser(user, false)
 
 	writeResponse(ctx, struct {
 		AccountToken string `json:"account_token"`

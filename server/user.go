@@ -7,6 +7,7 @@ package server
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/core"
@@ -105,7 +106,7 @@ func createApplicationUser(ctx *context.Context) {
 // getApplicationUserList handles requests to retrieve all users of an app
 // THIS ROUTE IS NOT YET ACTIVATED
 // Request: GET account/:AccountID/application/:ApplicationID/users
-func getApplicationUserList(ctx *context.Context) {
+/*func getApplicationUserList(ctx *context.Context) {
 	var (
 		users []*entity.User
 		err   error
@@ -129,7 +130,7 @@ func getApplicationUserList(ctx *context.Context) {
 	}
 
 	writeResponse(ctx, response, http.StatusOK, 10)
-}
+}*/
 
 // loginApplicationUser handles the requests to login the user in the system
 // Request: POST account/:AccountID/application/:ApplicationID/user/login
@@ -169,6 +170,9 @@ func loginApplicationUser(ctx *context.Context) {
 		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
 		return
 	}
+
+	user.LastLogin = time.Now()
+	_, err = core.UpdateUser(user, false)
 
 	writeResponse(ctx, struct {
 		Token string `json:"token"`

@@ -120,6 +120,10 @@ func WriteAccountUser(accountUser *entity.AccountUser, retrieve bool) (accUser *
 	accountUser.Enabled = true
 	accountUser.CreatedAt = time.Now()
 	accountUser.UpdatedAt, accountUser.ReceivedAt = accountUser.CreatedAt, accountUser.CreatedAt
+	accountUser.LastLogin, err = time.Parse(time.RFC3339, "0000-01-01T00:00:00Z")
+	if err != nil {
+		return nil, err
+	}
 
 	// Encrypt password
 	accountUser.Password = storageClient.EncryptPassword(accountUser.Password)
