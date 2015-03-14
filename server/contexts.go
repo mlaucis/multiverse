@@ -11,42 +11,42 @@ import (
 	"github.com/tapglue/backend/core"
 )
 
-func contextHasAccount(ctx *context.Context) (err error) {
+func contextHasAccountID(ctx *context.Context) (err error) {
 	ctx.AccountID, err = strconv.ParseInt(ctx.Vars["accountId"], 10, 64)
-	if err != nil {
-		return
-	}
+	return
+}
 
+func contextHasAccount(ctx *context.Context) (err error) {
 	ctx.Account, err = core.ReadAccount(ctx.AccountID)
 	return
 }
 
-func contextHasAccountUser(ctx *context.Context) (err error) {
+func contextHasAccountUserID(ctx *context.Context) (err error) {
 	ctx.AccountUserID, err = strconv.ParseInt(ctx.Vars["userId"], 10, 64)
-	if err != nil {
-		return
-	}
+	return
+}
 
+func contextHasAccountUser(ctx *context.Context) (err error) {
 	ctx.AccountUser, err = core.ReadAccountUser(ctx.AccountID, ctx.AccountUserID)
 	return
 }
 
-func contextHasApplication(ctx *context.Context) (err error) {
+func contextHasApplicationID(ctx *context.Context) (err error) {
 	ctx.ApplicationID, err = strconv.ParseInt(ctx.Vars["applicationId"], 10, 64)
-	if err != nil {
-		return
-	}
+	return
+}
 
+func contextHasApplication(ctx *context.Context) (err error) {
 	ctx.Application, err = core.ReadApplication(ctx.AccountID, ctx.ApplicationID)
 	return
 }
 
-func contextHasApplicationUser(ctx *context.Context) (err error) {
+func contextHasApplicationUserID(ctx *context.Context) (err error) {
 	ctx.ApplicationUserID, err = strconv.ParseInt(ctx.Vars["userId"], 10, 64)
-	if err != nil {
-		return
-	}
+	return
+}
 
+func contextHasApplicationUser(ctx *context.Context) (err error) {
 	ctx.ApplicationUser, err = core.ReadApplicationUser(ctx.AccountID, ctx.ApplicationID, ctx.ApplicationUserID)
 	return
 }

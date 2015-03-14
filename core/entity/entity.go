@@ -95,7 +95,6 @@ type (
 		ID            int64     `json:"id"`
 		AccountID     int64     `json:"account_id"`
 		ApplicationID int64     `json:"application_id"`
-		AuthToken     string    `json:"auth_token"`
 		FacebookID    string    `json:"facebook_id,omitempty"`
 		TwitterID     string    `json:"twitter_id,omitempty"`
 		GoogleID      string    `json:"google_id,omitempty"`
@@ -114,7 +113,7 @@ type (
 		ApplicationID int64     `json:"application_id"`
 		UserFromID    int64     `json:"user_from_id"`
 		UserToID      int64     `json:"user_to_id"`
-		ConfirmedAt   time.Time `json:"confirmed_at"`
+		ConfirmedAt   time.Time `json:"confirmed_at,omitempty"`
 		Common
 	}
 
@@ -154,7 +153,7 @@ type (
 		ApplicationID int64          `json:"application_id"`
 		UserID        int64          `json:"user_id"`
 		Verb          string         `json:"verb"`
-		Language      string         `json:"language"`
+		Language      string         `json:"language,omitempty"`
 		Priority      string         `json:"priority,omitempty"`
 		Location      string         `json:"location,omitempty"`
 		Latitude      float64        `json:"latitude,omitempty"`

@@ -12,7 +12,7 @@ import (
 
 const (
 	verbMin = 1
-	verbMax = 20
+	verbMax = 30
 )
 
 var (

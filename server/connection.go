@@ -79,14 +79,8 @@ func deleteConnection(ctx *context.Context) {
 func createConnection(ctx *context.Context) {
 	var (
 		connection = &entity.Connection{}
-		userFromID int64
 		err        error
 	)
-
-	if userFromID, err = strconv.ParseInt(ctx.Vars["userId"], 10, 64); err != nil {
-		errorHappened(ctx, "userId is not set or the value is incorrect", http.StatusBadRequest, err)
-		return
-	}
 
 	if err = json.NewDecoder(ctx.Body).Decode(connection); err != nil {
 		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
@@ -95,7 +89,7 @@ func createConnection(ctx *context.Context) {
 
 	connection.AccountID = ctx.AccountID
 	connection.ApplicationID = ctx.ApplicationID
-	connection.UserFromID = userFromID
+	connection.UserFromID = ctx.ApplicationUserID
 
 	if err = validator.CreateConnection(connection); err != nil {
 		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
@@ -103,6 +97,11 @@ func createConnection(ctx *context.Context) {
 	}
 
 	if connection, err = core.WriteConnection(connection, false); err != nil {
+		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
+		return
+	}
+
+	if connection, err = core.ConfirmConnection(connection, true); err != nil {
 		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
 		return
 	}

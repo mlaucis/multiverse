@@ -165,7 +165,7 @@ func ConfirmConnection(connection *entity.Connection, retrieve bool) (con *entit
 
 	key := storageClient.Connection(connection.AccountID, connection.ApplicationID, connection.UserFromID, connection.UserToID)
 
-	cmd := red.NewStringCmd(key, string(val), "XX")
+	cmd := red.NewStringCmd("SET", key, string(val), "XX")
 	storageEngine.Process(cmd)
 	err = cmd.Err()
 	if err != nil {

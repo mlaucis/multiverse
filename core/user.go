@@ -7,11 +7,9 @@ package core
 import (
 	"encoding/json"
 	"errors"
-	"time"
-
 	"fmt"
-
 	"strconv"
+	"time"
 
 	"github.com/tapglue/backend/core/entity"
 	"github.com/tapglue/backend/utils"
@@ -154,16 +152,19 @@ func WriteUser(user *entity.User, retrieve bool) (usr *entity.User, err error) {
 		return nil, err
 	}
 
+	emailListKey := storageClient.ApplicationUserByEmail(user.AccountID, user.ApplicationID, utils.Base64Encode(user.Email))
+	result, err := storageEngine.SetNX(emailListKey, fmt.Sprintf("%d", user.ID)).Result()
+	if err != nil {
+		return nil, err
+	}
+	if !result {
+		return nil, fmt.Errorf("user with email address already exists")
+	}
+
 	listKey := storageClient.Users(user.AccountID, user.ApplicationID)
 	if err = storageEngine.LPush(listKey, key).Err(); err != nil {
 		return nil, err
 	}
-
-	emailListKey := storageClient.ApplicationUserByEmail(user.AccountID, user.ApplicationID, utils.Base64Encode(user.Email))
-	err = storageEngine.HMSet(
-		emailListKey,
-		"usr", fmt.Sprintf("%d", user.ID),
-	).Err()
 
 	if !retrieve {
 		return user, nil
@@ -232,6 +233,21 @@ func RefreshApplicationUserSession(sessionToken string, user *entity.User) (stri
 	return token, nil
 }
 
+// GetApplicationUserSession returns the application user session
+func GetApplicationUserSession(user *entity.User) (string, error) {
+	sessionKey := storageClient.ApplicationSessionKey(user.AccountID, user.ApplicationID, user.ID)
+	storedSessionToken, err := storageEngine.Get(sessionKey).Result()
+	if err != nil {
+		return "", fmt.Errorf("could not fetch session from storage")
+	}
+
+	if storedSessionToken == "" {
+		return "", fmt.Errorf("session not found")
+	}
+
+	return storedSessionToken, nil
+}
+
 // DestroyUserSession removes the user session
 func DestroyApplicationUserSession(sessionToken string, user *entity.User) error {
 	// TODO support multiple sessions?
@@ -259,15 +275,21 @@ func DestroyApplicationUserSession(sessionToken string, user *entity.User) error
 	return nil
 }
 
+func ApplicationUserByEmailExists(accountID, applicationID int64, email string) (bool, error) {
+	emailListKey := storageClient.ApplicationUserByEmail(accountID, applicationID, utils.Base64Encode(email))
+
+	return storageEngine.Exists(emailListKey).Result()
+}
+
 func FindApplicationUserByEmail(accountID, applicationID int64, email string) (*entity.User, error) {
 	emailListKey := storageClient.ApplicationUserByEmail(accountID, applicationID, utils.Base64Encode(email))
 
-	details, err := storageEngine.HMGet(emailListKey, "usr").Result()
+	storedValue, err := storageEngine.Get(emailListKey).Result()
 	if err != nil {
 		return nil, err
 	}
 
-	userID, err := strconv.ParseInt(details[0].(string), 10, 64)
+	userID, err := strconv.ParseInt(storedValue, 10, 64)
 	if err != nil {
 		return nil, err
 	}
