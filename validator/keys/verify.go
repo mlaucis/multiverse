@@ -25,7 +25,7 @@ func VerifyRequest(ctx *context.Context, numKeyParts int) error {
 		return fmt.Errorf("signature failed on 2")
 	}
 
-	if Base64Encode(Sha256String(ctx.BodyString)) != ctx.R.Header.Get("x-tapglue-payload-hash") {
+	if Base64Encode(Sha256String(ctx.Body.String())) != ctx.R.Header.Get("x-tapglue-payload-hash") {
 		return fmt.Errorf("signature failed on 3")
 	}
 

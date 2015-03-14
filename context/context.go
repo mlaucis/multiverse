@@ -36,7 +36,6 @@ type (
 		SessionToken      string
 		Vars              map[string]string
 		Body              *bytes.Buffer
-		BodyString        string
 		MainLog           chan *logger.LogMsg
 		ErrorLog          chan *logger.LogMsg
 		W                 http.ResponseWriter
@@ -89,27 +88,22 @@ func (ctx *Context) newLogMessage(stackDepth int) *logger.LogMsg {
 		location = fmt.Sprintf("%s:%d", filename, line)
 	}
 
-	return &logger.LogMsg{
-		RemoteAddr: ctx.R.RemoteAddr,
-		Method:     ctx.R.Method,
-		RequestURI: ctx.GetRequestPath(),
-		Headers:    ctx.R.Header,
-		Payload:    ctx.BodyString,
-		Name:       ctx.RouteName,
-		Start:      ctx.StartTime,
-		End:        time.Now(),
-		Location:   location,
-	}
-}
-
-// get the request path from the actual request
-func (ctx *Context) GetRequestPath() string {
 	requestPath := ctx.R.RequestURI
 	if requestPath == "" {
 		requestPath = ctx.R.URL.Path
 	}
 
-	return requestPath
+	return &logger.LogMsg{
+		RemoteAddr: ctx.R.RemoteAddr,
+		Method:     ctx.R.Method,
+		RequestURI: requestPath,
+		Headers:    ctx.R.Header,
+		Payload:    ctx.Body.String(),
+		Name:       ctx.RouteName,
+		Start:      ctx.StartTime,
+		End:        time.Now(),
+		Location:   location,
+	}
 }
 
 // NewContext creates a new context from the current request
@@ -130,7 +124,6 @@ func NewContext(
 	ctx.ErrorLog = errorLog
 	ctx.Vars = mux.Vars(r)
 	ctx.Body = utils.PeakBody(r)
-	ctx.BodyString = utils.PeakBody(r).String()
 	ctx.RouteName = routeName
 	ctx.Scope = scope
 	ctx.Version = version

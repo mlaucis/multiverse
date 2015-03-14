@@ -73,6 +73,10 @@ func CreateAccount(account *entity.Account) error {
 func UpdateAccount(account *entity.Account) error {
 	errs := []*error{}
 
+	if account.ID == 0 {
+		errs = append(errs, &errorAccountIDZero)
+	}
+
 	if !StringLengthBetween(account.Name, accountNameMin, accountNameMax) {
 		errs = append(errs, &errorAccountNameSize)
 	}
