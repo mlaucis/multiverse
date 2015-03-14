@@ -28,6 +28,9 @@ func contextHasAccountUserID(ctx *context.Context) (err error) {
 
 func contextHasAccountUser(ctx *context.Context) (err error) {
 	ctx.AccountUser, err = core.ReadAccountUser(ctx.AccountID, ctx.AccountUserID)
+	if ctx.AccountUser != nil {
+		ctx.AccountUser.Password = ""
+	}
 	return
 }
 
@@ -48,5 +51,8 @@ func contextHasApplicationUserID(ctx *context.Context) (err error) {
 
 func contextHasApplicationUser(ctx *context.Context) (err error) {
 	ctx.ApplicationUser, err = core.ReadApplicationUser(ctx.AccountID, ctx.ApplicationID, ctx.ApplicationUserID)
+	if ctx.ApplicationUser != nil {
+		ctx.ApplicationUser.Password = ""
+	}
 	return
 }

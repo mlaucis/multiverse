@@ -195,7 +195,7 @@ func ReadConnectionEventList(accountID, applicationID, userID int64) (events []*
 func WriteEvent(event *entity.Event, retrieve bool) (evn *entity.Event, err error) {
 	event.Enabled = true
 	event.CreatedAt = time.Now()
-	event.UpdatedAt, event.ReceivedAt = event.CreatedAt, event.CreatedAt
+	event.UpdatedAt = event.CreatedAt
 
 	if event.ID, err = storageClient.GenerateApplicationEventID(event.ApplicationID); err != nil {
 		return nil, err
@@ -213,7 +213,7 @@ func WriteEvent(event *entity.Event, retrieve bool) (evn *entity.Event, err erro
 
 	listKey := storageClient.Events(event.AccountID, event.ApplicationID, event.UserID)
 
-	setVal := red.Z{Score: float64(event.ReceivedAt.Unix()), Member: key}
+	setVal := red.Z{Score: float64(event.CreatedAt.Unix()), Member: key}
 	if err = storageEngine.ZAdd(listKey, setVal).Err(); err != nil {
 		return nil, err
 	}
@@ -266,7 +266,7 @@ func WriteEventToConnectionsLists(event *entity.Event, key string) (err error) {
 	for _, userKey := range connections {
 		feedKey := storageClient.ConnectionEventsLoop(userKey)
 
-		val := red.Z{Score: float64(event.ReceivedAt.Unix()), Member: key}
+		val := red.Z{Score: float64(event.CreatedAt.Unix()), Member: key}
 		if err = storageEngine.ZAdd(feedKey, val).Err(); err != nil {
 			return err
 		}

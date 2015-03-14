@@ -127,7 +127,7 @@ func WriteApplication(application *entity.Application, retrieve bool) (app *enti
 
 	application.Enabled = true
 	application.CreatedAt = time.Now()
-	application.UpdatedAt, application.ReceivedAt = application.CreatedAt, application.CreatedAt
+	application.UpdatedAt = application.CreatedAt
 
 	if application.AuthToken, err = storageClient.GenerateApplicationSecretKey(application); err != nil {
 		return nil, err

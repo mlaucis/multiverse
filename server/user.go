@@ -20,11 +20,7 @@ import (
 // getApplicationUser handles requests to retrieve a single user
 // Request: GET account/:AccountID/application/:ApplicationID/user/:UserID
 func getApplicationUser(ctx *context.Context) {
-	// Don't return the password to the users
-	user := ctx.ApplicationUser
-	user.Password = ""
-
-	writeResponse(ctx, user, http.StatusOK, 10)
+	writeResponse(ctx, ctx.ApplicationUser, http.StatusOK, 10)
 }
 
 // updateApplicationUser handles requests to update a user
@@ -79,7 +75,6 @@ func updateApplicationUser(ctx *context.Context) {
 		return
 	}
 
-	// Don't return the password to the users
 	user.Password = ""
 
 	writeResponse(ctx, user, http.StatusCreated, 0)
@@ -123,7 +118,6 @@ func createApplicationUser(ctx *context.Context) {
 		return
 	}
 
-	// Don't return the password to the users
 	user.Password = ""
 
 	writeResponse(ctx, user, http.StatusCreated, 0)

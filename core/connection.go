@@ -131,7 +131,7 @@ func WriteConnection(connection *entity.Connection, retrieve bool) (con *entity.
 	connection.ConfirmedAt = time.Date(0, time.January, 1, 0, 0, 0, 0, time.UTC)
 	connection.Enabled = false
 	connection.CreatedAt = time.Now()
-	connection.UpdatedAt, connection.ReceivedAt = connection.CreatedAt, connection.CreatedAt
+	connection.UpdatedAt = connection.CreatedAt
 
 	val, err := json.Marshal(connection)
 	if err != nil {

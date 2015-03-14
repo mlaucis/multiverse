@@ -5,17 +5,18 @@
 //Package entity provides all the entities needed by the app to interact with the database
 package entity
 
-import "time"
+import (
+	"time"
+)
 
 type (
 	// Common holds common used fields
 	Common struct {
-		Image      []*Image  `json:"image,omitempty"`
-		Metadata   string    `json:"metadata,omitempty"`
-		Enabled    bool      `json:"enabled,omitempty"`
-		CreatedAt  time.Time `json:"created_at"`
-		UpdatedAt  time.Time `json:"updated_at"`
-		ReceivedAt time.Time `json:"received_at"`
+		Image     []*Image  `json:"image,omitempty"`
+		Metadata  string    `json:"metadata,omitempty"`
+		Enabled   bool      `json:"enabled,omitempty"`
+		CreatedAt time.Time `json:"created_at"`
+		UpdatedAt time.Time `json:"updated_at"`
 	}
 
 	// UserCommon holds common used fields for users

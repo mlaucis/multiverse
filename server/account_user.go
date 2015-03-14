@@ -73,6 +73,7 @@ func updateAccountUser(ctx *context.Context) {
 		return
 	}
 
+	accountUser.Password = ""
 	writeResponse(ctx, accountUser, http.StatusCreated, 0)
 }
 
@@ -112,6 +113,8 @@ func createAccountUser(ctx *context.Context) {
 		errorHappened(ctx, fmt.Sprintf("%q", err), http.StatusInternalServerError, err)
 		return
 	}
+
+	accountUser.Password = ""
 
 	writeResponse(ctx, accountUser, http.StatusCreated, 0)
 }

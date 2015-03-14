@@ -86,7 +86,7 @@ func WriteAccount(account *entity.Account, retrieve bool) (acc *entity.Account, 
 
 	account.Enabled = true
 	account.CreatedAt = time.Now()
-	account.UpdatedAt, account.ReceivedAt = account.CreatedAt, account.CreatedAt
+	account.UpdatedAt = account.CreatedAt
 
 	val, err := json.Marshal(account)
 	if err != nil {

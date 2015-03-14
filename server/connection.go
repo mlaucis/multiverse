@@ -122,6 +122,10 @@ func getConnectionList(ctx *context.Context) {
 		return
 	}
 
+	for idx := range users {
+		users[idx].Password = ""
+	}
+
 	response := &struct {
 		ApplicationID int64 `json:"applicationId"`
 		Users         []*entity.User
