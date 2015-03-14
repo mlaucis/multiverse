@@ -41,7 +41,7 @@ func CreateEvent(event *entity.Event) error {
 		errs = append(errs, &errorVerbSize)
 	}
 
-	if !alphaNumExtraCharFirst.Match([]byte(event.Verb)) {
+	if !alphaNumExtraCharFirst.MatchString(event.Verb) {
 		errs = append(errs, &errorVerbType)
 	}
 
@@ -64,7 +64,7 @@ func UpdateEvent(event *entity.Event) error {
 		errs = append(errs, &errorVerbSize)
 	}
 
-	if !alphaNumExtraCharFirst.Match([]byte(event.Verb)) {
+	if !alphaNumExtraCharFirst.MatchString(event.Verb) {
 		errs = append(errs, &errorVerbType)
 	}
 

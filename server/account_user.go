@@ -44,6 +44,30 @@ func updateAccountUser(ctx *context.Context) {
 		return
 	}
 
+	if ctx.AccountUser.Email != accountUser.Email {
+		if isDuplicate, err := validator.DuplicateAccountUserEmail(accountUser.Email); isDuplicate || err != nil {
+			if isDuplicate {
+				errorHappened(ctx, "email address already in use", http.StatusBadRequest, fmt.Errorf("duplicate email address on update"))
+			} else if err != nil {
+				errorHappened(ctx, "unexpected error", http.StatusBadRequest, err)
+			}
+
+			return
+		}
+	}
+
+	if ctx.AccountUser.Username != accountUser.Username {
+		if isDuplicate, err := validator.DuplicateAccountUserUsername(accountUser.Username); isDuplicate || err != nil {
+			if isDuplicate {
+				errorHappened(ctx, "username already in use", http.StatusBadRequest, fmt.Errorf("duplicate username on update"))
+			} else if err != nil {
+				errorHappened(ctx, "unexpected error", http.StatusBadRequest, err)
+			}
+
+			return
+		}
+	}
+
 	if accountUser, err = core.UpdateAccountUser(accountUser, true); err != nil {
 		errorHappened(ctx, fmt.Sprintf("%q", err), http.StatusInternalServerError, err)
 		return
@@ -122,28 +146,42 @@ func getAccountUserList(ctx *context.Context) {
 // Request: POST /account/user/login
 func loginAccountUser(ctx *context.Context) {
 	var (
-		loginPayload struct {
-			Email    string `json:"email"`
-			Password string `json:"password"`
-		}
+		loginPayload = &entity.LoginPayload{}
+		account      *entity.Account
+		user         *entity.AccountUser
 		sessionToken string
 		err          error
 	)
 
 	decoder := json.NewDecoder(ctx.Body)
-	if err = decoder.Decode(&loginPayload); err != nil {
+	if err = decoder.Decode(loginPayload); err != nil {
 		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
-	if !validator.IsValidEmail(loginPayload.Email) {
-		errorHappened(ctx, "invalid e-mail", http.StatusBadRequest, nil)
+	if err := validator.IsValidLoginPayload(loginPayload); err != nil {
+		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
-	account, user, err := core.FindAccountAndUserByEmail(loginPayload.Email)
-	if err != nil {
-		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
+	if loginPayload.Email != "" {
+		account, user, err = core.FindAccountAndUserByEmail(loginPayload.Email)
+		if err != nil {
+			errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
+			return
+		}
+	}
+
+	if loginPayload.Username != "" {
+		account, user, err = core.FindAccountAndUserByUsername(loginPayload.Username)
+		if err != nil {
+			errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
+			return
+		}
+	}
+
+	if account == nil || user == nil {
+		errorHappened(ctx, "unexpected error happened", http.StatusInternalServerError, fmt.Errorf("account or user nil on login"))
 		return
 	}
 

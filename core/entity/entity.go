@@ -164,4 +164,11 @@ type (
 		Participant   []*Participant `json:"participant,omitempty"`
 		Common
 	}
+
+	// LoginPayload defines how the login payload should look like
+	LoginPayload struct {
+		Email    string `json:"email,omitempty"`
+		Username string `json:"username,omitempty"`
+		Password string `json:"password"`
+	}
 )

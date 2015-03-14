@@ -11,7 +11,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/tapglue/backend/core"
 	"github.com/tapglue/backend/core/entity"
 	. "github.com/tapglue/backend/utils"
 )
@@ -57,15 +56,15 @@ func CreateUser(user *entity.User) error {
 		errs = append(errs, &errorUserUsernameSize)
 	}
 
-	if !alphaNumExtraCharFirst.Match([]byte(user.FirstName)) {
+	if !alphaNumExtraCharFirst.MatchString(user.FirstName) {
 		errs = append(errs, &errorUserFirstNameType)
 	}
 
-	if !alphaNumExtraCharFirst.Match([]byte(user.LastName)) {
+	if !alphaNumExtraCharFirst.MatchString(user.LastName) {
 		errs = append(errs, &errorUserLastNameType)
 	}
 
-	if !alphaNumExtraCharFirst.Match([]byte(user.Username)) {
+	if !alphaNumExtraCharFirst.MatchString(user.Username) {
 		errs = append(errs, &errorUserUsernameType)
 	}
 
@@ -73,17 +72,17 @@ func CreateUser(user *entity.User) error {
 		errs = append(errs, &errorApplicationIDZero)
 	}
 
-	if user.Email == "" || !email.Match([]byte(user.Email)) {
+	if user.Email == "" || !email.MatchString(user.Email) {
 		errs = append(errs, &errorUserEmailInvalid)
 	}
 
-	if user.URL != "" && !url.Match([]byte(user.URL)) {
+	if user.URL != "" && !url.MatchString(user.URL) {
 		errs = append(errs, &errorUserURLInvalid)
 	}
 
 	if len(user.Image) > 0 {
 		for _, image := range user.Image {
-			if !url.Match([]byte(image.URL)) {
+			if !url.MatchString(image.URL) {
 				errs = append(errs, &errorInvalidImageURL)
 			}
 		}
@@ -93,9 +92,17 @@ func CreateUser(user *entity.User) error {
 		errs = append(errs, &errorApplicationDoesNotExists)
 	}
 
-	if userExists, err := core.ApplicationUserByEmailExists(user.AccountID, user.ApplicationID, user.Email); userExists || err != nil {
-		if userExists {
-			errs = append(errs, &errorApplicationUserAlreadyExists)
+	if isDuplicate, err := DuplicateApplicationUserEmail(user.AccountID, user.ApplicationID, user.Email); isDuplicate || err != nil {
+		if isDuplicate {
+			errs = append(errs, &errorUserAlreadyExists)
+		} else {
+			errs = append(errs, &err)
+		}
+	}
+
+	if isDuplicate, err := DuplicateApplicationUserUsername(user.AccountID, user.ApplicationID, user.Username); isDuplicate || err != nil {
+		if isDuplicate {
+			errs = append(errs, &errorUserAlreadyExists)
 		} else {
 			errs = append(errs, &err)
 		}
@@ -120,29 +127,29 @@ func UpdateUser(user *entity.User) error {
 		errs = append(errs, &errorUserUsernameSize)
 	}
 
-	if !alphaNumExtraCharFirst.Match([]byte(user.FirstName)) {
+	if !alphaNumExtraCharFirst.MatchString(user.FirstName) {
 		errs = append(errs, &errorUserFirstNameType)
 	}
 
-	if !alphaNumExtraCharFirst.Match([]byte(user.LastName)) {
+	if !alphaNumExtraCharFirst.MatchString(user.LastName) {
 		errs = append(errs, &errorUserLastNameType)
 	}
 
-	if !alphaNumExtraCharFirst.Match([]byte(user.Username)) {
+	if !alphaNumExtraCharFirst.MatchString(user.Username) {
 		errs = append(errs, &errorUserUsernameType)
 	}
 
-	if user.Email == "" || !email.Match([]byte(user.Email)) {
+	if user.Email == "" || !email.MatchString(user.Email) {
 		errs = append(errs, &errorUserEmailInvalid)
 	}
 
-	if user.URL != "" && !url.Match([]byte(user.URL)) {
+	if user.URL != "" && !url.MatchString(user.URL) {
 		errs = append(errs, &errorUserURLInvalid)
 	}
 
 	if len(user.Image) > 0 {
 		for _, image := range user.Image {
-			if !url.Match([]byte(image.URL)) {
+			if !url.MatchString(image.URL) {
 				errs = append(errs, &errorInvalidImageURL)
 			}
 		}
@@ -310,4 +317,30 @@ func CheckApplicationSimpleSession(r *http.Request) (string, error) {
 	}
 
 	return encodedSessionToken, nil
+}
+
+func DuplicateApplicationUserEmail(accountID, applicationID int64, email string) (bool, error) {
+	emailKey := storageClient.ApplicationUserByEmail(accountID, applicationID, email)
+	if userExists, err := storageEngine.Exists(emailKey).Result(); userExists || err != nil {
+		if err != nil {
+			return false, err
+		} else if userExists {
+			return true, errorUserAlreadyExists
+		}
+	}
+
+	return false, nil
+}
+
+func DuplicateApplicationUserUsername(accountID, applicationID int64, username string) (bool, error) {
+	usernameKey := storageClient.ApplicationUserByUsername(accountID, applicationID, username)
+	if userExists, err := storageEngine.Exists(usernameKey).Result(); userExists || err != nil {
+		if err != nil {
+			return false, err
+		} else if userExists {
+			return true, errorUserAlreadyExists
+		}
+	}
+
+	return false, nil
 }

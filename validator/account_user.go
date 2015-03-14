@@ -61,15 +61,15 @@ func CreateAccountUser(accountUser *entity.AccountUser) error {
 		errs = append(errs, &errorAccountUserPasswordSize)
 	}
 
-	if !alphaNumExtraCharFirst.Match([]byte(accountUser.FirstName)) {
+	if !alphaNumExtraCharFirst.MatchString(accountUser.FirstName) {
 		errs = append(errs, &errorAccountUserFirstNameType)
 	}
 
-	if !alphaNumExtraCharFirst.Match([]byte(accountUser.LastName)) {
+	if !alphaNumExtraCharFirst.MatchString(accountUser.LastName) {
 		errs = append(errs, &errorAccountUserLastNameType)
 	}
 
-	if !alphaNumExtraCharFirst.Match([]byte(accountUser.Username)) {
+	if !alphaNumExtraCharFirst.MatchString(accountUser.Username) {
 		errs = append(errs, &errorAccountUserUsernameType)
 	}
 
@@ -79,17 +79,17 @@ func CreateAccountUser(accountUser *entity.AccountUser) error {
 		errs = append(errs, &errorAccountIDZero)
 	}
 
-	if accountUser.Email == "" || !email.Match([]byte(accountUser.Email)) {
+	if accountUser.Email == "" || !email.MatchString(accountUser.Email) {
 		errs = append(errs, &errorAccountUserEmailInvalid)
 	}
 
-	if accountUser.URL != "" && !url.Match([]byte(accountUser.URL)) {
+	if accountUser.URL != "" && !url.MatchString(accountUser.URL) {
 		errs = append(errs, &errorAccountUserURLInvalid)
 	}
 
 	if len(accountUser.Image) > 0 {
 		for _, image := range accountUser.Image {
-			if !url.Match([]byte(image.URL)) {
+			if !url.MatchString(image.URL) {
 				errs = append(errs, &errorInvalidImageURL)
 			}
 		}
@@ -97,6 +97,22 @@ func CreateAccountUser(accountUser *entity.AccountUser) error {
 
 	if !AccountExists(accountUser.AccountID) {
 		errs = append(errs, &errorAccountDoesNotExists)
+	}
+
+	if isDuplicate, err := DuplicateAccountUserEmail(accountUser.Email); isDuplicate || err != nil {
+		if isDuplicate {
+			errs = append(errs, &errorUserAlreadyExists)
+		} else {
+			errs = append(errs, &err)
+		}
+	}
+
+	if isDuplicate, err := DuplicateAccountUserUsername(accountUser.Username); isDuplicate || err != nil {
+		if isDuplicate {
+			errs = append(errs, &errorUserAlreadyExists)
+		} else {
+			errs = append(errs, &err)
+		}
 	}
 
 	return packErrors(errs)
@@ -122,31 +138,31 @@ func UpdateAccountUser(accountUser *entity.AccountUser) error {
 		errs = append(errs, &errorAccountUserPasswordSize)
 	}
 
-	if !alphaNumExtraCharFirst.Match([]byte(accountUser.FirstName)) {
+	if !alphaNumExtraCharFirst.MatchString(accountUser.FirstName) {
 		errs = append(errs, &errorAccountUserFirstNameType)
 	}
 
-	if !alphaNumExtraCharFirst.Match([]byte(accountUser.LastName)) {
+	if !alphaNumExtraCharFirst.MatchString(accountUser.LastName) {
 		errs = append(errs, &errorAccountUserLastNameType)
 	}
 
-	if !alphaNumExtraCharFirst.Match([]byte(accountUser.Username)) {
+	if !alphaNumExtraCharFirst.MatchString(accountUser.Username) {
 		errs = append(errs, &errorAccountUserUsernameType)
 	}
 
 	// TODO add validation for password rules such as use all type of chars
 
-	if accountUser.Email == "" || !email.Match([]byte(accountUser.Email)) {
+	if accountUser.Email == "" || !email.MatchString(accountUser.Email) {
 		errs = append(errs, &errorAccountUserEmailInvalid)
 	}
 
-	if accountUser.URL != "" && !url.Match([]byte(accountUser.URL)) {
+	if accountUser.URL != "" && !url.MatchString(accountUser.URL) {
 		errs = append(errs, &errorAccountUserURLInvalid)
 	}
 
 	if len(accountUser.Image) > 0 {
 		for _, image := range accountUser.Image {
-			if !url.Match([]byte(image.URL)) {
+			if !url.MatchString(image.URL) {
 				errs = append(errs, &errorInvalidImageURL)
 			}
 		}
@@ -248,4 +264,30 @@ func CheckAccountSession(r *http.Request) (string, error) {
 	}
 
 	return encodedSessionToken, nil
+}
+
+func DuplicateAccountUserEmail(email string) (bool, error) {
+	emailKey := storageClient.AccountUserByEmail(email)
+	if userExists, err := storageEngine.Exists(emailKey).Result(); userExists || err != nil {
+		if err != nil {
+			return false, err
+		} else if userExists {
+			return true, errorUserAlreadyExists
+		}
+	}
+
+	return false, nil
+}
+
+func DuplicateAccountUserUsername(username string) (bool, error) {
+	usernameKey := storageClient.AccountUserByUsername(username)
+	if userExists, err := storageEngine.Exists(usernameKey).Result(); userExists || err != nil {
+		if err != nil {
+			return false, err
+		} else if userExists {
+			return true, errorUserAlreadyExists
+		}
+	}
+
+	return false, nil
 }

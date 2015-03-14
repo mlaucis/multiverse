@@ -39,22 +39,45 @@ func UpdateAccountUser(accountUser *entity.AccountUser, retrieve bool) (accUser 
 		return nil, err
 	}
 
-	key := storageClient.AccountUser(accountUser.AccountID, accountUser.ID)
-	exist, err := storageEngine.Exists(key).Result()
-	if !exist {
-		return nil, fmt.Errorf("account user does not exist")
-	}
+	existingUser, err := ReadAccountUser(accountUser.AccountID, accountUser.ID)
 	if err != nil {
 		return nil, err
 	}
 
+	key := storageClient.AccountUser(accountUser.AccountID, accountUser.ID)
 	if err = storageEngine.Set(key, string(val)).Err(); err != nil {
 		return nil, err
 	}
 
+	emailListKey := storageClient.AccountUserByEmail(utils.Base64Encode(existingUser.Email))
+	usernameListKey := storageClient.AccountUserByUsername(utils.Base64Encode(existingUser.Username))
+	_, err = storageEngine.Del(emailListKey, usernameListKey).Result()
+
 	if !accountUser.Enabled {
 		listKey := storageClient.AccountUsers(accountUser.AccountID)
 		if err = storageEngine.LRem(listKey, 0, key).Err(); err != nil {
+			return nil, err
+		}
+	} else {
+		emailListKey := storageClient.AccountUserByEmail(utils.Base64Encode(accountUser.Email))
+		err = storageEngine.HMSet(
+			emailListKey,
+			"acc", fmt.Sprintf("%d", accountUser.AccountID),
+			"usr", fmt.Sprintf("%d", accountUser.ID),
+		).Err()
+
+		if err != nil {
+			return nil, err
+		}
+
+		usernameListKey := storageClient.AccountUserByUsername(utils.Base64Encode(accountUser.Username))
+		err = storageEngine.HMSet(
+			usernameListKey,
+			"acc", fmt.Sprintf("%d", accountUser.AccountID),
+			"usr", fmt.Sprintf("%d", accountUser.ID),
+		).Err()
+
+		if err != nil {
 			return nil, err
 		}
 	}
@@ -69,6 +92,11 @@ func UpdateAccountUser(accountUser *entity.AccountUser, retrieve bool) (accUser 
 // DeleteAccountUser deletes the account user matching the IDs or an error
 func DeleteAccountUser(accountID, userID int64) (err error) {
 	// TODO: Make not deletable if its the only account user of an account
+	accountUser, err := ReadAccountUser(accountID, userID)
+	if err != nil {
+		return err
+	}
+
 	key := storageClient.AccountUser(accountID, userID)
 	result, err := storageEngine.Del(key).Result()
 	if err != nil {
@@ -84,7 +112,11 @@ func DeleteAccountUser(accountID, userID int64) (err error) {
 		return err
 	}
 
-	return nil
+	emailListKey := storageClient.AccountUserByEmail(utils.Base64Encode(accountUser.Email))
+	usernameListKey := storageClient.AccountUserByUsername(utils.Base64Encode(accountUser.Username))
+	_, err = storageEngine.Del(emailListKey, usernameListKey).Result()
+
+	return err
 }
 
 // ReadAccountUserList returns all the users from a certain account
@@ -150,6 +182,17 @@ func WriteAccountUser(accountUser *entity.AccountUser, retrieve bool) (accUser *
 	emailListKey := storageClient.AccountUserByEmail(utils.Base64Encode(accountUser.Email))
 	err = storageEngine.HMSet(
 		emailListKey,
+		"acc", fmt.Sprintf("%d", accountUser.AccountID),
+		"usr", fmt.Sprintf("%d", accountUser.ID),
+	).Err()
+
+	if err != nil {
+		return nil, err
+	}
+
+	usernameListKey := storageClient.AccountUserByUsername(utils.Base64Encode(accountUser.Username))
+	err = storageEngine.HMSet(
+		usernameListKey,
 		"acc", fmt.Sprintf("%d", accountUser.AccountID),
 		"usr", fmt.Sprintf("%d", accountUser.ID),
 	).Err()
@@ -257,7 +300,20 @@ func DestroyAccountUserSession(sessionToken string, user *entity.AccountUser) er
 func FindAccountAndUserByEmail(email string) (*entity.Account, *entity.AccountUser, error) {
 	emailListKey := storageClient.AccountUserByEmail(utils.Base64Encode(email))
 
-	details, err := storageEngine.HMGet(emailListKey, "acc", "usr").Result()
+	return findAccountByKey(emailListKey)
+}
+
+// FindAccountAndUserByUsername returns the account and account user for a certain username
+func FindAccountAndUserByUsername(username string) (*entity.Account, *entity.AccountUser, error) {
+	usernameListKey := storageClient.AccountUserByUsername(utils.Base64Encode(username))
+
+	return findAccountByKey(usernameListKey)
+}
+
+// findAccountByKey retrieves an account and accountUser that are stored by their key, regardless of the specified key
+func findAccountByKey(bucketName string) (*entity.Account, *entity.AccountUser, error) {
+
+	details, err := storageEngine.HMGet(bucketName, "acc", "usr").Result()
 	if err != nil {
 		return nil, nil, err
 	}

@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"time"
 
+	"fmt"
+
 	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/core"
 	"github.com/tapglue/backend/core/entity"
@@ -46,6 +48,30 @@ func updateApplicationUser(ctx *context.Context) {
 	if err = validator.UpdateUser(user); err != nil {
 		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
 		return
+	}
+
+	if ctx.ApplicationUser.Email != user.Email {
+		if isDuplicate, err := validator.DuplicateApplicationUserEmail(user.AccountID, user.ApplicationID, user.Email); isDuplicate || err != nil {
+			if isDuplicate {
+				errorHappened(ctx, "email address already in use", http.StatusBadRequest, fmt.Errorf("duplicate email address on update"))
+			} else if err != nil {
+				errorHappened(ctx, "unexpected error", http.StatusBadRequest, err)
+			}
+
+			return
+		}
+	}
+
+	if ctx.ApplicationUser.Username != user.Username {
+		if isDuplicate, err := validator.DuplicateApplicationUserUsername(user.AccountID, user.ApplicationID, user.Username); isDuplicate || err != nil {
+			if isDuplicate {
+				errorHappened(ctx, "username already in use", http.StatusBadRequest, fmt.Errorf("duplicate username on update"))
+			} else if err != nil {
+				errorHappened(ctx, "unexpected error", http.StatusBadRequest, err)
+			}
+
+			return
+		}
 	}
 
 	if user, err = core.UpdateUser(user, true); err != nil {
@@ -136,28 +162,41 @@ func createApplicationUser(ctx *context.Context) {
 // Request: POST account/:AccountID/application/:ApplicationID/user/login
 func loginApplicationUser(ctx *context.Context) {
 	var (
-		loginPayload struct {
-			Email    string `json:"email"`
-			Password string `json:"password"`
-		}
+		loginPayload = &entity.LoginPayload{}
+		user         *entity.User
 		sessionToken string
 		err          error
 	)
 
 	decoder := json.NewDecoder(ctx.Body)
-	if err = decoder.Decode(&loginPayload); err != nil {
+	if err = decoder.Decode(loginPayload); err != nil {
 		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
-	if !validator.IsValidEmail(loginPayload.Email) {
-		errorHappened(ctx, "invalid e-mail", http.StatusBadRequest, err)
+	if err := validator.IsValidLoginPayload(loginPayload); err != nil {
+		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
-	user, err := core.FindApplicationUserByEmail(ctx.AccountID, ctx.ApplicationID, loginPayload.Email)
-	if err != nil {
-		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
+	if loginPayload.Email != "" {
+		user, err = core.FindApplicationUserByEmail(ctx.AccountID, ctx.ApplicationID, loginPayload.Email)
+		if err != nil {
+			errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
+			return
+		}
+	}
+
+	if loginPayload.Username != "" {
+		user, err = core.FindApplicationUserByUsername(ctx.AccountID, ctx.ApplicationID, loginPayload.Username)
+		if err != nil {
+			errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
+			return
+		}
+	}
+
+	if user == nil {
+		errorHappened(ctx, "unexpected error happened", http.StatusInternalServerError, fmt.Errorf("user nil on login"))
 		return
 	}
 

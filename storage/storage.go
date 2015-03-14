@@ -32,8 +32,9 @@ const (
 	idApplicationUser  = "ids:a:%d:u"
 	idApplicationEvent = "ids:a:%d:e"
 
-	account            = "acc:%d"
-	accountUserByEmail = "acc:byemail:%s"
+	account               = "acc:%d"
+	accountUserByEmail    = "acc:byemail:%s"
+	accountUserByUsername = "acc:byuname:%s"
 
 	accountUser  = "acc:%d:user:%d"
 	accountUsers = "acc:%d:users"
@@ -41,9 +42,10 @@ const (
 	application  = "acc:%d:app:%d"
 	applications = "acc:%d:apps"
 
-	applicationUser        = "acc:%d:app:%d:user:%d"
-	applicationUsers       = "acc:%d:app:%d:user"
-	applicationUserByEmail = "acc:%d:app:%d:byemail:%s"
+	applicationUser           = "acc:%d:app:%d:user:%d"
+	applicationUsers          = "acc:%d:app:%d:user"
+	applicationUserByEmail    = "acc:%d:app:%d:byemail:%s"
+	applicationUserByUsername = "acc:%d:app:%d:byuname:%s"
 
 	accountSession     = "acc:%d:sess:%d"
 	applicationSession = "acc:%d:app:%d:sess:%d"
@@ -222,6 +224,11 @@ func (client *Client) AccountUserByEmail(email string) string {
 	return fmt.Sprintf(accountUserByEmail, email)
 }
 
+// AccountUserByUsername returns the key for accounts by email
+func (client *Client) AccountUserByUsername(username string) string {
+	return fmt.Sprintf(accountUserByUsername, username)
+}
+
 // Application returns the key for one account app
 func (client *Client) Application(accountID, applicationID int64) string {
 	return fmt.Sprintf(application, accountID, applicationID)
@@ -260,6 +267,11 @@ func (client *Client) User(accountID, applicationID, userID int64) string {
 // ApplicationUserByEmail returns the key for accounts by email
 func (client *Client) ApplicationUserByEmail(accountID, applicationID int64, email string) string {
 	return fmt.Sprintf(applicationUserByEmail, accountID, applicationID, email)
+}
+
+// ApplicationUserByUsername returns the key for accounts by email
+func (client *Client) ApplicationUserByUsername(accountID, applicationID int64, username string) string {
+	return fmt.Sprintf(applicationUserByUsername, accountID, applicationID, username)
 }
 
 // Users gets the key the app users list

@@ -62,6 +62,7 @@ func AddCorrectUser(accountID, applicationID int64, fetchUser bool) (usr *entity
 // AddCorrectUser2 creates a correct user
 func AddCorrectUser2(accountID, applicationID int64, fetchUser bool) (usr *entity.User, err error) {
 	userWithIDs := fixtures.CorrectUser
+	userWithIDs.Username = "demouser2"
 	userWithIDs.Password = "password"
 	userWithIDs.Email = "user2@tapglue.com"
 	userWithIDs.AccountID = accountID

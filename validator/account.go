@@ -42,11 +42,11 @@ func CreateAccount(account *entity.Account) error {
 		errs = append(errs, &errorAccountDescriptionSize)
 	}
 
-	if !alphaNumExtraCharFirst.Match([]byte(account.Name)) {
+	if !alphaNumExtraCharFirst.MatchString(account.Name) {
 		errs = append(errs, &errorAccountNameType)
 	}
 
-	if !alphaNumExtraCharFirst.Match([]byte(account.Description)) {
+	if !alphaNumExtraCharFirst.MatchString(account.Description) {
 		errs = append(errs, &errorAccountDescriptionType)
 	}
 
@@ -60,7 +60,7 @@ func CreateAccount(account *entity.Account) error {
 
 	if len(account.Image) > 0 {
 		for _, image := range account.Image {
-			if !url.Match([]byte(image.URL)) {
+			if !url.MatchString(image.URL) {
 				errs = append(errs, &errorInvalidImageURL)
 			}
 		}
@@ -85,17 +85,17 @@ func UpdateAccount(account *entity.Account) error {
 		errs = append(errs, &errorAccountDescriptionSize)
 	}
 
-	if !alphaNumExtraCharFirst.Match([]byte(account.Name)) {
+	if !alphaNumExtraCharFirst.MatchString(account.Name) {
 		errs = append(errs, &errorAccountNameType)
 	}
 
-	if !alphaNumExtraCharFirst.Match([]byte(account.Description)) {
+	if !alphaNumExtraCharFirst.MatchString(account.Description) {
 		errs = append(errs, &errorAccountDescriptionType)
 	}
 
 	if len(account.Image) > 0 {
 		for _, image := range account.Image {
-			if !url.Match([]byte(image.URL)) {
+			if !url.MatchString(image.URL) {
 				errs = append(errs, &errorInvalidImageURL)
 			}
 		}

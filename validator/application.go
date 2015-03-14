@@ -42,11 +42,11 @@ func CreateApplication(application *entity.Application) error {
 		errs = append(errs, &errorApplicationDescriptionSize)
 	}
 
-	if !alphaNumExtraCharFirst.Match([]byte(application.Name)) {
+	if !alphaNumExtraCharFirst.MatchString(application.Name) {
 		errs = append(errs, &errorApplicationNameType)
 	}
 
-	if !alphaNumExtraCharFirst.Match([]byte(application.Description)) {
+	if !alphaNumExtraCharFirst.MatchString(application.Description) {
 		errs = append(errs, &errorApplicationDescriptionType)
 	}
 
@@ -58,13 +58,13 @@ func CreateApplication(application *entity.Application) error {
 		errs = append(errs, &errorAccountIDZero)
 	}
 
-	if application.URL != "" && !url.Match([]byte(application.URL)) {
+	if application.URL != "" && !url.MatchString(application.URL) {
 		errs = append(errs, &errorApplicationUserURLInvalid)
 	}
 
 	if len(application.Image) > 0 {
 		for _, image := range application.Image {
-			if !url.Match([]byte(image.URL)) {
+			if !url.MatchString(image.URL) {
 				errs = append(errs, &errorInvalidImageURL)
 			}
 		}
@@ -89,21 +89,21 @@ func UpdateApplication(application *entity.Application) error {
 		errs = append(errs, &errorApplicationDescriptionSize)
 	}
 
-	if !alphaNumExtraCharFirst.Match([]byte(application.Name)) {
+	if !alphaNumExtraCharFirst.MatchString(application.Name) {
 		errs = append(errs, &errorApplicationNameType)
 	}
 
-	if !alphaNumExtraCharFirst.Match([]byte(application.Description)) {
+	if !alphaNumExtraCharFirst.MatchString(application.Description) {
 		errs = append(errs, &errorApplicationDescriptionType)
 	}
 
-	if application.URL != "" && !url.Match([]byte(application.URL)) {
+	if application.URL != "" && !url.MatchString(application.URL) {
 		errs = append(errs, &errorApplicationUserURLInvalid)
 	}
 
 	if len(application.Image) > 0 {
 		for _, image := range application.Image {
-			if !url.Match([]byte(image.URL)) {
+			if !url.MatchString(image.URL) {
 				errs = append(errs, &errorInvalidImageURL)
 			}
 		}
