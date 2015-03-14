@@ -227,7 +227,7 @@ func checkApplicationSession(ctx *context.Context) {
 	)
 
 	if ctx.Version == "0.1" {
-		sessionToken, err = validator.CheckApplicationSimpleSession(ctx.R)
+		sessionToken, err = validator.CheckApplicationSimpleSession(ctx.AccountID, ctx.ApplicationID, ctx.ApplicationUserID, ctx.R)
 	} else {
 		sessionToken, err = validator.CheckApplicationSession(ctx.R)
 	}

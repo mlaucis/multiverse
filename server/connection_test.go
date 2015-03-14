@@ -124,7 +124,7 @@ func (s *ServerSuite) TestUpdateConnection_OK(c *C) {
 
 	routeName := "updateConnection"
 	route := getComposedRoute(routeName, account.ID, application.ID, userFrom.ID, userTo.ID)
-	code, body, err := runRequest(routeName, route, payload, application.AuthToken, createApplicationUserSessionToken(userTo), 3)
+	code, body, err := runRequest(routeName, route, payload, application.AuthToken, createApplicationUserSessionToken(userFrom), 3)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusCreated)
@@ -141,6 +141,39 @@ func (s *ServerSuite) TestUpdateConnection_OK(c *C) {
 	c.Assert(connection.UserFromID, Equals, userFrom.ID)
 	c.Assert(connection.UserToID, Equals, userTo.ID)
 	c.Assert(connection.Enabled, Equals, false)
+}
+
+// Test a correct updateConnection request
+func (s *ServerSuite) TestUpdateConnection_NotCrossUpdate(c *C) {
+	account, err := AddCorrectAccount(true)
+	c.Assert(err, IsNil)
+
+	application, err := AddCorrectApplication(account.ID, true)
+	c.Assert(err, IsNil)
+
+	userFrom, err := AddCorrectUser(account.ID, application.ID, true)
+	c.Assert(err, IsNil)
+
+	userTo, err := AddCorrectUser2(account.ID, application.ID, true)
+	c.Assert(err, IsNil)
+
+	correctConnection, err := AddCorrectConnection(account.ID, application.ID, userFrom.ID, userTo.ID, true)
+	c.Assert(err, IsNil)
+
+	payload := fmt.Sprintf(
+		`{"user_from_id":%d, "user_to_id":%d, "enabled":false}`,
+		correctConnection.UserFromID,
+		correctConnection.UserToID,
+	)
+
+	routeName := "updateConnection"
+	route := getComposedRoute(routeName, account.ID, application.ID, userFrom.ID, userTo.ID)
+	code, body, err := runRequest(routeName, route, payload, application.AuthToken, createApplicationUserSessionToken(userTo), 3)
+	c.Assert(err, IsNil)
+
+	c.Assert(code, Equals, http.StatusUnauthorized)
+
+	c.Assert(body, Equals, "401 invalid session")
 }
 
 // Test updateConnection request with a wrong id
@@ -258,5 +291,5 @@ func (s *ServerSuite) TestDeleteConnection_WrongID(c *C) {
 	c.Assert(err, IsNil)
 
 	c.Assert(err, IsNil)
-	c.Assert(code, Equals, http.StatusInternalServerError)
+	c.Assert(code, Equals, http.StatusUnauthorized)
 }

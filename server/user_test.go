@@ -231,7 +231,7 @@ func (s *ServerSuite) TestDeleteUser_WrongID(c *C) {
 	c.Assert(err, IsNil)
 
 	c.Assert(err, IsNil)
-	c.Assert(code, Equals, http.StatusInternalServerError)
+	c.Assert(code, Equals, http.StatusUnauthorized)
 }
 
 // Test a correct getUser request
