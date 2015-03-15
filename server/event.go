@@ -180,7 +180,7 @@ func createEvent(ctx *context.Context) {
 }
 
 // getConnectionEventList handles requests to retrieve a users connections events
-// Request: GET account/:accountID/application/:applicationID/events/geo/:latitude/:longitude/:radis
+// Request: GET account/:accountID/application/:applicationID/events/geo/:latitude/:longitude/:radius
 func getGeoEventList(ctx *context.Context) {
 	var (
 		events                      = []*entity.Event{}
@@ -220,7 +220,7 @@ func getGeoEventList(ctx *context.Context) {
 }
 
 // getConnectionEventList handles requests to retrieve a users connections events
-// Request: GET account/:accountID/application/:applicationID/events/geo/:latitude/:longitude/:radis
+// Request: GET account/:accountID/application/:applicationID/events/geo/:latitude/:longitude/:radius
 func getObjectEventList(ctx *context.Context) {
 	var (
 		events    = []*entity.Event{}
@@ -247,7 +247,7 @@ func getObjectEventList(ctx *context.Context) {
 }
 
 // getConnectionEventList handles requests to retrieve a users connections events
-// Request: GET account/:accountID/application/:applicationID/events/geo/:latitude/:longitude/:radis
+// Request: GET account/:accountID/application/:applicationID/events/geo/:latitude/:longitude/:radius
 func getLocationEventList(ctx *context.Context) {
 	var (
 		events   = []*entity.Event{}

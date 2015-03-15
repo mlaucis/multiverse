@@ -252,13 +252,6 @@ func writeCacheHeaders(cacheTime uint, ctx *context.Context) {
 	//}
 }
 
-// getSanitizedHeaders returns the sanitized request headers
-func getSanitizedHeaders(headers http.Header) http.Header {
-	// TODO sanitize headers that shouldn't not appear in the logs
-
-	return headers
-}
-
 func writeCorsHeaders(ctx *context.Context) {
 	ctx.W.Header().Set("Access-Control-Allow-Origin", "*")
 	ctx.W.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
