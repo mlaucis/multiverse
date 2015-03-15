@@ -330,17 +330,15 @@ func humans(ctx *context.Context) {
 	ctx.W.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	ctx.W.Write([]byte(`/* TEAM */
 Founder: Normal Wiese, Onur Akpolat
-http://tapglue.co
+Lead developer: Florin Patan
+http://tapglue.com
 Location: Berlin, Germany.
 
-/* THANKS */
-Name: @dlsniper
-
 /* SITE */
-Last update: 2014/12/17
+Last update: 2015/03/15
 Standards: HTML5
 Components: None
-Software: Go`))
+Software: Go, Redis`))
 }
 
 // robots handles requests to robots.txt
