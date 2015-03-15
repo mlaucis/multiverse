@@ -30,6 +30,7 @@ type (
 		Environment    string `json:"env"`
 		UseArtwork     bool   `json:"use_artwork"`
 		SkipSecurity   bool   `json:"skip_security"`
+		JSONLogs       bool   `json:"json_logs"`
 		ListenHostPort string `json:"listenHost"`
 		Redis          *Redis `json:"redis"`
 	}
@@ -43,6 +44,7 @@ func defaultConfig() *Config {
 	cfg.Environment = "dev"
 	cfg.UseArtwork = true
 	cfg.SkipSecurity = false
+	cfg.JSONLogs = false
 	cfg.ListenHostPort = ":8082"
 
 	cfg.Redis = &Redis{}
@@ -114,18 +116,6 @@ func (config *Config) Load(configEnvPath string) {
 // NewConf will load and return the config
 func NewConf(configEnvPath string) *Config {
 	cfg.Load(configEnvPath)
-
-	return cfg
-}
-
-// Conf will return the config
-//
-// If the config is not loaded already, it will attempt to load it from the directory of the binary
-func Conf() *Config {
-	// Last mile defence, try to load the config from the current binary directory if it's not loaded yet
-	if cfg.Environment == "" {
-		cfg.Load("")
-	}
 
 	return cfg
 }

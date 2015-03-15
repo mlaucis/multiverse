@@ -34,6 +34,7 @@ type (
 		ApplicationUserID int64
 		ApplicationUser   *entity.User
 		SessionToken      string
+		StatusCode        int
 		Vars              map[string]string
 		Body              *bytes.Buffer
 		MainLog           chan *logger.LogMsg

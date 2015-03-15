@@ -271,6 +271,8 @@ func writeResponse(ctx *context.Context, response interface{}, code int, cacheTi
 		ctx.W.Header().Set("x-tapglue-session", ctx.SessionToken)
 	}
 
+	ctx.StatusCode = code
+
 	// Write response
 	if !strings.Contains(ctx.R.Header.Get("Accept-Encoding"), "gzip") {
 		// No gzip support
@@ -303,6 +305,7 @@ func errorHappened(ctx *context.Context, message string, code int, internalError
 		gz.Close()
 	}
 
+	ctx.StatusCode = code
 	ctx.LogErrorWithMessage(internalError, message, 1)
 }
 
@@ -313,6 +316,7 @@ func home(ctx *context.Context) {
 	writeCacheHeaders(10*24*3600, ctx)
 	ctx.W.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	ctx.W.Write([]byte(`these aren't the droids you're looking for`))
+	ctx.StatusCode = 200
 }
 
 // humans handles requests to humans.txt
@@ -332,6 +336,7 @@ Last update: 2015/03/15
 Standards: HTML5
 Components: None
 Software: Go, Redis`))
+	ctx.StatusCode = 200
 }
 
 // robots handles requests to robots.txt
@@ -342,6 +347,7 @@ func robots(ctx *context.Context) {
 	ctx.W.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	ctx.W.Write([]byte(`User-agent: *
 Disallow: /`))
+	ctx.StatusCode = 200
 }
 
 func corsHandler(ctx *context.Context) {
@@ -397,7 +403,7 @@ func customHandler(routeName, version string, route *route, mainLog, errorLog ch
 			handler(ctx)
 		}
 
-		ctx.LogMessage(w.Header().Get("status-code"), -1)
+		ctx.LogRequest(ctx.StatusCode, -1)
 	}
 }
 

@@ -7,6 +7,7 @@
 package logger
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -25,17 +26,18 @@ type (
 	//LogMsg defines the log message fields
 	LogMsg struct {
 		RemoteAddr string
+		Name       string
 		StatusCode int
 		Method     string
 		RequestURI string
-		Name       string
-		Message    string
-		RawError   error
 		Headers    http.Header
 		Payload    string
+		Duration   string
+		Message    string
+		RawError   error
 		Location   string
 		Start      time.Time
-		End        time.Time
+		End        time.Time `json:"-"`
 	}
 )
 
@@ -64,6 +66,26 @@ func TGLog(msg chan *LogMsg) {
 					m.End.Sub(m.Start),
 					rawError,
 				)
+			}
+		}
+	}
+}
+
+// JSONLog provides logging to JSON format
+func JSONLog(msg chan *LogMsg) {
+	for {
+		select {
+		case m := <-msg:
+			{
+				m.Duration = m.End.Sub(m.Start).String()
+				m.Headers = getSanitizedHeaders(m.Headers)
+
+				message, err := json.Marshal(m)
+				if err != nil {
+					log.Print(err)
+				} else {
+					log.Print(string(message))
+				}
 			}
 		}
 	}

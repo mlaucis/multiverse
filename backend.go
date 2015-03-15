@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
-	"net"
 	"net/http"
 	_ "net/http/pprof"
 	"runtime"
@@ -33,10 +32,13 @@ const (
 
 var (
 	conf       *config.Config
+	startTime  time.Time
 	forceNoSec = flag.Bool("force-no-sec", false, "Force no sec enables launching the backend in production without security checks")
 )
 
 func init() {
+	startTime = time.Now()
+
 	// Use all available CPU's
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
@@ -73,8 +75,14 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	go logger.TGLog(mainLogChan)
-	go logger.TGLog(errorLogChan)
+
+	if conf.JSONLogs {
+		go logger.JSONLog(mainLogChan)
+		go logger.JSONLog(errorLogChan)
+	} else {
+		go logger.TGLog(mainLogChan)
+		go logger.TGLog(errorLogChan)
+	}
 
 	if conf.UseArtwork {
 		log.Printf(`
@@ -94,20 +102,8 @@ func main() {
   	`)
 	}
 
-	// Get IP Address
-	addrs, err := net.InterfaceAddrs()
-
 	if err != nil {
 		fmt.Println(err)
-	}
-
-	var localIP string
-	for _, address := range addrs {
-		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
-			if ipnet.IP.To4() != nil {
-				localIP = ipnet.IP.String()
-			}
-		}
 	}
 
 	server := &http.Server{
@@ -118,6 +114,6 @@ func main() {
 		MaxHeaderBytes: 1 << 20,
 	}
 
-	log.Printf("Starting the server at %s%s", localIP, conf.ListenHostPort)
+	log.Printf("Starting the server at \"%s\" in %s", conf.ListenHostPort, time.Now().Sub(startTime))
 	log.Fatal(server.ListenAndServe())
 }
