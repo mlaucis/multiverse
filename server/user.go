@@ -27,12 +27,12 @@ func getApplicationUser(ctx *context.Context) {
 // Request: PUT account/:AccountID/application/:ApplicationID/user/:UserID
 func updateApplicationUser(ctx *context.Context) {
 	var (
-		user = &entity.User{}
-		err  error
+		err error
 	)
 
+	user := *ctx.ApplicationUser
 	decoder := json.NewDecoder(ctx.Body)
-	if err = decoder.Decode(user); err != nil {
+	if err = decoder.Decode(&user); err != nil {
 		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
 		return
 	}
@@ -41,43 +41,20 @@ func updateApplicationUser(ctx *context.Context) {
 	user.AccountID = ctx.AccountID
 	user.ApplicationID = ctx.ApplicationID
 
-	if err = validator.UpdateUser(user); err != nil {
+	if err = validator.UpdateUser(ctx.ApplicationUser, &user); err != nil {
 		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
-	if ctx.ApplicationUser.Email != user.Email {
-		if isDuplicate, err := validator.DuplicateApplicationUserEmail(user.AccountID, user.ApplicationID, user.Email); isDuplicate || err != nil {
-			if isDuplicate {
-				errorHappened(ctx, "email address already in use", http.StatusBadRequest, fmt.Errorf("duplicate email address on update"))
-			} else if err != nil {
-				errorHappened(ctx, "unexpected error", http.StatusBadRequest, err)
-			}
-
-			return
-		}
-	}
-
-	if ctx.ApplicationUser.Username != user.Username {
-		if isDuplicate, err := validator.DuplicateApplicationUserUsername(user.AccountID, user.ApplicationID, user.Username); isDuplicate || err != nil {
-			if isDuplicate {
-				errorHappened(ctx, "username already in use", http.StatusBadRequest, fmt.Errorf("duplicate username on update"))
-			} else if err != nil {
-				errorHappened(ctx, "unexpected error", http.StatusBadRequest, err)
-			}
-
-			return
-		}
-	}
-
-	if user, err = core.UpdateUser(user, true); err != nil {
+	updatedUser, err := core.UpdateUser(*ctx.ApplicationUser, user, true)
+	if err != nil {
 		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
 		return
 	}
 
-	user.Password = ""
+	updatedUser.Password = ""
 
-	writeResponse(ctx, user, http.StatusCreated, 0)
+	writeResponse(ctx, updatedUser, http.StatusCreated, 0)
 }
 
 // deleteApplicationUser handles requests to delete a single user
@@ -205,7 +182,7 @@ func loginApplicationUser(ctx *context.Context) {
 	}
 
 	user.LastLogin = time.Now()
-	_, err = core.UpdateUser(user, false)
+	_, err = core.UpdateUser(*user, *user, false)
 
 	writeResponse(ctx, struct {
 		Token string `json:"token"`

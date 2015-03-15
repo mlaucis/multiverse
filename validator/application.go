@@ -28,6 +28,8 @@ var (
 	errorApplicationUserURLInvalid = fmt.Errorf("application url is not a valid url")
 
 	errorApplicationIDIsAlreadySet = fmt.Errorf("application id is already set")
+
+	errorApplicationAuthTokenUpdateNotAllowed = fmt.Errorf("not allowed to update the application token")
 )
 
 // CreateApplication validates an application on create
@@ -58,59 +60,51 @@ func CreateApplication(application *entity.Application) error {
 		errs = append(errs, &errorAccountIDZero)
 	}
 
-	if application.URL != "" && !url.MatchString(application.URL) {
+	if application.URL != "" && !IsValidURL(application.URL, true) {
 		errs = append(errs, &errorApplicationUserURLInvalid)
 	}
 
 	if len(application.Image) > 0 {
-		for _, image := range application.Image {
-			if !url.MatchString(image.URL) {
-				errs = append(errs, &errorInvalidImageURL)
-			}
+		if !checkImages(application.Image) {
+			errs = append(errs, &errorInvalidImageURL)
 		}
-	}
-
-	if !AccountExists(application.AccountID) {
-		errs = append(errs, &errorAccountDoesNotExists)
 	}
 
 	return packErrors(errs)
 }
 
 // UpdateApplication validates an application on update
-func UpdateApplication(application *entity.Application) error {
+func UpdateApplication(existingApplication, updatedApplication *entity.Application) error {
 	errs := []*error{}
 
-	if !StringLengthBetween(application.Name, applicationNameMin, applicationNameMax) {
+	if !StringLengthBetween(updatedApplication.Name, applicationNameMin, applicationNameMax) {
 		errs = append(errs, &errorApplicationNameSize)
 	}
 
-	if !StringLengthBetween(application.Description, applicationDescriptionMin, applicationDescriptionMax) {
+	if !StringLengthBetween(updatedApplication.Description, applicationDescriptionMin, applicationDescriptionMax) {
 		errs = append(errs, &errorApplicationDescriptionSize)
 	}
 
-	if !alphaNumExtraCharFirst.MatchString(application.Name) {
+	if !alphaNumExtraCharFirst.MatchString(updatedApplication.Name) {
 		errs = append(errs, &errorApplicationNameType)
 	}
 
-	if !alphaNumExtraCharFirst.MatchString(application.Description) {
+	if !alphaNumExtraCharFirst.MatchString(updatedApplication.Description) {
 		errs = append(errs, &errorApplicationDescriptionType)
 	}
 
-	if application.URL != "" && !url.MatchString(application.URL) {
+	if updatedApplication.URL != "" && !IsValidURL(updatedApplication.URL, true) {
 		errs = append(errs, &errorApplicationUserURLInvalid)
 	}
 
-	if len(application.Image) > 0 {
-		for _, image := range application.Image {
-			if !url.MatchString(image.URL) {
-				errs = append(errs, &errorInvalidImageURL)
-			}
+	if len(updatedApplication.Image) > 0 {
+		if !checkImages(updatedApplication.Image) {
+			errs = append(errs, &errorInvalidImageURL)
 		}
 	}
 
-	if !AccountExists(application.AccountID) {
-		errs = append(errs, &errorAccountDoesNotExists)
+	if existingApplication.AuthToken != updatedApplication.AuthToken {
+		errs = append(errs, &errorApplicationAuthTokenUpdateNotAllowed)
 	}
 
 	return packErrors(errs)

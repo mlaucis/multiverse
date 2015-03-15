@@ -69,6 +69,7 @@ var routes = map[string]map[string]*route{
 			},
 			contextFilters: []context.ContextFilter{
 				contextHasAccountID,
+				contextHasAccount,
 			},
 		},
 		"deleteAccount": &route{
@@ -237,6 +238,7 @@ var routes = map[string]map[string]*route{
 			contextFilters: []context.ContextFilter{
 				contextHasAccountID,
 				contextHasApplicationID,
+				contextHasApplication,
 			},
 		},
 		"deleteApplication": &route{

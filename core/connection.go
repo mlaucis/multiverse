@@ -16,15 +16,15 @@ import (
 )
 
 // UpdateConnection updates a connection in the database and returns the updated connection user or an error
-func UpdateConnection(connection *entity.Connection, retrieve bool) (con *entity.Connection, err error) {
-	connection.UpdatedAt = time.Now()
+func UpdateConnection(existingConnection, updatedConnection entity.Connection, retrieve bool) (con *entity.Connection, err error) {
+	updatedConnection.UpdatedAt = time.Now()
 
-	val, err := json.Marshal(connection)
+	val, err := json.Marshal(updatedConnection)
 	if err != nil {
 		return nil, err
 	}
 
-	key := storageClient.Connection(connection.AccountID, connection.ApplicationID, connection.UserFromID, connection.UserToID)
+	key := storageClient.Connection(updatedConnection.AccountID, updatedConnection.ApplicationID, updatedConnection.UserFromID, updatedConnection.UserToID)
 	exist, err := storageEngine.Exists(key).Result()
 	if !exist {
 		return nil, fmt.Errorf("connection does not exist")
@@ -37,28 +37,28 @@ func UpdateConnection(connection *entity.Connection, retrieve bool) (con *entity
 		return nil, err
 	}
 
-	if !connection.Enabled {
-		listKey := storageClient.Connections(connection.AccountID, connection.ApplicationID, connection.UserFromID)
+	if !updatedConnection.Enabled {
+		listKey := storageClient.Connections(updatedConnection.AccountID, updatedConnection.ApplicationID, updatedConnection.UserFromID)
 		if err = storageEngine.LRem(listKey, 0, key).Err(); err != nil {
 			return nil, err
 		}
-		userListKey := storageClient.ConnectionUsers(connection.AccountID, connection.ApplicationID, connection.UserFromID)
-		userKey := storageClient.User(connection.AccountID, connection.ApplicationID, connection.UserToID)
+		userListKey := storageClient.ConnectionUsers(updatedConnection.AccountID, updatedConnection.ApplicationID, updatedConnection.UserFromID)
+		userKey := storageClient.User(updatedConnection.AccountID, updatedConnection.ApplicationID, updatedConnection.UserToID)
 		if err = storageEngine.LRem(userListKey, 0, userKey).Err(); err != nil {
 			return nil, err
 		}
-		followerListKey := storageClient.FollowedByUsers(connection.AccountID, connection.ApplicationID, connection.UserToID)
-		followerKey := storageClient.User(connection.AccountID, connection.ApplicationID, connection.UserFromID)
+		followerListKey := storageClient.FollowedByUsers(updatedConnection.AccountID, updatedConnection.ApplicationID, updatedConnection.UserToID)
+		followerKey := storageClient.User(updatedConnection.AccountID, updatedConnection.ApplicationID, updatedConnection.UserFromID)
 		if err = storageEngine.LRem(followerListKey, 0, followerKey).Err(); err != nil {
 			return nil, err
 		}
 	}
 
 	if !retrieve {
-		return connection, nil
+		return &updatedConnection, nil
 	}
 
-	return connection, nil
+	return ReadConnection(updatedConnection.AccountID, updatedConnection.ApplicationID, updatedConnection.UserFromID, updatedConnection.UserToID)
 }
 
 // DeleteConnection deletes the connection matching the IDs or an error
@@ -257,4 +257,21 @@ func DeleteConnectionEventsFromLists(accountID, applicationID, userFromID, userT
 	}
 
 	return nil
+}
+
+// ReadConneciton returns the connection, if any, between two users
+func ReadConnection(accountID, applicationID, userFromID, userToID int64) (connection *entity.Connection, err error) {
+	key := storageClient.Connection(accountID, applicationID, userFromID, userToID)
+
+	result, err := storageEngine.Get(key).Result()
+	if err != nil {
+		return
+	}
+	if result == "" {
+		return nil, nil
+	}
+
+	connection = &entity.Connection{}
+	err = json.Unmarshal([]byte(result), connection)
+	return
 }

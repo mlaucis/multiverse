@@ -23,30 +23,29 @@ func getAccount(ctx *context.Context) {
 // updateAccount handles requests to update a single account
 // Request: PUT /account/:AccountID
 func updateAccount(ctx *context.Context) {
-	var (
-		account = &entity.Account{}
-		err     error
-	)
+	var err error
 
+	account := *ctx.Account
 	decoder := json.NewDecoder(ctx.R.Body)
-	if err = decoder.Decode(account); err != nil {
+	if err = decoder.Decode(&account); err != nil {
 		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
 	account.ID = ctx.AccountID
 
-	if err = validator.UpdateAccount(account); err != nil {
+	if err = validator.UpdateAccount(ctx.Account, &account); err != nil {
 		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
-	if account, err = core.UpdateAccount(account, true); err != nil {
+	updatedAccount, err := core.UpdateAccount(*ctx.Account, account, true)
+	if err != nil {
 		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
 		return
 	}
 
-	writeResponse(ctx, account, http.StatusCreated, 10)
+	writeResponse(ctx, updatedAccount, http.StatusCreated, 10)
 }
 
 // deleteAccount handles requests to delete a single account

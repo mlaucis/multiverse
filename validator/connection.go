@@ -73,22 +73,18 @@ func ConfirmConnection(connection *entity.Connection) error {
 }
 
 // UpdateConnection validates a connection on update
-func UpdateConnection(connection *entity.Connection) error {
+func UpdateConnection(existingConnection, updatedConnection *entity.Connection) error {
 	errs := []*error{}
 
-	if connection.UserFromID == 0 {
+	if updatedConnection.UserFromID == 0 {
 		errs = append(errs, &errorUserFromIDZero)
 	}
 
-	if connection.UserToID == 0 {
+	if updatedConnection.UserToID == 0 {
 		errs = append(errs, &errorUserToIDZero)
 	}
 
-	if !UserExists(connection.AccountID, connection.ApplicationID, connection.UserFromID) {
-		errs = append(errs, &errorUserDoesNotExists)
-	}
-
-	if !UserExists(connection.AccountID, connection.ApplicationID, connection.UserToID) {
+	if !UserExists(updatedConnection.AccountID, updatedConnection.ApplicationID, updatedConnection.UserToID) {
 		errs = append(errs, &errorUserDoesNotExists)
 	}
 

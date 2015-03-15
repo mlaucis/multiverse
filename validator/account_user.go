@@ -79,24 +79,18 @@ func CreateAccountUser(accountUser *entity.AccountUser) error {
 		errs = append(errs, &errorAccountIDZero)
 	}
 
-	if accountUser.Email == "" || !email.MatchString(accountUser.Email) {
+	if accountUser.Email == "" || !IsValidEmail(accountUser.Email) {
 		errs = append(errs, &errorAccountUserEmailInvalid)
 	}
 
-	if accountUser.URL != "" && !url.MatchString(accountUser.URL) {
+	if accountUser.URL != "" && !IsValidURL(accountUser.URL, false) {
 		errs = append(errs, &errorAccountUserURLInvalid)
 	}
 
 	if len(accountUser.Image) > 0 {
-		for _, image := range accountUser.Image {
-			if !url.MatchString(image.URL) {
-				errs = append(errs, &errorInvalidImageURL)
-			}
+		if !checkImages(accountUser.Image) {
+			errs = append(errs, &errorInvalidImageURL)
 		}
-	}
-
-	if !AccountExists(accountUser.AccountID) {
-		errs = append(errs, &errorAccountDoesNotExists)
 	}
 
 	if isDuplicate, err := DuplicateAccountUserEmail(accountUser.Email); isDuplicate || err != nil {
@@ -119,57 +113,75 @@ func CreateAccountUser(accountUser *entity.AccountUser) error {
 }
 
 // UpdateAccountUser validates an account user on update
-func UpdateAccountUser(accountUser *entity.AccountUser) error {
+func UpdateAccountUser(existingAccountUser, updatedAccountUser *entity.AccountUser) error {
 	errs := []*error{}
 
-	if !StringLengthBetween(accountUser.FirstName, accountUserNameMin, accountUserNameMax) {
+	if !StringLengthBetween(updatedAccountUser.FirstName, accountUserNameMin, accountUserNameMax) {
 		errs = append(errs, &errorAccountUserFirstNameSize)
 	}
 
-	if !StringLengthBetween(accountUser.LastName, accountUserNameMin, accountUserNameMax) {
+	if !StringLengthBetween(updatedAccountUser.LastName, accountUserNameMin, accountUserNameMax) {
 		errs = append(errs, &errorAccountUserLastNameSize)
 	}
 
-	if !StringLengthBetween(accountUser.Username, accountUserNameMin, accountUserNameMax) {
+	if !StringLengthBetween(updatedAccountUser.Username, accountUserNameMin, accountUserNameMax) {
 		errs = append(errs, &errorAccountUserUsernameSize)
 	}
 
-	if !StringLengthBetween(accountUser.Password, accountUserPasswordMin, accountUserPasswordMax) {
+	if !StringLengthBetween(updatedAccountUser.Password, accountUserPasswordMin, accountUserPasswordMax) {
 		errs = append(errs, &errorAccountUserPasswordSize)
 	}
 
-	if !alphaNumExtraCharFirst.MatchString(accountUser.FirstName) {
+	if !alphaNumExtraCharFirst.MatchString(updatedAccountUser.FirstName) {
 		errs = append(errs, &errorAccountUserFirstNameType)
 	}
 
-	if !alphaNumExtraCharFirst.MatchString(accountUser.LastName) {
+	if !alphaNumExtraCharFirst.MatchString(updatedAccountUser.LastName) {
 		errs = append(errs, &errorAccountUserLastNameType)
 	}
 
-	if !alphaNumExtraCharFirst.MatchString(accountUser.Username) {
+	if !alphaNumExtraCharFirst.MatchString(updatedAccountUser.Username) {
 		errs = append(errs, &errorAccountUserUsernameType)
 	}
 
 	// TODO add validation for password rules such as use all type of chars
 
-	if accountUser.Email == "" || !email.MatchString(accountUser.Email) {
+	if updatedAccountUser.Email == "" || !IsValidEmail(updatedAccountUser.Email) {
 		errs = append(errs, &errorAccountUserEmailInvalid)
 	}
 
-	if accountUser.URL != "" && !url.MatchString(accountUser.URL) {
+	if updatedAccountUser.URL != "" && !IsValidURL(updatedAccountUser.URL, true) {
 		errs = append(errs, &errorAccountUserURLInvalid)
 	}
 
-	if len(accountUser.Image) > 0 {
-		for _, image := range accountUser.Image {
-			if !url.MatchString(image.URL) {
-				errs = append(errs, &errorInvalidImageURL)
+	if len(updatedAccountUser.Image) > 0 {
+		if !checkImages(updatedAccountUser.Image) {
+			errs = append(errs, &errorInvalidImageURL)
+		}
+	}
+
+	if !AccountExists(updatedAccountUser.AccountID) {
+		errs = append(errs, &errorAccountDoesNotExists)
+	}
+
+	if existingAccountUser.Email != updatedAccountUser.Email {
+		if isDuplicate, err := DuplicateAccountUserEmail(updatedAccountUser.Email); isDuplicate || err != nil {
+			if isDuplicate {
+				errs = append(errs, &errorEmailAddressInUse)
+			} else if err != nil {
+				errs = append(errs, &err)
 			}
 		}
 	}
 
-	if !AccountExists(accountUser.AccountID) {
-		errs = append(errs, &errorAccountDoesNotExists)
+	if existingAccountUser.Username != updatedAccountUser.Username {
+		if isDuplicate, err := DuplicateAccountUserUsername(updatedAccountUser.Username); isDuplicate || err != nil {
+			if isDuplicate {
+				errs = append(errs, &errorUsernameInUse)
+			} else if err != nil {
+				errs = append(errs, &err)
+			}
+		}
 	}
 
 	return packErrors(errs)

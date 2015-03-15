@@ -6,7 +6,6 @@ package validator
 
 import (
 	"fmt"
-
 	"net/http"
 	"strconv"
 	"strings"
@@ -72,19 +71,17 @@ func CreateUser(user *entity.User) error {
 		errs = append(errs, &errorApplicationIDZero)
 	}
 
-	if user.Email == "" || !email.MatchString(user.Email) {
+	if user.Email == "" || !IsValidEmail(user.Email) {
 		errs = append(errs, &errorUserEmailInvalid)
 	}
 
-	if user.URL != "" && !url.MatchString(user.URL) {
+	if user.URL != "" && !IsValidURL(user.URL, true) {
 		errs = append(errs, &errorUserURLInvalid)
 	}
 
 	if len(user.Image) > 0 {
-		for _, image := range user.Image {
-			if !url.MatchString(image.URL) {
-				errs = append(errs, &errorInvalidImageURL)
-			}
+		if !checkImages(user.Image) {
+			errs = append(errs, &errorInvalidImageURL)
 		}
 	}
 
@@ -112,51 +109,65 @@ func CreateUser(user *entity.User) error {
 }
 
 // UpdateUser validates a user on update
-func UpdateUser(user *entity.User) error {
+func UpdateUser(existingApplicationUser, updatedApplicationUser *entity.User) error {
 	errs := []*error{}
 
-	if !StringLengthBetween(user.FirstName, userNameMin, userNameMax) {
+	if !StringLengthBetween(updatedApplicationUser.FirstName, userNameMin, userNameMax) {
 		errs = append(errs, &errorUserFirstNameSize)
 	}
 
-	if !StringLengthBetween(user.LastName, userNameMin, userNameMax) {
+	if !StringLengthBetween(updatedApplicationUser.LastName, userNameMin, userNameMax) {
 		errs = append(errs, &errorUserLastNameSize)
 	}
 
-	if !StringLengthBetween(user.Username, userNameMin, userNameMax) {
+	if !StringLengthBetween(updatedApplicationUser.Username, userNameMin, userNameMax) {
 		errs = append(errs, &errorUserUsernameSize)
 	}
 
-	if !alphaNumExtraCharFirst.MatchString(user.FirstName) {
+	if !alphaNumExtraCharFirst.MatchString(updatedApplicationUser.FirstName) {
 		errs = append(errs, &errorUserFirstNameType)
 	}
 
-	if !alphaNumExtraCharFirst.MatchString(user.LastName) {
+	if !alphaNumExtraCharFirst.MatchString(updatedApplicationUser.LastName) {
 		errs = append(errs, &errorUserLastNameType)
 	}
 
-	if !alphaNumExtraCharFirst.MatchString(user.Username) {
+	if !alphaNumExtraCharFirst.MatchString(updatedApplicationUser.Username) {
 		errs = append(errs, &errorUserUsernameType)
 	}
 
-	if user.Email == "" || !email.MatchString(user.Email) {
+	if updatedApplicationUser.Email == "" || !IsValidEmail(updatedApplicationUser.Email) {
 		errs = append(errs, &errorUserEmailInvalid)
 	}
 
-	if user.URL != "" && !url.MatchString(user.URL) {
+	if updatedApplicationUser.URL != "" && !IsValidURL(updatedApplicationUser.URL, true) {
 		errs = append(errs, &errorUserURLInvalid)
 	}
 
-	if len(user.Image) > 0 {
-		for _, image := range user.Image {
-			if !url.MatchString(image.URL) {
-				errs = append(errs, &errorInvalidImageURL)
+	if len(updatedApplicationUser.Image) > 0 {
+		if !checkImages(updatedApplicationUser.Image) {
+			errs = append(errs, &errorInvalidImageURL)
+		}
+	}
+
+	if existingApplicationUser.Email != updatedApplicationUser.Email {
+		if isDuplicate, err := DuplicateApplicationUserEmail(updatedApplicationUser.AccountID, updatedApplicationUser.ApplicationID, updatedApplicationUser.Email); isDuplicate || err != nil {
+			if isDuplicate {
+				errs = append(errs, &errorEmailAddressInUse)
+			} else if err != nil {
+				errs = append(errs, &err)
 			}
 		}
 	}
 
-	if !ApplicationExists(user.AccountID, user.ApplicationID) {
-		errs = append(errs, &errorApplicationDoesNotExists)
+	if existingApplicationUser.Username != updatedApplicationUser.Username {
+		if isDuplicate, err := DuplicateApplicationUserUsername(updatedApplicationUser.AccountID, updatedApplicationUser.ApplicationID, updatedApplicationUser.Username); isDuplicate || err != nil {
+			if isDuplicate {
+				errs = append(errs, &errorUsernameInUse)
+			} else if err != nil {
+				errs = append(errs, &err)
+			}
+		}
 	}
 
 	return packErrors(errs)
