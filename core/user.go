@@ -32,28 +32,19 @@ func ReadApplicationUser(accountID, applicationID, userID int64) (user *entity.U
 }
 
 // UpdateUser updates a user in the database and returns the updates user or an error
-func UpdateUser(user *entity.User, retrieve bool) (usr *entity.User, err error) {
-	storedUser, err := ReadApplicationUser(user.AccountID, user.ApplicationID, user.ID)
+func UpdateUser(existingUser, updatedUser entity.User, retrieve bool) (usr *entity.User, err error) {
+
+	if updatedUser.Password != existingUser.Password {
+		// Encrypt password - we should do this only if the password changes
+		updatedUser.Password = storageClient.EncryptPassword(updatedUser.Password)
+	}
+
+	val, err := json.Marshal(updatedUser)
 	if err != nil {
 		return nil, err
 	}
 
-	storedUser = user
-
-	// Encrypt password - we should do this only if the password changes
-	storedUser.Password = storageClient.EncryptPassword(user.Password)
-
-	val, err := json.Marshal(storedUser)
-	if err != nil {
-		return nil, err
-	}
-
-	existingUser, err := ReadApplicationUser(user.AccountID, user.ApplicationID, user.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	key := storageClient.User(user.AccountID, user.ApplicationID, user.ID)
+	key := storageClient.User(updatedUser.AccountID, updatedUser.ApplicationID, updatedUser.ID)
 	if err = storageEngine.Set(key, string(val)).Err(); err != nil {
 		return nil, err
 	}
@@ -62,20 +53,20 @@ func UpdateUser(user *entity.User, retrieve bool) (usr *entity.User, err error) 
 	usernameListKey := storageClient.AccountUserByUsername(utils.Base64Encode(existingUser.Username))
 	_, err = storageEngine.Del(emailListKey, usernameListKey).Result()
 
-	if !storedUser.Enabled {
-		listKey := storageClient.Users(user.AccountID, user.ApplicationID)
+	if !updatedUser.Enabled {
+		listKey := storageClient.Users(updatedUser.AccountID, updatedUser.ApplicationID)
 		if err = storageEngine.LRem(listKey, 0, key).Err(); err != nil {
 			return nil, err
 		}
 	} else {
-		emailListKey := storageClient.AccountUserByEmail(utils.Base64Encode(user.Email))
-		err = storageEngine.Set(emailListKey, fmt.Sprintf("%d", user.ID)).Err()
+		emailListKey := storageClient.AccountUserByEmail(utils.Base64Encode(updatedUser.Email))
+		err = storageEngine.Set(emailListKey, fmt.Sprintf("%d", updatedUser.ID)).Err()
 		if err != nil {
 			return nil, err
 		}
 
-		usernameListKey := storageClient.AccountUserByUsername(utils.Base64Encode(user.Username))
-		err = storageEngine.Set(usernameListKey, fmt.Sprintf("%d", user.ID)).Err()
+		usernameListKey := storageClient.AccountUserByUsername(utils.Base64Encode(updatedUser.Username))
+		err = storageEngine.Set(usernameListKey, fmt.Sprintf("%d", updatedUser.ID)).Err()
 
 		if err != nil {
 			return nil, err
@@ -83,10 +74,10 @@ func UpdateUser(user *entity.User, retrieve bool) (usr *entity.User, err error) 
 	}
 
 	if !retrieve {
-		return storedUser, nil
+		return &updatedUser, nil
 	}
 
-	return ReadApplicationUser(user.AccountID, user.ApplicationID, user.ID)
+	return ReadApplicationUser(updatedUser.AccountID, updatedUser.ApplicationID, updatedUser.ID)
 }
 
 // DeleteUser deletes the user matching the IDs or an error

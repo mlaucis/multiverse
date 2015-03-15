@@ -31,20 +31,20 @@ func ReadAccountUser(accountID, accountUserID int64) (accountUser *entity.Accoun
 }
 
 // UpdateAccountUser update an account user in the database and returns the updated account user or an error
-func UpdateAccountUser(accountUser *entity.AccountUser, retrieve bool) (accUser *entity.AccountUser, err error) {
-	accountUser.UpdatedAt = time.Now()
+func UpdateAccountUser(existingAccountUser, updatedAccountUser entity.AccountUser, retrieve bool) (accUser *entity.AccountUser, err error) {
+	updatedAccountUser.UpdatedAt = time.Now()
 
-	val, err := json.Marshal(accountUser)
+	val, err := json.Marshal(updatedAccountUser)
 	if err != nil {
 		return nil, err
 	}
 
-	existingUser, err := ReadAccountUser(accountUser.AccountID, accountUser.ID)
+	existingUser, err := ReadAccountUser(updatedAccountUser.AccountID, updatedAccountUser.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	key := storageClient.AccountUser(accountUser.AccountID, accountUser.ID)
+	key := storageClient.AccountUser(updatedAccountUser.AccountID, updatedAccountUser.ID)
 	if err = storageEngine.Set(key, string(val)).Err(); err != nil {
 		return nil, err
 	}
@@ -53,28 +53,28 @@ func UpdateAccountUser(accountUser *entity.AccountUser, retrieve bool) (accUser 
 	usernameListKey := storageClient.AccountUserByUsername(utils.Base64Encode(existingUser.Username))
 	_, err = storageEngine.Del(emailListKey, usernameListKey).Result()
 
-	if !accountUser.Enabled {
-		listKey := storageClient.AccountUsers(accountUser.AccountID)
+	if !updatedAccountUser.Enabled {
+		listKey := storageClient.AccountUsers(updatedAccountUser.AccountID)
 		if err = storageEngine.LRem(listKey, 0, key).Err(); err != nil {
 			return nil, err
 		}
 	} else {
-		emailListKey := storageClient.AccountUserByEmail(utils.Base64Encode(accountUser.Email))
+		emailListKey := storageClient.AccountUserByEmail(utils.Base64Encode(updatedAccountUser.Email))
 		err = storageEngine.HMSet(
 			emailListKey,
-			"acc", fmt.Sprintf("%d", accountUser.AccountID),
-			"usr", fmt.Sprintf("%d", accountUser.ID),
+			"acc", fmt.Sprintf("%d", updatedAccountUser.AccountID),
+			"usr", fmt.Sprintf("%d", updatedAccountUser.ID),
 		).Err()
 
 		if err != nil {
 			return nil, err
 		}
 
-		usernameListKey := storageClient.AccountUserByUsername(utils.Base64Encode(accountUser.Username))
+		usernameListKey := storageClient.AccountUserByUsername(utils.Base64Encode(updatedAccountUser.Username))
 		err = storageEngine.HMSet(
 			usernameListKey,
-			"acc", fmt.Sprintf("%d", accountUser.AccountID),
-			"usr", fmt.Sprintf("%d", accountUser.ID),
+			"acc", fmt.Sprintf("%d", updatedAccountUser.AccountID),
+			"usr", fmt.Sprintf("%d", updatedAccountUser.ID),
 		).Err()
 
 		if err != nil {
@@ -83,10 +83,10 @@ func UpdateAccountUser(accountUser *entity.AccountUser, retrieve bool) (accUser 
 	}
 
 	if !retrieve {
-		return accountUser, nil
+		return &updatedAccountUser, nil
 	}
 
-	return ReadAccountUser(accountUser.AccountID, accountUser.ID)
+	return ReadAccountUser(updatedAccountUser.AccountID, updatedAccountUser.ID)
 }
 
 // DeleteAccountUser deletes the account user matching the IDs or an error

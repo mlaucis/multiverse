@@ -41,7 +41,6 @@ func getEvent(ctx *context.Context) {
 // Request: PUT account/:AccountID/application/:ApplicationID/event/:EventID
 func updateEvent(ctx *context.Context) {
 	var (
-		event   = &entity.Event{}
 		eventID int64
 		err     error
 	)
@@ -51,8 +50,15 @@ func updateEvent(ctx *context.Context) {
 		return
 	}
 
+	existingEvent, err := core.ReadEvent(ctx.AccountID, ctx.ApplicationID, ctx.ApplicationUserID, eventID)
+	if err != nil {
+		errorHappened(ctx, "unexpected error happened", http.StatusInternalServerError, err)
+		return
+	}
+
+	event := *existingEvent
 	decoder := json.NewDecoder(ctx.Body)
-	if err = decoder.Decode(event); err != nil {
+	if err = decoder.Decode(&event); err != nil {
 		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
 		return
 	}
@@ -62,17 +68,18 @@ func updateEvent(ctx *context.Context) {
 	event.ApplicationID = ctx.ApplicationID
 	event.UserID = ctx.ApplicationUserID
 
-	if err = validator.UpdateEvent(event); err != nil {
+	if err = validator.UpdateEvent(existingEvent, &event); err != nil {
 		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
-	if event, err = core.UpdateEvent(event, true); err != nil {
+	updatedEvent, err := core.UpdateEvent(*existingEvent, event, true)
+	if err != nil {
 		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
 		return
 	}
 
-	writeResponse(ctx, event, http.StatusCreated, 0)
+	writeResponse(ctx, updatedEvent, http.StatusCreated, 0)
 }
 
 // deleteEvent handles requests to delete a single event

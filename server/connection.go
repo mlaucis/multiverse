@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"fmt"
+
 	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/core"
 	"github.com/tapglue/backend/core/entity"
@@ -19,9 +21,8 @@ import (
 // Request: PUT account/:AccountID/application/:ApplicationID/user/:UserFromID/connection/:UserToID
 func updateConnection(ctx *context.Context) {
 	var (
-		connection = &entity.Connection{}
-		userToID   int64
-		err        error
+		userToID int64
+		err      error
 	)
 
 	if userToID, err = strconv.ParseInt(ctx.Vars["userToId"], 10, 64); err != nil {
@@ -29,8 +30,20 @@ func updateConnection(ctx *context.Context) {
 		return
 	}
 
+	existingConnection, err := core.ReadConnection(ctx.AccountID, ctx.ApplicationID, ctx.ApplicationUserID, userToID)
+	if err != nil {
+		errorHappened(ctx, "unexpected error happened", http.StatusInternalServerError, err)
+		return
+	}
+
+	if existingConnection == nil {
+		errorHappened(ctx, "users are not connected", http.StatusBadRequest, fmt.Errorf("users are not connected"))
+		return
+	}
+
+	connection := *existingConnection
 	decoder := json.NewDecoder(ctx.Body)
-	if err = decoder.Decode(connection); err != nil {
+	if err = decoder.Decode(&connection); err != nil {
 		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
 		return
 	}
@@ -40,17 +53,18 @@ func updateConnection(ctx *context.Context) {
 	connection.UserFromID = ctx.ApplicationUserID
 	connection.UserToID = userToID
 
-	if err = validator.UpdateConnection(connection); err != nil {
+	if err = validator.UpdateConnection(existingConnection, &connection); err != nil {
 		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
-	if connection, err = core.UpdateConnection(connection, false); err != nil {
+	updatedConnection, err := core.UpdateConnection(*existingConnection, connection, false)
+	if err != nil {
 		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
 		return
 	}
 
-	writeResponse(ctx, connection, http.StatusCreated, 0)
+	writeResponse(ctx, updatedConnection, http.StatusCreated, 0)
 }
 
 // deleteConnection handles requests to delete a single connection

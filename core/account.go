@@ -29,15 +29,15 @@ func ReadAccount(accountID int64) (account *entity.Account, err error) {
 }
 
 // UpdateAccount updates the account matching the ID or an error
-func UpdateAccount(account *entity.Account, retrieve bool) (acc *entity.Account, err error) {
-	account.UpdatedAt = time.Now()
+func UpdateAccount(existingAccount, updatedAccount entity.Account, retrieve bool) (acc *entity.Account, err error) {
+	updatedAccount.UpdatedAt = time.Now()
 
-	val, err := json.Marshal(account)
+	val, err := json.Marshal(updatedAccount)
 	if err != nil {
 		return nil, err
 	}
 
-	key := storageClient.Account(account.ID)
+	key := storageClient.Account(updatedAccount.ID)
 	exist, err := storageEngine.Exists(key).Result()
 	if !exist {
 		return nil, fmt.Errorf("account does not exist")
@@ -51,10 +51,10 @@ func UpdateAccount(account *entity.Account, retrieve bool) (acc *entity.Account,
 	}
 
 	if !retrieve {
-		return account, nil
+		return &updatedAccount, nil
 	}
 
-	return ReadAccount(account.ID)
+	return ReadAccount(updatedAccount.ID)
 }
 
 // DeleteAccount deletes the account matching the ID or an error

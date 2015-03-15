@@ -25,13 +25,11 @@ func getAccountUser(ctx *context.Context) {
 // updateAccountUser handles requests update an account user
 // Request: PUT /account/:AccountID/user/:UserID
 func updateAccountUser(ctx *context.Context) {
-	var (
-		accountUser = &entity.AccountUser{}
-		err         error
-	)
+	var err error
 
+	accountUser := *ctx.AccountUser
 	decoder := json.NewDecoder(ctx.Body)
-	if err = decoder.Decode(accountUser); err != nil {
+	if err = decoder.Decode(&accountUser); err != nil {
 		errorHappened(ctx, fmt.Sprintf("%q", err), http.StatusBadRequest, err)
 		return
 	}
@@ -39,42 +37,19 @@ func updateAccountUser(ctx *context.Context) {
 	accountUser.ID = ctx.AccountUserID
 	accountUser.AccountID = ctx.AccountID
 
-	if err = validator.UpdateAccountUser(accountUser); err != nil {
+	if err = validator.UpdateAccountUser(ctx.AccountUser, &accountUser); err != nil {
 		errorHappened(ctx, fmt.Sprintf("%q", err), http.StatusBadRequest, err)
 		return
 	}
 
-	if ctx.AccountUser.Email != accountUser.Email {
-		if isDuplicate, err := validator.DuplicateAccountUserEmail(accountUser.Email); isDuplicate || err != nil {
-			if isDuplicate {
-				errorHappened(ctx, "email address already in use", http.StatusBadRequest, fmt.Errorf("duplicate email address on update"))
-			} else if err != nil {
-				errorHappened(ctx, "unexpected error", http.StatusBadRequest, err)
-			}
-
-			return
-		}
-	}
-
-	if ctx.AccountUser.Username != accountUser.Username {
-		if isDuplicate, err := validator.DuplicateAccountUserUsername(accountUser.Username); isDuplicate || err != nil {
-			if isDuplicate {
-				errorHappened(ctx, "username already in use", http.StatusBadRequest, fmt.Errorf("duplicate username on update"))
-			} else if err != nil {
-				errorHappened(ctx, "unexpected error", http.StatusBadRequest, err)
-			}
-
-			return
-		}
-	}
-
-	if accountUser, err = core.UpdateAccountUser(accountUser, true); err != nil {
+	updatedAccountUser, err := core.UpdateAccountUser(*ctx.AccountUser, accountUser, true)
+	if err != nil {
 		errorHappened(ctx, fmt.Sprintf("%q", err), http.StatusInternalServerError, err)
 		return
 	}
 
-	accountUser.Password = ""
-	writeResponse(ctx, accountUser, http.StatusCreated, 0)
+	updatedAccountUser.Password = ""
+	writeResponse(ctx, updatedAccountUser, http.StatusCreated, 0)
 }
 
 // deleteAccountUser handles requests to delete a single account user
@@ -199,7 +174,7 @@ func loginAccountUser(ctx *context.Context) {
 	}
 
 	user.LastLogin = time.Now()
-	_, err = core.UpdateAccountUser(user, false)
+	_, err = core.UpdateAccountUser(*user, *user, false)
 
 	writeResponse(ctx, struct {
 		AccountToken string `json:"account_token"`

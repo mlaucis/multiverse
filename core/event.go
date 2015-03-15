@@ -34,40 +34,33 @@ func ReadEvent(accountID, applicationID, userID, eventID int64) (event *entity.E
 }
 
 // UpdateEvent updates an event in the database and returns the updated event or an error
-func UpdateEvent(event *entity.Event, retrieve bool) (evn *entity.Event, err error) {
-	event.UpdatedAt = time.Now()
+func UpdateEvent(existingEvent, updatedEvent entity.Event, retrieve bool) (evn *entity.Event, err error) {
+	updatedEvent.UpdatedAt = time.Now()
 
-	val, err := json.Marshal(event)
+	val, err := json.Marshal(updatedEvent)
 	if err != nil {
 		return nil, err
 	}
 
-	key := storageClient.Event(event.AccountID, event.ApplicationID, event.UserID, event.ID)
-	exist, err := storageEngine.Exists(key).Result()
-	if !exist {
-		return nil, fmt.Errorf("event does not exist")
-	}
-	if err != nil {
-		return nil, err
-	}
+	key := storageClient.Event(updatedEvent.AccountID, updatedEvent.ApplicationID, updatedEvent.UserID, updatedEvent.ID)
 
 	if err = storageEngine.Set(key, string(val)).Err(); err != nil {
 		return nil, err
 	}
 
 	coordinates := georedis.GeoKey{
-		Lat:   event.Latitude,
-		Lon:   event.Longitude,
+		Lat:   updatedEvent.Latitude,
+		Lon:   updatedEvent.Longitude,
 		Label: key,
 	}
 
-	geoEventKey := storageClient.EventGeoKey(event.AccountID, event.ApplicationID)
+	geoEventKey := storageClient.EventGeoKey(updatedEvent.AccountID, updatedEvent.ApplicationID)
 
 	georedis.RemoveCoordinatesByKeys(storageEngine, geoEventKey, key)
 	georedis.AddCoordinates(storageEngine, geoEventKey, 52, coordinates)
 
-	if event.Object != nil {
-		objectEventKey := storageClient.EventObjectKey(event.AccountID, event.ApplicationID, event.Object.ID)
+	if updatedEvent.Object != nil {
+		objectEventKey := storageClient.EventObjectKey(updatedEvent.AccountID, updatedEvent.ApplicationID, updatedEvent.Object.ID)
 		if err = storageEngine.SRem(objectEventKey, key).Err(); err != nil {
 			return nil, err
 		}
@@ -76,7 +69,7 @@ func UpdateEvent(event *entity.Event, retrieve bool) (evn *entity.Event, err err
 		}
 	}
 
-	locationEventKey := storageClient.EventLocationKey(event.AccountID, event.ApplicationID, event.Location)
+	locationEventKey := storageClient.EventLocationKey(updatedEvent.AccountID, updatedEvent.ApplicationID, updatedEvent.Location)
 	if err = storageEngine.SRem(locationEventKey, key).Err(); err != nil {
 		return nil, err
 	}
@@ -84,22 +77,22 @@ func UpdateEvent(event *entity.Event, retrieve bool) (evn *entity.Event, err err
 		return nil, err
 	}
 
-	if !event.Enabled {
-		listKey := storageClient.Events(event.AccountID, event.ApplicationID, event.UserID)
+	if !updatedEvent.Enabled {
+		listKey := storageClient.Events(updatedEvent.AccountID, updatedEvent.ApplicationID, updatedEvent.UserID)
 		if err = storageEngine.ZRem(listKey, key).Err(); err != nil {
 			return nil, err
 		}
-		if err = DeleteEventFromConnectionsLists(event.AccountID, event.ApplicationID, event.UserID, key); err != nil {
+		if err = DeleteEventFromConnectionsLists(updatedEvent.AccountID, updatedEvent.ApplicationID, updatedEvent.UserID, key); err != nil {
 			return nil, err
 		}
 
 	}
 
 	if !retrieve {
-		return event, nil
+		return &updatedEvent, nil
 	}
 
-	return ReadEvent(event.AccountID, event.ApplicationID, event.UserID, event.ID)
+	return ReadEvent(updatedEvent.AccountID, updatedEvent.ApplicationID, updatedEvent.UserID, updatedEvent.ID)
 }
 
 // DeleteEvent deletes the event matching the IDs or an error

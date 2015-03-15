@@ -29,15 +29,15 @@ func ReadApplication(accountID, applicationID int64) (application *entity.Applic
 }
 
 // UpdateApplication updates an application in the database and returns the created applicaton user or an error
-func UpdateApplication(application *entity.Application, retrieve bool) (app *entity.Application, err error) {
-	application.UpdatedAt = time.Now()
+func UpdateApplication(existingApplication, updatedApplication entity.Application, retrieve bool) (app *entity.Application, err error) {
+	updatedApplication.UpdatedAt = time.Now()
 
-	val, err := json.Marshal(application)
+	val, err := json.Marshal(updatedApplication)
 	if err != nil {
 		return nil, err
 	}
 
-	key := storageClient.Application(application.AccountID, application.ID)
+	key := storageClient.Application(updatedApplication.AccountID, updatedApplication.ID)
 	exist, err := storageEngine.Exists(key).Result()
 	if !exist {
 		return nil, fmt.Errorf("application does not exist")
@@ -50,18 +50,18 @@ func UpdateApplication(application *entity.Application, retrieve bool) (app *ent
 		return nil, err
 	}
 
-	if !application.Enabled {
-		listKey := storageClient.Applications(application.AccountID)
+	if !updatedApplication.Enabled {
+		listKey := storageClient.Applications(updatedApplication.AccountID)
 		if err = storageEngine.LRem(listKey, 0, key).Err(); err != nil {
 			return nil, err
 		}
 	}
 
 	if !retrieve {
-		return application, nil
+		return &updatedApplication, nil
 	}
 
-	return ReadApplication(application.AccountID, application.ID)
+	return ReadApplication(updatedApplication.AccountID, updatedApplication.ID)
 }
 
 // DeleteApplication deletes the application matching the IDs or an error

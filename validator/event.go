@@ -57,20 +57,18 @@ func CreateEvent(event *entity.Event) error {
 }
 
 // UpdateEvent validates an event on update
-func UpdateEvent(event *entity.Event) error {
+func UpdateEvent(existingEvent, updatedEvent *entity.Event) error {
 	errs := []*error{}
 
-	if !StringLengthBetween(event.Verb, verbMin, verbMax) {
+	if !StringLengthBetween(updatedEvent.Verb, verbMin, verbMax) {
 		errs = append(errs, &errorVerbSize)
 	}
 
-	if !alphaNumExtraCharFirst.MatchString(event.Verb) {
+	if !alphaNumExtraCharFirst.MatchString(updatedEvent.Verb) {
 		errs = append(errs, &errorVerbType)
 	}
 
-	if !UserExists(event.AccountID, event.ApplicationID, event.UserID) {
-		errs = append(errs, &errorUserDoesNotExists)
-	}
+	// TODO define more rules for updating an event
 
 	return packErrors(errs)
 }

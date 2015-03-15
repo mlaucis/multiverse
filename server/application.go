@@ -23,13 +23,11 @@ func getApplication(ctx *context.Context) {
 // updateApplication handles requests updates an application
 // Request: PUT /account/:AccountID/application/:ApplicatonID
 func updateApplication(ctx *context.Context) {
-	var (
-		application = &entity.Application{}
-		err         error
-	)
+	var err error
 
+	application := *ctx.Application
 	decoder := json.NewDecoder(ctx.Body)
-	if err = decoder.Decode(application); err != nil {
+	if err = decoder.Decode(&application); err != nil {
 		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
 		return
 	}
@@ -37,17 +35,18 @@ func updateApplication(ctx *context.Context) {
 	application.ID = ctx.ApplicationID
 	application.AccountID = ctx.AccountID
 
-	if err = validator.UpdateApplication(application); err != nil {
+	if err = validator.UpdateApplication(ctx.Application, &application); err != nil {
 		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
-	if application, err = core.UpdateApplication(application, true); err != nil {
+	updatedApplication, err := core.UpdateApplication(*ctx.Application, application, true)
+	if err != nil {
 		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
 		return
 	}
 
-	writeResponse(ctx, application, http.StatusCreated, 0)
+	writeResponse(ctx, updatedApplication, http.StatusCreated, 0)
 }
 
 // deleteApplication handles requests to delete a single application

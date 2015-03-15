@@ -7,11 +7,14 @@ package validator
 
 import (
 	"fmt"
+	"net/mail"
+	"net/url"
 	"regexp"
 
 	"github.com/tapglue/backend/core"
 	"github.com/tapglue/backend/storage"
 
+	"github.com/tapglue/backend/core/entity"
 	"gopkg.in/redis.v2"
 )
 
@@ -29,14 +32,13 @@ var (
 	numInt   = regexp.MustCompile("^(?:[-+]?(?:0|[1-9][0-9]*))$")
 	numFloat = regexp.MustCompile("^(?:[-+]?(?:[0-9]+))?(?:\\.[0-9]*)?(?:[eE][\\+\\-]?(?:[0-9]+))?$")
 
-	email = regexp.MustCompile("^(((([a-zA-Z]|\\d|[!#\\$%&'\\*\\+\\-\\/=\\?\\^_`{\\|}~]|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])+(\\.([a-zA-Z]|\\d|[!#\\$%&'\\*\\+\\-\\/=\\?\\^_`{\\|}~]|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])+)*)|((\\x22)((((\\x20|\\x09)*(\\x0d\\x0a))?(\\x20|\\x09)+)?(([\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x7f]|\\x21|[\\x23-\\x5b]|[\\x5d-\\x7e]|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])|(\\([\\x01-\\x09\\x0b\\x0c\\x0d-\\x7f]|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}]))))*(((\\x20|\\x09)*(\\x0d\\x0a))?(\\x20|\\x09)+)?(\\x22)))@((([a-zA-Z]|\\d|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])|(([a-zA-Z]|\\d|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])([a-zA-Z]|\\d|-|\\.|_|~|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])*([a-zA-Z]|\\d|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])))\\.)+(([a-zA-Z]|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])|(([a-zA-Z]|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])([a-zA-Z]|\\d|-|\\.|_|~|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])*([a-zA-Z]|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])))\\.?$")
-	url   = regexp.MustCompile(`^((ftp|http|https):\/\/)?(\S+(:\S*)?@)?((([1-9]\d?|1\d\d|2[01]\d|22[0-3])(\.(1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.([0-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|((www\.)?)?(([a-z\x{00a1}-\x{ffff}0-9]+-?-?_?)*[a-z\x{00a1}-\x{ffff}0-9]+)(?:\.([a-z\x{00a1}-\x{ffff}]{2,}))?)|localhost)(:(\d{1,5}))?((\/|\?|#)[^\s]*)?$`)
-
 	errorInvalidImageURL          = fmt.Errorf("image url is not valid")
 	errorAccountDoesNotExists     = fmt.Errorf("account does not exists")
 	errorApplicationDoesNotExists = fmt.Errorf("application does not exists")
 	errorUserDoesNotExists        = fmt.Errorf("user does not exists")
 	errorUserAlreadyExists        = fmt.Errorf("user already exists")
+	errorEmailAddressInUse        = fmt.Errorf("email address already in use")
+	errorUsernameInUse            = fmt.Errorf("username already in use")
 )
 
 // packErrors prints errors happened during validation
@@ -53,9 +55,34 @@ func packErrors(errs []*error) error {
 	return fmt.Errorf(er[:len(er)-1])
 }
 
+// IsValidURL checks is an url is valid
+func IsValidURL(checkURL string, absolute bool) bool {
+	url, err := url.Parse(checkURL)
+	if err != nil {
+		return false
+	}
+
+	if absolute {
+		return url.IsAbs()
+	}
+
+	return true
+}
+
+func checkImages(images []*entity.Image) bool {
+	for idx := range images {
+		if u, err := url.Parse(images[idx].URL); err != nil || !u.IsAbs() {
+			return false
+		}
+	}
+
+	return true
+}
+
 // IsValidEmail checks if a string is a valid email address
 func IsValidEmail(eMail string) bool {
-	return email.MatchString(eMail)
+	_, err := mail.ParseAddress(eMail)
+	return err == nil
 }
 
 // StringLengthBetween validates the a strings length

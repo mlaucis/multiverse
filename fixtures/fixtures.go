@@ -39,7 +39,7 @@ var (
 	CorrectApplication = Application{
 		Name:        "Demo App",
 		Description: "This is the best application",
-		URL:         "http://app.co",
+		URL:         "http://tapglue.com",
 	}
 	CorrectUser = User{
 		UserCommon: UserCommon{
