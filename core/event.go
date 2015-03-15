@@ -48,33 +48,40 @@ func UpdateEvent(existingEvent, updatedEvent entity.Event, retrieve bool) (evn *
 		return nil, err
 	}
 
-	coordinates := georedis.GeoKey{
-		Lat:   updatedEvent.Latitude,
-		Lon:   updatedEvent.Longitude,
-		Label: key,
+	if existingEvent.Latitude != 0 &&
+		existingEvent.Longitude != 0 {
+		removeEventGeo(key, &updatedEvent)
 	}
 
-	geoEventKey := storageClient.EventGeoKey(updatedEvent.AccountID, updatedEvent.ApplicationID)
+	if updatedEvent.Enabled && (existingEvent.Latitude != updatedEvent.Latitude ||
+		existingEvent.Longitude != updatedEvent.Longitude) {
+		addEventGeo(key, &updatedEvent)
+	}
 
-	georedis.RemoveCoordinatesByKeys(storageEngine, geoEventKey, key)
-	georedis.AddCoordinates(storageEngine, geoEventKey, 52, coordinates)
+	if updatedEvent.Object != nil && updatedEvent.Enabled {
+		if existingEvent.Object != nil {
+			if err := removeEventObject(key, &existingEvent); err != nil {
+				return nil, err
+			}
+		}
 
-	if updatedEvent.Object != nil {
-		objectEventKey := storageClient.EventObjectKey(updatedEvent.AccountID, updatedEvent.ApplicationID, updatedEvent.Object.ID)
-		if err = storageEngine.SRem(objectEventKey, key).Err(); err != nil {
+		if err := addEventObject(key, &updatedEvent); err != nil {
 			return nil, err
 		}
-		if err = storageEngine.SAdd(objectEventKey, key).Err(); err != nil {
-			return nil, err
-		}
 	}
 
-	locationEventKey := storageClient.EventLocationKey(updatedEvent.AccountID, updatedEvent.ApplicationID, updatedEvent.Location)
-	if err = storageEngine.SRem(locationEventKey, key).Err(); err != nil {
-		return nil, err
-	}
-	if err = storageEngine.SAdd(locationEventKey, key).Err(); err != nil {
-		return nil, err
+	if existingEvent.Location != updatedEvent.Location {
+		if existingEvent.Location != "" {
+			if err := removeEventLocation(key, &updatedEvent); err != nil {
+				return nil, err
+			}
+		}
+
+		if updatedEvent.Location != "" && updatedEvent.Enabled {
+			if err := addEventLocation(key, &updatedEvent); err != nil {
+				return nil, err
+			}
+		}
 	}
 
 	if !updatedEvent.Enabled {
@@ -86,6 +93,17 @@ func UpdateEvent(existingEvent, updatedEvent entity.Event, retrieve bool) (evn *
 			return nil, err
 		}
 
+		if existingEvent.Latitude != 0 && existingEvent.Longitude != 0 {
+			removeEventGeo(key, &updatedEvent)
+		}
+
+		if existingEvent.Object != nil {
+			removeEventObject(key, &existingEvent)
+		}
+
+		if existingEvent.Location != "" {
+			removeEventLocation(key, &updatedEvent)
+		}
 	}
 
 	if !retrieve {
@@ -122,20 +140,9 @@ func DeleteEvent(accountID, applicationID, userID, eventID int64) (err error) {
 		return err
 	}
 
-	geoEventKey := storageClient.EventGeoKey(accountID, applicationID)
-	if _, err = georedis.RemoveCoordinatesByKeys(storageEngine, geoEventKey, key); err != nil {
-		return err
-	}
-
-	objectEventKey := storageClient.EventObjectKey(accountID, applicationID, event.Object.ID)
-	if err = storageEngine.SRem(objectEventKey, key).Err(); err != nil {
-		return err
-	}
-
-	locationEventKey := storageClient.EventLocationKey(accountID, applicationID, event.Location)
-	if err = storageEngine.SRem(locationEventKey, key).Err(); err != nil {
-		return err
-	}
+	removeEventGeo(key, event)
+	removeEventObject(key, event)
+	removeEventLocation(key, event)
 
 	return nil
 }
@@ -353,4 +360,42 @@ func toEvents(resultList []interface{}) ([]*entity.Event, error) {
 	}
 
 	return events, nil
+}
+
+func addEventGeo(key string, updatedEvent *entity.Event) error {
+	coordinates := georedis.GeoKey{
+		Lat:   updatedEvent.Latitude,
+		Lon:   updatedEvent.Longitude,
+		Label: key,
+	}
+
+	geoEventKey := storageClient.EventGeoKey(updatedEvent.AccountID, updatedEvent.ApplicationID)
+	_, err := georedis.AddCoordinates(storageEngine, geoEventKey, 52, coordinates)
+	return err
+}
+
+func removeEventGeo(key string, updatedEvent *entity.Event) error {
+	geoEventKey := storageClient.EventGeoKey(updatedEvent.AccountID, updatedEvent.ApplicationID)
+	_, err := georedis.RemoveCoordinatesByKeys(storageEngine, geoEventKey, key)
+	return err
+}
+
+func addEventObject(key string, updatedEvent *entity.Event) error {
+	objectEventKey := storageClient.EventObjectKey(updatedEvent.AccountID, updatedEvent.ApplicationID, updatedEvent.Object.ID)
+	return storageEngine.SAdd(objectEventKey, key).Err()
+}
+
+func removeEventObject(key string, updatedEvent *entity.Event) error {
+	objectEventKey := storageClient.EventObjectKey(updatedEvent.AccountID, updatedEvent.ApplicationID, updatedEvent.Object.ID)
+	return storageEngine.SRem(objectEventKey, key).Err()
+}
+
+func addEventLocation(key string, updatedEvent *entity.Event) error {
+	locationEventKey := storageClient.EventLocationKey(updatedEvent.AccountID, updatedEvent.ApplicationID, updatedEvent.Location)
+	return storageEngine.SAdd(locationEventKey, key).Err()
+}
+
+func removeEventLocation(key string, updatedEvent *entity.Event) error {
+	locationEventKey := storageClient.EventLocationKey(updatedEvent.AccountID, updatedEvent.ApplicationID, updatedEvent.Location)
+	return storageEngine.SRem(locationEventKey, key).Err()
 }
