@@ -124,7 +124,9 @@ func NewContext(
 	ctx.MainLog = mainLog
 	ctx.ErrorLog = errorLog
 	ctx.Vars = mux.Vars(r)
-	ctx.Body = utils.PeakBody(r)
+	if r.Method != "GET" {
+		ctx.Body = utils.PeakBody(r)
+	}
 	ctx.RouteName = routeName
 	ctx.Scope = scope
 	ctx.Version = version

@@ -14,6 +14,10 @@ import (
 	. "github.com/tapglue/backend/utils"
 )
 
+var (
+	emptyStringBase64 = Base64Encode(Sha256String(""))
+)
+
 // VerifyRequest verifies if a request is properly signed or not
 func VerifyRequest(ctx *context.Context, numKeyParts int) error {
 	signature := ctx.R.Header.Get("x-tapglue-signature")
@@ -25,8 +29,14 @@ func VerifyRequest(ctx *context.Context, numKeyParts int) error {
 		return fmt.Errorf("signature failed on 2")
 	}
 
-	if Base64Encode(Sha256String(ctx.Body.String())) != ctx.R.Header.Get("x-tapglue-payload-hash") {
-		return fmt.Errorf("signature failed on 3")
+	if ctx.Body != nil {
+		if Base64Encode(Sha256String(ctx.Body.String())) != ctx.R.Header.Get("x-tapglue-payload-hash") {
+			return fmt.Errorf("signature failed on 3")
+		}
+	} else {
+		if emptyStringBase64 != ctx.R.Header.Get("x-tapglue-payload-hash") {
+			return fmt.Errorf("signature failed on 3")
+		}
 	}
 
 	encodedIds := ctx.R.Header.Get("x-tapglue-id")
