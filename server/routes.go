@@ -57,7 +57,8 @@ var routes = map[string]map[string]*route{
 				contextHasAccount,
 			},
 		},
-/*		"updateAccount": &route{
+/**/
+		"updateAccount": &route{
 			method:   "PUT",
 			pattern:  "/account/{accountId:[0-9]{1,20}}",
 			cPattern: "/account/%d",
@@ -95,7 +96,7 @@ var routes = map[string]map[string]*route{
 				createAccount,
 			},
 		},
-*/
+/**/
 		// AccountUser
 		"getAccountUser": &route{
 			method:   "GET",
