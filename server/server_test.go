@@ -101,7 +101,7 @@ func (s *ServerSuite) TestValidatePostCommon_NoCLHeader(c *C) {
 	m.ServeHTTP(w, req)
 
 	c.Assert(w.Code, Equals, http.StatusBadRequest)
-	c.Assert(w.Body.String(), Equals, "400 User-Agent header must be set")
+	c.Assert(w.Body.String(), Equals, "400 User-Agent header must be set (1)")
 }
 
 // Test POST common with CLHeader
@@ -129,7 +129,7 @@ func (s *ServerSuite) TestValidatePostCommon_CLHeader(c *C) {
 	m.ServeHTTP(w, req)
 
 	c.Assert(w.Code, Equals, http.StatusBadRequest)
-	c.Assert(w.Body.String(), Equals, "400 invalid character 'd' looking for beginning of object key string")
+	c.Assert(w.Body.String(), Equals, "400 failed to create the account (1)\n"+"invalid character 'd' looking for beginning of object key string")
 }
 
 // Test GET common with CLHeader
@@ -182,7 +182,7 @@ func (s *ServerSuite) TestValidateGetCommon_NoCLHeader(c *C) {
 	m.ServeHTTP(w, req)
 
 	c.Assert(w.Code, Equals, http.StatusBadRequest)
-	c.Assert(w.Body.String(), Equals, "400 User-Agent header must be set")
+	c.Assert(w.Body.String(), Equals, "400 User-Agent header must be set (1)")
 }
 
 // Test PUT common with CLHeader

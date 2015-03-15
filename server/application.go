@@ -26,9 +26,8 @@ func updateApplication(ctx *context.Context) {
 	var err error
 
 	application := *ctx.Application
-	decoder := json.NewDecoder(ctx.Body)
-	if err = decoder.Decode(&application); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
+	if err = json.NewDecoder(ctx.Body).Decode(&application); err != nil {
+		errorHappened(ctx, "failed to update the application (1)\n"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
@@ -36,13 +35,13 @@ func updateApplication(ctx *context.Context) {
 	application.AccountID = ctx.AccountID
 
 	if err = validator.UpdateApplication(ctx.Application, &application); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
+		errorHappened(ctx, "failed to update the application (2)\n"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
 	updatedApplication, err := core.UpdateApplication(*ctx.Application, application, true)
 	if err != nil {
-		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
+		errorHappened(ctx, "failed to update the application (3)", http.StatusInternalServerError, err)
 		return
 	}
 
@@ -53,7 +52,7 @@ func updateApplication(ctx *context.Context) {
 // Request: DELETE /account/:AccountID/application/:ApplicatonID
 func deleteApplication(ctx *context.Context) {
 	if err := core.DeleteApplication(ctx.AccountID, ctx.ApplicationID); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
+		errorHappened(ctx, "failed to delete the application (1)", http.StatusInternalServerError, err)
 		return
 	}
 
@@ -68,21 +67,20 @@ func createApplication(ctx *context.Context) {
 		err         error
 	)
 
-	decoder := json.NewDecoder(ctx.Body)
-	if err = decoder.Decode(application); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
+	if err = json.NewDecoder(ctx.Body).Decode(application); err != nil {
+		errorHappened(ctx, "failed to create an application (1)\n"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
 	application.AccountID = ctx.AccountID
 
 	if err = validator.CreateApplication(application); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
+		errorHappened(ctx, "failed to create an application (2)\n"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
 	if application, err = core.WriteApplication(application, true); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
+		errorHappened(ctx, "failed to create an application", http.StatusInternalServerError, err)
 		return
 	}
 
@@ -98,7 +96,7 @@ func getApplicationList(ctx *context.Context) {
 	)
 
 	if applications, err = core.ReadApplicationList(ctx.AccountID); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
+		errorHappened(ctx, "failed to get the applications list (1)", http.StatusInternalServerError, err)
 		return
 	}
 

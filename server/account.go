@@ -26,22 +26,21 @@ func updateAccount(ctx *context.Context) {
 	var err error
 
 	account := *ctx.Account
-	decoder := json.NewDecoder(ctx.R.Body)
-	if err = decoder.Decode(&account); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
+	if err = json.NewDecoder(ctx.R.Body).Decode(&account); err != nil {
+		errorHappened(ctx, "failed to update the account (1)"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
 	account.ID = ctx.AccountID
 
 	if err = validator.UpdateAccount(ctx.Account, &account); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
+		errorHappened(ctx, "failed to update the account (2)\n"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
 	updatedAccount, err := core.UpdateAccount(*ctx.Account, account, true)
 	if err != nil {
-		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
+		errorHappened(ctx, "failed to update the account (3)", http.StatusInternalServerError, err)
 		return
 	}
 
@@ -56,7 +55,7 @@ func deleteAccount(ctx *context.Context) {
 	)
 
 	if err = core.DeleteAccount(ctx.AccountID); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
+		errorHappened(ctx, "failed to delete the account (1)", http.StatusInternalServerError, err)
 		return
 	}
 
@@ -71,19 +70,18 @@ func createAccount(ctx *context.Context) {
 		err     error
 	)
 
-	decoder := json.NewDecoder(ctx.Body)
-	if err = decoder.Decode(account); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
+	if err = json.NewDecoder(ctx.Body).Decode(account); err != nil {
+		errorHappened(ctx, "failed to create the account (1)\n"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
 	if err = validator.CreateAccount(account); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
+		errorHappened(ctx, "failed to create the account (2)\n"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
 	if account, err = core.WriteAccount(account, true); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
+		errorHappened(ctx, "failed to create the account (3)", http.StatusInternalServerError, err)
 		return
 	}
 

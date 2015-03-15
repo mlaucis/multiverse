@@ -95,7 +95,7 @@ func CreateAccountUser(accountUser *entity.AccountUser) error {
 
 	if isDuplicate, err := DuplicateAccountUserEmail(accountUser.Email); isDuplicate || err != nil {
 		if isDuplicate {
-			errs = append(errs, &errorUserAlreadyExists)
+			errs = append(errs, &errorUserEmailAlreadyExists)
 		} else {
 			errs = append(errs, &err)
 		}
@@ -103,7 +103,7 @@ func CreateAccountUser(accountUser *entity.AccountUser) error {
 
 	if isDuplicate, err := DuplicateAccountUserUsername(accountUser.Username); isDuplicate || err != nil {
 		if isDuplicate {
-			errs = append(errs, &errorUserAlreadyExists)
+			errs = append(errs, &errorUserEmailAlreadyExists)
 		} else {
 			errs = append(errs, &err)
 		}
@@ -218,64 +218,64 @@ func AccountUserCredentialsValid(password string, user *entity.AccountUser) erro
 }
 
 // CheckAccountSession checks if the session is valid or not
-func CheckAccountSession(r *http.Request) (string, error) {
+func CheckAccountSession(r *http.Request) (string, string, error) {
 	encodedSessionToken := r.Header.Get("x-tapglue-session")
 	if encodedSessionToken == "" {
-		return "", fmt.Errorf("missing session token")
+		return "", "failed to check session token (1)", fmt.Errorf("missing session token")
 	}
 
 	encodedIds := r.Header.Get("x-tapglue-id")
 	decodedIds, err := Base64Decode(encodedIds)
 	if err != nil {
-		return "", fmt.Errorf("ids not present in request")
+		return "", "failed to check session token (2)\nmalformed token received", err
 	}
 
 	accountID, err := strconv.ParseInt(string(decodedIds), 10, 64)
 	if err != nil {
-		return "", fmt.Errorf("malformed ids received")
+		return "", "failed to check session token (3)\nmalformed token received", err
 	}
 
 	sessionToken, err := Base64Decode(encodedSessionToken)
 	if err != nil {
-		return "", fmt.Errorf("malformed session token")
+		return "", "failed to check session token (4)\nmalformed token received", err
 	}
 
 	splitSessionToken := strings.SplitN(string(sessionToken), ":", 4)
 	if len(splitSessionToken) != 4 {
-		return "", fmt.Errorf("malformed session token")
+		return "", "failed to check session token (5)\nmalformed token received", fmt.Errorf("malformed session token parts expected %d got %d", 4, len(splitSessionToken))
 	}
 
 	accID, err := strconv.ParseInt(splitSessionToken[0], 10, 64)
 	if err != nil {
-		return "", fmt.Errorf("malformed session token")
+		return "", "failed to check session token (6)\nmalformed token received", err
 	}
 
 	userID, err := strconv.ParseInt(splitSessionToken[1], 10, 64)
 	if err != nil {
-		return "", fmt.Errorf("malformed session token")
+		return "", "failed to check session token (7)\nmalformed token received", err
 	}
 
 	if accountID != accID {
-		return "", fmt.Errorf("session token mismatch(1)")
+		return "", "failed to check session token (8)\nmalformed token received", fmt.Errorf("account id mismatch expected %d got %d", accountID, accID)
 	}
 
 	sessionKey := storageClient.AccountSessionKey(accountID, userID)
 	storedSessionToken, err := storageEngine.Get(sessionKey).Result()
 	if err != nil {
-		return "", fmt.Errorf("could not fetch session from storage")
+		return "", "failed to check session token (9)\nmalformed token received", err
 	}
 
 	if storedSessionToken == "" {
-		return "", fmt.Errorf("session not found")
+		return "", "failed to check session token (10)\nsession not found", fmt.Errorf("session not found")
 	}
 
 	//fmt.Printf("storedSession\t%s\nencodedSession\t%s\n", storedSessionToken, encodedSessionToken)
 
-	if storedSessionToken != encodedSessionToken {
-		return "", fmt.Errorf("session token mismatch(3)")
+	if storedSessionToken == encodedSessionToken {
+		return encodedSessionToken, "", nil
 	}
 
-	return encodedSessionToken, nil
+	return "", "failed to check session token (11)\nsession token mismatch", fmt.Errorf("session tokens mismatch expected %s got %s", storedSessionToken, encodedSessionToken)
 }
 
 func DuplicateAccountUserEmail(email string) (bool, error) {
@@ -284,7 +284,7 @@ func DuplicateAccountUserEmail(email string) (bool, error) {
 		if err != nil {
 			return false, err
 		} else if userExists {
-			return true, errorUserAlreadyExists
+			return true, errorUserEmailAlreadyExists
 		}
 	}
 
@@ -297,7 +297,7 @@ func DuplicateAccountUserUsername(username string) (bool, error) {
 		if err != nil {
 			return false, err
 		} else if userExists {
-			return true, errorUserAlreadyExists
+			return true, errorUserUsernameAlreadyExists
 		}
 	}
 

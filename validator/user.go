@@ -91,7 +91,7 @@ func CreateUser(user *entity.User) error {
 
 	if isDuplicate, err := DuplicateApplicationUserEmail(user.AccountID, user.ApplicationID, user.Email); isDuplicate || err != nil {
 		if isDuplicate {
-			errs = append(errs, &errorUserAlreadyExists)
+			errs = append(errs, &errorUserEmailAlreadyExists)
 		} else {
 			errs = append(errs, &err)
 		}
@@ -99,7 +99,7 @@ func CreateUser(user *entity.User) error {
 
 	if isDuplicate, err := DuplicateApplicationUserUsername(user.AccountID, user.ApplicationID, user.Username); isDuplicate || err != nil {
 		if isDuplicate {
-			errs = append(errs, &errorUserAlreadyExists)
+			errs = append(errs, &errorUserUsernameAlreadyExists)
 		} else {
 			errs = append(errs, &err)
 		}
@@ -204,142 +204,142 @@ func ApplicationUserCredentialsValid(password string, user *entity.User) error {
 }
 
 // CheckApplicationSession checks if the session is valid or not
-func CheckApplicationSession(r *http.Request) (string, error) {
+func CheckApplicationSession(r *http.Request) (string, string, error) {
 	encodedSessionToken := r.Header.Get("x-tapglue-session")
 	if encodedSessionToken == "" {
-		return "", fmt.Errorf("missing session token")
+		return "", "failed to check session token (1)\nmissing session token", fmt.Errorf("missing session token")
 	}
 
 	encodedIds := r.Header.Get("x-tapglue-id")
 	decodedIds, err := Base64Decode(encodedIds)
 	if err != nil {
-		return "", fmt.Errorf("ids not present in request")
+		return "", "failed to check session token (2)", err
 	}
 
 	ids := strings.SplitN(string(decodedIds), ":", 2)
 	if len(ids) != 2 {
-		return "", fmt.Errorf("malformed ids received")
+		return "", "failed to check session token (3)", fmt.Errorf("expected %d got %d", 2, len(ids))
 	}
 
 	accountID, err := strconv.ParseInt(ids[0], 10, 64)
 	if err != nil {
-		return "", fmt.Errorf("malformed ids received")
+		return "", "failed to check session token (4)", err
 	}
 
 	applicationID, err := strconv.ParseInt(ids[1], 10, 64)
 	if err != nil {
-		return "", fmt.Errorf("malformed ids received")
+		return "", "failed to check session token (5)", err
 	}
 
 	sessionToken, err := Base64Decode(encodedSessionToken)
 	if err != nil {
-		return "", fmt.Errorf("malformed session token")
+		return "", "failed to check session token (6)", err
 	}
 
 	splitSessionToken := strings.SplitN(string(sessionToken), ":", 5)
 	if len(splitSessionToken) != 5 {
-		return "", fmt.Errorf("malformed session token")
+		return "", "failed to check session token (7)", fmt.Errorf("expected %d got %d", 5, len(splitSessionToken))
 	}
 
 	accID, err := strconv.ParseInt(splitSessionToken[0], 10, 64)
 	if err != nil {
-		return "", fmt.Errorf("malformed session token")
+		return "", "failed to check session token (8)", err
 	}
 
 	appID, err := strconv.ParseInt(splitSessionToken[1], 10, 64)
 	if err != nil {
-		return "", fmt.Errorf("malformed session token")
+		return "", "failed to check session token (9)", err
 	}
 
 	userID, err := strconv.ParseInt(splitSessionToken[2], 10, 64)
 	if err != nil {
-		return "", fmt.Errorf("malformed session token")
+		return "", "failed to check session token (10)", err
 	}
 
 	if accountID != accID {
-		return "", fmt.Errorf("session token mismatch(1)")
+		return "", "failed to check session token (11)", fmt.Errorf("expected %d got %d", accountID, accID)
 	}
 
 	if applicationID != appID {
-		return "", fmt.Errorf("session token mismatch(2)")
+		return "", "failed to check session token (12)", fmt.Errorf("expected %d got %d", applicationID, appID)
 	}
 
 	sessionKey := storageClient.ApplicationSessionKey(accountID, applicationID, userID)
 	storedSessionToken, err := storageEngine.Get(sessionKey).Result()
 	if err != nil {
-		return "", fmt.Errorf("could not fetch session from storage")
+		return "", "failed to check session token (13)", err
 	}
 
 	if storedSessionToken == "" {
-		return "", fmt.Errorf("session not found")
+		return "", "failed to check session token (14)", fmt.Errorf("session not found")
 	}
 
 	if storedSessionToken != encodedSessionToken {
-		return "", fmt.Errorf("session token mismatch(3)")
+		return encodedSessionToken, "", nil
 	}
 
-	return encodedSessionToken, nil
+	return "", "failed to check session token (15)", fmt.Errorf("expected %s got %s", storedSessionToken, encodedSessionToken)
 }
 
 // CheckApplicationSimpleSession checks if the session is valid or not
-func CheckApplicationSimpleSession(accountID, applicationID, applicationUserID int64, r *http.Request) (string, error) {
+func CheckApplicationSimpleSession(accountID, applicationID, applicationUserID int64, r *http.Request) (string, string, error) {
 	encodedSessionToken := r.Header.Get("x-tapglue-session")
 	if encodedSessionToken == "" {
-		return "", fmt.Errorf("missing session token")
+		return "", "failed to check session token (1)", fmt.Errorf("missing session token")
 	}
 
 	sessionToken, err := Base64Decode(encodedSessionToken)
 	if err != nil {
-		return "", fmt.Errorf("malformed session token")
+		return "", "failed to check session token (2)", err
 	}
 
 	splitSessionToken := strings.SplitN(string(sessionToken), ":", 5)
 	if len(splitSessionToken) != 5 {
-		return "", fmt.Errorf("malformed session token")
+		return "", "failed to check session token (3)", fmt.Errorf("expected %d got %d", 5, len(splitSessionToken))
 	}
 
 	tokenAccountID, err := strconv.ParseInt(splitSessionToken[0], 10, 64)
 	if err != nil {
-		return "", fmt.Errorf("malformed session token")
+		return "", "failed to check session token (4)", err
 	}
 
 	if tokenAccountID != accountID {
-		return "", fmt.Errorf("session account mismatch")
+		return "", "failed to check session token (5)", fmt.Errorf("expected %d got %d", accountID, tokenAccountID)
 	}
 
 	tokenApplicationID, err := strconv.ParseInt(splitSessionToken[1], 10, 64)
 	if err != nil {
-		return "", fmt.Errorf("malformed session token")
+		return "", "failed to check session token (6)", err
 	}
 
 	if tokenApplicationID != applicationID {
-		return "", fmt.Errorf("session application mismatch")
+		return "", "failed to check session token (7)", fmt.Errorf("expected %d got %d", applicationID, tokenApplicationID)
 	}
 
 	tokenApplicationUserID, err := strconv.ParseInt(splitSessionToken[2], 10, 64)
 	if err != nil {
-		return "", fmt.Errorf("malformed session token")
+		return "", "failed to check session token (8)", err
 	}
 
 	if tokenApplicationUserID != applicationUserID {
-		return "", fmt.Errorf("session application user mismatch")
+		return "", "failed to check session token (9)", fmt.Errorf("expected %d got %d", applicationUserID, tokenApplicationUserID)
 	}
 
 	sessionKey := storageClient.ApplicationSessionKey(accountID, applicationID, applicationUserID)
 	storedSessionToken, err := storageEngine.Get(sessionKey).Result()
 	if err != nil {
-		return "", fmt.Errorf("could not fetch session from storage")
+		return "", "failed to check session token (10)", err
 	}
 
 	if storedSessionToken == "" {
-		return "", fmt.Errorf("session not found")
+		return "", "failed to check session token (11)\nsession not found", fmt.Errorf("session not found")
 	}
 
-	if storedSessionToken != encodedSessionToken {
-		return "", fmt.Errorf("session token mismatch(3)")
+	if storedSessionToken == encodedSessionToken {
+		return encodedSessionToken, "", nil
 	}
 
-	return encodedSessionToken, nil
+	return "", "failed to check session token (12)\nsession mismatch", fmt.Errorf("expected %s got %s", storedSessionToken, encodedSessionToken)
 }
 
 func DuplicateApplicationUserEmail(accountID, applicationID int64, email string) (bool, error) {
@@ -348,7 +348,7 @@ func DuplicateApplicationUserEmail(accountID, applicationID int64, email string)
 		if err != nil {
 			return false, err
 		} else if userExists {
-			return true, errorUserAlreadyExists
+			return true, errorUserEmailAlreadyExists
 		}
 	}
 
@@ -361,7 +361,7 @@ func DuplicateApplicationUserUsername(accountID, applicationID int64, username s
 		if err != nil {
 			return false, err
 		} else if userExists {
-			return true, errorUserAlreadyExists
+			return true, errorUserUsernameAlreadyExists
 		}
 	}
 

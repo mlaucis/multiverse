@@ -28,9 +28,8 @@ func updateAccountUser(ctx *context.Context) {
 	var err error
 
 	accountUser := *ctx.AccountUser
-	decoder := json.NewDecoder(ctx.Body)
-	if err = decoder.Decode(&accountUser); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%q", err), http.StatusBadRequest, err)
+	if err = json.NewDecoder(ctx.Body).Decode(&accountUser); err != nil {
+		errorHappened(ctx, "failed to update the user (1)"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
@@ -38,13 +37,13 @@ func updateAccountUser(ctx *context.Context) {
 	accountUser.AccountID = ctx.AccountID
 
 	if err = validator.UpdateAccountUser(ctx.AccountUser, &accountUser); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%q", err), http.StatusBadRequest, err)
+		errorHappened(ctx, "failed to update the user (2)\n"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
 	updatedAccountUser, err := core.UpdateAccountUser(*ctx.AccountUser, accountUser, true)
 	if err != nil {
-		errorHappened(ctx, fmt.Sprintf("%q", err), http.StatusInternalServerError, err)
+		errorHappened(ctx, "failed to update the user (3)", http.StatusInternalServerError, err)
 		return
 	}
 
@@ -56,7 +55,7 @@ func updateAccountUser(ctx *context.Context) {
 // Request: DELETE /account/:AccountID/user/:UserID
 func deleteAccountUser(ctx *context.Context) {
 	if err := core.DeleteAccountUser(ctx.AccountID, ctx.AccountUserID); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%q", err), http.StatusInternalServerError, err)
+		errorHappened(ctx, "failed to delete the user (3)", http.StatusInternalServerError, err)
 		return
 	}
 
@@ -71,21 +70,20 @@ func createAccountUser(ctx *context.Context) {
 		err         error
 	)
 
-	decoder := json.NewDecoder(ctx.Body)
-	if err = decoder.Decode(accountUser); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%q", err), http.StatusBadRequest, err)
+	if err = json.NewDecoder(ctx.Body).Decode(accountUser); err != nil {
+		errorHappened(ctx, "failed to create the user (1)\n"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
 	accountUser.AccountID = ctx.AccountID
 
 	if err = validator.CreateAccountUser(accountUser); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%q", err), http.StatusBadRequest, err)
+		errorHappened(ctx, "failed to create the user (2)\n"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
 	if accountUser, err = core.WriteAccountUser(accountUser, true); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%q", err), http.StatusInternalServerError, err)
+		errorHappened(ctx, "failed to create the user (3)", http.StatusInternalServerError, err)
 		return
 	}
 
@@ -103,7 +101,7 @@ func getAccountUserList(ctx *context.Context) {
 	)
 
 	if accountUsers, err = core.ReadAccountUserList(ctx.AccountID); err != nil {
-		errorHappened(ctx, fmt.Sprintf("%q", err), http.StatusInternalServerError, err)
+		errorHappened(ctx, "failed to retrieve the users (1)", http.StatusInternalServerError, err)
 		return
 	}
 
@@ -131,21 +129,20 @@ func loginAccountUser(ctx *context.Context) {
 		err          error
 	)
 
-	decoder := json.NewDecoder(ctx.Body)
-	if err = decoder.Decode(loginPayload); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
+	if err = json.NewDecoder(ctx.Body).Decode(loginPayload); err != nil {
+		errorHappened(ctx, "failed to login the user (1)\n"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
 	if err := validator.IsValidLoginPayload(loginPayload); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
+		errorHappened(ctx, "failed to login the user (2)\n"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
 	if loginPayload.Email != "" {
 		account, user, err = core.FindAccountAndUserByEmail(loginPayload.Email)
 		if err != nil {
-			errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
+			errorHappened(ctx, "failed to login the user (3)\n"+err.Error(), http.StatusBadRequest, err)
 			return
 		}
 	}
@@ -153,23 +150,23 @@ func loginAccountUser(ctx *context.Context) {
 	if loginPayload.Username != "" {
 		account, user, err = core.FindAccountAndUserByUsername(loginPayload.Username)
 		if err != nil {
-			errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
+			errorHappened(ctx, "failed to login the user (4)\n"+err.Error(), http.StatusBadRequest, err)
 			return
 		}
 	}
 
 	if account == nil || user == nil {
-		errorHappened(ctx, "unexpected error happened", http.StatusInternalServerError, fmt.Errorf("account or user nil on login"))
+		errorHappened(ctx, "failed to login the user (5)", http.StatusInternalServerError, fmt.Errorf("account or user nil on login"))
 		return
 	}
 
 	if err = validator.AccountUserCredentialsValid(loginPayload.Password, user); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusUnauthorized, err)
+		errorHappened(ctx, "failed to login the user (6)", http.StatusUnauthorized, err)
 		return
 	}
 
 	if sessionToken, err = core.CreateAccountUserSession(user); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
+		errorHappened(ctx, "failed to login the user (7)", http.StatusInternalServerError, err)
 		return
 	}
 
@@ -196,19 +193,18 @@ func refreshAccountUserSession(ctx *context.Context) {
 		err          error
 	)
 
-	decoder := json.NewDecoder(ctx.Body)
-	if err = decoder.Decode(&tokenPayload); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
+	if err = json.NewDecoder(ctx.Body).Decode(&tokenPayload); err != nil {
+		errorHappened(ctx, "failed to refresh session token (1)\n"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
 	if ctx.SessionToken != tokenPayload.Token {
-		errorHappened(ctx, "session token mismatch", http.StatusBadRequest, fmt.Errorf("session token mismatch"))
+		errorHappened(ctx, "failed to refresh session token (2) \nsession token mismatch", http.StatusBadRequest, fmt.Errorf("session token mismatch"))
 		return
 	}
 
 	if sessionToken, err = core.RefreshAccountUserSession(ctx.SessionToken, ctx.AccountUser); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
+		errorHappened(ctx, "failed to refresh session token (3)", http.StatusInternalServerError, err)
 		return
 	}
 
@@ -227,19 +223,18 @@ func logoutAccountUser(ctx *context.Context) {
 		err error
 	)
 
-	decoder := json.NewDecoder(ctx.Body)
-	if err = decoder.Decode(&logoutPayload); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
+	if err = json.NewDecoder(ctx.Body).Decode(&logoutPayload); err != nil {
+		errorHappened(ctx, "failed to logout the user (1)\n"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
 	if err = validator.AccountUserCredentialsValid(logoutPayload.Token, ctx.AccountUser); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusUnauthorized, err)
+		errorHappened(ctx, "failed to logout the user (2)", http.StatusUnauthorized, err)
 		return
 	}
 
 	if err = core.DestroyAccountUserSession(logoutPayload.Token, ctx.AccountUser); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
+		errorHappened(ctx, "failed to logout the user (3)", http.StatusInternalServerError, err)
 		return
 	}
 

@@ -26,25 +26,24 @@ func updateConnection(ctx *context.Context) {
 	)
 
 	if userToID, err = strconv.ParseInt(ctx.Vars["userToId"], 10, 64); err != nil {
-		errorHappened(ctx, "userToId is not set or the value is incorrect", http.StatusBadRequest, err)
+		errorHappened(ctx, "failed to update the connection (1)\n"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
 	existingConnection, err := core.ReadConnection(ctx.AccountID, ctx.ApplicationID, ctx.ApplicationUserID, userToID)
 	if err != nil {
-		errorHappened(ctx, "unexpected error happened", http.StatusInternalServerError, err)
+		errorHappened(ctx, "failed to update the connection (2)", http.StatusInternalServerError, err)
 		return
 	}
 
 	if existingConnection == nil {
-		errorHappened(ctx, "users are not connected", http.StatusBadRequest, fmt.Errorf("users are not connected"))
+		errorHappened(ctx, "failed to update the connection (3)\nusers are not connected", http.StatusBadRequest, fmt.Errorf("users are not connected"))
 		return
 	}
 
 	connection := *existingConnection
-	decoder := json.NewDecoder(ctx.Body)
-	if err = decoder.Decode(&connection); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
+	if err = json.NewDecoder(ctx.Body).Decode(&connection); err != nil {
+		errorHappened(ctx, "failed to update the connection (4)\n"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
@@ -54,13 +53,13 @@ func updateConnection(ctx *context.Context) {
 	connection.UserToID = userToID
 
 	if err = validator.UpdateConnection(existingConnection, &connection); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
+		errorHappened(ctx, "failed to update the connection (5)\n"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
 	updatedConnection, err := core.UpdateConnection(*existingConnection, connection, false)
 	if err != nil {
-		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
+		errorHappened(ctx, "failed to update the connection (6)", http.StatusInternalServerError, err)
 		return
 	}
 
@@ -76,12 +75,12 @@ func deleteConnection(ctx *context.Context) {
 	)
 
 	if userToID, err = strconv.ParseInt(ctx.Vars["userToId"], 10, 64); err != nil {
-		errorHappened(ctx, "userToId is not set or the value is incorrect", http.StatusBadRequest, err)
+		errorHappened(ctx, "failed to delete the connection(1)\n"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
 	if err = core.DeleteConnection(ctx.AccountID, ctx.ApplicationID, ctx.ApplicationUserID, userToID); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
+		errorHappened(ctx, "failed to delete the connection (2)", http.StatusInternalServerError, err)
 		return
 	}
 
@@ -97,7 +96,7 @@ func createConnection(ctx *context.Context) {
 	)
 
 	if err = json.NewDecoder(ctx.Body).Decode(connection); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
+		errorHappened(ctx, "failed to create the connection (1)\n"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
@@ -106,17 +105,17 @@ func createConnection(ctx *context.Context) {
 	connection.UserFromID = ctx.ApplicationUserID
 
 	if err = validator.CreateConnection(connection); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
+		errorHappened(ctx, "failed to create the connection (2)\n"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
 	if connection, err = core.WriteConnection(connection, false); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
+		errorHappened(ctx, "failed to create the connection (3)", http.StatusInternalServerError, err)
 		return
 	}
 
 	if connection, err = core.ConfirmConnection(connection, true); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
+		errorHappened(ctx, "failed to create the connection (4)", http.StatusInternalServerError, err)
 		return
 	}
 
@@ -132,7 +131,7 @@ func getConnectionList(ctx *context.Context) {
 	)
 
 	if users, err = core.ReadConnectionList(ctx.AccountID, ctx.ApplicationID, ctx.ApplicationUserID); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
+		errorHappened(ctx, "failed to retrieve the connections list (1)", http.StatusInternalServerError, err)
 		return
 	}
 
@@ -161,12 +160,12 @@ func confirmConnection(ctx *context.Context) {
 	)
 
 	if userFromID, err = strconv.ParseInt(ctx.Vars["userId"], 10, 64); err != nil {
-		errorHappened(ctx, "userId is not set or the value is incorrect", http.StatusBadRequest, err)
+		errorHappened(ctx, "failed to confirm the connection (1)\n"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
 	if err = json.NewDecoder(ctx.Body).Decode(connection); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
+		errorHappened(ctx, "failed to confirm the connection (2)\n"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
@@ -175,12 +174,12 @@ func confirmConnection(ctx *context.Context) {
 	connection.UserFromID = userFromID
 
 	if err = validator.ConfirmConnection(connection); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
+		errorHappened(ctx, "failed to confirm the connection (3)\n"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
 	if connection, err = core.ConfirmConnection(connection, false); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
+		errorHappened(ctx, "failed to confirm the connection (4)", http.StatusInternalServerError, err)
 		return
 	}
 

@@ -25,12 +25,12 @@ func getEvent(ctx *context.Context) {
 	)
 
 	if eventID, err = strconv.ParseInt(ctx.Vars["eventId"], 10, 64); err != nil {
-		errorHappened(ctx, "eventId is not set or the value is incorrect", http.StatusBadRequest, err)
+		errorHappened(ctx, "failed to retrieve the event (1)\n"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
 	if event, err = core.ReadEvent(ctx.AccountID, ctx.ApplicationID, ctx.ApplicationUserID, eventID); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
+		errorHappened(ctx, "failed to retrieve the event (2)", http.StatusInternalServerError, err)
 		return
 	}
 
@@ -46,20 +46,19 @@ func updateEvent(ctx *context.Context) {
 	)
 
 	if eventID, err = strconv.ParseInt(ctx.Vars["eventId"], 10, 64); err != nil {
-		errorHappened(ctx, "eventId is not set or the value is incorrect", http.StatusBadRequest, err)
+		errorHappened(ctx, "failed to update the event (1)\n"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
 	existingEvent, err := core.ReadEvent(ctx.AccountID, ctx.ApplicationID, ctx.ApplicationUserID, eventID)
 	if err != nil {
-		errorHappened(ctx, "unexpected error happened", http.StatusInternalServerError, err)
+		errorHappened(ctx, "failed to update the event (2)", http.StatusInternalServerError, err)
 		return
 	}
 
 	event := *existingEvent
-	decoder := json.NewDecoder(ctx.Body)
-	if err = decoder.Decode(&event); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
+	if err = json.NewDecoder(ctx.Body).Decode(&event); err != nil {
+		errorHappened(ctx, "failed to update the event (3)\n"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
@@ -69,13 +68,13 @@ func updateEvent(ctx *context.Context) {
 	event.UserID = ctx.ApplicationUserID
 
 	if err = validator.UpdateEvent(existingEvent, &event); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
+		errorHappened(ctx, "failed to update the event (4)\n"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
 	updatedEvent, err := core.UpdateEvent(*existingEvent, event, true)
 	if err != nil {
-		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
+		errorHappened(ctx, "failed to update the event (5)", http.StatusInternalServerError, err)
 		return
 	}
 
@@ -91,12 +90,12 @@ func deleteEvent(ctx *context.Context) {
 	)
 
 	if eventID, err = strconv.ParseInt(ctx.Vars["eventId"], 10, 64); err != nil {
-		errorHappened(ctx, "eventId is not set or the value is incorrect", http.StatusBadRequest, err)
+		errorHappened(ctx, "failed to delete the event (1)\n"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
 	if err = core.DeleteEvent(ctx.AccountID, ctx.ApplicationID, ctx.ApplicationUserID, eventID); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
+		errorHappened(ctx, "failed to delete the event (2)", http.StatusInternalServerError, err)
 		return
 	}
 
@@ -112,7 +111,7 @@ func getEventList(ctx *context.Context) {
 	)
 
 	if events, err = core.ReadEventList(ctx.AccountID, ctx.ApplicationID, ctx.ApplicationUserID); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
+		errorHappened(ctx, "failed to retrieve the event list (1)", http.StatusBadRequest, err)
 		return
 	}
 
@@ -138,7 +137,7 @@ func getConnectionEventList(ctx *context.Context) {
 	)
 
 	if events, err = core.ReadConnectionEventList(ctx.AccountID, ctx.ApplicationID, ctx.ApplicationUserID); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
+		errorHappened(ctx, "failed to retrieve the connections event list (1)", http.StatusInternalServerError, err)
 		return
 	}
 
@@ -163,9 +162,8 @@ func createEvent(ctx *context.Context) {
 		err   error
 	)
 
-	decoder := json.NewDecoder(ctx.Body)
-	if err = decoder.Decode(event); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
+	if err = json.NewDecoder(ctx.Body).Decode(event); err != nil {
+		errorHappened(ctx, "failed to create the event (1)\n"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
@@ -174,12 +172,12 @@ func createEvent(ctx *context.Context) {
 	event.UserID = ctx.ApplicationUserID
 
 	if err = validator.CreateEvent(event); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusBadRequest, err)
+		errorHappened(ctx, "failed to create the event (2)\n"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
 	if event, err = core.WriteEvent(event, true); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
+		errorHappened(ctx, "failed to create the event (3)", http.StatusInternalServerError, err)
 		return
 	}
 
@@ -196,22 +194,22 @@ func getGeoEventList(ctx *context.Context) {
 	)
 
 	if latitude, err = strconv.ParseFloat(ctx.Vars["latitude"], 64); err != nil {
-		errorHappened(ctx, "latitude is not set or the value is incorrect", http.StatusBadRequest, err)
+		errorHappened(ctx, "failed to get the geo event list (1)\n"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
 	if longitude, err = strconv.ParseFloat(ctx.Vars["longitude"], 64); err != nil {
-		errorHappened(ctx, "longitude is not set or the value is incorrect", http.StatusBadRequest, err)
+		errorHappened(ctx, "failed to get the geo event list (2)\n"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
 	if radius, err = strconv.ParseFloat(ctx.Vars["radius"], 64); err != nil {
-		errorHappened(ctx, "radius is not set or the value is incorrect", http.StatusBadRequest, err)
+		errorHappened(ctx, "failed to get the geo event list (3)\n"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
 	if events, err = core.SearchGeoEvents(ctx.AccountID, ctx.ApplicationID, latitude, longitude, radius); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
+		errorHappened(ctx, "failed to get the geo event list (4)", http.StatusInternalServerError, err)
 		return
 	}
 
@@ -238,7 +236,7 @@ func getObjectEventList(ctx *context.Context) {
 	objectKey = ctx.Vars["objectKey"]
 
 	if events, err = core.SearchObjectEvents(ctx.AccountID, ctx.ApplicationID, objectKey); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
+		errorHappened(ctx, "failed to get the object event list (1)", http.StatusInternalServerError, err)
 		return
 	}
 
@@ -265,7 +263,7 @@ func getLocationEventList(ctx *context.Context) {
 	location = ctx.Vars["location"]
 
 	if events, err = core.SearchLocationEvents(ctx.AccountID, ctx.ApplicationID, location); err != nil {
-		errorHappened(ctx, err.Error(), http.StatusInternalServerError, err)
+		errorHappened(ctx, "failed to get the location event list (1)", http.StatusInternalServerError, err)
 		return
 	}
 

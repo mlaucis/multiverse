@@ -19,58 +19,58 @@ var (
 )
 
 // VerifyRequest verifies if a request is properly signed or not
-func VerifyRequest(ctx *context.Context, numKeyParts int) error {
+func VerifyRequest(ctx *context.Context, numKeyParts int) (string, error) {
 	signature := ctx.R.Header.Get("x-tapglue-signature")
 	if signature == "" {
-		return fmt.Errorf("signature failed on 1")
+		return "", fmt.Errorf("signature failed on 1")
 	}
 
 	if _, err := Base64Decode(signature); err != nil {
-		return fmt.Errorf("signature failed on 2")
+		return "", fmt.Errorf("signature failed on 2")
 	}
 
 	if ctx.Body != nil {
 		if Base64Encode(Sha256String(ctx.Body.String())) != ctx.R.Header.Get("x-tapglue-payload-hash") {
-			return fmt.Errorf("signature failed on 3")
+			return "", fmt.Errorf("signature failed on 3")
 		}
 	} else {
 		if emptyStringBase64 != ctx.R.Header.Get("x-tapglue-payload-hash") {
-			return fmt.Errorf("signature failed on 3")
+			return "", fmt.Errorf("signature failed on 3")
 		}
 	}
 
 	encodedIds := ctx.R.Header.Get("x-tapglue-id")
 	decodedIds, err := Base64Decode(encodedIds)
 	if err != nil {
-		return fmt.Errorf("signature failed on 4")
+		return "", fmt.Errorf("signature failed on 4")
 	}
 
 	ids := strings.SplitN(string(decodedIds), ":", numKeyParts)
 	if len(ids) != numKeyParts {
-		return fmt.Errorf("signature failed on 5")
+		return "", fmt.Errorf("signature failed on 5")
 	}
 
 	accountID, err := strconv.ParseInt(ids[0], 10, 64)
 	if err != nil {
-		return fmt.Errorf("signature failed on 6")
+		return "", fmt.Errorf("signature failed on 6")
 	}
 
 	authToken := ""
 	if numKeyParts == 1 {
 		account, err := core.ReadAccount(accountID)
 		if err != nil {
-			return fmt.Errorf("signature failed on 7")
+			return "", fmt.Errorf("signature failed on 7")
 		}
 		authToken = account.AuthToken
 	} else {
 		applicationID, err := strconv.ParseInt(ids[1], 10, 64)
 		if err != nil {
-			return fmt.Errorf("signature failed on 8")
+			return "", fmt.Errorf("signature failed on 8")
 		}
 
 		application, err := core.ReadApplication(accountID, applicationID)
 		if err != nil {
-			return fmt.Errorf("signature failed on 9")
+			return "", fmt.Errorf("signature failed on 9")
 		}
 
 		authToken = application.AuthToken
@@ -88,8 +88,9 @@ func VerifyRequest(ctx *context.Context, numKeyParts int) error {
 	fmt.Printf("\nSignature %s - %s \n\n", ctx.R.Header.Get("x-tapglue-signature"), Base64Encode(Sha256String(signingKey+signString)))
 	/**/
 
-	if ctx.R.Header.Get("x-tapglue-signature") != Base64Encode(Sha256String(signingKey+signString)) {
-		return fmt.Errorf("signature failed on 10")
+	if ctx.R.Header.Get("x-tapglue-signature") == Base64Encode(Sha256String(signingKey+signString)) {
+		return "", nil
 	}
-	return nil
+
+	return "", fmt.Errorf("signature failed on 10")
 }

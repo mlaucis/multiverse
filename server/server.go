@@ -27,13 +27,13 @@ import (
 const (
 	apiRequestVersionString = "tg%s"
 
-	errUserAgentNotSet           = "User-Agent header must be set"
-	errContentLengthNotSet       = "Content-Length header must be set"
-	errContentTypeNotSet         = "Content-Type header must be set"
-	errContentLengthNotDecodable = "Content-Length header value could not be decoded. %q"
-	errContentLengthSizeNotMatch = "Content-Length header value is different fromt the received value"
-	errRequestBodyCannotBeEmpty  = "Request body cannot be empty"
-	errWrongContentType          = "Wrong Content-Type header value"
+	errUserAgentNotSet           = "User-Agent header must be set (1)"
+	errContentLengthNotSet       = "Content-Length header must be set (1)"
+	errContentTypeNotSet         = "Content-Type header must be set (1)"
+	errContentLengthNotDecodable = "Content-Length header value could not be decoded (2)"
+	errContentLengthSizeNotMatch = "Content-Length header value is different from the received payload size (3)"
+	errRequestBodyCannotBeEmpty  = "Request body cannot be empty (1)"
+	errWrongContentType          = "Wrong Content-Type header value (1)"
 )
 
 var (
@@ -52,18 +52,18 @@ func isRequestExpired(ctx *context.Context) {
 	// TODO check if we should lower the interval
 	requestDate := ctx.R.Header.Get("x-tapglue-date")
 	if requestDate == "" {
-		errorHappened(ctx, "request date is invalid", http.StatusBadRequest, nil)
+		errorHappened(ctx, "invalid request date (1)\nrequest date is empty", http.StatusBadRequest, fmt.Errorf("invalid request date"))
 		return
 	}
 
 	parsedRequestDate, err := time.Parse(time.RFC3339, requestDate)
 	if err != nil {
-		errorHappened(ctx, "request date is invalid", http.StatusBadRequest, err)
+		errorHappened(ctx, "invalid request date (2)\ndate is not in RFC3339 format\n"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
-	if time.Since(parsedRequestDate) > time.Duration(3*24*time.Hour) {
-		errorHappened(ctx, "request is expired", http.StatusExpectationFailed, err)
+	if time.Since(parsedRequestDate) > time.Duration(3*time.Minute) {
+		errorHappened(ctx, "request is expired (1)", http.StatusExpectationFailed, err)
 	}
 }
 
@@ -104,7 +104,7 @@ func validatePutCommon(ctx *context.Context) {
 
 	reqCL, err := strconv.ParseInt(ctx.R.Header.Get("Content-Length"), 10, 64)
 	if err != nil {
-		errorHappened(ctx, fmt.Sprintf(errContentLengthNotDecodable, err), http.StatusBadRequest, err)
+		errorHappened(ctx, errContentLengthNotDecodable+"\n"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
@@ -156,7 +156,7 @@ func validatePostCommon(ctx *context.Context) {
 
 	reqCL, err := strconv.ParseInt(ctx.R.Header.Get("Content-Length"), 10, 64)
 	if err != nil {
-		errorHappened(ctx, fmt.Sprintf(errContentLengthNotDecodable, err), http.StatusLengthRequired, err)
+		errorHappened(ctx, errContentLengthNotDecodable+"\n"+err.Error(), http.StatusLengthRequired, err)
 		return
 	}
 
@@ -177,8 +177,8 @@ func validateAccountRequestToken(ctx *context.Context) {
 		return
 	}
 
-	if err := keys.VerifyRequest(ctx, 1); err != nil {
-		errorHappened(ctx, "request is not properly signed", http.StatusUnauthorized, err)
+	if errMsg, err := keys.VerifyRequest(ctx, 1); err != nil {
+		errorHappened(ctx, errMsg, http.StatusUnauthorized, err)
 	}
 }
 
@@ -188,15 +188,18 @@ func validateApplicationRequestToken(ctx *context.Context) {
 		return
 	}
 
-	var err error
+	var (
+		errMsg string
+		err    error
+	)
 	if ctx.Version == "0.1" {
-		err = tokens.VerifyRequest(ctx, 3)
+		errMsg, err = tokens.VerifyRequest(ctx, 3)
 	} else {
-		err = keys.VerifyRequest(ctx, 2)
+		errMsg, err = keys.VerifyRequest(ctx, 2)
 	}
 
 	if err != nil {
-		errorHappened(ctx, "request is not properly signed", http.StatusUnauthorized, err)
+		errorHappened(ctx, errMsg, http.StatusUnauthorized, err)
 	}
 }
 
@@ -206,13 +209,13 @@ func checkAccountSession(ctx *context.Context) {
 		return
 	}
 
-	sessionToken, err := validator.CheckAccountSession(ctx.R)
+	sessionToken, errMsg, err := validator.CheckAccountSession(ctx.R)
 	if err == nil {
 		ctx.SessionToken = sessionToken
 		return
 	}
 
-	errorHappened(ctx, "invalid session", http.StatusUnauthorized, err)
+	errorHappened(ctx, errMsg, http.StatusUnauthorized, err)
 }
 
 // checkApplicationSession checks if the session token is valid or not
@@ -222,14 +225,14 @@ func checkApplicationSession(ctx *context.Context) {
 	}
 
 	var (
-		sessionToken string
-		err          error
+		errMsg, sessionToken string
+		err                  error
 	)
 
 	if ctx.Version == "0.1" {
-		sessionToken, err = validator.CheckApplicationSimpleSession(ctx.AccountID, ctx.ApplicationID, ctx.ApplicationUserID, ctx.R)
+		sessionToken, errMsg, err = validator.CheckApplicationSimpleSession(ctx.AccountID, ctx.ApplicationID, ctx.ApplicationUserID, ctx.R)
 	} else {
-		sessionToken, err = validator.CheckApplicationSession(ctx.R)
+		sessionToken, errMsg, err = validator.CheckApplicationSession(ctx.R)
 	}
 
 	if err == nil {
@@ -237,19 +240,19 @@ func checkApplicationSession(ctx *context.Context) {
 		return
 	}
 
-	errorHappened(ctx, "invalid session", http.StatusUnauthorized, err)
+	errorHappened(ctx, errMsg, http.StatusUnauthorized, err)
 }
 
 // writeCacheHeaders will add the corresponding cache headers based on the time supplied (in seconds)
 func writeCacheHeaders(cacheTime uint, ctx *context.Context) {
-	/*if cacheTime > 0 {
+	if cacheTime > 0 {
 		ctx.W.Header().Set("Cache-Control", fmt.Sprintf(`"max-age=%d, public"`, cacheTime))
 		ctx.W.Header().Set("Expires", time.Now().Add(time.Duration(cacheTime)*time.Second).Format(http.TimeFormat))
-	} else {*/
-	ctx.W.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	ctx.W.Header().Set("Pragma", "no-cache")
-	ctx.W.Header().Set("Expires", "0")
-	//}
+	} else {
+		ctx.W.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+		ctx.W.Header().Set("Pragma", "no-cache")
+		ctx.W.Header().Set("Expires", "0")
+	}
 }
 
 func writeCorsHeaders(ctx *context.Context) {
@@ -391,7 +394,7 @@ func customHandler(routeName, version string, route *route, mainLog, errorLog ch
 
 		ctx, err := context.NewContext(w, r, mainLog, errorLog, routeName, route.scope, version, route.contextFilters, environment, debugMode)
 		if err != nil {
-			errorHappened(ctx, "failed to get a request context", http.StatusInternalServerError, err)
+			errorHappened(ctx, "failed to get a request context (1)", http.StatusInternalServerError, err)
 			return
 		}
 

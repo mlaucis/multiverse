@@ -173,7 +173,7 @@ func (s *ServerSuite) TestUpdateConnection_NotCrossUpdate(c *C) {
 
 	c.Assert(code, Equals, http.StatusUnauthorized)
 
-	c.Assert(body, Equals, "401 invalid session")
+	c.Assert(body, Equals, "401 failed to check session token (9)")
 }
 
 // Test updateConnection request with a wrong id
