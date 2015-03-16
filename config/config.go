@@ -29,6 +29,7 @@ type (
 	Config struct {
 		Environment    string `json:"env"`
 		UseArtwork     bool   `json:"use_artwork"`
+		UseSSL         bool   `json:"use_ssl"`
 		SkipSecurity   bool   `json:"skip_security"`
 		JSONLogs       bool   `json:"json_logs"`
 		ListenHostPort string `json:"listenHost"`
@@ -43,6 +44,7 @@ func defaultConfig() *Config {
 	cfg := &Config{}
 	cfg.Environment = "dev"
 	cfg.UseArtwork = true
+	cfg.UseSSL = false
 	cfg.SkipSecurity = false
 	cfg.JSONLogs = false
 	cfg.ListenHostPort = ":8082"

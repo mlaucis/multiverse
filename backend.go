@@ -115,5 +115,9 @@ func main() {
 	}
 
 	log.Printf("Starting the server at \"%s\" in %s", conf.ListenHostPort, time.Now().Sub(startTime))
-	log.Fatal(server.ListenAndServe())
+	if conf.UseSSL {
+		log.Fatal(server.ListenAndServeTLS("./csr/STAR_tapglue_com.crt", "./csr/myserver.key"))
+	} else {
+		log.Fatal(server.ListenAndServe())
+	}
 }
