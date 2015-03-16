@@ -51,6 +51,9 @@ func TGLog(msg chan *LogMsg) {
 				if m.RawError != nil {
 					rawError = m.RawError.Error()
 				}
+				if m.StatusCode < 300 {
+					m.Location = ""
+				}
 
 				log.Printf(
 					logFormat,
@@ -79,6 +82,9 @@ func JSONLog(msg chan *LogMsg) {
 			{
 				m.Duration = m.End.Sub(m.Start).String()
 				m.Headers = getSanitizedHeaders(m.Headers)
+				if m.StatusCode < 300 {
+					m.Location = ""
+				}
 
 				message, err := json.Marshal(m)
 				if err != nil {

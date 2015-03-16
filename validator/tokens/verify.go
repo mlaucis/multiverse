@@ -73,5 +73,5 @@ func VerifyRequest(ctx *context.Context, numKeyParts int) (string, error) {
 		return "", nil
 	}
 
-	return "application key validation failed (9)\nsignature mismatch", fmt.Errorf("app key mismatch expected %s got %s", ctx.R.Header.Get("x-tapglue-app-key"))
+	return "application key validation failed (9)\nsignature mismatch", fmt.Errorf("app key mismatch expected %s got %s", ctx.R.Header.Get("x-tapglue-app-key"), authToken)
 }
