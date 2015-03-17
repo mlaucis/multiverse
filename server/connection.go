@@ -6,11 +6,9 @@ package server
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
-
-	"fmt"
-
 	"strings"
 
 	"github.com/tapglue/backend/context"

@@ -2,7 +2,7 @@
  * @author Onur Akpolat <onurakpolat@gmail.com>
  */
 
-package server
+package server_test
 
 import (
 	"encoding/json"
@@ -332,9 +332,7 @@ func (s *ServerSuite) TestLogoutUser_OK(c *C) {
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
 
-	var sessionToken struct {
-		Token string `json:"token"`
-	} = struct {
+	sessionToken := struct {
 		Token string `json:"token"`
 	}{}
 	err = json.Unmarshal([]byte(body), &sessionToken)

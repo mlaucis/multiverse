@@ -15,7 +15,7 @@ import (
 	"github.com/tapglue/backend/utils"
 )
 
-// ReadUser returns the user matching the ID or an error
+// ReadApplicationUser returns the user matching the ID or an error
 func ReadApplicationUser(accountID, applicationID, userID int64) (user *entity.User, err error) {
 	key := storageClient.User(accountID, applicationID, userID)
 
@@ -208,7 +208,7 @@ func WriteUser(user *entity.User, retrieve bool) (usr *entity.User, err error) {
 	return ReadApplicationUser(user.AccountID, user.ApplicationID, user.ID)
 }
 
-// CreateUserSession handles the creation of a user session and returns the session token
+// CreateApplicationUserSession handles the creation of a user session and returns the session token
 func CreateApplicationUserSession(user *entity.User) (string, error) {
 	// TODO support multiple sessions?
 	// TODO rate limit this to x / per day?
@@ -233,7 +233,7 @@ func CreateApplicationUserSession(user *entity.User) (string, error) {
 	return token, nil
 }
 
-// RefreshUserSession generates a new session token for the user session
+// RefreshApplicationUserSession generates a new session token for the user session
 func RefreshApplicationUserSession(sessionToken string, user *entity.User) (string, error) {
 	// TODO support multiple sessions?
 	// TODO rate limit this to x / per day?
@@ -283,7 +283,7 @@ func GetApplicationUserSession(user *entity.User) (string, error) {
 	return storedSessionToken, nil
 }
 
-// DestroyUserSession removes the user session
+// DestroyApplicationUserSession removes the user session
 func DestroyApplicationUserSession(sessionToken string, user *entity.User) error {
 	// TODO support multiple sessions?
 	// TODO rate limit this to x / per day?
@@ -310,7 +310,7 @@ func DestroyApplicationUserSession(sessionToken string, user *entity.User) error
 	return nil
 }
 
-// ApplicationuserByEmailExists checks if an application user exists by searching it via the email
+// ApplicationUserByEmailExists checks if an application user exists by searching it via the email
 func ApplicationUserByEmailExists(accountID, applicationID int64, email string) (bool, error) {
 	emailListKey := storageClient.ApplicationUserByEmail(accountID, applicationID, utils.Base64Encode(email))
 

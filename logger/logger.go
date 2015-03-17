@@ -97,6 +97,7 @@ func JSONLog(msg chan *LogMsg) {
 	}
 }
 
+// TGSilentLog logs all messages to "/dev/null"
 func TGSilentLog(msg chan *LogMsg) {
 	for {
 		select {

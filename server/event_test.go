@@ -2,7 +2,7 @@
  * @author Onur Akpolat <onurakpolat@gmail.com>
  */
 
-package server
+package server_test
 
 import (
 	"encoding/json"
@@ -13,6 +13,7 @@ import (
 	"testing"
 
 	"github.com/tapglue/backend/core/entity"
+	"github.com/tapglue/backend/server"
 	"github.com/tapglue/backend/validator/keys"
 
 	"github.com/gorilla/mux"
@@ -374,10 +375,10 @@ func BenchmarkCreateEvent1_Write(b *testing.B) {
 	routeName := "createEvent"
 	routePath := getComposedRoute(routeName, account.ID, application.ID, user.ID)
 
-	requestRoute := getRoute(routeName)
+	requestRoute := server.GetRoute(routeName, apiVersion)
 
 	req, err := http.NewRequest(
-		requestRoute.method,
+		requestRoute.Method,
 		routePath,
 		strings.NewReader(payload),
 	)
@@ -387,7 +388,7 @@ func BenchmarkCreateEvent1_Write(b *testing.B) {
 
 	createCommonRequestHeaders(req)
 	if application.AuthToken != "" {
-		err := keys.SignRequest(application.AuthToken, requestRoute.scope, apiVersion, 2, req)
+		err := keys.SignRequest(application.AuthToken, requestRoute.Scope, apiVersion, 2, req)
 		if err != nil {
 			panic(err)
 		}
@@ -398,8 +399,8 @@ func BenchmarkCreateEvent1_Write(b *testing.B) {
 	m := mux.NewRouter()
 
 	m.
-		HandleFunc(requestRoute.routePattern(apiVersion), customHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan, "test", true)).
-		Methods(requestRoute.method)
+		HandleFunc(requestRoute.RoutePattern(apiVersion), server.CustomHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan, "test", true)).
+		Methods(requestRoute.Method)
 
 	for i := 1; i <= b.N; i++ {
 		m.ServeHTTP(w, req)
@@ -427,10 +428,10 @@ func BenchmarkCreateEvent2_Read(b *testing.B) {
 	routeName := "getEvent"
 	routePath := getComposedRoute(routeName, account.ID, application.ID, user.ID, event.ID)
 
-	requestRoute := getRoute(routeName)
+	requestRoute := server.GetRoute(routeName, apiVersion)
 
 	req, err := http.NewRequest(
-		requestRoute.method,
+		requestRoute.Method,
 		routePath,
 		nil,
 	)
@@ -440,7 +441,7 @@ func BenchmarkCreateEvent2_Read(b *testing.B) {
 
 	createCommonRequestHeaders(req)
 	if application.AuthToken != "" {
-		err := keys.SignRequest(application.AuthToken, requestRoute.scope, apiVersion, 2, req)
+		err := keys.SignRequest(application.AuthToken, requestRoute.Scope, apiVersion, 2, req)
 		if err != nil {
 			panic(err)
 		}
@@ -451,8 +452,8 @@ func BenchmarkCreateEvent2_Read(b *testing.B) {
 	m := mux.NewRouter()
 
 	m.
-		HandleFunc(requestRoute.routePattern(apiVersion), customHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan, "test", true)).
-		Methods(requestRoute.method)
+		HandleFunc(requestRoute.RoutePattern(apiVersion), server.CustomHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan, "test", true)).
+		Methods(requestRoute.Method)
 
 	for i := 1; i <= b.N; i++ {
 		m.ServeHTTP(w, req)

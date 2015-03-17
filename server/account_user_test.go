@@ -2,7 +2,7 @@
  * @author Onur Akpolat <onurakpolat@gmail.com>
  */
 
-package server
+package server_test
 
 import (
 	"encoding/json"

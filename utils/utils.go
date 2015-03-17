@@ -36,7 +36,7 @@ func PeakBody(r *http.Request) *bytes.Buffer {
 	return buff.Buffer
 }
 
-// sha256String takes a byte slice and returns its sha256 checksum value
+// Sha256String takes a byte slice and returns its sha256 checksum value
 func Sha256String(value string) string {
 	hasher := sha256.New()
 	hasher.Write([]byte(value))
@@ -44,12 +44,12 @@ func Sha256String(value string) string {
 	return string(hasher.Sum(nil))
 }
 
-// base64Encode encodes a string in base64
+// Base64Encode encodes a string in base64
 func Base64Encode(value string) string {
 	return base64.StdEncoding.EncodeToString([]byte(value))
 }
 
-// base64Decode decodes a string from base64 to the decoded version
+// Base64Decode decodes a string from base64 to the decoded version
 func Base64Decode(value string) (string, error) {
 	result, err := base64.StdEncoding.DecodeString(value)
 	return string(result), err

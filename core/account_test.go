@@ -2,11 +2,12 @@
  * @author Onur Akpolat <onurakpolat@gmail.com>
  */
 
-package core
+package core_test
 
 import (
 	"testing"
 
+	. "github.com/tapglue/backend/core"
 	. "gopkg.in/check.v1"
 )
 

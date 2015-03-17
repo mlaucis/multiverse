@@ -12,9 +12,9 @@ import (
 	"regexp"
 
 	"github.com/tapglue/backend/core"
+	"github.com/tapglue/backend/core/entity"
 	"github.com/tapglue/backend/storage"
 
-	"github.com/tapglue/backend/core/entity"
 	"gopkg.in/redis.v2"
 )
 
@@ -101,7 +101,7 @@ func StringLengthBetween(value string, minLength, maxLength int) bool {
 	return true
 }
 
-// accountExists validates if an account exists and returns the account or an error
+// AccountExists validates if an account exists and returns the account or an error
 func AccountExists(accountID int64) bool {
 	account, err := core.ReadAccount(accountID)
 	if err != nil {
@@ -121,7 +121,7 @@ func ApplicationExists(accountID, applicationID int64) bool {
 	return application.Enabled
 }
 
-// userExists validates if a user exists and returns it or an error
+// UserExists validates if a user exists and returns it or an error
 func UserExists(accountID, applicationID, userID int64) bool {
 	user, err := core.ReadApplicationUser(accountID, applicationID, userID)
 	if err != nil {

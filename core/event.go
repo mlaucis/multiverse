@@ -13,7 +13,6 @@ import (
 	"github.com/tapglue/backend/core/entity"
 
 	"github.com/tapglue/georedis"
-
 	red "gopkg.in/redis.v2"
 )
 

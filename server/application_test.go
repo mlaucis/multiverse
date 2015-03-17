@@ -2,7 +2,7 @@
  * @author Onur Akpolat <onurakpolat@gmail.com>
  */
 
-package server
+package server_test
 
 import (
 	"encoding/json"
@@ -10,8 +10,8 @@ import (
 	"net/http"
 
 	"github.com/tapglue/backend/core/entity"
-
 	"github.com/tapglue/backend/utils"
+
 	. "gopkg.in/check.v1"
 )
 

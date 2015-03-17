@@ -16,6 +16,7 @@ var (
 	errInvalidEmailAddress     = fmt.Errorf("invalid email address")
 )
 
+// IsValidLoginPayload checks if the login payload is valid
 func IsValidLoginPayload(loginPayload *entity.LoginPayload) error {
 	if loginPayload.Email != "" && loginPayload.Username != "" {
 		return errGotBothUsernameAndEmail

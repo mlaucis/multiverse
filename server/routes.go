@@ -4,394 +4,411 @@
 
 package server
 
-import "github.com/tapglue/backend/context"
+import (
+	"fmt"
+
+	"github.com/tapglue/backend/context"
+)
 
 // Route structure
 type (
-	routeFunc func(*context.Context)
+	// RouteFunc defines the pattern for a route handling function
+	RouteFunc func(*context.Context)
 
-	route struct {
-		method         string
-		pattern        string
-		cPattern       string
-		scope          string
-		handlers       []routeFunc
-		contextFilters []context.ContextFilter
+	// Route holds the route pattern
+	Route struct {
+		Method   string
+		Pattern  string
+		CPattern string
+		Scope    string
+		Handlers []RouteFunc
+		Filters  []context.Filter
 	}
 )
 
-func (r *route) routePattern(version string) string {
-	return "/" + version + r.pattern
+// RoutePattern returns the route pattern for a certain version
+func (r *Route) RoutePattern(version string) string {
+	return "/" + version + r.Pattern
 }
 
-func (r *route) composePattern(version string) string {
-	return "/" + version + r.cPattern
+// ComposePattern returns the composed pattern for a route
+func (r *Route) ComposePattern(version string) string {
+	return "/" + version + r.CPattern
+}
+
+// GetRoute takes a route name and returns the route including the version
+func GetRoute(routeName, apiVersion string) *Route {
+	if _, ok := routes[apiVersion][routeName]; !ok {
+		panic(fmt.Errorf("You requested a route, %s, that does not exists in the routing table for version%s\n", routeName, apiVersion))
+	}
+
+	return routes[apiVersion][routeName]
 }
 
 // Route definitions
-var routes = map[string]map[string]*route{
+var routes = map[string]map[string]*Route{
 	"0.1": {
 		// General
-		"index": &route{
-			method:   "GET",
-			pattern:  "/",
-			cPattern: "/",
-			scope:    "/",
-			handlers: []routeFunc{
+		"index": &Route{
+			Method:   "GET",
+			Pattern:  "/",
+			CPattern: "/",
+			Scope:    "/",
+			Handlers: []RouteFunc{
 				home,
 			},
 		},
 		// Account
-		"getAccount": &route{
-			method:   "GET",
-			pattern:  "/account/{accountId:[0-9]{1,20}}",
-			cPattern: "/account/%d",
-			scope:    "account/index",
-			handlers: []routeFunc{
+		"getAccount": &Route{
+			Method:   "GET",
+			Pattern:  "/account/{accountId:[0-9]{1,20}}",
+			CPattern: "/account/%d",
+			Scope:    "account/index",
+			Handlers: []RouteFunc{
 				validateAccountRequestToken,
 				checkAccountSession,
 				getAccount,
 			},
-			contextFilters: []context.ContextFilter{
+			Filters: []context.Filter{
 				contextHasAccountID,
 				contextHasAccount,
 			},
 		},
 		/**/
-		"updateAccount": &route{
-			method:   "PUT",
-			pattern:  "/account/{accountId:[0-9]{1,20}}",
-			cPattern: "/account/%d",
-			scope:    "account/update",
-			handlers: []routeFunc{
+		"updateAccount": &Route{
+			Method:   "PUT",
+			Pattern:  "/account/{accountId:[0-9]{1,20}}",
+			CPattern: "/account/%d",
+			Scope:    "account/update",
+			Handlers: []RouteFunc{
 				validateAccountRequestToken,
 				checkAccountSession,
 				updateAccount,
 			},
-			contextFilters: []context.ContextFilter{
+			Filters: []context.Filter{
 				contextHasAccountID,
 				contextHasAccount,
 			},
 		},
-		"deleteAccount": &route{
-			method:   "DELETE",
-			pattern:  "/account/{accountId:[0-9]{1,20}}",
-			cPattern: "/account/%d",
-			scope:    "account/delete",
-			handlers: []routeFunc{
+		"deleteAccount": &Route{
+			Method:   "DELETE",
+			Pattern:  "/account/{accountId:[0-9]{1,20}}",
+			CPattern: "/account/%d",
+			Scope:    "account/delete",
+			Handlers: []RouteFunc{
 				validateAccountRequestToken,
 				checkAccountSession,
 				deleteAccount,
 			},
-			contextFilters: []context.ContextFilter{
+			Filters: []context.Filter{
 				contextHasAccountID,
 			},
 		},
-		"createAccount": &route{
-			method:   "POST",
-			pattern:  "/accounts",
-			cPattern: "/accounts",
-			scope:    "account/create",
-			handlers: []routeFunc{
+		"createAccount": &Route{
+			Method:   "POST",
+			Pattern:  "/accounts",
+			CPattern: "/accounts",
+			Scope:    "account/create",
+			Handlers: []RouteFunc{
 				createAccount,
 			},
 		},
 		/**/
 		// AccountUser
-		"getAccountUser": &route{
-			method:   "GET",
-			pattern:  "/account/{accountId:[0-9]{1,20}}/user/{userId:[0-9]+}",
-			cPattern: "/account/%d/user/%d",
-			scope:    "account/user/index",
-			handlers: []routeFunc{
+		"getAccountUser": &Route{
+			Method:   "GET",
+			Pattern:  "/account/{accountId:[0-9]{1,20}}/user/{userId:[0-9]+}",
+			CPattern: "/account/%d/user/%d",
+			Scope:    "account/user/index",
+			Handlers: []RouteFunc{
 				validateAccountRequestToken,
 				checkAccountSession,
 				getAccountUser,
 			},
-			contextFilters: []context.ContextFilter{
+			Filters: []context.Filter{
 				contextHasAccountID,
 				contextHasAccountUserID,
 				contextHasAccountUser,
 			},
 		},
-		"updateAccountUser": &route{
-			method:   "PUT",
-			pattern:  "/account/{accountId:[0-9]{1,20}}/user/{userId:[0-9]+}",
-			cPattern: "/account/%d/user/%d",
-			scope:    "account/user/update",
-			handlers: []routeFunc{
+		"updateAccountUser": &Route{
+			Method:   "PUT",
+			Pattern:  "/account/{accountId:[0-9]{1,20}}/user/{userId:[0-9]+}",
+			CPattern: "/account/%d/user/%d",
+			Scope:    "account/user/update",
+			Handlers: []RouteFunc{
 				validateAccountRequestToken,
 				checkAccountSession,
 				updateAccountUser,
 			},
-			contextFilters: []context.ContextFilter{
+			Filters: []context.Filter{
 				contextHasAccountID,
 				contextHasAccountUserID,
 				contextHasAccountUser,
 			},
 		},
-		"deleteAccountUser": &route{
-			method:   "DELETE",
-			pattern:  "/account/{accountId:[0-9]{1,20}}/user/{userId:[0-9]+}",
-			cPattern: "/account/%d/user/%d",
-			scope:    "account/user/delete",
-			handlers: []routeFunc{
+		"deleteAccountUser": &Route{
+			Method:   "DELETE",
+			Pattern:  "/account/{accountId:[0-9]{1,20}}/user/{userId:[0-9]+}",
+			CPattern: "/account/%d/user/%d",
+			Scope:    "account/user/delete",
+			Handlers: []RouteFunc{
 				validateAccountRequestToken,
 				checkAccountSession,
 				deleteAccountUser,
 			},
-			contextFilters: []context.ContextFilter{
+			Filters: []context.Filter{
 				contextHasAccountID,
 				contextHasAccountUserID,
 			},
 		},
-		"createAccountUser": &route{
-			method:   "POST",
-			pattern:  "/account/{accountId:[0-9]{1,20}}/users",
-			cPattern: "/account/%d/users",
-			scope:    "account/user/create",
-			handlers: []routeFunc{
+		"createAccountUser": &Route{
+			Method:   "POST",
+			Pattern:  "/account/{accountId:[0-9]{1,20}}/users",
+			CPattern: "/account/%d/users",
+			Scope:    "account/user/create",
+			Handlers: []RouteFunc{
 				validateAccountRequestToken,
 				createAccountUser,
 			},
-			contextFilters: []context.ContextFilter{
+			Filters: []context.Filter{
 				contextHasAccountID,
 			},
 		},
-		"getAccountUserList": &route{
-			method:   "GET",
-			pattern:  "/account/{accountId:[0-9]{1,20}}/users",
-			cPattern: "/account/%d/users",
-			scope:    "account/user/list",
-			handlers: []routeFunc{
+		"getAccountUserList": &Route{
+			Method:   "GET",
+			Pattern:  "/account/{accountId:[0-9]{1,20}}/users",
+			CPattern: "/account/%d/users",
+			Scope:    "account/user/list",
+			Handlers: []RouteFunc{
 				validateAccountRequestToken,
 				checkAccountSession,
 				getAccountUserList,
 			},
-			contextFilters: []context.ContextFilter{
+			Filters: []context.Filter{
 				contextHasAccountID,
 			},
 		},
-		"loginAccountUser": &route{
-			method:   "POST",
-			pattern:  "/account/user/login",
-			cPattern: "/account/user/login",
-			scope:    "account/user/login",
-			handlers: []routeFunc{
+		"loginAccountUser": &Route{
+			Method:   "POST",
+			Pattern:  "/account/user/login",
+			CPattern: "/account/user/login",
+			Scope:    "account/user/login",
+			Handlers: []RouteFunc{
 				loginAccountUser,
 			},
 		},
-		"refreshAccountUserSession": &route{
-			method:   "POST",
-			pattern:  "/account/{accountId:[0-9]{1,20}}/user/refreshSession",
-			cPattern: "/account/%d/application/%d/user/refreshsession",
-			scope:    "account/user/refreshAccountUserSession",
-			handlers: []routeFunc{
+		"refreshAccountUserSession": &Route{
+			Method:   "POST",
+			Pattern:  "/account/{accountId:[0-9]{1,20}}/user/refreshSession",
+			CPattern: "/account/%d/application/%d/user/refreshsession",
+			Scope:    "account/user/refreshAccountUserSession",
+			Handlers: []RouteFunc{
 				validateAccountRequestToken,
 				checkAccountSession,
 				refreshAccountUserSession,
 			},
-			contextFilters: []context.ContextFilter{
+			Filters: []context.Filter{
 				contextHasAccountID,
 			},
 		},
-		"logoutAccountUser": &route{
-			method:   "POST",
-			pattern:  "/account/{accountId:[0-9]{1,20}}/user/{userId:[0-9]{1,20}}/logout",
-			cPattern: "/account/%d/user/%d/logout",
-			scope:    "account/user/logout",
-			handlers: []routeFunc{
+		"logoutAccountUser": &Route{
+			Method:   "POST",
+			Pattern:  "/account/{accountId:[0-9]{1,20}}/user/{userId:[0-9]{1,20}}/logout",
+			CPattern: "/account/%d/user/%d/logout",
+			Scope:    "account/user/logout",
+			Handlers: []RouteFunc{
 				validateAccountRequestToken,
 				checkAccountSession,
 				logoutAccountUser,
 			},
-			contextFilters: []context.ContextFilter{
+			Filters: []context.Filter{
 				contextHasAccountID,
 				contextHasAccountUserID,
 			},
 		},
 		// Application
-		"getApplication": &route{
-			method:   "GET",
-			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}",
-			cPattern: "/account/%d/application/%d",
-			scope:    "application/index",
-			handlers: []routeFunc{
+		"getApplication": &Route{
+			Method:   "GET",
+			Pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}",
+			CPattern: "/account/%d/application/%d",
+			Scope:    "application/index",
+			Handlers: []RouteFunc{
 				validateAccountRequestToken,
 				checkAccountSession,
 				getApplication,
 			},
-			contextFilters: []context.ContextFilter{
+			Filters: []context.Filter{
 				contextHasAccountID,
 				contextHasApplicationID,
 				contextHasApplication,
 			},
 		},
-		"updateApplication": &route{
-			method:   "PUT",
-			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}",
-			cPattern: "/account/%d/application/%d",
-			scope:    "application/update",
-			handlers: []routeFunc{
+		"updateApplication": &Route{
+			Method:   "PUT",
+			Pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}",
+			CPattern: "/account/%d/application/%d",
+			Scope:    "application/update",
+			Handlers: []RouteFunc{
 				validateAccountRequestToken,
 				checkAccountSession,
 				updateApplication,
 			},
-			contextFilters: []context.ContextFilter{
+			Filters: []context.Filter{
 				contextHasAccountID,
 				contextHasApplicationID,
 				contextHasApplication,
 			},
 		},
-		"deleteApplication": &route{
-			method:   "DELETE",
-			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}",
-			cPattern: "/account/%d/application/%d",
-			scope:    "application/delete",
-			handlers: []routeFunc{
+		"deleteApplication": &Route{
+			Method:   "DELETE",
+			Pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}",
+			CPattern: "/account/%d/application/%d",
+			Scope:    "application/delete",
+			Handlers: []RouteFunc{
 				validateAccountRequestToken,
 				checkAccountSession,
 				deleteApplication,
 			},
-			contextFilters: []context.ContextFilter{
+			Filters: []context.Filter{
 				contextHasAccountID,
 				contextHasApplicationID,
 			},
 		},
-		"createApplication": &route{
-			method:   "POST",
-			pattern:  "/account/{accountId:[0-9]{1,20}}/applications",
-			cPattern: "/account/%d/applications",
-			scope:    "application/create",
-			handlers: []routeFunc{
+		"createApplication": &Route{
+			Method:   "POST",
+			Pattern:  "/account/{accountId:[0-9]{1,20}}/applications",
+			CPattern: "/account/%d/applications",
+			Scope:    "application/create",
+			Handlers: []RouteFunc{
 				validateAccountRequestToken,
 				checkAccountSession,
 				createApplication,
 			},
-			contextFilters: []context.ContextFilter{
+			Filters: []context.Filter{
 				contextHasAccountID,
 			},
 		},
-		"getApplications": &route{
-			method:   "GET",
-			pattern:  "/account/{accountId:[0-9]{1,20}}/applications",
-			cPattern: "/account/%d/applications",
-			scope:    "account/applications/list",
-			handlers: []routeFunc{
+		"getApplications": &Route{
+			Method:   "GET",
+			Pattern:  "/account/{accountId:[0-9]{1,20}}/applications",
+			CPattern: "/account/%d/applications",
+			Scope:    "account/applications/list",
+			Handlers: []RouteFunc{
 				validateAccountRequestToken,
 				checkAccountSession,
 				getApplicationList,
 			},
-			contextFilters: []context.ContextFilter{
+			Filters: []context.Filter{
 				contextHasAccountID,
 			},
 		},
 		// User
-		"getUser": &route{
-			method:   "GET",
-			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]+}",
-			cPattern: "/account/%d/application/%d/user/%d",
-			scope:    "application/user/index",
-			handlers: []routeFunc{
+		"getUser": &Route{
+			Method:   "GET",
+			Pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]+}",
+			CPattern: "/account/%d/application/%d/user/%d",
+			Scope:    "application/user/index",
+			Handlers: []RouteFunc{
 				validateApplicationRequestToken,
 				checkApplicationSession,
 				getApplicationUser,
 			},
-			contextFilters: []context.ContextFilter{
+			Filters: []context.Filter{
 				contextHasAccountID,
 				contextHasApplicationID,
 				contextHasApplicationUserID,
 				contextHasApplicationUser,
 			},
 		},
-		"updateUser": &route{
-			method:   "PUT",
-			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]+}",
-			cPattern: "/account/%d/application/%d/user/%d",
-			scope:    "application/user/update",
-			handlers: []routeFunc{
+		"updateUser": &Route{
+			Method:   "PUT",
+			Pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]+}",
+			CPattern: "/account/%d/application/%d/user/%d",
+			Scope:    "application/user/update",
+			Handlers: []RouteFunc{
 				validateApplicationRequestToken,
 				checkApplicationSession,
 				updateApplicationUser,
 			},
-			contextFilters: []context.ContextFilter{
+			Filters: []context.Filter{
 				contextHasAccountID,
 				contextHasApplicationID,
 				contextHasApplicationUserID,
 				contextHasApplicationUser,
 			},
 		},
-		"deleteUser": &route{
-			method:   "DELETE",
-			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]+}",
-			cPattern: "/account/%d/application/%d/user/%d",
-			scope:    "application/user/delete",
-			handlers: []routeFunc{
+		"deleteUser": &Route{
+			Method:   "DELETE",
+			Pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]+}",
+			CPattern: "/account/%d/application/%d/user/%d",
+			Scope:    "application/user/delete",
+			Handlers: []RouteFunc{
 				validateApplicationRequestToken,
 				checkApplicationSession,
 				deleteApplicationUser,
 			},
-			contextFilters: []context.ContextFilter{
+			Filters: []context.Filter{
 				contextHasAccountID,
 				contextHasApplicationID,
 				contextHasApplicationUserID,
 			},
 		},
-		"createUser": &route{
-			method:   "POST",
-			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/users",
-			cPattern: "/account/%d/application/%d/users",
-			scope:    "application/user/create",
-			handlers: []routeFunc{
+		"createUser": &Route{
+			Method:   "POST",
+			Pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/users",
+			CPattern: "/account/%d/application/%d/users",
+			Scope:    "application/user/create",
+			Handlers: []RouteFunc{
 				validateApplicationRequestToken,
 				createApplicationUser,
 			},
-			contextFilters: []context.ContextFilter{
+			Filters: []context.Filter{
 				contextHasAccountID,
 				contextHasApplicationID,
 			},
 		},
-		"loginUser": &route{
-			method:   "POST",
-			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/login",
-			cPattern: "/account/%d/application/%d/user/login",
-			scope:    "application/user/login",
-			handlers: []routeFunc{
+		"loginUser": &Route{
+			Method:   "POST",
+			Pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/login",
+			CPattern: "/account/%d/application/%d/user/login",
+			Scope:    "application/user/login",
+			Handlers: []RouteFunc{
 				validateApplicationRequestToken,
 				loginApplicationUser,
 			},
-			contextFilters: []context.ContextFilter{
+			Filters: []context.Filter{
 				contextHasAccountID,
 				contextHasApplicationID,
 			},
 		},
-		"refreshUserSession": &route{
-			method:   "POST",
-			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]{1,20}}/refreshSession",
-			cPattern: "/account/%d/application/%d/user/%d/refreshsession",
-			scope:    "application/user/refreshSession",
-			handlers: []routeFunc{
+		"refreshUserSession": &Route{
+			Method:   "POST",
+			Pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]{1,20}}/refreshSession",
+			CPattern: "/account/%d/application/%d/user/%d/refreshsession",
+			Scope:    "application/user/refreshSession",
+			Handlers: []RouteFunc{
 				validateApplicationRequestToken,
 				checkApplicationSession,
 				refreshApplicationUserSession,
 			},
-			contextFilters: []context.ContextFilter{
+			Filters: []context.Filter{
 				contextHasAccountID,
 				contextHasApplicationID,
 				contextHasApplicationUserID,
 			},
 		},
-		"logoutUser": &route{
-			method:   "POST",
-			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]{1,20}}/logout",
-			cPattern: "/account/%d/application/%d/user/%d/logout",
-			scope:    "application/user/logout",
-			handlers: []routeFunc{
+		"logoutUser": &Route{
+			Method:   "POST",
+			Pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]{1,20}}/logout",
+			CPattern: "/account/%d/application/%d/user/%d/logout",
+			Scope:    "application/user/logout",
+			Handlers: []RouteFunc{
 				validateApplicationRequestToken,
 				checkApplicationSession,
 				logoutApplicationUser,
 			},
-			contextFilters: []context.ContextFilter{
+			Filters: []context.Filter{
 				contextHasAccountID,
 				contextHasApplicationID,
 				contextHasApplicationUserID,
@@ -407,97 +424,97 @@ var routes = map[string]map[string]*route{
 			},
 		*/
 		// UserConnection
-		"createConnection": &route{
-			method:   "POST",
-			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]+}/connections",
-			cPattern: "/account/%d/application/%d/user/%d/connections",
-			scope:    "application/user/connection/create",
-			handlers: []routeFunc{
+		"createConnection": &Route{
+			Method:   "POST",
+			Pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]+}/connections",
+			CPattern: "/account/%d/application/%d/user/%d/connections",
+			Scope:    "application/user/connection/create",
+			Handlers: []RouteFunc{
 				validateApplicationRequestToken,
 				checkApplicationSession,
 				createConnection,
 			},
-			contextFilters: []context.ContextFilter{
+			Filters: []context.Filter{
 				contextHasAccountID,
 				contextHasApplicationID,
 				contextHasApplicationUserID,
 			},
 		},
-		"updateConnection": &route{
-			method:   "PUT",
-			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]{1,20}}/connection/{userToId:[a-zA-Z0-9]+}",
-			cPattern: "/account/%d/application/%d/user/%d/connection/%d",
-			scope:    "application/user/connection/update",
-			handlers: []routeFunc{
+		"updateConnection": &Route{
+			Method:   "PUT",
+			Pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]{1,20}}/connection/{userToId:[a-zA-Z0-9]+}",
+			CPattern: "/account/%d/application/%d/user/%d/connection/%d",
+			Scope:    "application/user/connection/update",
+			Handlers: []RouteFunc{
 				validateApplicationRequestToken,
 				checkApplicationSession,
 				updateConnection,
 			},
-			contextFilters: []context.ContextFilter{
+			Filters: []context.Filter{
 				contextHasAccountID,
 				contextHasApplicationID,
 				contextHasApplicationUserID,
 			},
 		},
-		"deleteConnection": &route{
-			method:   "DELETE",
-			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]{1,20}}/connection/{userToId:[a-zA-Z0-9]+}",
-			cPattern: "/account/%d/application/%d/user/%d/connection/%d",
-			scope:    "application/user/connection/delete",
-			handlers: []routeFunc{
+		"deleteConnection": &Route{
+			Method:   "DELETE",
+			Pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]{1,20}}/connection/{userToId:[a-zA-Z0-9]+}",
+			CPattern: "/account/%d/application/%d/user/%d/connection/%d",
+			Scope:    "application/user/connection/delete",
+			Handlers: []RouteFunc{
 				validateApplicationRequestToken,
 				checkApplicationSession,
 				deleteConnection,
 			},
-			contextFilters: []context.ContextFilter{
+			Filters: []context.Filter{
 				contextHasAccountID,
 				contextHasApplicationID,
 				contextHasApplicationUserID,
 			},
 		},
-		"getConnectionList": &route{
-			method:   "GET",
-			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]+}/connections",
-			cPattern: "/account/%d/application/%d/user/%d/connections",
-			scope:    "application/user/connections/list",
-			handlers: []routeFunc{
+		"getConnectionList": &Route{
+			Method:   "GET",
+			Pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]+}/connections",
+			CPattern: "/account/%d/application/%d/user/%d/connections",
+			Scope:    "application/user/connections/list",
+			Handlers: []RouteFunc{
 				validateApplicationRequestToken,
 				checkApplicationSession,
 				getConnectionList,
 			},
-			contextFilters: []context.ContextFilter{
+			Filters: []context.Filter{
 				contextHasAccountID,
 				contextHasApplicationID,
 				contextHasApplicationUserID,
 			},
 		},
-		"confirmConnection": &route{
-			method:   "POST",
-			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]+}/connection/confirm",
-			cPattern: "/application/:applicationId/user/:UserID/connection/confirm",
-			scope:    "application/user/connection/confirm",
-			handlers: []routeFunc{
+		"confirmConnection": &Route{
+			Method:   "POST",
+			Pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]+}/connection/confirm",
+			CPattern: "/application/:applicationId/user/:UserID/connection/confirm",
+			Scope:    "application/user/connection/confirm",
+			Handlers: []RouteFunc{
 				validateApplicationRequestToken,
 				checkApplicationSession,
 				confirmConnection,
 			},
-			contextFilters: []context.ContextFilter{
+			Filters: []context.Filter{
 				contextHasAccountID,
 				contextHasApplicationID,
 				contextHasApplicationUserID,
 			},
 		},
-		"createSocialConnections": &route{
-			method:   "POST",
-			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{application:[0-9]{1,20}}/user/{userId:[1-9]{1,20}}/connections/social/{platformName:[0-9a-zA-Z]{1,20}}",
-			cPattern: "/account/%d/application/%d/user/%d/connections/social/%s",
-			scope:    "application/user/connections/social",
-			handlers: []routeFunc{
+		"createSocialConnections": &Route{
+			Method:   "POST",
+			Pattern:  "/account/{accountId:[0-9]{1,20}}/application/{application:[0-9]{1,20}}/user/{userId:[1-9]{1,20}}/connections/social/{platformName:[0-9a-zA-Z]{1,20}}",
+			CPattern: "/account/%d/application/%d/user/%d/connections/social/%s",
+			Scope:    "application/user/connections/social",
+			Handlers: []RouteFunc{
 				validateApplicationRequestToken,
 				checkApplicationSession,
 				createSocialConnections,
 			},
-			contextFilters: []context.ContextFilter{
+			Filters: []context.Filter{
 				contextHasAccountID,
 				contextHasApplicationID,
 				contextHasApplicationUserID,
@@ -505,163 +522,163 @@ var routes = map[string]map[string]*route{
 			},
 		},
 		// Event
-		"getEvent": &route{
-			method:   "GET",
-			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]+}/event/{eventId:[0-9]{1,20}}",
-			cPattern: "/account/%d/application/%d/user/%d/event/%d",
-			scope:    "application/user/event/index",
-			handlers: []routeFunc{
+		"getEvent": &Route{
+			Method:   "GET",
+			Pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]+}/event/{eventId:[0-9]{1,20}}",
+			CPattern: "/account/%d/application/%d/user/%d/event/%d",
+			Scope:    "application/user/event/index",
+			Handlers: []RouteFunc{
 				validateApplicationRequestToken,
 				checkApplicationSession,
 				getEvent,
 			},
-			contextFilters: []context.ContextFilter{
+			Filters: []context.Filter{
 				contextHasAccountID,
 				contextHasApplicationID,
 				contextHasApplicationUserID,
 			},
 		},
-		"updateEvent": &route{
-			method:   "PUT",
-			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]+}/event/{eventId:[0-9]{1,20}}",
-			cPattern: "/account/%d/application/%d/user/%d/event/%d",
-			scope:    "application/user/event/update",
-			handlers: []routeFunc{
+		"updateEvent": &Route{
+			Method:   "PUT",
+			Pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]+}/event/{eventId:[0-9]{1,20}}",
+			CPattern: "/account/%d/application/%d/user/%d/event/%d",
+			Scope:    "application/user/event/update",
+			Handlers: []RouteFunc{
 				validateApplicationRequestToken,
 				checkApplicationSession,
 				updateEvent,
 			},
-			contextFilters: []context.ContextFilter{
+			Filters: []context.Filter{
 				contextHasAccountID,
 				contextHasApplicationID,
 				contextHasApplicationUserID,
 			},
 		},
-		"deleteEvent": &route{
-			method:   "DELETE",
-			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]+}/event/{eventId:[0-9]{1,20}}",
-			cPattern: "/account/%d/application/%d/user/%d/event/%d",
-			scope:    "application/user/event/delete",
-			handlers: []routeFunc{
+		"deleteEvent": &Route{
+			Method:   "DELETE",
+			Pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]+}/event/{eventId:[0-9]{1,20}}",
+			CPattern: "/account/%d/application/%d/user/%d/event/%d",
+			Scope:    "application/user/event/delete",
+			Handlers: []RouteFunc{
 				validateApplicationRequestToken,
 				checkApplicationSession,
 				deleteEvent,
 			},
-			contextFilters: []context.ContextFilter{
+			Filters: []context.Filter{
 				contextHasAccountID,
 				contextHasApplicationID,
 				contextHasApplicationUserID,
 			},
 		},
-		"createEvent": &route{
-			method:   "POST",
-			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]+}/events",
-			cPattern: "/account/%d/application/%d/user/%d/events",
-			scope:    "application/user/event/create",
-			handlers: []routeFunc{
+		"createEvent": &Route{
+			Method:   "POST",
+			Pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]+}/events",
+			CPattern: "/account/%d/application/%d/user/%d/events",
+			Scope:    "application/user/event/create",
+			Handlers: []RouteFunc{
 				validateApplicationRequestToken,
 				checkApplicationSession,
 				createEvent,
 			},
-			contextFilters: []context.ContextFilter{
+			Filters: []context.Filter{
 				contextHasAccountID,
 				contextHasApplicationID,
 				contextHasApplicationUserID,
 			},
 		},
-		"getEventList": &route{
-			method:   "GET",
-			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]+}/events",
-			cPattern: "/account/%d/application/%d/user/%d/events",
-			scope:    "application/user/events/list",
-			handlers: []routeFunc{
+		"getEventList": &Route{
+			Method:   "GET",
+			Pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]+}/events",
+			CPattern: "/account/%d/application/%d/user/%d/events",
+			Scope:    "application/user/events/list",
+			Handlers: []RouteFunc{
 				validateApplicationRequestToken,
 				checkApplicationSession,
 				getEventList,
 			},
-			contextFilters: []context.ContextFilter{
+			Filters: []context.Filter{
 				contextHasAccountID,
 				contextHasApplicationID,
 				contextHasApplicationUserID,
 			},
 		},
-		"getConnectionEventList": &route{
-			method:   "GET",
-			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]+}/connections/events",
-			cPattern: "/account/%d/application/%d/user/%d/connections/events",
-			scope:    "application/user/connection/events",
-			handlers: []routeFunc{
+		"getConnectionEventList": &Route{
+			Method:   "GET",
+			Pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]+}/connections/events",
+			CPattern: "/account/%d/application/%d/user/%d/connections/events",
+			Scope:    "application/user/connection/events",
+			Handlers: []RouteFunc{
 				validateApplicationRequestToken,
 				checkApplicationSession,
 				getConnectionEventList,
 			},
-			contextFilters: []context.ContextFilter{
+			Filters: []context.Filter{
 				contextHasAccountID,
 				contextHasApplicationID,
 				contextHasApplicationUserID,
 			},
 		},
-		"getGeoEventList": &route{
-			method:   "GET",
-			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/events/geo/{latitude:[0-9.]+}/{longitude:[0-9.]+}/{radius:[0-9.]+}",
-			cPattern: "/account/%d/application/%d/events/geo/%.5f/%.5f/%.5f",
-			scope:    "application/events/geo",
-			handlers: []routeFunc{
+		"getGeoEventList": &Route{
+			Method:   "GET",
+			Pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/events/geo/{latitude:[0-9.]+}/{longitude:[0-9.]+}/{radius:[0-9.]+}",
+			CPattern: "/account/%d/application/%d/events/geo/%.5f/%.5f/%.5f",
+			Scope:    "application/events/geo",
+			Handlers: []RouteFunc{
 				validateApplicationRequestToken,
 				checkApplicationSession,
 				getGeoEventList,
 			},
-			contextFilters: []context.ContextFilter{
+			Filters: []context.Filter{
 				contextHasAccountID,
 				contextHasApplicationID,
 			},
 		},
-		"getObjectEventList": &route{
-			method:   "GET",
-			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/events/object/{objectKey:[0-9a-zA-Z]+}",
-			cPattern: "/account/%d/application/%d/events/object/%s",
-			scope:    "application/events/object",
-			handlers: []routeFunc{
+		"getObjectEventList": &Route{
+			Method:   "GET",
+			Pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/events/object/{objectKey:[0-9a-zA-Z]+}",
+			CPattern: "/account/%d/application/%d/events/object/%s",
+			Scope:    "application/events/object",
+			Handlers: []RouteFunc{
 				validateApplicationRequestToken,
 				checkApplicationSession,
 				getObjectEventList,
 			},
-			contextFilters: []context.ContextFilter{
+			Filters: []context.Filter{
 				contextHasAccountID,
 				contextHasApplicationID,
 			},
 		},
-		"getLocationEventList": &route{
-			method:   "GET",
-			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/events/location/{location:[0-9a-zA-Z]}",
-			cPattern: "/account/%d/application/%d/events/location/%s",
-			scope:    "application/events/location",
-			handlers: []routeFunc{
+		"getLocationEventList": &Route{
+			Method:   "GET",
+			Pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/events/location/{location:[0-9a-zA-Z]}",
+			CPattern: "/account/%d/application/%d/events/location/%s",
+			Scope:    "application/events/location",
+			Handlers: []RouteFunc{
 				validateApplicationRequestToken,
 				checkApplicationSession,
 				getLocationEventList,
 			},
-			contextFilters: []context.ContextFilter{
+			Filters: []context.Filter{
 				contextHasAccountID,
 				contextHasApplicationID,
 			},
 		},
 		// Other
-		"humans": &route{
-			method:   "GET",
-			pattern:  "/humans.txt",
-			cPattern: "/humans.txt",
-			scope:    "humans",
-			handlers: []routeFunc{
+		"humans": &Route{
+			Method:   "GET",
+			Pattern:  "/humans.txt",
+			CPattern: "/humans.txt",
+			Scope:    "humans",
+			Handlers: []RouteFunc{
 				humans,
 			},
 		},
-		"robots": &route{
-			method:   "GET",
-			pattern:  "/robots.txt",
-			cPattern: "/robots.txt",
-			scope:    "robots",
-			handlers: []routeFunc{
+		"robots": &Route{
+			Method:   "GET",
+			Pattern:  "/robots.txt",
+			CPattern: "/robots.txt",
+			Scope:    "robots",
+			Handlers: []RouteFunc{
 				robots,
 			},
 		},

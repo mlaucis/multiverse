@@ -5,10 +5,9 @@
 package tokens
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
-
-	"fmt"
 
 	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/core"

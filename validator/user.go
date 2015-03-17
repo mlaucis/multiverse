@@ -173,7 +173,7 @@ func UpdateUser(existingApplicationUser, updatedApplicationUser *entity.User) er
 	return packErrors(errs)
 }
 
-// UserCredentialsValid checks is a certain user has the right credentials
+// ApplicationUserCredentialsValid checks is a certain user has the right credentials
 func ApplicationUserCredentialsValid(password string, user *entity.User) error {
 	pass, err := Base64Decode(user.Password)
 	if err != nil {
@@ -342,6 +342,7 @@ func CheckApplicationSimpleSession(accountID, applicationID, applicationUserID i
 	return "", "failed to check session token (12)\nsession mismatch", fmt.Errorf("expected %s got %s", storedSessionToken, encodedSessionToken)
 }
 
+// DuplicateApplicationUserEmail checks if the user email is duplicate within the application or not
 func DuplicateApplicationUserEmail(accountID, applicationID int64, email string) (bool, error) {
 	emailKey := storageClient.ApplicationUserByEmail(accountID, applicationID, email)
 	if userExists, err := storageEngine.Exists(emailKey).Result(); userExists || err != nil {
@@ -355,6 +356,7 @@ func DuplicateApplicationUserEmail(accountID, applicationID int64, email string)
 	return false, nil
 }
 
+// DuplicateApplicationUserUsername checks if the username is duplicate within the application or not
 func DuplicateApplicationUserUsername(accountID, applicationID int64, username string) (bool, error) {
 	usernameKey := storageClient.ApplicationUserByUsername(accountID, applicationID, username)
 	if userExists, err := storageEngine.Exists(usernameKey).Result(); userExists || err != nil {

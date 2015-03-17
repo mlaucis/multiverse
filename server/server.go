@@ -363,9 +363,10 @@ func corsHandler(ctx *context.Context) {
 	ctx.W.Header().Set("Content-Type", "application/json; charset=UTF-8")
 }
 
-func customHandler(routeName, version string, route *route, mainLog, errorLog chan *logger.LogMsg, environment string, debugMode bool) http.HandlerFunc {
-	var extraHandlers []routeFunc = []routeFunc{corsHandler}
-	switch route.method {
+// CustomHandler composes the http handling function according to its definition and returns it
+func CustomHandler(routeName, version string, route *Route, mainLog, errorLog chan *logger.LogMsg, environment string, debugMode bool) http.HandlerFunc {
+	extraHandlers := []RouteFunc{corsHandler}
+	switch route.Method {
 	case "DELETE":
 		{
 			extraHandlers = append(extraHandlers, validateDeleteCommon)
@@ -388,17 +389,17 @@ func customHandler(routeName, version string, route *route, mainLog, errorLog ch
 		extraHandlers = append(extraHandlers, isRequestExpired)
 	}
 
-	route.handlers = append(extraHandlers, route.handlers...)
+	route.Handlers = append(extraHandlers, route.Handlers...)
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		ctx, err := context.NewContext(w, r, mainLog, errorLog, routeName, route.scope, version, route.contextFilters, environment, debugMode)
+		ctx, err := context.NewContext(w, r, mainLog, errorLog, routeName, route.Scope, version, route.Filters, environment, debugMode)
 		if err != nil {
 			errorHappened(ctx, "failed to get a request context (1)", http.StatusInternalServerError, err)
 			return
 		}
 
-		for _, handler := range route.handlers {
+		for _, handler := range route.Handlers {
 			// Any response that happens in a handler MUST send a Content-Type header
 			if w.Header().Get("Content-Type") != "" {
 				break
@@ -418,10 +419,10 @@ func GetRouter(environment string, debugMode, skipSecurityChecks bool) (*mux.Rou
 	for version, innerRoutes := range routes {
 		for routeName, route := range innerRoutes {
 			router.
-				Methods(route.method, "OPTIONS").
-				Path(route.routePattern(version)).
+				Methods(route.Method, "OPTIONS").
+				Path(route.RoutePattern(version)).
 				Name(routeName).
-				HandlerFunc(customHandler(routeName, version, route, mainLogChan, errorLogChan, environment, debugMode))
+				HandlerFunc(CustomHandler(routeName, version, route, mainLogChan, errorLogChan, environment, debugMode))
 		}
 	}
 
@@ -432,10 +433,10 @@ func GetRouter(environment string, debugMode, skipSecurityChecks bool) (*mux.Rou
 			panic(fmt.Sprintf("route %s not found", routeName))
 		}
 		router.
-			Methods(route.method, "OPTIONS").
-			Path(route.pattern).
+			Methods(route.Method, "OPTIONS").
+			Path(route.Pattern).
 			Name(routeName).
-			HandlerFunc(customHandler(routeName, version, route, mainLogChan, errorLogChan, environment, debugMode))
+			HandlerFunc(CustomHandler(routeName, version, route, mainLogChan, errorLogChan, environment, debugMode))
 	}
 
 	if debugMode {

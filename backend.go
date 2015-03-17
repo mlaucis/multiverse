@@ -7,7 +7,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"math/rand"
 	"net/http"
@@ -22,7 +21,6 @@ import (
 	"github.com/tapglue/backend/storage"
 	"github.com/tapglue/backend/storage/redis"
 	"github.com/tapglue/backend/validator"
-	"github.com/tapglue/backend/worker/channel"
 )
 
 const (
@@ -63,10 +61,6 @@ func init() {
 	storageClient := storage.Init(redis.Client())
 	core.Init(storageClient)
 	validator.Init(storageClient)
-
-	queue := channel.NewQueue()
-	worker := channel.NewWorker(queue)
-	_ = worker
 }
 
 func main() {
@@ -100,10 +94,6 @@ func main() {
                   888       "Y88P"
 
   	`)
-	}
-
-	if err != nil {
-		fmt.Println(err)
 	}
 
 	server := &http.Server{

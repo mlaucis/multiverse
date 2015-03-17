@@ -2,7 +2,7 @@
  * @author Onur Akpolat <onurakpolat@gmail.com>
  */
 
-package server
+package server_test
 
 import (
 	"flag"
@@ -18,6 +18,7 @@ import (
 	"github.com/tapglue/backend/core"
 	"github.com/tapglue/backend/core/entity"
 	"github.com/tapglue/backend/logger"
+	"github.com/tapglue/backend/server"
 	"github.com/tapglue/backend/storage"
 	"github.com/tapglue/backend/storage/redis"
 	. "github.com/tapglue/backend/utils"
@@ -44,6 +45,8 @@ var (
 	storageClient *storage.Client
 	doLogTest     = flag.Bool("lt", false, "Set flag in order to get logs output from the tests")
 	doCurlLogs    = flag.Bool("ct", false, "Set flag in order to get logs output from the tests as curl requests, sets -lt=true")
+	mainLogChan   = make(chan *logger.LogMsg)
+	errorLogChan  = make(chan *logger.LogMsg)
 )
 
 // Setup once when the suite starts running
@@ -63,9 +66,6 @@ func (s *ServerSuite) SetUpTest(c *C) {
 	validator.Init(storageClient)
 
 	if *doLogTest {
-		// overwrite log channel to make it blocking
-		mainLogChan = make(chan *logger.LogMsg)
-		errorLogChan = make(chan *logger.LogMsg)
 		if *doCurlLogs {
 			go logger.TGCurlLog(mainLogChan)
 		} else {
@@ -82,11 +82,11 @@ func (s *ServerSuite) SetUpTest(c *C) {
 func (s *ServerSuite) TestValidatePostCommon_NoCLHeader(c *C) {
 	payload := "{demo}"
 	routeName := "createAccount"
-	requestRoute := getRoute(routeName)
-	routePath := requestRoute.routePattern(apiVersion)
+	requestRoute := server.GetRoute(routeName, apiVersion)
+	routePath := requestRoute.RoutePattern(apiVersion)
 
 	req, err := http.NewRequest(
-		requestRoute.method,
+		requestRoute.Method,
 		routePath,
 		strings.NewReader(payload),
 	)
@@ -96,8 +96,8 @@ func (s *ServerSuite) TestValidatePostCommon_NoCLHeader(c *C) {
 	m := mux.NewRouter()
 
 	m.
-		HandleFunc(routePath, customHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan, "test", true)).
-		Methods(requestRoute.method)
+		HandleFunc(routePath, server.CustomHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan, "test", true)).
+		Methods(requestRoute.Method)
 	m.ServeHTTP(w, req)
 
 	c.Assert(w.Code, Equals, http.StatusBadRequest)
@@ -108,11 +108,11 @@ func (s *ServerSuite) TestValidatePostCommon_NoCLHeader(c *C) {
 func (s *ServerSuite) TestValidatePostCommon_CLHeader(c *C) {
 	payload := "{demo}"
 	routeName := "createAccount"
-	requestRoute := getRoute(routeName)
-	routePath := requestRoute.routePattern(apiVersion)
+	requestRoute := server.GetRoute(routeName, apiVersion)
+	routePath := requestRoute.RoutePattern(apiVersion)
 
 	req, err := http.NewRequest(
-		requestRoute.method,
+		requestRoute.Method,
 		routePath,
 		strings.NewReader(payload),
 	)
@@ -124,8 +124,8 @@ func (s *ServerSuite) TestValidatePostCommon_CLHeader(c *C) {
 	m := mux.NewRouter()
 
 	m.
-		HandleFunc(routePath, customHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan, "test", true)).
-		Methods(requestRoute.method)
+		HandleFunc(routePath, server.CustomHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan, "test", true)).
+		Methods(requestRoute.Method)
 	m.ServeHTTP(w, req)
 
 	c.Assert(w.Code, Equals, http.StatusBadRequest)
@@ -136,11 +136,11 @@ func (s *ServerSuite) TestValidatePostCommon_CLHeader(c *C) {
 func (s *ServerSuite) TestValidateGetCommon_CLHeader(c *C) {
 	payload := ""
 	routeName := "index"
-	requestRoute := getRoute(routeName)
-	routePath := requestRoute.routePattern(apiVersion)
+	requestRoute := server.GetRoute(routeName, apiVersion)
+	routePath := requestRoute.RoutePattern(apiVersion)
 
 	req, err := http.NewRequest(
-		requestRoute.method,
+		requestRoute.Method,
 		routePath,
 		strings.NewReader(payload),
 	)
@@ -152,8 +152,8 @@ func (s *ServerSuite) TestValidateGetCommon_CLHeader(c *C) {
 	m := mux.NewRouter()
 
 	m.
-		HandleFunc(routePath, customHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan, "test", true)).
-		Methods(requestRoute.method)
+		HandleFunc(routePath, server.CustomHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan, "test", true)).
+		Methods(requestRoute.Method)
 	m.ServeHTTP(w, req)
 
 	c.Assert(w.Code, Equals, http.StatusOK)
@@ -163,11 +163,11 @@ func (s *ServerSuite) TestValidateGetCommon_CLHeader(c *C) {
 func (s *ServerSuite) TestValidateGetCommon_NoCLHeader(c *C) {
 	payload := ""
 	routeName := "index"
-	requestRoute := getRoute(routeName)
-	routePath := requestRoute.routePattern(apiVersion)
+	requestRoute := server.GetRoute(routeName, apiVersion)
+	routePath := requestRoute.RoutePattern(apiVersion)
 
 	req, err := http.NewRequest(
-		requestRoute.method,
+		requestRoute.Method,
 		routePath,
 		strings.NewReader(payload),
 	)
@@ -177,8 +177,8 @@ func (s *ServerSuite) TestValidateGetCommon_NoCLHeader(c *C) {
 	m := mux.NewRouter()
 
 	m.
-		HandleFunc(routePath, customHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan, "test", true)).
-		Methods(requestRoute.method)
+		HandleFunc(routePath, server.CustomHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan, "test", true)).
+		Methods(requestRoute.Method)
 	m.ServeHTTP(w, req)
 
 	c.Assert(w.Code, Equals, http.StatusBadRequest)
@@ -192,11 +192,11 @@ func (s *ServerSuite) TestValidatePutCommon_CLHeader(c *C) {
 
 	payload := "{demo}"
 	routeName := "updateAccount"
-	requestRoute := getRoute(routeName)
+	requestRoute := server.GetRoute(routeName, apiVersion)
 	routePath := getComposedRoute(routeName, 0)
 
 	req, err := http.NewRequest(
-		requestRoute.method,
+		requestRoute.Method,
 		routePath,
 		strings.NewReader(payload),
 	)
@@ -208,8 +208,8 @@ func (s *ServerSuite) TestValidatePutCommon_CLHeader(c *C) {
 	m := mux.NewRouter()
 
 	m.
-		HandleFunc(routePath, customHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan, "test", true)).
-		Methods(requestRoute.method)
+		HandleFunc(routePath, server.CustomHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan, "test", true)).
+		Methods(requestRoute.Method)
 	m.ServeHTTP(w, req)
 
 	c.Assert(w.Code, Equals, http.StatusBadRequest)
@@ -223,11 +223,11 @@ func (s *ServerSuite) TestValidatePutCommon_NoCLHeader(c *C) {
 
 	payload := "{demo}"
 	routeName := "updateAccount"
-	requestRoute := getRoute(routeName)
+	requestRoute := server.GetRoute(routeName, apiVersion)
 	routePath := getComposedRoute(routeName, 0)
 
 	req, err := http.NewRequest(
-		requestRoute.method,
+		requestRoute.Method,
 		routePath,
 		strings.NewReader(payload),
 	)
@@ -237,8 +237,8 @@ func (s *ServerSuite) TestValidatePutCommon_NoCLHeader(c *C) {
 	m := mux.NewRouter()
 
 	m.
-		HandleFunc(routePath, customHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan, "test", true)).
-		Methods(requestRoute.method)
+		HandleFunc(routePath, server.CustomHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan, "test", true)).
+		Methods(requestRoute.Method)
 	m.ServeHTTP(w, req)
 
 	c.Assert(w.Code, Equals, http.StatusBadRequest)
@@ -252,11 +252,11 @@ func (s *ServerSuite) TestValidateDeleteCommon_CLHeader(c *C) {
 
 	payload := "{demo}"
 	routeName := "deleteAccount"
-	requestRoute := getRoute(routeName)
+	requestRoute := server.GetRoute(routeName, apiVersion)
 	routePath := getComposedRoute(routeName, 0)
 
 	req, err := http.NewRequest(
-		requestRoute.method,
+		requestRoute.Method,
 		routePath,
 		strings.NewReader(payload),
 	)
@@ -268,8 +268,8 @@ func (s *ServerSuite) TestValidateDeleteCommon_CLHeader(c *C) {
 	m := mux.NewRouter()
 
 	m.
-		HandleFunc(routePath, customHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan, "test", true)).
-		Methods(requestRoute.method)
+		HandleFunc(routePath, server.CustomHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan, "test", true)).
+		Methods(requestRoute.Method)
 	m.ServeHTTP(w, req)
 
 	c.Assert(w.Code, Equals, http.StatusBadRequest)
@@ -282,11 +282,11 @@ func (s *ServerSuite) TestValidateDeleteCommon_NoCLHeader(c *C) {
 	return
 	payload := ""
 	routeName := "deleteAccount"
-	requestRoute := getRoute(routeName)
+	requestRoute := server.GetRoute(routeName, apiVersion)
 	routePath := getComposedRoute(routeName, 1)
 
 	req, err := http.NewRequest(
-		requestRoute.method,
+		requestRoute.Method,
 		routePath,
 		strings.NewReader(payload),
 	)
@@ -296,8 +296,8 @@ func (s *ServerSuite) TestValidateDeleteCommon_NoCLHeader(c *C) {
 	m := mux.NewRouter()
 
 	m.
-		HandleFunc(routePath, customHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan, "test", true)).
-		Methods(requestRoute.method)
+		HandleFunc(routePath, server.CustomHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan, "test", true)).
+		Methods(requestRoute.Method)
 	m.ServeHTTP(w, req)
 
 	c.Assert(w.Code, Equals, http.StatusBadRequest)
@@ -337,22 +337,9 @@ func createCommonRequestHeaders(req *http.Request) {
 	req.Header.Add("Content-Length", strconv.FormatInt(int64(len(payload)), 10))
 }
 
-// getRoute takes a route name and returns the route including the version
-func getRoute(routeName string) *route {
-	if _, ok := routes[apiVersion][routeName]; !ok {
-		panic(fmt.Errorf("You requested a route, %s, that does not exists in the routing table for version%s\n", routeName, apiVersion))
-	}
-
-	return routes[apiVersion][routeName]
-}
-
 // getComposedRoute takes a routeName and parameter and returns the route including the version
 func getComposedRoute(routeName string, params ...interface{}) string {
-	if _, ok := routes[apiVersion][routeName]; !ok {
-		panic(fmt.Errorf("You requested a route, %s, that does not exists in the routing table for version %s\n", routeName, apiVersion))
-	}
-
-	pattern := routes[apiVersion][routeName].composePattern(apiVersion)
+	pattern := server.GetRoute(routeName, apiVersion).ComposePattern(apiVersion)
 
 	if len(params) == 0 {
 		return pattern
@@ -363,10 +350,10 @@ func getComposedRoute(routeName string, params ...interface{}) string {
 
 // runRequest takes a route, path, payload and token, performs a request and return a response recorder
 func runRequest(routeName, routePath, payload, secretKey, sessionToken string, numKeyParts int) (int, string, error) {
-	requestRoute := getRoute(routeName)
+	requestRoute := server.GetRoute(routeName, apiVersion)
 
 	req, err := http.NewRequest(
-		requestRoute.method,
+		requestRoute.Method,
 		routePath,
 		strings.NewReader(payload),
 	)
@@ -380,11 +367,11 @@ func runRequest(routeName, routePath, payload, secretKey, sessionToken string, n
 
 	createCommonRequestHeaders(req)
 	if secretKey != "" {
-		var err error = nil
+		var err error
 		if numKeyParts == 3 {
-			err = tokens.SignRequest(secretKey, requestRoute.scope, apiVersion, numKeyParts, req)
+			err = tokens.SignRequest(secretKey, requestRoute.Scope, apiVersion, numKeyParts, req)
 		} else {
-			err = keys.SignRequest(secretKey, requestRoute.scope, apiVersion, numKeyParts, req)
+			err = keys.SignRequest(secretKey, requestRoute.Scope, apiVersion, numKeyParts, req)
 		}
 
 		if err != nil {
@@ -396,8 +383,8 @@ func runRequest(routeName, routePath, payload, secretKey, sessionToken string, n
 	m := mux.NewRouter()
 
 	m.
-		HandleFunc(requestRoute.routePattern(apiVersion), customHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan, "test", true)).
-		Methods(requestRoute.method)
+		HandleFunc(requestRoute.RoutePattern(apiVersion), server.CustomHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan, "test", true)).
+		Methods(requestRoute.Method)
 	m.ServeHTTP(w, req)
 
 	return w.Code, w.Body.String(), nil

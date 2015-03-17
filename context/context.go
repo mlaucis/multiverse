@@ -20,10 +20,7 @@ import (
 )
 
 type (
-	// ExtraContext callbacks return extra information to the context
-	ContextFilter func(*Context) error
-
-	// Request context
+	// Context struct holds the request, response and additional informations about the context of the request
 	Context struct {
 		AccountID         int64
 		Account           *entity.Account
@@ -48,18 +45,27 @@ type (
 		Environment       string
 		DebugMode         bool
 	}
+
+	// Filter is a callback that helps updating the context with extra information
+	Filter func(*Context) error
 )
 
+// LogRequest will generate a log message with the request status
+// It is usable to log the request itself
 func (ctx *Context) LogRequest(statusCode, stackDepth int) {
-	msg := ctx.newLogMessage(stackDepth + 1)
+	if stackDepth != -1 {
+		stackDepth++
+	}
+	msg := ctx.newLogMessage(stackDepth)
 	msg.StatusCode = statusCode
 
 	ctx.MainLog <- msg
 }
 
+// LogMessage logs a message from the application and includes all the required information
 func (ctx *Context) LogMessage(message string, stackDepth int) {
 	if stackDepth != -1 {
-		stackDepth += 1
+		stackDepth++
 	}
 	msg := ctx.newLogMessage(stackDepth)
 	msg.Message = message
@@ -74,7 +80,10 @@ func (ctx *Context) LogError(err error, stackDepth int) {
 
 // LogErrorWithMessage will log an internal error from the app along with the custom message for it
 func (ctx *Context) LogErrorWithMessage(err error, message string, stackDepth int) {
-	msg := ctx.newLogMessage(stackDepth + 1)
+	if stackDepth != -1 {
+		stackDepth++
+	}
+	msg := ctx.newLogMessage(stackDepth)
 	msg.RawError = err
 	msg.Message = message
 
@@ -113,7 +122,7 @@ func NewContext(
 	r *http.Request,
 	mainLog, errorLog chan *logger.LogMsg,
 	routeName, scope, version string,
-	contextFilters []ContextFilter,
+	contextFilters []Filter,
 	environment string,
 	debugMode bool) (ctx *Context, err error) {
 

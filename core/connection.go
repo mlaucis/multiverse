@@ -7,12 +7,11 @@ package core
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/tapglue/backend/core/entity"
 	. "github.com/tapglue/backend/utils"
-
-	"strconv"
 
 	red "gopkg.in/redis.v2"
 )
@@ -246,7 +245,7 @@ func DeleteConnectionEventsFromLists(accountID, applicationID, userFromID, userT
 	return nil
 }
 
-// ReadConneciton returns the connection, if any, between two users
+// ReadConnection returns the connection, if any, between two users
 func ReadConnection(accountID, applicationID, userFromID, userToID int64) (connection *entity.Connection, err error) {
 	key := storageClient.Connection(accountID, applicationID, userFromID, userToID)
 

@@ -187,7 +187,7 @@ func UpdateAccountUser(existingAccountUser, updatedAccountUser *entity.AccountUs
 	return packErrors(errs)
 }
 
-// UserCredentialsValid checks is a certain user has the right credentials
+// AccountUserCredentialsValid checks is a certain user has the right credentials
 func AccountUserCredentialsValid(password string, user *entity.AccountUser) error {
 	pass, err := Base64Decode(user.Password)
 	if err != nil {
@@ -278,6 +278,7 @@ func CheckAccountSession(r *http.Request) (string, string, error) {
 	return "", "failed to check session token (11)\nsession token mismatch", fmt.Errorf("session tokens mismatch expected %s got %s", storedSessionToken, encodedSessionToken)
 }
 
+// DuplicateAccountUserEmail checks if the user e-mail is duplicate within the provided account
 func DuplicateAccountUserEmail(email string) (bool, error) {
 	emailKey := storageClient.AccountUserByEmail(email)
 	if userExists, err := storageEngine.Exists(emailKey).Result(); userExists || err != nil {
@@ -291,6 +292,7 @@ func DuplicateAccountUserEmail(email string) (bool, error) {
 	return false, nil
 }
 
+// DuplicateAccountUserUsername checks if the username is duplicate within the provided account
 func DuplicateAccountUserUsername(username string) (bool, error) {
 	usernameKey := storageClient.AccountUserByUsername(username)
 	if userExists, err := storageEngine.Exists(usernameKey).Result(); userExists || err != nil {

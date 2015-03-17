@@ -6,10 +6,9 @@ package server
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
-
-	"fmt"
 
 	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/core"

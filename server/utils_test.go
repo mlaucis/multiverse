@@ -2,12 +2,11 @@
  * @author Onur Akpolat <onurakpolat@gmail.com>
  */
 
-package server
+package server_test
 
 import (
 	"github.com/tapglue/backend/core"
 	"github.com/tapglue/backend/core/entity"
-
 	"github.com/tapglue/backend/fixtures"
 )
 

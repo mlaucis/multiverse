@@ -1,11 +1,9 @@
 {
 	"env": "APP_ENV",
 	"listenHost": "APP_HOST_PORT",
-	"newrelic": {
-		"key": "NEWRELIC_KEY",
-		"name": "NEWRELIC_NAME",
-		"enabled": true
-	},
+	"skip_security": false,
+	"json_logs": true,
+	"use_ssl": false,
 	"redis": {
 		"hosts": [
 			"REDIS_HOST"

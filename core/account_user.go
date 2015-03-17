@@ -7,9 +7,8 @@ package core
 import (
 	"encoding/json"
 	"fmt"
-	"time"
-
 	"strconv"
+	"time"
 
 	"github.com/tapglue/backend/core/entity"
 	"github.com/tapglue/backend/utils"
@@ -208,7 +207,7 @@ func WriteAccountUser(accountUser *entity.AccountUser, retrieve bool) (accUser *
 	return ReadAccountUser(accountUser.AccountID, accountUser.ID)
 }
 
-// CreateUserSession handles the creation of a user session and returns the session token
+// CreateAccountUserSession handles the creation of a user session and returns the session token
 func CreateAccountUserSession(user *entity.AccountUser) (string, error) {
 	// TODO support multiple sessions?
 	// TODO rate limit this to x / per day?
@@ -234,7 +233,7 @@ func CreateAccountUserSession(user *entity.AccountUser) (string, error) {
 	return token, nil
 }
 
-// RefreshUserSession generates a new session token for the user session
+// RefreshAccountUserSession generates a new session token for the user session
 func RefreshAccountUserSession(sessionToken string, user *entity.AccountUser) (string, error) {
 	// TODO support multiple sessions?
 	// TODO rate limit this to x / per day?
@@ -269,7 +268,7 @@ func RefreshAccountUserSession(sessionToken string, user *entity.AccountUser) (s
 	return token, nil
 }
 
-// DestroyUserSession removes the user session
+// DestroyAccountUserSession removes the user session
 func DestroyAccountUserSession(sessionToken string, user *entity.AccountUser) error {
 	// TODO support multiple sessions?
 	// TODO rate limit this to x / per day?
