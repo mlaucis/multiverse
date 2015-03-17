@@ -11,6 +11,8 @@ import (
 
 	"fmt"
 
+	"strings"
+
 	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/core"
 	"github.com/tapglue/backend/core/entity"
@@ -184,6 +186,40 @@ func confirmConnection(ctx *context.Context) {
 	}
 
 	writeResponse(ctx, connection, http.StatusCreated, 0)
+}
+
+var acceptedPlatforms = map[string]bool{
+	"facebook": true,
+	"twitter":  true,
+	"gplus":    true,
+	"abook":    true,
+}
+
+func createSocialConnections(ctx *context.Context) {
+	platformName := strings.ToLower(ctx.Vars["platformName"])
+
+	if _, ok := acceptedPlatforms[platformName]; !ok {
+		errorHappened(ctx, "social connecting failed (1)\nunexpected social platform", http.StatusBadRequest, fmt.Errorf("expected social platform"))
+		return
+	}
+
+	socialIds := []string{}
+	if err := json.NewDecoder(ctx.Body).Decode(&socialIds); err != nil {
+		errorHappened(ctx, "social connecting failed (2)\n"+err.Error(), http.StatusBadRequest, err)
+		return
+	}
+
+	users, err := core.SocialConnect(ctx.ApplicationUser, platformName, socialIds)
+	if err != nil {
+		errorHappened(ctx, "social connecting failed (3)", http.StatusInternalServerError, err)
+		return
+	}
+
+	for idx := range users {
+		users[idx].Password = ""
+	}
+
+	writeResponse(ctx, users, http.StatusCreated, 10)
 }
 
 // TODO: GET FOLLOWER LIST (followedbyid users)

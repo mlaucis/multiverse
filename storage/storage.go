@@ -50,10 +50,11 @@ const (
 	accountSession     = "acc:%d:sess:%d"
 	applicationSession = "acc:%d:app:%d:sess:%d"
 
-	connection      = "acc:%d:app:%d:user:%d:connection:%d"
-	connections     = "acc:%d:app:%d:user:%d:connections"
-	followsUsers    = "acc:%d:app:%d:user:%d:followsUsers"
-	followedByUsers = "acc:%d:app:%d:user:%d:follwedByUsers"
+	connection       = "acc:%d:app:%d:user:%d:connection:%d"
+	connections      = "acc:%d:app:%d:user:%d:connections"
+	followsUsers     = "acc:%d:app:%d:user:%d:followsUsers"
+	followedByUsers  = "acc:%d:app:%d:user:%d:follwedByUsers"
+	socialConnection = "acc:%d:app:%d:social:%s:%s"
 
 	event            = "acc:%d:app:%d:user:%d:event:%d"
 	events           = "acc:%d:app:%d:user:%d:events"
@@ -242,6 +243,11 @@ func (client *Client) Applications(accountID int64) string {
 // Connection gets the key for the connection
 func (client *Client) Connection(accountID, applicationID, userFromID, userToID int64) string {
 	return fmt.Sprintf(connection, accountID, applicationID, userFromID, userToID)
+}
+
+// SocialConnection returns the key used to identify a user by the social platform of choice
+func (client *Client) SocialConnection(accountID, applicationID int64, platformName, socialID string) string {
+	return fmt.Sprintf(socialConnection, accountID, applicationID, platformName, socialID)
 }
 
 // Connections gets the key for the connections list

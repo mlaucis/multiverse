@@ -93,17 +93,15 @@ type (
 
 	// User structure
 	User struct {
-		ID            int64     `json:"id"`
-		AccountID     int64     `json:"account_id"`
-		ApplicationID int64     `json:"application_id"`
-		FacebookID    string    `json:"facebook_id,omitempty"`
-		TwitterID     string    `json:"twitter_id,omitempty"`
-		GoogleID      string    `json:"google_id,omitempty"`
-		CustomerID    string    `json:"customer_id,omitempty"`
-		GameCenterID  string    `json:"game_center_id,omitempty"`
-		DeviceIDs     []*string `json:"device_ids,omitempty"`
-		Events        []*Event  `json:"events,omitempty"`
-		Connections   []*User   `json:"connections,omitempty"`
+		ID            int64             `json:"id"`
+		AccountID     int64             `json:"account_id"`
+		ApplicationID int64             `json:"application_id"`
+		CustomID      string            `json:"custom_id,omitempty"`
+		SocialIDs     map[string]string `json:"social_ids,omitempty"`
+		GameCenterID  string            `json:"game_center_id,omitempty"`
+		DeviceIDs     []string          `json:"device_ids,omitempty"`
+		Events        []*Event          `json:"events,omitempty"`
+		Connections   []*User           `json:"connections,omitempty"`
 		UserCommon
 		Common
 	}

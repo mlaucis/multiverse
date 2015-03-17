@@ -487,6 +487,23 @@ var routes = map[string]map[string]*route{
 				contextHasApplicationUserID,
 			},
 		},
+		"createSocialConnections": &route{
+			method:   "POST",
+			pattern:  "/account/{accountId:[0-9]{1,20}}/application/{application:[0-9]{1,20}}/user/{userId:[1-9]{1,20}}/connections/social/{platformName:[0-9a-zA-Z]{1,20}}",
+			cPattern: "/account/%d/application/%d/user/%d/connections/social/%s",
+			scope:    "application/user/connections/social",
+			handlers: []routeFunc{
+				validateApplicationRequestToken,
+				checkApplicationSession,
+				createSocialConnections,
+			},
+			contextFilters: []context.ContextFilter{
+				contextHasAccountID,
+				contextHasApplicationID,
+				contextHasApplicationUserID,
+				contextHasApplicationUser,
+			},
+		},
 		// Event
 		"getEvent": &route{
 			method:   "GET",

@@ -6,12 +6,14 @@ package core
 
 import (
 	"encoding/json"
-	"errors"
+	"fmt"
 	"time"
 
-	"fmt"
-
 	"github.com/tapglue/backend/core/entity"
+	. "github.com/tapglue/backend/utils"
+
+	"strconv"
+
 	red "gopkg.in/redis.v2"
 )
 
@@ -104,25 +106,10 @@ func ReadConnectionList(accountID, applicationID, userID int64) (users []*entity
 	}
 
 	if len(result) == 0 {
-		err := errors.New("There are no connections for this user")
-		return nil, err
+		return []*entity.User{}, nil
 	}
 
-	resultList, err := storageEngine.MGet(result...).Result()
-	if err != nil {
-		return nil, err
-	}
-
-	user := &entity.User{}
-	for _, result := range resultList {
-		if err = json.Unmarshal([]byte(result.(string)), user); err != nil {
-			return nil, err
-		}
-		users = append(users, user)
-		user = &entity.User{}
-	}
-
-	return
+	return fetchAndDecodeMultipleUsers(result)
 }
 
 // WriteConnection adds a user connection and returns the created connection or an error
@@ -273,5 +260,80 @@ func ReadConnection(accountID, applicationID, userFromID, userToID int64) (conne
 
 	connection = &entity.Connection{}
 	err = json.Unmarshal([]byte(result), connection)
+	return
+}
+
+// SocialConnect creates the connections between a user and his other social peers
+func SocialConnect(user *entity.User, platform string, socialFriendsIDs []string) ([]*entity.User, error) {
+	result := []*entity.User{}
+	applicationSocialKey := storageClient.SocialConnection(user.AccountID, user.ApplicationID, platform, Base64Encode(user.SocialIDs[platform]))
+
+	err := storageEngine.Set(applicationSocialKey, fmt.Sprintf("%d", user.ID)).Err()
+	if err != nil {
+		return result, err
+	}
+
+	encodedSocialFriendsIDs := []string{}
+	for idx := range socialFriendsIDs {
+		encodedSocialFriendsIDs = append(encodedSocialFriendsIDs, Base64Encode(socialFriendsIDs[idx]))
+	}
+
+	ourUserStoredAccountIDs, err := storageEngine.MGet(encodedSocialFriendsIDs...).Result()
+	if err != nil {
+		return result, err
+	}
+
+	if len(ourUserStoredAccountIDs) == 0 {
+		return result, nil
+	}
+
+	ourUsersDecodedAccountIDs := []string{}
+	for idx := range ourUserStoredAccountIDs {
+		userID, err := strconv.ParseInt(ourUserStoredAccountIDs[idx].(string), 10, 64)
+		if err != nil {
+			continue
+		}
+
+		connection := &entity.Connection{
+			AccountID:     user.AccountID,
+			ApplicationID: user.ApplicationID,
+			UserFromID:    user.ID,
+			UserToID:      userID,
+		}
+
+		_, err = WriteConnection(connection, false)
+		if err != nil {
+			continue
+		}
+
+		_, err = ConfirmConnection(connection, false)
+		if err != nil {
+			continue
+		}
+
+		ourUsersDecodedAccountIDs = append(
+			ourUsersDecodedAccountIDs,
+			storageClient.User(user.AccountID, user.ApplicationID, userID),
+		)
+	}
+
+	return fetchAndDecodeMultipleUsers(ourUsersDecodedAccountIDs)
+}
+
+func fetchAndDecodeMultipleUsers(keys []string) (users []*entity.User, err error) {
+	resultList, err := storageEngine.MGet(keys...).Result()
+	if err != nil {
+		return nil, err
+	}
+
+	user := &entity.User{}
+	for _, result := range resultList {
+		if err = json.Unmarshal([]byte(result.(string)), user); err != nil {
+			return nil, err
+		}
+		users = append(users, user)
+		user = &entity.User{}
+	}
+
 	return
 }
