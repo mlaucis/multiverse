@@ -139,15 +139,7 @@ func getConnectionList(ctx *context.Context) {
 		users[idx].Password = ""
 	}
 
-	response := &struct {
-		ApplicationID int64 `json:"applicationId"`
-		Users         []*entity.User
-	}{
-		ApplicationID: ctx.ApplicationID,
-		Users:         users,
-	}
-
-	writeResponse(ctx, response, http.StatusOK, 10)
+	writeResponse(ctx, users, http.StatusOK, 10)
 }
 
 // confirmConnection handles requests to confirm a user connection

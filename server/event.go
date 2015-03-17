@@ -115,17 +115,7 @@ func getEventList(ctx *context.Context) {
 		return
 	}
 
-	response := &struct {
-		ApplicationID int64 `json:"applicationId"`
-		UserID        int64 `json:"userId"`
-		Events        []*entity.Event
-	}{
-		ApplicationID: ctx.ApplicationID,
-		UserID:        ctx.ApplicationUserID,
-		Events:        events,
-	}
-
-	writeResponse(ctx, response, http.StatusOK, 10)
+	writeResponse(ctx, events, http.StatusOK, 10)
 }
 
 // getConnectionEventList handles requests to retrieve a users connections events
@@ -141,17 +131,7 @@ func getConnectionEventList(ctx *context.Context) {
 		return
 	}
 
-	response := struct {
-		ApplicationID int64           `json:"applicationId"`
-		UserID        int64           `json:"userId"`
-		Events        []*entity.Event `json:"events"`
-	}{
-		ApplicationID: ctx.ApplicationID,
-		UserID:        ctx.ApplicationUserID,
-		Events:        events,
-	}
-
-	writeResponse(ctx, response, http.StatusOK, 10)
+	writeResponse(ctx, events, http.StatusOK, 10)
 }
 
 // createEvent handles requests to create an event
@@ -213,15 +193,7 @@ func getGeoEventList(ctx *context.Context) {
 		return
 	}
 
-	response := struct {
-		ApplicationID int64           `json:"applicationId"`
-		Events        []*entity.Event `json:"events"`
-	}{
-		ApplicationID: ctx.ApplicationID,
-		Events:        events,
-	}
-
-	writeResponse(ctx, response, http.StatusOK, 10)
+	writeResponse(ctx, events, http.StatusOK, 10)
 }
 
 // getConnectionEventList handles requests to retrieve a users connections events
@@ -240,15 +212,7 @@ func getObjectEventList(ctx *context.Context) {
 		return
 	}
 
-	response := struct {
-		ApplicationID int64           `json:"applicationId"`
-		Events        []*entity.Event `json:"events"`
-	}{
-		ApplicationID: ctx.ApplicationID,
-		Events:        events,
-	}
-
-	writeResponse(ctx, response, http.StatusOK, 10)
+	writeResponse(ctx, events, http.StatusOK, 10)
 }
 
 // getConnectionEventList handles requests to retrieve a users connections events
@@ -267,13 +231,5 @@ func getLocationEventList(ctx *context.Context) {
 		return
 	}
 
-	response := struct {
-		ApplicationID int64           `json:"applicationId"`
-		Events        []*entity.Event `json:"events"`
-	}{
-		ApplicationID: ctx.ApplicationID,
-		Events:        events,
-	}
-
-	writeResponse(ctx, response, http.StatusOK, 10)
+	writeResponse(ctx, events, http.StatusOK, 10)
 }
