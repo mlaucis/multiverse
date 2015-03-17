@@ -193,15 +193,30 @@ func createSocialConnections(ctx *context.Context) {
 		return
 	}
 
-	socialIds := []string{}
-	if err := json.NewDecoder(ctx.Body).Decode(&socialIds); err != nil {
+	socialConnections := struct {
+		UserFromID int64 `json:"user_from_id"`
+		SocialPlatform string `json:"social_platform"`
+		ConnectionsIDs []string `json:"connection_ids"`
+	}{}
+
+	if err := json.NewDecoder(ctx.Body).Decode(&socialConnections); err != nil {
 		errorHappened(ctx, "social connecting failed (2)\n"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
-	users, err := core.SocialConnect(ctx.ApplicationUser, platformName, socialIds)
+	if ctx.ApplicationUserID != socialConnections.UserFromID {
+		errorHappened(ctx, "social connecting failed (3)\nuser mismatch", http.StatusBadRequest, fmt.Errorf("user mismatch"))
+		return
+	}
+
+	if platformName != strings.ToLower(socialConnections.SocialPlatform) {
+		errorHappened(ctx, "social connecting failed (4)\nplatform mismatch", http.StatusBadRequest, fmt.Errorf("social platform mismatch"))
+		return
+	}
+
+	users, err := core.SocialConnect(ctx.ApplicationUser, platformName, socialConnections.ConnectionsIDs)
 	if err != nil {
-		errorHappened(ctx, "social connecting failed (3)", http.StatusInternalServerError, err)
+		errorHappened(ctx, "social connecting failed (5)", http.StatusInternalServerError, err)
 		return
 	}
 

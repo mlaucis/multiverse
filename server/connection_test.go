@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/tapglue/backend/core"
 	"github.com/tapglue/backend/core/entity"
 
 	. "gopkg.in/check.v1"
@@ -292,4 +293,79 @@ func (s *ServerSuite) TestDeleteConnection_WrongID(c *C) {
 
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusUnauthorized)
+}
+
+func (s *ServerSuite) TestAddSocialConnection(c *C) {
+	account, err := AddCorrectAccount(true)
+	c.Assert(err, IsNil)
+
+	application, err := AddCorrectApplication(account.ID, true)
+	c.Assert(err, IsNil)
+
+	userFrom := CorrectUser()
+	userFrom.AccountID = account.ID
+	userFrom.ApplicationID = application.ID
+	userFrom.Username = "social1"
+	userFrom.Email = "social-connection@user1.com"
+	userFrom.SocialIDs = map[string]string{"facebook": "fb-id-1"}
+	userFrom, err = core.WriteUser(userFrom, true)
+	c.Assert(err, IsNil)
+
+	user2 := CorrectUser()
+	user2.AccountID = account.ID
+	user2.ApplicationID = application.ID
+	user2.Username = "social2"
+	user2.Email = "social-connection@user2.com"
+	user2.SocialIDs = map[string]string{"facebook": "fb-id-2"}
+	user2, err = core.WriteUser(user2, true)
+	c.Assert(err, IsNil)
+
+	user3 := CorrectUser()
+	user3.AccountID = account.ID
+	user3.ApplicationID = application.ID
+	user3.Username = "social3"
+	user3.Email = "social-connection@user3.com"
+	user3.SocialIDs = map[string]string{"facebook": "fb-id-3"}
+	user3, err = core.WriteUser(user3, true)
+	c.Assert(err, IsNil)
+
+	user4 := CorrectUser()
+	user4.AccountID = account.ID
+	user4.ApplicationID = application.ID
+	user4.Username = "social4"
+	user4.Email = "social-connection@user4.com"
+	user4.SocialIDs = map[string]string{"facebook": "fb-id-4"}
+	user4, err = core.WriteUser(user4, true)
+	c.Assert(err, IsNil)
+
+	user5 := CorrectUser()
+	user5.AccountID = account.ID
+	user5.ApplicationID = application.ID
+	user5.Username = "social5"
+	user5.Email = "social-connection@user5.com"
+	user5.SocialIDs = map[string]string{"facebook": "fb-id-5"}
+	user5, err = core.WriteUser(user5, true)
+	c.Assert(err, IsNil)
+
+	payload, err := json.Marshal(struct {
+		UserFromID int64 `json:"user_from_id"`
+		SocialPlatform string `json:"social_platform"`
+		ConnectionsIDs []string `json:"connection_ids"`
+	}{
+		UserFromID: userFrom.ID,
+		SocialPlatform: "facebook",
+		ConnectionsIDs: []string{
+			user2.SocialIDs["facebook"],
+			user4.SocialIDs["facebook"],
+		},
+	})
+
+	routeName := "createSocialConnections"
+	route := getComposedRoute(routeName, account.ID, application.ID, userFrom.ID, "facebook")
+	code, body, err := runRequest(routeName, route, string(payload), application.AuthToken, createApplicationUserSessionToken(userFrom), 3)
+	c.Assert(err, IsNil)
+
+	c.Assert(code, Equals, http.StatusCreated)
+	c.Assert(body, Not(Equals), "")
+	c.Assert(body, Not(Equals), "[]\n")
 }

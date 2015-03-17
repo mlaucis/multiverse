@@ -265,31 +265,40 @@ func ReadConnection(accountID, applicationID, userFromID, userToID int64) (conne
 // SocialConnect creates the connections between a user and his other social peers
 func SocialConnect(user *entity.User, platform string, socialFriendsIDs []string) ([]*entity.User, error) {
 	result := []*entity.User{}
-	applicationSocialKey := storageClient.SocialConnection(user.AccountID, user.ApplicationID, platform, Base64Encode(user.SocialIDs[platform]))
-
-	err := storageEngine.Set(applicationSocialKey, fmt.Sprintf("%d", user.ID)).Err()
-	if err != nil {
-		return result, err
-	}
 
 	encodedSocialFriendsIDs := []string{}
 	for idx := range socialFriendsIDs {
-		encodedSocialFriendsIDs = append(encodedSocialFriendsIDs, Base64Encode(socialFriendsIDs[idx]))
+		encodedSocialFriendsIDs = append(encodedSocialFriendsIDs, storageClient.SocialConnection(
+		user.AccountID,
+		user.ApplicationID,
+		platform,
+		Base64Encode(socialFriendsIDs[idx])))
 	}
 
-	ourUserStoredAccountIDs, err := storageEngine.MGet(encodedSocialFriendsIDs...).Result()
+	ourStoredUsersIDs, err := storageEngine.MGet(encodedSocialFriendsIDs...).Result()
 	if err != nil {
 		return result, err
 	}
 
-	if len(ourUserStoredAccountIDs) == 0 {
+	if len(ourStoredUsersIDs) == 0 {
 		return result, nil
 	}
 
-	ourUsersDecodedAccountIDs := []string{}
-	for idx := range ourUserStoredAccountIDs {
-		userID, err := strconv.ParseInt(ourUserStoredAccountIDs[idx].(string), 10, 64)
+	ourUserKeys := []string{}
+	for idx := range ourStoredUsersIDs {
+		userID, err := strconv.ParseInt(ourStoredUsersIDs[idx].(string), 10, 64)
 		if err != nil {
+			continue
+		}
+
+		existingConnection, err :=ReadConnection(user.AccountID, user.ApplicationID, user.ID, userID)
+		if err != nil {
+			continue
+		}
+
+		// We don't want to update existing connections as we don't know if the user disabled them willingly or not
+		// TODO Figure out if this is the right thing to do
+		if existingConnection != nil {
 			continue
 		}
 
@@ -310,16 +319,21 @@ func SocialConnect(user *entity.User, platform string, socialFriendsIDs []string
 			continue
 		}
 
-		ourUsersDecodedAccountIDs = append(
-			ourUsersDecodedAccountIDs,
+		ourUserKeys = append(
+		ourUserKeys,
 			storageClient.User(user.AccountID, user.ApplicationID, userID),
 		)
 	}
 
-	return fetchAndDecodeMultipleUsers(ourUsersDecodedAccountIDs)
+	return fetchAndDecodeMultipleUsers(ourUserKeys)
 }
 
 func fetchAndDecodeMultipleUsers(keys []string) (users []*entity.User, err error) {
+	fmt.Scan()
+	if len(keys) == 0 {
+		return []*entity.User{}, nil
+	}
+
 	resultList, err := storageEngine.MGet(keys...).Result()
 	if err != nil {
 		return nil, err

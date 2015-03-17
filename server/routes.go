@@ -442,7 +442,7 @@ var routes = map[string]map[string]*Route{
 		},
 		"updateConnection": &Route{
 			Method:   "PUT",
-			Pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]{1,20}}/connection/{userToId:[a-zA-Z0-9]+}",
+			Pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]{1,20}}/connection/{userToId:[0-9]{1,20}}",
 			CPattern: "/account/%d/application/%d/user/%d/connection/%d",
 			Scope:    "application/user/connection/update",
 			Handlers: []RouteFunc{
@@ -458,7 +458,7 @@ var routes = map[string]map[string]*Route{
 		},
 		"deleteConnection": &Route{
 			Method:   "DELETE",
-			Pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]{1,20}}/connection/{userToId:[a-zA-Z0-9]+}",
+			Pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]{1,20}}/connection/{userToId:[0-9]{1,20}}",
 			CPattern: "/account/%d/application/%d/user/%d/connection/%d",
 			Scope:    "application/user/connection/delete",
 			Handlers: []RouteFunc{
@@ -506,7 +506,7 @@ var routes = map[string]map[string]*Route{
 		},
 		"createSocialConnections": &Route{
 			Method:   "POST",
-			Pattern:  "/account/{accountId:[0-9]{1,20}}/application/{application:[0-9]{1,20}}/user/{userId:[1-9]{1,20}}/connections/social/{platformName:[0-9a-zA-Z]{1,20}}",
+			Pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[1-9]{1,20}}/connections/social/{platformName:[0-9a-zA-Z]{1,20}}",
 			CPattern: "/account/%d/application/%d/user/%d/connections/social/%s",
 			Scope:    "application/user/connections/social",
 			Handlers: []RouteFunc{

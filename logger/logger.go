@@ -51,9 +51,6 @@ func TGLog(msg chan *LogMsg) {
 				if m.RawError != nil {
 					rawError = m.RawError.Error()
 				}
-				if m.StatusCode < 300 {
-					m.Location = ""
-				}
 
 				log.Printf(
 					logFormat,
