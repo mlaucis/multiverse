@@ -6,7 +6,10 @@
 package main
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"flag"
+	"io/ioutil"
 	"log"
 	"math/rand"
 	"net/http"
@@ -78,6 +81,19 @@ func main() {
 		go logger.TGLog(errorLogChan)
 	}
 
+
+	server := &http.Server{
+		Addr:           conf.ListenHostPort,
+		Handler:        router,
+		ReadTimeout:    5 * time.Second,
+		WriteTimeout:   10 * time.Second,
+		MaxHeaderBytes: 1 << 20,
+	}
+
+	if conf.UseSSL {
+		server.TLSConfig = configTLS()
+	}
+
 	if conf.UseArtwork {
 		log.Printf(`
 
@@ -93,21 +109,51 @@ func main() {
                   888      Y8b d88P
                   888       "Y88P"
 
-  	`)
+`)
 	}
-
-	server := &http.Server{
-		Addr:           conf.ListenHostPort,
-		Handler:        router,
-		ReadTimeout:    5 * time.Second,
-		WriteTimeout:   10 * time.Second,
-		MaxHeaderBytes: 1 << 20,
-	}
-
-	log.Printf("Starting the server at \"%s\" in %s", conf.ListenHostPort, time.Now().Sub(startTime))
 	if conf.UseSSL {
-		log.Fatal(server.ListenAndServeTLS("./csr/STAR_tapglue_com.crt", "./csr/myserver.key"))
+		log.Printf("Starting SSL server at \"%s\" in %s", conf.ListenHostPort, time.Now().Sub(startTime))
+		log.Fatal(server.ListenAndServeTLS("./cert/STAR_tapglue_com.pem", "./cert/STAR_tapglue_com.key"))
 	} else {
+		log.Printf("Starting NORMAL server at \"%s\" in %s", conf.ListenHostPort, time.Now().Sub(startTime))
 		log.Fatal(server.ListenAndServe())
 	}
+}
+
+func configTLS() *tls.Config {
+	TLSConfig := &tls.Config{}
+	TLSConfig.CipherSuites = []uint16{tls.TLS_RSA_WITH_AES_128_CBC_SHA,
+		tls.TLS_RSA_WITH_AES_256_CBC_SHA,
+		tls.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,
+		tls.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,
+		tls.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,
+		tls.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
+		tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+		tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256}
+	TLSConfig.MinVersion = tls.VersionTLS12
+	TLSConfig.SessionTicketsDisabled = true
+	TLSConfig.ClientAuth = tls.RequireAndVerifyClientCert
+	/*TLSConfig.Certificates = make([]tls.Certificate, 1)
+	TLSConfig.Certificates[0], TLSConfig.RootCAs, TLSConfig.ClientCAs = loadCertificates()*/
+
+	return TLSConfig
+}
+
+func loadCertificates() (tls.Certificate, *x509.CertPool, *x509.CertPool) {
+	mycert, err := tls.LoadX509KeyPair("./cert/STAR_tapglue_com.crt", "./cert/STAR_taplue_com.key")
+	if err != nil {
+		panic(err)
+	}
+
+	pem, err := ioutil.ReadFile("./cert/STAR_tapglue_com.ca-bundle")
+	if err != nil {
+		panic(err)
+	}
+
+	certPool := x509.NewCertPool()
+	if !certPool.AppendCertsFromPEM(pem) {
+		panic("Failed appending certs")
+	}
+
+	return mycert, certPool, certPool
 }
