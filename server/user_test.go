@@ -316,6 +316,21 @@ func (s *ServerSuite) TestLoginUser_OK(c *C) {
 
 	c.Assert(sessionToken.UserID, Equals, user.ID)
 	c.Assert(sessionToken.Token, Not(Equals), "")
+
+	code, body, err = runRequest(routeName, route, payload, application.AuthToken, "", 3)
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusCreated)
+	c.Assert(body, Not(Equals), "")
+
+	sessionToken = struct {
+		UserID int64  `json:"id"`
+		Token  string `json:"session_token"`
+	}{}
+	err = json.Unmarshal([]byte(body), &sessionToken)
+	c.Assert(err, IsNil)
+
+	c.Assert(sessionToken.UserID, Equals, user.ID)
+	c.Assert(sessionToken.Token, Not(Equals), "")
 }
 
 // Test a correct logoutUser request

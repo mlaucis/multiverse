@@ -35,7 +35,7 @@ func UpdateAccountUser(existingAccountUser, updatedAccountUser entity.AccountUse
 
 	if updatedAccountUser.Password == "" {
 		updatedAccountUser.Password = existingAccountUser.Password
-	} else {
+	} else if updatedAccountUser.Password != existingAccountUser.Password {
 		updatedAccountUser.Password = storageClient.EncryptPassword(updatedAccountUser.Password)
 	}
 

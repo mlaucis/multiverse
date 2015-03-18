@@ -36,7 +36,7 @@ func UpdateUser(existingUser, updatedUser entity.User, retrieve bool) (usr *enti
 
 	if updatedUser.Password == "" {
 		updatedUser.Password = existingUser.Password
-	} else {
+	} else if updatedUser.Password != existingUser.Password {
 		// Encrypt password - we should do this only if the password changes
 		updatedUser.Password = storageClient.EncryptPassword(updatedUser.Password)
 	}
