@@ -34,6 +34,7 @@ type (
 		StatusCode        int
 		Vars              map[string]string
 		Body              *bytes.Buffer
+		Body2             *bytes.Buffer
 		MainLog           chan *logger.LogMsg
 		ErrorLog          chan *logger.LogMsg
 		W                 http.ResponseWriter
@@ -108,7 +109,7 @@ func (ctx *Context) newLogMessage(stackDepth int) *logger.LogMsg {
 		Method:     ctx.R.Method,
 		RequestURI: requestPath,
 		Headers:    ctx.R.Header,
-		Payload:    ctx.Body.String(),
+		Payload:    ctx.Body2.String(),
 		Name:       ctx.RouteName,
 		Start:      ctx.StartTime,
 		End:        time.Now(),
@@ -135,6 +136,7 @@ func NewContext(
 	ctx.Vars = mux.Vars(r)
 	if r.Method != "GET" {
 		ctx.Body = utils.PeakBody(r)
+		ctx.Body2 = utils.PeakBody(r)
 	}
 	ctx.RouteName = routeName
 	ctx.Scope = scope
