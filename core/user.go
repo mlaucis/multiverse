@@ -34,7 +34,9 @@ func ReadApplicationUser(accountID, applicationID, userID int64) (user *entity.U
 // UpdateUser updates a user in the database and returns the updates user or an error
 func UpdateUser(existingUser, updatedUser entity.User, retrieve bool) (usr *entity.User, err error) {
 
-	if updatedUser.Password != existingUser.Password {
+	if updatedUser.Password == "" {
+		updatedUser.Password = existingUser.Password
+	} else {
 		// Encrypt password - we should do this only if the password changes
 		updatedUser.Password = storageClient.EncryptPassword(updatedUser.Password)
 	}

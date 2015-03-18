@@ -146,11 +146,10 @@ func (s *ServerSuite) TestUpdateAccountUser_WrongValue(c *C) {
 	c.Assert(err, IsNil)
 
 	payload := fmt.Sprintf(
-		`{"user_name":"%s", "password":"", "first_name": "%s", "last_name": "%s", "email": "%s", "enabled": true}`,
+		`{"user_name":"%s", "password":"", "first_name": "%s", "last_name": "%s", "email": "email"}`,
 		accountUser.Username,
 		accountUser.FirstName,
 		accountUser.LastName,
-		accountUser.Email,
 	)
 
 	routeName := "updateAccountUser"
@@ -179,11 +178,15 @@ func (s *ServerSuite) TestUpdateAccountUser_WrongToken(c *C) {
 	)
 	c.Assert(err, IsNil)
 
+	sessionToken, err := utils.Base64Decode(getAccountUserSessionToken(accountUser))
+	c.Assert(err, IsNil)
+	sessionToken = utils.Base64Encode(sessionToken + "a")
+
 	routeName := "updateAccountUser"
 	route := getComposedRoute(routeName, accountUser.AccountID, accountUser.ID)
-	code, _, err := runRequest(routeName, route, payload, account.AuthToken, getAccountUserSessionToken(accountUser), 2)
+	code, _, err := runRequest(routeName, route, payload, account.AuthToken, sessionToken, 2)
 
-	c.Assert(code, Equals, http.StatusBadRequest)
+	c.Assert(code, Equals, http.StatusUnauthorized)
 }
 
 // Test a correct deleteAccountUser request

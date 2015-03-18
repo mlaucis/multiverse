@@ -33,12 +33,13 @@ func ReadAccountUser(accountID, accountUserID int64) (accountUser *entity.Accoun
 func UpdateAccountUser(existingAccountUser, updatedAccountUser entity.AccountUser, retrieve bool) (accUser *entity.AccountUser, err error) {
 	updatedAccountUser.UpdatedAt = time.Now()
 
-	val, err := json.Marshal(updatedAccountUser)
-	if err != nil {
-		return nil, err
+	if updatedAccountUser.Password == "" {
+		updatedAccountUser.Password = existingAccountUser.Password
+	} else {
+		updatedAccountUser.Password = storageClient.EncryptPassword(updatedAccountUser.Password)
 	}
 
-	existingUser, err := ReadAccountUser(updatedAccountUser.AccountID, updatedAccountUser.ID)
+	val, err := json.Marshal(updatedAccountUser)
 	if err != nil {
 		return nil, err
 	}
@@ -48,8 +49,8 @@ func UpdateAccountUser(existingAccountUser, updatedAccountUser entity.AccountUse
 		return nil, err
 	}
 
-	emailListKey := storageClient.AccountUserByEmail(utils.Base64Encode(existingUser.Email))
-	usernameListKey := storageClient.AccountUserByUsername(utils.Base64Encode(existingUser.Username))
+	emailListKey := storageClient.AccountUserByEmail(utils.Base64Encode(existingAccountUser.Email))
+	usernameListKey := storageClient.AccountUserByUsername(utils.Base64Encode(existingAccountUser.Username))
 	_, err = storageEngine.Del(emailListKey, usernameListKey).Result()
 
 	if !updatedAccountUser.Enabled {

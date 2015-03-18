@@ -128,8 +128,10 @@ func UpdateAccountUser(existingAccountUser, updatedAccountUser *entity.AccountUs
 		errs = append(errs, &errorAccountUserUsernameSize)
 	}
 
-	if !StringLengthBetween(updatedAccountUser.Password, accountUserPasswordMin, accountUserPasswordMax) {
-		errs = append(errs, &errorAccountUserPasswordSize)
+	if updatedAccountUser.Password != "" {
+		if !StringLengthBetween(updatedAccountUser.Password, accountUserPasswordMin, accountUserPasswordMax) {
+			errs = append(errs, &errorAccountUserPasswordSize)
+		}
 	}
 
 	if !alphaNumExtraCharFirst.MatchString(updatedAccountUser.FirstName) {
@@ -145,7 +147,6 @@ func UpdateAccountUser(existingAccountUser, updatedAccountUser *entity.AccountUs
 	}
 
 	// TODO add validation for password rules such as use all type of chars
-
 	if updatedAccountUser.Email == "" || !IsValidEmail(updatedAccountUser.Email) {
 		errs = append(errs, &errorAccountUserEmailInvalid)
 	}
