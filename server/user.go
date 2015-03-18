@@ -152,8 +152,12 @@ func loginApplicationUser(ctx *context.Context) {
 	_, err = core.UpdateUser(*user, *user, false)
 
 	writeResponse(ctx, struct {
-		Token string `json:"token"`
-	}{Token: sessionToken}, http.StatusCreated, 0)
+		UserID int64 `json:"id"`
+		Token string `json:"session_token"`
+	}{
+		UserID: user.ID,
+		Token: sessionToken,
+	}, http.StatusCreated, 0)
 }
 
 // refreshApplicationUserSession handles the requests to refresh the user session token
@@ -161,7 +165,7 @@ func loginApplicationUser(ctx *context.Context) {
 func refreshApplicationUserSession(ctx *context.Context) {
 	var (
 		tokenPayload struct {
-			Token string `json:"token"`
+			Token string `json:"session_token"`
 		}
 		sessionToken string
 		err          error
@@ -183,7 +187,7 @@ func refreshApplicationUserSession(ctx *context.Context) {
 	}
 
 	writeResponse(ctx, struct {
-		Token string `json:"token"`
+		Token string `json:"session_token"`
 	}{Token: sessionToken}, http.StatusCreated, 0)
 }
 

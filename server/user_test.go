@@ -306,6 +306,16 @@ func (s *ServerSuite) TestLoginUser_OK(c *C) {
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
+
+	sessionToken := struct {
+		UserID int64 `json:"id"`
+		Token string `json:"session_token"`
+	}{}
+	err = json.Unmarshal([]byte(body), &sessionToken)
+	c.Assert(err, IsNil)
+
+	c.Assert(sessionToken.UserID, Equals, user.ID)
+	c.Assert(sessionToken.Token, Not(Equals), "")
 }
 
 // Test a correct logoutUser request
@@ -333,10 +343,14 @@ func (s *ServerSuite) TestLogoutUser_OK(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	sessionToken := struct {
-		Token string `json:"token"`
+		UserID int64 `json:"id"`
+		Token string `json:"session_token"`
 	}{}
 	err = json.Unmarshal([]byte(body), &sessionToken)
 	c.Assert(err, IsNil)
+
+	c.Assert(sessionToken.UserID, Equals, user.ID)
+	c.Assert(sessionToken.Token, Not(Equals), "")
 
 	routeName = "logoutUser"
 	route = getComposedRoute(routeName, account.ID, application.ID, user.ID)
