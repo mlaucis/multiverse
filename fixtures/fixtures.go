@@ -52,7 +52,7 @@ var (
 		},
 		Common: Common{
 			Image: []*Image{
-				&Image{
+				{
 					URL: "http://images.tapglue.com/1/demouser/profile.jpg",
 				},
 			},

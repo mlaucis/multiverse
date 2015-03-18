@@ -52,7 +52,7 @@ var (
 		},
 		Common: entity.Common{
 			Image: []*entity.Image{
-				&entity.Image{
+				{
 					URL: "http://link.to/userthumbnail.jpg",
 				},
 			},
