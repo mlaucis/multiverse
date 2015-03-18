@@ -269,10 +269,10 @@ func SocialConnect(user *entity.User, platform string, socialFriendsIDs []string
 	encodedSocialFriendsIDs := []string{}
 	for idx := range socialFriendsIDs {
 		encodedSocialFriendsIDs = append(encodedSocialFriendsIDs, storageClient.SocialConnection(
-		user.AccountID,
-		user.ApplicationID,
-		platform,
-		Base64Encode(socialFriendsIDs[idx])))
+			user.AccountID,
+			user.ApplicationID,
+			platform,
+			Base64Encode(socialFriendsIDs[idx])))
 	}
 
 	ourStoredUsersIDs, err := storageEngine.MGet(encodedSocialFriendsIDs...).Result()
@@ -291,14 +291,11 @@ func SocialConnect(user *entity.User, platform string, socialFriendsIDs []string
 			continue
 		}
 
-		existingConnection, err :=ReadConnection(user.AccountID, user.ApplicationID, user.ID, userID)
-		if err != nil {
-			continue
-		}
+		key := storageClient.Connection(user.AccountID, user.ApplicationID, user.ID, userID)
+		if exists, err := storageEngine.Exists(key).Result(); exists || err != nil {
+			// We don't want to update existing connections as we don't know if the user disabled them willingly or not
+			// TODO Figure out if this is the right thing to do
 
-		// We don't want to update existing connections as we don't know if the user disabled them willingly or not
-		// TODO Figure out if this is the right thing to do
-		if existingConnection != nil {
 			continue
 		}
 
@@ -320,7 +317,7 @@ func SocialConnect(user *entity.User, platform string, socialFriendsIDs []string
 		}
 
 		ourUserKeys = append(
-		ourUserKeys,
+			ourUserKeys,
 			storageClient.User(user.AccountID, user.ApplicationID, userID),
 		)
 	}

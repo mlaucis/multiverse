@@ -81,7 +81,6 @@ func main() {
 		go logger.TGLog(errorLogChan)
 	}
 
-
 	server := &http.Server{
 		Addr:           conf.ListenHostPort,
 		Handler:        router,

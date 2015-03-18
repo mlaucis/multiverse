@@ -152,11 +152,11 @@ func loginApplicationUser(ctx *context.Context) {
 	_, err = core.UpdateUser(*user, *user, false)
 
 	writeResponse(ctx, struct {
-		UserID int64 `json:"id"`
-		Token string `json:"session_token"`
+		UserID int64  `json:"id"`
+		Token  string `json:"session_token"`
 	}{
 		UserID: user.ID,
-		Token: sessionToken,
+		Token:  sessionToken,
 	}, http.StatusCreated, 0)
 }
 

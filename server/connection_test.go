@@ -348,11 +348,11 @@ func (s *ServerSuite) TestAddSocialConnection(c *C) {
 	c.Assert(err, IsNil)
 
 	payload, err := json.Marshal(struct {
-		UserFromID int64 `json:"user_from_id"`
-		SocialPlatform string `json:"social_platform"`
+		UserFromID     int64    `json:"user_from_id"`
+		SocialPlatform string   `json:"social_platform"`
 		ConnectionsIDs []string `json:"connection_ids"`
 	}{
-		UserFromID: userFrom.ID,
+		UserFromID:     userFrom.ID,
 		SocialPlatform: "facebook",
 		ConnectionsIDs: []string{
 			user2.SocialIDs["facebook"],
@@ -368,4 +368,11 @@ func (s *ServerSuite) TestAddSocialConnection(c *C) {
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
 	c.Assert(body, Not(Equals), "[]\n")
+
+	connectedUsers := []*entity.User{}
+	err = json.Unmarshal([]byte(body), &connectedUsers)
+
+	c.Assert(len(connectedUsers), Equals, 2)
+	c.Assert(connectedUsers[0].ID, Equals, user2.ID)
+	c.Assert(connectedUsers[1].ID, Equals, user4.ID)
 }

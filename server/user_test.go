@@ -308,8 +308,8 @@ func (s *ServerSuite) TestLoginUser_OK(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	sessionToken := struct {
-		UserID int64 `json:"id"`
-		Token string `json:"session_token"`
+		UserID int64  `json:"id"`
+		Token  string `json:"session_token"`
 	}{}
 	err = json.Unmarshal([]byte(body), &sessionToken)
 	c.Assert(err, IsNil)
@@ -343,8 +343,8 @@ func (s *ServerSuite) TestLogoutUser_OK(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	sessionToken := struct {
-		UserID int64 `json:"id"`
-		Token string `json:"session_token"`
+		UserID int64  `json:"id"`
+		Token  string `json:"session_token"`
 	}{}
 	err = json.Unmarshal([]byte(body), &sessionToken)
 	c.Assert(err, IsNil)

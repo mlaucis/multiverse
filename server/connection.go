@@ -104,18 +104,22 @@ func createConnection(ctx *context.Context) {
 	connection.ApplicationID = ctx.ApplicationID
 	connection.UserFromID = ctx.ApplicationUserID
 
+	if connection.UserFromID == connection.UserToID {
+		errorHappened(ctx, "failed to create connection (2)\nuser is connecting with itself", http.StatusBadRequest, fmt.Errorf("self-connection"))
+	}
+
 	if err = validator.CreateConnection(connection); err != nil {
-		errorHappened(ctx, "failed to create the connection (2)\n"+err.Error(), http.StatusBadRequest, err)
+		errorHappened(ctx, "failed to create the connection (3)\n"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
 	if connection, err = core.WriteConnection(connection, false); err != nil {
-		errorHappened(ctx, "failed to create the connection (3)", http.StatusInternalServerError, err)
+		errorHappened(ctx, "failed to create the connection (4)", http.StatusInternalServerError, err)
 		return
 	}
 
 	if connection, err = core.ConfirmConnection(connection, true); err != nil {
-		errorHappened(ctx, "failed to create the connection (4)", http.StatusInternalServerError, err)
+		errorHappened(ctx, "failed to create the connection (5)", http.StatusInternalServerError, err)
 		return
 	}
 
@@ -194,8 +198,8 @@ func createSocialConnections(ctx *context.Context) {
 	}
 
 	socialConnections := struct {
-		UserFromID int64 `json:"user_from_id"`
-		SocialPlatform string `json:"social_platform"`
+		UserFromID     int64    `json:"user_from_id"`
+		SocialPlatform string   `json:"social_platform"`
 		ConnectionsIDs []string `json:"connection_ids"`
 	}{}
 

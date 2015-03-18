@@ -98,7 +98,6 @@ type (
 		ApplicationID int64             `json:"application_id"`
 		CustomID      string            `json:"custom_id,omitempty"`
 		SocialIDs     map[string]string `json:"social_ids,omitempty"`
-		GameCenterID  string            `json:"game_center_id,omitempty"`
 		DeviceIDs     []string          `json:"device_ids,omitempty"`
 		Events        []*Event          `json:"events,omitempty"`
 		Connections   []*User           `json:"connections,omitempty"`
