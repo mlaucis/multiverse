@@ -318,6 +318,7 @@ func errorHappened(ctx *context.Context, message string, code int, internalError
 func home(ctx *context.Context) {
 	writeCacheHeaders(10*24*3600, ctx)
 	ctx.W.Header().Set("Content-Type", "text/plain; charset=UTF-8")
+	ctx.W.Header().Set("Refresh", "3; url=http://tapglue.com")
 	ctx.W.Write([]byte(`these aren't the droids you're looking for`))
 	ctx.StatusCode = 200
 }
