@@ -30,3 +30,4 @@ backend
 *.rdb
 *.aof
 csr
+cert

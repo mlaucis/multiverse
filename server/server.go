@@ -25,8 +25,6 @@ import (
 )
 
 const (
-	apiRequestVersionString = "tg%s"
-
 	errUserAgentNotSet           = "User-Agent header must be set (1)"
 	errContentLengthNotSet       = "Content-Length header must be set (1)"
 	errContentTypeNotSet         = "Content-Type header must be set (1)"
