@@ -12,9 +12,9 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/tapglue/backend/core/entity"
 	"github.com/tapglue/backend/logger"
 	"github.com/tapglue/backend/utils"
+	"github.com/tapglue/backend/v1/entity"
 
 	"github.com/gorilla/mux"
 )
@@ -45,6 +45,7 @@ type (
 		Version           string
 		Environment       string
 		DebugMode         bool
+		SkipSecurity      bool
 	}
 
 	// Filter is a callback that helps updating the context with extra information

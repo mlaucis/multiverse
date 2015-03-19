@@ -11,8 +11,8 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/tapglue/backend/core/entity"
 	. "github.com/tapglue/backend/utils"
+	"github.com/tapglue/backend/v1/entity"
 
 	red "gopkg.in/redis.v2"
 )

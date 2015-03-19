@@ -6,20 +6,16 @@
 package server
 
 import (
-	"compress/gzip"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/pprof"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/logger"
-	"github.com/tapglue/backend/validator"
-	"github.com/tapglue/backend/validator/keys"
-	"github.com/tapglue/backend/validator/tokens"
+	"github.com/tapglue/backend/server/utils"
+	v1_server "github.com/tapglue/backend/v1/server"
 
 	"github.com/gorilla/mux"
 )
@@ -37,12 +33,12 @@ const (
 var (
 	mainLogChan  = make(chan *logger.LogMsg, 100000)
 	errorLogChan = make(chan *logger.LogMsg, 100000)
-	skipSecurity = false
+	routes       = make(map[string]map[string]*utils.Route)
 )
 
 // isRequestExpired checks if the request is expired or not
 func isRequestExpired(ctx *context.Context) {
-	if skipSecurity {
+	if ctx.SkipSecurity {
 		return
 	}
 
@@ -50,69 +46,69 @@ func isRequestExpired(ctx *context.Context) {
 	// TODO check if we should lower the interval
 	requestDate := ctx.R.Header.Get("x-tapglue-date")
 	if requestDate == "" {
-		errorHappened(ctx, "invalid request date (1)\nrequest date is empty", http.StatusBadRequest, fmt.Errorf("invalid request date"))
+		utils.ErrorHappened(ctx, "invalid request date (1)\nrequest date is empty", http.StatusBadRequest, fmt.Errorf("invalid request date"))
 		return
 	}
 
 	parsedRequestDate, err := time.Parse(time.RFC3339, requestDate)
 	if err != nil {
-		errorHappened(ctx, "invalid request date (2)\ndate is not in RFC3339 format\n"+err.Error(), http.StatusBadRequest, err)
+		utils.ErrorHappened(ctx, "invalid request date (2)\ndate is not in RFC3339 format\n"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
 	if time.Since(parsedRequestDate) > time.Duration(3*time.Minute) {
-		errorHappened(ctx, "request is expired (1)", http.StatusExpectationFailed, err)
+		utils.ErrorHappened(ctx, "request is expired (1)", http.StatusExpectationFailed, err)
 	}
 }
 
 // validateGetCommon runs a series of predefined, common, tests for GET requests
 func validateGetCommon(ctx *context.Context) {
 	if ctx.R.Header.Get("User-Agent") == "" {
-		errorHappened(ctx, errUserAgentNotSet, http.StatusBadRequest, nil)
+		utils.ErrorHappened(ctx, errUserAgentNotSet, http.StatusBadRequest, nil)
 		return
 	}
 }
 
 // validatePutCommon runs a series of predefinied, common, tests for PUT requests
 func validatePutCommon(ctx *context.Context) {
-	if skipSecurity {
+	if ctx.SkipSecurity {
 		return
 	}
 
 	if ctx.R.Header.Get("User-Agent") == "" {
-		errorHappened(ctx, errUserAgentNotSet, http.StatusBadRequest, nil)
+		utils.ErrorHappened(ctx, errUserAgentNotSet, http.StatusBadRequest, nil)
 		return
 	}
 
 	if ctx.R.Header.Get("Content-Length") == "" {
-		errorHappened(ctx, errContentLengthNotSet, http.StatusBadRequest, nil)
+		utils.ErrorHappened(ctx, errContentLengthNotSet, http.StatusBadRequest, nil)
 		return
 	}
 
 	if ctx.R.Header.Get("Content-Type") == "" {
-		errorHappened(ctx, errContentTypeNotSet, http.StatusBadRequest, nil)
+		utils.ErrorHappened(ctx, errContentTypeNotSet, http.StatusBadRequest, nil)
 		return
 	}
 
 	if ctx.R.Header.Get("Content-Type") != "application/json" &&
 		ctx.R.Header.Get("Content-Type") != "application/json; charset=UTF-8" {
-		errorHappened(ctx, errWrongContentType, http.StatusBadRequest, nil)
+		utils.ErrorHappened(ctx, errWrongContentType, http.StatusBadRequest, nil)
 		return
 	}
 
 	reqCL, err := strconv.ParseInt(ctx.R.Header.Get("Content-Length"), 10, 64)
 	if err != nil {
-		errorHappened(ctx, errContentLengthNotDecodable+"\n"+err.Error(), http.StatusBadRequest, err)
+		utils.ErrorHappened(ctx, errContentLengthNotDecodable+"\n"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
 	if reqCL != ctx.R.ContentLength {
-		errorHappened(ctx, errContentLengthSizeNotMatch, http.StatusBadRequest, nil)
+		utils.ErrorHappened(ctx, errContentLengthSizeNotMatch, http.StatusBadRequest, nil)
 		return
 	}
 
 	if ctx.R.Body == nil {
-		errorHappened(ctx, errRequestBodyCannotBeEmpty, http.StatusBadRequest, nil)
+		utils.ErrorHappened(ctx, errRequestBodyCannotBeEmpty, http.StatusBadRequest, nil)
 		return
 	}
 }
@@ -120,251 +116,67 @@ func validatePutCommon(ctx *context.Context) {
 // validateDeleteCommon runs a series of predefinied, common, tests for DELETE requests
 func validateDeleteCommon(ctx *context.Context) {
 	if ctx.R.Header.Get("User-Agent") == "" {
-		errorHappened(ctx, errUserAgentNotSet, http.StatusBadRequest, nil)
+		utils.ErrorHappened(ctx, errUserAgentNotSet, http.StatusBadRequest, nil)
 		return
 	}
 }
 
 // validatePostCommon runs a series of predefined, common, tests for the POST requests
 func validatePostCommon(ctx *context.Context) {
-	if skipSecurity {
+	if ctx.SkipSecurity {
 		return
 	}
 
 	if ctx.R.Header.Get("User-Agent") == "" {
-		errorHappened(ctx, errUserAgentNotSet, http.StatusBadRequest, nil)
+		utils.ErrorHappened(ctx, errUserAgentNotSet, http.StatusBadRequest, nil)
 		return
 	}
 
 	if ctx.R.Header.Get("Content-Length") == "" {
-		errorHappened(ctx, errContentLengthNotSet, http.StatusBadRequest, nil)
+		utils.ErrorHappened(ctx, errContentLengthNotSet, http.StatusBadRequest, nil)
 		return
 	}
 
 	if ctx.R.Header.Get("Content-Type") == "" {
-		errorHappened(ctx, errContentTypeNotSet, http.StatusBadRequest, nil)
+		utils.ErrorHappened(ctx, errContentTypeNotSet, http.StatusBadRequest, nil)
 		return
 	}
 
 	if ctx.R.Header.Get("Content-Type") != "application/json" &&
 		ctx.R.Header.Get("Content-Type") != "application/json; charset=UTF-8" {
-		errorHappened(ctx, errWrongContentType, http.StatusBadRequest, nil)
+		utils.ErrorHappened(ctx, errWrongContentType, http.StatusBadRequest, nil)
 		return
 	}
 
 	reqCL, err := strconv.ParseInt(ctx.R.Header.Get("Content-Length"), 10, 64)
 	if err != nil {
-		errorHappened(ctx, errContentLengthNotDecodable+"\n"+err.Error(), http.StatusLengthRequired, err)
+		utils.ErrorHappened(ctx, errContentLengthNotDecodable+"\n"+err.Error(), http.StatusLengthRequired, err)
 		return
 	}
 
 	if reqCL != ctx.R.ContentLength {
-		errorHappened(ctx, errContentLengthSizeNotMatch, http.StatusBadRequest, nil)
+		utils.ErrorHappened(ctx, errContentLengthSizeNotMatch, http.StatusBadRequest, nil)
 		return
 	}
 
 	if ctx.R.Body == nil {
-		errorHappened(ctx, errRequestBodyCannotBeEmpty, http.StatusBadRequest, nil)
+		utils.ErrorHappened(ctx, errRequestBodyCannotBeEmpty, http.StatusBadRequest, nil)
 		return
 	}
 }
 
-// validateApplicationRequestToken validates that the request contains a valid request token
-func validateAccountRequestToken(ctx *context.Context) {
-	if skipSecurity {
-		return
+// GetRoute takes a route name and returns the route including the version
+func GetRoute(routeName, apiVersion string) *utils.Route {
+	if _, ok := routes[apiVersion][routeName]; !ok {
+		panic(fmt.Errorf("You requested a route, %s, that does not exists in the routing table for version \"%s\"\n", routeName, apiVersion))
 	}
 
-	if errMsg, err := keys.VerifyRequest(ctx, 1); err != nil {
-		errorHappened(ctx, errMsg, http.StatusUnauthorized, err)
-	}
-}
-
-// validateApplicationRequestToken validates that the request contains a valid request token
-func validateApplicationRequestToken(ctx *context.Context) {
-	if skipSecurity {
-		return
-	}
-
-	var (
-		errMsg string
-		err    error
-	)
-	if ctx.Version == "0.1" {
-		errMsg, err = tokens.VerifyRequest(ctx, 3)
-	} else {
-		errMsg, err = keys.VerifyRequest(ctx, 2)
-	}
-
-	if err != nil {
-		errorHappened(ctx, errMsg, http.StatusUnauthorized, err)
-	}
-}
-
-// checkAccountSession checks if the session token is valid or not
-func checkAccountSession(ctx *context.Context) {
-	if skipSecurity {
-		return
-	}
-
-	sessionToken, errMsg, err := validator.CheckAccountSession(ctx.R)
-	if err == nil {
-		ctx.SessionToken = sessionToken
-		return
-	}
-
-	errorHappened(ctx, errMsg, http.StatusUnauthorized, err)
-}
-
-// checkApplicationSession checks if the session token is valid or not
-func checkApplicationSession(ctx *context.Context) {
-	if skipSecurity {
-		return
-	}
-
-	var (
-		errMsg, sessionToken string
-		err                  error
-	)
-
-	if ctx.Version == "0.1" {
-		sessionToken, errMsg, err = validator.CheckApplicationSimpleSession(ctx.AccountID, ctx.ApplicationID, ctx.ApplicationUserID, ctx.R)
-	} else {
-		sessionToken, errMsg, err = validator.CheckApplicationSession(ctx.R)
-	}
-
-	if err == nil {
-		ctx.SessionToken = sessionToken
-		return
-	}
-
-	errorHappened(ctx, errMsg, http.StatusUnauthorized, err)
-}
-
-// writeCacheHeaders will add the corresponding cache headers based on the time supplied (in seconds)
-func writeCacheHeaders(cacheTime uint, ctx *context.Context) {
-	if cacheTime > 0 {
-		ctx.W.Header().Set("Cache-Control", fmt.Sprintf(`"max-age=%d, public"`, cacheTime))
-		ctx.W.Header().Set("Expires", time.Now().Add(time.Duration(cacheTime)*time.Second).Format(http.TimeFormat))
-	} else {
-		ctx.W.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-		ctx.W.Header().Set("Pragma", "no-cache")
-		ctx.W.Header().Set("Expires", "0")
-	}
-}
-
-func writeCorsHeaders(ctx *context.Context) {
-	ctx.W.Header().Set("Access-Control-Allow-Origin", "*")
-	ctx.W.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-	ctx.W.Header().Set("Access-Control-Allow-Headers", "User-Agent, Content-Type, Content-Length, Accept-Encoding, x-tapglue-id, x-tapglue-date, x-tapglue-session, x-tapglue-payload-hash, x-tapglue-signature")
-	ctx.W.Header().Set("Access-Control-Allow-Credentials", "true")
-}
-
-// writeResponse handles the http responses and returns the data
-func writeResponse(ctx *context.Context, response interface{}, code int, cacheTime uint) {
-	// Set the response headers
-	writeCacheHeaders(cacheTime, ctx)
-	writeCorsHeaders(ctx)
-	ctx.W.Header().Set("Content-Type", "application/json; charset=UTF-8")
-
-	//Check if we have a session enable and if so write it back
-	if ctx.SessionToken != "" {
-		ctx.W.Header().Set("x-tapglue-session", ctx.SessionToken)
-	}
-
-	ctx.StatusCode = code
-
-	// Write response
-	if !strings.Contains(ctx.R.Header.Get("Accept-Encoding"), "gzip") {
-		// No gzip support
-		ctx.W.WriteHeader(code)
-		json.NewEncoder(ctx.W).Encode(response)
-		return
-	}
-
-	ctx.W.Header().Set("Content-Encoding", "gzip")
-	ctx.W.WriteHeader(code)
-	gz := gzip.NewWriter(ctx.W)
-	json.NewEncoder(gz).Encode(response)
-	gz.Close()
-}
-
-// errorHappened handles the error message
-func errorHappened(ctx *context.Context, message string, code int, internalError error) {
-	writeCacheHeaders(0, ctx)
-	ctx.W.Header().Set("Content-Type", "text/plain; charset=UTF-8")
-	// Write response
-	if !strings.Contains(ctx.R.Header.Get("Accept-Encoding"), "gzip") {
-		// No gzip support
-		ctx.W.WriteHeader(code)
-		fmt.Fprintf(ctx.W, "%d %s", code, message)
-	} else {
-		ctx.W.Header().Set("Content-Encoding", "gzip")
-		ctx.W.WriteHeader(code)
-		gz := gzip.NewWriter(ctx.W)
-		fmt.Fprintf(gz, "%d %s", code, message)
-		gz.Close()
-	}
-
-	ctx.StatusCode = code
-	ctx.LogErrorWithMessage(internalError, message, 1)
-}
-
-// home handles request to API root
-// Request: GET /
-// Test with: `curl -i localhost/`
-func home(ctx *context.Context) {
-	writeCacheHeaders(10*24*3600, ctx)
-	ctx.W.Header().Set("Content-Type", "text/plain; charset=UTF-8")
-	ctx.W.Header().Set("Refresh", "3; url=http://tapglue.com")
-	ctx.W.Write([]byte(`these aren't the droids you're looking for`))
-	ctx.StatusCode = 200
-}
-
-// humans handles requests to humans.txt
-// Request: GET /humans.txt
-// Test with: curl -i localhost/humans.txt
-func humans(ctx *context.Context) {
-	writeCacheHeaders(10*24*3600, ctx)
-	ctx.W.Header().Set("Content-Type", "text/plain; charset=UTF-8")
-	ctx.W.Write([]byte(`/* TEAM */
-Founder: Normal Wiese, Onur Akpolat
-Lead developer: Florin Patan
-http://tapglue.com
-Location: Berlin, Germany.
-
-/* SITE */
-Last update: 2015/03/15
-Standards: HTML5
-Components: None
-Software: Go, Redis`))
-	ctx.StatusCode = 200
-}
-
-// robots handles requests to robots.txt
-// Request: GET /robots.txt
-// Test with: curl -i localhost/robots.txt
-func robots(ctx *context.Context) {
-	writeCacheHeaders(10*24*3600, ctx)
-	ctx.W.Header().Set("Content-Type", "text/plain; charset=UTF-8")
-	ctx.W.Write([]byte(`User-agent: *
-Disallow: /`))
-	ctx.StatusCode = 200
-}
-
-func corsHandler(ctx *context.Context) {
-	if ctx.R.Method != "OPTIONS" {
-		return
-	}
-
-	writeCacheHeaders(100, ctx)
-	writeCorsHeaders(ctx)
-	ctx.W.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	return routes[apiVersion][routeName]
 }
 
 // CustomHandler composes the http handling function according to its definition and returns it
-func CustomHandler(routeName, version string, route *Route, mainLog, errorLog chan *logger.LogMsg, environment string, debugMode bool) http.HandlerFunc {
-	extraHandlers := []RouteFunc{corsHandler}
+func CustomHandler(routeName, version string, route *utils.Route, mainLog, errorLog chan *logger.LogMsg, environment string, debugMode, skipSecurity bool) http.HandlerFunc {
+	extraHandlers := []utils.RouteFunc{utils.CorsHandler}
 	switch route.Method {
 	case "DELETE":
 		{
@@ -384,7 +196,7 @@ func CustomHandler(routeName, version string, route *Route, mainLog, errorLog ch
 		}
 	}
 
-	if version != "0.1" && routeName != "index" && routeName != "humans" && routeName != "robots" {
+	if version != "0.1" && version != "" {
 		extraHandlers = append(extraHandlers, isRequestExpired)
 	}
 
@@ -394,9 +206,11 @@ func CustomHandler(routeName, version string, route *Route, mainLog, errorLog ch
 
 		ctx, err := context.NewContext(w, r, mainLog, errorLog, routeName, route.Scope, version, route.Filters, environment, debugMode)
 		if err != nil {
-			errorHappened(ctx, "failed to get a request context (1)", http.StatusInternalServerError, err)
+			utils.ErrorHappened(ctx, "failed to get a request context (1)", http.StatusInternalServerError, err)
 			return
 		}
+
+		ctx.SkipSecurity = skipSecurity
 
 		for _, handler := range route.Handlers {
 			// Any response that happens in a handler MUST send a Content-Type header
@@ -412,7 +226,6 @@ func CustomHandler(routeName, version string, route *Route, mainLog, errorLog ch
 
 // GetRouter creates the router
 func GetRouter(environment string, debugMode, skipSecurityChecks bool) (*mux.Router, chan *logger.LogMsg, chan *logger.LogMsg, error) {
-	skipSecurity = skipSecurityChecks
 	router := mux.NewRouter().StrictSlash(true)
 
 	for version, innerRoutes := range routes {
@@ -421,21 +234,8 @@ func GetRouter(environment string, debugMode, skipSecurityChecks bool) (*mux.Rou
 				Methods(route.Method, "OPTIONS").
 				Path(route.RoutePattern(version)).
 				Name(routeName).
-				HandlerFunc(CustomHandler(routeName, version, route, mainLogChan, errorLogChan, environment, debugMode))
+				HandlerFunc(CustomHandler(routeName, version, route, mainLogChan, errorLogChan, environment, debugMode, skipSecurityChecks))
 		}
-	}
-
-	for _, routeName := range []string{"index", "humans", "robots"} {
-		version := ""
-		route := routes["0.1"][routeName]
-		if route == nil {
-			panic(fmt.Sprintf("route %s not found", routeName))
-		}
-		router.
-			Methods(route.Method, "OPTIONS").
-			Path(route.Pattern).
-			Name(routeName).
-			HandlerFunc(CustomHandler(routeName, version, route, mainLogChan, errorLogChan, environment, debugMode))
 	}
 
 	if debugMode {
@@ -446,4 +246,10 @@ func GetRouter(environment string, debugMode, skipSecurityChecks bool) (*mux.Rou
 	}
 
 	return router, mainLogChan, errorLogChan, nil
+}
+
+// Init ensures that the package is properly initialized
+func Init() {
+	routes[""] = defaultRoutes
+	routes["0.1"] = v1_server.Routes
 }

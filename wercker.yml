@@ -34,16 +34,16 @@ build:
 #          cd $WERCKER_SOURCE_DIR/core
 #          go test -race -check.v
     - script:
-        name: test server
+        name: test server v1
         code: |-
           export WERCKER_SOURCE_DIR=${GOPATH}/src/github.com/tapglue/backend
-          cd $WERCKER_SOURCE_DIR/server
+          cd $WERCKER_SOURCE_DIR/v1/server
           GOPATH=`godep path`:$GOPATH gocov test -race -check.v | GOPATH=`godep path`:$GOPATH gocov-xml > coverage.xml
     - script:
-        name: codecov
+        name: codecov server v1
         code: |-
           export WERCKER_SOURCE_DIR=${GOPATH}/src/github.com/tapglue/backend
-          cd $WERCKER_SOURCE_DIR/server
+          cd $WERCKER_SOURCE_DIR/v1/server
           codecov --token=209a849f-0c0a-4f7a-b336-d9fb47d31afc
 #    - script:
 #        name: bechmark core

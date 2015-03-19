@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd ${GOPATH}/src/github.com/tapglue/backend/server
+cd ${GOPATH}/src/github.com/tapglue/backend/v1/server/
 gocov test -race > coverage.json
 gocov-html coverage.json > coverage.html
 
