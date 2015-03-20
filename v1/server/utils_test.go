@@ -5,6 +5,8 @@
 package server_test
 
 import (
+	"fmt"
+
 	"github.com/tapglue/backend/v1/core"
 	"github.com/tapglue/backend/v1/entity"
 	"github.com/tapglue/backend/v1/fixtures"
@@ -131,4 +133,110 @@ func CorrectUser() *entity.User {
 func CorrectEvent() *entity.Event {
 	event := &fixtures.CorrectEvent
 	return event
+}
+
+func AddCorrectAccounts(numberOfAccounts int) []*entity.Account {
+	var err error
+	result := make([]*entity.Account, numberOfAccounts)
+	for i := 0; i < numberOfAccounts; i++ {
+		account := CorrectAccount()
+		account.Name = fmt.Sprintf("acc-%d", i)
+		account.Name = fmt.Sprintf("acc description %d", i)
+		result[i], err = core.WriteAccount(account, true)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	return result
+}
+
+func AddCorrectApplications(account *entity.Account, numberOfApplicationsPerAccount int) []*entity.Application {
+	var err error
+	result := make([]*entity.Application, numberOfApplicationsPerAccount)
+	for i := 0; i < numberOfApplicationsPerAccount; i++ {
+		application := CorrectApplication()
+		application.Name = fmt.Sprintf("acc-%d-app-%d", account.ID, i)
+		application.Description = fmt.Sprintf("acc %d app %d", account.ID, i)
+		result[i], err = core.WriteApplication(application, true)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	return result
+}
+
+func AddCorrectApplicationUsers(application *entity.Application, numberOfUsersPerApplication int) []*entity.User {
+	var err error
+	result := make([]*entity.User, numberOfUsersPerApplication)
+	for i := 0; i < numberOfUsersPerApplication; i++ {
+		user := CorrectUser()
+		user.AccountID = application.AccountID
+		user.ApplicationID = application.ID
+		user.Username = fmt.Sprintf("acc-%d-app-%d-user-%d", user.AccountID, user.ApplicationID, i)
+		user.Email = fmt.Sprintf("acc-%d-app-%d-user-%d@tapglue-test.com", user.AccountID, user.ApplicationID, i)
+		user.Password = fmt.Sprintf("acc-%d-app-%d-user-%d", user.AccountID, user.ApplicationID, i)
+		user.FirstName = fmt.Sprintf("acc-%d-app-%d-user-%d-first-name", user.AccountID, user.ApplicationID, i)
+		user.LastName = fmt.Sprintf("acc-%d-app-%d-user-%d-last-name", user.AccountID, user.ApplicationID, i)
+		user.SocialIDs = map[string]string{
+			"facebook": fmt.Sprintf("acc-%d-app-%d-user-%d-fb", user.AccountID, user.ApplicationID, user.ID),
+			"twitter":  fmt.Sprintf("acc-%d-app-%d-user-%d-tw", user.AccountID, user.ApplicationID, user.ID),
+			"gplus":    fmt.Sprintf("acc-%d-app-%d-user-%d-gpl", user.AccountID, user.ApplicationID, user.ID),
+			"abook":    fmt.Sprintf("acc-%d-app-%d-user-%d-abk", user.AccountID, user.ApplicationID, user.ID),
+		}
+		result[i], err = core.WriteUser(user, true)
+		if err != nil {
+			panic(err)
+		}
+	}
+	return result
+}
+
+// AddCorrectUserEvents adds correct events to a user
+// If numberOfEventsPerUser < 4 then events are common, else they are user specific (thus unique)
+func AddCorrectUserEvents(user *entity.User, numberOfEventsPerUser int) []*entity.Event {
+	var err error
+	result := make([]*entity.Event, numberOfEventsPerUser)
+	for i := 0; i < numberOfEventsPerUser; i++ {
+		event := CorrectEvent()
+		event.AccountID = user.AccountID
+		event.ApplicationID = user.ApplicationID
+		event.UserID = user.ID
+		if i < 4 {
+			event.Target = &entity.Object{
+				ID:          fmt.Sprintf("target-%d", i),
+				DisplayName: map[string]string{"all": fmt.Sprintf("target-%d-all", i)},
+			}
+		} else {
+			event.Target = &entity.Object{
+				ID:          fmt.Sprintf("acc-%d-app-%d-usr-%d-target-%d", user.AccountID, user.ApplicationID, user.ID, i),
+				DisplayName: map[string]string{"all": fmt.Sprintf("acc-%d-app-%d-usr-%d-target-%d-all", user.AccountID, user.ApplicationID, user.ID, i)},
+			}
+		}
+		result[i], err = core.WriteEvent(event, true)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	return result
+}
+
+func CorrectDeploy(numberOfAccounts, numberOfApplicationsPerAccount, numberOfUsersPerApplication, numberOfEventsPerUser int) []*entity.Account {
+	accounts := AddCorrectAccounts(numberOfAccounts)
+
+	for i := 0; i < numberOfAccounts; i++ {
+		accounts[i].Applications = AddCorrectApplications(accounts[i], numberOfApplicationsPerAccount)
+
+		for j := 0; j < numberOfApplicationsPerAccount; j++ {
+			accounts[i].Applications[j].Users = AddCorrectApplicationUsers(accounts[i].Applications[j], numberOfUsersPerApplication)
+
+			for k := 0; k < numberOfUsersPerApplication; k++ {
+				accounts[i].Applications[j].Users[k].Events = AddCorrectUserEvents(accounts[i].Applications[j].Users[k], numberOfEventsPerUser)
+			}
+		}
+	}
+
+	return accounts
 }

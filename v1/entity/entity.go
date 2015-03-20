@@ -56,10 +56,12 @@ type (
 
 	// Account structure
 	Account struct {
-		ID          int64  `json:"id"`
-		Name        string `json:"name"`
-		Description string `json:"description"`
-		AuthToken   string `json:"token"`
+		ID           int64          `json:"id"`
+		Name         string         `json:"name"`
+		Description  string         `json:"description"`
+		AuthToken    string         `json:"token"`
+		Users        []*AccountUser `json:"-"`
+		Applications []*Application `json:"-"`
 		Common
 	}
 
@@ -82,12 +84,13 @@ type (
 
 	// Application structure
 	Application struct {
-		ID          int64  `json:"id"`
-		AccountID   int64  `json:"account_id"`
-		AuthToken   string `json:"auth_token"`
-		Name        string `json:"name"`
-		Description string `json:"description"`
-		URL         string `json:"url"`
+		ID          int64   `json:"id"`
+		AccountID   int64   `json:"account_id"`
+		AuthToken   string  `json:"auth_token"`
+		Name        string  `json:"name"`
+		Description string  `json:"description"`
+		URL         string  `json:"url"`
+		Users       []*User `json:"-"`
 		Common
 	}
 
