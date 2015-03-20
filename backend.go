@@ -6,12 +6,13 @@
 package main
 
 import (
+	"crypto/rand"
 	"crypto/tls"
 	"crypto/x509"
 	"flag"
 	"io/ioutil"
 	"log"
-	"math/rand"
+	mr "math/rand"
 	"net/http"
 	_ "net/http/pprof"
 	"runtime"
@@ -44,7 +45,7 @@ func init() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	// Seed random generator
-	rand.Seed(time.Now().UTC().UnixNano())
+	mr.Seed(time.Now().UTC().UnixNano())
 
 	flag.Parse()
 
@@ -122,38 +123,42 @@ func main() {
 
 func configTLS() *tls.Config {
 	TLSConfig := &tls.Config{}
-	TLSConfig.CipherSuites = []uint16{tls.TLS_RSA_WITH_AES_128_CBC_SHA,
-		tls.TLS_RSA_WITH_AES_256_CBC_SHA,
-		tls.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,
+	TLSConfig.CipherSuites = []uint16{
+		tls.TLS_FALLBACK_SCSV,
+		tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
 		tls.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,
-		tls.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,
-		tls.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
+		tls.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,
 		tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
-		tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256}
-	TLSConfig.MinVersion = tls.VersionTLS12
-	TLSConfig.SessionTicketsDisabled = true
-	TLSConfig.ClientAuth = tls.RequireAndVerifyClientCert
-	/*TLSConfig.Certificates = make([]tls.Certificate, 1)
-	TLSConfig.Certificates[0], TLSConfig.RootCAs, TLSConfig.ClientCAs = loadCertificates()*/
+		tls.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
+		tls.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,
+		tls.TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA,
+		tls.TLS_RSA_WITH_AES_256_CBC_SHA,
+		tls.TLS_RSA_WITH_AES_128_CBC_SHA,
+		tls.TLS_RSA_WITH_3DES_EDE_CBC_SHA,
+	}
+
+	TLSConfig.Rand = rand.Reader
+	TLSConfig.MinVersion = tls.VersionTLS10
+	TLSConfig.SessionTicketsDisabled = false
+	TLSConfig.InsecureSkipVerify = false
+	TLSConfig.ClientAuth = tls.VerifyClientCertIfGiven
+	TLSConfig.PreferServerCipherSuites = true
+	TLSConfig.ClientSessionCache = tls.NewLRUClientSessionCache(1000)
+	TLSConfig.RootCAs = loadCertificates()
 
 	return TLSConfig
 }
 
-func loadCertificates() (tls.Certificate, *x509.CertPool, *x509.CertPool) {
-	mycert, err := tls.LoadX509KeyPair("./cert/STAR_tapglue_com.crt", "./cert/STAR_taplue_com.key")
-	if err != nil {
-		panic(err)
-	}
-
+func loadCertificates() *x509.CertPool {
 	pem, err := ioutil.ReadFile("./cert/STAR_tapglue_com.ca-bundle")
 	if err != nil {
 		panic(err)
 	}
 
-	certPool := x509.NewCertPool()
-	if !certPool.AppendCertsFromPEM(pem) {
+	rootCertPool := x509.NewCertPool()
+	if !rootCertPool.AppendCertsFromPEM(pem) {
 		panic("Failed appending certs")
 	}
 
-	return mycert, certPool, certPool
+	return rootCertPool
 }

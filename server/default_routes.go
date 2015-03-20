@@ -40,9 +40,9 @@ var defaultRoutes = map[string]*Route{
 // Request: GET /
 // Test with: `curl -i localhost/`
 func home(ctx *context.Context) {
-	WriteCacheHeaders(10*24*3600, ctx)
+	WriteCommonHeaders(10*24*3600, ctx)
 	ctx.W.Header().Set("Content-Type", "text/plain; charset=UTF-8")
-	ctx.W.Header().Set("Refresh", "3; url=http://tapglue.com")
+	ctx.W.Header().Set("Refresh", "3; url=https://tapglue.com")
 	ctx.W.Write([]byte(`these aren't the droids you're looking for`))
 	ctx.StatusCode = 200
 }
@@ -51,7 +51,7 @@ func home(ctx *context.Context) {
 // Request: GET /humans.txt
 // Test with: curl -i localhost/humans.txt
 func humans(ctx *context.Context) {
-	WriteCacheHeaders(10*24*3600, ctx)
+	WriteCommonHeaders(10*24*3600, ctx)
 	ctx.W.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	ctx.W.Write([]byte(`/* TEAM */
 Founder: Normal Wiese, Onur Akpolat
@@ -71,7 +71,7 @@ Software: Go, Redis`))
 // Request: GET /robots.txt
 // Test with: curl -i localhost/robots.txt
 func robots(ctx *context.Context) {
-	WriteCacheHeaders(10*24*3600, ctx)
+	WriteCommonHeaders(10*24*3600, ctx)
 	ctx.W.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	ctx.W.Write([]byte(`User-agent: *
 Disallow: /`))

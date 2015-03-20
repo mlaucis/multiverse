@@ -245,6 +245,10 @@ func GetRouter(environment string, debugMode, skipSecurityChecks bool) (*mux.Rou
 		router.Handle("/debug/pprof/symbol", http.HandlerFunc(pprof.Symbol))
 	}
 
+	router.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "./favicon.ico")
+	})
+
 	return router, mainLogChan, errorLogChan, nil
 }
 

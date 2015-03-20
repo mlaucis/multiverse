@@ -45,7 +45,7 @@ func (r *Route) ComposePattern(version string) string {
 // WriteResponse handles the http responses and returns the data
 func WriteResponse(ctx *context.Context, response interface{}, code int, cacheTime uint) {
 	// Set the response headers
-	WriteCacheHeaders(cacheTime, ctx)
+	WriteCommonHeaders(cacheTime, ctx)
 	WriteCorsHeaders(ctx)
 	ctx.W.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
@@ -73,7 +73,7 @@ func WriteResponse(ctx *context.Context, response interface{}, code int, cacheTi
 
 // ErrorHappened handles the error message
 func ErrorHappened(ctx *context.Context, message string, code int, internalError error) {
-	WriteCacheHeaders(0, ctx)
+	WriteCommonHeaders(0, ctx)
 	ctx.W.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	// Write response
 	if !strings.Contains(ctx.R.Header.Get("Accept-Encoding"), "gzip") {
@@ -92,8 +92,12 @@ func ErrorHappened(ctx *context.Context, message string, code int, internalError
 	ctx.LogErrorWithMessage(internalError, message, 1)
 }
 
-// WriteCacheHeaders will add the corresponding cache headers based on the time supplied (in seconds)
-func WriteCacheHeaders(cacheTime uint, ctx *context.Context) {
+// WriteCommonHeaders will add the corresponding cache headers based on the time supplied (in seconds)
+func WriteCommonHeaders(cacheTime uint, ctx *context.Context) {
+	ctx.W.Header().Set("Strict-Transport-Security", "max-age=63072000")
+	ctx.W.Header().Set("X-Content-Type-Options", "nosniff")
+	ctx.W.Header().Set("X-Frame-Options", "DENY")
+
 	if cacheTime > 0 {
 		ctx.W.Header().Set("Cache-Control", fmt.Sprintf(`"max-age=%d, public"`, cacheTime))
 		ctx.W.Header().Set("Expires", time.Now().Add(time.Duration(cacheTime)*time.Second).Format(http.TimeFormat))
@@ -118,7 +122,7 @@ func CorsHandler(ctx *context.Context) {
 		return
 	}
 
-	WriteCacheHeaders(100, ctx)
+	WriteCommonHeaders(100, ctx)
 	WriteCorsHeaders(ctx)
 	ctx.W.Header().Set("Content-Type", "application/json; charset=UTF-8")
 }
