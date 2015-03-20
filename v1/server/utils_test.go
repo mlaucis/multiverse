@@ -167,7 +167,59 @@ func AddCorrectApplications(account *entity.Account, numberOfApplicationsPerAcco
 	return result
 }
 
-func AddCorrectApplicationUsers(application *entity.Application, numberOfUsersPerApplication int) []*entity.User {
+func HookUp(accountID, applicationID, userFromID, userToID int64) {
+	connection := &entity.Connection{
+		AccountID:     accountID,
+		ApplicationID: applicationID,
+		UserFromID:    userFromID,
+		UserToID:      userToID,
+	}
+	core.WriteConnection(connection, false)
+	core.ConfirmConnection(connection, false)
+}
+
+func HookUpUsers(users []*entity.User) {
+	if len(users) < 2 {
+		return
+	}
+
+	if len(users) >= 2 {
+		HookUp(users[0].AccountID, users[0].ApplicationID, users[0].ID, users[1].ID)
+		HookUp(users[0].AccountID, users[0].ApplicationID, users[1].ID, users[0].ID)
+	}
+
+	if len(users) >= 3 {
+		HookUp(users[0].AccountID, users[0].ApplicationID, users[0].ID, users[2].ID)
+		HookUp(users[0].AccountID, users[0].ApplicationID, users[1].ID, users[2].ID)
+	}
+
+	if len(users) >= 4 {
+		HookUp(users[0].AccountID, users[0].ApplicationID, users[0].ID, users[3].ID)
+		HookUp(users[0].AccountID, users[0].ApplicationID, users[2].ID, users[3].ID)
+	}
+
+	if len(users) >= 5 {
+		connection := &entity.Connection{
+			AccountID:     users[0].AccountID,
+			ApplicationID: users[0].ApplicationID,
+			UserFromID:    users[0].ID,
+			UserToID:      users[4].ID,
+		}
+		core.WriteConnection(connection, false)
+	}
+
+	if len(users) >= 6 {
+		connection := &entity.Connection{
+			AccountID:     users[0].AccountID,
+			ApplicationID: users[0].ApplicationID,
+			UserFromID:    users[4].ID,
+			UserToID:      users[5].ID,
+		}
+		core.WriteConnection(connection, false)
+	}
+}
+
+func AddCorrectApplicationUsers(application *entity.Application, numberOfUsersPerApplication int, hookUpUsers bool) []*entity.User {
 	var err error
 	result := make([]*entity.User, numberOfUsersPerApplication)
 	for i := 0; i < numberOfUsersPerApplication; i++ {
@@ -190,6 +242,11 @@ func AddCorrectApplicationUsers(application *entity.Application, numberOfUsersPe
 			panic(err)
 		}
 	}
+
+	if hookUpUsers {
+		HookUpUsers(result)
+	}
+
 	return result
 }
 
@@ -223,14 +280,14 @@ func AddCorrectUserEvents(user *entity.User, numberOfEventsPerUser int) []*entit
 	return result
 }
 
-func CorrectDeploy(numberOfAccounts, numberOfApplicationsPerAccount, numberOfUsersPerApplication, numberOfEventsPerUser int) []*entity.Account {
+func CorrectDeploy(numberOfAccounts, numberOfApplicationsPerAccount, numberOfUsersPerApplication, numberOfEventsPerUser int, hookUpUsers bool) []*entity.Account {
 	accounts := AddCorrectAccounts(numberOfAccounts)
 
 	for i := 0; i < numberOfAccounts; i++ {
 		accounts[i].Applications = AddCorrectApplications(accounts[i], numberOfApplicationsPerAccount)
 
 		for j := 0; j < numberOfApplicationsPerAccount; j++ {
-			accounts[i].Applications[j].Users = AddCorrectApplicationUsers(accounts[i].Applications[j], numberOfUsersPerApplication)
+			accounts[i].Applications[j].Users = AddCorrectApplicationUsers(accounts[i].Applications[j], numberOfUsersPerApplication, hookUpUsers)
 
 			for k := 0; k < numberOfUsersPerApplication; k++ {
 				accounts[i].Applications[j].Users[k].Events = AddCorrectUserEvents(accounts[i].Applications[j].Users[k], numberOfEventsPerUser)
