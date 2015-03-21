@@ -578,13 +578,11 @@ var Routes = map[string]*Route{
 		Scope:    "application/events/geo",
 		Handlers: []RouteFunc{
 			ValidateApplicationRequestToken,
-			CheckApplicationSession,
 			getGeoEventList,
 		},
 		Filters: []context.Filter{
 			contextHasAccountID,
 			contextHasApplicationID,
-			contextHasApplicationUserID,
 		},
 	},
 	"getObjectEventList": &Route{
@@ -594,13 +592,11 @@ var Routes = map[string]*Route{
 		Scope:    "application/events/object",
 		Handlers: []RouteFunc{
 			ValidateApplicationRequestToken,
-			CheckApplicationSession,
 			getObjectEventList,
 		},
 		Filters: []context.Filter{
 			contextHasAccountID,
 			contextHasApplicationID,
-			contextHasApplicationUserID,
 		},
 	},
 	"getLocationEventList": &Route{
@@ -610,13 +606,11 @@ var Routes = map[string]*Route{
 		Scope:    "application/events/location",
 		Handlers: []RouteFunc{
 			ValidateApplicationRequestToken,
-			CheckApplicationSession,
 			getLocationEventList,
 		},
 		Filters: []context.Filter{
 			contextHasAccountID,
 			contextHasApplicationID,
-			contextHasApplicationUserID,
 		},
 	},
 }
