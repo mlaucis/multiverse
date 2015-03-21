@@ -584,6 +584,7 @@ var Routes = map[string]*Route{
 		Filters: []context.Filter{
 			contextHasAccountID,
 			contextHasApplicationID,
+			contextHasApplicationUserID,
 		},
 	},
 	"getObjectEventList": &Route{
@@ -599,6 +600,7 @@ var Routes = map[string]*Route{
 		Filters: []context.Filter{
 			contextHasAccountID,
 			contextHasApplicationID,
+			contextHasApplicationUserID,
 		},
 	},
 	"getLocationEventList": &Route{
@@ -614,6 +616,7 @@ var Routes = map[string]*Route{
 		Filters: []context.Filter{
 			contextHasAccountID,
 			contextHasApplicationID,
+			contextHasApplicationUserID,
 		},
 	},
 }
