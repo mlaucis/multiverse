@@ -21,15 +21,15 @@ type (
 
 	// UserCommon holds common used fields for users
 	UserCommon struct {
-		Username  string    `json:"user_name"`
-		OriginalPassword string `json:"-"`
-		Password  string    `json:"password,omitempty"`
-		FirstName string    `json:"first_name,omitempty"`
-		LastName  string    `json:"last_name,omitempty"`
-		Email     string    `json:"email,omitempty"`
-		URL       string    `json:"url,omitempty"`
-		Activated bool      `json:"activated,omitempty"`
-		LastLogin time.Time `json:"last_login,omitempty"`
+		Username         string    `json:"user_name"`
+		OriginalPassword string    `json:"-"`
+		Password         string    `json:"password,omitempty"`
+		FirstName        string    `json:"first_name,omitempty"`
+		LastName         string    `json:"last_name,omitempty"`
+		Email            string    `json:"email,omitempty"`
+		URL              string    `json:"url,omitempty"`
+		Activated        bool      `json:"activated,omitempty"`
+		LastLogin        time.Time `json:"last_login,omitempty"`
 	}
 
 	// Image structure

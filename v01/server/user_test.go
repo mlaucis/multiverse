@@ -358,9 +358,9 @@ func (s *ServerSuite) TestLoginUserAfterLoginWorks(c *C) {
 	user := application.Users[0]
 
 	payload := fmt.Sprintf(
-	`{"email": "%s", "password": "%s"}`,
-	user.Email,
-	user.OriginalPassword,
+		`{"email": "%s", "password": "%s"}`,
+		user.Email,
+		user.OriginalPassword,
 	)
 
 	routeName := "loginUser"
@@ -437,7 +437,7 @@ func (s *ServerSuite) TestLoginAndRefreshSessionWorks(c *C) {
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
 	refreshSessionToken := struct {
-		Token  string `json:"session_token"`
+		Token string `json:"session_token"`
 	}{}
 	err = json.Unmarshal([]byte(body), &refreshSessionToken)
 	c.Assert(err, IsNil)
