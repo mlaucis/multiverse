@@ -338,7 +338,7 @@ var Routes = map[string]*Route{
 	"refreshUserSession": &Route{
 		Method:   "POST",
 		Pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]{1,20}}/refreshSession",
-		CPattern: "/account/%d/application/%d/user/%d/refreshsession",
+		CPattern: "/account/%d/application/%d/user/%d/refreshSession",
 		Scope:    "application/user/refreshSession",
 		Handlers: []RouteFunc{
 			ValidateApplicationRequestToken,
@@ -349,6 +349,7 @@ var Routes = map[string]*Route{
 			contextHasAccountID,
 			contextHasApplicationID,
 			contextHasApplicationUserID,
+			contextHasApplicationUser,
 		},
 	},
 	"logoutUser": &Route{

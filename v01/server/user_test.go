@@ -313,8 +313,8 @@ func (s *ServerSuite) TestLoginUserWorks(c *C) {
 	c.Assert(sessionToken.Token, Not(Equals), "")
 }
 
-func (s *ServerSuite) TestLoginUserAfterLoginWorks(c *C) {
-	accounts := CorrectDeploy(1, 1, 1, 0, false, false)
+func (s *ServerSuite) TestRefreshSessionOnOriginalTokenFailsAfterDoubleUserLogin(c *C) {
+	accounts := CorrectDeploy(1, 1, 1, 0, false, true)
 	application := accounts[0].Applications[0]
 	user := application.Users[0]
 
@@ -322,6 +322,45 @@ func (s *ServerSuite) TestLoginUserAfterLoginWorks(c *C) {
 		`{"email": "%s", "password": "%s"}`,
 		user.Email,
 		user.OriginalPassword,
+	)
+
+	routeName := "loginUser"
+	route := getComposedRoute(routeName, application.AccountID, application.ID)
+	code, body, err := runRequest(routeName, route, payload, application.AuthToken, "", 3)
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusCreated)
+	c.Assert(body, Not(Equals), "")
+
+	sessionToken := struct {
+		UserID int64  `json:"id"`
+		Token  string `json:"session_token"`
+	}{}
+	err = json.Unmarshal([]byte(body), &sessionToken)
+	c.Assert(err, IsNil)
+
+	c.Assert(sessionToken.UserID, Equals, user.ID)
+	c.Assert(sessionToken.Token, Not(Equals), "")
+	c.Assert(sessionToken.Token, Not(Equals), user.SessionToken)
+
+	payload = fmt.Sprintf(`{"session_token": "%s"}`, user.SessionToken)
+
+	routeName = "refreshUserSession"
+	route = getComposedRoute(routeName, application.AccountID, application.ID, user.ID)
+	code, body, err = runRequest(routeName, route, payload, application.AuthToken, user.SessionToken, 3)
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusUnauthorized)
+	c.Assert(body, Equals, "401 failed to check session token (12)\nsession mismatch")
+}
+
+func (s *ServerSuite) TestLoginUserAfterLoginWorks(c *C) {
+	accounts := CorrectDeploy(1, 1, 1, 0, false, false)
+	application := accounts[0].Applications[0]
+	user := application.Users[0]
+
+	payload := fmt.Sprintf(
+	`{"email": "%s", "password": "%s"}`,
+	user.Email,
+	user.OriginalPassword,
 	)
 
 	routeName := "loginUser"
@@ -358,6 +397,52 @@ func (s *ServerSuite) TestLoginUserAfterLoginWorks(c *C) {
 	c.Assert(sessionToken.UserID, Equals, user.ID)
 	c.Assert(sessionToken.Token, Not(Equals), "")
 	c.Assert(sessionToken.Token, Not(Equals), initialToken)
+}
+
+func (s *ServerSuite) TestLoginAndRefreshSessionWorks(c *C) {
+	accounts := CorrectDeploy(1, 1, 1, 0, false, false)
+	application := accounts[0].Applications[0]
+	user := application.Users[0]
+
+	payload := fmt.Sprintf(
+		`{"email": "%s", "password": "%s"}`,
+		user.Email,
+		user.OriginalPassword,
+	)
+
+	routeName := "loginUser"
+	route := getComposedRoute(routeName, application.AccountID, application.ID)
+	code, body, err := runRequest(routeName, route, payload, application.AuthToken, "", 3)
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusCreated)
+	c.Assert(body, Not(Equals), "")
+
+	sessionToken := struct {
+		UserID int64  `json:"id"`
+		Token  string `json:"session_token"`
+	}{}
+	err = json.Unmarshal([]byte(body), &sessionToken)
+	c.Assert(err, IsNil)
+
+	c.Assert(sessionToken.UserID, Equals, user.ID)
+	c.Assert(sessionToken.Token, Not(Equals), "")
+	user.SessionToken = sessionToken.Token
+
+	payload = fmt.Sprintf(`{"session_token": "%s"}`, user.SessionToken)
+
+	routeName = "refreshUserSession"
+	route = getComposedRoute(routeName, application.AccountID, application.ID, user.ID)
+	code, body, err = runRequest(routeName, route, payload, application.AuthToken, user.SessionToken, 3)
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusCreated)
+	c.Assert(body, Not(Equals), "")
+	refreshSessionToken := struct {
+		Token  string `json:"session_token"`
+	}{}
+	err = json.Unmarshal([]byte(body), &refreshSessionToken)
+	c.Assert(err, IsNil)
+	c.Assert(refreshSessionToken.Token, Not(Equals), "")
+	c.Assert(refreshSessionToken.Token, Not(Equals), sessionToken.Token)
 }
 
 // Test a correct logoutUser request

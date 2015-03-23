@@ -172,7 +172,7 @@ func refreshApplicationUserSession(ctx *context.Context) {
 		err          error
 	)
 
-	if err = json.NewDecoder(ctx.Body).Decode(tokenPayload); err != nil {
+	if err = json.NewDecoder(ctx.Body).Decode(&tokenPayload); err != nil {
 		utils.ErrorHappened(ctx, "failed to refresh the user session (1)\n"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
