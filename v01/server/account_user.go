@@ -177,7 +177,11 @@ func loginAccountUser(ctx *context.Context) {
 	utils.WriteResponse(ctx, struct {
 		AccountToken string `json:"account_token"`
 		Token        string `json:"token"`
+		FirstName    string `json:"first_name"`
+		LastName     string `json:"last_name"`
 	}{
+		FirstName:    user.FirstName,
+		LastName:     user.LastName,
 		AccountToken: account.AuthToken,
 		Token:        sessionToken,
 	}, http.StatusCreated, 0)
