@@ -199,7 +199,7 @@ func logoutApplicationUser(ctx *context.Context) {
 		tokenPayload struct {
 			Token string `json:"session_token"`
 		}
-		err          error
+		err error
 	)
 
 	if err = json.NewDecoder(ctx.Body).Decode(&tokenPayload); err != nil {

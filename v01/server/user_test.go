@@ -475,7 +475,7 @@ func (s *ServerSuite) TestLoginChangePasswordLoginWorks(c *C) {
 	c.Assert(sessionToken.Token, Not(Equals), "")
 	user.SessionToken = sessionToken.Token
 
-	payload = fmt.Sprintf(`{"session_token": "%s"}`, user.SessionToken)
+	payload = fmt.Sprintf(`{"password": "%s"}`, "newPass")
 
 	routeName = "updateUser"
 	route = getComposedRoute(routeName, application.AccountID, application.ID, user.ID)
@@ -496,14 +496,30 @@ func (s *ServerSuite) TestLoginChangePasswordLoginWorks(c *C) {
 	user.Events = nil
 	user.Image = nil
 	c.Assert(updatedUser, DeepEquals, user)
-	payload = fmt.Sprintf(`{"session_token": "%s"}`, user.SessionToken)
 
-	routeName = "logoutUser"
-	route = getComposedRoute(routeName, application.ID, application.ID, user.ID)
-	code, body, err = runRequest(routeName, route, payload, application.AuthToken, user.SessionToken, 3)
+	payload = fmt.Sprintf(
+		`{"email": "%s", "password": "%s"}`,
+		user.Email,
+		"newPass",
+	)
+
+	routeName = "loginUser"
+	route = getComposedRoute(routeName, application.AccountID, application.ID)
+	code, body, err = runRequest(routeName, route, payload, application.AuthToken, "", 3)
 	c.Assert(err, IsNil)
-	c.Assert(code, Equals, http.StatusOK)
+	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
+
+	newSessionToken := struct {
+		UserID int64  `json:"id"`
+		Token  string `json:"session_token"`
+	}{}
+	err = json.Unmarshal([]byte(body), &newSessionToken)
+	c.Assert(err, IsNil)
+
+	c.Assert(newSessionToken.UserID, Equals, user.ID)
+	c.Assert(newSessionToken.Token, Not(Equals), "")
+	c.Assert(newSessionToken.Token, Not(Equals), sessionToken.Token)
 }
 
 func (s *ServerSuite) TestLoginRefreshSessionLogoutWorks(c *C) {
@@ -652,4 +668,82 @@ func (s *ServerSuite) TestLoginLogoutLoginWorks(c *C) {
 	c.Assert(newSession.UserID, Equals, user.ID)
 	c.Assert(newSession.Token, Not(Equals), "")
 	c.Assert(newSession.Token, Not(Equals), sessionToken.Token)
+}
+
+func (s *ServerSuite) TestLoginChangeUsernameLoginWorks(c *C) {
+	accounts := CorrectDeploy(1, 1, 1, 0, false, false)
+	application := accounts[0].Applications[0]
+	user := application.Users[0]
+
+	payload := fmt.Sprintf(
+		`{"username": "%s", "password": "%s"}`,
+		user.Username,
+		user.OriginalPassword,
+	)
+
+	routeName := "loginUser"
+	route := getComposedRoute(routeName, application.AccountID, application.ID)
+	code, body, err := runRequest(routeName, route, payload, application.AuthToken, "", 3)
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusCreated)
+	c.Assert(body, Not(Equals), "")
+
+	sessionToken := struct {
+		UserID int64  `json:"id"`
+		Token  string `json:"session_token"`
+	}{}
+	err = json.Unmarshal([]byte(body), &sessionToken)
+	c.Assert(err, IsNil)
+
+	c.Assert(sessionToken.UserID, Equals, user.ID)
+	c.Assert(sessionToken.Token, Not(Equals), "")
+	user.SessionToken = sessionToken.Token
+
+	payload = fmt.Sprintf(`{"user_name": "%s"}`, "newUserName")
+
+	routeName = "updateUser"
+	route = getComposedRoute(routeName, application.AccountID, application.ID, user.ID)
+	code, body, err = runRequest(routeName, route, payload, application.AuthToken, user.SessionToken, 3)
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusCreated)
+	c.Assert(body, Not(Equals), "")
+
+	updatedUser := &entity.User{}
+	err = json.Unmarshal([]byte(body), updatedUser)
+	c.Assert(err, IsNil)
+	c.Assert(updatedUser.Username, Equals, "newUserName")
+	// WE need these to make DeepEquals work
+	updatedUser.SessionToken = user.SessionToken
+	updatedUser.OriginalPassword = user.OriginalPassword
+	updatedUser.Image = nil
+	updatedUser.LastLogin = user.LastLogin
+	user.Password = ""
+	user.Events = nil
+	user.Image = nil
+	user.Username = "newUserName"
+	c.Assert(updatedUser, DeepEquals, user)
+
+	payload = fmt.Sprintf(
+		`{"username": "%s", "password": "%s"}`,
+		user.Username,
+		user.OriginalPassword,
+	)
+
+	routeName = "loginUser"
+	route = getComposedRoute(routeName, application.AccountID, application.ID)
+	code, body, err = runRequest(routeName, route, payload, application.AuthToken, "", 3)
+	c.Assert(err, IsNil)
+	c.Assert(body, Not(Equals), "")
+	c.Assert(code, Equals, http.StatusCreated)
+
+	newSessionToken := struct {
+		UserID int64  `json:"id"`
+		Token  string `json:"session_token"`
+	}{}
+	err = json.Unmarshal([]byte(body), &newSessionToken)
+	c.Assert(err, IsNil)
+
+	c.Assert(newSessionToken.UserID, Equals, user.ID)
+	c.Assert(newSessionToken.Token, Not(Equals), "")
+	c.Assert(newSessionToken.Token, Not(Equals), sessionToken.Token)
 }

@@ -41,6 +41,8 @@ func UpdateUser(existingUser, updatedUser entity.User, retrieve bool) (usr *enti
 		updatedUser.Password = storageClient.EncryptPassword(updatedUser.Password)
 	}
 
+	//panic(fmt.Sprintf("%#v", updatedUser))
+
 	val, err := json.Marshal(updatedUser)
 	if err != nil {
 		return nil, err
@@ -51,8 +53,8 @@ func UpdateUser(existingUser, updatedUser entity.User, retrieve bool) (usr *enti
 		return nil, err
 	}
 
-	emailListKey := storageClient.AccountUserByEmail(Base64Encode(existingUser.Email))
-	usernameListKey := storageClient.AccountUserByUsername(Base64Encode(existingUser.Username))
+	emailListKey := storageClient.ApplicationUserByEmail(existingUser.AccountID, existingUser.ApplicationID, Base64Encode(existingUser.Email))
+	usernameListKey := storageClient.ApplicationUserByUsername(existingUser.AccountID, existingUser.ApplicationID, Base64Encode(existingUser.Username))
 	_, err = storageEngine.Del(emailListKey, usernameListKey).Result()
 
 	if !updatedUser.Enabled {
@@ -61,13 +63,13 @@ func UpdateUser(existingUser, updatedUser entity.User, retrieve bool) (usr *enti
 			return nil, err
 		}
 	} else {
-		emailListKey := storageClient.AccountUserByEmail(Base64Encode(updatedUser.Email))
+		emailListKey := storageClient.ApplicationUserByEmail(existingUser.AccountID, existingUser.ApplicationID, Base64Encode(updatedUser.Email))
 		err = storageEngine.Set(emailListKey, fmt.Sprintf("%d", updatedUser.ID)).Err()
 		if err != nil {
 			return nil, err
 		}
 
-		usernameListKey := storageClient.AccountUserByUsername(Base64Encode(updatedUser.Username))
+		usernameListKey := storageClient.ApplicationUserByUsername(existingUser.AccountID, existingUser.ApplicationID, Base64Encode(updatedUser.Username))
 		err = storageEngine.Set(usernameListKey, fmt.Sprintf("%d", updatedUser.ID)).Err()
 
 		if err != nil {
