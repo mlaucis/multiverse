@@ -23,8 +23,8 @@ import (
 	"github.com/tapglue/backend/server"
 	"github.com/tapglue/backend/storage"
 	"github.com/tapglue/backend/storage/redis"
-	"github.com/tapglue/backend/v1/core"
-	"github.com/tapglue/backend/v1/validator"
+	"github.com/tapglue/backend/v01/core"
+	"github.com/tapglue/backend/v01/validator"
 )
 
 const (

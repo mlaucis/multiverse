@@ -12,7 +12,7 @@ import (
 	"time"
 
 	. "github.com/tapglue/backend/utils"
-	"github.com/tapglue/backend/v1/entity"
+	"github.com/tapglue/backend/v01/entity"
 
 	red "gopkg.in/redis.v2"
 )

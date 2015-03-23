@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/tapglue/backend/context"
-	"github.com/tapglue/backend/v1/validator"
-	"github.com/tapglue/backend/v1/validator/keys"
-	"github.com/tapglue/backend/v1/validator/tokens"
+	"github.com/tapglue/backend/v01/validator"
+	"github.com/tapglue/backend/v01/validator/keys"
+	"github.com/tapglue/backend/v01/validator/tokens"
 )
 
 type (

@@ -14,7 +14,7 @@ import (
 
 	"github.com/tapglue/backend/logger"
 	"github.com/tapglue/backend/utils"
-	"github.com/tapglue/backend/v1/entity"
+	"github.com/tapglue/backend/v01/entity"
 
 	"github.com/gorilla/mux"
 )
