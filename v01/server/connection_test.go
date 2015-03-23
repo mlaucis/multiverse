@@ -89,14 +89,12 @@ func (s *ServerSuite) TestCreateConnection_OK(c *C) {
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusCreated)
-
 	c.Assert(body, Not(Equals), "")
 
 	connection := &entity.Connection{}
 	err = json.Unmarshal([]byte(body), connection)
 	c.Assert(err, IsNil)
 
-	c.Assert(err, IsNil)
 	c.Assert(connection.AccountID, Equals, account.ID)
 	c.Assert(connection.ApplicationID, Equals, application.ID)
 	c.Assert(connection.UserFromID, Equals, userFrom.ID)
@@ -122,6 +120,8 @@ func (s *ServerSuite) TestCreateConnectionAfterLogin(c *C) {
 	route := getComposedRoute(routeName, account.ID, application.ID)
 	code, body, err := runRequest(routeName, route, payload, application.AuthToken, "", 3)
 	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusCreated)
+	c.Assert(body, Not(Equals), "")
 
 	sessionToken := struct {
 		UserID int64  `json:"id"`
@@ -140,13 +140,12 @@ func (s *ServerSuite) TestCreateConnectionAfterLogin(c *C) {
 	route = getComposedRoute(routeName, account.ID, application.ID, userFrom.ID)
 	code, body, err = runRequest(routeName, route, payload, application.AuthToken, userFrom.SessionToken, 3)
 	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusCreated)
+	c.Assert(body, Not(Equals), "")
 
 	connection := &entity.Connection{}
 	err = json.Unmarshal([]byte(body), connection)
 	c.Assert(err, IsNil)
-
-	c.Assert(err, IsNil)
-	c.Assert(code, Equals, http.StatusCreated)
 }
 
 // Test to create connections after a user logs in and refreshes session with the new token
@@ -204,7 +203,6 @@ func (s *ServerSuite) TestCreateConnectionAfterLoginRefreshNewToken(c *C) {
 	err = json.Unmarshal([]byte(body), connection)
 	c.Assert(err, IsNil)
 
-	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusCreated)
 }
 
@@ -257,7 +255,6 @@ func (s *ServerSuite) TestCreateConnectionAfterLoginRefreshOldToken(c *C) {
 	code, body, err = runRequest(routeName, route, payload, application.AuthToken, userFrom.SessionToken, 3)
 	c.Assert(err, IsNil)
 
-	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusUnauthorized)
 }
 
@@ -305,7 +302,6 @@ func (s *ServerSuite) TestCreateConnectionAfterLoginLogout(c *C) {
 	code, body, err = runRequest(routeName, route, payload, application.AuthToken, userFrom.SessionToken, 3)
 	c.Assert(err, IsNil)
 
-	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusUnauthorized)
 }
 
@@ -369,7 +365,6 @@ func (s *ServerSuite) TestCreateConnectionAfterLoginLogoutLogin(c *C) {
 	err = json.Unmarshal([]byte(body), connection)
 	c.Assert(err, IsNil)
 
-	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusCreated)
 }
 
@@ -391,6 +386,8 @@ func (s *ServerSuite) TestCreateConnectionAfterLoginRefreshLogout(c *C) {
 	route := getComposedRoute(routeName, account.ID, application.ID)
 	code, body, err := runRequest(routeName, route, payload, application.AuthToken, "", 3)
 	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusCreated)
+	c.Assert(body, Not(Equals), "")
 
 	sessionToken := struct {
 		UserID int64  `json:"id"`
@@ -409,6 +406,8 @@ func (s *ServerSuite) TestCreateConnectionAfterLoginRefreshLogout(c *C) {
 	route = getComposedRoute(routeName, account.ID, application.ID, userFrom.ID)
 	code, body, err = runRequest(routeName, route, payload, application.AuthToken, userFrom.SessionToken, 3)
 	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusCreated)
+	c.Assert(body, Not(Equals), "")
 
 	err = json.Unmarshal([]byte(body), &sessionToken)
 	c.Assert(err, IsNil)
@@ -416,11 +415,14 @@ func (s *ServerSuite) TestCreateConnectionAfterLoginRefreshLogout(c *C) {
 	c.Assert(sessionToken.Token, Not(Equals), "")
 
 	userFrom.SessionToken = sessionToken.Token
+	payload = fmt.Sprintf(`{"session_token": "%s"}`, userFrom.SessionToken)
 
 	routeName = "logoutUser"
 	route = getComposedRoute(routeName, account.ID, application.ID, userFrom.ID)
 	code, body, err = runRequest(routeName, route, payload, application.AuthToken, userFrom.SessionToken, 3)
 	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusOK)
+	c.Assert(body, Equals, "\"logged out\"\n")
 
 	payload = fmt.Sprintf(`{"user_to_id":%d}`, userTo.ID)
 
@@ -429,8 +431,8 @@ func (s *ServerSuite) TestCreateConnectionAfterLoginRefreshLogout(c *C) {
 	code, body, err = runRequest(routeName, route, payload, application.AuthToken, userFrom.SessionToken, 3)
 	c.Assert(err, IsNil)
 
-	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusUnauthorized)
+	c.Assert(body, Equals, "401 failed to check session token (10)")
 }
 
 // Test to create connections and check the follower, followedby and connectionsevents lists
