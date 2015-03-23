@@ -245,24 +245,15 @@ func (s *ServerSuite) TestUpdateConnection_WrongValue(c *C) {
 
 // Test a correct deleteConnection request
 func (s *ServerSuite) TestDeleteConnection_OK(c *C) {
-	account, err := AddCorrectAccount(true)
-	c.Assert(err, IsNil)
-
-	application, err := AddCorrectApplication(account.ID, true)
-	c.Assert(err, IsNil)
-
-	userFrom, err := AddCorrectUser(account.ID, application.ID, true)
-	c.Assert(err, IsNil)
-
-	userTo, err := AddCorrectUser2(account.ID, application.ID, true)
-	c.Assert(err, IsNil)
-
-	_, err = AddCorrectConnection(account.ID, application.ID, userFrom.ID, userTo.ID, true)
-	c.Assert(err, IsNil)
+	accounts := CorrectDeploy(1, 1, 2, 0, true, true)
+	account := accounts[0]
+	application := account.Applications[0]
+	userFrom := application.Users[0]
+	userTo := application.Users[1]
 
 	routeName := "deleteConnection"
 	route := getComposedRoute(routeName, account.ID, application.ID, userFrom.ID, userTo.ID)
-	code, _, err := runRequest(routeName, route, "", application.AuthToken, createApplicationUserSessionToken(userFrom), 3)
+	code, _, err := runRequest(routeName, route, "", application.AuthToken, userFrom.SessionToken, 3)
 	c.Assert(err, IsNil)
 
 	c.Assert(err, IsNil)

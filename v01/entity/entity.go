@@ -100,6 +100,7 @@ type (
 		AccountID     int64             `json:"account_id"`
 		ApplicationID int64             `json:"application_id"`
 		CustomID      string            `json:"custom_id,omitempty"`
+		SessionToken  string            `json:"-"`
 		SocialIDs     map[string]string `json:"social_ids,omitempty"`
 		DeviceIDs     []string          `json:"device_ids,omitempty"`
 		Events        []*Event          `json:"events,omitempty"`

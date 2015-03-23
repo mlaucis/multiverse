@@ -6,6 +6,7 @@ package server_test
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/tapglue/backend/v01/core"
 	"github.com/tapglue/backend/v01/entity"
@@ -255,6 +256,21 @@ func HookUpUsersCustom(users []*entity.User) {
 	}
 }
 
+func LoginUsers(users []*entity.User) {
+	for idx := range users {
+		sessionToken, err := core.CreateApplicationUserSession(users[idx])
+		if err != nil {
+			panic(err)
+		}
+		users[idx].SessionToken = sessionToken
+		users[idx].LastLogin = time.Now()
+		_, err = core.UpdateUser(*users[idx], *users[idx], false)
+		if err != nil {
+			panic(err)
+		}
+	}
+}
+
 func AddCorrectApplicationUsers(application *entity.Application, numberOfUsersPerApplication int, hookUpUsers bool) []*entity.User {
 	var err error
 	result := make([]*entity.User, numberOfUsersPerApplication)
@@ -316,7 +332,7 @@ func AddCorrectUserEvents(user *entity.User, numberOfEventsPerUser int) []*entit
 	return result
 }
 
-func CorrectDeploy(numberOfAccounts, numberOfApplicationsPerAccount, numberOfUsersPerApplication, numberOfEventsPerUser int, hookUpUsers bool) []*entity.Account {
+func CorrectDeploy(numberOfAccounts, numberOfApplicationsPerAccount, numberOfUsersPerApplication, numberOfEventsPerUser int, hookUpUsers, loginUsers bool) []*entity.Account {
 	accounts := AddCorrectAccounts(numberOfAccounts)
 
 	for i := 0; i < numberOfAccounts; i++ {
@@ -324,6 +340,9 @@ func CorrectDeploy(numberOfAccounts, numberOfApplicationsPerAccount, numberOfUse
 
 		for j := 0; j < numberOfApplicationsPerAccount; j++ {
 			accounts[i].Applications[j].Users = AddCorrectApplicationUsers(accounts[i].Applications[j], numberOfUsersPerApplication, hookUpUsers)
+			if loginUsers {
+				LoginUsers(accounts[i].Applications[j].Users)
+			}
 
 			for k := 0; k < numberOfUsersPerApplication; k++ {
 				accounts[i].Applications[j].Users[k].Events = AddCorrectUserEvents(accounts[i].Applications[j].Users[k], numberOfEventsPerUser)
