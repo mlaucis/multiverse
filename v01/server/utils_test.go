@@ -84,7 +84,7 @@ func AddCorrectConnection(accountID, applicationID, userFromID, userToID int64, 
 	connectionWithIDs.ApplicationID = applicationID
 	connectionWithIDs.UserFromID = userFromID
 	connectionWithIDs.UserToID = userToID
-	connection, err := core.WriteConnection(&connectionWithIDs, fetchConnection)
+	connection, _, err := core.WriteConnection(&connectionWithIDs, fetchConnection)
 	if err != nil {
 		return nil, err
 	}

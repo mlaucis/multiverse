@@ -93,6 +93,7 @@ func deleteConnection(ctx *context.Context) {
 func createConnection(ctx *context.Context) {
 	var (
 		connection = &entity.Connection{}
+		errMsg     string
 		err        error
 	)
 
@@ -114,8 +115,8 @@ func createConnection(ctx *context.Context) {
 		return
 	}
 
-	if connection, err = core.WriteConnection(connection, false); err != nil {
-		utils.ErrorHappened(ctx, "failed to create the connection (4)", http.StatusInternalServerError, err)
+	if connection, errMsg, err = core.WriteConnection(connection, false); err != nil {
+		utils.ErrorHappened(ctx, "failed to create the connection (4)\n"+errMsg, http.StatusInternalServerError, err)
 		return
 	}
 

@@ -149,24 +149,288 @@ func (s *ServerSuite) TestCreateConnectionAfterLogin(c *C) {
 	c.Assert(code, Equals, http.StatusCreated)
 }
 
-// Test to create connections after a user logs in and refreshes session
-func (s *ServerSuite) TestCreateConnectionAfterLoginRefresh(c *C) {
-	c.Skip("not impletented")
+// Test to create connections after a user logs in and refreshes session with the new token
+func (s *ServerSuite) TestCreateConnectionAfterLoginRefreshNewToken(c *C) {
+	accounts := CorrectDeploy(1, 1, 2, 0, false, false)
+	account := accounts[0]
+	application := account.Applications[0]
+	userFrom := application.Users[0]
+	userTo := application.Users[1]
+
+	payload := fmt.Sprintf(
+		`{"email": "%s", "password": "%s"}`,
+		userFrom.Email,
+		userFrom.OriginalPassword,
+	)
+
+	routeName := "loginUser"
+	route := getComposedRoute(routeName, account.ID, application.ID)
+	code, body, err := runRequest(routeName, route, payload, application.AuthToken, "", 3)
+	c.Assert(err, IsNil)
+
+	sessionToken := struct {
+		UserID int64  `json:"id"`
+		Token  string `json:"session_token"`
+	}{}
+	err = json.Unmarshal([]byte(body), &sessionToken)
+	c.Assert(err, IsNil)
+	c.Assert(sessionToken.UserID, Equals, userFrom.ID)
+	c.Assert(sessionToken.Token, Not(Equals), "")
+
+	userFrom.SessionToken = sessionToken.Token
+
+	payload = fmt.Sprintf(`{"session_token": "%s"}`, userFrom.SessionToken)
+
+	routeName = "refreshUserSession"
+	route = getComposedRoute(routeName, account.ID, application.ID, userFrom.ID)
+	code, body, err = runRequest(routeName, route, payload, application.AuthToken, userFrom.SessionToken, 3)
+	c.Assert(err, IsNil)
+
+	err = json.Unmarshal([]byte(body), &sessionToken)
+	c.Assert(err, IsNil)
+	c.Assert(sessionToken.UserID, Equals, userFrom.ID)
+	c.Assert(sessionToken.Token, Not(Equals), "")
+
+	userFrom.SessionToken = sessionToken.Token
+
+	payload = fmt.Sprintf(`{"user_to_id":%d}`, userTo.ID)
+
+	routeName = "createConnection"
+	route = getComposedRoute(routeName, account.ID, application.ID, userFrom.ID)
+	code, body, err = runRequest(routeName, route, payload, application.AuthToken, userFrom.SessionToken, 3)
+	c.Assert(err, IsNil)
+
+	connection := &entity.Connection{}
+	err = json.Unmarshal([]byte(body), connection)
+	c.Assert(err, IsNil)
+
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusCreated)
+}
+
+// Test to create connections after a user logs in and refreshes session with the old token
+func (s *ServerSuite) TestCreateConnectionAfterLoginRefreshOldToken(c *C) {
+	accounts := CorrectDeploy(1, 1, 2, 0, false, false)
+	account := accounts[0]
+	application := account.Applications[0]
+	userFrom := application.Users[0]
+	userTo := application.Users[1]
+
+	payload := fmt.Sprintf(
+		`{"email": "%s", "password": "%s"}`,
+		userFrom.Email,
+		userFrom.OriginalPassword,
+	)
+
+	routeName := "loginUser"
+	route := getComposedRoute(routeName, account.ID, application.ID)
+	code, body, err := runRequest(routeName, route, payload, application.AuthToken, "", 3)
+	c.Assert(err, IsNil)
+
+	sessionToken := struct {
+		UserID int64  `json:"id"`
+		Token  string `json:"session_token"`
+	}{}
+	err = json.Unmarshal([]byte(body), &sessionToken)
+	c.Assert(err, IsNil)
+	c.Assert(sessionToken.UserID, Equals, userFrom.ID)
+	c.Assert(sessionToken.Token, Not(Equals), "")
+
+	userFrom.SessionToken = sessionToken.Token
+
+	payload = fmt.Sprintf(`{"session_token": "%s"}`, userFrom.SessionToken)
+
+	routeName = "refreshUserSession"
+	route = getComposedRoute(routeName, account.ID, application.ID, userFrom.ID)
+	code, body, err = runRequest(routeName, route, payload, application.AuthToken, userFrom.SessionToken, 3)
+	c.Assert(err, IsNil)
+
+	err = json.Unmarshal([]byte(body), &sessionToken)
+	c.Assert(err, IsNil)
+	c.Assert(sessionToken.UserID, Equals, userFrom.ID)
+	c.Assert(sessionToken.Token, Not(Equals), "")
+
+	payload = fmt.Sprintf(`{"user_to_id":%d}`, userTo.ID)
+
+	routeName = "createConnection"
+	route = getComposedRoute(routeName, account.ID, application.ID, userFrom.ID)
+	code, body, err = runRequest(routeName, route, payload, application.AuthToken, userFrom.SessionToken, 3)
+	c.Assert(err, IsNil)
+
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusUnauthorized)
 }
 
 // Test to create connections after a user logs in and logs out
 func (s *ServerSuite) TestCreateConnectionAfterLoginLogout(c *C) {
-	c.Skip("not impletented")
+	accounts := CorrectDeploy(1, 1, 2, 0, false, false)
+	account := accounts[0]
+	application := account.Applications[0]
+	userFrom := application.Users[0]
+	userTo := application.Users[1]
+
+	payload := fmt.Sprintf(
+		`{"email": "%s", "password": "%s"}`,
+		userFrom.Email,
+		userFrom.OriginalPassword,
+	)
+
+	routeName := "loginUser"
+	route := getComposedRoute(routeName, account.ID, application.ID)
+	code, body, err := runRequest(routeName, route, payload, application.AuthToken, "", 3)
+	c.Assert(err, IsNil)
+
+	sessionToken := struct {
+		UserID int64  `json:"id"`
+		Token  string `json:"session_token"`
+	}{}
+	err = json.Unmarshal([]byte(body), &sessionToken)
+	c.Assert(err, IsNil)
+	c.Assert(sessionToken.UserID, Equals, userFrom.ID)
+	c.Assert(sessionToken.Token, Not(Equals), "")
+
+	userFrom.SessionToken = sessionToken.Token
+
+	payload = fmt.Sprintf(`{"session_token": "%s"}`, userFrom.SessionToken)
+
+	routeName = "logoutUser"
+	route = getComposedRoute(routeName, account.ID, application.ID, userFrom.ID)
+	code, body, err = runRequest(routeName, route, payload, application.AuthToken, userFrom.SessionToken, 3)
+	c.Assert(err, IsNil)
+
+	payload = fmt.Sprintf(`{"user_to_id":%d}`, userTo.ID)
+
+	routeName = "createConnection"
+	route = getComposedRoute(routeName, account.ID, application.ID, userFrom.ID)
+	code, body, err = runRequest(routeName, route, payload, application.AuthToken, userFrom.SessionToken, 3)
+	c.Assert(err, IsNil)
+
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusUnauthorized)
 }
 
 // Test to create connections after a user logs in and logs out and logs in again
 func (s *ServerSuite) TestCreateConnectionAfterLoginLogoutLogin(c *C) {
-	c.Skip("not impletented")
+	accounts := CorrectDeploy(1, 1, 2, 0, false, false)
+	account := accounts[0]
+	application := account.Applications[0]
+	userFrom := application.Users[0]
+	userTo := application.Users[1]
+
+	payload := fmt.Sprintf(
+		`{"email": "%s", "password": "%s"}`,
+		userFrom.Email,
+		userFrom.OriginalPassword,
+	)
+
+	routeName := "loginUser"
+	route := getComposedRoute(routeName, account.ID, application.ID)
+	code, body, err := runRequest(routeName, route, payload, application.AuthToken, "", 3)
+	c.Assert(err, IsNil)
+
+	sessionToken := struct {
+		UserID int64  `json:"id"`
+		Token  string `json:"session_token"`
+	}{}
+	err = json.Unmarshal([]byte(body), &sessionToken)
+	c.Assert(err, IsNil)
+	c.Assert(sessionToken.UserID, Equals, userFrom.ID)
+	c.Assert(sessionToken.Token, Not(Equals), "")
+
+	userFrom.SessionToken = sessionToken.Token
+
+	payloadLogout := fmt.Sprintf(`{"session_token": "%s"}`, userFrom.SessionToken)
+
+	routeName = "logoutUser"
+	route = getComposedRoute(routeName, account.ID, application.ID, userFrom.ID)
+	code, body, err = runRequest(routeName, route, payloadLogout, application.AuthToken, userFrom.SessionToken, 3)
+	c.Assert(err, IsNil)
+
+	routeName = "loginUser"
+	route = getComposedRoute(routeName, account.ID, application.ID)
+	code, body, err = runRequest(routeName, route, payload, application.AuthToken, "", 3)
+	c.Assert(err, IsNil)
+
+	err = json.Unmarshal([]byte(body), &sessionToken)
+	c.Assert(err, IsNil)
+	c.Assert(sessionToken.UserID, Equals, userFrom.ID)
+	c.Assert(sessionToken.Token, Not(Equals), "")
+
+	userFrom.SessionToken = sessionToken.Token
+
+	payload = fmt.Sprintf(`{"user_to_id":%d}`, userTo.ID)
+
+	routeName = "createConnection"
+	route = getComposedRoute(routeName, account.ID, application.ID, userFrom.ID)
+	code, body, err = runRequest(routeName, route, payload, application.AuthToken, userFrom.SessionToken, 3)
+	c.Assert(err, IsNil)
+
+	connection := &entity.Connection{}
+	err = json.Unmarshal([]byte(body), connection)
+	c.Assert(err, IsNil)
+
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusCreated)
 }
 
 // Test to create connections after a user logs in and refreshes session and logs out
 func (s *ServerSuite) TestCreateConnectionAfterLoginRefreshLogout(c *C) {
-	c.Skip("not impletented")
+	accounts := CorrectDeploy(1, 1, 2, 0, false, false)
+	account := accounts[0]
+	application := account.Applications[0]
+	userFrom := application.Users[0]
+	userTo := application.Users[1]
+
+	payload := fmt.Sprintf(
+		`{"email": "%s", "password": "%s"}`,
+		userFrom.Email,
+		userFrom.OriginalPassword,
+	)
+
+	routeName := "loginUser"
+	route := getComposedRoute(routeName, account.ID, application.ID)
+	code, body, err := runRequest(routeName, route, payload, application.AuthToken, "", 3)
+	c.Assert(err, IsNil)
+
+	sessionToken := struct {
+		UserID int64  `json:"id"`
+		Token  string `json:"session_token"`
+	}{}
+	err = json.Unmarshal([]byte(body), &sessionToken)
+	c.Assert(err, IsNil)
+	c.Assert(sessionToken.UserID, Equals, userFrom.ID)
+	c.Assert(sessionToken.Token, Not(Equals), "")
+
+	userFrom.SessionToken = sessionToken.Token
+
+	payload = fmt.Sprintf(`{"session_token": "%s"}`, userFrom.SessionToken)
+
+	routeName = "refreshUserSession"
+	route = getComposedRoute(routeName, account.ID, application.ID, userFrom.ID)
+	code, body, err = runRequest(routeName, route, payload, application.AuthToken, userFrom.SessionToken, 3)
+	c.Assert(err, IsNil)
+
+	err = json.Unmarshal([]byte(body), &sessionToken)
+	c.Assert(err, IsNil)
+	c.Assert(sessionToken.UserID, Equals, userFrom.ID)
+	c.Assert(sessionToken.Token, Not(Equals), "")
+
+	userFrom.SessionToken = sessionToken.Token
+
+	routeName = "logoutUser"
+	route = getComposedRoute(routeName, account.ID, application.ID, userFrom.ID)
+	code, body, err = runRequest(routeName, route, payload, application.AuthToken, userFrom.SessionToken, 3)
+	c.Assert(err, IsNil)
+
+	payload = fmt.Sprintf(`{"user_to_id":%d}`, userTo.ID)
+
+	routeName = "createConnection"
+	route = getComposedRoute(routeName, account.ID, application.ID, userFrom.ID)
+	code, body, err = runRequest(routeName, route, payload, application.AuthToken, userFrom.SessionToken, 3)
+	c.Assert(err, IsNil)
+
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusUnauthorized)
 }
 
 // Test to create connections and check the follower, followedby and connectionsevents lists
@@ -179,7 +443,21 @@ func (s *ServerSuite) TestCreateConnectionAndCheckLists(c *C) {
 
 // Test to create connections if users are already connected
 func (s *ServerSuite) TestCreateConnectionUsersAlreadyConnected(c *C) {
-	c.Skip("not impletented")
+	accounts := CorrectDeploy(1, 1, 2, 0, true, true)
+	account := accounts[0]
+	application := account.Applications[0]
+	userFrom := application.Users[0]
+	userTo := application.Users[1]
+
+	payload := fmt.Sprintf(`{"user_to_id":%d}`, userTo.ID)
+
+	routeName := "createConnection"
+	route := getComposedRoute(routeName, account.ID, application.ID, userFrom.ID)
+	code, body, err := runRequest(routeName, route, payload, application.AuthToken, userFrom.SessionToken, 3)
+	c.Assert(err, IsNil)
+
+	c.Assert(code, Equals, http.StatusInternalServerError)
+	c.Assert(body, Equals, "500 failed to create the connection (4)\nuser connection already exists")
 }
 
 // Test to create connections if users are from different appIDs

@@ -127,7 +127,7 @@ func ReadFollowedByList(accountID, applicationID, userID int64) (users []*entity
 }
 
 // WriteConnection adds a user connection and returns the created connection or an error
-func WriteConnection(connection *entity.Connection, retrieve bool) (con *entity.Connection, err error) {
+func WriteConnection(connection *entity.Connection, retrieve bool) (con *entity.Connection, errMsg string, err error) {
 	// We confirm the connection in the past forcefully so that we can update it at the confirmation time
 	connection.ConfirmedAt = time.Date(0, time.January, 1, 0, 0, 0, 0, time.UTC)
 	connection.Enabled = false
@@ -136,20 +136,22 @@ func WriteConnection(connection *entity.Connection, retrieve bool) (con *entity.
 
 	val, err := json.Marshal(connection)
 	if err != nil {
-		return nil, err
+		return nil, err.Error(), err
 	}
 
 	key := storageClient.Connection(connection.AccountID, connection.ApplicationID, connection.UserFromID, connection.UserToID)
 
 	exist, err := storageEngine.SetNX(key, string(val)).Result()
-	if !exist {
-		return nil, fmt.Errorf("user connection already exists")
-	}
+
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
-	return connection, nil
+	if !exist {
+		return nil, "user connection already exists", fmt.Errorf("user connection already exists")
+	}
+
+	return connection, "", nil
 }
 
 // ConfirmConnection confirms a user connection and returns the connection or an error
@@ -321,7 +323,7 @@ func SocialConnect(user *entity.User, platform string, socialFriendsIDs []string
 			UserToID:      userID,
 		}
 
-		_, err = WriteConnection(connection, false)
+		_, _, err = WriteConnection(connection, false)
 		if err != nil {
 			continue
 		}
