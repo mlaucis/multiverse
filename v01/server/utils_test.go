@@ -167,6 +167,7 @@ func AddCorrectApplications(account *entity.Account, numberOfApplicationsPerAcco
 	return result
 }
 
+// HookUp create a connection between two users provided
 func HookUp(accountID, applicationID, userFromID, userToID int64) {
 	connection := &entity.Connection{
 		AccountID:     accountID,
@@ -178,13 +179,15 @@ func HookUp(accountID, applicationID, userFromID, userToID int64) {
 	core.ConfirmConnection(connection, false)
 }
 
-func HookUpUsers(users []*entity.User, bidi bool){
+// HookUpUsers creates connection between all users that you provide
+// bidi:true will provide bidirectional connections
+func HookUpUsers(users []*entity.User, bidi bool) {
 	if len(users) < 2 {
 		return
 	}
 
-	for i := 1; i<len(users) - 1; i++ {
-		for j := i+1; j<len(users); j++ {
+	for i := 1; i < len(users)-1; i++ {
+		for j := i + 1; j < len(users); j++ {
 			HookUp(users[0].AccountID, users[0].ApplicationID, users[i].ID, users[j].ID)
 			if bidi {
 				HookUp(users[0].AccountID, users[0].ApplicationID, users[j].ID, users[i].ID)
@@ -193,6 +196,7 @@ func HookUpUsers(users []*entity.User, bidi bool){
 	}
 }
 
+// HookUpUsersCustom
 func HookUpUsersCustom(users []*entity.User) {
 	if len(users) < 2 {
 		return
