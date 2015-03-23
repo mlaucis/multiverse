@@ -157,6 +157,7 @@ func AddCorrectApplications(account *entity.Account, numberOfApplicationsPerAcco
 	result := make([]*entity.Application, numberOfApplicationsPerAccount)
 	for i := 0; i < numberOfApplicationsPerAccount; i++ {
 		application := CorrectApplication()
+		application.AccountID = account.ID
 		application.Name = fmt.Sprintf("acc-%d-app-%d", account.ID, i)
 		application.Description = fmt.Sprintf("acc %d app %d", account.ID, i)
 		result[i], err = core.WriteApplication(application, true)
