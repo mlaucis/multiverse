@@ -196,7 +196,14 @@ func HookUpUsers(users []*entity.User, bidi bool) {
 	}
 }
 
-// HookUpUsersCustom
+// HookUpUsersCustom creates a custom connection web between supplied users based on the number of
+// users supplied. If the number is greater than 8, all the users > 8 are not connected in any way
+// The connection table is defined below:
+// 1->2 1->3 1->4 1->5
+// 2->1 2->3
+// 3->4
+// 5->6
+// 7->8
 func HookUpUsersCustom(users []*entity.User) {
 	if len(users) < 2 {
 		return
@@ -233,6 +240,16 @@ func HookUpUsersCustom(users []*entity.User) {
 			ApplicationID: users[0].ApplicationID,
 			UserFromID:    users[4].ID,
 			UserToID:      users[5].ID,
+		}
+		core.WriteConnection(connection, false)
+	}
+
+	if len(users) >= 8 {
+		connection := &entity.Connection{
+			AccountID:     users[0].AccountID,
+			ApplicationID: users[0].ApplicationID,
+			UserFromID:    users[6].ID,
+			UserToID:      users[7].ID,
 		}
 		core.WriteConnection(connection, false)
 	}
