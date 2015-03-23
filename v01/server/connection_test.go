@@ -106,26 +106,32 @@ func (s *ServerSuite) TestCreateConnection_OK(c *C) {
 
 // Test to create connections after a user logs in
 func (s *ServerSuite) TestCreateConnectionAfterLogin(c *C) {
+	c.Skip("not impletented")
 }
 
 // Test to create connections after a user logs in and refreshes session
 func (s *ServerSuite) TestCreateConnectionAfterLoginRefresh(c *C) {
+	c.Skip("not impletented")
 }
 
 // Test to create connections after a user logs in and logs out
 func (s *ServerSuite) TestCreateConnectionAfterLoginLogout(c *C) {
+	c.Skip("not impletented")
 }
 
 // Test to create connections after a user logs in and logs out and logs in again
 func (s *ServerSuite) TestCreateConnectionAfterLoginLogoutLogin(c *C) {
+	c.Skip("not impletented")
 }
 
 // Test to create connections after a user logs in and refreshes session and logs out
 func (s *ServerSuite) TestCreateConnectionAfterLoginRefreshLogout(c *C) {
+	c.Skip("not impletented")
 }
 
 // Test to create connections and check the follower, followedby and connectionsevents lists
 func (s *ServerSuite) TestCreateConnectionAndCheckLists(c *C) {
+	c.Skip("not impletented")
 	//followerList
 	//followedByList
 	//connectionsEventsList
@@ -133,26 +139,32 @@ func (s *ServerSuite) TestCreateConnectionAndCheckLists(c *C) {
 
 // Test to create connections if users are already connected
 func (s *ServerSuite) TestCreateConnectionUsersAlreadyConnected(c *C) {
+	c.Skip("not impletented")
 }
 
 // Test to create connections if users are from different appIDs
 func (s *ServerSuite) TestCreateConnectionUsersFromDifferentApps(c *C) {
+	c.Skip("not impletented")
 }
 
 // Test to create connections if users are not activated
 func (s *ServerSuite) TestCreateConnectionUsersNotActivated(c *C) {
+	c.Skip("not impletented")
 }
 
 // Test to create connections if users are not enabled
 func (s *ServerSuite) TestCreateConnectionUsersNotEnabled(c *C) {
+	c.Skip("not impletented")
 }
 
 // Test to create connections if one user are not activated
 func (s *ServerSuite) TestCreateConnectionOneUserNotActivated(c *C) {
+	c.Skip("not impletented")
 }
 
 // Test to create connections if one user are not enabled
 func (s *ServerSuite) TestCreateConnectionOneUserNotEnabled(c *C) {
+	c.Skip("not impletented")
 }
 
 /****************************************************************/
@@ -304,26 +316,32 @@ func (s *ServerSuite) TestUpdateConnection_WrongValue(c *C) {
 
 // Test to update connections after a user logs in
 func (s *ServerSuite) TestUpdateConnectionAfterLogin(c *C) {
+	c.Skip("not impletented")
 }
 
 // Test to update connections after a user logs in and refreshes session
 func (s *ServerSuite) TestUpdateConnectionAfterLoginRefresh(c *C) {
+	c.Skip("not impletented")
 }
 
 // Test to update connections after a user logs in and logs out
 func (s *ServerSuite) TestUpdateConnectionAfterLoginLogout(c *C) {
+	c.Skip("not impletented")
 }
 
 // Test to update connections after a user logs in and logs out and logs in again
 func (s *ServerSuite) TestUpdateConnectionAfterLoginLogoutLogin(c *C) {
+	c.Skip("not impletented")
 }
 
 // Test to update connections after a user logs in and refreshes session and logs out
 func (s *ServerSuite) TestUpdateConnectionAfterLoginRefreshLogout(c *C) {
+	c.Skip("not impletented")
 }
 
 // Test to update connections and check the follower, followedby and connectionsevents lists
 func (s *ServerSuite) TestUpdateConnectionAndCheckLists(c *C) {
+	c.Skip("not impletented")
 	//followerList
 	//followedByList
 	//connectionsEventsList
@@ -331,6 +349,7 @@ func (s *ServerSuite) TestUpdateConnectionAndCheckLists(c *C) {
 
 // Test to update connections to enable it and check the follower, followedby and connectionsevents lists
 func (s *ServerSuite) TestUpdateConnectionEnableAndCheckLists(c *C) {
+	c.Skip("not impletented")
 	//followerList
 	//followedByList
 	//connectionsEventsList
@@ -338,6 +357,7 @@ func (s *ServerSuite) TestUpdateConnectionEnableAndCheckLists(c *C) {
 
 // Test to update connections to disable it and check the follower, followedby and connectionsevents lists
 func (s *ServerSuite) TestUpdateConnectionDisableAndCheckLists(c *C) {
+	c.Skip("not impletented")
 	//followerList
 	//followedByList
 	//connectionsEventsList
@@ -392,26 +412,32 @@ func (s *ServerSuite) TestDeleteConnection_WrongID(c *C) {
 
 // Test to delete connections after a user logs in
 func (s *ServerSuite) TestDeleteConnectionAfterLogin(c *C) {
+	c.Skip("not impletented")
 }
 
 // Test to delete connections after a user logs in and refreshes session
 func (s *ServerSuite) TestDeleteConnectionAfterLoginRefresh(c *C) {
+	c.Skip("not impletented")
 }
 
 // Test to delete connections after a user logs in and logs out
 func (s *ServerSuite) TestDeleteConnectionAfterLoginLogout(c *C) {
+	c.Skip("not impletented")
 }
 
 // Test to delete connections after a user logs in and logs out and logs in again
 func (s *ServerSuite) TestDeleteConnectionAfterLoginLogoutLogin(c *C) {
+	c.Skip("not impletented")
 }
 
 // Test to delete connections after a user logs in and refreshes session and logs out
 func (s *ServerSuite) TestDeleteConnectionAfterLoginRefreshLogout(c *C) {
+	c.Skip("not impletented")
 }
 
 // Test to delete connections and check the follower, followedby and connectionsevents lists
 func (s *ServerSuite) TestDeleteConnectionAndCheckLists(c *C) {
+	c.Skip("not impletented")
 	//followerList
 	//followedByList
 	//connectionsEventsList
@@ -423,38 +449,47 @@ func (s *ServerSuite) TestDeleteConnectionAndCheckLists(c *C) {
 
 // Test to get the list of connections of the user (followsUsers)
 func (s *ServerSuite) TestGetConnectionList(c *C) {
+	c.Skip("not impletented")
 }
 
 // Test to get the list of connections of the user after a user logs in
 func (s *ServerSuite) TestGetConnectionListAfterLogin(c *C) {
+	c.Skip("not impletented")
 }
 
 // Test to get the list of connections of the user after a user logs in and refreshes session
 func (s *ServerSuite) TestGetConnectionListAfterLoginRefresh(c *C) {
+	c.Skip("not impletented")
 }
 
 // Test to get the list of connections of the user after a user logs in and logs out
 func (s *ServerSuite) TestGetConnectionListAfterLoginLogout(c *C) {
+	c.Skip("not impletented")
 }
 
 // Test to get the list of connections of the user after a user logs in and logs out and logs in again
 func (s *ServerSuite) TestGetConnectionListAfterLoginLogoutLogin(c *C) {
+	c.Skip("not impletented")
 }
 
 // Test to get the list of connections of the user after a user logs in and refreshes session and logs out
 func (s *ServerSuite) TestGetConnectionListAfterLoginRefreshLogout(c *C) {
+	c.Skip("not impletented")
 }
 
 // Test to get the list of connections of a connected user
 func (s *ServerSuite) TestGetConnectionListOfConnection(c *C) {
+	c.Skip("not impletented")
 }
 
 // Test to get the list of connections of a non-connected user
 func (s *ServerSuite) TestGetConnectionListOfNonConnection(c *C) {
+	c.Skip("not impletented")
 }
 
 // Test to get the list of connections of a user from different app
 func (s *ServerSuite) TestGetConnectionListOfUserFromDifferentApp(c *C) {
+	c.Skip("not impletented")
 }
 
 /****************************************************************/
@@ -463,18 +498,22 @@ func (s *ServerSuite) TestGetConnectionListOfUserFromDifferentApp(c *C) {
 
 // Test to get the list of connections of the user (followedByUsers)
 func (s *ServerSuite) TestGetFollowedByUsersList(c *C) {
+	c.Skip("not impletented")
 }
 
 // Test to get the list of connections of a connected user
 func (s *ServerSuite) TestGetFollowedByUsersListOfConnection(c *C) {
+	c.Skip("not impletented")
 }
 
 // Test to get the list of connections of a non-connected user
 func (s *ServerSuite) TestGetFollowedByUsersListOfNonConnection(c *C) {
+	c.Skip("not impletented")
 }
 
 // Test to get the list of connections of a user from different app
 func (s *ServerSuite) TestUsersListOfUserFromDifferentApp(c *C) {
+	c.Skip("not impletented")
 }
 
 /****************************************************************/
@@ -483,6 +522,7 @@ func (s *ServerSuite) TestUsersListOfUserFromDifferentApp(c *C) {
 
 // Test if the lists are created after confirming a connection
 func (s *ServerSuite) TestConfirmConnectionLists(c *C) {
+	c.Skip("not impletented")
 }
 
 /****************************************************************/
@@ -574,12 +614,15 @@ func (s *ServerSuite) TestCreateSocialConnection(c *C) {
 
 // Test to create a social connection from users of differnt apps
 func (s *ServerSuite) TestCreateSocialConnectionDifferentApp(c *C) {
+	c.Skip("not impletented")
 }
 
 // Test to create a social connection from users of differnt network
 func (s *ServerSuite) TestCreateSocialConnectionDifferentNetwork(c *C) {
+	c.Skip("not impletented")
 }
 
 // Test to create a social connection from users who previously disabled the connection
 func (s *ServerSuite) TestCreateSocialConnectionWhenConnectionDisabled(c *C) {
+	c.Skip("not impletented")
 }

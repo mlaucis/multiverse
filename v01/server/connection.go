@@ -167,8 +167,6 @@ func getFollowedByUsersList(ctx *context.Context) {
 	utils.WriteResponse(ctx, users, http.StatusOK, 10)
 }
 
-// TODO: GET FOLLOWING USERS LIST (followedBy)
-
 // confirmConnection handles requests to confirm a user connection
 // Request: POST account/:AccountID/application/:ApplicationID/user/:UserID/connection/confirm
 func confirmConnection(ctx *context.Context) {
