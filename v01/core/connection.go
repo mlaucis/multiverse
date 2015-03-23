@@ -111,6 +111,21 @@ func ReadConnectionList(accountID, applicationID, userID int64) (users []*entity
 	return fetchAndDecodeMultipleUsers(result)
 }
 
+// ReadFollowedByList returns all connections from a certain user
+func ReadFollowedByList(accountID, applicationID, userID int64) (users []*entity.User, err error) {
+	key := storageClient.FollowedByUsers(accountID, applicationID, userID)
+	result, err := storageEngine.LRange(key, 0, -1).Result()
+	if err != nil {
+		return nil, err
+	}
+
+	if len(result) == 0 {
+		return []*entity.User{}, nil
+	}
+
+	return fetchAndDecodeMultipleUsers(result)
+}
+
 // WriteConnection adds a user connection and returns the created connection or an error
 func WriteConnection(connection *entity.Connection, retrieve bool) (con *entity.Connection, err error) {
 	// We confirm the connection in the past forcefully so that we can update it at the confirmation time

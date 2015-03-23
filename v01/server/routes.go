@@ -441,6 +441,22 @@ var Routes = map[string]*Route{
 			contextHasApplicationUserID,
 		},
 	},
+	"getFollowerList": &Route{
+		Method:   "GET",
+		Pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]+}/followers",
+		CPattern: "/account/%d/application/%d/user/%d/followers",
+		Scope:    "application/user/followers/list",
+		Handlers: []RouteFunc{
+			ValidateApplicationRequestToken,
+			CheckApplicationSession,
+			getFollowedByUsersList,
+		},
+		Filters: []context.Filter{
+			contextHasAccountID,
+			contextHasApplicationID,
+			contextHasApplicationUserID,
+		},
+	},
 	"confirmConnection": &Route{
 		Method:   "POST",
 		Pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]+}/connection/confirm",

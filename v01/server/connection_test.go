@@ -15,6 +15,10 @@ import (
 	. "gopkg.in/check.v1"
 )
 
+/****************************************************************/
+/******************** CREATECONNECTION TESTS ********************/
+/****************************************************************/
+
 // Test createConnection request with a wrong key
 func (s *ServerSuite) TestCreateConnection_WrongKey(c *C) {
 	account, err := AddCorrectAccount(true)
@@ -99,6 +103,61 @@ func (s *ServerSuite) TestCreateConnection_OK(c *C) {
 	c.Assert(connection.UserToID, Equals, userTo.ID)
 	c.Assert(connection.Enabled, Equals, true)
 }
+
+// Test to create connections after a user logs in
+func (s *ServerSuite) TestCreateConnectionAfterLogin(c *C) {
+}
+
+// Test to create connections after a user logs in and refreshes session
+func (s *ServerSuite) TestCreateConnectionAfterLoginRefresh(c *C) {
+}
+
+// Test to create connections after a user logs in and logs out
+func (s *ServerSuite) TestCreateConnectionAfterLoginLogout(c *C) {
+}
+
+// Test to create connections after a user logs in and logs out and logs in again
+func (s *ServerSuite) TestCreateConnectionAfterLoginLogoutLogin(c *C) {
+}
+
+// Test to create connections after a user logs in and refreshes session and logs out
+func (s *ServerSuite) TestCreateConnectionAfterLoginRefreshLogout(c *C) {
+}
+
+// Test to create connections and check the follower, followedby and connectionsevents lists
+func (s *ServerSuite) TestCreateConnectionAndCheckLists(c *C) {
+	//followerList
+	//followedByList
+	//connectionsEventsList
+}
+
+// Test to create connections if users are already connected
+func (s *ServerSuite) TestCreateConnectionUsersAlreadyConnected(c *C) {
+}
+
+// Test to create connections if users are from different appIDs
+func (s *ServerSuite) TestCreateConnectionUsersFromDifferentApps(c *C) {
+}
+
+// Test to create connections if users are not activated
+func (s *ServerSuite) TestCreateConnectionUsersNotActivated(c *C) {
+}
+
+// Test to create connections if users are not enabled
+func (s *ServerSuite) TestCreateConnectionUsersNotEnabled(c *C) {
+}
+
+// Test to create connections if one user are not activated
+func (s *ServerSuite) TestCreateConnectionOneUserNotActivated(c *C) {
+}
+
+// Test to create connections if one user are not enabled
+func (s *ServerSuite) TestCreateConnectionOneUserNotEnabled(c *C) {
+}
+
+/****************************************************************/
+/******************** UPDATECONNECTION TESTS ********************/
+/****************************************************************/
 
 // Test a correct updateConnection request
 func (s *ServerSuite) TestUpdateConnection_OK(c *C) {
@@ -243,6 +302,51 @@ func (s *ServerSuite) TestUpdateConnection_WrongValue(c *C) {
 	c.Assert(body, Not(Equals), "")
 }
 
+// Test to update connections after a user logs in
+func (s *ServerSuite) TestUpdateConnectionAfterLogin(c *C) {
+}
+
+// Test to update connections after a user logs in and refreshes session
+func (s *ServerSuite) TestUpdateConnectionAfterLoginRefresh(c *C) {
+}
+
+// Test to update connections after a user logs in and logs out
+func (s *ServerSuite) TestUpdateConnectionAfterLoginLogout(c *C) {
+}
+
+// Test to update connections after a user logs in and logs out and logs in again
+func (s *ServerSuite) TestUpdateConnectionAfterLoginLogoutLogin(c *C) {
+}
+
+// Test to update connections after a user logs in and refreshes session and logs out
+func (s *ServerSuite) TestUpdateConnectionAfterLoginRefreshLogout(c *C) {
+}
+
+// Test to update connections and check the follower, followedby and connectionsevents lists
+func (s *ServerSuite) TestUpdateConnectionAndCheckLists(c *C) {
+	//followerList
+	//followedByList
+	//connectionsEventsList
+}
+
+// Test to update connections to enable it and check the follower, followedby and connectionsevents lists
+func (s *ServerSuite) TestUpdateConnectionEnableAndCheckLists(c *C) {
+	//followerList
+	//followedByList
+	//connectionsEventsList
+}
+
+// Test to update connections to disable it and check the follower, followedby and connectionsevents lists
+func (s *ServerSuite) TestUpdateConnectionDisableAndCheckLists(c *C) {
+	//followerList
+	//followedByList
+	//connectionsEventsList
+}
+
+/****************************************************************/
+/******************** DELETECONNECTION TESTS ********************/
+/****************************************************************/
+
 // Test a correct deleteConnection request
 func (s *ServerSuite) TestDeleteConnection_OK(c *C) {
 	accounts := CorrectDeploy(1, 1, 2, 0, true, true)
@@ -286,7 +390,107 @@ func (s *ServerSuite) TestDeleteConnection_WrongID(c *C) {
 	c.Assert(code, Equals, http.StatusUnauthorized)
 }
 
-func (s *ServerSuite) TestAddSocialConnection(c *C) {
+// Test to delete connections after a user logs in
+func (s *ServerSuite) TestDeleteConnectionAfterLogin(c *C) {
+}
+
+// Test to delete connections after a user logs in and refreshes session
+func (s *ServerSuite) TestDeleteConnectionAfterLoginRefresh(c *C) {
+}
+
+// Test to delete connections after a user logs in and logs out
+func (s *ServerSuite) TestDeleteConnectionAfterLoginLogout(c *C) {
+}
+
+// Test to delete connections after a user logs in and logs out and logs in again
+func (s *ServerSuite) TestDeleteConnectionAfterLoginLogoutLogin(c *C) {
+}
+
+// Test to delete connections after a user logs in and refreshes session and logs out
+func (s *ServerSuite) TestDeleteConnectionAfterLoginRefreshLogout(c *C) {
+}
+
+// Test to delete connections and check the follower, followedby and connectionsevents lists
+func (s *ServerSuite) TestDeleteConnectionAndCheckLists(c *C) {
+	//followerList
+	//followedByList
+	//connectionsEventsList
+}
+
+/****************************************************************/
+/******************** GETCONNECTIONLIST TESTS *******************/
+/****************************************************************/
+
+// Test to get the list of connections of the user (followsUsers)
+func (s *ServerSuite) TestGetConnectionList(c *C) {
+}
+
+// Test to get the list of connections of the user after a user logs in
+func (s *ServerSuite) TestGetConnectionListAfterLogin(c *C) {
+}
+
+// Test to get the list of connections of the user after a user logs in and refreshes session
+func (s *ServerSuite) TestGetConnectionListAfterLoginRefresh(c *C) {
+}
+
+// Test to get the list of connections of the user after a user logs in and logs out
+func (s *ServerSuite) TestGetConnectionListAfterLoginLogout(c *C) {
+}
+
+// Test to get the list of connections of the user after a user logs in and logs out and logs in again
+func (s *ServerSuite) TestGetConnectionListAfterLoginLogoutLogin(c *C) {
+}
+
+// Test to get the list of connections of the user after a user logs in and refreshes session and logs out
+func (s *ServerSuite) TestGetConnectionListAfterLoginRefreshLogout(c *C) {
+}
+
+// Test to get the list of connections of a connected user
+func (s *ServerSuite) TestGetConnectionListOfConnection(c *C) {
+}
+
+// Test to get the list of connections of a non-connected user
+func (s *ServerSuite) TestGetConnectionListOfNonConnection(c *C) {
+}
+
+// Test to get the list of connections of a user from different app
+func (s *ServerSuite) TestGetConnectionListOfUserFromDifferentApp(c *C) {
+}
+
+/****************************************************************/
+/******************* GETFOLLOWEDBYUSERS TESTS *******************/
+/****************************************************************/
+
+// Test to get the list of connections of the user (followedByUsers)
+func (s *ServerSuite) TestGetFollowedByUsersList(c *C) {
+}
+
+// Test to get the list of connections of a connected user
+func (s *ServerSuite) TestGetFollowedByUsersListOfConnection(c *C) {
+}
+
+// Test to get the list of connections of a non-connected user
+func (s *ServerSuite) TestGetFollowedByUsersListOfNonConnection(c *C) {
+}
+
+// Test to get the list of connections of a user from different app
+func (s *ServerSuite) TestUsersListOfUserFromDifferentApp(c *C) {
+}
+
+/****************************************************************/
+/******************** CONFIRMCONNECTION TESTS *******************/
+/****************************************************************/
+
+// Test if the lists are created after confirming a connection
+func (s *ServerSuite) TestConfirmConnectionLists(c *C) {
+}
+
+/****************************************************************/
+/***************** CREATESOCIALCONNECTIONS TESTS ****************/
+/****************************************************************/
+
+// Test to create connections from the social accounts
+func (s *ServerSuite) TestCreateSocialConnection(c *C) {
 	account, err := AddCorrectAccount(true)
 	c.Assert(err, IsNil)
 
@@ -366,4 +570,16 @@ func (s *ServerSuite) TestAddSocialConnection(c *C) {
 	c.Assert(len(connectedUsers), Equals, 2)
 	c.Assert(connectedUsers[0].ID, Equals, user2.ID)
 	c.Assert(connectedUsers[1].ID, Equals, user4.ID)
+}
+
+// Test to create a social connection from users of differnt apps
+func (s *ServerSuite) TestCreateSocialConnectionDifferentApp(c *C) {
+}
+
+// Test to create a social connection from users of differnt network
+func (s *ServerSuite) TestCreateSocialConnectionDifferentNetwork(c *C) {
+}
+
+// Test to create a social connection from users who previously disabled the connection
+func (s *ServerSuite) TestCreateSocialConnectionWhenConnectionDisabled(c *C) {
 }

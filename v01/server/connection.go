@@ -147,6 +147,28 @@ func getConnectionList(ctx *context.Context) {
 	utils.WriteResponse(ctx, users, http.StatusOK, 10)
 }
 
+// getFollowedByUsersList handles requests to list a users list of users who follow him
+// Request: GET account/:AccountID/application/:ApplicationID/user/:UserID/followers
+func getFollowedByUsersList(ctx *context.Context) {
+	var (
+		users []*entity.User
+		err   error
+	)
+
+	if users, err = core.ReadFollowedByList(ctx.AccountID, ctx.ApplicationID, ctx.ApplicationUserID); err != nil {
+		utils.ErrorHappened(ctx, "failed to retrieve the connections list (1)", http.StatusInternalServerError, err)
+		return
+	}
+
+	for idx := range users {
+		users[idx].Password = ""
+	}
+
+	utils.WriteResponse(ctx, users, http.StatusOK, 10)
+}
+
+// TODO: GET FOLLOWING USERS LIST (followedBy)
+
 // confirmConnection handles requests to confirm a user connection
 // Request: POST account/:AccountID/application/:ApplicationID/user/:UserID/connection/confirm
 func confirmConnection(ctx *context.Context) {
@@ -231,6 +253,3 @@ func createSocialConnections(ctx *context.Context) {
 
 	utils.WriteResponse(ctx, users, http.StatusCreated, 10)
 }
-
-// TODO: GET FOLLOWER LIST (followedbyid users)
-// TODO: GET FOLLOWING USERS LIST
