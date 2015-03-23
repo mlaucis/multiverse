@@ -195,8 +195,25 @@ func refreshApplicationUserSession(ctx *context.Context) {
 // logoutApplicationUser handles the requests to logout the user from the system
 // Request: POST account/:AccountID/application/:ApplicationID/user/logout
 func logoutApplicationUser(ctx *context.Context) {
+	var (
+		tokenPayload struct {
+			Token string `json:"session_token"`
+		}
+		err          error
+	)
+
+	if err = json.NewDecoder(ctx.Body).Decode(&tokenPayload); err != nil {
+		utils.ErrorHappened(ctx, "failed to logout user (1)\n"+err.Error(), http.StatusBadRequest, err)
+		return
+	}
+
+	if tokenPayload.Token != ctx.SessionToken {
+		utils.ErrorHappened(ctx, "failed to logout user (2)\nsession token mismatch", http.StatusBadRequest, fmt.Errorf("session token mismatch"))
+		return
+	}
+
 	if err := core.DestroyApplicationUserSession(ctx.SessionToken, ctx.ApplicationUser); err != nil {
-		utils.ErrorHappened(ctx, "failed to logout the user (1)", http.StatusInternalServerError, err)
+		utils.ErrorHappened(ctx, "failed to logout the user (3)", http.StatusInternalServerError, err)
 		return
 	}
 

@@ -560,23 +560,18 @@ func (s *ServerSuite) TestLoginRefreshSessionLogoutWorks(c *C) {
 
 // Test a correct logoutUser request
 func (s *ServerSuite) TestLogoutUser_OK(c *C) {
-	account, err := AddCorrectAccount(true)
-	c.Assert(err, IsNil)
-
-	application, err := AddCorrectApplication(account.ID, true)
-	c.Assert(err, IsNil)
-
-	user, err := AddCorrectUser(account.ID, application.ID, true)
-	c.Assert(err, IsNil)
+	accounts := CorrectDeploy(1, 1, 1, 0, false, false)
+	application := accounts[0].Applications[0]
+	user := application.Users[0]
 
 	payload := fmt.Sprintf(
 		`{"email": "%s", "password": "%s"}`,
 		user.Email,
-		"password",
+		user.OriginalPassword,
 	)
 
 	routeName := "loginUser"
-	route := getComposedRoute(routeName, account.ID, application.ID)
+	route := getComposedRoute(routeName, application.AccountID, application.ID)
 	code, body, err := runRequest(routeName, route, payload, application.AuthToken, "", 3)
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusCreated)
@@ -592,10 +587,69 @@ func (s *ServerSuite) TestLogoutUser_OK(c *C) {
 	c.Assert(sessionToken.UserID, Equals, user.ID)
 	c.Assert(sessionToken.Token, Not(Equals), "")
 
+	payload = fmt.Sprintf(`{"session_token": "%s"}`, sessionToken.Token)
 	routeName = "logoutUser"
-	route = getComposedRoute(routeName, account.ID, application.ID, user.ID)
-	code, body, err = runRequest(routeName, route, "", application.AuthToken, sessionToken.Token, 3)
+	route = getComposedRoute(routeName, application.AccountID, application.ID, user.ID)
+	code, body, err = runRequest(routeName, route, payload, application.AuthToken, sessionToken.Token, 3)
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusOK)
 	c.Assert(body, Not(Equals), "")
+}
+
+// Test a correct logoutUser request
+func (s *ServerSuite) TestLoginLogoutLoginWorks(c *C) {
+	accounts := CorrectDeploy(1, 1, 1, 0, false, false)
+	application := accounts[0].Applications[0]
+	user := application.Users[0]
+
+	payload := fmt.Sprintf(
+		`{"email": "%s", "password": "%s"}`,
+		user.Email,
+		user.OriginalPassword,
+	)
+
+	routeName := "loginUser"
+	route := getComposedRoute(routeName, application.AccountID, application.ID)
+	code, body, err := runRequest(routeName, route, payload, application.AuthToken, "", 3)
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusCreated)
+	c.Assert(body, Not(Equals), "")
+
+	sessionToken := struct {
+		UserID int64  `json:"id"`
+		Token  string `json:"session_token"`
+	}{}
+	err = json.Unmarshal([]byte(body), &sessionToken)
+	c.Assert(err, IsNil)
+	c.Assert(sessionToken.UserID, Equals, user.ID)
+	c.Assert(sessionToken.Token, Not(Equals), "")
+
+	payload = fmt.Sprintf(`{"session_token": "%s"}`, sessionToken.Token)
+	routeName = "logoutUser"
+	route = getComposedRoute(routeName, application.AccountID, application.ID, user.ID)
+	code, body, err = runRequest(routeName, route, payload, application.AuthToken, sessionToken.Token, 3)
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusOK)
+	c.Assert(body, Not(Equals), "")
+
+	payload = fmt.Sprintf(
+		`{"email": "%s", "password": "%s"}`,
+		user.Email,
+		user.OriginalPassword,
+	)
+	routeName = "loginUser"
+	route = getComposedRoute(routeName, application.AccountID, application.ID)
+	code, body, err = runRequest(routeName, route, payload, application.AuthToken, "", 3)
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusCreated)
+	c.Assert(body, Not(Equals), "")
+
+	newSession := struct {
+		UserID int64  `json:"id"`
+		Token  string `json:"session_token"`
+	}{}
+	err = json.Unmarshal([]byte(body), &newSession)
+	c.Assert(newSession.UserID, Equals, user.ID)
+	c.Assert(newSession.Token, Not(Equals), "")
+	c.Assert(newSession.Token, Not(Equals), sessionToken.Token)
 }
