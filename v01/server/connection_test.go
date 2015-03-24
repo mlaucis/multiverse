@@ -152,7 +152,6 @@ func (s *ServerSuite) TestCreateConnectionAfterLogin(c *C) {
 	c.Assert(connection.UserFromID, Equals, userFrom.ID)
 	c.Assert(connection.UserToID, Equals, userTo.ID)
 	c.Assert(connection.Enabled, Equals, true)
-
 }
 
 // Test to create connections after a user logs in and refreshes session with the new token
@@ -463,10 +462,76 @@ func (s *ServerSuite) TestCreateConnectionAfterLoginRefreshLogout(c *C) {
 
 // Test to create connections and check the follower, followedby and connectionsevents lists
 func (s *ServerSuite) TestCreateConnectionAndCheckLists(c *C) {
-	c.Skip("not impletented")
-	//followerList
-	//followedByList
+	accounts := CorrectDeploy(1, 1, 2, 2, false, true)
+	account := accounts[0]
+	application := account.Applications[0]
+	userFrom := application.Users[0]
+	userTo := application.Users[1]
+
+	payload := fmt.Sprintf(`{"user_to_id":%d}`, userTo.ID)
+
+	routeName := "createConnection"
+	route := getComposedRoute(routeName, account.ID, application.ID, userFrom.ID)
+	code, body, err := runRequest(routeName, route, payload, application.AuthToken, userFrom.SessionToken, 3)
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusCreated)
+	c.Assert(body, Not(Equals), "")
+
+	connection := &entity.Connection{}
+	err = json.Unmarshal([]byte(body), connection)
+	c.Assert(err, IsNil)
+
+	c.Assert(connection.AccountID, Equals, account.ID)
+	c.Assert(connection.ApplicationID, Equals, application.ID)
+	c.Assert(connection.UserFromID, Equals, userFrom.ID)
+	c.Assert(connection.UserToID, Equals, userTo.ID)
+	c.Assert(connection.Enabled, Equals, true)
+
+	// Check connetions list
+	routeName = "getConnectionList"
+	route = getComposedRoute(routeName, account.ID, application.ID, userFrom.ID)
+	code, body, err = runRequest(routeName, route, "", application.AuthToken, userFrom.SessionToken, 3)
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusOK)
+	c.Assert(body, Not(Equals), "")
+
+	userConnections := []entity.User{}
+	err = json.Unmarshal([]byte(body), &userConnections)
+	c.Assert(err, IsNil)
+
+	c.Assert(len(userConnections), Equals, 1)
+	c.Assert(userConnections[0].ID, Equals, userTo.ID)
+
+	// Check followedBy list
+	routeName = "getFollowerList"
+	route = getComposedRoute(routeName, account.ID, application.ID, userTo.ID)
+	code, body, err = runRequest(routeName, route, "", application.AuthToken, userTo.SessionToken, 3)
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusOK)
+	c.Assert(body, Not(Equals), "")
+
+	userConnections = []entity.User{}
+	err = json.Unmarshal([]byte(body), &userConnections)
+	c.Assert(err, IsNil)
+
+	c.Assert(len(userConnections), Equals, 1)
+	c.Assert(userConnections[0].ID, Equals, userFrom.ID)
+
 	//connectionsEventsList
+	routeName = "getConnectionEventList"
+	route = getComposedRoute(routeName, account.ID, application.ID, userFrom.ID)
+	code, body, err = runRequest(routeName, route, "", application.AuthToken, userFrom.SessionToken, 3)
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusOK)
+	c.Assert(body, Not(Equals), "")
+
+	userToEvents := []entity.Event{}
+	err = json.Unmarshal([]byte(body), &userToEvents)
+	c.Assert(err, IsNil)
+
+	c.Assert(len(userToEvents), Equals, 2)
+	c.Assert(userToEvents[0].ID, Equals, userTo.Events[len(userTo.Events)-1].ID)
+	c.Assert(userToEvents[1].ID, Equals, userTo.Events[len(userTo.Events)-2].ID)
 }
 
 // Test to create connections if users are already connected
