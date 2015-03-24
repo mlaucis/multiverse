@@ -351,6 +351,91 @@ func (s *ServerSuite) TestGetEvent_WrongID(c *C) {
 	c.Assert(code, Equals, http.StatusInternalServerError)
 }
 
+func (s *ServerSuite) TestGeoLocationSearch(c *C) {
+	accounts := CorrectDeploy(1, 1, 1, 0, false, true)
+	application := accounts[0].Applications[0]
+	user := application.Users[0]
+
+	events := []*entity.Event{
+		CorrectEvent(),
+		CorrectEvent(),
+		CorrectEvent(),
+		CorrectEvent(),
+		CorrectEvent(),
+		CorrectEvent(),
+	}
+
+	locations := []struct {
+		Lat   float64
+		Lon   float64
+		Label string
+	}{
+		{Lat: 52.5169257, Lon: 13.3065105, Label: "dlsniper"},
+		{Lat: 52.5148045, Lon: 13.3000390, Label: "gas"},
+		{Lat: 52.5177294, Lon: 13.2938378, Label: "palace"},
+		{Lat: 52.5104167, Lon: 13.3003824, Label: "ziko"},
+		{Lat: 52.5120818, Lon: 13.3762879, Label: "cinestar"},
+		{Lat: 52.5157576, Lon: 13.3873319, Label: "mercedes"},
+	}
+
+	routeName := "createEvent"
+	route := getComposedRoute(routeName, application.AccountID, application.ID, user.ID)
+
+	for idx := range events {
+		events[idx].Latitude = locations[idx].Lat
+		events[idx].Longitude = locations[idx].Lon
+		events[idx].Location = locations[idx].Label
+
+		payload := fmt.Sprintf(
+			`{"verb":"%s", "language":"%s", "location": "%s", "latitude": %.7f, "longitude": %.7f}`,
+			events[idx].Verb,
+			events[idx].Language,
+			events[idx].Location,
+			events[idx].Latitude,
+			events[idx].Longitude,
+		)
+
+		code, body, err := runRequest(routeName, route, payload, application.AuthToken, user.SessionToken, 3)
+		c.Assert(err, IsNil)
+
+		c.Assert(code, Equals, http.StatusCreated)
+
+		c.Assert(body, Not(Equals), "")
+
+		receivedEvent := &entity.Event{}
+		err = json.Unmarshal([]byte(body), receivedEvent)
+		c.Assert(err, IsNil)
+
+		c.Assert(err, IsNil)
+		c.Assert(receivedEvent.AccountID, Equals, application.AccountID)
+		c.Assert(receivedEvent.ApplicationID, Equals, application.ID)
+		c.Assert(receivedEvent.UserID, Equals, user.ID)
+		c.Assert(receivedEvent.Enabled, Equals, true)
+		c.Assert(receivedEvent.Verb, Equals, events[idx].Verb)
+		c.Assert(receivedEvent.Language, Equals, events[idx].Language)
+		c.Assert(receivedEvent.Latitude, Equals, events[idx].Latitude)
+		c.Assert(receivedEvent.Longitude, Equals, events[idx].Longitude)
+		c.Assert(receivedEvent.Location, Equals, events[idx].Location)
+	}
+
+	routeName = "getGeoEventList"
+	route = getComposedRoute(routeName, application.AccountID, application.ID, locations[0].Lat, locations[0].Lon, 25000.0)
+	code, body, err := runRequest(routeName, route, "", application.AuthToken, user.SessionToken, 3)
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusOK)
+	c.Assert(body, Not(Equals), "")
+
+	var receivedEvents []*entity.Event
+	err = json.Unmarshal([]byte(body), &receivedEvents)
+	c.Assert(err, IsNil)
+
+	expectedOrder := []string{"dlsniper", "gas", "ziko", "palace", "cinestar", "mercedes"}
+
+	for idx := range receivedEvents {
+		c.Assert(receivedEvents[idx].Location, Equals, expectedOrder[idx])
+	}
+}
+
 func BenchmarkCreateEvent1_Write(b *testing.B) {
 	account, err := AddCorrectAccount(true)
 	if err != nil {

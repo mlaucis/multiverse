@@ -151,20 +151,21 @@ type (
 
 	// Event structure
 	Event struct {
-		ID            int64          `json:"id"`
-		AccountID     int64          `json:"account_id"`
-		ApplicationID int64          `json:"application_id"`
-		UserID        int64          `json:"user_id"`
-		Verb          string         `json:"verb"`
-		Language      string         `json:"language,omitempty"`
-		Priority      string         `json:"priority,omitempty"`
-		Location      string         `json:"location,omitempty"`
-		Latitude      float64        `json:"latitude,omitempty"`
-		Longitude     float64        `json:"longitude,omitempty"`
-		Object        *Object        `json:"object"`
-		Target        *Object        `json:"target,omitempty"`
-		Instrument    *Object        `json:"instrument,omitempty"`
-		Participant   []*Participant `json:"participant,omitempty"`
+		ID                 int64          `json:"id"`
+		AccountID          int64          `json:"account_id"`
+		ApplicationID      int64          `json:"application_id"`
+		UserID             int64          `json:"user_id"`
+		Verb               string         `json:"verb"`
+		Language           string         `json:"language,omitempty"`
+		Priority           string         `json:"priority,omitempty"`
+		Location           string         `json:"location,omitempty"`
+		Latitude           float64        `json:"latitude,omitempty"`
+		Longitude          float64        `json:"longitude,omitempty"`
+		DistanceFromTarget float64        `json:"-"`
+		Object             *Object        `json:"object"`
+		Target             *Object        `json:"target,omitempty"`
+		Instrument         *Object        `json:"instrument,omitempty"`
+		Participant        []*Participant `json:"participant,omitempty"`
 		Common
 	}
 
@@ -174,4 +175,13 @@ type (
 		Username string `json:"username,omitempty"`
 		Password string `json:"password"`
 	}
+
+	// SortableEventsByDistance provides the struct needed for sorting the elements by distance from target
+	SortableEventsByDistance []*Event
 )
+
+func (e SortableEventsByDistance) Len() int      { return len(e) }
+func (e SortableEventsByDistance) Swap(i, j int) { e[i], e[j] = e[j], e[i] }
+func (e SortableEventsByDistance) Less(i, j int) bool {
+	return e[i].DistanceFromTarget < e[j].DistanceFromTarget
+}

@@ -591,7 +591,7 @@ var Routes = map[string]*Route{
 	"getGeoEventList": &Route{
 		Method:   "GET",
 		Pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/events/geo/{latitude:[0-9.]+}/{longitude:[0-9.]+}/{radius:[0-9.]+}",
-		CPattern: "/account/%d/application/%d/events/geo/%.5f/%.5f/%.5f",
+		CPattern: "/account/%d/application/%d/events/geo/%.7f/%.7f/%.7f",
 		Scope:    "application/events/geo",
 		Handlers: []RouteFunc{
 			ValidateApplicationRequestToken,
