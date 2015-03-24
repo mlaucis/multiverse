@@ -139,13 +139,18 @@ func loginApplicationUser(ctx *context.Context) {
 		return
 	}
 
+	if !user.Enabled {
+		utils.ErrorHappened(ctx, "failed to login user (6)\nUser is disabled", http.StatusUnauthorized, fmt.Errorf("login with disabled user"))
+		return
+	}
+
 	if err = validator.ApplicationUserCredentialsValid(loginPayload.Password, user); err != nil {
-		utils.ErrorHappened(ctx, "failed to login the user (6)", http.StatusUnauthorized, err)
+		utils.ErrorHappened(ctx, "failed to login the user (7)", http.StatusUnauthorized, err)
 		return
 	}
 
 	if sessionToken, err = core.CreateApplicationUserSession(user); err != nil {
-		utils.ErrorHappened(ctx, "failed to login the user (7)", http.StatusInternalServerError, err)
+		utils.ErrorHappened(ctx, "failed to login the user (8)", http.StatusInternalServerError, err)
 		return
 	}
 

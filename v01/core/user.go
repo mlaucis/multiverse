@@ -53,9 +53,28 @@ func UpdateUser(existingUser, updatedUser entity.User, retrieve bool) (usr *enti
 		return nil, err
 	}
 
-	emailListKey := storageClient.ApplicationUserByEmail(existingUser.AccountID, existingUser.ApplicationID, Base64Encode(existingUser.Email))
-	usernameListKey := storageClient.ApplicationUserByUsername(existingUser.AccountID, existingUser.ApplicationID, Base64Encode(existingUser.Username))
-	_, err = storageEngine.Del(emailListKey, usernameListKey).Result()
+	if existingUser.Email != updatedUser.Email {
+		emailListKey := storageClient.ApplicationUserByEmail(existingUser.AccountID, existingUser.ApplicationID, Base64Encode(existingUser.Email))
+		_, err = storageEngine.Del(emailListKey).Result()
+
+		emailListKey = storageClient.ApplicationUserByEmail(existingUser.AccountID, existingUser.ApplicationID, Base64Encode(updatedUser.Email))
+		err = storageEngine.Set(emailListKey, fmt.Sprintf("%d", updatedUser.ID)).Err()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if existingUser.Username != updatedUser.Username {
+		usernameListKey := storageClient.ApplicationUserByUsername(existingUser.AccountID, existingUser.ApplicationID, Base64Encode(existingUser.Username))
+		_, err = storageEngine.Del(usernameListKey).Result()
+
+		usernameListKey = storageClient.ApplicationUserByUsername(existingUser.AccountID, existingUser.ApplicationID, Base64Encode(updatedUser.Username))
+		err = storageEngine.Set(usernameListKey, fmt.Sprintf("%d", updatedUser.ID)).Err()
+
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	if !updatedUser.Enabled {
 		listKey := storageClient.Users(updatedUser.AccountID, updatedUser.ApplicationID)
@@ -63,16 +82,8 @@ func UpdateUser(existingUser, updatedUser entity.User, retrieve bool) (usr *enti
 			return nil, err
 		}
 	} else {
-		emailListKey := storageClient.ApplicationUserByEmail(existingUser.AccountID, existingUser.ApplicationID, Base64Encode(updatedUser.Email))
-		err = storageEngine.Set(emailListKey, fmt.Sprintf("%d", updatedUser.ID)).Err()
-		if err != nil {
-			return nil, err
-		}
-
-		usernameListKey := storageClient.ApplicationUserByUsername(existingUser.AccountID, existingUser.ApplicationID, Base64Encode(updatedUser.Username))
-		err = storageEngine.Set(usernameListKey, fmt.Sprintf("%d", updatedUser.ID)).Err()
-
-		if err != nil {
+		listKey := storageClient.Users(updatedUser.AccountID, updatedUser.ApplicationID)
+		if err = storageEngine.LPush(listKey, key).Err(); err != nil {
 			return nil, err
 		}
 	}
@@ -90,6 +101,21 @@ func DeleteUser(accountID, applicationID, userID int64) (err error) {
 	if err != nil {
 		return err
 	}
+
+	disabledUser := *user
+	disabledUser.Enabled = false
+	disabledUser.Password = ""
+	_, err = UpdateUser(*user, disabledUser, false)
+
+	// TODO: Remove Users Connections?
+	// TODO: Remove Users Connection Lists?
+	// TODO: Remove User in other Users Connection Lists?
+	// TODO: Remove Users Events?
+	// TODO: Remove Users Events from Lists?
+
+	return
+
+	// TODO Figure out if we should just simply remove the user or not
 
 	key := storageClient.User(accountID, applicationID, userID)
 	result, err := storageEngine.Del(key).Result()
@@ -109,12 +135,6 @@ func DeleteUser(accountID, applicationID, userID int64) (err error) {
 	emailListKey := storageClient.AccountUserByEmail(Base64Encode(user.Email))
 	usernameListKey := storageClient.AccountUserByUsername(Base64Encode(user.Username))
 	_, err = storageEngine.Del(emailListKey, usernameListKey).Result()
-
-	// TODO: Remove Users Connections?
-	// TODO: Remove Users Connection Lists?
-	// TODO: Remove User in other Users Connection Lists?
-	// TODO: Remove Users Events?
-	// TODO: Remove Users Events from Lists?
 
 	return nil
 }
