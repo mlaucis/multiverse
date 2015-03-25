@@ -151,7 +151,8 @@ func UpdateUser(existingApplicationUser, updatedApplicationUser *entity.User) er
 	}
 
 	if existingApplicationUser.Email != updatedApplicationUser.Email {
-		if isDuplicate, err := DuplicateApplicationUserEmail(updatedApplicationUser.AccountID, updatedApplicationUser.ApplicationID, updatedApplicationUser.Email); isDuplicate || err != nil {
+		isDuplicate, err := DuplicateApplicationUserEmail(updatedApplicationUser.AccountID, updatedApplicationUser.ApplicationID, updatedApplicationUser.Email)
+		if isDuplicate || err != nil {
 			if isDuplicate {
 				errs = append(errs, &errorEmailAddressInUse)
 			} else if err != nil {
@@ -161,7 +162,8 @@ func UpdateUser(existingApplicationUser, updatedApplicationUser *entity.User) er
 	}
 
 	if existingApplicationUser.Username != updatedApplicationUser.Username {
-		if isDuplicate, err := DuplicateApplicationUserUsername(updatedApplicationUser.AccountID, updatedApplicationUser.ApplicationID, updatedApplicationUser.Username); isDuplicate || err != nil {
+		isDuplicate, err := DuplicateApplicationUserUsername(updatedApplicationUser.AccountID, updatedApplicationUser.ApplicationID, updatedApplicationUser.Username)
+		if isDuplicate || err != nil {
 			if isDuplicate {
 				errs = append(errs, &errorUsernameInUse)
 			} else if err != nil {
@@ -344,7 +346,7 @@ func CheckApplicationSimpleSession(accountID, applicationID, applicationUserID i
 
 // DuplicateApplicationUserEmail checks if the user email is duplicate within the application or not
 func DuplicateApplicationUserEmail(accountID, applicationID int64, email string) (bool, error) {
-	emailKey := storageClient.ApplicationUserByEmail(accountID, applicationID, email)
+	emailKey := storageClient.ApplicationUserByEmail(accountID, applicationID, Base64Encode(email))
 	if userExists, err := storageEngine.Exists(emailKey).Result(); userExists || err != nil {
 		if err != nil {
 			return false, err
@@ -358,7 +360,7 @@ func DuplicateApplicationUserEmail(accountID, applicationID int64, email string)
 
 // DuplicateApplicationUserUsername checks if the username is duplicate within the application or not
 func DuplicateApplicationUserUsername(accountID, applicationID int64, username string) (bool, error) {
-	usernameKey := storageClient.ApplicationUserByUsername(accountID, applicationID, username)
+	usernameKey := storageClient.ApplicationUserByUsername(accountID, applicationID, Base64Encode(username))
 	if userExists, err := storageEngine.Exists(usernameKey).Result(); userExists || err != nil {
 		if err != nil {
 			return false, err

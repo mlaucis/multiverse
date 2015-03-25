@@ -141,8 +141,8 @@ func AddCorrectAccounts(numberOfAccounts int) []*entity.Account {
 	result := make([]*entity.Account, numberOfAccounts)
 	for i := 0; i < numberOfAccounts; i++ {
 		account := CorrectAccount()
-		account.Name = fmt.Sprintf("acc-%d", i)
-		account.Name = fmt.Sprintf("acc description %d", i)
+		account.Name = fmt.Sprintf("acc-%d", i+1)
+		account.Description = fmt.Sprintf("acc description %d", i+1)
 		result[i], err = core.WriteAccount(account, true)
 		if err != nil {
 			panic(err)
@@ -158,8 +158,8 @@ func AddCorrectApplications(account *entity.Account, numberOfApplicationsPerAcco
 	for i := 0; i < numberOfApplicationsPerAccount; i++ {
 		application := CorrectApplication()
 		application.AccountID = account.ID
-		application.Name = fmt.Sprintf("acc-%d-app-%d", account.ID, i)
-		application.Description = fmt.Sprintf("acc %d app %d", account.ID, i)
+		application.Name = fmt.Sprintf("acc-%d-app-%d", account.ID, i+1)
+		application.Description = fmt.Sprintf("acc %d app %d", account.ID, i+1)
 		result[i], err = core.WriteApplication(application, true)
 		if err != nil {
 			panic(err)
@@ -277,14 +277,14 @@ func AddCorrectApplicationUsers(application *entity.Application, numberOfUsersPe
 	result := make([]*entity.User, numberOfUsersPerApplication)
 	for i := 0; i < numberOfUsersPerApplication; i++ {
 		user := CorrectUser()
-		password := fmt.Sprintf("acc-%d-app-%d-user-%d", user.AccountID, user.ApplicationID, i)
+		password := fmt.Sprintf("acc-%d-app-%d-user-%d", user.AccountID, user.ApplicationID, i+1)
 		user.AccountID = application.AccountID
 		user.ApplicationID = application.ID
-		user.Username = fmt.Sprintf("acc-%d-app-%d-user-%d", user.AccountID, user.ApplicationID, i)
-		user.Email = fmt.Sprintf("acc-%d-app-%d-user-%d@tapglue-test.com", user.AccountID, user.ApplicationID, i)
+		user.Username = fmt.Sprintf("acc-%d-app-%d-user-%d", user.AccountID, user.ApplicationID, i+1)
+		user.Email = fmt.Sprintf("acc-%d-app-%d-user-%d@tapglue-test.com", user.AccountID, user.ApplicationID, i+1)
 		user.Password = password
-		user.FirstName = fmt.Sprintf("acc-%d-app-%d-user-%d-first-name", user.AccountID, user.ApplicationID, i)
-		user.LastName = fmt.Sprintf("acc-%d-app-%d-user-%d-last-name", user.AccountID, user.ApplicationID, i)
+		user.FirstName = fmt.Sprintf("acc-%d-app-%d-user-%d-first-name", user.AccountID, user.ApplicationID, i+1)
+		user.LastName = fmt.Sprintf("acc-%d-app-%d-user-%d-last-name", user.AccountID, user.ApplicationID, i+1)
 		user.SocialIDs = map[string]string{
 			"facebook": fmt.Sprintf("acc-%d-app-%d-user-%d-fb", user.AccountID, user.ApplicationID, user.ID),
 			"twitter":  fmt.Sprintf("acc-%d-app-%d-user-%d-tw", user.AccountID, user.ApplicationID, user.ID),
@@ -318,12 +318,12 @@ func AddCorrectUserEvents(user *entity.User, numberOfEventsPerUser int) []*entit
 		if i < 4 {
 			event.Target = &entity.Object{
 				ID:          fmt.Sprintf("target-%d", i),
-				DisplayName: map[string]string{"all": fmt.Sprintf("target-%d-all", i)},
+				DisplayName: map[string]string{"all": fmt.Sprintf("target-%d-all", i+1)},
 			}
 		} else {
 			event.Target = &entity.Object{
-				ID:          fmt.Sprintf("acc-%d-app-%d-usr-%d-target-%d", user.AccountID, user.ApplicationID, user.ID, i),
-				DisplayName: map[string]string{"all": fmt.Sprintf("acc-%d-app-%d-usr-%d-target-%d-all", user.AccountID, user.ApplicationID, user.ID, i)},
+				ID:          fmt.Sprintf("acc-%d-app-%d-usr-%d-target-%d", user.AccountID, user.ApplicationID, user.ID, i+1),
+				DisplayName: map[string]string{"all": fmt.Sprintf("acc-%d-app-%d-usr-%d-target-%d-all", user.AccountID, user.ApplicationID, user.ID, i+1)},
 			}
 		}
 		result[i], err = core.WriteEvent(event, true)
