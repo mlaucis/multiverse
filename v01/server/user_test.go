@@ -1476,3 +1476,57 @@ func (s *ServerSuite) TestLoginDeleteLogoutFails(c *C) {
 	c.Assert(code, Equals, http.StatusUnauthorized)
 	c.Assert(body, Equals, "401 failed to check session token (12)\nsession mismatch")
 }
+
+func (s *ServerSuite) TestCreateUserAutoBindSocialAccounts(c *C) {
+	accounts := CorrectDeploy(1, 1, 1, 0, false, true)
+	application := accounts[0].Applications[0]
+	user1 := application.Users[0]
+
+	user2 := CorrectUserWithDefaults(application.AccountID, application.ID, 2)
+	user2.Enabled = true
+	user2.SocialConnectionsIDs = map[string][]string{
+		"facebook": []string{user1.SocialIDs["facebook"]},
+	}
+
+	payloadByte, err := json.Marshal(user2)
+	c.Assert(err, IsNil)
+	payload := string(payloadByte)
+
+	routeName := "createUser"
+	route := getComposedRoute(routeName, application.AccountID, application.ID)
+	code, body, err := runRequest(routeName, route, payload, application.AuthToken, "", 3)
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusCreated)
+	c.Assert(body, Not(Equals), "")
+
+	receivedUser := &entity.User{}
+	err = json.Unmarshal([]byte(body), receivedUser)
+	c.Assert(err, IsNil)
+	if receivedUser.ID < 1 {
+		c.Fail()
+	}
+	c.Assert(err, IsNil)
+	user2.OriginalPassword, receivedUser.OriginalPassword = user2.Password, user2.Password
+	user2.Password = ""
+	user2.CreatedAt = receivedUser.CreatedAt
+	user2.UpdatedAt = receivedUser.UpdatedAt
+	user2.LastLogin = receivedUser.LastLogin
+	user2.ID = receivedUser.ID
+	receivedUser.Image, user2.Image = nil, nil
+	c.Assert(receivedUser, DeepEquals, user2)
+
+	// Check connetions list
+	routeName = "getConnectionList"
+	route = getComposedRoute(routeName, application.AccountID, application.ID, user1.ID)
+	code, body, err = runRequest(routeName, route, "", application.AuthToken, user1.SessionToken, 3)
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusOK)
+	c.Assert(body, Not(Equals), "[]\n")
+
+	userConnections := []entity.User{}
+	err = json.Unmarshal([]byte(body), &userConnections)
+	c.Assert(err, IsNil)
+
+	c.Assert(len(userConnections), Equals, 1)
+	c.Assert(userConnections[0].ID, Equals, receivedUser.ID)
+}

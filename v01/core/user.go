@@ -241,6 +241,35 @@ func WriteUser(user *entity.User, retrieve bool) (usr *entity.User, err error) {
 		}
 	}
 
+	if len(user.SocialConnectionsIDs) > 0 {
+		existingSocialIDsKeys := []string{}
+		applicationSocialKey := ""
+		for socialPlatform := range user.SocialConnectionsIDs {
+			for idx := range user.SocialConnectionsIDs[socialPlatform] {
+				applicationSocialKey = storageClient.SocialConnection(
+					user.AccountID,
+					user.ApplicationID,
+					socialPlatform,
+					Base64Encode(user.SocialConnectionsIDs[socialPlatform][idx]),
+				)
+				existingSocialIDsKeys = append(existingSocialIDsKeys, applicationSocialKey)
+			}
+		}
+
+		if applicationSocialKey != "" {
+			existingSocialIDs, err := storageEngine.MGet(existingSocialIDsKeys...).Result()
+			if err != nil {
+				return nil, err
+			}
+			if len(existingSocialIDs) > 0 {
+				user.Connections, err = autoConnectSocialFriends(user, existingSocialIDs)
+				if err != nil {
+					return nil, err
+				}
+			}
+		}
+	}
+
 	listKey := storageClient.Users(user.AccountID, user.ApplicationID)
 	if err = storageEngine.LPush(listKey, key).Err(); err != nil {
 		return nil, err

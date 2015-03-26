@@ -130,6 +130,26 @@ func CorrectUser() *entity.User {
 	return &applicationUser
 }
 
+// CorrectUserWithDefaults returns a new user entity with prepoulated defaults
+func CorrectUserWithDefaults(accountID, applicationID, userNumber int64) *entity.User {
+	user := CorrectUser()
+	user.AccountID = accountID
+	user.ApplicationID = applicationID
+	user.Username = fmt.Sprintf("acc-%d-app-%d-user-%d", user.AccountID, user.ApplicationID, userNumber)
+	user.Email = fmt.Sprintf("acc-%d-app-%d-user-%d@tapglue-test.com", user.AccountID, user.ApplicationID, userNumber)
+	user.Password = fmt.Sprintf("acc-%d-app-%d-user-%d", user.AccountID, user.ApplicationID, userNumber)
+	user.FirstName = fmt.Sprintf("acc-%d-app-%d-user-%d-first-name", user.AccountID, user.ApplicationID, userNumber)
+	user.LastName = fmt.Sprintf("acc-%d-app-%d-user-%d-last-name", user.AccountID, user.ApplicationID, userNumber)
+	user.SocialIDs = map[string]string{
+		"facebook": fmt.Sprintf("acc-%d-app-%d-user-%d-fb", user.AccountID, user.ApplicationID, userNumber),
+		"twitter":  fmt.Sprintf("acc-%d-app-%d-user-%d-tw", user.AccountID, user.ApplicationID, userNumber),
+		"gplus":    fmt.Sprintf("acc-%d-app-%d-user-%d-gpl", user.AccountID, user.ApplicationID, userNumber),
+		"abook":    fmt.Sprintf("acc-%d-app-%d-user-%d-abk", user.AccountID, user.ApplicationID, userNumber),
+	}
+
+	return user
+}
+
 // CorrectEvent returns a correct event
 func CorrectEvent() *entity.Event {
 	event := &fixtures.CorrectEvent
@@ -276,21 +296,8 @@ func AddCorrectApplicationUsers(application *entity.Application, numberOfUsersPe
 	var err error
 	result := make([]*entity.User, numberOfUsersPerApplication)
 	for i := 0; i < numberOfUsersPerApplication; i++ {
-		user := CorrectUser()
-		password := fmt.Sprintf("acc-%d-app-%d-user-%d", user.AccountID, user.ApplicationID, i+1)
-		user.AccountID = application.AccountID
-		user.ApplicationID = application.ID
-		user.Username = fmt.Sprintf("acc-%d-app-%d-user-%d", user.AccountID, user.ApplicationID, i+1)
-		user.Email = fmt.Sprintf("acc-%d-app-%d-user-%d@tapglue-test.com", user.AccountID, user.ApplicationID, i+1)
-		user.Password = password
-		user.FirstName = fmt.Sprintf("acc-%d-app-%d-user-%d-first-name", user.AccountID, user.ApplicationID, i+1)
-		user.LastName = fmt.Sprintf("acc-%d-app-%d-user-%d-last-name", user.AccountID, user.ApplicationID, i+1)
-		user.SocialIDs = map[string]string{
-			"facebook": fmt.Sprintf("acc-%d-app-%d-user-%d-fb", user.AccountID, user.ApplicationID, user.ID),
-			"twitter":  fmt.Sprintf("acc-%d-app-%d-user-%d-tw", user.AccountID, user.ApplicationID, user.ID),
-			"gplus":    fmt.Sprintf("acc-%d-app-%d-user-%d-gpl", user.AccountID, user.ApplicationID, user.ID),
-			"abook":    fmt.Sprintf("acc-%d-app-%d-user-%d-abk", user.AccountID, user.ApplicationID, user.ID),
-		}
+		user := CorrectUserWithDefaults(application.AccountID, application.ID, int64(i+1))
+		password := user.Password
 		result[i], err = core.WriteUser(user, true)
 		result[i].OriginalPassword = password
 		if err != nil {

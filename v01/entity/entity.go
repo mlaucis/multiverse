@@ -97,15 +97,16 @@ type (
 
 	// User structure
 	User struct {
-		ID            int64             `json:"id"`
-		AccountID     int64             `json:"account_id"`
-		ApplicationID int64             `json:"application_id"`
-		CustomID      string            `json:"custom_id,omitempty"`
-		SessionToken  string            `json:"-"`
-		SocialIDs     map[string]string `json:"social_ids,omitempty"`
-		DeviceIDs     []string          `json:"device_ids,omitempty"`
-		Events        []*Event          `json:"events,omitempty"`
-		Connections   []*User           `json:"connections,omitempty"`
+		ID                   int64               `json:"id"`
+		AccountID            int64               `json:"account_id"`
+		ApplicationID        int64               `json:"application_id"`
+		CustomID             string              `json:"custom_id,omitempty"`
+		SessionToken         string              `json:"-"`
+		SocialIDs            map[string]string   `json:"social_ids,omitempty"`
+		SocialConnectionsIDs map[string][]string `json:"social_connections_ids,omitempty"`
+		DeviceIDs            []string            `json:"device_ids,omitempty"`
+		Events               []*Event            `json:"events,omitempty"`
+		Connections          []*User             `json:"connections,omitempty"`
 		UserCommon
 		Common
 	}

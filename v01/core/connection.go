@@ -301,6 +301,10 @@ func SocialConnect(user *entity.User, platform string, socialFriendsIDs []string
 		return result, nil
 	}
 
+	return autoConnectSocialFriends(user, ourStoredUsersIDs)
+}
+
+func autoConnectSocialFriends(user *entity.User, ourStoredUsersIDs []interface{}) (users []*entity.User, err error) {
 	ourUserKeys := []string{}
 	for idx := range ourStoredUsersIDs {
 		userID, err := strconv.ParseInt(ourStoredUsersIDs[idx].(string), 10, 64)
@@ -312,7 +316,6 @@ func SocialConnect(user *entity.User, platform string, socialFriendsIDs []string
 		if exists, err := storageEngine.Exists(key).Result(); exists || err != nil {
 			// We don't want to update existing connections as we don't know if the user disabled them willingly or not
 			// TODO Figure out if this is the right thing to do
-
 			continue
 		}
 
@@ -321,6 +324,23 @@ func SocialConnect(user *entity.User, platform string, socialFriendsIDs []string
 			ApplicationID: user.ApplicationID,
 			UserFromID:    user.ID,
 			UserToID:      userID,
+		}
+
+		_, _, err = WriteConnection(connection, false)
+		if err != nil {
+			continue
+		}
+
+		_, err = ConfirmConnection(connection, false)
+		if err != nil {
+			continue
+		}
+
+		connection = &entity.Connection{
+			AccountID:     user.AccountID,
+			ApplicationID: user.ApplicationID,
+			UserFromID:    userID,
+			UserToID:      user.ID,
 		}
 
 		_, _, err = WriteConnection(connection, false)
@@ -343,7 +363,6 @@ func SocialConnect(user *entity.User, platform string, socialFriendsIDs []string
 }
 
 func fetchAndDecodeMultipleUsers(keys []string) (users []*entity.User, err error) {
-	fmt.Scan()
 	if len(keys) == 0 {
 		return []*entity.User{}, nil
 	}
