@@ -1573,9 +1573,5 @@ func (s *ServerSuite) TestDeleteOnEventsOnUserDeleteWorks(c *C) {
 	code, body, err = runRequest(routeName, route, "", application.AuthToken, user1.SessionToken, 3)
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusOK)
-	c.Assert(body, Not(Equals), "")
-	events = []*entity.Event{}
-	err = json.Unmarshal([]byte(body), &events)
-	c.Assert(err, IsNil)
-	c.Assert(len(events), Equals, 0)
+	c.Assert(body, Equals, "[]\n")
 }
