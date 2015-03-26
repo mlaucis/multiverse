@@ -6,7 +6,6 @@ package core
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"time"
 
@@ -178,8 +177,7 @@ func ReadConnectionEventList(accountID, applicationID, userID int64) (events []*
 
 	// TODO maybe this shouldn't be an error but rather return that there are no events from connections
 	if len(result) == 0 {
-		err := errors.New("There are no events from connections")
-		return nil, err
+		return []*entity.Event{}, err
 	}
 
 	resultList, err := storageEngine.MGet(result...).Result()

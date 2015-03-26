@@ -1530,3 +1530,52 @@ func (s *ServerSuite) TestCreateUserAutoBindSocialAccounts(c *C) {
 	c.Assert(len(userConnections), Equals, 1)
 	c.Assert(userConnections[0].ID, Equals, receivedUser.ID)
 }
+
+func (s *ServerSuite) TestDeleteOnEventsOnUserDeleteWorks(c *C) {
+	accounts := CorrectDeploy(1, 1, 2, 2, true, true)
+	application := accounts[0].Applications[0]
+	user1 := application.Users[0]
+	user2 := application.Users[1]
+
+	// GET EVENT
+	routeName := "deleteConnection"
+	route := getComposedRoute(routeName, application.AccountID, application.ID, user1.ID, user2.ID)
+	code, body, err := runRequest(routeName, route, "", application.AuthToken, user1.SessionToken, 3)
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusNoContent)
+	c.Assert(body, Equals, "\"\"\n")
+
+	// GET EVENTS LIST
+	routeName = "getEventList"
+	route = getComposedRoute(routeName, application.AccountID, application.ID, user1.ID)
+	code, body, err = runRequest(routeName, route, "", application.AuthToken, user1.SessionToken, 3)
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusOK)
+	c.Assert(body, Not(Equals), "")
+	events := []*entity.Event{}
+	err = json.Unmarshal([]byte(body), &events)
+	c.Assert(err, IsNil)
+	c.Assert(len(events), Equals, 2)
+	c.Assert(events[0], DeepEquals, user1.Events[1])
+	c.Assert(events[1], DeepEquals, user1.Events[0])
+
+	// Check connetions list
+	routeName = "getConnectionList"
+	route = getComposedRoute(routeName, application.AccountID, application.ID, user1.ID)
+	code, body, err = runRequest(routeName, route, "", application.AuthToken, user1.SessionToken, 3)
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusOK)
+	c.Assert(body, Equals, "[]\n")
+
+	// GET EVENTS LIST
+	routeName = "getConnectionEventList"
+	route = getComposedRoute(routeName, application.AccountID, application.ID, user1.ID)
+	code, body, err = runRequest(routeName, route, "", application.AuthToken, user1.SessionToken, 3)
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusOK)
+	c.Assert(body, Not(Equals), "")
+	events = []*entity.Event{}
+	err = json.Unmarshal([]byte(body), &events)
+	c.Assert(err, IsNil)
+	c.Assert(len(events), Equals, 0)
+}

@@ -15,11 +15,12 @@ import (
 )
 
 const (
-	logFormat        = "%s\t%s\t%d\t%s\t%s\t%s\t%+v\t%s\t%s\t%s\t%s\n"
-	curlGetFormat    = "curl -i %s http://api.tapglue.com%s"
-	curlPostFormat   = "curl -i -X POST %s -d '%s' http://api.tapglue.com%s"
-	curlPutFormat    = "curl -i -X PUT %s -d '%s' http://api.tapglue.com%s"
-	curlDeleteFormat = "curl -i -X DELETE %s http://api.tapglue.com%s"
+	logFormat             = "%s\t%s\t%d\t%s\t%s\t%s\t%+v\t%s\t%s\t%s\t%s\n"
+	logResponseTimeFormat = "%s\t%s\t%d\t%s"
+	curlGetFormat         = "curl -i %s http://api.tapglue.com%s"
+	curlPostFormat        = "curl -i -X POST %s -d '%s' http://api.tapglue.com%s"
+	curlPutFormat         = "curl -i -X PUT %s -d '%s' http://api.tapglue.com%s"
+	curlDeleteFormat      = "curl -i -X DELETE %s http://api.tapglue.com%s"
 )
 
 type (
@@ -65,6 +66,24 @@ func TGLog(msg chan *LogMsg) {
 					m.Location,
 					m.End.Sub(m.Start),
 					rawError,
+				)
+			}
+		}
+	}
+}
+
+// TGLogResponseTimes is the Tapglue logger that logs only the names and the response times of requests
+func TGLogResponseTimes(msg chan *LogMsg) {
+	for {
+		select {
+		case m := <-msg:
+			{
+				log.Printf(
+					logResponseTimeFormat,
+					m.End.Sub(m.Start),
+					m.Method,
+					m.StatusCode,
+					m.Name,
 				)
 			}
 		}

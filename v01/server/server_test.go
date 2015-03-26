@@ -41,13 +41,14 @@ const (
 )
 
 var (
-	_             = Suite(&ServerSuite{})
-	conf          *config.Config
-	storageClient *storage.Client
-	doLogTest     = flag.Bool("lt", false, "Set flag in order to get logs output from the tests")
-	doCurlLogs    = flag.Bool("ct", false, "Set flag in order to get logs output from the tests as curl requests, sets -lt=true")
-	mainLogChan   = make(chan *logger.LogMsg)
-	errorLogChan  = make(chan *logger.LogMsg)
+	_                  = Suite(&ServerSuite{})
+	conf               *config.Config
+	storageClient      *storage.Client
+	doLogTest          = flag.Bool("lt", false, "Set flag in order to get logs output from the tests")
+	doCurlLogs         = flag.Bool("ct", false, "Set flag in order to get logs output from the tests as curl requests, sets -lt=true")
+	doLogResponseTimes = flag.Bool("rt", false, "Set flag in order to get logs with response times only")
+	mainLogChan        = make(chan *logger.LogMsg)
+	errorLogChan       = make(chan *logger.LogMsg)
 )
 
 // Setup once when the suite starts running
@@ -67,7 +68,10 @@ func (s *ServerSuite) SetUpTest(c *C) {
 	server.Init()
 	validator.Init(storageClient)
 
-	if *doLogTest {
+	if *doLogResponseTimes {
+		go logger.TGLogResponseTimes(mainLogChan)
+		go logger.TGLogResponseTimes(errorLogChan)
+	} else if *doLogTest {
 		if *doCurlLogs {
 			go logger.TGCurlLog(mainLogChan)
 		} else {
