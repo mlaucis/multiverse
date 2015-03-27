@@ -436,6 +436,27 @@ func (s *ServerSuite) TestGeoLocationSearch(c *C) {
 	}
 }
 
+func (s *ServerSuite) TestGetLocation(c *C) {
+	accounts := CorrectDeploy(1, 1, 2, 7, true, true)
+	application := accounts[0].Applications[0]
+	user1 := application.Users[0]
+	user2 := application.Users[1]
+
+	routeName := "getLocationEventList"
+	route := getComposedRoute(routeName, application.AccountID, application.ID, user1.Events[0].Location)
+	code, body, err := runRequest(routeName, route, "", application.AuthToken, user1.SessionToken, 3)
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusOK)
+	c.Assert(body, Not(Equals), "")
+
+	events := []*entity.Event{}
+	err = json.Unmarshal([]byte(body), &events)
+	c.Assert(err, IsNil)
+	c.Assert(len(events), Equals, 2)
+	c.Assert(events[0], DeepEquals, user2.Events[0])
+	c.Assert(events[1], DeepEquals, user1.Events[0])
+}
+
 func BenchmarkCreateEvent1_Write(b *testing.B) {
 	account, err := AddCorrectAccount(true)
 	if err != nil {

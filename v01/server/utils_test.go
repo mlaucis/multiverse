@@ -323,11 +323,13 @@ func AddCorrectUserEvents(user *entity.User, numberOfEventsPerUser int) []*entit
 		event.ApplicationID = user.ApplicationID
 		event.UserID = user.ID
 		if i < 4 {
+			event.Location = fmt.Sprintf("location-all-%d", i+1)
 			event.Target = &entity.Object{
-				ID:          fmt.Sprintf("target-%d", i),
+				ID:          fmt.Sprintf("target-%d", i+1),
 				DisplayName: map[string]string{"all": fmt.Sprintf("target-%d-all", i+1)},
 			}
 		} else {
+			event.Location = fmt.Sprintf("location-%d", i+1)
 			event.Target = &entity.Object{
 				ID:          fmt.Sprintf("acc-%d-app-%d-usr-%d-target-%d", user.AccountID, user.ApplicationID, user.ID, i+1),
 				DisplayName: map[string]string{"all": fmt.Sprintf("acc-%d-app-%d-usr-%d-target-%d-all", user.AccountID, user.ApplicationID, user.ID, i+1)},

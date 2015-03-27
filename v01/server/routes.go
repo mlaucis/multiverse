@@ -618,7 +618,7 @@ var Routes = map[string]*Route{
 	},
 	"getLocationEventList": &Route{
 		Method:   "GET",
-		Pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/events/location/{location:[0-9a-zA-Z]}",
+		Pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/events/location/{location:[0-9a-zA-Z\\-]+}",
 		CPattern: "/account/%d/application/%d/events/location/%s",
 		Scope:    "application/events/location",
 		Handlers: []RouteFunc{
