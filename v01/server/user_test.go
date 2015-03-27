@@ -1575,3 +1575,38 @@ func (s *ServerSuite) TestDeleteOnEventsOnUserDeleteWorks(c *C) {
 	c.Assert(code, Equals, http.StatusOK)
 	c.Assert(body, Equals, "[]\n")
 }
+
+func (s *ServerSuite) TestLoginRefreshLogoutMalformedPayloadFails(c *C) {
+	accounts := CorrectDeploy(1, 1, 1, 0, false, true)
+	application := accounts[0].Applications[0]
+	user := application.Users[0]
+
+	payload := fmt.Sprintf(
+		`{"email": "%s", "password": "%s"`,
+		user.Email,
+		user.OriginalPassword,
+	)
+
+	routeName := "loginUser"
+	route := getComposedRoute(routeName, application.AccountID, application.ID)
+	code, body, err := runRequest(routeName, route, payload, application.AuthToken, "", 3)
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusBadRequest)
+	c.Assert(body, Equals, "400 failed to login the user (1)\nunexpected EOF")
+
+	payload = fmt.Sprintf(`{"session_token": "%s"`, user.SessionToken)
+	routeName = "refreshUserSession"
+	route = getComposedRoute(routeName, application.AccountID, application.ID, user.ID)
+	code, body, err = runRequest(routeName, route, payload, application.AuthToken, user.SessionToken, 3)
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusBadRequest)
+	c.Assert(body, Equals, "400 failed to refresh the user session (1)\nunexpected EOF")
+
+	payload = fmt.Sprintf(`{"session_token": "%s"`, user.SessionToken)
+	routeName = "logoutUser"
+	route = getComposedRoute(routeName, application.AccountID, application.ID, user.ID)
+	code, body, err = runRequest(routeName, route, payload, application.AuthToken, user.SessionToken, 3)
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusBadRequest)
+	c.Assert(body, Equals, "400 failed to logout user (1)\nunexpected EOF")
+}
