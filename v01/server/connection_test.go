@@ -517,7 +517,7 @@ func (s *ServerSuite) TestCreateConnectionAndCheckLists(c *C) {
 	c.Assert(len(userConnections), Equals, 1)
 	c.Assert(userConnections[0].ID, Equals, userFrom.ID)
 
-	//connectionsEventsList
+	// Check activity feed events
 	routeName = "getConnectionEventList"
 	route = getComposedRoute(routeName, account.ID, application.ID, userFrom.ID)
 	code, body, err = runRequest(routeName, route, "", application.AuthToken, userFrom.SessionToken, 3)
@@ -555,12 +555,35 @@ func (s *ServerSuite) TestCreateConnectionUsersAlreadyConnected(c *C) {
 
 // Test to create connections if users are from different appIDs
 func (s *ServerSuite) TestCreateConnectionUsersFromDifferentApps(c *C) {
-	c.Skip("not impletented")
+	accounts := CorrectDeploy(1, 2, 2, 0, false, true)
+	account := accounts[0]
+	application1 := account.Applications[0]
+	application2 := account.Applications[1]
+	app1UserFrom := application1.Users[0]
+	app2UserTo := application2.Users[0]
+
+	payload := fmt.Sprintf(`{"user_to_id":%d}`, app2UserTo.ID)
+
+	routeName := "createConnection"
+	route := getComposedRoute(routeName, account.ID, application2.ID, app1UserFrom.ID)
+	code, body, err := runRequest(routeName, route, payload, application2.AuthToken, app1UserFrom.SessionToken, 3)
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusUnauthorized)
+	c.Assert(body, Equals, "401 failed to check session token (7)")
 }
 
 // Test to create connections if users are not activated
 func (s *ServerSuite) TestCreateConnectionUsersNotActivated(c *C) {
-	c.Skip("not impletented")
+	accounts := CorrectDeploy(1, 1, 2, 0, false, true)
+	account := accounts[0]
+	application := account.Applications[0]
+	//userFrom := application.Users[0]
+	userTo := application.Users[1]
+
+	userTo.Activated = false
+
+
+
 }
 
 // Test to create connections if users are not enabled
