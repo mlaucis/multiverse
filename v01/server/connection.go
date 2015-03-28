@@ -50,17 +50,25 @@ func updateConnection(ctx *context.Context) {
 
 	connection.AccountID = ctx.AccountID
 	connection.ApplicationID = ctx.ApplicationID
-	connection.UserFromID = ctx.ApplicationUserID
-	connection.UserToID = userToID
+
+	if connection.UserFromID != ctx.ApplicationUserID {
+		utils.ErrorHappened(ctx, "failed to update the connection (5)\nuser_from mismatch", http.StatusBadRequest, fmt.Errorf("userTo mismatch"))
+		return
+	}
+
+	if connection.UserToID != userToID {
+		utils.ErrorHappened(ctx, "failed to update the connection (6)\nuser_to mismatch", http.StatusBadRequest, fmt.Errorf("userTo mismatch"))
+		return
+	}
 
 	if err = validator.UpdateConnection(existingConnection, &connection); err != nil {
-		utils.ErrorHappened(ctx, "failed to update the connection (5)\n"+err.Error(), http.StatusBadRequest, err)
+		utils.ErrorHappened(ctx, "failed to update the connection (7)\n"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
 	updatedConnection, err := core.UpdateConnection(*existingConnection, connection, false)
 	if err != nil {
-		utils.ErrorHappened(ctx, "failed to update the connection (6)", http.StatusInternalServerError, err)
+		utils.ErrorHappened(ctx, "failed to update the connection (8)", http.StatusInternalServerError, err)
 		return
 	}
 
@@ -96,11 +104,14 @@ func createConnection(ctx *context.Context) {
 		errMsg     string
 		err        error
 	)
+	connection.Enabled = true
 
 	if err = json.NewDecoder(ctx.Body).Decode(connection); err != nil {
 		utils.ErrorHappened(ctx, "failed to create the connection (1)\n"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
+
+	receivedEnabled := connection.Enabled
 
 	connection.AccountID = ctx.AccountID
 	connection.ApplicationID = ctx.ApplicationID
@@ -108,6 +119,7 @@ func createConnection(ctx *context.Context) {
 
 	if connection.UserFromID == connection.UserToID {
 		utils.ErrorHappened(ctx, "failed to create connection (2)\nuser is connecting with itself", http.StatusBadRequest, fmt.Errorf("self-connection"))
+		return
 	}
 
 	if err = validator.CreateConnection(connection); err != nil {
@@ -120,9 +132,11 @@ func createConnection(ctx *context.Context) {
 		return
 	}
 
-	if connection, err = core.ConfirmConnection(connection, true); err != nil {
-		utils.ErrorHappened(ctx, "failed to create the connection (5)", http.StatusInternalServerError, err)
-		return
+	if receivedEnabled {
+		if connection, err = core.ConfirmConnection(connection, true); err != nil {
+			utils.ErrorHappened(ctx, "failed to create the connection (5)", http.StatusInternalServerError, err)
+			return
+		}
 	}
 
 	utils.WriteResponse(ctx, connection, http.StatusCreated, 0)
@@ -173,31 +187,25 @@ func getFollowedByUsersList(ctx *context.Context) {
 func confirmConnection(ctx *context.Context) {
 	var (
 		connection = &entity.Connection{}
-		userFromID int64
 		err        error
 	)
 
-	if userFromID, err = strconv.ParseInt(ctx.Vars["userId"], 10, 64); err != nil {
-		utils.ErrorHappened(ctx, "failed to confirm the connection (1)\n"+err.Error(), http.StatusBadRequest, err)
-		return
-	}
-
 	if err = json.NewDecoder(ctx.Body).Decode(connection); err != nil {
-		utils.ErrorHappened(ctx, "failed to confirm the connection (2)\n"+err.Error(), http.StatusBadRequest, err)
+		utils.ErrorHappened(ctx, "failed to confirm the connection (1)\n"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
 	connection.AccountID = ctx.AccountID
 	connection.ApplicationID = ctx.ApplicationID
-	connection.UserFromID = userFromID
+	connection.UserFromID = ctx.ApplicationUserID
 
 	if err = validator.ConfirmConnection(connection); err != nil {
-		utils.ErrorHappened(ctx, "failed to confirm the connection (3)\n"+err.Error(), http.StatusBadRequest, err)
+		utils.ErrorHappened(ctx, "failed to confirm the connection (2)\n"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
 	if connection, err = core.ConfirmConnection(connection, false); err != nil {
-		utils.ErrorHappened(ctx, "failed to confirm the connection (4)", http.StatusInternalServerError, err)
+		utils.ErrorHappened(ctx, "failed to confirm the connection (3)", http.StatusInternalServerError, err)
 		return
 	}
 

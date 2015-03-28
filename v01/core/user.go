@@ -117,7 +117,7 @@ func DeleteUser(accountID, applicationID, userID int64) (err error) {
 
 	// TODO Figure out if we should just simply remove the user or not
 
-	key := storageClient.User(accountID, applicationID, userID)
+	/*key := storageClient.User(accountID, applicationID, userID)
 	result, err := storageEngine.Del(key).Result()
 	if err != nil {
 		return err
@@ -137,6 +137,7 @@ func DeleteUser(accountID, applicationID, userID int64) (err error) {
 	_, err = storageEngine.Del(emailListKey, usernameListKey).Result()
 
 	return nil
+	*/
 }
 
 // ReadUserList returns all users from a certain account
@@ -172,6 +173,10 @@ func ReadUserList(accountID, applicationID int64) (users []*entity.User, err err
 
 // WriteUser adds a user to the database and returns the created user or an error
 func WriteUser(user *entity.User, retrieve bool) (usr *entity.User, err error) {
+	// TODO We should introduce an option for the application to either allow for activated/deactivated behavior
+	// and if they chose it, then we need to provide an endpoint to activate a user or not
+	//user.Activated = true
+
 	user.Enabled = true
 	user.CreatedAt = time.Now()
 	user.UpdatedAt = user.CreatedAt

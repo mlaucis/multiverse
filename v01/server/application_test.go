@@ -349,3 +349,58 @@ func (s *ServerSuite) TestGetApplication_WrongToken(c *C) {
 
 	c.Assert(code, Equals, http.StatusUnauthorized)
 }
+
+func (s *ServerSuite) TestGetApplicationListWorks(c *C) {
+	accounts := CorrectDeploy(2, 1, 1, 0, 0, false, true)
+	account := accounts[0]
+	accountUser := account.Users[0]
+	application := account.Applications[0]
+
+	routeName := "getApplications"
+	route := getComposedRoute(routeName, application.AccountID)
+	code, body, err := runRequest(routeName, route, "", account.AuthToken, accountUser.SessionToken, 2)
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusOK)
+	c.Assert(body, Not(Equals), "")
+
+	response := &struct {
+		Applications []*entity.Application `json:"applications"`
+	}{}
+
+	err = json.Unmarshal([]byte(body), response)
+	c.Assert(err, IsNil)
+	c.Assert(len(response.Applications), Equals, 1)
+	application.Users = nil
+	c.Assert(response.Applications[0], DeepEquals, application)
+}
+
+func (s *ServerSuite) TestApplicationMalformedPayloadsFails(c *C) {
+	accounts := CorrectDeploy(1, 1, 1, 0, 0, false, true)
+	account := accounts[0]
+	accountUser := account.Users[0]
+	application := account.Applications[0]
+
+	scenarios := []struct {
+		Payload      string
+		RouteName    string
+		Route        string
+		StatusCode   int
+		ResponseBody string
+	}{
+		{
+			Payload:      "{",
+			RouteName:    "updateApplication",
+			Route:        getComposedRoute("updateApplication", application.AccountID, accountUser.ID),
+			StatusCode:   http.StatusBadRequest,
+			ResponseBody: "400 failed to update the application (1)\nunexpected EOF",
+		},
+	}
+
+	for idx := range scenarios {
+		code, body, err := runRequest(scenarios[idx].RouteName, scenarios[idx].Route, scenarios[idx].Payload, account.AuthToken, accountUser.SessionToken, 2)
+		c.Logf("pass: %d", idx)
+		c.Assert(err, IsNil)
+		c.Assert(code, Equals, scenarios[idx].StatusCode)
+		c.Assert(body, Equals, scenarios[idx].ResponseBody)
+	}
+}

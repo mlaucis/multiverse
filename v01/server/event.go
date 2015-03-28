@@ -112,7 +112,7 @@ func getEventList(ctx *context.Context) {
 	)
 
 	if events, err = core.ReadEventList(ctx.AccountID, ctx.ApplicationID, ctx.ApplicationUserID); err != nil {
-		utils.ErrorHappened(ctx, "failed to retrieve the event list (1)", http.StatusBadRequest, err)
+		utils.ErrorHappened(ctx, "failed to retrieve the event list (1)", http.StatusInternalServerError, err)
 		return
 	}
 
@@ -165,7 +165,7 @@ func createEvent(ctx *context.Context) {
 	utils.WriteResponse(ctx, event, http.StatusCreated, 0)
 }
 
-// getConnectionEventList handles requests to retrieve a users connections events
+// getGeoEventList handles requests to retrieve a users connections events
 // Request: GET account/:accountID/application/:applicationID/events/geo/:latitude/:longitude/:radius
 func getGeoEventList(ctx *context.Context) {
 	var (
@@ -189,15 +189,20 @@ func getGeoEventList(ctx *context.Context) {
 		return
 	}
 
+	if radius < 1 {
+		utils.ErrorHappened(ctx, "failed to get the geo event list (4)\nLocation radius can't be smaller than 2 meter", http.StatusBadRequest, err)
+		return
+	}
+
 	if events, err = core.SearchGeoEvents(ctx.AccountID, ctx.ApplicationID, latitude, longitude, radius); err != nil {
-		utils.ErrorHappened(ctx, "failed to get the geo event list (4)", http.StatusInternalServerError, err)
+		utils.ErrorHappened(ctx, "failed to get the geo event list (5)", http.StatusInternalServerError, err)
 		return
 	}
 
 	utils.WriteResponse(ctx, events, http.StatusOK, 10)
 }
 
-// getConnectionEventList handles requests to retrieve a users connections events
+// getObjectEventList handles requests to retrieve events in a certain location / radius
 // Request: GET account/:accountID/application/:applicationID/events/geo/:latitude/:longitude/:radius
 func getObjectEventList(ctx *context.Context) {
 	var (
@@ -216,7 +221,7 @@ func getObjectEventList(ctx *context.Context) {
 	utils.WriteResponse(ctx, events, http.StatusOK, 10)
 }
 
-// getConnectionEventList handles requests to retrieve a users connections events
+// getLocationEventList handles requests to retrieve a users connections events
 // Request: GET account/:accountID/application/:applicationID/events/geo/:latitude/:longitude/:radius
 func getLocationEventList(ctx *context.Context) {
 	var (

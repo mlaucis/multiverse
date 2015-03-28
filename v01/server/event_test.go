@@ -173,6 +173,42 @@ func (s *ServerSuite) TestUpdateEvent_WrongID(c *C) {
 	c.Assert(code, Equals, http.StatusInternalServerError)
 }
 
+func (s *ServerSuite) TestUpdateEventMalformedIDFails(c *C) {
+	accounts := CorrectDeploy(1, 0, 1, 1, 1, true, true)
+	user := accounts[0].Applications[0].Users[0]
+
+	payload := fmt.Sprintf(
+		`{"verb":"%s", "language":"%s", "enabled":false}`,
+		user.Events[0].Verb,
+		user.Events[0].Language,
+	)
+
+	routeName := "updateEvent"
+	route := getComposedRouteString(routeName, fmt.Sprintf("%d", user.AccountID), fmt.Sprintf("%d", user.ApplicationID), fmt.Sprintf("%d", user.ID), "90876543211234567890")
+	code, body, err := runRequest(routeName, route, payload, accounts[0].Applications[0].AuthToken, user.SessionToken, 3)
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusBadRequest)
+	c.Assert(body, Equals, "400 failed to update the event (1)\nstrconv.ParseInt: parsing \"90876543211234567890\": value out of range")
+}
+
+func (s *ServerSuite) TestUpdateEventMalformedPayloadFails(c *C) {
+	accounts := CorrectDeploy(1, 0, 1, 1, 1, true, true)
+	user := accounts[0].Applications[0].Users[0]
+
+	payload := fmt.Sprintf(
+		`{"verb":"%s", "language":"%s", "enabled":false`,
+		user.Events[0].Verb,
+		user.Events[0].Language,
+	)
+
+	routeName := "updateEvent"
+	route := getComposedRoute(routeName, user.AccountID, user.ApplicationID, user.ID, user.Events[0].ID)
+	code, body, err := runRequest(routeName, route, payload, accounts[0].Applications[0].AuthToken, user.SessionToken, 3)
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusBadRequest)
+	c.Assert(body, Equals, "400 failed to update the event (3)\nunexpected EOF")
+}
+
 // Test updateEvent request with a wrong value
 func (s *ServerSuite) TestUpdateEvent_WrongValue(c *C) {
 	account, err := AddCorrectAccount(true)
@@ -247,6 +283,18 @@ func (s *ServerSuite) TestDeleteEvent_WrongID(c *C) {
 	c.Assert(code, Equals, http.StatusInternalServerError)
 }
 
+func (s *ServerSuite) TestDeleteEventMalformedIDFails(c *C) {
+	accounts := CorrectDeploy(1, 0, 1, 1, 1, true, true)
+	user := accounts[0].Applications[0].Users[0]
+
+	routeName := "deleteEvent"
+	route := getComposedRouteString(routeName, fmt.Sprintf("%d", user.AccountID), fmt.Sprintf("%d", user.ApplicationID), fmt.Sprintf("%d", user.ID), "90876543211234567890")
+	code, body, err := runRequest(routeName, route, "", accounts[0].Applications[0].AuthToken, user.SessionToken, 3)
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusBadRequest)
+	c.Assert(body, Equals, "400 failed to delete the event (1)\nstrconv.ParseInt: parsing \"90876543211234567890\": value out of range")
+}
+
 // Test a correct getEvent request
 func (s *ServerSuite) TestGetEvent_OK(c *C) {
 	account, err := AddCorrectAccount(true)
@@ -282,55 +330,28 @@ func (s *ServerSuite) TestGetEvent_OK(c *C) {
 
 // Test a correct getEventList request
 func (s *ServerSuite) TestGetEventList_OK(c *C) {
-	c.Skip("this should be implemented properly")
-	return
-
-	correctAccount, err := AddCorrectAccount(true)
-	c.Assert(err, IsNil)
-
-	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
-	c.Assert(err, IsNil)
-
-	correctUser, err := AddCorrectUser(correctAccount.ID, correctApplication.ID, true)
-	c.Assert(err, IsNil)
-
-	event1, err := AddCorrectEvent(correctAccount.ID, correctApplication.ID, correctUser.ID, true)
-	c.Assert(err, IsNil)
-
-	event2, err := AddCorrectEvent(correctAccount.ID, correctApplication.ID, correctUser.ID, true)
-	c.Assert(err, IsNil)
-
-	event3, err := AddCorrectEvent(correctAccount.ID, correctApplication.ID, correctUser.ID, true)
-	c.Assert(err, IsNil)
-
-	event4, err := AddCorrectEvent(correctAccount.ID, correctApplication.ID, correctUser.ID, true)
-	c.Assert(err, IsNil)
+	accounts := CorrectDeploy(1, 0, 1, 2, 5, false, true)
+	application := accounts[0].Applications[0]
+	user := application.Users[0]
 
 	routeName := "getEventList"
-	route := getComposedRoute(routeName, correctAccount.ID, correctApplication.ID, correctUser.ID)
-	code, body, err := runRequest(routeName, route, "", correctApplication.AuthToken, createApplicationUserSessionToken(correctUser), 3)
+	route := getComposedRoute(routeName, user.AccountID, application.ID, user.ID)
+	code, body, err := runRequest(routeName, route, "", application.AuthToken, user.SessionToken, 3)
 	c.Assert(err, IsNil)
-
 	c.Assert(code, Equals, http.StatusOK)
-
 	c.Assert(body, Not(Equals), "")
 
-	_, _, _, _ = event1, event2, event3, event4
-
-	// TODO Check EventList body
-
-	// event := &entity.Event{}
-	// err = json.Unmarshal([]byte(body), event)
-
-	// c.Assert(err, IsNil)
-	// c.Assert(event.AccountID, Equals, correctAccount.ID)
-	// c.Assert(event.ApplicationID, Equals, correctApplication.ID)
-	// c.Assert(event.UserID, Equals, correctUser.ID)
-	// c.Assert(event.Enabled, Equals, true)
+	events := []*entity.Event{}
+	err = json.Unmarshal([]byte(body), &events)
+	c.Assert(err, IsNil)
+	c.Assert(len(events), Equals, len(user.Events))
+	for idx := range events {
+		c.Assert(events[idx], DeepEquals, user.Events[4-idx])
+	}
 }
 
 // Test getEvent request with a wrong id
-func (s *ServerSuite) TestGetEvent_WrongID(c *C) {
+func (s *ServerSuite) TestGetEventWrongIDFails(c *C) {
 	account, err := AddCorrectAccount(true)
 	c.Assert(err, IsNil)
 
@@ -347,79 +368,28 @@ func (s *ServerSuite) TestGetEvent_WrongID(c *C) {
 	route := getComposedRoute(routeName, account.ID, application.ID, user.ID, event.ID+1)
 	code, _, err := runRequest(routeName, route, "", application.AuthToken, createApplicationUserSessionToken(user), 3)
 	c.Assert(err, IsNil)
-
 	c.Assert(code, Equals, http.StatusInternalServerError)
 }
 
+func (s *ServerSuite) TestGetEventMalformedIDFails(c *C) {
+	accounts := CorrectDeploy(1, 0, 1, 1, 1, true, true)
+	user := accounts[0].Applications[0].Users[0]
+
+	routeName := "getEvent"
+	route := getComposedRouteString(routeName, fmt.Sprintf("%d", user.AccountID), fmt.Sprintf("%d", user.ApplicationID), fmt.Sprintf("%d", user.ID), "90876543211234567890")
+	code, body, err := runRequest(routeName, route, "", accounts[0].Applications[0].AuthToken, user.SessionToken, 3)
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusBadRequest)
+	c.Assert(body, Equals, "400 failed to retrieve the event (1)\nstrconv.ParseInt: parsing \"90876543211234567890\": value out of range")
+}
+
 func (s *ServerSuite) TestGeoLocationSearch(c *C) {
-	accounts := CorrectDeploy(1, 1, 1, 0, false, true)
+	accounts := CorrectDeploy(1, 0, 1, 1, 6, false, true)
 	application := accounts[0].Applications[0]
 	user := application.Users[0]
 
-	events := []*entity.Event{
-		CorrectEvent(),
-		CorrectEvent(),
-		CorrectEvent(),
-		CorrectEvent(),
-		CorrectEvent(),
-		CorrectEvent(),
-	}
-
-	locations := []struct {
-		Lat   float64
-		Lon   float64
-		Label string
-	}{
-		{Lat: 52.5169257, Lon: 13.3065105, Label: "dlsniper"},
-		{Lat: 52.5148045, Lon: 13.3000390, Label: "gas"},
-		{Lat: 52.5177294, Lon: 13.2938378, Label: "palace"},
-		{Lat: 52.5104167, Lon: 13.3003824, Label: "ziko"},
-		{Lat: 52.5120818, Lon: 13.3762879, Label: "cinestar"},
-		{Lat: 52.5157576, Lon: 13.3873319, Label: "mercedes"},
-	}
-
-	routeName := "createEvent"
-	route := getComposedRoute(routeName, application.AccountID, application.ID, user.ID)
-
-	for idx := range events {
-		events[idx].Latitude = locations[idx].Lat
-		events[idx].Longitude = locations[idx].Lon
-		events[idx].Location = locations[idx].Label
-
-		payload := fmt.Sprintf(
-			`{"verb":"%s", "language":"%s", "location": "%s", "latitude": %.7f, "longitude": %.7f}`,
-			events[idx].Verb,
-			events[idx].Language,
-			events[idx].Location,
-			events[idx].Latitude,
-			events[idx].Longitude,
-		)
-
-		code, body, err := runRequest(routeName, route, payload, application.AuthToken, user.SessionToken, 3)
-		c.Assert(err, IsNil)
-
-		c.Assert(code, Equals, http.StatusCreated)
-
-		c.Assert(body, Not(Equals), "")
-
-		receivedEvent := &entity.Event{}
-		err = json.Unmarshal([]byte(body), receivedEvent)
-		c.Assert(err, IsNil)
-
-		c.Assert(err, IsNil)
-		c.Assert(receivedEvent.AccountID, Equals, application.AccountID)
-		c.Assert(receivedEvent.ApplicationID, Equals, application.ID)
-		c.Assert(receivedEvent.UserID, Equals, user.ID)
-		c.Assert(receivedEvent.Enabled, Equals, true)
-		c.Assert(receivedEvent.Verb, Equals, events[idx].Verb)
-		c.Assert(receivedEvent.Language, Equals, events[idx].Language)
-		c.Assert(receivedEvent.Latitude, Equals, events[idx].Latitude)
-		c.Assert(receivedEvent.Longitude, Equals, events[idx].Longitude)
-		c.Assert(receivedEvent.Location, Equals, events[idx].Location)
-	}
-
-	routeName = "getGeoEventList"
-	route = getComposedRoute(routeName, application.AccountID, application.ID, locations[0].Lat, locations[0].Lon, 25000.0)
+	routeName := "getGeoEventList"
+	route := getComposedRoute(routeName, application.AccountID, application.ID, user.Events[0].Latitude, user.Events[0].Longitude, 25000.0)
 	code, body, err := runRequest(routeName, route, "", application.AuthToken, user.SessionToken, 3)
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusOK)
@@ -436,14 +406,89 @@ func (s *ServerSuite) TestGeoLocationSearch(c *C) {
 	}
 }
 
+func (s *ServerSuite) TestGeoLocationInvalidSearchDataFails(c *C) {
+	accounts := CorrectDeploy(1, 0, 1, 1, 6, false, true)
+	application := accounts[0].Applications[0]
+	user := application.Users[0]
+
+	routeName := "getGeoEventList"
+
+	scenarios := []struct {
+		Latitude     string
+		Longitude    string
+		Radius       string
+		StatusCode   int
+		ResponseBody string
+	}{
+		{
+			Latitude:     fmt.Sprintf("%.7f", user.Events[0].Latitude),
+			Longitude:    fmt.Sprintf("%.7f", user.Events[0].Longitude),
+			Radius:       "-25000.0",
+			StatusCode:   http.StatusBadRequest,
+			ResponseBody: "400 failed to get the geo event list (4)\nLocation radius can't be smaller than 2 meter",
+		},
+		{
+			Latitude:     "0.0.0",
+			Longitude:    fmt.Sprintf("%.7f", user.Events[0].Longitude),
+			Radius:       "25000",
+			StatusCode:   http.StatusBadRequest,
+			ResponseBody: "400 failed to get the geo event list (1)\nstrconv.ParseFloat: parsing \"0.0.0\": invalid syntax",
+		},
+		{
+			Latitude:     fmt.Sprintf("%.7f", user.Events[0].Latitude),
+			Longitude:    "0.0.0",
+			Radius:       "25000",
+			StatusCode:   http.StatusBadRequest,
+			ResponseBody: "400 failed to get the geo event list (2)\nstrconv.ParseFloat: parsing \"0.0.0\": invalid syntax",
+		},
+		{
+			Latitude:     fmt.Sprintf("%.7f", user.Events[0].Latitude),
+			Longitude:    fmt.Sprintf("%.7f", user.Events[0].Longitude),
+			Radius:       "0.0.0",
+			StatusCode:   http.StatusBadRequest,
+			ResponseBody: "400 failed to get the geo event list (3)\nstrconv.ParseFloat: parsing \"0.0.0\": invalid syntax",
+		},
+	}
+
+	for idx := range scenarios {
+		route := getComposedRouteString(routeName, fmt.Sprintf("%d", application.AccountID), fmt.Sprintf("%d", application.ID), scenarios[idx].Latitude, scenarios[idx].Longitude, scenarios[idx].Radius)
+		code, body, err := runRequest(routeName, route, "", application.AuthToken, user.SessionToken, 3)
+		c.Logf("pass: %d", idx)
+		c.Assert(err, IsNil)
+		c.Assert(code, Equals, scenarios[idx].StatusCode)
+		c.Assert(body, Equals, scenarios[idx].ResponseBody)
+	}
+}
+
 func (s *ServerSuite) TestGetLocation(c *C) {
-	accounts := CorrectDeploy(1, 1, 2, 7, true, true)
+	accounts := CorrectDeploy(1, 0, 1, 2, 7, true, true)
 	application := accounts[0].Applications[0]
 	user1 := application.Users[0]
 	user2 := application.Users[1]
 
 	routeName := "getLocationEventList"
 	route := getComposedRoute(routeName, application.AccountID, application.ID, user1.Events[0].Location)
+	code, body, err := runRequest(routeName, route, "", application.AuthToken, user1.SessionToken, 3)
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusOK)
+	c.Assert(body, Not(Equals), "")
+
+	events := []*entity.Event{}
+	err = json.Unmarshal([]byte(body), &events)
+	c.Assert(err, IsNil)
+	c.Assert(len(events), Equals, 2)
+	c.Assert(events[0], DeepEquals, user2.Events[0])
+	c.Assert(events[1], DeepEquals, user1.Events[0])
+}
+
+func (s *ServerSuite) TestGetObjectEvents(c *C) {
+	accounts := CorrectDeploy(1, 0, 1, 2, 7, true, true)
+	application := accounts[0].Applications[0]
+	user1 := application.Users[0]
+	user2 := application.Users[1]
+
+	routeName := "getObjectEventList"
+	route := getComposedRoute(routeName, application.AccountID, application.ID, user1.Events[0].Object.ID)
 	code, body, err := runRequest(routeName, route, "", application.AuthToken, user1.SessionToken, 3)
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusOK)

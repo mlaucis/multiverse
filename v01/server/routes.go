@@ -153,8 +153,8 @@ var Routes = map[string]*Route{
 	},
 	"refreshAccountUserSession": &Route{
 		Method:   "POST",
-		Pattern:  "/account/{accountId:[0-9]{1,20}}/user/refreshSession",
-		CPattern: "/account/%d/application/%d/user/refreshsession",
+		Pattern:  "/account/{accountId:[0-9]{1,20}}/user/{userId:[0-9]{1,20}}/refreshSession",
+		CPattern: "/account/%d/user/%d/refreshSession",
 		Scope:    "account/user/refreshAccountUserSession",
 		Handlers: []RouteFunc{
 			ValidateAccountRequestToken,
@@ -163,6 +163,8 @@ var Routes = map[string]*Route{
 		},
 		Filters: []context.Filter{
 			contextHasAccountID,
+			contextHasAccountUserID,
+			contextHasAccountUser,
 		},
 	},
 	"logoutAccountUser": &Route{
@@ -178,6 +180,7 @@ var Routes = map[string]*Route{
 		Filters: []context.Filter{
 			contextHasAccountID,
 			contextHasAccountUserID,
+			contextHasAccountUser,
 		},
 	},
 	// Application
@@ -461,7 +464,7 @@ var Routes = map[string]*Route{
 	"confirmConnection": &Route{
 		Method:   "POST",
 		Pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/user/{userId:[0-9]+}/connection/confirm",
-		CPattern: "/application/:applicationId/user/:UserID/connection/confirm",
+		CPattern: "/account/%d/application/%d/user/%d/connection/confirm",
 		Scope:    "application/user/connection/confirm",
 		Handlers: []RouteFunc{
 			ValidateApplicationRequestToken,
@@ -590,7 +593,7 @@ var Routes = map[string]*Route{
 	},
 	"getGeoEventList": &Route{
 		Method:   "GET",
-		Pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/events/geo/{latitude:[0-9.]+}/{longitude:[0-9.]+}/{radius:[0-9.]+}",
+		Pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/events/geo/{latitude:[0-9.\\-]+}/{longitude:[0-9.\\-]+}/{radius:[0-9.\\-]+}",
 		CPattern: "/account/%d/application/%d/events/geo/%.7f/%.7f/%.7f",
 		Scope:    "application/events/geo",
 		Handlers: []RouteFunc{
@@ -604,7 +607,7 @@ var Routes = map[string]*Route{
 	},
 	"getObjectEventList": &Route{
 		Method:   "GET",
-		Pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/events/object/{objectKey:[0-9a-zA-Z]+}",
+		Pattern:  "/account/{accountId:[0-9]{1,20}}/application/{applicationId:[0-9]{1,20}}/events/object/{objectKey:[0-9a-zA-Z\\-]+}",
 		CPattern: "/account/%d/application/%d/events/object/%s",
 		Scope:    "application/events/object",
 		Handlers: []RouteFunc{

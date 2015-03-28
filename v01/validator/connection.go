@@ -7,6 +7,7 @@ package validator
 import (
 	"fmt"
 
+	"github.com/tapglue/backend/v01/core"
 	"github.com/tapglue/backend/v01/entity"
 )
 
@@ -37,9 +38,25 @@ func CreateConnection(connection *entity.Connection) error {
 	if !UserExists(connection.AccountID, connection.ApplicationID, connection.UserFromID) {
 		errs = append(errs, &errorUserDoesNotExists)
 	}
+	userFrom, err := core.ReadApplicationUser(connection.AccountID, connection.ApplicationID, connection.UserFromID)
+	if err != nil {
+		errs = append(errs, &errorUserDoesNotExists)
+	}
+	if !userFrom.Activated {
+		err := fmt.Errorf("user %s is not activated", userFrom.Username)
+		errs = append(errs, &err)
+	}
 
 	if !UserExists(connection.AccountID, connection.ApplicationID, connection.UserToID) {
 		errs = append(errs, &errorUserDoesNotExists)
+	}
+	userTo, err := core.ReadApplicationUser(connection.AccountID, connection.ApplicationID, connection.UserToID)
+	if err != nil {
+		errs = append(errs, &errorUserDoesNotExists)
+	}
+	if !userTo.Activated {
+		err := fmt.Errorf("user %s is not activated", userTo.Username)
+		errs = append(errs, &err)
 	}
 
 	return packErrors(errs)

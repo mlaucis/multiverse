@@ -268,7 +268,10 @@ func ReadConnection(accountID, applicationID, userFromID, userToID int64) (conne
 
 	result, err := storageEngine.Get(key).Result()
 	if err != nil {
-		return
+		if err.Error() == "redis: nil" {
+			return nil, nil
+		}
+		return nil, err
 	}
 	if result == "" {
 		return nil, nil

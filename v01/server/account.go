@@ -28,7 +28,7 @@ func updateAccount(ctx *context.Context) {
 
 	account := *ctx.Account
 	if err = json.NewDecoder(ctx.R.Body).Decode(&account); err != nil {
-		utils.ErrorHappened(ctx, "failed to update the account (1)"+err.Error(), http.StatusBadRequest, err)
+		utils.ErrorHappened(ctx, "failed to update the account (1)\n"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
 

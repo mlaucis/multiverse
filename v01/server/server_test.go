@@ -194,7 +194,6 @@ func (s *ServerSuite) TestValidateGetCommon_NoCLHeader(c *C) {
 // Test PUT common with CLHeader
 func (s *ServerSuite) TestValidatePutCommon_CLHeader(c *C) {
 	c.Skip("needs a better implementation")
-	return
 
 	payload := "{demo}"
 	routeName := "updateAccount"
@@ -225,7 +224,6 @@ func (s *ServerSuite) TestValidatePutCommon_CLHeader(c *C) {
 // Test PUT common without CLHeader
 func (s *ServerSuite) TestValidatePutCommon_NoCLHeader(c *C) {
 	c.Skip("this needs a better implementation now that contexts are in place")
-	return
 
 	payload := "{demo}"
 	routeName := "updateAccount"
@@ -254,7 +252,6 @@ func (s *ServerSuite) TestValidatePutCommon_NoCLHeader(c *C) {
 // Test DELETE common with CLHeader
 func (s *ServerSuite) TestValidateDeleteCommon_CLHeader(c *C) {
 	c.Skip("needs a better implementation")
-	return
 
 	payload := "{demo}"
 	routeName := "deleteAccount"
@@ -285,7 +282,6 @@ func (s *ServerSuite) TestValidateDeleteCommon_CLHeader(c *C) {
 // Test DELETE common without CLHeader
 func (s *ServerSuite) TestValidateDeleteCommon_NoCLHeader(c *C) {
 	c.Skip("skip due to context refactoring")
-	return
 	payload := ""
 	routeName := "deleteAccount"
 	requestRoute := server.GetRoute(routeName, apiVersion)
@@ -358,6 +354,29 @@ func getComposedRoute(routeName string, params ...interface{}) string {
 	if len(params) == 0 {
 		return pattern
 	}
+
+	return fmt.Sprintf(pattern, params...)
+}
+
+// getComposedRouteString takes the route and stringyfies all the params
+func getComposedRouteString(routeName string, params ...interface{}) string {
+	if routeName == "index" {
+		return "/"
+	} else if routeName == "humans" {
+		return "/humans.txt"
+	} else if routeName == "robots" {
+		return "/robots.txt"
+	}
+
+	pattern := server.GetRoute(routeName, apiVersion).ComposePattern(apiVersion)
+
+	if len(params) == 0 {
+		return pattern
+	}
+
+	pattern = strings.Replace(pattern, "%d", "%s", -1)
+	pattern = strings.Replace(pattern, "%.f", "%s", -1)
+	pattern = strings.Replace(pattern, "%.7f", "%s", -1)
 
 	return fmt.Sprintf(pattern, params...)
 }

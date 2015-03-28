@@ -318,6 +318,10 @@ func findAccountByKey(bucketName string) (*entity.Account, *entity.AccountUser, 
 		return nil, nil, err
 	}
 
+	if len(details) != 2 || details[0] == nil || details[1] == nil {
+		return nil, nil, fmt.Errorf("account user not found")
+	}
+
 	accountID, err := strconv.ParseInt(details[0].(string), 10, 64)
 	if err != nil {
 		return nil, nil, err

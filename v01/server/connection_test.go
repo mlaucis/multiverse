@@ -65,17 +65,10 @@ func (s *ServerSuite) TestCreateConnection_WrongValue(c *C) {
 
 // Test a correct createConnection request
 func (s *ServerSuite) TestCreateConnection_OK(c *C) {
-	account, err := AddCorrectAccount(true)
-	c.Assert(err, IsNil)
-
-	application, err := AddCorrectApplication(account.ID, true)
-	c.Assert(err, IsNil)
-
-	userFrom, err := AddCorrectUser(account.ID, application.ID, true)
-	c.Assert(err, IsNil)
-
-	userTo, err := AddCorrectUser2(account.ID, application.ID, true)
-	c.Assert(err, IsNil)
+	accounts := CorrectDeploy(1, 0, 1, 2, 0, false, true)
+	application := accounts[0].Applications[0]
+	userFrom := application.Users[0]
+	userTo := application.Users[1]
 
 	payload := fmt.Sprintf(
 		`{"user_from_id":%d, "user_to_id":%d}`,
@@ -84,7 +77,7 @@ func (s *ServerSuite) TestCreateConnection_OK(c *C) {
 	)
 
 	routeName := "createConnection"
-	route := getComposedRoute(routeName, account.ID, application.ID, userFrom.ID)
+	route := getComposedRoute(routeName, application.AccountID, application.ID, userFrom.ID)
 	code, body, err := runRequest(routeName, route, payload, application.AuthToken, createApplicationUserSessionToken(userFrom), 3)
 	c.Assert(err, IsNil)
 
@@ -95,7 +88,7 @@ func (s *ServerSuite) TestCreateConnection_OK(c *C) {
 	err = json.Unmarshal([]byte(body), connection)
 	c.Assert(err, IsNil)
 
-	c.Assert(connection.AccountID, Equals, account.ID)
+	c.Assert(connection.AccountID, Equals, application.AccountID)
 	c.Assert(connection.ApplicationID, Equals, application.ID)
 	c.Assert(connection.UserFromID, Equals, userFrom.ID)
 	c.Assert(connection.UserToID, Equals, userTo.ID)
@@ -104,7 +97,7 @@ func (s *ServerSuite) TestCreateConnection_OK(c *C) {
 
 // Test to create connections after a user logs in
 func (s *ServerSuite) TestCreateConnectionAfterLogin(c *C) {
-	accounts := CorrectDeploy(1, 1, 2, 0, false, false)
+	accounts := CorrectDeploy(1, 0, 1, 2, 0, false, false)
 	account := accounts[0]
 	application := account.Applications[0]
 	userFrom := application.Users[0]
@@ -156,7 +149,7 @@ func (s *ServerSuite) TestCreateConnectionAfterLogin(c *C) {
 
 // Test to create connections after a user logs in and refreshes session with the new token
 func (s *ServerSuite) TestCreateConnectionAfterLoginRefreshNewToken(c *C) {
-	accounts := CorrectDeploy(1, 1, 2, 0, false, false)
+	accounts := CorrectDeploy(1, 0, 1, 2, 0, false, false)
 	account := accounts[0]
 	application := account.Applications[0]
 	userFrom := application.Users[0]
@@ -224,7 +217,7 @@ func (s *ServerSuite) TestCreateConnectionAfterLoginRefreshNewToken(c *C) {
 
 // Test to create connections after a user logs in and refreshes session with the old token
 func (s *ServerSuite) TestCreateConnectionAfterLoginRefreshOldToken(c *C) {
-	accounts := CorrectDeploy(1, 1, 2, 0, false, false)
+	accounts := CorrectDeploy(1, 0, 1, 2, 0, false, false)
 	account := accounts[0]
 	application := account.Applications[0]
 	userFrom := application.Users[0]
@@ -280,7 +273,7 @@ func (s *ServerSuite) TestCreateConnectionAfterLoginRefreshOldToken(c *C) {
 
 // Test to create connections after a user logs in and logs out
 func (s *ServerSuite) TestCreateConnectionAfterLoginLogout(c *C) {
-	accounts := CorrectDeploy(1, 1, 2, 0, false, false)
+	accounts := CorrectDeploy(1, 0, 1, 2, 0, false, false)
 	account := accounts[0]
 	application := account.Applications[0]
 	userFrom := application.Users[0]
@@ -332,7 +325,7 @@ func (s *ServerSuite) TestCreateConnectionAfterLoginLogout(c *C) {
 
 // Test to create connections after a user logs in and logs out and logs in again
 func (s *ServerSuite) TestCreateConnectionAfterLoginLogoutLogin(c *C) {
-	accounts := CorrectDeploy(1, 1, 2, 0, false, false)
+	accounts := CorrectDeploy(1, 0, 1, 2, 0, false, false)
 	account := accounts[0]
 	application := account.Applications[0]
 	userFrom := application.Users[0]
@@ -395,7 +388,7 @@ func (s *ServerSuite) TestCreateConnectionAfterLoginLogoutLogin(c *C) {
 
 // Test to create connections after a user logs in and refreshes session and logs out
 func (s *ServerSuite) TestCreateConnectionAfterLoginRefreshLogout(c *C) {
-	accounts := CorrectDeploy(1, 1, 2, 0, false, false)
+	accounts := CorrectDeploy(1, 0, 1, 2, 0, false, false)
 	account := accounts[0]
 	application := account.Applications[0]
 	userFrom := application.Users[0]
@@ -462,7 +455,7 @@ func (s *ServerSuite) TestCreateConnectionAfterLoginRefreshLogout(c *C) {
 
 // Test to create connections and check the follower, followedby and connectionsevents lists
 func (s *ServerSuite) TestCreateConnectionAndCheckLists(c *C) {
-	accounts := CorrectDeploy(1, 1, 2, 2, false, true)
+	accounts := CorrectDeploy(1, 0, 1, 2, 2, false, true)
 	account := accounts[0]
 	application := account.Applications[0]
 	userFrom := application.Users[0]
@@ -536,7 +529,7 @@ func (s *ServerSuite) TestCreateConnectionAndCheckLists(c *C) {
 
 // Test to create connections if users are already connected
 func (s *ServerSuite) TestCreateConnectionUsersAlreadyConnected(c *C) {
-	accounts := CorrectDeploy(1, 1, 2, 0, true, true)
+	accounts := CorrectDeploy(1, 0, 1, 2, 0, true, true)
 	account := accounts[0]
 	application := account.Applications[0]
 	userFrom := application.Users[0]
@@ -555,7 +548,7 @@ func (s *ServerSuite) TestCreateConnectionUsersAlreadyConnected(c *C) {
 
 // Test to create connections if users are from different appIDs
 func (s *ServerSuite) TestCreateConnectionUsersFromDifferentApps(c *C) {
-	accounts := CorrectDeploy(1, 2, 2, 0, false, true)
+	accounts := CorrectDeploy(1, 0, 2, 2, 0, false, true)
 	account := accounts[0]
 	application1 := account.Applications[0]
 	application2 := account.Applications[1]
@@ -574,7 +567,7 @@ func (s *ServerSuite) TestCreateConnectionUsersFromDifferentApps(c *C) {
 
 // Test to create connections if users are not activated
 func (s *ServerSuite) TestCreateConnectionUsersNotActivated(c *C) {
-	accounts := CorrectDeploy(1, 1, 2, 0, false, true)
+	accounts := CorrectDeploy(1, 0, 1, 2, 0, false, true)
 	account := accounts[0]
 	application := account.Applications[0]
 	userFrom := application.Users[0]
@@ -698,7 +691,6 @@ func (s *ServerSuite) TestUpdateConnection_NotCrossUpdate(c *C) {
 // Test updateConnection request with a wrong id
 func (s *ServerSuite) TestUpdateConnection_WrongID(c *C) {
 	c.Skip("forced the correct user id using the contexts")
-	return
 	account, err := AddCorrectAccount(true)
 	c.Assert(err, IsNil)
 
@@ -731,7 +723,6 @@ func (s *ServerSuite) TestUpdateConnection_WrongID(c *C) {
 // Test updateConnection request with an invalid name
 func (s *ServerSuite) TestUpdateConnection_WrongValue(c *C) {
 	c.Skip("skip because we now force things to be correct in the contexts")
-	return
 	account, err := AddCorrectAccount(true)
 	c.Assert(err, IsNil)
 
@@ -816,7 +807,7 @@ func (s *ServerSuite) TestUpdateConnectionDisableAndCheckLists(c *C) {
 
 // Test a correct deleteConnection request
 func (s *ServerSuite) TestDeleteConnection_OK(c *C) {
-	accounts := CorrectDeploy(1, 1, 2, 0, true, true)
+	accounts := CorrectDeploy(1, 0, 1, 2, 0, true, true)
 	account := accounts[0]
 	application := account.Applications[0]
 	userFrom := application.Users[0]
@@ -972,6 +963,47 @@ func (s *ServerSuite) TestConfirmConnectionLists(c *C) {
 	c.Skip("not impletented")
 }
 
+func (s *ServerSuite) TestConfirmConnection(c *C) {
+	accounts := CorrectDeploy(1, 0, 1, 2, 0, false, true)
+	application := accounts[0].Applications[0]
+	user1 := application.Users[0]
+	user2 := application.Users[1]
+
+	payload := fmt.Sprintf(`{"user_from_id":%d, "user_to_id":%d, "enabled": false}`, user1.ID, user2.ID)
+	routeName := "createConnection"
+	route := getComposedRoute(routeName, application.AccountID, application.ID, user1.ID)
+	code, body, err := runRequest(routeName, route, payload, application.AuthToken, user1.SessionToken, 3)
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusCreated)
+	c.Assert(body, Not(Equals), "")
+
+	connection := &entity.Connection{}
+	err = json.Unmarshal([]byte(body), connection)
+	c.Assert(err, IsNil)
+	c.Assert(connection.AccountID, Equals, application.AccountID)
+	c.Assert(connection.ApplicationID, Equals, application.ID)
+	c.Assert(connection.UserFromID, Equals, user1.ID)
+	c.Assert(connection.UserToID, Equals, user2.ID)
+	c.Assert(connection.Enabled, Equals, false)
+
+	payload = fmt.Sprintf(`{"user_from_id":%d, "user_to_id":%d, "enabled": true}`, user1.ID, user2.ID)
+	routeName = "confirmConnection"
+	route = getComposedRoute(routeName, application.AccountID, application.ID, user1.ID)
+	code, body, err = runRequest(routeName, route, payload, application.AuthToken, user1.SessionToken, 3)
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusCreated)
+	c.Assert(body, Not(Equals), "")
+
+	connection = &entity.Connection{}
+	err = json.Unmarshal([]byte(body), connection)
+	c.Assert(err, IsNil)
+	c.Assert(connection.AccountID, Equals, application.AccountID)
+	c.Assert(connection.ApplicationID, Equals, application.ID)
+	c.Assert(connection.UserFromID, Equals, user1.ID)
+	c.Assert(connection.UserToID, Equals, user2.ID)
+	c.Assert(connection.Enabled, Equals, true)
+}
+
 /****************************************************************/
 /***************** CREATESOCIALCONNECTIONS TESTS ****************/
 /****************************************************************/
@@ -1072,4 +1104,120 @@ func (s *ServerSuite) TestCreateSocialConnectionDifferentNetwork(c *C) {
 // Test to create a social connection from users who previously disabled the connection
 func (s *ServerSuite) TestCreateSocialConnectionWhenConnectionDisabled(c *C) {
 	c.Skip("not impletented")
+}
+
+func (s *ServerSuite) TestConnectionMalformedPayloadFails(c *C) {
+	accounts := CorrectDeploy(1, 1, 1, 12, 0, true, true)
+	application := accounts[0].Applications[0]
+	user1 := application.Users[0]
+	user2 := application.Users[1]
+	user12 := application.Users[11]
+
+	iterations := []struct {
+		Payload   string
+		RouteName string
+		Route     string
+		Code      int
+		Body      string
+	}{
+		{
+			Payload:   fmt.Sprintf(`{"user_from_id":%d, "user_to_id":%d, "enabled":false}`, user1.ID, user2.ID),
+			RouteName: "updateConnection",
+			Route:     getComposedRouteString("updateConnection", fmt.Sprintf("%d", application.AccountID), fmt.Sprintf("%d", application.ID), fmt.Sprintf("%d", user1.ID), "90876543211234567890"),
+			Code:      http.StatusBadRequest,
+			Body:      "400 failed to update the connection (1)\nstrconv.ParseInt: parsing \"90876543211234567890\": value out of range",
+		},
+		{
+			Payload:   fmt.Sprintf(`{"user_from_id":%d, "user_to_id":%d, "enabled":false`, user1.ID, user2.ID),
+			RouteName: "updateConnection",
+			Route:     getComposedRoute("updateConnection", application.AccountID, application.ID, user1.ID, user2.ID),
+			Code:      http.StatusBadRequest,
+			Body:      "400 failed to update the connection (4)\nunexpected EOF",
+		},
+		{
+			Payload:   fmt.Sprintf(`{"user_from_id":%d, "user_to_id":%d, "enabled":false}`, user1.ID, 0),
+			RouteName: "updateConnection",
+			Route:     getComposedRoute("updateConnection", application.AccountID, application.ID, user1.ID, user2.ID),
+			Code:      http.StatusBadRequest,
+			Body:      "400 failed to update the connection (6)\nuser_to mismatch",
+		},
+		{
+			Payload:   fmt.Sprintf(`{"user_from_id":%d, "user_to_id":%d, "enabled":false}`, user1.ID, user12.ID),
+			RouteName: "updateConnection",
+			Route:     getComposedRoute("updateConnection", application.AccountID, application.ID, user1.ID, user12.ID),
+			Code:      http.StatusBadRequest,
+			Body:      "400 failed to update the connection (3)\nusers are not connected",
+		},
+		{
+			Payload:   "",
+			RouteName: "deleteConnection",
+			Route:     getComposedRouteString("deleteConnection", fmt.Sprintf("%d", application.AccountID), fmt.Sprintf("%d", application.ID), fmt.Sprintf("%d", user1.ID), "90876543211234567890"),
+			Code:      http.StatusBadRequest,
+			Body:      "400 failed to delete the connection(1)\nstrconv.ParseInt: parsing \"90876543211234567890\": value out of range",
+		},
+		{
+			Payload:   "",
+			RouteName: "deleteConnection",
+			Route:     getComposedRoute("deleteConnection", application.AccountID, application.ID, user1.ID, user12.ID),
+			Code:      http.StatusInternalServerError,
+			Body:      "500 failed to delete the connection (2)",
+		},
+		{
+			Payload:   fmt.Sprintf(`{"user_from_id":%d, "user_to_id":%d, "enabled":false}`, user1.ID, user1.ID),
+			RouteName: "createConnection",
+			Route:     getComposedRoute("createConnection", application.AccountID, application.ID, user1.ID),
+			Code:      http.StatusBadRequest,
+			Body:      "400 failed to create connection (2)\nuser is connecting with itself",
+		},
+		{
+			Payload:   "{",
+			RouteName: "confirmConnection",
+			Route:     getComposedRoute("confirmConnection", application.AccountID, application.ID, user1.ID),
+			Code:      http.StatusBadRequest,
+			Body:      "400 failed to confirm the connection (1)\nunexpected EOF",
+		},
+		{
+			Payload:   fmt.Sprintf(`{"user_from_id":%d, "user_to_id":%d, "enabled":false}`, user1.ID, 13),
+			RouteName: "confirmConnection",
+			Route:     getComposedRoute("confirmConnection", application.AccountID, application.ID, user1.ID),
+			Code:      http.StatusBadRequest,
+			Body:      "400 failed to confirm the connection (2)\nuser does not exists",
+		},
+		{
+			Payload:   "",
+			RouteName: "createSocialConnections",
+			Route:     getComposedRoute("createSocialConnections", application.AccountID, application.ID, user1.ID, "fake"),
+			Code:      http.StatusBadRequest,
+			Body:      "400 social connecting failed (1)\nunexpected social platform",
+		},
+		{
+			Payload:   fmt.Sprintf(`{"user_from_id": %d}`, 13),
+			RouteName: "createSocialConnections",
+			Route:     getComposedRoute("createSocialConnections", application.AccountID, application.ID, user1.ID, "facebook"),
+			Code:      http.StatusBadRequest,
+			Body:      "400 social connecting failed (3)\nuser mismatch",
+		},
+		{
+			Payload:   fmt.Sprintf(`{"user_from_id": %d, "social_platform": "%s"}`, user1.ID, "fake"),
+			RouteName: "createSocialConnections",
+			Route:     getComposedRoute("createSocialConnections", application.AccountID, application.ID, user1.ID, "facebook"),
+			Code:      http.StatusBadRequest,
+			Body:      "400 social connecting failed (4)\nplatform mismatch",
+		},
+		{
+			Payload:   fmt.Sprintf(`{"user_from_id": %d, "social_platform": "%s"`, user1.ID, "fake"),
+			RouteName: "createSocialConnections",
+			Route:     getComposedRoute("createSocialConnections", application.AccountID, application.ID, user1.ID, "facebook"),
+			Code:      http.StatusBadRequest,
+			Body:      "400 social connecting failed (2)\nunexpected EOF",
+		},
+	}
+
+	for idx := range iterations {
+		code, body, err := runRequest(iterations[idx].RouteName, iterations[idx].Route, iterations[idx].Payload, application.AuthToken, user1.SessionToken, 3)
+		c.Logf("pass %d", idx)
+		c.Assert(err, IsNil)
+		c.Assert(code, Equals, iterations[idx].Code)
+		c.Assert(body, Equals, iterations[idx].Body)
+	}
 }

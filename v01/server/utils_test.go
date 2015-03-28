@@ -118,6 +118,19 @@ func CorrectAccountUser() *entity.AccountUser {
 	return &accountUser
 }
 
+// CorrectUserWithDefaults returns a new user entity with prepoulated defaults
+func CorrectAccountUserWithDefaults(accountID, userNumber int64) *entity.AccountUser {
+	user := CorrectAccountUser()
+	user.AccountID = accountID
+	user.Username = fmt.Sprintf("acc-%d-user-%d", user.AccountID, userNumber)
+	user.Email = fmt.Sprintf("acc-%d-user-%d@tapglue-test.com", user.AccountID, userNumber)
+	user.Password = fmt.Sprintf("acc-%d-user-%d", user.AccountID, userNumber)
+	user.FirstName = fmt.Sprintf("acc-%d-user-%d-first-name", user.AccountID, userNumber)
+	user.LastName = fmt.Sprintf("acc-%d-user-%d-last-name", user.AccountID, userNumber)
+
+	return user
+}
+
 // CorrectApplication returns a correct application
 func CorrectApplication() *entity.Application {
 	application := fixtures.CorrectApplication
@@ -170,6 +183,38 @@ func AddCorrectAccounts(numberOfAccounts int) []*entity.Account {
 	}
 
 	return result
+}
+
+func AddCorrectAccountUsers(account *entity.Account, numberOfAccountUsersPerAccount int) []*entity.AccountUser {
+	var err error
+	result := make([]*entity.AccountUser, numberOfAccountUsersPerAccount)
+	for i := 0; i < numberOfAccountUsersPerAccount; i++ {
+		accountUser := CorrectAccountUserWithDefaults(account.ID, int64(i+1))
+		password := accountUser.Password
+		accountUser.Activated = true
+		result[i], err = core.WriteAccountUser(accountUser, true)
+		result[i].OriginalPassword = password
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	return result
+}
+
+func LoginAccountUsers(users []*entity.AccountUser) {
+	for idx := range users {
+		sessionToken, err := core.CreateAccountUserSession(users[idx])
+		if err != nil {
+			panic(err)
+		}
+		users[idx].SessionToken = sessionToken
+		users[idx].LastLogin = time.Now()
+		_, err = core.UpdateAccountUser(*users[idx], *users[idx], false)
+		if err != nil {
+			panic(err)
+		}
+	}
 }
 
 func AddCorrectApplications(account *entity.Account, numberOfApplicationsPerAccount int) []*entity.Application {
@@ -298,6 +343,7 @@ func AddCorrectApplicationUsers(application *entity.Application, numberOfUsersPe
 	for i := 0; i < numberOfUsersPerApplication; i++ {
 		user := CorrectUserWithDefaults(application.AccountID, application.ID, int64(i+1))
 		password := user.Password
+		user.Activated = true
 		result[i], err = core.WriteUser(user, true)
 		result[i].OriginalPassword = password
 		if err != nil {
@@ -316,6 +362,19 @@ func AddCorrectApplicationUsers(application *entity.Application, numberOfUsersPe
 // If numberOfEventsPerUser < 4 then events are common, else they are user specific (thus unique)
 func AddCorrectUserEvents(user *entity.User, numberOfEventsPerUser int) []*entity.Event {
 	var err error
+	locations := []struct {
+		Lat   float64
+		Lon   float64
+		Label string
+	}{
+		{Lat: 52.5169257, Lon: 13.3065105, Label: "dlsniper"},
+		{Lat: 52.5148045, Lon: 13.3000390, Label: "gas"},
+		{Lat: 52.5177294, Lon: 13.2938378, Label: "palace"},
+		{Lat: 52.5104167, Lon: 13.3003824, Label: "ziko"},
+		{Lat: 52.5120818, Lon: 13.3762879, Label: "cinestar"},
+		{Lat: 52.5157576, Lon: 13.3873319, Label: "mercedes"},
+	}
+
 	result := make([]*entity.Event, numberOfEventsPerUser)
 	for i := 0; i < numberOfEventsPerUser; i++ {
 		event := CorrectEvent()
@@ -328,12 +387,25 @@ func AddCorrectUserEvents(user *entity.User, numberOfEventsPerUser int) []*entit
 				ID:          fmt.Sprintf("target-%d", i+1),
 				DisplayName: map[string]string{"all": fmt.Sprintf("target-%d-all", i+1)},
 			}
+			event.Object = &entity.Object{
+				ID:          fmt.Sprintf("object-%d", i+1),
+				DisplayName: map[string]string{"all": fmt.Sprintf("object-%d-all", i+1)},
+			}
 		} else {
 			event.Location = fmt.Sprintf("location-%d", i+1)
 			event.Target = &entity.Object{
 				ID:          fmt.Sprintf("acc-%d-app-%d-usr-%d-target-%d", user.AccountID, user.ApplicationID, user.ID, i+1),
-				DisplayName: map[string]string{"all": fmt.Sprintf("acc-%d-app-%d-usr-%d-target-%d-all", user.AccountID, user.ApplicationID, user.ID, i+1)},
+				DisplayName: map[string]string{"all": fmt.Sprintf("acc-%d-app-%d-usr-%d-target-%d-lall", user.AccountID, user.ApplicationID, user.ID, i+1)},
 			}
+			event.Object = &entity.Object{
+				ID:          fmt.Sprintf("acc-%d-app-%d-usr-%d-object-%d", user.AccountID, user.ApplicationID, user.ID, i+1),
+				DisplayName: map[string]string{"all": fmt.Sprintf("acc-%d-app-%d-usr-%d-object-%d-lall", user.AccountID, user.ApplicationID, user.ID, i+1)},
+			}
+		}
+		if i < 6 {
+			event.Latitude = locations[i].Lat
+			event.Longitude = locations[i].Lon
+			event.Location = locations[i].Label
 		}
 		result[i], err = core.WriteEvent(event, true)
 		if err != nil {
@@ -344,10 +416,15 @@ func AddCorrectUserEvents(user *entity.User, numberOfEventsPerUser int) []*entit
 	return result
 }
 
-func CorrectDeploy(numberOfAccounts, numberOfApplicationsPerAccount, numberOfUsersPerApplication, numberOfEventsPerUser int, hookUpUsers, loginUsers bool) []*entity.Account {
+func CorrectDeploy(numberOfAccounts, numberOfAccountUsersPerAccount, numberOfApplicationsPerAccount, numberOfUsersPerApplication, numberOfEventsPerUser int, hookUpUsers, loginUsers bool) []*entity.Account {
 	accounts := AddCorrectAccounts(numberOfAccounts)
 
 	for i := 0; i < numberOfAccounts; i++ {
+		accounts[i].Users = AddCorrectAccountUsers(accounts[i], numberOfAccountUsersPerAccount)
+		if loginUsers {
+			LoginAccountUsers(accounts[i].Users)
+		}
+
 		accounts[i].Applications = AddCorrectApplications(accounts[i], numberOfApplicationsPerAccount)
 
 		for j := 0; j < numberOfApplicationsPerAccount; j++ {

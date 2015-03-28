@@ -76,9 +76,10 @@ type (
 
 	// AccountUser structure
 	AccountUser struct {
-		ID        int64        `json:"id"`
-		AccountID int64        `json:"account_id"`
-		Role      *AccountRole `json:"account_role,omitempty"`
+		ID           int64        `json:"id"`
+		AccountID    int64        `json:"account_id"`
+		Role         *AccountRole `json:"account_role,omitempty"`
+		SessionToken string       `json:"-"`
 		UserCommon
 		Common
 	}

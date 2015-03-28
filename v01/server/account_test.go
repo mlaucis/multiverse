@@ -111,6 +111,26 @@ func (s *ServerSuite) TestUpdateAccount_WrongID(c *C) {
 	c.Assert(code, Equals, http.StatusInternalServerError)
 }
 
+// Test a correct updateAccount request with a wrong id
+func (s *ServerSuite) TestUpdateAccountMalformedPayload(c *C) {
+	account, err := AddCorrectAccount(true)
+	c.Assert(err, IsNil)
+
+	accountUser, err := AddCorrectAccountUser(account.ID, true)
+	c.Assert(err, IsNil)
+
+	description := "changed"
+	payload := fmt.Sprintf(`{"name":"%s", "description":"%s","enabled":true`, account.Name, description)
+
+	routeName := "updateAccount"
+	route := getComposedRoute(routeName, account.ID)
+	code, body, err := runRequest(routeName, route, payload, account.AuthToken, getAccountUserSessionToken(accountUser), 2)
+	c.Assert(err, IsNil)
+
+	c.Assert(code, Equals, http.StatusBadRequest)
+	c.Assert(body, Equals, "400 failed to update the account (1)\nunexpected EOF")
+}
+
 // Test a correct updateAccount request with an invalid description
 func (s *ServerSuite) TestUpdateAccount_Invalid(c *C) {
 	account, err := AddCorrectAccount(true)

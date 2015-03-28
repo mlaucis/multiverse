@@ -30,7 +30,7 @@ func updateAccountUser(ctx *context.Context) {
 
 	accountUser := *ctx.AccountUser
 	if err = json.NewDecoder(ctx.Body).Decode(&accountUser); err != nil {
-		utils.ErrorHappened(ctx, "failed to update the user (1)"+err.Error(), http.StatusBadRequest, err)
+		utils.ErrorHappened(ctx, "failed to update the user (1)\n"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
@@ -175,11 +175,13 @@ func loginAccountUser(ctx *context.Context) {
 	_, err = core.UpdateAccountUser(*user, *user, false)
 
 	utils.WriteResponse(ctx, struct {
+		ID           int64  `json:"id"`
 		AccountToken string `json:"account_token"`
 		Token        string `json:"token"`
 		FirstName    string `json:"first_name"`
 		LastName     string `json:"last_name"`
 	}{
+		ID:           user.ID,
 		FirstName:    user.FirstName,
 		LastName:     user.LastName,
 		AccountToken: account.AuthToken,
@@ -233,8 +235,8 @@ func logoutAccountUser(ctx *context.Context) {
 		return
 	}
 
-	if err = validator.AccountUserCredentialsValid(logoutPayload.Token, ctx.AccountUser); err != nil {
-		utils.ErrorHappened(ctx, "failed to logout the user (2)", http.StatusUnauthorized, err)
+	if ctx.SessionToken != logoutPayload.Token {
+		utils.ErrorHappened(ctx, "failed to logout the user (2) \nsession token mismatch", http.StatusBadRequest, fmt.Errorf("session token mismatch"))
 		return
 	}
 
