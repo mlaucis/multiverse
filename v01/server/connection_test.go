@@ -577,13 +577,26 @@ func (s *ServerSuite) TestCreateConnectionUsersNotActivated(c *C) {
 	accounts := CorrectDeploy(1, 1, 2, 0, false, true)
 	account := accounts[0]
 	application := account.Applications[0]
-	//userFrom := application.Users[0]
+	userFrom := application.Users[0]
 	userTo := application.Users[1]
 
-	userTo.Activated = false
+	payload := `{"activated": false}`
 
+	routeName := "updateUser"
+	route := getComposedRoute(routeName, application.AccountID, application.ID, userTo.ID)
+	code, body, err := runRequest(routeName, route, payload, application.AuthToken, userTo.SessionToken, 3)
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusCreated)
+	c.Assert(body, Not(Equals), "")
 
+	payload = fmt.Sprintf(`{"user_to_id":%d}`, userTo.ID)
 
+	routeName = "createConnection"
+	route = getComposedRoute(routeName, account.ID, application.ID, userFrom.ID)
+	code, body, err = runRequest(routeName, route, payload, application.AuthToken, userFrom.SessionToken, 3)
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusBadRequest)
+	c.Assert(body, Not(Equals), "")
 }
 
 // Test to create connections if users are not enabled
