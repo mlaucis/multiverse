@@ -12,11 +12,11 @@ import (
 type (
 	// Common holds common used fields
 	Common struct {
-		Image     []*Image  `json:"image,omitempty"`
 		Metadata  string    `json:"metadata,omitempty"`
-		Enabled   bool      `json:"enabled,omitempty"`
+		Image     []*Image  `json:"image,omitempty"`
 		CreatedAt time.Time `json:"created_at"`
 		UpdatedAt time.Time `json:"updated_at"`
+		Enabled   bool      `json:"enabled,omitempty"`
 	}
 
 	// UserCommon holds common used fields for users
@@ -28,8 +28,8 @@ type (
 		LastName         string    `json:"last_name,omitempty"`
 		Email            string    `json:"email,omitempty"`
 		URL              string    `json:"url,omitempty"`
-		Activated        bool      `json:"activated,omitempty"`
 		LastLogin        time.Time `json:"last_login,omitempty"`
+		Activated        bool      `json:"activated,omitempty"`
 	}
 
 	// Image structure
