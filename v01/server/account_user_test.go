@@ -69,8 +69,8 @@ func (s *ServerSuite) TestCreateAccountUser_OK(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	receivedAccountUser := &entity.AccountUser{}
-	err = json.Unmarshal([]byte(body), receivedAccountUser)
-	c.Assert(err, IsNil)
+	er := json.Unmarshal([]byte(body), receivedAccountUser)
+	c.Assert(er, IsNil)
 	if receivedAccountUser.ID < 1 {
 		c.Fail()
 	}
@@ -98,14 +98,12 @@ func (s *ServerSuite) TestUpdateAccountUser_OK(c *C) {
 	route := getComposedRoute(routeName, accountUser.AccountID, accountUser.ID)
 	code, body, err := runRequest(routeName, route, payload, account.AuthToken, getAccountUserSessionToken(accountUser), 2)
 	c.Assert(err, IsNil)
-
 	c.Assert(code, Equals, http.StatusCreated)
-
 	c.Assert(body, Not(Equals), "")
 
 	receivedAccountUser := &entity.AccountUser{}
-	err = json.Unmarshal([]byte(body), receivedAccountUser)
-	c.Assert(err, IsNil)
+	er := json.Unmarshal([]byte(body), receivedAccountUser)
+	c.Assert(er, IsNil)
 	if receivedAccountUser.ID < 1 {
 		c.Fail()
 	}
@@ -176,17 +174,17 @@ func (s *ServerSuite) TestUpdateAccountUser_WrongToken(c *C) {
 		accountUser.LastName,
 		accountUser.Email,
 	)
-	c.Assert(err, IsNil)
 
-	sessionToken, err := utils.Base64Decode(getAccountUserSessionToken(accountUser))
-	c.Assert(err, IsNil)
+	sessionToken, er := utils.Base64Decode(getAccountUserSessionToken(accountUser))
+	c.Assert(er, IsNil)
 	sessionToken = utils.Base64Encode(sessionToken + "a")
 
 	routeName := "updateAccountUser"
 	route := getComposedRoute(routeName, accountUser.AccountID, accountUser.ID)
-	code, _, err := runRequest(routeName, route, payload, account.AuthToken, sessionToken, 2)
-
-	c.Assert(code, Equals, http.StatusUnauthorized)
+	code, body, err := runRequest(routeName, route, payload, account.AuthToken, sessionToken, 2)
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusBadRequest)
+	c.Assert(body, Equals, "400 failed to check session token (11)\nsession token mismatch")
 }
 
 // Test a correct deleteAccountUser request
@@ -230,16 +228,17 @@ func (s *ServerSuite) TestDeleteAccountUser_WrongToken(c *C) {
 	accountUser, err := AddCorrectAccountUser(account.ID, true)
 	c.Assert(err, IsNil)
 
-	sessionToken, err := utils.Base64Decode(getAccountUserSessionToken(accountUser))
-	c.Assert(err, IsNil)
+	sessionToken, er := utils.Base64Decode(getAccountUserSessionToken(accountUser))
+	c.Assert(er, IsNil)
 
 	sessionToken = utils.Base64Encode(sessionToken + "a")
 
 	routeName := "deleteAccountUser"
 	route := getComposedRoute(routeName, accountUser.AccountID, accountUser.ID)
-	code, _, err := runRequest(routeName, route, "", account.AuthToken, sessionToken, 2)
-
-	c.Assert(code, Equals, http.StatusUnauthorized)
+	code, body, err := runRequest(routeName, route, "", account.AuthToken, sessionToken, 2)
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusBadRequest)
+	c.Assert(body, Equals, "400 failed to check session token (11)\nsession token mismatch")
 }
 
 // Test a correct getAccountUser request
@@ -259,8 +258,8 @@ func (s *ServerSuite) TestGetAccountUser_OK(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	receivedAccountUser := &entity.AccountUser{}
-	err = json.Unmarshal([]byte(body), receivedAccountUser)
-	c.Assert(err, IsNil)
+	er := json.Unmarshal([]byte(body), receivedAccountUser)
+	c.Assert(er, IsNil)
 	c.Assert(receivedAccountUser.ID, Equals, accountUser.ID)
 	c.Assert(receivedAccountUser.Username, Equals, accountUser.Username)
 	c.Assert(receivedAccountUser.Enabled, Equals, true)
@@ -281,8 +280,8 @@ func (s *ServerSuite) TestGetAccountUserListWorks(c *C) {
 	response := &struct {
 		AccountUsers []*entity.AccountUser `json:"accountUsers"`
 	}{}
-	err = json.Unmarshal([]byte(body), &response)
-	c.Assert(err, IsNil)
+	er := json.Unmarshal([]byte(body), &response)
+	c.Assert(er, IsNil)
 	accountUsers := response.AccountUsers
 	c.Assert(len(accountUsers), Equals, 3)
 	for idx := range accountUsers {
@@ -318,16 +317,17 @@ func (s *ServerSuite) TestGetAccountUser_WrongToken(c *C) {
 	accountUser, err := AddCorrectAccountUser(account.ID, true)
 	c.Assert(err, IsNil)
 
-	sessionToken, err := utils.Base64Decode(getAccountUserSessionToken(accountUser))
-	c.Assert(err, IsNil)
+	sessionToken, er := utils.Base64Decode(getAccountUserSessionToken(accountUser))
+	c.Assert(er, IsNil)
 
 	sessionToken = utils.Base64Encode(sessionToken + "a")
 
 	routeName := "getAccountUser"
 	route := getComposedRoute(routeName, accountUser.AccountID, accountUser.ID)
-	code, _, err := runRequest(routeName, route, "", account.AuthToken, sessionToken, 2)
-
-	c.Assert(code, Equals, http.StatusUnauthorized)
+	code, body, err := runRequest(routeName, route, "", account.AuthToken, sessionToken, 2)
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusBadRequest)
+	c.Assert(body, Equals, "400 failed to check session token (11)\nsession token mismatch")
 }
 
 func (s *ServerSuite) TestAccountUserMalformedPaylodsFail(c *C) {
@@ -348,49 +348,49 @@ func (s *ServerSuite) TestAccountUserMalformedPaylodsFail(c *C) {
 			RouteName:    "updateAccountUser",
 			Route:        getComposedRoute("updateAccountUser", application.AccountID, accountUser.ID),
 			StatusCode:   http.StatusBadRequest,
-			ResponseBody: "400 failed to update the user (1)\nunexpected EOF",
+			ResponseBody: "400 failed to update the account user (1)\nunexpected end of JSON input",
 		},
 		{
 			Payload:      "{",
 			RouteName:    "loginAccountUser",
 			Route:        getComposedRoute("loginAccountUser"),
 			StatusCode:   http.StatusBadRequest,
-			ResponseBody: "400 failed to login the user (1)\nunexpected EOF",
+			ResponseBody: "400 failed to login the user (1)\nunexpected end of JSON input",
 		},
 		{
 			Payload:      fmt.Sprintf(`{"email": "%s", "password": "%s"}`, "", accountUser.OriginalPassword),
 			RouteName:    "loginAccountUser",
 			Route:        getComposedRoute("loginAccountUser"),
 			StatusCode:   http.StatusBadRequest,
-			ResponseBody: "400 failed to login the user (2)\nboth username and email are empty. please use one of them",
+			ResponseBody: "400 both username and email are empty",
 		},
 		{
 			Payload:      fmt.Sprintf(`{"email": "%s", "password": "%s"}`, "tap@glue.com", accountUser.OriginalPassword),
 			RouteName:    "loginAccountUser",
 			Route:        getComposedRoute("loginAccountUser"),
-			StatusCode:   http.StatusBadRequest,
-			ResponseBody: "400 failed to login the user (3)\naccount user not found",
+			StatusCode:   http.StatusInternalServerError,
+			ResponseBody: "500 failed to find the account user (2)",
 		},
 		{
 			Payload:      fmt.Sprintf(`{"username": "%s", "password": "%s"}`, "tap@glue.com", accountUser.OriginalPassword),
 			RouteName:    "loginAccountUser",
 			Route:        getComposedRoute("loginAccountUser"),
-			StatusCode:   http.StatusBadRequest,
-			ResponseBody: "400 failed to login the user (4)\naccount user not found",
+			StatusCode:   http.StatusInternalServerError,
+			ResponseBody: "500 failed to find the account user (2)",
 		},
 		{
 			Payload:      fmt.Sprintf(`{"username": "%s", "password": "%s"}`, accountUser.Username, "fake"),
 			RouteName:    "loginAccountUser",
 			Route:        getComposedRoute("loginAccountUser"),
-			StatusCode:   http.StatusUnauthorized,
-			ResponseBody: "401 failed to login the user (6)",
+			StatusCode:   http.StatusInternalServerError,
+			ResponseBody: "500 failed to validate account user credentials (5)",
 		},
 		{
 			Payload:      "{",
 			RouteName:    "refreshAccountUserSession",
 			Route:        getComposedRoute("refreshAccountUserSession", account.ID, accountUser.ID),
 			StatusCode:   http.StatusBadRequest,
-			ResponseBody: "400 failed to refresh session token (1)\nunexpected EOF",
+			ResponseBody: "400 failed to refresh session token (1)\nunexpected end of JSON input",
 		},
 		{
 			Payload:      fmt.Sprintf(`{"session": "%s"}`, "fake"),
@@ -404,7 +404,7 @@ func (s *ServerSuite) TestAccountUserMalformedPaylodsFail(c *C) {
 			RouteName:    "logoutAccountUser",
 			Route:        getComposedRoute("logoutAccountUser", account.ID, accountUser.ID),
 			StatusCode:   http.StatusBadRequest,
-			ResponseBody: "400 failed to logout the user (1)\nunexpected EOF",
+			ResponseBody: "400 failed to logout the user (1)\nunexpected end of JSON input",
 		},
 		{
 			Payload:      fmt.Sprintf(`{"session": "%s"}`, "fake"),
@@ -449,8 +449,8 @@ func (s *ServerSuite) TestLoginRefreshSessionLogoutAccountUserWorks(c *C) {
 		FirstName    string `json:"first_name"`
 		LastName     string `json:"last_name"`
 	}{}
-	err = json.Unmarshal([]byte(body), &sessionToken)
-	c.Assert(err, IsNil)
+	er := json.Unmarshal([]byte(body), &sessionToken)
+	c.Assert(er, IsNil)
 	c.Assert(sessionToken.UserID, Equals, user.ID)
 	c.Assert(sessionToken.Token, Not(Equals), "")
 	c.Assert(sessionToken.AccountToken, Equals, account.AuthToken)
@@ -468,8 +468,8 @@ func (s *ServerSuite) TestLoginRefreshSessionLogoutAccountUserWorks(c *C) {
 	updatedToken := struct {
 		Token string `json:"token"`
 	}{}
-	err = json.Unmarshal([]byte(body), &updatedToken)
-	c.Assert(err, IsNil)
+	er = json.Unmarshal([]byte(body), &updatedToken)
+	c.Assert(er, IsNil)
 	c.Assert(updatedToken.Token, Not(Equals), sessionToken.Token)
 
 	// LOGOUT USER

@@ -53,8 +53,8 @@ func (s *ServerSuite) TestCreateAccount_OK(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	receivedAccount := &entity.Account{}
-	err = json.Unmarshal([]byte(body), receivedAccount)
-	c.Assert(err, IsNil)
+	er := json.Unmarshal([]byte(body), receivedAccount)
+	c.Assert(er, IsNil)
 	if receivedAccount.ID < 1 {
 		c.Fail()
 	}
@@ -82,8 +82,8 @@ func (s *ServerSuite) TestUpdateAccount_OK(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	receivedAccount := &entity.Account{}
-	err = json.Unmarshal([]byte(body), receivedAccount)
-	c.Assert(err, IsNil)
+	er := json.Unmarshal([]byte(body), receivedAccount)
+	c.Assert(er, IsNil)
 	if receivedAccount.ID < 1 {
 		c.Fail()
 	}
@@ -128,7 +128,7 @@ func (s *ServerSuite) TestUpdateAccountMalformedPayload(c *C) {
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusBadRequest)
-	c.Assert(body, Equals, "400 failed to update the account (1)\nunexpected EOF")
+	c.Assert(body, Equals, "400 failed to update the account (1)\nunexpected end of JSON input")
 }
 
 // Test a correct updateAccount request with an invalid description
@@ -176,10 +176,10 @@ func (s *ServerSuite) TestDeleteAccount_WrongID(c *C) {
 
 	routeName := "deleteAccount"
 	route := getComposedRoute(routeName, account.ID+1)
-	code, _, err := runRequest(routeName, route, "", account.AuthToken, getAccountUserSessionToken(accountUser), 2)
+	code, body, err := runRequest(routeName, route, "", account.AuthToken, getAccountUserSessionToken(accountUser), 2)
 	c.Assert(err, IsNil)
-
-	c.Assert(code, Equals, http.StatusInternalServerError)
+	c.Assert(code, Equals, http.StatusNotFound)
+	c.Assert(body, Equals, "404 The resource for the provided id doesn't exist")
 }
 
 // Test a correct getAccount request
@@ -200,8 +200,8 @@ func (s *ServerSuite) TestGetAccount_OK(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	receivedAccount := &entity.Account{}
-	err = json.Unmarshal([]byte(body), receivedAccount)
-	c.Assert(err, IsNil)
+	er := json.Unmarshal([]byte(body), receivedAccount)
+	c.Assert(er, IsNil)
 	c.Assert(receivedAccount.ID, Equals, account.ID)
 	c.Assert(receivedAccount.Name, Equals, account.Name)
 	c.Assert(receivedAccount.Enabled, Equals, true)

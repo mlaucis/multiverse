@@ -3,6 +3,7 @@ package server
 import (
 	"github.com/tapglue/backend/context"
 	. "github.com/tapglue/backend/server/utils"
+	"github.com/tapglue/backend/tgerrors"
 )
 
 var defaultRoutes = map[string]*Route{
@@ -39,18 +40,20 @@ var defaultRoutes = map[string]*Route{
 // home handles request to API root
 // Request: GET /
 // Test with: `curl -i localhost/`
-func home(ctx *context.Context) {
+func home(ctx *context.Context) (err *tgerrors.TGError) {
 	WriteCommonHeaders(10*24*3600, ctx)
 	ctx.W.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	ctx.W.Header().Set("Refresh", "3; url=https://tapglue.com")
 	ctx.W.Write([]byte(`these aren't the droids you're looking for`))
 	ctx.StatusCode = 200
+
+	return
 }
 
 // humans handles requests to humans.txt
 // Request: GET /humans.txt
 // Test with: curl -i localhost/humans.txt
-func humans(ctx *context.Context) {
+func humans(ctx *context.Context) (err *tgerrors.TGError) {
 	WriteCommonHeaders(10*24*3600, ctx)
 	ctx.W.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	ctx.W.Write([]byte(`/* TEAM */
@@ -65,15 +68,19 @@ Standards: HTML5
 Components: None
 Software: Go, Redis`))
 	ctx.StatusCode = 200
+
+	return
 }
 
 // robots handles requests to robots.txt
 // Request: GET /robots.txt
 // Test with: curl -i localhost/robots.txt
-func robots(ctx *context.Context) {
+func robots(ctx *context.Context) (err *tgerrors.TGError) {
 	WriteCommonHeaders(10*24*3600, ctx)
 	ctx.W.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	ctx.W.Write([]byte(`User-agent: *
 Disallow: /`))
 	ctx.StatusCode = 200
+
+	return
 }

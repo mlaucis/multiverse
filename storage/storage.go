@@ -103,7 +103,7 @@ func (client *Client) GenerateApplicationID(accountID int64) (int64, error) {
 }
 
 // GenerateAccountSecretKey returns a token for the specified application of an account
-func (client *Client) GenerateAccountSecretKey(account *entity.Account) (string, error) {
+func (client *Client) GenerateAccountSecretKey(account *entity.Account) string {
 	// Generate a random salt for the token
 	keySalt := generateTokenSalt(8)
 
@@ -121,7 +121,7 @@ func (client *Client) GenerateAccountSecretKey(account *entity.Account) (string,
 		"%d:%s",
 		account.ID,
 		string(token),
-	)), nil
+	))
 }
 
 // GenerateApplicationSecretKey returns a token for the specified application of an account

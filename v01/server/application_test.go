@@ -81,8 +81,8 @@ func (s *ServerSuite) TestCreateApplication_OK(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	receivedApplication := &entity.Application{}
-	err = json.Unmarshal([]byte(body), receivedApplication)
-	c.Assert(err, IsNil)
+	er := json.Unmarshal([]byte(body), receivedApplication)
+	c.Assert(er, IsNil)
 	if receivedApplication.ID < 1 {
 		c.Fail()
 	}
@@ -120,13 +120,12 @@ func (s *ServerSuite) TestUpdateApplication_OK(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	receivedApplication := &entity.Application{}
-	err = json.Unmarshal([]byte(body), receivedApplication)
-	c.Assert(err, IsNil)
+	er := json.Unmarshal([]byte(body), receivedApplication)
+	c.Assert(er, IsNil)
 	if receivedApplication.ID < 1 {
 		c.Fail()
 	}
 
-	c.Assert(err, IsNil)
 	c.Assert(receivedApplication.Name, Equals, application.Name)
 	c.Assert(receivedApplication.URL, Equals, application.URL)
 	c.Assert(receivedApplication.Enabled, Equals, true)
@@ -150,9 +149,8 @@ func (s *ServerSuite) TestUpdateApplication_WrongID(c *C) {
 
 	routeName := "updateApplication"
 	route := getComposedRoute(routeName, application.AccountID, application.ID+1)
-	code, _, err := runRequest(routeName, route, payload, account.AuthToken, getAccountUserSessionToken(accountUser), 2)
-	c.Assert(err, IsNil)
-
+	code, _, er := runRequest(routeName, route, payload, account.AuthToken, getAccountUserSessionToken(accountUser), 2)
+	c.Assert(er, IsNil)
 	c.Assert(code, Equals, http.StatusInternalServerError)
 }
 
@@ -201,8 +199,8 @@ func (s *ServerSuite) TestUpdateApplication_WrongToken(c *C) {
 	)
 	c.Assert(err, IsNil)
 
-	sessionToken, err := utils.Base64Decode(getAccountUserSessionToken(accountUser))
-	c.Assert(err, IsNil)
+	sessionToken, er := utils.Base64Decode(getAccountUserSessionToken(accountUser))
+	c.Assert(er, IsNil)
 
 	sessionToken = utils.Base64Encode(sessionToken + "a")
 
@@ -210,9 +208,8 @@ func (s *ServerSuite) TestUpdateApplication_WrongToken(c *C) {
 	route := getComposedRoute(routeName, correctApplication.AccountID, correctApplication.ID)
 	code, body, err := runRequest(routeName, route, payload, account.AuthToken, sessionToken, 2)
 	c.Assert(err, IsNil)
-
-	c.Assert(code, Equals, http.StatusUnauthorized)
-	c.Assert(body, Not(Equals), "")
+	c.Assert(code, Equals, http.StatusBadRequest)
+	c.Assert(body, Equals, "400 failed to check session token (11)\nsession token mismatch")
 }
 
 // Test a correct deleteApplication request
@@ -264,17 +261,17 @@ func (s *ServerSuite) TestDeleteApplication_WrongToken(c *C) {
 	application, err := AddCorrectApplication(account.ID, true)
 	c.Assert(err, IsNil)
 
-	sessionToken, err := utils.Base64Decode(getAccountUserSessionToken(accountUser))
-	c.Assert(err, IsNil)
+	sessionToken, er := utils.Base64Decode(getAccountUserSessionToken(accountUser))
+	c.Assert(er, IsNil)
 
 	sessionToken = utils.Base64Encode(sessionToken + "a")
 
 	routeName := "deleteApplication"
 	route := getComposedRoute(routeName, application.AccountID, application.ID)
-	code, _, err := runRequest(routeName, route, "", account.AuthToken, sessionToken, 2)
+	code, body, err := runRequest(routeName, route, "", account.AuthToken, sessionToken, 2)
 	c.Assert(err, IsNil)
-
-	c.Assert(code, Equals, http.StatusUnauthorized)
+	c.Assert(code, Equals, http.StatusBadRequest)
+	c.Assert(body, Equals, "400 failed to check session token (11)\nsession token mismatch")
 }
 
 // Test a correct getApplication request
@@ -298,9 +295,8 @@ func (s *ServerSuite) TestGetApplication_OK(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	receivedApplication := &entity.Application{}
-	err = json.Unmarshal([]byte(body), receivedApplication)
-	c.Assert(err, IsNil)
-
+	er := json.Unmarshal([]byte(body), receivedApplication)
+	c.Assert(er, IsNil)
 	c.Assert(receivedApplication.ID, Equals, application.ID)
 	c.Assert(receivedApplication.Name, Equals, application.Name)
 	c.Assert(receivedApplication.Description, Equals, application.Description)
@@ -337,17 +333,17 @@ func (s *ServerSuite) TestGetApplication_WrongToken(c *C) {
 	application, err := AddCorrectApplication(account.ID, true)
 	c.Assert(err, IsNil)
 
-	sessionToken, err := utils.Base64Decode(getAccountUserSessionToken(accountUser))
-	c.Assert(err, IsNil)
+	sessionToken, er := utils.Base64Decode(getAccountUserSessionToken(accountUser))
+	c.Assert(er, IsNil)
 
 	sessionToken = utils.Base64Encode(sessionToken + "a")
 
 	routeName := "getApplication"
 	route := getComposedRoute(routeName, application.AccountID, application.ID)
-	code, _, err := runRequest(routeName, route, "", account.AuthToken, sessionToken, 2)
+	code, body, err := runRequest(routeName, route, "", account.AuthToken, sessionToken, 2)
 	c.Assert(err, IsNil)
-
-	c.Assert(code, Equals, http.StatusUnauthorized)
+	c.Assert(code, Equals, http.StatusBadRequest)
+	c.Assert(body, Equals, "400 failed to check session token (11)\nsession token mismatch")
 }
 
 func (s *ServerSuite) TestGetApplicationListWorks(c *C) {
@@ -367,8 +363,8 @@ func (s *ServerSuite) TestGetApplicationListWorks(c *C) {
 		Applications []*entity.Application `json:"applications"`
 	}{}
 
-	err = json.Unmarshal([]byte(body), response)
-	c.Assert(err, IsNil)
+	er := json.Unmarshal([]byte(body), response)
+	c.Assert(er, IsNil)
 	c.Assert(len(response.Applications), Equals, 1)
 	application.Users = nil
 	c.Assert(response.Applications[0], DeepEquals, application)
@@ -392,7 +388,7 @@ func (s *ServerSuite) TestApplicationMalformedPayloadsFails(c *C) {
 			RouteName:    "updateApplication",
 			Route:        getComposedRoute("updateApplication", application.AccountID, accountUser.ID),
 			StatusCode:   http.StatusBadRequest,
-			ResponseBody: "400 failed to update the application (1)\nunexpected EOF",
+			ResponseBody: "400 failed to update the application (1)\nunexpected end of JSON input",
 		},
 	}
 

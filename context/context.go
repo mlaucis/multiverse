@@ -6,13 +6,13 @@
 package context
 
 import (
-	"bytes"
 	"fmt"
 	"net/http"
 	"runtime"
 	"time"
 
 	"github.com/tapglue/backend/logger"
+	"github.com/tapglue/backend/tgerrors"
 	"github.com/tapglue/backend/utils"
 	"github.com/tapglue/backend/v01/entity"
 
@@ -33,8 +33,7 @@ type (
 		SessionToken      string
 		StatusCode        int
 		Vars              map[string]string
-		Body              *bytes.Buffer
-		Body2             *bytes.Buffer
+		Body              []byte
 		MainLog           chan *logger.LogMsg
 		ErrorLog          chan *logger.LogMsg
 		W                 http.ResponseWriter
@@ -49,7 +48,7 @@ type (
 	}
 
 	// Filter is a callback that helps updating the context with extra information
-	Filter func(*Context) error
+	Filter func(*Context) *tgerrors.TGError
 )
 
 // LogRequest will generate a log message with the request status
@@ -76,18 +75,16 @@ func (ctx *Context) LogMessage(message string, stackDepth int) {
 }
 
 // LogError provides the ability to log and error
-func (ctx *Context) LogError(err error, stackDepth int) {
-	ctx.LogErrorWithMessage(err, "", stackDepth+1)
-}
-
-// LogErrorWithMessage will log an internal error from the app along with the custom message for it
-func (ctx *Context) LogErrorWithMessage(err error, message string, stackDepth int) {
-	if stackDepth != -1 {
-		stackDepth++
+func (ctx *Context) LogError(err interface{}) {
+	var msg *logger.LogMsg
+	if tgError, ok := err.(tgerrors.TGError); ok {
+		msg = ctx.newLogMessage(-1)
+		msg.Message = tgError.InternalErrorWithLocation()
+	} else if er, ok := err.(error); ok {
+		msg = ctx.newLogMessage(-1)
+		msg.RawError = er
+		msg.Message = er.Error()
 	}
-	msg := ctx.newLogMessage(stackDepth)
-	msg.RawError = err
-	msg.Message = message
 
 	ctx.ErrorLog <- msg
 }
@@ -110,7 +107,7 @@ func (ctx *Context) newLogMessage(stackDepth int) *logger.LogMsg {
 		Method:     ctx.R.Method,
 		RequestURI: requestPath,
 		Headers:    ctx.R.Header,
-		Payload:    ctx.Body2.String(),
+		Payload:    string(ctx.Body),
 		Name:       ctx.RouteName,
 		Start:      ctx.StartTime,
 		End:        time.Now(),
@@ -126,7 +123,7 @@ func NewContext(
 	routeName, scope, version string,
 	contextFilters []Filter,
 	environment string,
-	debugMode bool) (ctx *Context, err error) {
+	debugMode bool) (ctx *Context, err *tgerrors.TGError) {
 
 	ctx = new(Context)
 	ctx.StartTime = time.Now()
@@ -136,8 +133,7 @@ func NewContext(
 	ctx.ErrorLog = errorLog
 	ctx.Vars = mux.Vars(r)
 	if r.Method != "GET" {
-		ctx.Body = utils.PeakBody(r)
-		ctx.Body2 = utils.PeakBody(r)
+		ctx.Body = utils.PeakBody(r).Bytes()
 	}
 	ctx.RouteName = routeName
 	ctx.Scope = scope
@@ -145,10 +141,9 @@ func NewContext(
 	ctx.Environment = environment
 	ctx.DebugMode = debugMode
 
-	for contextIndex, extraContext := range contextFilters {
+	for _, extraContext := range contextFilters {
 		err = extraContext(ctx)
 		if err != nil {
-			err = fmt.Errorf("%s in context filter %d", err.Error(), contextIndex+1)
 			break
 		}
 	}

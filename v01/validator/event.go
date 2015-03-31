@@ -7,6 +7,7 @@ package validator
 import (
 	"fmt"
 
+	"github.com/tapglue/backend/tgerrors"
 	"github.com/tapglue/backend/v01/entity"
 )
 
@@ -26,7 +27,7 @@ var (
 )
 
 // CreateEvent validates an event on create
-func CreateEvent(event *entity.Event) error {
+func CreateEvent(event *entity.Event) *tgerrors.TGError {
 	errs := []*error{}
 
 	if event.ApplicationID == 0 {
@@ -57,7 +58,7 @@ func CreateEvent(event *entity.Event) error {
 }
 
 // UpdateEvent validates an event on update
-func UpdateEvent(existingEvent, updatedEvent *entity.Event) error {
+func UpdateEvent(existingEvent, updatedEvent *entity.Event) *tgerrors.TGError {
 	errs := []*error{}
 
 	if !StringLengthBetween(updatedEvent.Verb, verbMin, verbMax) {

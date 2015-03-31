@@ -6,54 +6,55 @@ package core
 
 import (
 	"encoding/json"
-	"fmt"
 	"strconv"
 	"time"
 
+	"github.com/tapglue/backend/tgerrors"
 	. "github.com/tapglue/backend/utils"
 	"github.com/tapglue/backend/v01/entity"
 )
 
 // ReadApplication returns the application matching the ID or an error
-func ReadApplication(accountID, applicationID int64) (application *entity.Application, err error) {
-	result, err := storageEngine.Get(storageClient.Application(accountID, applicationID)).Result()
-	if err != nil {
-		return nil, err
+func ReadApplication(accountID, applicationID int64) (*entity.Application, *tgerrors.TGError) {
+	result, er := storageEngine.Get(storageClient.Application(accountID, applicationID)).Result()
+	if er != nil {
+		return nil, tgerrors.NewInternalError("failed to read the application (1)", er.Error())
 	}
 
-	if err = json.Unmarshal([]byte(result), &application); err != nil {
-		return nil, err
+	application := &entity.Application{}
+	if er := json.Unmarshal([]byte(result), application); er != nil {
+		return nil, tgerrors.NewInternalError("failed to read the application (2)", er.Error())
 	}
 
-	return
+	return application, nil
 }
 
 // UpdateApplication updates an application in the database and returns the created applicaton user or an error
-func UpdateApplication(existingApplication, updatedApplication entity.Application, retrieve bool) (app *entity.Application, err error) {
+func UpdateApplication(existingApplication, updatedApplication entity.Application, retrieve bool) (*entity.Application, *tgerrors.TGError) {
 	updatedApplication.UpdatedAt = time.Now()
 
-	val, err := json.Marshal(updatedApplication)
-	if err != nil {
-		return nil, err
+	val, er := json.Marshal(updatedApplication)
+	if er != nil {
+		return nil, tgerrors.NewInternalError("failed to update the application (1)\n"+er.Error(), er.Error())
 	}
 
 	key := storageClient.Application(updatedApplication.AccountID, updatedApplication.ID)
-	exist, err := storageEngine.Exists(key).Result()
+	exist, er := storageEngine.Exists(key).Result()
 	if !exist {
-		return nil, fmt.Errorf("application does not exist")
+		return nil, tgerrors.NewNotFoundError("failed to update the application (2)", "app not found")
 	}
-	if err != nil {
-		return nil, err
+	if er != nil {
+		return nil, tgerrors.NewInternalError("failed to update the application (3)", er.Error())
 	}
 
-	if err = storageEngine.Set(key, string(val)).Err(); err != nil {
-		return nil, err
+	if er = storageEngine.Set(key, string(val)).Err(); er != nil {
+		return nil, tgerrors.NewInternalError("failed to update the application (4)", er.Error())
 	}
 
 	if !updatedApplication.Enabled {
 		listKey := storageClient.Applications(updatedApplication.AccountID)
-		if err = storageEngine.LRem(listKey, 0, key).Err(); err != nil {
-			return nil, err
+		if er = storageEngine.LRem(listKey, 0, key).Err(); er != nil {
+			return nil, tgerrors.NewInternalError("failed to update the application (5)", er.Error())
 		}
 	}
 
@@ -65,103 +66,105 @@ func UpdateApplication(existingApplication, updatedApplication entity.Applicatio
 }
 
 // DeleteApplication deletes the application matching the IDs or an error
-func DeleteApplication(accountID, applicationID int64) (err error) {
+func DeleteApplication(accountID, applicationID int64) *tgerrors.TGError {
 	// TODO: Disable application users?
 	// TODO: User connections?
 	// TODO: Application lists?
 	// TODO: Application events?
 
 	key := storageClient.Application(accountID, applicationID)
-	result, err := storageEngine.Del(key).Result()
-	if err != nil {
-		return err
+	result, er := storageEngine.Del(key).Result()
+	if er != nil {
+		return tgerrors.NewInternalError("failed to delete the application (1)", er.Error())
 	}
 
 	if result != 1 {
-		return fmt.Errorf("The resource for the provided id doesn't exist")
+		return tgerrors.NewInternalError("failed to delete the application (2)", "app not found")
 	}
 
 	listKey := storageClient.Applications(accountID)
-	if err = storageEngine.LRem(listKey, 0, key).Err(); err != nil {
-		return err
+	if er := storageEngine.LRem(listKey, 0, key).Err(); er != nil {
+		return tgerrors.NewInternalError("failed to delete the application (3)", er.Error())
 	}
 
 	return nil
 }
 
 // ReadApplicationList returns all applications from a certain account
-func ReadApplicationList(accountID int64) (applications []*entity.Application, err error) {
+func ReadApplicationList(accountID int64) ([]*entity.Application, *tgerrors.TGError) {
 	key := storageClient.Applications(accountID)
 
-	result, err := storageEngine.LRange(key, 0, -1).Result()
-	if err != nil {
-		return nil, err
+	result, er := storageEngine.LRange(key, 0, -1).Result()
+	if er != nil {
+		return nil, tgerrors.NewInternalError("failed to read the applications list (1)", er.Error())
 	}
 
+	applications := []*entity.Application{}
 	if len(result) == 0 {
-		return
+		return applications, nil
 	}
 
-	resultList, err := storageEngine.MGet(result...).Result()
-	if err != nil {
-		return nil, err
+	resultList, er := storageEngine.MGet(result...).Result()
+	if er != nil {
+		return nil, tgerrors.NewInternalError("failed to read the applications list (2)", er.Error())
 	}
 
 	application := &entity.Application{}
 	for _, result := range resultList {
-		if err = json.Unmarshal([]byte(result.(string)), application); err != nil {
-			return nil, err
+		if er = json.Unmarshal([]byte(result.(string)), application); er != nil {
+			return nil, tgerrors.NewInternalError("failed to read the applications list (3)", er.Error())
 		}
 		applications = append(applications, application)
 		application = &entity.Application{}
 	}
 
-	return
+	return applications, nil
 }
 
 // WriteApplication adds an application to the database and returns the created applicaton user or an error
-func WriteApplication(application *entity.Application, retrieve bool) (app *entity.Application, err error) {
-	if application.ID, err = storageClient.GenerateApplicationID(application.AccountID); err != nil {
-		return nil, err
+func WriteApplication(application *entity.Application, retrieve bool) (*entity.Application, *tgerrors.TGError) {
+	var er error
+	if application.ID, er = storageClient.GenerateApplicationID(application.AccountID); er != nil {
+		return nil, tgerrors.NewInternalError("failed to create the application (1)", er.Error())
 	}
 
 	application.Enabled = true
 	application.CreatedAt = time.Now()
 	application.UpdatedAt = application.CreatedAt
 
-	if application.AuthToken, err = storageClient.GenerateApplicationSecretKey(application); err != nil {
-		return nil, err
+	if application.AuthToken, er = storageClient.GenerateApplicationSecretKey(application); er != nil {
+		return nil, tgerrors.NewInternalError("failed to create the application (2)", er.Error())
 	}
 
-	val, err := json.Marshal(application)
-	if err != nil {
-		return nil, err
+	val, er := json.Marshal(application)
+	if er != nil {
+		return nil, tgerrors.NewInternalError("failed to create the application (3)", er.Error())
 	}
 
 	key := storageClient.Application(application.AccountID, application.ID)
 
-	exist, err := storageEngine.SetNX(key, string(val)).Result()
+	exist, er := storageEngine.SetNX(key, string(val)).Result()
 	if !exist {
-		return nil, fmt.Errorf("application already exists")
+		return nil, tgerrors.NewInternalError("failed to create the application (3)", "duplicate app")
 	}
-	if err != nil {
-		return nil, err
+	if er != nil {
+		return nil, tgerrors.NewInternalError("failed to create the application (4)", er.Error())
 	}
 
 	listKey := storageClient.Applications(application.AccountID)
 
-	if err = storageEngine.LPush(listKey, key).Err(); err != nil {
-		return nil, err
+	if er = storageEngine.LPush(listKey, key).Err(); er != nil {
+		return nil, tgerrors.NewInternalError("failed to create the application (5)", er.Error())
 	}
 
 	// Store the token details in redis
-	_, err = storageEngine.HMSet(
+	_, er = storageEngine.HMSet(
 		"tokens:"+Base64Encode(application.AuthToken),
 		"acc", strconv.FormatInt(application.AccountID, 10),
 		"app", strconv.FormatInt(application.ID, 10),
 	).Result()
-	if err != nil {
-		return nil, err
+	if er != nil {
+		return nil, tgerrors.NewInternalError("failed to create the application (6)", er.Error())
 	}
 
 	if !retrieve {

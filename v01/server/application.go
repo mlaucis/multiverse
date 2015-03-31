@@ -10,6 +10,7 @@ import (
 
 	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/server/utils"
+	"github.com/tapglue/backend/tgerrors"
 	"github.com/tapglue/backend/v01/core"
 	"github.com/tapglue/backend/v01/entity"
 	"github.com/tapglue/backend/v01/validator"
@@ -17,87 +18,79 @@ import (
 
 // getApplication handles requests to a single application
 // Request: GET /account/:AccountID/application/:ApplicatonID
-func getApplication(ctx *context.Context) {
+func getApplication(ctx *context.Context) (err *tgerrors.TGError) {
 	utils.WriteResponse(ctx, ctx.Application, http.StatusOK, 10)
+	return
 }
 
 // updateApplication handles requests updates an application
 // Request: PUT /account/:AccountID/application/:ApplicatonID
-func updateApplication(ctx *context.Context) {
-	var err error
-
+func updateApplication(ctx *context.Context) (err *tgerrors.TGError) {
 	application := *ctx.Application
-	if err = json.NewDecoder(ctx.Body).Decode(&application); err != nil {
-		utils.ErrorHappened(ctx, "failed to update the application (1)\n"+err.Error(), http.StatusBadRequest, err)
-		return
+	if er := json.Unmarshal(ctx.Body, &application); er != nil {
+		return tgerrors.NewBadRequestError("failed to update the application (1)\n"+er.Error(), er.Error())
 	}
 
 	application.ID = ctx.ApplicationID
 	application.AccountID = ctx.AccountID
 
 	if err = validator.UpdateApplication(ctx.Application, &application); err != nil {
-		utils.ErrorHappened(ctx, "failed to update the application (2)\n"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
 	updatedApplication, err := core.UpdateApplication(*ctx.Application, application, true)
 	if err != nil {
-		utils.ErrorHappened(ctx, "failed to update the application (3)", http.StatusInternalServerError, err)
 		return
 	}
 
 	utils.WriteResponse(ctx, updatedApplication, http.StatusCreated, 0)
+	return
 }
 
 // deleteApplication handles requests to delete a single application
 // Request: DELETE /account/:AccountID/application/:ApplicatonID
-func deleteApplication(ctx *context.Context) {
-	if err := core.DeleteApplication(ctx.AccountID, ctx.ApplicationID); err != nil {
-		utils.ErrorHappened(ctx, "failed to delete the application (1)", http.StatusInternalServerError, err)
+func deleteApplication(ctx *context.Context) (err *tgerrors.TGError) {
+	if err = core.DeleteApplication(ctx.AccountID, ctx.ApplicationID); err != nil {
 		return
 	}
 
 	utils.WriteResponse(ctx, "", http.StatusNoContent, 10)
+	return
 }
 
 // createApplication handles requests create an application
 // Request: POST /account/:AccountID/applications
-func createApplication(ctx *context.Context) {
+func createApplication(ctx *context.Context) (err *tgerrors.TGError) {
 	var (
 		application = &entity.Application{}
-		err         error
 	)
 
-	if err = json.NewDecoder(ctx.Body).Decode(application); err != nil {
-		utils.ErrorHappened(ctx, "failed to create an application (1)\n"+err.Error(), http.StatusBadRequest, err)
-		return
+	if er := json.Unmarshal(ctx.Body, application); er != nil {
+		return tgerrors.NewBadRequestError("failed to create the application (1)\n"+er.Error(), er.Error())
 	}
 
 	application.AccountID = ctx.AccountID
 
 	if err = validator.CreateApplication(application); err != nil {
-		utils.ErrorHappened(ctx, "failed to create an application (2)\n"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
 	if application, err = core.WriteApplication(application, true); err != nil {
-		utils.ErrorHappened(ctx, "failed to create an application", http.StatusInternalServerError, err)
 		return
 	}
 
 	utils.WriteResponse(ctx, application, http.StatusCreated, 0)
+	return
 }
 
 // getApplicationList handles requests list all account applications
 // Request: GET /account/:AccountID/applications
-func getApplicationList(ctx *context.Context) {
+func getApplicationList(ctx *context.Context) (err *tgerrors.TGError) {
 	var (
 		applications []*entity.Application
-		err          error
 	)
 
 	if applications, err = core.ReadApplicationList(ctx.AccountID); err != nil {
-		utils.ErrorHappened(ctx, "failed to get the applications list (1)", http.StatusInternalServerError, err)
 		return
 	}
 
@@ -108,4 +101,5 @@ func getApplicationList(ctx *context.Context) {
 	}
 
 	utils.WriteResponse(ctx, response, http.StatusOK, 10)
+	return
 }

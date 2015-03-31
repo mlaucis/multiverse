@@ -10,6 +10,7 @@ import (
 
 	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/server/utils"
+	"github.com/tapglue/backend/tgerrors"
 	"github.com/tapglue/backend/v01/core"
 	"github.com/tapglue/backend/v01/entity"
 	"github.com/tapglue/backend/v01/validator"
@@ -17,74 +18,62 @@ import (
 
 // getAccount handles requests to a single account
 // Request: GET /account/:AccountID
-func getAccount(ctx *context.Context) {
+func getAccount(ctx *context.Context) (err *tgerrors.TGError) {
 	utils.WriteResponse(ctx, ctx.Account, http.StatusOK, 10)
+	return
 }
 
 // updateAccount handles requests to update a single account
 // Request: PUT /account/:AccountID
-func updateAccount(ctx *context.Context) {
-	var err error
-
+func updateAccount(ctx *context.Context) (err *tgerrors.TGError) {
 	account := *ctx.Account
-	if err = json.NewDecoder(ctx.R.Body).Decode(&account); err != nil {
-		utils.ErrorHappened(ctx, "failed to update the account (1)\n"+err.Error(), http.StatusBadRequest, err)
-		return
+	if er := json.Unmarshal(ctx.Body, &account); er != nil {
+		return tgerrors.NewBadRequestError("failed to update the account (1)\n"+er.Error(), "malformed json received")
 	}
 
 	account.ID = ctx.AccountID
 
-	if err = validator.UpdateAccount(ctx.Account, &account); err != nil {
-		utils.ErrorHappened(ctx, "failed to update the account (2)\n"+err.Error(), http.StatusBadRequest, err)
-		return
+	if err := validator.UpdateAccount(ctx.Account, &account); err != nil {
+		return err
 	}
 
 	updatedAccount, err := core.UpdateAccount(*ctx.Account, account, true)
 	if err != nil {
-		utils.ErrorHappened(ctx, "failed to update the account (3)", http.StatusInternalServerError, err)
-		return
+		return err
 	}
 
 	utils.WriteResponse(ctx, updatedAccount, http.StatusCreated, 10)
+	return nil
 }
 
 // deleteAccount handles requests to delete a single account
 // Request: DELETE /account/:AccountID
-func deleteAccount(ctx *context.Context) {
-	var (
-		err error
-	)
-
+func deleteAccount(ctx *context.Context) (err *tgerrors.TGError) {
 	if err = core.DeleteAccount(ctx.AccountID); err != nil {
-		utils.ErrorHappened(ctx, "failed to delete the account (1)", http.StatusInternalServerError, err)
-		return
+		return err
 	}
 
 	utils.WriteResponse(ctx, "", http.StatusNoContent, 10)
+	return nil
 }
 
 // createAccount handles requests create an account
 // Request: POST /accounts
-func createAccount(ctx *context.Context) {
-	var (
-		account = &entity.Account{}
-		err     error
-	)
+func createAccount(ctx *context.Context) (err *tgerrors.TGError) {
+	var account = &entity.Account{}
 
-	if err = json.NewDecoder(ctx.Body).Decode(account); err != nil {
-		utils.ErrorHappened(ctx, "failed to create the account (1)\n"+err.Error(), http.StatusBadRequest, err)
-		return
+	if er := json.Unmarshal(ctx.Body, account); er != nil {
+		return tgerrors.NewBadRequestError("failed to create the account (1)\n"+er.Error(), er.Error())
 	}
 
 	if err = validator.CreateAccount(account); err != nil {
-		utils.ErrorHappened(ctx, "failed to create the account (2)\n"+err.Error(), http.StatusBadRequest, err)
 		return
 	}
 
 	if account, err = core.WriteAccount(account, true); err != nil {
-		utils.ErrorHappened(ctx, "failed to create the account (3)", http.StatusInternalServerError, err)
 		return
 	}
 
 	utils.WriteResponse(ctx, account, http.StatusCreated, 0)
+	return
 }

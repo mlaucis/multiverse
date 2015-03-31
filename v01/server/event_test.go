@@ -93,10 +93,8 @@ func (s *ServerSuite) TestCreateEvent_OK(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	receivedEvent := &entity.Event{}
-	err = json.Unmarshal([]byte(body), receivedEvent)
-	c.Assert(err, IsNil)
-
-	c.Assert(err, IsNil)
+	er := json.Unmarshal([]byte(body), receivedEvent)
+	c.Assert(er, IsNil)
 	c.Assert(receivedEvent.AccountID, Equals, account.ID)
 	c.Assert(receivedEvent.ApplicationID, Equals, application.ID)
 	c.Assert(receivedEvent.UserID, Equals, user.ID)
@@ -135,10 +133,8 @@ func (s *ServerSuite) TestUpdateEvent_OK(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	receivedEvent := &entity.Event{}
-	err = json.Unmarshal([]byte(body), receivedEvent)
-	c.Assert(err, IsNil)
-
-	c.Assert(err, IsNil)
+	er := json.Unmarshal([]byte(body), receivedEvent)
+	c.Assert(er, IsNil)
 	c.Assert(receivedEvent.AccountID, Equals, account.ID)
 	c.Assert(receivedEvent.ApplicationID, Equals, application.ID)
 	c.Assert(receivedEvent.UserID, Equals, user.ID)
@@ -206,7 +202,7 @@ func (s *ServerSuite) TestUpdateEventMalformedPayloadFails(c *C) {
 	code, body, err := runRequest(routeName, route, payload, accounts[0].Applications[0].AuthToken, user.SessionToken, 3)
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusBadRequest)
-	c.Assert(body, Equals, "400 failed to update the event (3)\nunexpected EOF")
+	c.Assert(body, Equals, "400 failed to update the event (2)\nunexpected end of JSON input")
 }
 
 // Test updateEvent request with a wrong value
@@ -319,9 +315,8 @@ func (s *ServerSuite) TestGetEvent_OK(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	receivedEvent := &entity.Event{}
-	err = json.Unmarshal([]byte(body), receivedEvent)
-
-	c.Assert(err, IsNil)
+	er := json.Unmarshal([]byte(body), receivedEvent)
+	c.Assert(er, IsNil)
 	c.Assert(receivedEvent.AccountID, Equals, account.ID)
 	c.Assert(receivedEvent.ApplicationID, Equals, application.ID)
 	c.Assert(receivedEvent.UserID, Equals, user.ID)
@@ -342,8 +337,8 @@ func (s *ServerSuite) TestGetEventList_OK(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	events := []*entity.Event{}
-	err = json.Unmarshal([]byte(body), &events)
-	c.Assert(err, IsNil)
+	er := json.Unmarshal([]byte(body), &events)
+	c.Assert(er, IsNil)
 	c.Assert(len(events), Equals, len(user.Events))
 	for idx := range events {
 		c.Assert(events[idx], DeepEquals, user.Events[4-idx])
@@ -380,7 +375,7 @@ func (s *ServerSuite) TestGetEventMalformedIDFails(c *C) {
 	code, body, err := runRequest(routeName, route, "", accounts[0].Applications[0].AuthToken, user.SessionToken, 3)
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusBadRequest)
-	c.Assert(body, Equals, "400 failed to retrieve the event (1)\nstrconv.ParseInt: parsing \"90876543211234567890\": value out of range")
+	c.Assert(body, Equals, "400 read event failed (1)\nstrconv.ParseInt: parsing \"90876543211234567890\": value out of range")
 }
 
 func (s *ServerSuite) TestGeoLocationSearch(c *C) {
@@ -396,8 +391,8 @@ func (s *ServerSuite) TestGeoLocationSearch(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	var receivedEvents []*entity.Event
-	err = json.Unmarshal([]byte(body), &receivedEvents)
-	c.Assert(err, IsNil)
+	er := json.Unmarshal([]byte(body), &receivedEvents)
+	c.Assert(er, IsNil)
 
 	expectedOrder := []string{"dlsniper", "gas", "ziko", "palace", "cinestar", "mercedes"}
 
@@ -425,28 +420,28 @@ func (s *ServerSuite) TestGeoLocationInvalidSearchDataFails(c *C) {
 			Longitude:    fmt.Sprintf("%.7f", user.Events[0].Longitude),
 			Radius:       "-25000.0",
 			StatusCode:   http.StatusBadRequest,
-			ResponseBody: "400 failed to get the geo event list (4)\nLocation radius can't be smaller than 2 meter",
+			ResponseBody: "400 failed to read the event by geo (4)\nLocation radius can't be smaller than 2 meters",
 		},
 		{
 			Latitude:     "0.0.0",
 			Longitude:    fmt.Sprintf("%.7f", user.Events[0].Longitude),
 			Radius:       "25000",
 			StatusCode:   http.StatusBadRequest,
-			ResponseBody: "400 failed to get the geo event list (1)\nstrconv.ParseFloat: parsing \"0.0.0\": invalid syntax",
+			ResponseBody: "400 failed to read the event by geo (1)\nstrconv.ParseFloat: parsing \"0.0.0\": invalid syntax",
 		},
 		{
 			Latitude:     fmt.Sprintf("%.7f", user.Events[0].Latitude),
 			Longitude:    "0.0.0",
 			Radius:       "25000",
 			StatusCode:   http.StatusBadRequest,
-			ResponseBody: "400 failed to get the geo event list (2)\nstrconv.ParseFloat: parsing \"0.0.0\": invalid syntax",
+			ResponseBody: "400 failed to read the event by geo (2)\nstrconv.ParseFloat: parsing \"0.0.0\": invalid syntax",
 		},
 		{
 			Latitude:     fmt.Sprintf("%.7f", user.Events[0].Latitude),
 			Longitude:    fmt.Sprintf("%.7f", user.Events[0].Longitude),
 			Radius:       "0.0.0",
 			StatusCode:   http.StatusBadRequest,
-			ResponseBody: "400 failed to get the geo event list (3)\nstrconv.ParseFloat: parsing \"0.0.0\": invalid syntax",
+			ResponseBody: "400 failed to read the event by geo (3)\nstrconv.ParseFloat: parsing \"0.0.0\": invalid syntax",
 		},
 	}
 
@@ -474,8 +469,8 @@ func (s *ServerSuite) TestGetLocation(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	events := []*entity.Event{}
-	err = json.Unmarshal([]byte(body), &events)
-	c.Assert(err, IsNil)
+	er := json.Unmarshal([]byte(body), &events)
+	c.Assert(er, IsNil)
 	c.Assert(len(events), Equals, 2)
 	c.Assert(events[0], DeepEquals, user2.Events[0])
 	c.Assert(events[1], DeepEquals, user1.Events[0])
@@ -495,8 +490,8 @@ func (s *ServerSuite) TestGetObjectEvents(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	events := []*entity.Event{}
-	err = json.Unmarshal([]byte(body), &events)
-	c.Assert(err, IsNil)
+	er := json.Unmarshal([]byte(body), &events)
+	c.Assert(er, IsNil)
 	c.Assert(len(events), Equals, 2)
 	c.Assert(events[0], DeepEquals, user2.Events[0])
 	c.Assert(events[1], DeepEquals, user1.Events[0])
@@ -528,13 +523,13 @@ func BenchmarkCreateEvent1_Write(b *testing.B) {
 
 	requestRoute := server.GetRoute(routeName, apiVersion)
 
-	req, err := http.NewRequest(
+	req, er := http.NewRequest(
 		requestRoute.Method,
 		routePath,
 		strings.NewReader(payload),
 	)
-	if err != nil {
-		panic(err)
+	if er != nil {
+		panic(er)
 	}
 
 	createCommonRequestHeaders(req)
@@ -581,13 +576,13 @@ func BenchmarkCreateEvent2_Read(b *testing.B) {
 
 	requestRoute := server.GetRoute(routeName, apiVersion)
 
-	req, err := http.NewRequest(
+	req, er := http.NewRequest(
 		requestRoute.Method,
 		routePath,
 		nil,
 	)
-	if err != nil {
-		panic(err)
+	if er != nil {
+		panic(er)
 	}
 
 	createCommonRequestHeaders(req)

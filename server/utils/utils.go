@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/tapglue/backend/context"
+	"github.com/tapglue/backend/tgerrors"
 	"github.com/tapglue/backend/v01/validator"
 	"github.com/tapglue/backend/v01/validator/keys"
 	"github.com/tapglue/backend/v01/validator/tokens"
@@ -16,7 +17,7 @@ import (
 
 type (
 	// RouteFunc defines the pattern for a route handling function
-	RouteFunc func(*context.Context)
+	RouteFunc func(*context.Context) *tgerrors.TGError
 
 	// Route holds the route pattern
 	Route struct {
@@ -72,24 +73,24 @@ func WriteResponse(ctx *context.Context, response interface{}, code int, cacheTi
 }
 
 // ErrorHappened handles the error message
-func ErrorHappened(ctx *context.Context, message string, code int, internalError error) {
+func ErrorHappened(ctx *context.Context, err *tgerrors.TGError) {
 	WriteCommonHeaders(0, ctx)
 	ctx.W.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	// Write response
 	if !strings.Contains(ctx.R.Header.Get("Accept-Encoding"), "gzip") {
 		// No gzip support
-		ctx.W.WriteHeader(code)
-		fmt.Fprintf(ctx.W, "%d %s", code, message)
+		ctx.W.WriteHeader(int(err.Type))
+		fmt.Fprintf(ctx.W, "%d %s", err.Type, err.Error())
 	} else {
 		ctx.W.Header().Set("Content-Encoding", "gzip")
-		ctx.W.WriteHeader(code)
+		ctx.W.WriteHeader(int(err.Type))
 		gz := gzip.NewWriter(ctx.W)
-		fmt.Fprintf(gz, "%d %s", code, message)
+		fmt.Fprintf(gz, "%d %s", int(err.Type), err.Error())
 		gz.Close()
 	}
 
-	ctx.StatusCode = code
-	ctx.LogErrorWithMessage(internalError, message, 1)
+	ctx.StatusCode = int(err.Type)
+	ctx.LogError(err)
 }
 
 // WriteCommonHeaders will add the corresponding cache headers based on the time supplied (in seconds)
@@ -117,84 +118,54 @@ func WriteCorsHeaders(ctx *context.Context) {
 }
 
 // CorsHandler will handle the CORS requests
-func CorsHandler(ctx *context.Context) {
-	if ctx.R.Method != "OPTIONS" {
-		return
-	}
-
+func CorsHandler(ctx *context.Context) (err *tgerrors.TGError) {
 	WriteCommonHeaders(100, ctx)
 	WriteCorsHeaders(ctx)
 	ctx.W.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	return
 }
 
 // ValidateAccountRequestToken validates that the request contains a valid request token
-func ValidateAccountRequestToken(ctx *context.Context) {
+func ValidateAccountRequestToken(ctx *context.Context) (err *tgerrors.TGError) {
 	if ctx.SkipSecurity {
 		return
 	}
 
-	if errMsg, err := keys.VerifyRequest(ctx, 1); err != nil {
-		ErrorHappened(ctx, errMsg, http.StatusUnauthorized, err)
-	}
+	return keys.VerifyRequest(ctx, 1)
 }
 
 // ValidateApplicationRequestToken validates that the request contains a valid request token
-func ValidateApplicationRequestToken(ctx *context.Context) {
+func ValidateApplicationRequestToken(ctx *context.Context) (err *tgerrors.TGError) {
 	if ctx.SkipSecurity {
-		return
+		return nil
 	}
 
-	var (
-		errMsg string
-		err    error
-	)
 	if ctx.Version == "0.1" {
-		errMsg, err = tokens.VerifyRequest(ctx, 3)
-	} else {
-		errMsg, err = keys.VerifyRequest(ctx, 2)
+		return tokens.VerifyRequest(ctx, 3)
 	}
-
-	if err != nil {
-		ErrorHappened(ctx, errMsg, http.StatusUnauthorized, err)
-	}
+	return keys.VerifyRequest(ctx, 2)
 }
 
 // CheckAccountSession checks if the session token is valid or not
-func CheckAccountSession(ctx *context.Context) {
+func CheckAccountSession(ctx *context.Context) (err *tgerrors.TGError) {
 	if ctx.SkipSecurity {
 		return
 	}
 
-	sessionToken, errMsg, err := validator.CheckAccountSession(ctx.R)
-	if err == nil {
-		ctx.SessionToken = sessionToken
-		return
-	}
-
-	ErrorHappened(ctx, errMsg, http.StatusUnauthorized, err)
+	ctx.SessionToken, err = validator.CheckAccountSession(ctx.R)
+	return
 }
 
 // CheckApplicationSession checks if the session token is valid or not
-func CheckApplicationSession(ctx *context.Context) {
+func CheckApplicationSession(ctx *context.Context) (err *tgerrors.TGError) {
 	if ctx.SkipSecurity {
 		return
 	}
 
-	var (
-		errMsg, sessionToken string
-		err                  error
-	)
-
 	if ctx.Version == "0.1" {
-		sessionToken, errMsg, err = validator.CheckApplicationSimpleSession(ctx.AccountID, ctx.ApplicationID, ctx.ApplicationUserID, ctx.R)
+		ctx.SessionToken, err = validator.CheckApplicationSimpleSession(ctx.AccountID, ctx.ApplicationID, ctx.ApplicationUserID, ctx.R)
 	} else {
-		sessionToken, errMsg, err = validator.CheckApplicationSession(ctx.R)
+		ctx.SessionToken, err = validator.CheckApplicationSession(ctx.R)
 	}
-
-	if err == nil {
-		ctx.SessionToken = sessionToken
-		return
-	}
-
-	ErrorHappened(ctx, errMsg, http.StatusUnauthorized, err)
+	return
 }

@@ -79,13 +79,11 @@ func (s *ServerSuite) TestCreateUser_OK(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	receivedUser := &entity.User{}
-	err = json.Unmarshal([]byte(body), receivedUser)
-	c.Assert(err, IsNil)
+	er := json.Unmarshal([]byte(body), receivedUser)
+	c.Assert(er, IsNil)
 	if receivedUser.ID < 1 {
 		c.Fail()
 	}
-
-	c.Assert(err, IsNil)
 	c.Assert(receivedUser.AccountID, Equals, account.ID)
 	c.Assert(receivedUser.ApplicationID, Equals, application.ID)
 	c.Assert(receivedUser.Username, Equals, user.Username)
@@ -121,12 +119,11 @@ func (s *ServerSuite) TestUpdateUser_OK(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	receivedUser := &entity.User{}
-	err = json.Unmarshal([]byte(body), receivedUser)
-	c.Assert(err, IsNil)
+	er := json.Unmarshal([]byte(body), receivedUser)
+	c.Assert(er, IsNil)
 	if receivedUser.ID < 1 {
 		c.Fail()
 	}
-	c.Assert(err, IsNil)
 	c.Assert(receivedUser.AccountID, Equals, account.ID)
 	c.Assert(receivedUser.ApplicationID, Equals, application.ID)
 	c.Assert(receivedUser.Username, Equals, user.Username)
@@ -199,7 +196,7 @@ func (s *ServerSuite) TestUpdateUserMalformedPayloadFails(c *C) {
 	code, body, err := runRequest(routeName, route, payload, accounts[0].Applications[0].AuthToken, user.SessionToken, 3)
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusBadRequest)
-	c.Assert(body, Equals, "400 failed to update the user (1)\nunexpected EOF")
+	c.Assert(body, Equals, "400 failed to update the user (1)\nunexpected end of JSON input")
 }
 
 func (s *ServerSuite) TestDeleteUser_OK(c *C) {
@@ -231,9 +228,10 @@ func (s *ServerSuite) TestDeleteUser_WrongID(c *C) {
 
 	routeName := "deleteUser"
 	route := getComposedRoute(routeName, account.ID, application.ID, user.ID+1)
-	code, _, err := runRequest(routeName, route, "", application.AuthToken, createApplicationUserSessionToken(user), 3)
+	code, body, err := runRequest(routeName, route, "", application.AuthToken, createApplicationUserSessionToken(user), 3)
 	c.Assert(err, IsNil)
-	c.Assert(code, Equals, http.StatusUnauthorized)
+	c.Assert(code, Equals, http.StatusBadRequest)
+	c.Assert(body, Equals, "400 failed to check session token (9)")
 }
 
 func (s *ServerSuite) TestDeleteUserInvalidID(c *C) {
@@ -244,8 +242,8 @@ func (s *ServerSuite) TestDeleteUserInvalidID(c *C) {
 	route := getComposedRouteString(routeName, fmt.Sprintf("%d", user.AccountID), fmt.Sprintf("%d", user.ApplicationID), "90876543211234567890")
 	code, body, err := runRequest(routeName, route, "", accounts[0].Applications[0].AuthToken, user.SessionToken, 3)
 	c.Assert(err, IsNil)
-	c.Assert(code, Equals, http.StatusInternalServerError)
-	c.Assert(body, Equals, "500 failed to get a request context (1)")
+	c.Assert(code, Equals, http.StatusBadRequest)
+	c.Assert(body, Equals, "400 failed to parse application user id\nstrconv.ParseInt: parsing \"90876543211234567890\": value out of range")
 }
 
 func (s *ServerSuite) TestGetUser_OK(c *C) {
@@ -268,9 +266,8 @@ func (s *ServerSuite) TestGetUser_OK(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	receivedUser := &entity.User{}
-	err = json.Unmarshal([]byte(body), receivedUser)
-	c.Assert(err, IsNil)
-
+	er := json.Unmarshal([]byte(body), receivedUser)
+	c.Assert(er, IsNil)
 	c.Assert(receivedUser.AccountID, Equals, account.ID)
 	c.Assert(receivedUser.ApplicationID, Equals, application.ID)
 	c.Assert(receivedUser.Username, Equals, user.Username)
@@ -317,9 +314,8 @@ func (s *ServerSuite) TestLoginUserWorks(c *C) {
 		UserID int64  `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
-	err = json.Unmarshal([]byte(body), &sessionToken)
-	c.Assert(err, IsNil)
-
+	er := json.Unmarshal([]byte(body), &sessionToken)
+	c.Assert(er, IsNil)
 	c.Assert(sessionToken.UserID, Equals, user.ID)
 	c.Assert(sessionToken.Token, Not(Equals), "")
 }
@@ -346,9 +342,8 @@ func (s *ServerSuite) TestRefreshSessionOnOriginalTokenFailsAfterDoubleUserLogin
 		UserID int64  `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
-	err = json.Unmarshal([]byte(body), &sessionToken)
-	c.Assert(err, IsNil)
-
+	er := json.Unmarshal([]byte(body), &sessionToken)
+	c.Assert(er, IsNil)
 	c.Assert(sessionToken.UserID, Equals, user.ID)
 	c.Assert(sessionToken.Token, Not(Equals), "")
 	c.Assert(sessionToken.Token, Not(Equals), user.SessionToken)
@@ -359,8 +354,8 @@ func (s *ServerSuite) TestRefreshSessionOnOriginalTokenFailsAfterDoubleUserLogin
 	route = getComposedRoute(routeName, application.AccountID, application.ID, user.ID)
 	code, body, err = runRequest(routeName, route, payload, application.AuthToken, user.SessionToken, 3)
 	c.Assert(err, IsNil)
-	c.Assert(code, Equals, http.StatusUnauthorized)
-	c.Assert(body, Equals, "401 failed to check session token (12)\nsession mismatch")
+	c.Assert(code, Equals, http.StatusBadRequest)
+	c.Assert(body, Equals, "400 failed to check session token (12)\nsession mismatch")
 }
 
 func (s *ServerSuite) TestLoginUserAfterLoginWorks(c *C) {
@@ -385,9 +380,8 @@ func (s *ServerSuite) TestLoginUserAfterLoginWorks(c *C) {
 		UserID int64  `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
-	err = json.Unmarshal([]byte(body), &sessionToken)
-	c.Assert(err, IsNil)
-
+	er := json.Unmarshal([]byte(body), &sessionToken)
+	c.Assert(er, IsNil)
 	c.Assert(sessionToken.UserID, Equals, user.ID)
 	c.Assert(sessionToken.Token, Not(Equals), "")
 
@@ -402,9 +396,8 @@ func (s *ServerSuite) TestLoginUserAfterLoginWorks(c *C) {
 		UserID int64  `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
-	err = json.Unmarshal([]byte(body), &sessionToken)
-	c.Assert(err, IsNil)
-
+	er = json.Unmarshal([]byte(body), &sessionToken)
+	c.Assert(er, IsNil)
 	c.Assert(sessionToken.UserID, Equals, user.ID)
 	c.Assert(sessionToken.Token, Not(Equals), "")
 	c.Assert(sessionToken.Token, Not(Equals), initialToken)
@@ -432,8 +425,8 @@ func (s *ServerSuite) TestLoginAndRefreshSessionWorks(c *C) {
 		UserID int64  `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
-	err = json.Unmarshal([]byte(body), &sessionToken)
-	c.Assert(err, IsNil)
+	er := json.Unmarshal([]byte(body), &sessionToken)
+	c.Assert(er, IsNil)
 
 	c.Assert(sessionToken.UserID, Equals, user.ID)
 	c.Assert(sessionToken.Token, Not(Equals), "")
@@ -451,8 +444,8 @@ func (s *ServerSuite) TestLoginAndRefreshSessionWorks(c *C) {
 	refreshSessionToken := struct {
 		Token string `json:"session_token"`
 	}{}
-	err = json.Unmarshal([]byte(body), &refreshSessionToken)
-	c.Assert(err, IsNil)
+	er = json.Unmarshal([]byte(body), &refreshSessionToken)
+	c.Assert(er, IsNil)
 	c.Assert(refreshSessionToken.Token, Not(Equals), "")
 	c.Assert(refreshSessionToken.Token, Not(Equals), sessionToken.Token)
 }
@@ -479,11 +472,11 @@ func (s *ServerSuite) TestLoginChangePasswordLoginWorks(c *C) {
 		UserID int64  `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
-	err = json.Unmarshal([]byte(body), &sessionToken)
-	c.Assert(err, IsNil)
-
+	er := json.Unmarshal([]byte(body), &sessionToken)
+	c.Assert(er, IsNil)
 	c.Assert(sessionToken.UserID, Equals, user.ID)
 	c.Assert(sessionToken.Token, Not(Equals), "")
+
 	user.SessionToken = sessionToken.Token
 
 	payload = fmt.Sprintf(`{"password": "%s"}`, "newPass")
@@ -496,8 +489,8 @@ func (s *ServerSuite) TestLoginChangePasswordLoginWorks(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	updatedUser := &entity.User{}
-	err = json.Unmarshal([]byte(body), updatedUser)
-	c.Assert(err, IsNil)
+	er = json.Unmarshal([]byte(body), updatedUser)
+	c.Assert(er, IsNil)
 	// WE need these to make DeepEquals work
 	updatedUser.SessionToken = user.SessionToken
 	updatedUser.OriginalPassword = user.OriginalPassword
@@ -526,9 +519,8 @@ func (s *ServerSuite) TestLoginChangePasswordLoginWorks(c *C) {
 		UserID int64  `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
-	err = json.Unmarshal([]byte(body), &newSessionToken)
-	c.Assert(err, IsNil)
-
+	er = json.Unmarshal([]byte(body), &newSessionToken)
+	c.Assert(er, IsNil)
 	c.Assert(newSessionToken.UserID, Equals, user.ID)
 	c.Assert(newSessionToken.Token, Not(Equals), "")
 	c.Assert(newSessionToken.Token, Not(Equals), sessionToken.Token)
@@ -556,9 +548,8 @@ func (s *ServerSuite) TestLoginRefreshSessionLogoutWorks(c *C) {
 		UserID int64  `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
-	err = json.Unmarshal([]byte(body), &sessionToken)
-	c.Assert(err, IsNil)
-
+	er := json.Unmarshal([]byte(body), &sessionToken)
+	c.Assert(er, IsNil)
 	c.Assert(sessionToken.UserID, Equals, user.ID)
 	c.Assert(sessionToken.Token, Not(Equals), "")
 
@@ -571,8 +562,8 @@ func (s *ServerSuite) TestLoginRefreshSessionLogoutWorks(c *C) {
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
 	updatedToken := sessionToken
-	err = json.Unmarshal([]byte(body), &updatedToken)
-	c.Assert(err, IsNil)
+	er = json.Unmarshal([]byte(body), &updatedToken)
+	c.Assert(er, IsNil)
 	c.Assert(updatedToken.UserID, Equals, sessionToken.UserID)
 	c.Assert(updatedToken.Token, Not(Equals), sessionToken.Token)
 
@@ -608,9 +599,8 @@ func (s *ServerSuite) TestLogoutUserWorks(c *C) {
 		UserID int64  `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
-	err = json.Unmarshal([]byte(body), &sessionToken)
-	c.Assert(err, IsNil)
-
+	er := json.Unmarshal([]byte(body), &sessionToken)
+	c.Assert(er, IsNil)
 	c.Assert(sessionToken.UserID, Equals, user.ID)
 	c.Assert(sessionToken.Token, Not(Equals), "")
 
@@ -645,7 +635,7 @@ func (s *ServerSuite) TestLoginLogoutLoginWorks(c *C) {
 		UserID int64  `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
-	err = json.Unmarshal([]byte(body), &sessionToken)
+	er := json.Unmarshal([]byte(body), &sessionToken)
 	c.Assert(err, IsNil)
 	c.Assert(sessionToken.UserID, Equals, user.ID)
 	c.Assert(sessionToken.Token, Not(Equals), "")
@@ -674,7 +664,8 @@ func (s *ServerSuite) TestLoginLogoutLoginWorks(c *C) {
 		UserID int64  `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
-	err = json.Unmarshal([]byte(body), &newSession)
+	er = json.Unmarshal([]byte(body), &newSession)
+	c.Assert(er, IsNil)
 	c.Assert(newSession.UserID, Equals, user.ID)
 	c.Assert(newSession.Token, Not(Equals), "")
 	c.Assert(newSession.Token, Not(Equals), sessionToken.Token)
@@ -702,8 +693,8 @@ func (s *ServerSuite) TestLoginChangeUsernameLogoutLoginWorks(c *C) {
 		UserID int64  `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
-	err = json.Unmarshal([]byte(body), &sessionToken)
-	c.Assert(err, IsNil)
+	er := json.Unmarshal([]byte(body), &sessionToken)
+	c.Assert(er, IsNil)
 
 	c.Assert(sessionToken.UserID, Equals, user.ID)
 	c.Assert(sessionToken.Token, Not(Equals), "")
@@ -718,8 +709,8 @@ func (s *ServerSuite) TestLoginChangeUsernameLogoutLoginWorks(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	updatedUser := &entity.User{}
-	err = json.Unmarshal([]byte(body), updatedUser)
-	c.Assert(err, IsNil)
+	er = json.Unmarshal([]byte(body), updatedUser)
+	c.Assert(er, IsNil)
 	c.Assert(updatedUser.Username, Equals, "newUserName")
 	// WE need these to make DeepEquals work
 	updatedUser.SessionToken = user.SessionToken
@@ -757,9 +748,8 @@ func (s *ServerSuite) TestLoginChangeUsernameLogoutLoginWorks(c *C) {
 		UserID int64  `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
-	err = json.Unmarshal([]byte(body), &newSessionToken)
-	c.Assert(err, IsNil)
-
+	er = json.Unmarshal([]byte(body), &newSessionToken)
+	c.Assert(er, IsNil)
 	c.Assert(newSessionToken.UserID, Equals, user.ID)
 	c.Assert(newSessionToken.Token, Not(Equals), "")
 	c.Assert(newSessionToken.Token, Not(Equals), sessionToken.Token)
@@ -787,9 +777,8 @@ func (s *ServerSuite) TestLoginChangeEmailLogoutLoginWorks(c *C) {
 		UserID int64  `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
-	err = json.Unmarshal([]byte(body), &sessionToken)
-	c.Assert(err, IsNil)
-
+	er := json.Unmarshal([]byte(body), &sessionToken)
+	c.Assert(er, IsNil)
 	c.Assert(sessionToken.UserID, Equals, user.ID)
 	c.Assert(sessionToken.Token, Not(Equals), "")
 	user.SessionToken = sessionToken.Token
@@ -802,8 +791,8 @@ func (s *ServerSuite) TestLoginChangeEmailLogoutLoginWorks(c *C) {
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
 	updatedUser := &entity.User{}
-	err = json.Unmarshal([]byte(body), updatedUser)
-	c.Assert(err, IsNil)
+	er = json.Unmarshal([]byte(body), updatedUser)
+	c.Assert(er, IsNil)
 	c.Assert(updatedUser.Email, Equals, "newUserEmail@tapglue.com")
 	// WE need these to make DeepEquals work
 	updatedUser.SessionToken = user.SessionToken
@@ -842,8 +831,8 @@ func (s *ServerSuite) TestLoginChangeEmailLogoutLoginWorks(c *C) {
 		UserID int64  `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
-	err = json.Unmarshal([]byte(body), &newSessionToken)
-	c.Assert(err, IsNil)
+	er = json.Unmarshal([]byte(body), &newSessionToken)
+	c.Assert(er, IsNil)
 
 	c.Assert(newSessionToken.UserID, Equals, user.ID)
 	c.Assert(newSessionToken.Token, Not(Equals), "")
@@ -872,8 +861,8 @@ func (s *ServerSuite) TestLoginDisableLoginFails(c *C) {
 		UserID int64  `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
-	err = json.Unmarshal([]byte(body), &sessionToken)
-	c.Assert(err, IsNil)
+	er := json.Unmarshal([]byte(body), &sessionToken)
+	c.Assert(er, IsNil)
 
 	c.Assert(sessionToken.UserID, Equals, user.ID)
 	c.Assert(sessionToken.Token, Not(Equals), "")
@@ -889,8 +878,8 @@ func (s *ServerSuite) TestLoginDisableLoginFails(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	updatedUser := &entity.User{}
-	err = json.Unmarshal([]byte(body), updatedUser)
-	c.Assert(err, IsNil)
+	er = json.Unmarshal([]byte(body), updatedUser)
+	c.Assert(er, IsNil)
 	c.Assert(updatedUser.Enabled, Equals, false)
 	// WE need these to make DeepEquals work
 	updatedUser.SessionToken = user.SessionToken
@@ -914,8 +903,8 @@ func (s *ServerSuite) TestLoginDisableLoginFails(c *C) {
 	route = getComposedRoute(routeName, application.AccountID, application.ID)
 	code, body, err = runRequest(routeName, route, payload, application.AuthToken, "", 3)
 	c.Assert(err, IsNil)
-	c.Assert(code, Equals, http.StatusUnauthorized)
-	c.Assert(body, Equals, "401 failed to login user (6)\nUser is disabled")
+	c.Assert(code, Equals, http.StatusNotFound)
+	c.Assert(body, Equals, "404 failed to login the user (3)\nuser is disabled")
 }
 
 func (s *ServerSuite) TestLoginDeleteLoginFails(c *C) {
@@ -940,9 +929,8 @@ func (s *ServerSuite) TestLoginDeleteLoginFails(c *C) {
 		UserID int64  `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
-	err = json.Unmarshal([]byte(body), &sessionToken)
-	c.Assert(err, IsNil)
-
+	er := json.Unmarshal([]byte(body), &sessionToken)
+	c.Assert(er, IsNil)
 	c.Assert(sessionToken.UserID, Equals, user.ID)
 	c.Assert(sessionToken.Token, Not(Equals), "")
 	user.SessionToken = sessionToken.Token
@@ -965,8 +953,8 @@ func (s *ServerSuite) TestLoginDeleteLoginFails(c *C) {
 	route = getComposedRoute(routeName, application.AccountID, application.ID)
 	code, body, err = runRequest(routeName, route, payload, application.AuthToken, "", 3)
 	c.Assert(err, IsNil)
-	c.Assert(code, Equals, http.StatusUnauthorized)
-	c.Assert(body, Equals, "401 failed to login user (6)\nUser is disabled")
+	c.Assert(code, Equals, http.StatusNotFound)
+	c.Assert(body, Equals, "404 failed to login the user (3)\nuser is disabled")
 }
 
 func (s *ServerSuite) TestRefreshSessionWithoutLoginFails(c *C) {
@@ -986,8 +974,8 @@ func (s *ServerSuite) TestRefreshSessionWithoutLoginFails(c *C) {
 	route := getComposedRoute(routeName, application.AccountID, application.ID, user.ID)
 	code, body, err := runRequest(routeName, route, payload, application.AuthToken, "random session stuff", 3)
 	c.Assert(err, IsNil)
-	c.Assert(code, Equals, http.StatusUnauthorized)
-	c.Assert(body, Equals, "401 failed to check session token (2)")
+	c.Assert(code, Equals, http.StatusBadRequest)
+	c.Assert(body, Equals, "400 failed to check session token (2)")
 
 }
 
@@ -1013,9 +1001,8 @@ func (s *ServerSuite) TestLoginLogoutRefreshSessionFails(c *C) {
 		UserID int64  `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
-	err = json.Unmarshal([]byte(body), &sessionToken)
-	c.Assert(err, IsNil)
-
+	er := json.Unmarshal([]byte(body), &sessionToken)
+	c.Assert(er, IsNil)
 	c.Assert(sessionToken.UserID, Equals, user.ID)
 	c.Assert(sessionToken.Token, Not(Equals), "")
 
@@ -1034,8 +1021,8 @@ func (s *ServerSuite) TestLoginLogoutRefreshSessionFails(c *C) {
 	route = getComposedRoute(routeName, application.AccountID, application.ID, user.ID)
 	code, body, err = runRequest(routeName, route, payload, application.AuthToken, sessionToken.Token, 3)
 	c.Assert(err, IsNil)
-	c.Assert(code, Equals, http.StatusUnauthorized)
-	c.Assert(body, Equals, "401 failed to check session token (10)")
+	c.Assert(code, Equals, http.StatusBadRequest)
+	c.Assert(body, Equals, "400 failed to check session token (10)")
 }
 
 func (s *ServerSuite) TestLoginChangePasswordRefreshWorks(c *C) {
@@ -1060,9 +1047,8 @@ func (s *ServerSuite) TestLoginChangePasswordRefreshWorks(c *C) {
 		UserID int64  `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
-	err = json.Unmarshal([]byte(body), &sessionToken)
-	c.Assert(err, IsNil)
-
+	er := json.Unmarshal([]byte(body), &sessionToken)
+	c.Assert(er, IsNil)
 	c.Assert(sessionToken.UserID, Equals, user.ID)
 	c.Assert(sessionToken.Token, Not(Equals), "")
 	user.SessionToken = sessionToken.Token
@@ -1077,8 +1063,8 @@ func (s *ServerSuite) TestLoginChangePasswordRefreshWorks(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	updatedUser := &entity.User{}
-	err = json.Unmarshal([]byte(body), updatedUser)
-	c.Assert(err, IsNil)
+	er = json.Unmarshal([]byte(body), updatedUser)
+	c.Assert(er, IsNil)
 	// WE need these to make DeepEquals work
 	updatedUser.SessionToken = user.SessionToken
 	updatedUser.OriginalPassword = user.OriginalPassword
@@ -1105,8 +1091,8 @@ func (s *ServerSuite) TestLoginChangePasswordRefreshWorks(c *C) {
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
 	updatedToken := sessionToken
-	err = json.Unmarshal([]byte(body), &updatedToken)
-	c.Assert(err, IsNil)
+	er = json.Unmarshal([]byte(body), &updatedToken)
+	c.Assert(er, IsNil)
 	c.Assert(updatedToken.UserID, Equals, sessionToken.UserID)
 	c.Assert(updatedToken.Token, Not(Equals), sessionToken.Token)
 }
@@ -1133,7 +1119,7 @@ func (s *ServerSuite) TestLoginChangeUsernameRefreshWorks(c *C) {
 		UserID int64  `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
-	err = json.Unmarshal([]byte(body), &sessionToken)
+	er := json.Unmarshal([]byte(body), &sessionToken)
 	c.Assert(err, IsNil)
 
 	c.Assert(sessionToken.UserID, Equals, user.ID)
@@ -1149,8 +1135,8 @@ func (s *ServerSuite) TestLoginChangeUsernameRefreshWorks(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	updatedUser := &entity.User{}
-	err = json.Unmarshal([]byte(body), updatedUser)
-	c.Assert(err, IsNil)
+	er = json.Unmarshal([]byte(body), updatedUser)
+	c.Assert(er, IsNil)
 	c.Assert(updatedUser.Username, Equals, "newUserName")
 	// WE need these to make DeepEquals work
 	updatedUser.SessionToken = user.SessionToken
@@ -1179,8 +1165,8 @@ func (s *ServerSuite) TestLoginChangeUsernameRefreshWorks(c *C) {
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
 	updatedToken := sessionToken
-	err = json.Unmarshal([]byte(body), &updatedToken)
-	c.Assert(err, IsNil)
+	er = json.Unmarshal([]byte(body), &updatedToken)
+	c.Assert(er, IsNil)
 	c.Assert(updatedToken.UserID, Equals, sessionToken.UserID)
 	c.Assert(updatedToken.Token, Not(Equals), sessionToken.Token)
 }
@@ -1207,11 +1193,11 @@ func (s *ServerSuite) TestLoginChangeEmailRefreshWorks(c *C) {
 		UserID int64  `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
-	err = json.Unmarshal([]byte(body), &sessionToken)
-	c.Assert(err, IsNil)
-
+	er := json.Unmarshal([]byte(body), &sessionToken)
+	c.Assert(er, IsNil)
 	c.Assert(sessionToken.UserID, Equals, user.ID)
 	c.Assert(sessionToken.Token, Not(Equals), "")
+
 	user.SessionToken = sessionToken.Token
 
 	payload = fmt.Sprintf(`{"email": "%s"}`, "newUserEmail@tapglue.com")
@@ -1222,8 +1208,8 @@ func (s *ServerSuite) TestLoginChangeEmailRefreshWorks(c *C) {
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
 	updatedUser := &entity.User{}
-	err = json.Unmarshal([]byte(body), updatedUser)
-	c.Assert(err, IsNil)
+	er = json.Unmarshal([]byte(body), updatedUser)
+	c.Assert(er, IsNil)
 	c.Assert(updatedUser.Email, Equals, "newUserEmail@tapglue.com")
 	// WE need these to make DeepEquals work
 	updatedUser.SessionToken = user.SessionToken
@@ -1252,8 +1238,8 @@ func (s *ServerSuite) TestLoginChangeEmailRefreshWorks(c *C) {
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
 	updatedToken := sessionToken
-	err = json.Unmarshal([]byte(body), &updatedToken)
-	c.Assert(err, IsNil)
+	er = json.Unmarshal([]byte(body), &updatedToken)
+	c.Assert(er, IsNil)
 	c.Assert(updatedToken.UserID, Equals, sessionToken.UserID)
 	c.Assert(updatedToken.Token, Not(Equals), sessionToken.Token)
 }
@@ -1270,8 +1256,8 @@ func (s *ServerSuite) TestLoginRefreshDifferentUserFails(c *C) {
 	route := getComposedRoute(routeName, application.AccountID, application.ID, user2.ID)
 	code, body, err := runRequest(routeName, route, payload, application.AuthToken, user1.SessionToken, 3)
 	c.Assert(err, IsNil)
-	c.Assert(code, Equals, http.StatusUnauthorized)
-	c.Assert(body, Not(Equals), "")
+	c.Assert(code, Equals, http.StatusBadRequest)
+	c.Assert(body, Equals, "400 failed to check session token (9)")
 
 }
 
@@ -1297,9 +1283,8 @@ func (s *ServerSuite) TestLoginLogoutLogoutFails(c *C) {
 		UserID int64  `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
-	err = json.Unmarshal([]byte(body), &sessionToken)
-	c.Assert(err, IsNil)
-
+	er := json.Unmarshal([]byte(body), &sessionToken)
+	c.Assert(er, IsNil)
 	c.Assert(sessionToken.UserID, Equals, user.ID)
 	c.Assert(sessionToken.Token, Not(Equals), "")
 
@@ -1318,7 +1303,7 @@ func (s *ServerSuite) TestLoginLogoutLogoutFails(c *C) {
 	route = getComposedRoute(routeName, application.AccountID, application.ID, user.ID)
 	code, body, err = runRequest(routeName, route, payload, application.AuthToken, sessionToken.Token, 3)
 	c.Assert(err, IsNil)
-	c.Assert(code, Equals, http.StatusUnauthorized)
+	c.Assert(code, Equals, http.StatusBadRequest)
 	c.Assert(body, Not(Equals), "logged out")
 }
 
@@ -1334,7 +1319,7 @@ func (s *ServerSuite) TestLoginLogoutDifferentUserFails(c *C) {
 	route := getComposedRoute(routeName, application.AccountID, application.ID, user2.ID)
 	code, body, err := runRequest(routeName, route, payload, application.AuthToken, user1.SessionToken, 3)
 	c.Assert(err, IsNil)
-	c.Assert(code, Equals, http.StatusUnauthorized)
+	c.Assert(code, Equals, http.StatusBadRequest)
 	c.Assert(body, Not(Equals), "\"logged out\"\n")
 }
 
@@ -1360,9 +1345,8 @@ func (s *ServerSuite) TestLoginChangeUsernameGetEventWorks(c *C) {
 		UserID int64  `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
-	err = json.Unmarshal([]byte(body), &sessionToken)
-	c.Assert(err, IsNil)
-
+	er := json.Unmarshal([]byte(body), &sessionToken)
+	c.Assert(er, IsNil)
 	c.Assert(sessionToken.UserID, Equals, user.ID)
 	c.Assert(sessionToken.Token, Not(Equals), "")
 	user.SessionToken = sessionToken.Token
@@ -1376,8 +1360,8 @@ func (s *ServerSuite) TestLoginChangeUsernameGetEventWorks(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	updatedUser := &entity.User{}
-	err = json.Unmarshal([]byte(body), updatedUser)
-	c.Assert(err, IsNil)
+	er = json.Unmarshal([]byte(body), updatedUser)
+	c.Assert(er, IsNil)
 	c.Assert(updatedUser.Username, Equals, "newUserName")
 	// WE need these to make DeepEquals work
 	updatedUser.SessionToken = user.SessionToken
@@ -1399,8 +1383,8 @@ func (s *ServerSuite) TestLoginChangeUsernameGetEventWorks(c *C) {
 	c.Assert(code, Equals, http.StatusOK)
 	c.Assert(body, Not(Equals), "")
 	event := &entity.Event{}
-	err = json.Unmarshal([]byte(body), &event)
-	c.Assert(err, IsNil)
+	er = json.Unmarshal([]byte(body), &event)
+	c.Assert(er, IsNil)
 	c.Assert(event, DeepEquals, user.Events[0])
 }
 
@@ -1416,7 +1400,7 @@ func (s *ServerSuite) TestLoginChangeUsernameExistingUsernameFails(c *C) {
 	code, body, err := runRequest(routeName, route, payload, application.AuthToken, user1.SessionToken, 3)
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusBadRequest)
-	c.Assert(body, Equals, "400 failed to update the user (2)\nusername already in use")
+	c.Assert(body, Equals, "400 username already in use")
 }
 
 func (s *ServerSuite) TestLoginChangeUsernameSameUsernameFails(c *C) {
@@ -1431,7 +1415,7 @@ func (s *ServerSuite) TestLoginChangeUsernameSameUsernameFails(c *C) {
 	code, body, err := runRequest(routeName, route, payload, application.AuthToken, user1.SessionToken, 3)
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusBadRequest)
-	c.Assert(body, Equals, "400 failed to update the user (2)\nusername already in use")
+	c.Assert(body, Equals, "400 username already in use")
 }
 
 func (s *ServerSuite) TestLoginChangeEmailExistingEmailFails(c *C) {
@@ -1446,7 +1430,7 @@ func (s *ServerSuite) TestLoginChangeEmailExistingEmailFails(c *C) {
 	code, body, err := runRequest(routeName, route, payload, application.AuthToken, user1.SessionToken, 3)
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusBadRequest)
-	c.Assert(body, Equals, "400 failed to update the user (2)\nemail address already in use")
+	c.Assert(body, Equals, "400 email address already in use")
 }
 
 func (s *ServerSuite) TestLoginChangeEmailSameEmailFails(c *C) {
@@ -1461,7 +1445,7 @@ func (s *ServerSuite) TestLoginChangeEmailSameEmailFails(c *C) {
 	code, body, err := runRequest(routeName, route, payload, application.AuthToken, user1.SessionToken, 3)
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusBadRequest)
-	c.Assert(body, Equals, "400 failed to update the user (2)\nemail address already in use")
+	c.Assert(body, Equals, "400 email address already in use")
 }
 
 func (s *ServerSuite) TestLoginDeleteLogoutFails(c *C) {
@@ -1486,8 +1470,8 @@ func (s *ServerSuite) TestLoginDeleteLogoutFails(c *C) {
 		UserID int64  `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
-	err = json.Unmarshal([]byte(body), &sessionToken)
-	c.Assert(err, IsNil)
+	er := json.Unmarshal([]byte(body), &sessionToken)
+	c.Assert(er, IsNil)
 
 	c.Assert(sessionToken.UserID, Equals, user.ID)
 	c.Assert(sessionToken.Token, Not(Equals), "")
@@ -1504,8 +1488,8 @@ func (s *ServerSuite) TestLoginDeleteLogoutFails(c *C) {
 	route = getComposedRoute(routeName, application.AccountID, application.ID, user.ID)
 	code, body, err = runRequest(routeName, route, payload, application.AuthToken, sessionToken.Token, 3)
 	c.Assert(err, IsNil)
-	c.Assert(code, Equals, http.StatusUnauthorized)
-	c.Assert(body, Equals, "401 failed to check session token (12)\nsession mismatch")
+	c.Assert(code, Equals, http.StatusBadRequest)
+	c.Assert(body, Equals, "400 failed to check session token (12)\nsession mismatch")
 }
 
 func (s *ServerSuite) TestCreateUserAutoBindSocialAccounts(c *C) {
@@ -1526,8 +1510,8 @@ func (s *ServerSuite) TestCreateUserAutoBindSocialAccounts(c *C) {
 
 	routeName := "createUser"
 	route := getComposedRoute(routeName, application.AccountID, application.ID)
-	code, body, err := runRequest(routeName, route, payload, application.AuthToken, "", 3)
-	c.Assert(err, IsNil)
+	code, body, er := runRequest(routeName, route, payload, application.AuthToken, "", 3)
+	c.Assert(er, IsNil)
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
 
@@ -1537,7 +1521,6 @@ func (s *ServerSuite) TestCreateUserAutoBindSocialAccounts(c *C) {
 	if receivedUser.ID < 1 {
 		c.Fail()
 	}
-	c.Assert(err, IsNil)
 	user2.OriginalPassword, receivedUser.OriginalPassword = user2.Password, user2.Password
 	user2.Password = ""
 	user2.CreatedAt = receivedUser.CreatedAt
@@ -1550,8 +1533,8 @@ func (s *ServerSuite) TestCreateUserAutoBindSocialAccounts(c *C) {
 	// Check connetions list
 	routeName = "getConnectionList"
 	route = getComposedRoute(routeName, application.AccountID, application.ID, user1.ID)
-	code, body, err = runRequest(routeName, route, "", application.AuthToken, user1.SessionToken, 3)
-	c.Assert(err, IsNil)
+	code, body, er = runRequest(routeName, route, "", application.AuthToken, user1.SessionToken, 3)
+	c.Assert(er, IsNil)
 	c.Assert(code, Equals, http.StatusOK)
 	c.Assert(body, Not(Equals), "[]\n")
 
@@ -1585,8 +1568,8 @@ func (s *ServerSuite) TestDeleteOnEventsOnUserDeleteWorks(c *C) {
 	c.Assert(code, Equals, http.StatusOK)
 	c.Assert(body, Not(Equals), "")
 	events := []*entity.Event{}
-	err = json.Unmarshal([]byte(body), &events)
-	c.Assert(err, IsNil)
+	er := json.Unmarshal([]byte(body), &events)
+	c.Assert(er, IsNil)
 	c.Assert(len(events), Equals, 2)
 	c.Assert(events[0], DeepEquals, user1.Events[1])
 	c.Assert(events[1], DeepEquals, user1.Events[0])
@@ -1625,42 +1608,42 @@ func (s *ServerSuite) TestLoginRefreshLogoutMalformedPayloadFails(c *C) {
 			RouteName: "loginUser",
 			Route:     getComposedRoute("loginUser", application.AccountID, application.ID),
 			Code:      http.StatusBadRequest,
-			Body:      "400 failed to login the user (1)\nunexpected EOF",
+			Body:      "400 failed to login the user (1)\nunexpected end of JSON input",
 		},
 		{
 			Payload:   fmt.Sprintf(`{"email": "%s", "password": "%s"}`, "tap@glue", user.OriginalPassword),
 			RouteName: "loginUser",
 			Route:     getComposedRoute("loginUser", application.AccountID, application.ID),
 			Code:      http.StatusInternalServerError,
-			Body:      "500 failed to login the user (3)",
+			Body:      "500 failed to retrieve the application user (1)",
 		},
 		{
 			Payload:   fmt.Sprintf(`{"username": "%s", "password": "%s"}`, "", user.OriginalPassword),
 			RouteName: "loginUser",
 			Route:     getComposedRoute("loginUser", application.AccountID, application.ID),
 			Code:      http.StatusBadRequest,
-			Body:      "400 failed to login the user (2)both username and email are empty. please use one of them",
+			Body:      "400 both username and email are empty",
 		},
 		{
 			Payload:   fmt.Sprintf(`{"username": "%s", "password": "%s"}`, "tapg", user.OriginalPassword),
 			RouteName: "loginUser",
 			Route:     getComposedRoute("loginUser", application.AccountID, application.ID),
 			Code:      http.StatusInternalServerError,
-			Body:      "500 failed to login the user (4)",
+			Body:      "500 failed to retrieve the application user (1)",
 		},
 		{
 			Payload:   fmt.Sprintf(`{"username": "%s", "password": "%s"}`, user.Username, "nothing"),
 			RouteName: "loginUser",
 			Route:     getComposedRoute("loginUser", application.AccountID, application.ID),
-			Code:      http.StatusUnauthorized,
-			Body:      "401 failed to login the user (7)",
+			Code:      http.StatusInternalServerError,
+			Body:      "500 failed to check the account user credentials (5)\ninvalid user credentials",
 		},
 		{
 			Payload:   fmt.Sprintf(`{"session_token": "%s"`, user.SessionToken),
 			RouteName: "refreshUserSession",
 			Route:     getComposedRoute("refreshUserSession", application.AccountID, application.ID, user.ID),
 			Code:      http.StatusBadRequest,
-			Body:      "400 failed to refresh the user session (1)\nunexpected EOF",
+			Body:      "400 failed to refresh the session token (1)\nunexpected end of JSON input",
 		},
 		{
 			Payload:   fmt.Sprintf(`{"session_token": "%s"}`, "nothing"),
@@ -1674,14 +1657,14 @@ func (s *ServerSuite) TestLoginRefreshLogoutMalformedPayloadFails(c *C) {
 			RouteName: "logoutUser",
 			Route:     getComposedRoute("logoutUser", application.AccountID, application.ID, user.ID),
 			Code:      http.StatusBadRequest,
-			Body:      "400 failed to logout user (1)\nunexpected EOF",
+			Body:      "400 failed to logout the user (1)\nunexpected end of JSON input",
 		},
 		{
 			Payload:   fmt.Sprintf(`{"session_token": "%s"}`, "nothing"),
 			RouteName: "logoutUser",
 			Route:     getComposedRoute("logoutUser", application.AccountID, application.ID, user.ID),
 			Code:      http.StatusBadRequest,
-			Body:      "400 failed to logout user (2)\nsession token mismatch",
+			Body:      "400 failed to logout the user (2)\nsession token mismatch",
 		},
 	}
 

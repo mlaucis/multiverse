@@ -17,8 +17,10 @@ import (
 	"github.com/tapglue/backend/config"
 	"github.com/tapglue/backend/logger"
 	"github.com/tapglue/backend/server"
+	"github.com/tapglue/backend/server/utils"
 	"github.com/tapglue/backend/storage"
 	"github.com/tapglue/backend/storage/redis"
+	"github.com/tapglue/backend/tgerrors"
 	. "github.com/tapglue/backend/utils"
 	"github.com/tapglue/backend/v01/core"
 	"github.com/tapglue/backend/v01/entity"
@@ -27,7 +29,6 @@ import (
 	"github.com/tapglue/backend/v01/validator/tokens"
 
 	"github.com/gorilla/mux"
-	"github.com/tapglue/backend/server/utils"
 	. "gopkg.in/check.v1"
 )
 
@@ -66,6 +67,7 @@ func (s *ServerSuite) SetUpTest(c *C) {
 	storageClient = storage.Init(redis.Client())
 	core.Init(storageClient)
 	server.Init()
+	tgerrors.Init(true)
 	validator.Init(storageClient)
 
 	if *doLogResponseTimes {
@@ -382,7 +384,7 @@ func getComposedRouteString(routeName string, params ...interface{}) string {
 }
 
 // runRequest takes a route, path, payload and token, performs a request and return a response recorder
-func runRequest(routeName, routePath, payload, secretKey, sessionToken string, numKeyParts int) (int, string, error) {
+func runRequest(routeName, routePath, payload, secretKey, sessionToken string, numKeyParts int) (int, string, *tgerrors.TGError) {
 	var (
 		requestRoute *utils.Route
 		routePattern string

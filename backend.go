@@ -23,6 +23,7 @@ import (
 	"github.com/tapglue/backend/server"
 	"github.com/tapglue/backend/storage"
 	"github.com/tapglue/backend/storage/redis"
+	"github.com/tapglue/backend/tgerrors"
 	"github.com/tapglue/backend/v01/core"
 	"github.com/tapglue/backend/v01/validator"
 )
@@ -65,6 +66,7 @@ func init() {
 	storageClient := storage.Init(redis.Client())
 	core.Init(storageClient)
 	server.Init()
+	tgerrors.Init(conf.Environment != "prod")
 	validator.Init(storageClient)
 }
 

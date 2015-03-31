@@ -6,9 +6,9 @@ package core
 
 import (
 	"encoding/json"
-	"fmt"
 	"time"
 
+	"github.com/tapglue/backend/tgerrors"
 	"github.com/tapglue/backend/v01/entity"
 
 	"github.com/tapglue/georedis"
@@ -16,34 +16,33 @@ import (
 )
 
 // ReadEvent returns the event matching the ID or an error
-func ReadEvent(accountID, applicationID, userID, eventID int64) (event *entity.Event, err error) {
+func ReadEvent(accountID, applicationID, userID, eventID int64) (event *entity.Event, err *tgerrors.TGError) {
 	key := storageClient.Event(accountID, applicationID, userID, eventID)
 
-	result, err := storageEngine.Get(key).Result()
-	if err != nil {
-		return nil, err
+	result, er := storageEngine.Get(key).Result()
+	if er != nil {
+		return nil, tgerrors.NewInternalError("failed to read the event (1)", er.Error())
 	}
 
-	if err = json.Unmarshal([]byte(result), &event); err != nil {
-		return nil, err
+	if er = json.Unmarshal([]byte(result), &event); er != nil {
+		return nil, tgerrors.NewInternalError("failed to read the event (2)", er.Error())
 	}
 
 	return
 }
 
 // UpdateEvent updates an event in the database and returns the updated event or an error
-func UpdateEvent(existingEvent, updatedEvent entity.Event, retrieve bool) (evn *entity.Event, err error) {
+func UpdateEvent(existingEvent, updatedEvent entity.Event, retrieve bool) (evn *entity.Event, err *tgerrors.TGError) {
 	updatedEvent.UpdatedAt = time.Now()
 
-	val, err := json.Marshal(updatedEvent)
-	if err != nil {
-		return nil, err
+	val, er := json.Marshal(updatedEvent)
+	if er != nil {
+		return nil, tgerrors.NewInternalError("failed to update the event (1)", er.Error())
 	}
 
 	key := storageClient.Event(updatedEvent.AccountID, updatedEvent.ApplicationID, updatedEvent.UserID, updatedEvent.ID)
-
-	if err = storageEngine.Set(key, string(val)).Err(); err != nil {
-		return nil, err
+	if er = storageEngine.Set(key, string(val)).Err(); er != nil {
+		return nil, tgerrors.NewInternalError("failed to update the event (1)", er.Error())
 	}
 
 	if existingEvent.Latitude != 0 &&
@@ -58,37 +57,37 @@ func UpdateEvent(existingEvent, updatedEvent entity.Event, retrieve bool) (evn *
 
 	if updatedEvent.Object != nil && updatedEvent.Enabled {
 		if existingEvent.Object != nil {
-			if err := removeEventObject(key, &existingEvent); err != nil {
-				return nil, err
+			if er := removeEventObject(key, &existingEvent); er != nil {
+				return nil, er
 			}
 		}
 
-		if err := addEventObject(key, &updatedEvent); err != nil {
-			return nil, err
+		if er := addEventObject(key, &updatedEvent); er != nil {
+			return nil, er
 		}
 	}
 
 	if existingEvent.Location != updatedEvent.Location {
 		if existingEvent.Location != "" {
-			if err := removeEventLocation(key, &updatedEvent); err != nil {
-				return nil, err
+			if er := removeEventLocation(key, &updatedEvent); er != nil {
+				return nil, er
 			}
 		}
 
 		if updatedEvent.Location != "" && updatedEvent.Enabled {
-			if err := addEventLocation(key, &updatedEvent); err != nil {
-				return nil, err
+			if er := addEventLocation(key, &updatedEvent); er != nil {
+				return nil, er
 			}
 		}
 	}
 
 	if !updatedEvent.Enabled {
 		listKey := storageClient.Events(updatedEvent.AccountID, updatedEvent.ApplicationID, updatedEvent.UserID)
-		if err = storageEngine.ZRem(listKey, key).Err(); err != nil {
-			return nil, err
+		if er = storageEngine.ZRem(listKey, key).Err(); er != nil {
+			return nil, tgerrors.NewInternalError("failed to read the event (1)", er.Error())
 		}
 		if err = DeleteEventFromConnectionsLists(updatedEvent.AccountID, updatedEvent.ApplicationID, updatedEvent.UserID, key); err != nil {
-			return nil, err
+			return nil, tgerrors.NewInternalError("failed to read the event (1)", err.Error())
 		}
 
 		if existingEvent.Latitude != 0 && existingEvent.Longitude != 0 {
@@ -112,7 +111,7 @@ func UpdateEvent(existingEvent, updatedEvent entity.Event, retrieve bool) (evn *
 }
 
 // DeleteEvent deletes the event matching the IDs or an error
-func DeleteEvent(accountID, applicationID, userID, eventID int64) (err error) {
+func DeleteEvent(accountID, applicationID, userID, eventID int64) (err *tgerrors.TGError) {
 	key := storageClient.Event(accountID, applicationID, userID, eventID)
 
 	event, err := ReadEvent(accountID, applicationID, userID, eventID)
@@ -120,22 +119,22 @@ func DeleteEvent(accountID, applicationID, userID, eventID int64) (err error) {
 		return err
 	}
 
-	result, err := storageEngine.Del(key).Result()
-	if err != nil {
-		return err
+	result, er := storageEngine.Del(key).Result()
+	if er != nil {
+		return tgerrors.NewInternalError("failed to delete the event (1)", er.Error())
 	}
 
 	if result != 1 {
-		return fmt.Errorf("The resource for the provided id doesn't exist")
+		return tgerrors.NewInternalError("failed to delete the event (2)", "event already deleted")
 	}
 
 	listKey := storageClient.Events(accountID, applicationID, userID)
-	if err = storageEngine.ZRem(listKey, key).Err(); err != nil {
-		return err
+	if er = storageEngine.ZRem(listKey, key).Err(); er != nil {
+		return tgerrors.NewInternalError("failed to read the event (1)", er.Error())
 	}
 
 	if err = DeleteEventFromConnectionsLists(accountID, applicationID, userID, key); err != nil {
-		return err
+		return
 	}
 
 	removeEventGeo(key, event)
@@ -146,73 +145,74 @@ func DeleteEvent(accountID, applicationID, userID, eventID int64) (err error) {
 }
 
 // ReadEventList returns all events from a certain user
-func ReadEventList(accountID, applicationID, userID int64) (events []*entity.Event, err error) {
+func ReadEventList(accountID, applicationID, userID int64) (events []*entity.Event, err *tgerrors.TGError) {
 	key := storageClient.Events(accountID, applicationID, userID)
 
-	result, err := storageEngine.ZRevRange(key, "0", "-1").Result()
-	if err != nil {
-		return nil, err
+	result, er := storageEngine.ZRevRange(key, "0", "-1").Result()
+	if er != nil {
+		return nil, tgerrors.NewInternalError("failed to read the event list (1)", er.Error())
 	}
 
 	if len(result) == 0 {
 		return []*entity.Event{}, nil
 	}
 
-	resultList, err := storageEngine.MGet(result...).Result()
-	if err != nil {
-		return nil, err
+	resultList, er := storageEngine.MGet(result...).Result()
+	if er != nil {
+		return nil, tgerrors.NewInternalError("failed to read the event list (2)", er.Error())
 	}
 
 	return toEvents(resultList)
 }
 
 // ReadConnectionEventList returns all events from connections
-func ReadConnectionEventList(accountID, applicationID, userID int64) (events []*entity.Event, err error) {
+func ReadConnectionEventList(accountID, applicationID, userID int64) (events []*entity.Event, err *tgerrors.TGError) {
 	key := storageClient.ConnectionEvents(accountID, applicationID, userID)
 
-	result, err := storageEngine.ZRevRange(key, "0", "-1").Result()
-	if err != nil {
-		return nil, err
+	result, er := storageEngine.ZRevRange(key, "0", "-1").Result()
+	if er != nil {
+		return nil, tgerrors.NewInternalError("failed to read the connections events (1)", er.Error())
 	}
 
 	// TODO maybe this shouldn't be an error but rather return that there are no events from connections
 	if len(result) == 0 {
-		return []*entity.Event{}, err
+		return []*entity.Event{}, nil
 	}
 
-	resultList, err := storageEngine.MGet(result...).Result()
-	if err != nil {
-		return nil, err
+	resultList, er := storageEngine.MGet(result...).Result()
+	if er != nil {
+		return nil, tgerrors.NewInternalError("failed to read the connections events (2)", er.Error())
 	}
 
 	return toEvents(resultList)
 }
 
 // WriteEvent adds an event to the database and returns the created event or an error
-func WriteEvent(event *entity.Event, retrieve bool) (evn *entity.Event, err error) {
+func WriteEvent(event *entity.Event, retrieve bool) (evn *entity.Event, err *tgerrors.TGError) {
 	event.Enabled = true
 	event.CreatedAt = time.Now()
 	event.UpdatedAt = event.CreatedAt
+	var er error
 
-	if event.ID, err = storageClient.GenerateApplicationEventID(event.ApplicationID); err != nil {
-		return nil, err
+	if event.ID, er = storageClient.GenerateApplicationEventID(event.ApplicationID); er != nil {
+		return nil, tgerrors.NewInternalError("failed to write the event (1)", er.Error())
 	}
 
-	val, err := json.Marshal(event)
-	if err != nil {
-		return nil, err
+	val, er := json.Marshal(event)
+	if er != nil {
+		return nil, tgerrors.NewInternalError("failed to write the event (2)", er.Error())
 	}
 
 	key := storageClient.Event(event.AccountID, event.ApplicationID, event.UserID, event.ID)
-	if err = storageEngine.Set(key, string(val)).Err(); err != nil {
-		return nil, err
+	if er = storageEngine.Set(key, string(val)).Err(); err != nil {
+		return nil, tgerrors.NewInternalError("failed to write the event (3)", er.Error())
 	}
 
 	listKey := storageClient.Events(event.AccountID, event.ApplicationID, event.UserID)
 
 	setVal := red.Z{Score: float64(event.CreatedAt.Unix()), Member: key}
-	if err = storageEngine.ZAdd(listKey, setVal).Err(); err != nil {
-		return nil, err
+	if er = storageEngine.ZAdd(listKey, setVal).Err(); er != nil {
+		return nil, tgerrors.NewInternalError("failed to write the event (4)", er.Error())
 	}
 
 	if event.Latitude != 0 && event.Longitude != 0 {
@@ -228,15 +228,15 @@ func WriteEvent(event *entity.Event, retrieve bool) (evn *entity.Event, err erro
 
 	if event.Object != nil {
 		objectEventKey := storageClient.EventObjectKey(event.AccountID, event.ApplicationID, event.Object.ID)
-		if err = storageEngine.SAdd(objectEventKey, key).Err(); err != nil {
-			return nil, err
+		if er = storageEngine.SAdd(objectEventKey, key).Err(); er != nil {
+			return nil, tgerrors.NewInternalError("failed to write the event (5)", er.Error())
 		}
 	}
 
 	if event.Location != "" {
 		locationEventKey := storageClient.EventLocationKey(event.AccountID, event.ApplicationID, event.Location)
-		if err = storageEngine.SAdd(locationEventKey, key).Err(); err != nil {
-			return nil, err
+		if er = storageEngine.SAdd(locationEventKey, key).Err(); er != nil {
+			return nil, tgerrors.NewInternalError("failed to write the event (6)", er.Error())
 		}
 	}
 
@@ -252,20 +252,20 @@ func WriteEvent(event *entity.Event, retrieve bool) (evn *entity.Event, err erro
 }
 
 // WriteEventToConnectionsLists takes an event and writes it to the user connections list
-func WriteEventToConnectionsLists(event *entity.Event, key string) (err error) {
+func WriteEventToConnectionsLists(event *entity.Event, key string) (err *tgerrors.TGError) {
 	connectionsKey := storageClient.FollowedByUsers(event.AccountID, event.ApplicationID, event.UserID)
 
-	connections, err := storageEngine.LRange(connectionsKey, 0, -1).Result()
-	if err != nil {
-		return err
+	connections, er := storageEngine.LRange(connectionsKey, 0, -1).Result()
+	if er != nil {
+		return tgerrors.NewInternalError("failed to write the event to the lists (1)", er.Error())
 	}
 
 	for _, userKey := range connections {
 		feedKey := storageClient.ConnectionEventsLoop(userKey)
 
 		val := red.Z{Score: float64(event.CreatedAt.Unix()), Member: key}
-		if err = storageEngine.ZAdd(feedKey, val).Err(); err != nil {
-			return err
+		if er = storageEngine.ZAdd(feedKey, val).Err(); er != nil {
+			return tgerrors.NewInternalError("failed to write the event to the list (2)", er.Error())
 		}
 	}
 
@@ -273,18 +273,17 @@ func WriteEventToConnectionsLists(event *entity.Event, key string) (err error) {
 }
 
 // DeleteEventFromConnectionsLists takes a user id and key and deletes it to the user connections list
-func DeleteEventFromConnectionsLists(accountID, applicationID, userID int64, key string) (err error) {
+func DeleteEventFromConnectionsLists(accountID, applicationID, userID int64, key string) (err *tgerrors.TGError) {
 	connectionsKey := storageClient.FollowedByUsers(accountID, applicationID, userID)
-
-	connections, err := storageEngine.LRange(connectionsKey, 0, -1).Result()
-	if err != nil {
-		return err
+	connections, er := storageEngine.LRange(connectionsKey, 0, -1).Result()
+	if er != nil {
+		return tgerrors.NewInternalError("failed to delete the event from list (1)", er.Error())
 	}
 
 	for _, userKey := range connections {
 		feedKey := storageClient.ConnectionEventsLoop(userKey)
-		if err = storageEngine.ZRem(feedKey, key).Err(); err != nil {
-			return err
+		if er = storageEngine.ZRem(feedKey, key).Err(); er != nil {
+			return tgerrors.NewInternalError("failed to delete the event from list (2)", er.Error())
 		}
 	}
 
@@ -292,41 +291,41 @@ func DeleteEventFromConnectionsLists(accountID, applicationID, userID int64, key
 }
 
 // SearchGeoEvents retrieves all the events from an application within a radius of the provided coordinates
-func SearchGeoEvents(accountID, applicationID int64, latitude, longitude, radius float64) (events []*entity.Event, err error) {
+func SearchGeoEvents(accountID, applicationID int64, latitude, longitude, radius float64) (events []*entity.Event, err *tgerrors.TGError) {
 	geoEventKey := storageClient.EventGeoKey(accountID, applicationID)
 
-	eventKeys, err := georedis.SearchByRadius(storageEngine, geoEventKey, latitude, longitude, radius, 52)
-	if err != nil {
-		return events, err
+	eventKeys, er := georedis.SearchByRadius(storageEngine, geoEventKey, latitude, longitude, radius, 52)
+	if er != nil {
+		return nil, tgerrors.NewInternalError("failed to search for events by geo (1)", er.Error())
 	}
 
-	resultList, err := storageEngine.MGet(eventKeys...).Result()
+	resultList, er := storageEngine.MGet(eventKeys...).Result()
 	if err != nil {
-		return nil, err
+		return nil, tgerrors.NewInternalError("failed to search for events by geo (2)", er.Error())
 	}
 
 	return toEvents(resultList)
 }
 
 // SearchObjectEvents returns all the events for a specific object
-func SearchObjectEvents(accountID, applicationID int64, objectKey string) ([]*entity.Event, error) {
+func SearchObjectEvents(accountID, applicationID int64, objectKey string) ([]*entity.Event, *tgerrors.TGError) {
 	objectEventKey := storageClient.EventObjectKey(accountID, applicationID, objectKey)
 
 	return fetchEventsFromKeys(accountID, applicationID, objectEventKey)
 }
 
 // SearchLocationEvents returns all the events for a specific object
-func SearchLocationEvents(accountID, applicationID int64, locationKey string) ([]*entity.Event, error) {
+func SearchLocationEvents(accountID, applicationID int64, locationKey string) ([]*entity.Event, *tgerrors.TGError) {
 	locationEventKey := storageClient.EventLocationKey(accountID, applicationID, locationKey)
 
 	return fetchEventsFromKeys(accountID, applicationID, locationEventKey)
 }
 
 // fetchEventsFromKeys returns all the events matching a certain search key from the specified bucket
-func fetchEventsFromKeys(accountID, applicationID int64, bucketName string) ([]*entity.Event, error) {
-	_, keys, err := storageEngine.SScan(bucketName, 0, "", 300).Result()
-	if err != nil {
-		return nil, err
+func fetchEventsFromKeys(accountID, applicationID int64, bucketName string) ([]*entity.Event, *tgerrors.TGError) {
+	_, keys, er := storageEngine.SScan(bucketName, 0, "", 300).Result()
+	if er != nil {
+		return nil, tgerrors.NewInternalError("failed to read the events (1)", er.Error())
 	}
 
 	if len(keys) == 0 {
@@ -335,22 +334,22 @@ func fetchEventsFromKeys(accountID, applicationID int64, bucketName string) ([]*
 
 	resultList, err := storageEngine.MGet(keys...).Result()
 	if err != nil {
-		return nil, err
+		return nil, tgerrors.NewInternalError("failed to read the events (2)", er.Error())
 	}
 
 	return toEvents(resultList)
 }
 
 // toEvents converts the events from json format to go structs
-func toEvents(resultList []interface{}) ([]*entity.Event, error) {
+func toEvents(resultList []interface{}) ([]*entity.Event, *tgerrors.TGError) {
 	events := []*entity.Event{}
 	for _, result := range resultList {
 		if result == nil {
 			continue
 		}
 		event := &entity.Event{}
-		if err := json.Unmarshal([]byte(result.(string)), event); err != nil {
-			return []*entity.Event{}, err
+		if er := json.Unmarshal([]byte(result.(string)), event); er != nil {
+			return []*entity.Event{}, tgerrors.NewInternalError("failed to read the event from list (1)", er.Error())
 		}
 		events = append(events, event)
 		event = &entity.Event{}
@@ -359,7 +358,7 @@ func toEvents(resultList []interface{}) ([]*entity.Event, error) {
 	return events, nil
 }
 
-func addEventGeo(key string, updatedEvent *entity.Event) error {
+func addEventGeo(key string, updatedEvent *entity.Event) *tgerrors.TGError {
 	coordinates := georedis.GeoKey{
 		Lat:   updatedEvent.Latitude,
 		Lon:   updatedEvent.Longitude,
@@ -367,32 +366,54 @@ func addEventGeo(key string, updatedEvent *entity.Event) error {
 	}
 
 	geoEventKey := storageClient.EventGeoKey(updatedEvent.AccountID, updatedEvent.ApplicationID)
-	_, err := georedis.AddCoordinates(storageEngine, geoEventKey, 52, coordinates)
-	return err
+	_, er := georedis.AddCoordinates(storageEngine, geoEventKey, 52, coordinates)
+	if er == nil {
+		return nil
+	}
+	return tgerrors.NewInternalError("failed to add the event by geo (1)", er.Error())
 }
 
-func removeEventGeo(key string, updatedEvent *entity.Event) error {
+func removeEventGeo(key string, updatedEvent *entity.Event) *tgerrors.TGError {
 	geoEventKey := storageClient.EventGeoKey(updatedEvent.AccountID, updatedEvent.ApplicationID)
-	_, err := georedis.RemoveCoordinatesByKeys(storageEngine, geoEventKey, key)
-	return err
+	_, er := georedis.RemoveCoordinatesByKeys(storageEngine, geoEventKey, key)
+	if er == nil {
+		return nil
+	}
+	return tgerrors.NewInternalError("failed to remove the event by geo (1)", er.Error())
 }
 
-func addEventObject(key string, updatedEvent *entity.Event) error {
+func addEventObject(key string, updatedEvent *entity.Event) *tgerrors.TGError {
 	objectEventKey := storageClient.EventObjectKey(updatedEvent.AccountID, updatedEvent.ApplicationID, updatedEvent.Object.ID)
-	return storageEngine.SAdd(objectEventKey, key).Err()
+	er := storageEngine.SAdd(objectEventKey, key).Err()
+	if er == nil {
+		return nil
+	}
+	return tgerrors.NewInternalError("failed to add the event by object (1)", er.Error())
 }
 
-func removeEventObject(key string, updatedEvent *entity.Event) error {
+func removeEventObject(key string, updatedEvent *entity.Event) *tgerrors.TGError {
 	objectEventKey := storageClient.EventObjectKey(updatedEvent.AccountID, updatedEvent.ApplicationID, updatedEvent.Object.ID)
-	return storageEngine.SRem(objectEventKey, key).Err()
+	er := storageEngine.SRem(objectEventKey, key).Err()
+	if er == nil {
+		return nil
+	}
+	return tgerrors.NewInternalError("failed to remove the event by geo (1)", er.Error())
 }
 
-func addEventLocation(key string, updatedEvent *entity.Event) error {
+func addEventLocation(key string, updatedEvent *entity.Event) *tgerrors.TGError {
 	locationEventKey := storageClient.EventLocationKey(updatedEvent.AccountID, updatedEvent.ApplicationID, updatedEvent.Location)
-	return storageEngine.SAdd(locationEventKey, key).Err()
+	er := storageEngine.SAdd(locationEventKey, key).Err()
+	if er == nil {
+		return nil
+	}
+	return tgerrors.NewInternalError("failed to add the event by location (1)", er.Error())
 }
 
-func removeEventLocation(key string, updatedEvent *entity.Event) error {
+func removeEventLocation(key string, updatedEvent *entity.Event) *tgerrors.TGError {
 	locationEventKey := storageClient.EventLocationKey(updatedEvent.AccountID, updatedEvent.ApplicationID, updatedEvent.Location)
-	return storageEngine.SRem(locationEventKey, key).Err()
+	er := storageEngine.SRem(locationEventKey, key).Err()
+	if er == nil {
+		return nil
+	}
+	return tgerrors.NewInternalError("failed to remove the event by location (1)", er.Error())
 }

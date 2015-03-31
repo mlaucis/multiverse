@@ -85,9 +85,8 @@ func (s *ServerSuite) TestCreateConnection_OK(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	connection := &entity.Connection{}
-	err = json.Unmarshal([]byte(body), connection)
-	c.Assert(err, IsNil)
-
+	er := json.Unmarshal([]byte(body), connection)
+	c.Assert(er, IsNil)
 	c.Assert(connection.AccountID, Equals, application.AccountID)
 	c.Assert(connection.ApplicationID, Equals, application.ID)
 	c.Assert(connection.UserFromID, Equals, userFrom.ID)
@@ -120,8 +119,8 @@ func (s *ServerSuite) TestCreateConnectionAfterLogin(c *C) {
 		UserID int64  `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
-	err = json.Unmarshal([]byte(body), &sessionToken)
-	c.Assert(err, IsNil)
+	er := json.Unmarshal([]byte(body), &sessionToken)
+	c.Assert(er, IsNil)
 	c.Assert(sessionToken.UserID, Equals, userFrom.ID)
 	c.Assert(sessionToken.Token, Not(Equals), "")
 
@@ -137,8 +136,8 @@ func (s *ServerSuite) TestCreateConnectionAfterLogin(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	connection := &entity.Connection{}
-	err = json.Unmarshal([]byte(body), connection)
-	c.Assert(err, IsNil)
+	er = json.Unmarshal([]byte(body), connection)
+	c.Assert(er, IsNil)
 
 	c.Assert(connection.AccountID, Equals, account.ID)
 	c.Assert(connection.ApplicationID, Equals, application.ID)
@@ -172,8 +171,8 @@ func (s *ServerSuite) TestCreateConnectionAfterLoginRefreshNewToken(c *C) {
 		UserID int64  `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
-	err = json.Unmarshal([]byte(body), &sessionToken)
-	c.Assert(err, IsNil)
+	er := json.Unmarshal([]byte(body), &sessionToken)
+	c.Assert(er, IsNil)
 	c.Assert(sessionToken.UserID, Equals, userFrom.ID)
 	c.Assert(sessionToken.Token, Not(Equals), "")
 
@@ -188,8 +187,8 @@ func (s *ServerSuite) TestCreateConnectionAfterLoginRefreshNewToken(c *C) {
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
 
-	err = json.Unmarshal([]byte(body), &sessionToken)
-	c.Assert(err, IsNil)
+	er = json.Unmarshal([]byte(body), &sessionToken)
+	c.Assert(er, IsNil)
 	c.Assert(sessionToken.UserID, Equals, userFrom.ID)
 	c.Assert(body, Not(Equals), "")
 
@@ -205,8 +204,8 @@ func (s *ServerSuite) TestCreateConnectionAfterLoginRefreshNewToken(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	connection := &entity.Connection{}
-	err = json.Unmarshal([]byte(body), connection)
-	c.Assert(err, IsNil)
+	er = json.Unmarshal([]byte(body), connection)
+	c.Assert(er, IsNil)
 
 	c.Assert(connection.AccountID, Equals, account.ID)
 	c.Assert(connection.ApplicationID, Equals, application.ID)
@@ -240,8 +239,8 @@ func (s *ServerSuite) TestCreateConnectionAfterLoginRefreshOldToken(c *C) {
 		UserID int64  `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
-	err = json.Unmarshal([]byte(body), &sessionToken)
-	c.Assert(err, IsNil)
+	er := json.Unmarshal([]byte(body), &sessionToken)
+	c.Assert(er, IsNil)
 	c.Assert(sessionToken.UserID, Equals, userFrom.ID)
 	c.Assert(sessionToken.Token, Not(Equals), "")
 
@@ -256,8 +255,8 @@ func (s *ServerSuite) TestCreateConnectionAfterLoginRefreshOldToken(c *C) {
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
 
-	err = json.Unmarshal([]byte(body), &sessionToken)
-	c.Assert(err, IsNil)
+	er = json.Unmarshal([]byte(body), &sessionToken)
+	c.Assert(er, IsNil)
 	c.Assert(sessionToken.UserID, Equals, userFrom.ID)
 	c.Assert(sessionToken.Token, Not(Equals), "")
 
@@ -267,8 +266,8 @@ func (s *ServerSuite) TestCreateConnectionAfterLoginRefreshOldToken(c *C) {
 	route = getComposedRoute(routeName, account.ID, application.ID, userFrom.ID)
 	code, body, err = runRequest(routeName, route, payload, application.AuthToken, userFrom.SessionToken, 3)
 	c.Assert(err, IsNil)
-	c.Assert(code, Equals, http.StatusUnauthorized)
-	c.Assert(body, Equals, "401 failed to check session token (12)\nsession mismatch")
+	c.Assert(code, Equals, http.StatusBadRequest)
+	c.Assert(body, Equals, "400 failed to check session token (12)\nsession mismatch")
 }
 
 // Test to create connections after a user logs in and logs out
@@ -296,8 +295,8 @@ func (s *ServerSuite) TestCreateConnectionAfterLoginLogout(c *C) {
 		UserID int64  `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
-	err = json.Unmarshal([]byte(body), &sessionToken)
-	c.Assert(err, IsNil)
+	er := json.Unmarshal([]byte(body), &sessionToken)
+	c.Assert(er, IsNil)
 	c.Assert(sessionToken.UserID, Equals, userFrom.ID)
 	c.Assert(sessionToken.Token, Not(Equals), "")
 
@@ -319,8 +318,8 @@ func (s *ServerSuite) TestCreateConnectionAfterLoginLogout(c *C) {
 	code, body, err = runRequest(routeName, route, payload, application.AuthToken, userFrom.SessionToken, 3)
 	c.Assert(err, IsNil)
 
-	c.Assert(code, Equals, http.StatusUnauthorized)
-	c.Assert(body, Equals, "401 failed to check session token (10)")
+	c.Assert(code, Equals, http.StatusBadRequest)
+	c.Assert(body, Equals, "400 failed to check session token (10)")
 }
 
 // Test to create connections after a user logs in and logs out and logs in again
@@ -346,8 +345,8 @@ func (s *ServerSuite) TestCreateConnectionAfterLoginLogoutLogin(c *C) {
 		UserID int64  `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
-	err = json.Unmarshal([]byte(body), &sessionToken)
-	c.Assert(err, IsNil)
+	er := json.Unmarshal([]byte(body), &sessionToken)
+	c.Assert(er, IsNil)
 	c.Assert(sessionToken.UserID, Equals, userFrom.ID)
 	c.Assert(sessionToken.Token, Not(Equals), "")
 
@@ -365,8 +364,8 @@ func (s *ServerSuite) TestCreateConnectionAfterLoginLogoutLogin(c *C) {
 	code, body, err = runRequest(routeName, route, payload, application.AuthToken, "", 3)
 	c.Assert(err, IsNil)
 
-	err = json.Unmarshal([]byte(body), &sessionToken)
-	c.Assert(err, IsNil)
+	er = json.Unmarshal([]byte(body), &sessionToken)
+	c.Assert(er, IsNil)
 	c.Assert(sessionToken.UserID, Equals, userFrom.ID)
 	c.Assert(sessionToken.Token, Not(Equals), "")
 
@@ -380,8 +379,8 @@ func (s *ServerSuite) TestCreateConnectionAfterLoginLogoutLogin(c *C) {
 	c.Assert(err, IsNil)
 
 	connection := &entity.Connection{}
-	err = json.Unmarshal([]byte(body), connection)
-	c.Assert(err, IsNil)
+	er = json.Unmarshal([]byte(body), connection)
+	c.Assert(er, IsNil)
 
 	c.Assert(code, Equals, http.StatusCreated)
 }
@@ -411,8 +410,8 @@ func (s *ServerSuite) TestCreateConnectionAfterLoginRefreshLogout(c *C) {
 		UserID int64  `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
-	err = json.Unmarshal([]byte(body), &sessionToken)
-	c.Assert(err, IsNil)
+	er := json.Unmarshal([]byte(body), &sessionToken)
+	c.Assert(er, IsNil)
 	c.Assert(sessionToken.UserID, Equals, userFrom.ID)
 	c.Assert(sessionToken.Token, Not(Equals), "")
 
@@ -427,8 +426,8 @@ func (s *ServerSuite) TestCreateConnectionAfterLoginRefreshLogout(c *C) {
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
 
-	err = json.Unmarshal([]byte(body), &sessionToken)
-	c.Assert(err, IsNil)
+	er = json.Unmarshal([]byte(body), &sessionToken)
+	c.Assert(er, IsNil)
 	c.Assert(sessionToken.UserID, Equals, userFrom.ID)
 	c.Assert(sessionToken.Token, Not(Equals), "")
 
@@ -449,8 +448,8 @@ func (s *ServerSuite) TestCreateConnectionAfterLoginRefreshLogout(c *C) {
 	code, body, err = runRequest(routeName, route, payload, application.AuthToken, userFrom.SessionToken, 3)
 	c.Assert(err, IsNil)
 
-	c.Assert(code, Equals, http.StatusUnauthorized)
-	c.Assert(body, Equals, "401 failed to check session token (10)")
+	c.Assert(code, Equals, http.StatusBadRequest)
+	c.Assert(body, Equals, "400 failed to check session token (10)")
 }
 
 // Test to create connections and check the follower, followedby and connectionsevents lists
@@ -471,8 +470,8 @@ func (s *ServerSuite) TestCreateConnectionAndCheckLists(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	connection := &entity.Connection{}
-	err = json.Unmarshal([]byte(body), connection)
-	c.Assert(err, IsNil)
+	er := json.Unmarshal([]byte(body), connection)
+	c.Assert(er, IsNil)
 
 	c.Assert(connection.AccountID, Equals, account.ID)
 	c.Assert(connection.ApplicationID, Equals, application.ID)
@@ -489,8 +488,8 @@ func (s *ServerSuite) TestCreateConnectionAndCheckLists(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	userConnections := []entity.User{}
-	err = json.Unmarshal([]byte(body), &userConnections)
-	c.Assert(err, IsNil)
+	er = json.Unmarshal([]byte(body), &userConnections)
+	c.Assert(er, IsNil)
 
 	c.Assert(len(userConnections), Equals, 1)
 	c.Assert(userConnections[0].ID, Equals, userTo.ID)
@@ -504,8 +503,8 @@ func (s *ServerSuite) TestCreateConnectionAndCheckLists(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	userConnections = []entity.User{}
-	err = json.Unmarshal([]byte(body), &userConnections)
-	c.Assert(err, IsNil)
+	er = json.Unmarshal([]byte(body), &userConnections)
+	c.Assert(er, IsNil)
 
 	c.Assert(len(userConnections), Equals, 1)
 	c.Assert(userConnections[0].ID, Equals, userFrom.ID)
@@ -519,8 +518,8 @@ func (s *ServerSuite) TestCreateConnectionAndCheckLists(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	userToEvents := []entity.Event{}
-	err = json.Unmarshal([]byte(body), &userToEvents)
-	c.Assert(err, IsNil)
+	er = json.Unmarshal([]byte(body), &userToEvents)
+	c.Assert(er, IsNil)
 
 	c.Assert(len(userToEvents), Equals, 2)
 	c.Assert(userToEvents[0].ID, Equals, userTo.Events[len(userTo.Events)-1].ID)
@@ -543,7 +542,7 @@ func (s *ServerSuite) TestCreateConnectionUsersAlreadyConnected(c *C) {
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusInternalServerError)
-	c.Assert(body, Equals, "500 failed to create the connection (4)\nuser connection already exists")
+	c.Assert(body, Equals, "500 failed to write the user connection (3)")
 }
 
 // Test to create connections if users are from different appIDs
@@ -561,8 +560,8 @@ func (s *ServerSuite) TestCreateConnectionUsersFromDifferentApps(c *C) {
 	route := getComposedRoute(routeName, account.ID, application2.ID, app1UserFrom.ID)
 	code, body, err := runRequest(routeName, route, payload, application2.AuthToken, app1UserFrom.SessionToken, 3)
 	c.Assert(err, IsNil)
-	c.Assert(code, Equals, http.StatusUnauthorized)
-	c.Assert(body, Equals, "401 failed to check session token (7)")
+	c.Assert(code, Equals, http.StatusBadRequest)
+	c.Assert(body, Equals, "400 failed to check session token (7)")
 }
 
 // Test to create connections if users are not activated
@@ -644,10 +643,8 @@ func (s *ServerSuite) TestUpdateConnection_OK(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	connection := &entity.Connection{}
-	err = json.Unmarshal([]byte(body), connection)
-	c.Assert(err, IsNil)
-
-	c.Assert(err, IsNil)
+	er := json.Unmarshal([]byte(body), connection)
+	c.Assert(er, IsNil)
 	c.Assert(connection.AccountID, Equals, account.ID)
 	c.Assert(connection.ApplicationID, Equals, application.ID)
 	c.Assert(connection.UserFromID, Equals, userFrom.ID)
@@ -683,9 +680,8 @@ func (s *ServerSuite) TestUpdateConnection_NotCrossUpdate(c *C) {
 	code, body, err := runRequest(routeName, route, payload, application.AuthToken, createApplicationUserSessionToken(userTo), 3)
 	c.Assert(err, IsNil)
 
-	c.Assert(code, Equals, http.StatusUnauthorized)
-
-	c.Assert(body, Equals, "401 failed to check session token (9)")
+	c.Assert(code, Equals, http.StatusBadRequest)
+	c.Assert(body, Equals, "400 failed to check session token (9)")
 }
 
 // Test updateConnection request with a wrong id
@@ -841,11 +837,12 @@ func (s *ServerSuite) TestDeleteConnection_WrongID(c *C) {
 
 	routeName := "deleteConnection"
 	route := getComposedRoute(routeName, account.ID, application.ID, userFrom.ID+1, userTo.ID)
-	code, _, err := runRequest(routeName, route, "", application.AuthToken, createApplicationUserSessionToken(userFrom), 3)
+	code, body, err := runRequest(routeName, route, "", application.AuthToken, createApplicationUserSessionToken(userFrom), 3)
 	c.Assert(err, IsNil)
 
 	c.Assert(err, IsNil)
-	c.Assert(code, Equals, http.StatusUnauthorized)
+	c.Assert(code, Equals, http.StatusBadRequest)
+	c.Assert(body, Equals, "400 failed to check session token (9)")
 }
 
 // Test to delete connections after a user logs in
@@ -978,8 +975,8 @@ func (s *ServerSuite) TestConfirmConnection(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	connection := &entity.Connection{}
-	err = json.Unmarshal([]byte(body), connection)
-	c.Assert(err, IsNil)
+	er := json.Unmarshal([]byte(body), connection)
+	c.Assert(er, IsNil)
 	c.Assert(connection.AccountID, Equals, application.AccountID)
 	c.Assert(connection.ApplicationID, Equals, application.ID)
 	c.Assert(connection.UserFromID, Equals, user1.ID)
@@ -995,8 +992,8 @@ func (s *ServerSuite) TestConfirmConnection(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	connection = &entity.Connection{}
-	err = json.Unmarshal([]byte(body), connection)
-	c.Assert(err, IsNil)
+	er = json.Unmarshal([]byte(body), connection)
+	c.Assert(er, IsNil)
 	c.Assert(connection.AccountID, Equals, application.AccountID)
 	c.Assert(connection.ApplicationID, Equals, application.ID)
 	c.Assert(connection.UserFromID, Equals, user1.ID)
@@ -1061,7 +1058,7 @@ func (s *ServerSuite) TestCreateSocialConnection(c *C) {
 	user5, err = core.WriteUser(user5, true)
 	c.Assert(err, IsNil)
 
-	payload, err := json.Marshal(struct {
+	payload, er := json.Marshal(struct {
 		UserFromID     int64    `json:"user_from_id"`
 		SocialPlatform string   `json:"social_platform"`
 		ConnectionsIDs []string `json:"connection_ids"`
@@ -1073,19 +1070,19 @@ func (s *ServerSuite) TestCreateSocialConnection(c *C) {
 			user4.SocialIDs["facebook"],
 		},
 	})
+	c.Assert(er, IsNil)
 
 	routeName := "createSocialConnections"
 	route := getComposedRoute(routeName, account.ID, application.ID, userFrom.ID, "facebook")
 	code, body, err := runRequest(routeName, route, string(payload), application.AuthToken, createApplicationUserSessionToken(userFrom), 3)
 	c.Assert(err, IsNil)
-
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
 	c.Assert(body, Not(Equals), "[]\n")
 
 	connectedUsers := []*entity.User{}
-	err = json.Unmarshal([]byte(body), &connectedUsers)
-
+	er = json.Unmarshal([]byte(body), &connectedUsers)
+	c.Assert(er, IsNil)
 	c.Assert(len(connectedUsers), Equals, 2)
 	c.Assert(connectedUsers[0].ID, Equals, user2.ID)
 	c.Assert(connectedUsers[1].ID, Equals, user4.ID)
@@ -1132,7 +1129,7 @@ func (s *ServerSuite) TestConnectionMalformedPayloadFails(c *C) {
 			RouteName: "updateConnection",
 			Route:     getComposedRoute("updateConnection", application.AccountID, application.ID, user1.ID, user2.ID),
 			Code:      http.StatusBadRequest,
-			Body:      "400 failed to update the connection (4)\nunexpected EOF",
+			Body:      "400 failed to update the connection (4)\nunexpected end of JSON input",
 		},
 		{
 			Payload:   fmt.Sprintf(`{"user_from_id":%d, "user_to_id":%d, "enabled":false}`, user1.ID, 0),
@@ -1145,8 +1142,8 @@ func (s *ServerSuite) TestConnectionMalformedPayloadFails(c *C) {
 			Payload:   fmt.Sprintf(`{"user_from_id":%d, "user_to_id":%d, "enabled":false}`, user1.ID, user12.ID),
 			RouteName: "updateConnection",
 			Route:     getComposedRoute("updateConnection", application.AccountID, application.ID, user1.ID, user12.ID),
-			Code:      http.StatusBadRequest,
-			Body:      "400 failed to update the connection (3)\nusers are not connected",
+			Code:      http.StatusNotFound,
+			Body:      "404 failed to update the connection (3)\nusers are not connected",
 		},
 		{
 			Payload:   "",
@@ -1159,8 +1156,8 @@ func (s *ServerSuite) TestConnectionMalformedPayloadFails(c *C) {
 			Payload:   "",
 			RouteName: "deleteConnection",
 			Route:     getComposedRoute("deleteConnection", application.AccountID, application.ID, user1.ID, user12.ID),
-			Code:      http.StatusInternalServerError,
-			Body:      "500 failed to delete the connection (2)",
+			Code:      http.StatusNotFound,
+			Body:      "404 failed to delete the connection (2)",
 		},
 		{
 			Payload:   fmt.Sprintf(`{"user_from_id":%d, "user_to_id":%d, "enabled":false}`, user1.ID, user1.ID),
@@ -1174,21 +1171,21 @@ func (s *ServerSuite) TestConnectionMalformedPayloadFails(c *C) {
 			RouteName: "confirmConnection",
 			Route:     getComposedRoute("confirmConnection", application.AccountID, application.ID, user1.ID),
 			Code:      http.StatusBadRequest,
-			Body:      "400 failed to confirm the connection (1)\nunexpected EOF",
+			Body:      "400 failed to confirm the connection (1)\nunexpected end of JSON input",
 		},
 		{
 			Payload:   fmt.Sprintf(`{"user_from_id":%d, "user_to_id":%d, "enabled":false}`, user1.ID, 13),
 			RouteName: "confirmConnection",
 			Route:     getComposedRoute("confirmConnection", application.AccountID, application.ID, user1.ID),
 			Code:      http.StatusBadRequest,
-			Body:      "400 failed to confirm the connection (2)\nuser does not exists",
+			Body:      "400 user does not exists",
 		},
 		{
 			Payload:   "",
 			RouteName: "createSocialConnections",
 			Route:     getComposedRoute("createSocialConnections", application.AccountID, application.ID, user1.ID, "fake"),
-			Code:      http.StatusBadRequest,
-			Body:      "400 social connecting failed (1)\nunexpected social platform",
+			Code:      http.StatusNotFound,
+			Body:      "404 social connecting failed (1)\nunexpected social platform",
 		},
 		{
 			Payload:   fmt.Sprintf(`{"user_from_id": %d}`, 13),
@@ -1202,14 +1199,14 @@ func (s *ServerSuite) TestConnectionMalformedPayloadFails(c *C) {
 			RouteName: "createSocialConnections",
 			Route:     getComposedRoute("createSocialConnections", application.AccountID, application.ID, user1.ID, "facebook"),
 			Code:      http.StatusBadRequest,
-			Body:      "400 social connecting failed (4)\nplatform mismatch",
+			Body:      "400 social connecting failed (3)\nplatform mismatch",
 		},
 		{
 			Payload:   fmt.Sprintf(`{"user_from_id": %d, "social_platform": "%s"`, user1.ID, "fake"),
 			RouteName: "createSocialConnections",
 			Route:     getComposedRoute("createSocialConnections", application.AccountID, application.ID, user1.ID, "facebook"),
 			Code:      http.StatusBadRequest,
-			Body:      "400 social connecting failed (2)\nunexpected EOF",
+			Body:      "400 social connecting failed (2)\nunexpected end of JSON input",
 		},
 	}
 

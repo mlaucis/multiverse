@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/tapglue/backend/context"
+	"github.com/tapglue/backend/tgerrors"
 	. "github.com/tapglue/backend/utils"
 	"github.com/tapglue/backend/v01/core"
 )
@@ -19,58 +20,58 @@ var (
 )
 
 // VerifyRequest verifies if a request is properly signed or not
-func VerifyRequest(ctx *context.Context, numKeyParts int) (string, error) {
+func VerifyRequest(ctx *context.Context, numKeyParts int) *tgerrors.TGError {
 	signature := ctx.R.Header.Get("x-tapglue-signature")
 	if signature == "" {
-		return "failed to verify request signature (1)", fmt.Errorf("signature failed on 1")
+		return tgerrors.NewBadRequestError("failed to verify request signature (1)", "signature failed on 1")
 	}
 
 	if _, err := Base64Decode(signature); err != nil {
-		return "failed to verify request signature (2)", err
+		return tgerrors.NewBadRequestError("failed to verify request signature (2)", err.Error())
 	}
 
 	if ctx.Body != nil {
-		if Base64Encode(Sha256String(ctx.Body.String())) != ctx.R.Header.Get("x-tapglue-payload-hash") {
-			return "failed to verify request signature (3)", fmt.Errorf("signature failed on 3")
+		if Base64Encode(Sha256String(string(ctx.Body))) != ctx.R.Header.Get("x-tapglue-payload-hash") {
+			tgerrors.NewBadRequestError("failed to verify request signature (3)", "signature failed on 3")
 		}
 	} else {
 		if emptyStringBase64 != ctx.R.Header.Get("x-tapglue-payload-hash") {
-			return "failed to verify request signature (4)", fmt.Errorf("signature failed on 3")
+			tgerrors.NewBadRequestError("failed to verify request signature (4)", "signature failed on 4")
 		}
 	}
 
 	encodedIds := ctx.R.Header.Get("x-tapglue-id")
 	decodedIds, err := Base64Decode(encodedIds)
 	if err != nil {
-		return "failed to verify request signature (5)", err
+		return tgerrors.NewBadRequestError("failed to verify request signature (5)", err.Error())
 	}
 
 	ids := strings.SplitN(string(decodedIds), ":", numKeyParts)
 	if len(ids) != numKeyParts {
-		return "failed to verify request signature (6)", fmt.Errorf("signature failed on 5")
+		return tgerrors.NewBadRequestError("failed to verify request signature (6)", "signature failed on 6")
 	}
 
 	accountID, err := strconv.ParseInt(ids[0], 10, 64)
 	if err != nil {
-		return "failed to verify request signature (7)", err
+		return tgerrors.NewBadRequestError("failed to verify request signature (7)", err.Error())
 	}
 
 	authToken := ""
 	if numKeyParts == 1 {
 		account, err := core.ReadAccount(accountID)
 		if err != nil {
-			return "failed to verify request signature (8)", err
+			return tgerrors.NewBadRequestError("failed to verify request signature (8)", err.Error())
 		}
 		authToken = account.AuthToken
 	} else {
 		applicationID, err := strconv.ParseInt(ids[1], 10, 64)
 		if err != nil {
-			return "failed to verify request signature (9)", err
+			return tgerrors.NewBadRequestError("failed to verify request signature (9)", err.Error())
 		}
 
-		application, err := core.ReadApplication(accountID, applicationID)
-		if err != nil {
-			return "failed to verify request signature (10)", err
+		application, er := core.ReadApplication(accountID, applicationID)
+		if er != nil {
+			return tgerrors.NewBadRequestError("failed to verify request signature (10)", er.Error())
 		}
 
 		authToken = application.AuthToken
@@ -87,11 +88,11 @@ func VerifyRequest(ctx *context.Context, numKeyParts int) (string, error) {
 	fmt.Printf("\nSignature parts %s - %s \n", signingKey, signString)
 	fmt.Printf("\nSignature %s - %s \n\n", ctx.R.Header.Get("x-tapglue-signature"), Base64Encode(Sha256String(signingKey+signString)))
 	/**/
-
-	if ctx.R.Header.Get("x-tapglue-signature") == Base64Encode(Sha256String(signingKey+signString)) {
-		return "", nil
+	expectedSignature := Base64Encode(Sha256String(signingKey + signString))
+	if ctx.R.Header.Get("x-tapglue-signature") == expectedSignature {
+		return nil
 	}
 
-	return "failed to verify request signature (11)",
-		fmt.Errorf("expected %s got %s", ctx.R.Header.Get("x-tapglue-signature"), Base64Encode(Sha256String(signingKey+signString)))
+	return tgerrors.NewBadRequestError("failed to verify request signature (11)",
+		fmt.Sprintf("expected %s got %s", ctx.R.Header.Get("x-tapglue-signature"), expectedSignature))
 }

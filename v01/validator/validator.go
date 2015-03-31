@@ -15,6 +15,7 @@ import (
 	"github.com/tapglue/backend/v01/core"
 	"github.com/tapglue/backend/v01/entity"
 
+	"github.com/tapglue/backend/tgerrors"
 	"gopkg.in/redis.v2"
 )
 
@@ -36,14 +37,14 @@ var (
 	errorAccountDoesNotExists      = fmt.Errorf("account does not exists")
 	errorApplicationDoesNotExists  = fmt.Errorf("application does not exists")
 	errorUserDoesNotExists         = fmt.Errorf("user does not exists")
-	errorUserEmailAlreadyExists    = fmt.Errorf("user already exists (1)")
-	errorUserUsernameAlreadyExists = fmt.Errorf("user already exists (2)")
+	errorUserEmailAlreadyExists    = tgerrors.NewBadRequestError("user already exists (1)", "user already exists (1)")
+	errorUserUsernameAlreadyExists = tgerrors.NewBadRequestError("user already exists (2)", "user already exists (2)")
 	errorEmailAddressInUse         = fmt.Errorf("email address already in use")
 	errorUsernameInUse             = fmt.Errorf("username already in use")
 )
 
 // packErrors prints errors happened during validation
-func packErrors(errs []*error) error {
+func packErrors(errs []*error) *tgerrors.TGError {
 	if len(errs) == 0 {
 		return nil
 	}
@@ -53,7 +54,7 @@ func packErrors(errs []*error) error {
 		er += (*e).Error() + "\n"
 	}
 
-	return fmt.Errorf(er[:len(er)-1])
+	return tgerrors.NewBadRequestError(er[:len(er)-1], "")
 }
 
 // IsValidURL checks is an url is valid
