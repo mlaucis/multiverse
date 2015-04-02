@@ -9,5 +9,5 @@ sed -i "s/NEWRELIC_NAME/test - tapglue/g" config.json
 sed -i "s/REDIS_HOST/${WERCKER_REDIS_HOST}:${WERCKER_REDIS_PORT}/g" config.json
 sed -i "s/REDIS_DB_ID/0/g" config.json
 
-cp config.json v01/core/
 cp config.json v01/server/
+cp config.json v02/server/

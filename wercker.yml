@@ -40,11 +40,23 @@ build:
           cd $WERCKER_SOURCE_DIR/v01/server
           GOPATH=`godep path`:$GOPATH gocov test -race -check.v | GOPATH=`godep path`:$GOPATH gocov-xml > coverage.xml
     - script:
+            name: test server v02
+            code: |-
+              export WERCKER_SOURCE_DIR=${GOPATH}/src/github.com/tapglue/backend
+              cd $WERCKER_SOURCE_DIR/v02/server
+              GOPATH=`godep path`:$GOPATH gocov test -race -check.v | GOPATH=`godep path`:$GOPATH gocov-xml > coverage.xml
+    - script:
         name: codecov server v01
         code: |-
           export WERCKER_SOURCE_DIR=${GOPATH}/src/github.com/tapglue/backend
           cd $WERCKER_SOURCE_DIR/v01/server
-          codecov --token=209a849f-0c0a-4f7a-b336-d9fb47d31afc
+          codecov --token=$CODECOV_TOKEN
+    - script:
+        name: codecov server v02
+        code: |-
+          export WERCKER_SOURCE_DIR=${GOPATH}/src/github.com/tapglue/backend
+          cd $WERCKER_SOURCE_DIR/v02/server
+          codecov --token=$CODECOV_TOKEN
 #    - script:
 #        name: bechmark core
 #        code: |-

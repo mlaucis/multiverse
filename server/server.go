@@ -11,23 +11,13 @@ import (
 
 	"github.com/tapglue/backend/logger"
 	v01_server "github.com/tapglue/backend/v01/server"
-	//v02_server "github.com/tapglue/backend/v02/server"
+	v02_server "github.com/tapglue/backend/v02/server"
 
 	"fmt"
 	"time"
 
 	"github.com/gorilla/mux"
 )
-
-/*const (
-	errUserAgentNotSet           = "User-Agent header must be set (1)"
-	errContentLengthNotSet       = "Content-Length header must be set (1)"
-	errContentTypeNotSet         = "Content-Type header must be set (1)"
-	errContentLengthNotDecodable = "Content-Length header value could not be decoded (2)"
-	errContentLengthSizeNotMatch = "Content-Length header value is different from the received payload size (3)"
-	errRequestBodyCannotBeEmpty  = "Request body cannot be empty (1)"
-	errWrongContentType          = "Wrong Content-Type header value (1)"
-)*/
 
 var (
 	mainLogChan  = make(chan *logger.LogMsg, 100000)
@@ -60,7 +50,7 @@ func GetRouter(environment string, debugMode, skipSecurityChecks bool) (*mux.Rou
 	router := mux.NewRouter().StrictSlash(true)
 
 	v01_server.Init(router, mainLogChan, errorLogChan, environment, debugMode, skipSecurityChecks)
-	//v02_server.Init(router, mainLogChan, errorLogChan, environment, debugMode, skipSecurityChecks)
+	v02_server.Init(router, mainLogChan, errorLogChan, environment, debugMode, skipSecurityChecks)
 
 	if debugMode {
 		router.Handle("/debug/pprof/", http.HandlerFunc(pprof.Index))
