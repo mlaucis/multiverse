@@ -10,9 +10,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/tapglue/backend/context"
-	"github.com/tapglue/backend/server/utils"
 	"github.com/tapglue/backend/tgerrors"
+	"github.com/tapglue/backend/v01/context"
 	"github.com/tapglue/backend/v01/core"
 	"github.com/tapglue/backend/v01/entity"
 	"github.com/tapglue/backend/v01/validator"
@@ -63,7 +62,7 @@ func updateConnection(ctx *context.Context) (err *tgerrors.TGError) {
 		return
 	}
 
-	utils.WriteResponse(ctx, updatedConnection, http.StatusCreated, 0)
+	WriteResponse(ctx, updatedConnection, http.StatusCreated, 0)
 	return
 }
 
@@ -83,7 +82,7 @@ func deleteConnection(ctx *context.Context) (err *tgerrors.TGError) {
 		return
 	}
 
-	utils.WriteResponse(ctx, "", http.StatusNoContent, 10)
+	WriteResponse(ctx, "", http.StatusNoContent, 10)
 	return
 }
 
@@ -124,7 +123,7 @@ func createConnection(ctx *context.Context) (err *tgerrors.TGError) {
 		}
 	}
 
-	utils.WriteResponse(ctx, connection, http.StatusCreated, 0)
+	WriteResponse(ctx, connection, http.StatusCreated, 0)
 	return
 }
 
@@ -141,7 +140,7 @@ func getConnectionList(ctx *context.Context) (err *tgerrors.TGError) {
 		users[idx].Password = ""
 	}
 
-	utils.WriteResponse(ctx, users, http.StatusOK, 10)
+	WriteResponse(ctx, users, http.StatusOK, 10)
 	return
 }
 
@@ -158,7 +157,7 @@ func getFollowedByUsersList(ctx *context.Context) (err *tgerrors.TGError) {
 		users[idx].Password = ""
 	}
 
-	utils.WriteResponse(ctx, users, http.StatusOK, 10)
+	WriteResponse(ctx, users, http.StatusOK, 10)
 	return
 }
 
@@ -183,7 +182,7 @@ func confirmConnection(ctx *context.Context) (err *tgerrors.TGError) {
 		return
 	}
 
-	utils.WriteResponse(ctx, connection, http.StatusCreated, 0)
+	WriteResponse(ctx, connection, http.StatusCreated, 0)
 	return
 }
 
@@ -228,6 +227,6 @@ func createSocialConnections(ctx *context.Context) (err *tgerrors.TGError) {
 		users[idx].Password = ""
 	}
 
-	utils.WriteResponse(ctx, users, http.StatusCreated, 10)
+	WriteResponse(ctx, users, http.StatusCreated, 10)
 	return
 }

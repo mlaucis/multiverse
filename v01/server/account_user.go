@@ -9,9 +9,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/tapglue/backend/context"
-	"github.com/tapglue/backend/server/utils"
 	"github.com/tapglue/backend/tgerrors"
+	"github.com/tapglue/backend/v01/context"
 	"github.com/tapglue/backend/v01/core"
 	"github.com/tapglue/backend/v01/entity"
 	"github.com/tapglue/backend/v01/validator"
@@ -20,7 +19,7 @@ import (
 // getAccountUser handles requests to a single account user
 // Request: GET /account/:AccountID/user/:UserID
 func getAccountUser(ctx *context.Context) (err *tgerrors.TGError) {
-	utils.WriteResponse(ctx, ctx.AccountUser, http.StatusOK, 10)
+	WriteResponse(ctx, ctx.AccountUser, http.StatusOK, 10)
 	return
 }
 
@@ -45,7 +44,7 @@ func updateAccountUser(ctx *context.Context) (err *tgerrors.TGError) {
 	}
 
 	updatedAccountUser.Password = ""
-	utils.WriteResponse(ctx, updatedAccountUser, http.StatusCreated, 0)
+	WriteResponse(ctx, updatedAccountUser, http.StatusCreated, 0)
 	return
 }
 
@@ -56,7 +55,7 @@ func deleteAccountUser(ctx *context.Context) (err *tgerrors.TGError) {
 		return
 	}
 
-	utils.WriteResponse(ctx, "", http.StatusNoContent, 10)
+	WriteResponse(ctx, "", http.StatusNoContent, 10)
 	return
 }
 
@@ -83,7 +82,7 @@ func createAccountUser(ctx *context.Context) (err *tgerrors.TGError) {
 
 	accountUser.Password = ""
 
-	utils.WriteResponse(ctx, accountUser, http.StatusCreated, 0)
+	WriteResponse(ctx, accountUser, http.StatusCreated, 0)
 	return
 }
 
@@ -109,7 +108,7 @@ func getAccountUserList(ctx *context.Context) (err *tgerrors.TGError) {
 		AccountUsers: accountUsers,
 	}
 
-	utils.WriteResponse(ctx, response, http.StatusOK, 10)
+	WriteResponse(ctx, response, http.StatusOK, 10)
 	return
 }
 
@@ -157,7 +156,7 @@ func loginAccountUser(ctx *context.Context) (err *tgerrors.TGError) {
 	user.LastLogin = time.Now()
 	_, err = core.UpdateAccountUser(*user, *user, false)
 
-	utils.WriteResponse(ctx, struct {
+	WriteResponse(ctx, struct {
 		ID           int64  `json:"id"`
 		AccountToken string `json:"account_token"`
 		Token        string `json:"token"`
@@ -195,7 +194,7 @@ func refreshAccountUserSession(ctx *context.Context) (err *tgerrors.TGError) {
 		return
 	}
 
-	utils.WriteResponse(ctx, struct {
+	WriteResponse(ctx, struct {
 		Token string `json:"token"`
 	}{Token: sessionToken}, http.StatusCreated, 0)
 	return
@@ -220,6 +219,6 @@ func logoutAccountUser(ctx *context.Context) (err *tgerrors.TGError) {
 		return
 	}
 
-	utils.WriteResponse(ctx, "logged out", http.StatusOK, 0)
+	WriteResponse(ctx, "logged out", http.StatusOK, 0)
 	return
 }

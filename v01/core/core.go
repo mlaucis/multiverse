@@ -6,7 +6,7 @@
 package core
 
 import (
-	"github.com/tapglue/backend/storage"
+	"github.com/tapglue/backend/v01/storage"
 
 	"gopkg.in/redis.v2"
 )

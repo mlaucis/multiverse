@@ -12,8 +12,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/tapglue/backend/server"
 	"github.com/tapglue/backend/v01/entity"
+	"github.com/tapglue/backend/v01/server"
 	"github.com/tapglue/backend/v01/validator/keys"
 
 	"github.com/gorilla/mux"
@@ -521,7 +521,7 @@ func BenchmarkCreateEvent1_Write(b *testing.B) {
 	routeName := "createEvent"
 	routePath := getComposedRoute(routeName, account.ID, application.ID, user.ID)
 
-	requestRoute := server.GetRoute(routeName, apiVersion)
+	requestRoute := server.GetRoute(routeName)
 
 	req, er := http.NewRequest(
 		requestRoute.Method,
@@ -574,7 +574,7 @@ func BenchmarkCreateEvent2_Read(b *testing.B) {
 	routeName := "getEvent"
 	routePath := getComposedRoute(routeName, account.ID, application.ID, user.ID, event.ID)
 
-	requestRoute := server.GetRoute(routeName, apiVersion)
+	requestRoute := server.GetRoute(routeName)
 
 	req, er := http.NewRequest(
 		requestRoute.Method,

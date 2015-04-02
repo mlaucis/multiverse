@@ -8,9 +8,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/tapglue/backend/context"
-	"github.com/tapglue/backend/server/utils"
 	"github.com/tapglue/backend/tgerrors"
+	"github.com/tapglue/backend/v01/context"
 	"github.com/tapglue/backend/v01/core"
 	"github.com/tapglue/backend/v01/entity"
 	"github.com/tapglue/backend/v01/validator"
@@ -19,7 +18,7 @@ import (
 // getAccount handles requests to a single account
 // Request: GET /account/:AccountID
 func getAccount(ctx *context.Context) (err *tgerrors.TGError) {
-	utils.WriteResponse(ctx, ctx.Account, http.StatusOK, 10)
+	WriteResponse(ctx, ctx.Account, http.StatusOK, 10)
 	return
 }
 
@@ -42,7 +41,7 @@ func updateAccount(ctx *context.Context) (err *tgerrors.TGError) {
 		return err
 	}
 
-	utils.WriteResponse(ctx, updatedAccount, http.StatusCreated, 10)
+	WriteResponse(ctx, updatedAccount, http.StatusCreated, 10)
 	return nil
 }
 
@@ -53,7 +52,7 @@ func deleteAccount(ctx *context.Context) (err *tgerrors.TGError) {
 		return err
 	}
 
-	utils.WriteResponse(ctx, "", http.StatusNoContent, 10)
+	WriteResponse(ctx, "", http.StatusNoContent, 10)
 	return nil
 }
 
@@ -74,6 +73,6 @@ func createAccount(ctx *context.Context) (err *tgerrors.TGError) {
 		return
 	}
 
-	utils.WriteResponse(ctx, account, http.StatusCreated, 0)
+	WriteResponse(ctx, account, http.StatusCreated, 0)
 	return
 }

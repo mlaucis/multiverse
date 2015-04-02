@@ -21,11 +21,14 @@ import (
 	"github.com/tapglue/backend/config"
 	"github.com/tapglue/backend/logger"
 	"github.com/tapglue/backend/server"
-	"github.com/tapglue/backend/storage"
-	"github.com/tapglue/backend/storage/redis"
 	"github.com/tapglue/backend/tgerrors"
-	"github.com/tapglue/backend/v01/core"
-	"github.com/tapglue/backend/v01/validator"
+	v01_core "github.com/tapglue/backend/v01/core"
+	v01_storage "github.com/tapglue/backend/v01/storage"
+	v01_redis "github.com/tapglue/backend/v01/storage/redis"
+	v01_validator "github.com/tapglue/backend/v01/validator"
+	//v02_core "github.com/tapglue/backend/v02/core"
+	//v02_storage "github.com/tapglue/backend/v02/storage"
+	//v02_validator "github.com/tapglue/backend/v02/validator"
 )
 
 const (
@@ -62,12 +65,14 @@ func init() {
 		log.Printf("launching with no security checks enabled\n")
 	}
 
-	redis.Init(conf.Redis.Hosts[0], conf.Redis.Password, conf.Redis.DB, conf.Redis.PoolSize)
-	storageClient := storage.Init(redis.Client())
-	core.Init(storageClient)
-	server.Init()
 	tgerrors.Init(conf.Environment != "prod")
-	validator.Init(storageClient)
+	v01_redis.Init(conf.Redis.Hosts[0], conf.Redis.Password, conf.Redis.DB, conf.Redis.PoolSize)
+	v01StorageClient := v01_storage.Init(v01_redis.Client())
+	//v02StorageClient := v02_storage.Init(redis.Client())
+	v01_core.Init(v01StorageClient)
+	//v02_core.Init(v02StorageClient)
+	v01_validator.Init(v01StorageClient)
+	//v02_validator.Init(v02StorageClient)
 }
 
 func main() {

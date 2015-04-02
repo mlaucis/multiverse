@@ -14,7 +14,6 @@ import (
 	"github.com/tapglue/backend/logger"
 	"github.com/tapglue/backend/tgerrors"
 	"github.com/tapglue/backend/utils"
-	"github.com/tapglue/backend/v01/entity"
 
 	"github.com/gorilla/mux"
 )
@@ -22,29 +21,21 @@ import (
 type (
 	// Context struct holds the request, response and additional informations about the context of the request
 	Context struct {
-		AccountID         int64
-		Account           *entity.Account
-		AccountUserID     int64
-		AccountUser       *entity.AccountUser
-		ApplicationID     int64
-		Application       *entity.Application
-		ApplicationUserID int64
-		ApplicationUser   *entity.User
-		SessionToken      string
-		StatusCode        int
-		Vars              map[string]string
-		Body              []byte
-		MainLog           chan *logger.LogMsg
-		ErrorLog          chan *logger.LogMsg
-		W                 http.ResponseWriter
-		R                 *http.Request
-		StartTime         time.Time
-		RouteName         string
-		Scope             string
-		Version           string
-		Environment       string
-		DebugMode         bool
-		SkipSecurity      bool
+		SessionToken string
+		StatusCode   int
+		Vars         map[string]string
+		Body         []byte
+		MainLog      chan *logger.LogMsg
+		ErrorLog     chan *logger.LogMsg
+		W            http.ResponseWriter
+		R            *http.Request
+		StartTime    time.Time
+		RouteName    string
+		Scope        string
+		Version      string
+		Environment  string
+		DebugMode    bool
+		SkipSecurity bool
 	}
 
 	// Filter is a callback that helps updating the context with extra information

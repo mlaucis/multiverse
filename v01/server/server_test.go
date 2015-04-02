@@ -16,14 +16,13 @@ import (
 
 	"github.com/tapglue/backend/config"
 	"github.com/tapglue/backend/logger"
-	"github.com/tapglue/backend/server"
-	"github.com/tapglue/backend/server/utils"
-	"github.com/tapglue/backend/storage"
-	"github.com/tapglue/backend/storage/redis"
 	"github.com/tapglue/backend/tgerrors"
 	. "github.com/tapglue/backend/utils"
 	"github.com/tapglue/backend/v01/core"
 	"github.com/tapglue/backend/v01/entity"
+	"github.com/tapglue/backend/v01/server"
+	"github.com/tapglue/backend/v01/storage"
+	"github.com/tapglue/backend/v01/storage/redis"
 	"github.com/tapglue/backend/v01/validator"
 	"github.com/tapglue/backend/v01/validator/keys"
 	"github.com/tapglue/backend/v01/validator/tokens"
@@ -66,7 +65,6 @@ func (s *ServerSuite) SetUpTest(c *C) {
 	redis.Client().FlushDb()
 	storageClient = storage.Init(redis.Client())
 	core.Init(storageClient)
-	server.Init()
 	tgerrors.Init(true)
 	validator.Init(storageClient)
 
@@ -90,7 +88,7 @@ func (s *ServerSuite) SetUpTest(c *C) {
 func (s *ServerSuite) TestValidatePostCommon_NoCLHeader(c *C) {
 	payload := "{demo}"
 	routeName := "createAccount"
-	requestRoute := server.GetRoute(routeName, apiVersion)
+	requestRoute := server.GetRoute(routeName)
 	routePath := requestRoute.RoutePattern(apiVersion)
 
 	req, err := http.NewRequest(
@@ -116,7 +114,7 @@ func (s *ServerSuite) TestValidatePostCommon_NoCLHeader(c *C) {
 func (s *ServerSuite) TestValidatePostCommon_CLHeader(c *C) {
 	payload := "{demo}"
 	routeName := "createAccount"
-	requestRoute := server.GetRoute(routeName, apiVersion)
+	requestRoute := server.GetRoute(routeName)
 	routePath := requestRoute.RoutePattern(apiVersion)
 
 	req, err := http.NewRequest(
@@ -140,66 +138,13 @@ func (s *ServerSuite) TestValidatePostCommon_CLHeader(c *C) {
 	c.Assert(w.Body.String(), Equals, "400 failed to create the account (1)\n"+"invalid character 'd' looking for beginning of object key string")
 }
 
-// Test GET common with CLHeader
-func (s *ServerSuite) TestValidateGetCommon_CLHeader(c *C) {
-	payload := ""
-	routeName := "index"
-	requestRoute := server.GetRoute(routeName, "")
-	routePath := requestRoute.RoutePattern("")
-
-	req, err := http.NewRequest(
-		requestRoute.Method,
-		routePath,
-		strings.NewReader(payload),
-	)
-	c.Assert(err, IsNil)
-
-	createCommonRequestHeaders(req)
-
-	w := httptest.NewRecorder()
-	m := mux.NewRouter()
-
-	m.
-		HandleFunc(routePath, server.CustomHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan, "test", true, false)).
-		Methods(requestRoute.Method)
-	m.ServeHTTP(w, req)
-
-	c.Assert(w.Code, Equals, http.StatusOK)
-}
-
-// Test GET common without CLHeader
-func (s *ServerSuite) TestValidateGetCommon_NoCLHeader(c *C) {
-	payload := ""
-	routeName := "index"
-	requestRoute := server.GetRoute(routeName, "")
-	routePath := requestRoute.RoutePattern("")
-
-	req, err := http.NewRequest(
-		requestRoute.Method,
-		routePath,
-		strings.NewReader(payload),
-	)
-	c.Assert(err, IsNil)
-
-	w := httptest.NewRecorder()
-	m := mux.NewRouter()
-
-	m.
-		HandleFunc(routePath, server.CustomHandler(routeName, apiVersion, requestRoute, mainLogChan, errorLogChan, "test", true, false)).
-		Methods(requestRoute.Method)
-	m.ServeHTTP(w, req)
-
-	c.Assert(w.Code, Equals, http.StatusBadRequest)
-	c.Assert(w.Body.String(), Equals, "400 User-Agent header must be set (1)")
-}
-
 // Test PUT common with CLHeader
 func (s *ServerSuite) TestValidatePutCommon_CLHeader(c *C) {
 	c.Skip("needs a better implementation")
 
 	payload := "{demo}"
 	routeName := "updateAccount"
-	requestRoute := server.GetRoute(routeName, apiVersion)
+	requestRoute := server.GetRoute(routeName)
 	routePath := getComposedRoute(routeName, 0)
 
 	req, err := http.NewRequest(
@@ -229,7 +174,7 @@ func (s *ServerSuite) TestValidatePutCommon_NoCLHeader(c *C) {
 
 	payload := "{demo}"
 	routeName := "updateAccount"
-	requestRoute := server.GetRoute(routeName, apiVersion)
+	requestRoute := server.GetRoute(routeName)
 	routePath := getComposedRoute(routeName, 0)
 
 	req, err := http.NewRequest(
@@ -257,7 +202,7 @@ func (s *ServerSuite) TestValidateDeleteCommon_CLHeader(c *C) {
 
 	payload := "{demo}"
 	routeName := "deleteAccount"
-	requestRoute := server.GetRoute(routeName, apiVersion)
+	requestRoute := server.GetRoute(routeName)
 	routePath := getComposedRoute(routeName, 0)
 
 	req, err := http.NewRequest(
@@ -286,7 +231,7 @@ func (s *ServerSuite) TestValidateDeleteCommon_NoCLHeader(c *C) {
 	c.Skip("skip due to context refactoring")
 	payload := ""
 	routeName := "deleteAccount"
-	requestRoute := server.GetRoute(routeName, apiVersion)
+	requestRoute := server.GetRoute(routeName)
 	routePath := getComposedRoute(routeName, 1)
 
 	req, err := http.NewRequest(
@@ -306,28 +251,6 @@ func (s *ServerSuite) TestValidateDeleteCommon_NoCLHeader(c *C) {
 
 	c.Assert(w.Code, Equals, http.StatusBadRequest)
 	c.Assert(w.Body.String(), Equals, "400 User-Agent header must be set")
-}
-
-// Test a correct humans request
-func (s *ServerSuite) TestHumans_OK(c *C) {
-	routeName := "humans"
-	route := getComposedRoute(routeName)
-	code, body, err := runRequest(routeName, route, "", "", "", 0)
-	c.Assert(err, IsNil)
-
-	c.Assert(code, Equals, http.StatusOK)
-	c.Assert(body, Not(Equals), "")
-}
-
-// Test a correct robots request
-func (s *ServerSuite) TestRobots_OK(c *C) {
-	routeName := "robots"
-	route := getComposedRoute(routeName)
-	code, body, err := runRequest(routeName, route, "", "", "", 0)
-	c.Assert(err, IsNil)
-
-	c.Assert(code, Equals, http.StatusOK)
-	c.Assert(body, Not(Equals), "")
 }
 
 // createCommonRequestHeaders create a correct request header
@@ -351,7 +274,7 @@ func getComposedRoute(routeName string, params ...interface{}) string {
 		return "/robots.txt"
 	}
 
-	pattern := server.GetRoute(routeName, apiVersion).ComposePattern(apiVersion)
+	pattern := server.GetRoute(routeName).ComposePattern(apiVersion)
 
 	if len(params) == 0 {
 		return pattern
@@ -370,7 +293,7 @@ func getComposedRouteString(routeName string, params ...interface{}) string {
 		return "/robots.txt"
 	}
 
-	pattern := server.GetRoute(routeName, apiVersion).ComposePattern(apiVersion)
+	pattern := server.GetRoute(routeName).ComposePattern(apiVersion)
 
 	if len(params) == 0 {
 		return pattern
@@ -386,21 +309,21 @@ func getComposedRouteString(routeName string, params ...interface{}) string {
 // runRequest takes a route, path, payload and token, performs a request and return a response recorder
 func runRequest(routeName, routePath, payload, secretKey, sessionToken string, numKeyParts int) (int, string, *tgerrors.TGError) {
 	var (
-		requestRoute *utils.Route
+		requestRoute *server.Route
 		routePattern string
 	)
 
 	if routeName == "index" {
-		requestRoute = server.GetRoute(routeName, "")
+		requestRoute = server.GetRoute(routeName)
 		routePattern = "/"
 	} else if routeName == "humans" {
-		requestRoute = server.GetRoute(routeName, "")
+		requestRoute = server.GetRoute(routeName)
 		routePattern = "/humans.txt"
 	} else if routeName == "robots" {
-		requestRoute = server.GetRoute(routeName, "")
+		requestRoute = server.GetRoute(routeName)
 		routePattern = "/robots.txt"
 	} else {
-		requestRoute = server.GetRoute(routeName, apiVersion)
+		requestRoute = server.GetRoute(routeName)
 		routePattern = requestRoute.RoutePattern(apiVersion)
 	}
 

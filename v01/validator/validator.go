@@ -11,9 +11,9 @@ import (
 	"net/url"
 	"regexp"
 
-	"github.com/tapglue/backend/storage"
 	"github.com/tapglue/backend/v01/core"
 	"github.com/tapglue/backend/v01/entity"
+	"github.com/tapglue/backend/v01/storage"
 
 	"github.com/tapglue/backend/tgerrors"
 	"gopkg.in/redis.v2"

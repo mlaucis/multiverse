@@ -12,6 +12,7 @@ import (
 
 	"github.com/tapglue/backend/tgerrors"
 	. "github.com/tapglue/backend/utils"
+	"github.com/tapglue/backend/v01/context"
 	"github.com/tapglue/backend/v01/entity"
 )
 
@@ -291,7 +292,12 @@ func CheckApplicationSession(r *http.Request) (string, *tgerrors.TGError) {
 }
 
 // CheckApplicationSimpleSession checks if the session is valid or not
-func CheckApplicationSimpleSession(accountID, applicationID, applicationUserID int64, r *http.Request) (string, *tgerrors.TGError) {
+func CheckApplicationSimpleSession(ctx *context.Context) (string, *tgerrors.TGError) {
+	accountID := ctx.AccountID
+	applicationID := ctx.ApplicationID
+	applicationUserID := ctx.ApplicationUserID
+	r := ctx.R
+
 	encodedSessionToken := r.Header.Get("x-tapglue-session")
 	if encodedSessionToken == "" {
 		return "", tgerrors.NewBadRequestError("failed to check session token (1)", "missing session token")

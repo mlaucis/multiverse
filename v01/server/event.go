@@ -11,9 +11,8 @@ import (
 
 	"sort"
 
-	"github.com/tapglue/backend/context"
-	"github.com/tapglue/backend/server/utils"
 	"github.com/tapglue/backend/tgerrors"
+	"github.com/tapglue/backend/v01/context"
 	"github.com/tapglue/backend/v01/core"
 	"github.com/tapglue/backend/v01/entity"
 	"github.com/tapglue/backend/v01/validator"
@@ -36,7 +35,7 @@ func getEvent(ctx *context.Context) (err *tgerrors.TGError) {
 		return
 	}
 
-	utils.WriteResponse(ctx, event, http.StatusOK, 10)
+	WriteResponse(ctx, event, http.StatusOK, 10)
 	return
 }
 
@@ -76,7 +75,7 @@ func updateEvent(ctx *context.Context) (err *tgerrors.TGError) {
 		return
 	}
 
-	utils.WriteResponse(ctx, updatedEvent, http.StatusCreated, 0)
+	WriteResponse(ctx, updatedEvent, http.StatusCreated, 0)
 	return
 }
 
@@ -96,7 +95,7 @@ func deleteEvent(ctx *context.Context) (err *tgerrors.TGError) {
 		return
 	}
 
-	utils.WriteResponse(ctx, "", http.StatusNoContent, 10)
+	WriteResponse(ctx, "", http.StatusNoContent, 10)
 	return
 }
 
@@ -109,7 +108,7 @@ func getEventList(ctx *context.Context) (err *tgerrors.TGError) {
 		return
 	}
 
-	utils.WriteResponse(ctx, events, http.StatusOK, 10)
+	WriteResponse(ctx, events, http.StatusOK, 10)
 	return
 }
 
@@ -122,7 +121,7 @@ func getConnectionEventList(ctx *context.Context) (err *tgerrors.TGError) {
 		return
 	}
 
-	utils.WriteResponse(ctx, events, http.StatusOK, 10)
+	WriteResponse(ctx, events, http.StatusOK, 10)
 	return
 }
 
@@ -150,7 +149,7 @@ func createEvent(ctx *context.Context) (err *tgerrors.TGError) {
 		return
 	}
 
-	utils.WriteResponse(ctx, event, http.StatusCreated, 0)
+	WriteResponse(ctx, event, http.StatusCreated, 0)
 	return
 }
 
@@ -183,7 +182,7 @@ func getGeoEventList(ctx *context.Context) (err *tgerrors.TGError) {
 		return
 	}
 
-	utils.WriteResponse(ctx, events, http.StatusOK, 10)
+	WriteResponse(ctx, events, http.StatusOK, 10)
 	return
 }
 
@@ -203,7 +202,7 @@ func getObjectEventList(ctx *context.Context) (err *tgerrors.TGError) {
 
 	sort.Sort(byIDDesc(events))
 
-	utils.WriteResponse(ctx, events, http.StatusOK, 10)
+	WriteResponse(ctx, events, http.StatusOK, 10)
 	return
 }
 
@@ -223,7 +222,7 @@ func getLocationEventList(ctx *context.Context) (err *tgerrors.TGError) {
 
 	sort.Sort(byIDDesc(events))
 
-	utils.WriteResponse(ctx, events, http.StatusOK, 10)
+	WriteResponse(ctx, events, http.StatusOK, 10)
 	return
 }
 

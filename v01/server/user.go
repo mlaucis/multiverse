@@ -9,9 +9,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/tapglue/backend/context"
-	"github.com/tapglue/backend/server/utils"
 	"github.com/tapglue/backend/tgerrors"
+	"github.com/tapglue/backend/v01/context"
 	"github.com/tapglue/backend/v01/core"
 	"github.com/tapglue/backend/v01/entity"
 	"github.com/tapglue/backend/v01/validator"
@@ -20,7 +19,7 @@ import (
 // getApplicationUser handles requests to retrieve a single user
 // Request: GET account/:AccountID/application/:ApplicationID/user/:UserID
 func getApplicationUser(ctx *context.Context) (err *tgerrors.TGError) {
-	utils.WriteResponse(ctx, ctx.ApplicationUser, http.StatusOK, 10)
+	WriteResponse(ctx, ctx.ApplicationUser, http.StatusOK, 10)
 	return
 }
 
@@ -48,7 +47,7 @@ func updateApplicationUser(ctx *context.Context) (err *tgerrors.TGError) {
 
 	updatedUser.Password = ""
 
-	utils.WriteResponse(ctx, updatedUser, http.StatusCreated, 0)
+	WriteResponse(ctx, updatedUser, http.StatusCreated, 0)
 	return
 }
 
@@ -59,7 +58,7 @@ func deleteApplicationUser(ctx *context.Context) (err *tgerrors.TGError) {
 		return
 	}
 
-	utils.WriteResponse(ctx, "", http.StatusNoContent, 10)
+	WriteResponse(ctx, "", http.StatusNoContent, 10)
 	return
 }
 
@@ -88,7 +87,7 @@ func createApplicationUser(ctx *context.Context) (err *tgerrors.TGError) {
 
 	user.Password = ""
 
-	utils.WriteResponse(ctx, user, http.StatusCreated, 0)
+	WriteResponse(ctx, user, http.StatusCreated, 0)
 	return
 }
 
@@ -146,7 +145,7 @@ func loginApplicationUser(ctx *context.Context) (err *tgerrors.TGError) {
 		return
 	}
 
-	utils.WriteResponse(ctx, struct {
+	WriteResponse(ctx, struct {
 		UserID int64  `json:"id"`
 		Token  string `json:"session_token"`
 	}{
@@ -179,7 +178,7 @@ func refreshApplicationUserSession(ctx *context.Context) (err *tgerrors.TGError)
 		return
 	}
 
-	utils.WriteResponse(ctx, struct {
+	WriteResponse(ctx, struct {
 		Token string `json:"session_token"`
 	}{Token: sessionToken}, http.StatusCreated, 0)
 	return
@@ -207,6 +206,6 @@ func logoutApplicationUser(ctx *context.Context) (err *tgerrors.TGError) {
 		return
 	}
 
-	utils.WriteResponse(ctx, "logged out", http.StatusOK, 0)
+	WriteResponse(ctx, "logged out", http.StatusOK, 0)
 	return
 }

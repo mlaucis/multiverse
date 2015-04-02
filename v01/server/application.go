@@ -8,9 +8,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/tapglue/backend/context"
-	"github.com/tapglue/backend/server/utils"
 	"github.com/tapglue/backend/tgerrors"
+	"github.com/tapglue/backend/v01/context"
 	"github.com/tapglue/backend/v01/core"
 	"github.com/tapglue/backend/v01/entity"
 	"github.com/tapglue/backend/v01/validator"
@@ -19,7 +18,7 @@ import (
 // getApplication handles requests to a single application
 // Request: GET /account/:AccountID/application/:ApplicatonID
 func getApplication(ctx *context.Context) (err *tgerrors.TGError) {
-	utils.WriteResponse(ctx, ctx.Application, http.StatusOK, 10)
+	WriteResponse(ctx, ctx.Application, http.StatusOK, 10)
 	return
 }
 
@@ -43,7 +42,7 @@ func updateApplication(ctx *context.Context) (err *tgerrors.TGError) {
 		return
 	}
 
-	utils.WriteResponse(ctx, updatedApplication, http.StatusCreated, 0)
+	WriteResponse(ctx, updatedApplication, http.StatusCreated, 0)
 	return
 }
 
@@ -54,7 +53,7 @@ func deleteApplication(ctx *context.Context) (err *tgerrors.TGError) {
 		return
 	}
 
-	utils.WriteResponse(ctx, "", http.StatusNoContent, 10)
+	WriteResponse(ctx, "", http.StatusNoContent, 10)
 	return
 }
 
@@ -79,7 +78,7 @@ func createApplication(ctx *context.Context) (err *tgerrors.TGError) {
 		return
 	}
 
-	utils.WriteResponse(ctx, application, http.StatusCreated, 0)
+	WriteResponse(ctx, application, http.StatusCreated, 0)
 	return
 }
 
@@ -100,6 +99,6 @@ func getApplicationList(ctx *context.Context) (err *tgerrors.TGError) {
 		Applications: applications,
 	}
 
-	utils.WriteResponse(ctx, response, http.StatusOK, 10)
+	WriteResponse(ctx, response, http.StatusOK, 10)
 	return
 }
