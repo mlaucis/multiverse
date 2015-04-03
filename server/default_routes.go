@@ -1,6 +1,9 @@
 package server
 
-import "net/http"
+import (
+	"encoding/json"
+	"net/http"
+)
 
 var generalRoutes = map[string]struct {
 	path    string
@@ -21,6 +24,11 @@ var generalRoutes = map[string]struct {
 		path:    "/robots.txt",
 		method:  "GET",
 		handler: robots,
+	},
+	"versions": {
+		path:    "/versions",
+		method:  "GET",
+		handler: versions,
 	},
 }
 
@@ -61,4 +69,16 @@ func robots(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	w.Write([]byte(`User-agent: *
 Disallow: /`))
+}
+
+// versions endpoint handles the api status for each api version
+// Request: GET /versions
+// Test with: curl -i localhost/versions
+func versions(w http.ResponseWriter, r *http.Request) {
+	writeCommonHeaders(24*3600, w, r)
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	json.NewEncoder(w).Encode(map[string]string{
+		"0.1": "deprecated",
+		"0.2": "current",
+	})
 }
