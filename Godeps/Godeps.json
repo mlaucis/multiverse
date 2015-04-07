@@ -6,6 +6,30 @@
 	],
 	"Deps": [
 		{
+			"ImportPath": "github.com/awslabs/aws-sdk-go/aws",
+			"Rev": "ca42d7a24bccc74ea13de0f0de66f31e2671026e"
+		},
+		{
+			"ImportPath": "github.com/awslabs/aws-sdk-go/internal/endpoints",
+			"Rev": "ca42d7a24bccc74ea13de0f0de66f31e2671026e"
+		},
+		{
+			"ImportPath": "github.com/awslabs/aws-sdk-go/internal/protocol/json/jsonutil",
+			"Rev": "ca42d7a24bccc74ea13de0f0de66f31e2671026e"
+		},
+		{
+			"ImportPath": "github.com/awslabs/aws-sdk-go/internal/protocol/jsonrpc",
+			"Rev": "ca42d7a24bccc74ea13de0f0de66f31e2671026e"
+		},
+		{
+			"ImportPath": "github.com/awslabs/aws-sdk-go/internal/signer/v4",
+			"Rev": "ca42d7a24bccc74ea13de0f0de66f31e2671026e"
+		},
+		{
+			"ImportPath": "github.com/awslabs/aws-sdk-go/service/kinesis",
+			"Rev": "ca42d7a24bccc74ea13de0f0de66f31e2671026e"
+		},
+		{
 			"ImportPath": "github.com/gorilla/context",
 			"Rev": "215affda49addc4c8ef7e2534915df2c8c35c6cd"
 		},
@@ -20,6 +44,10 @@
 		{
 			"ImportPath": "github.com/tapglue/georedis",
 			"Rev": "4abc17ce165e02bad11916862191b158d7b7848b"
+		},
+		{
+			"ImportPath": "github.com/vaughan0/go-ini",
+			"Rev": "a98ad7ee00ec53921f08832bc06ecf7fd600e6a1"
 		},
 		{
 			"ImportPath": "gopkg.in/bufio.v1",

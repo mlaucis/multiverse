@@ -1,0 +1,20 @@
+machine:
+  node:
+    version: 0.10.26
+  services:
+    - docker
+    - redis
+dependencies:
+  pre:
+    - echo "" > ~/.gitconfig
+    - docker run -d -t -p 4567:4567 dlsniper/kinesalite:1.4.1
+    - sudo pip install codecov
+    - go get -v -u github.com/tools/godep
+    - go get -v -u github.com/axw/gocov/gocov
+    - go get -v -u github.com/AlekSi/gocov-xml
+    - ./bin/test_configs.sh
+test:
+  override:
+    - cd v02/server && GOPATH=`godep path`:$GOPATH gocov test -race -check.v | GOPATH=`godep path`:$GOPATH gocov-xml > coverage.xml
+  post:
+    - cd v02/server && codecov --token=$CODECOV_TOKEN

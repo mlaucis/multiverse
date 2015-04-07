@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/tapglue/backend/config"
-	"github.com/tapglue/backend/storage/redis"
+	"github.com/tapglue/backend/v02/storage/redis"
 	"github.com/tapglue/backend/v02/storage"
 
 	. "gopkg.in/check.v1"
