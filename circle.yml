@@ -5,7 +5,7 @@ machine:
     - docker
     - redis
 dependencies:
-  pre:
+  override:
     - echo "" > ~/.gitconfig
     - docker run -d -t -p 4567:4567 dlsniper/kinesalite:1.4.1
     - sudo pip install codecov
