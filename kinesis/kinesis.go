@@ -8,18 +8,18 @@ import (
 	kinesis "github.com/sendgridlabs/go-kinesis"
 )
 
-func putRecord(ksis *kinesis.Kinesis, streamName string, i int) {
+func putRecord(ksis *kinesis.Kinesis, streamName string, partitionID int) {
 	time.Sleep(time.Duration(rand.Intn(100) * 100) * time.Millisecond)
 	args := kinesis.NewArgs()
 	args.Add("StreamName", streamName)
-	data := []byte(fmt.Sprintf("Hello AWS Kinesis %d", i))
-	partitionKey := fmt.Sprintf("partitionKey-%d", i)
+	data := []byte(fmt.Sprintf("Hello AWS Kinesis %d", partitionID))
+	partitionKey := fmt.Sprintf("partitionKey-%d", partitionID)
 	args.AddRecord(data, partitionKey)
 	resp4, err := ksis.PutRecord(args)
 	if err != nil {
 		fmt.Printf("PutRecord err: %v\n", err)
 	} else {
-		fmt.Printf("PutRecord: %d %v\n", i, resp4)
+		fmt.Printf("PutRecord: %d %v\n", partitionID, resp4)
 	}
 }
 
@@ -28,25 +28,33 @@ func getRecords(ksis *kinesis.Kinesis, streamName, ShardId, consumerName string)
 	args.Add("StreamName", streamName)
 	args.Add("ShardId", ShardId)
 	args.Add("ShardIteratorType", "TRIM_HORIZON")
-	resp10, _ := ksis.GetShardIterator(args)
+	resp10, err := ksis.GetShardIterator(args)
+	if err != nil {
+		panic(err)
+	}
 
 	shardIterator := resp10.ShardIterator
 
 	for {
 		args = kinesis.NewArgs()
+		if consumerName == "consumer1" {
+			args.Add("Limit", 1)
+		} else if consumerName == "consumer2" {
+			args.Add("Limit", 2)
+		} else {
+			args.Add("Limit", 10)
+		}
 		args.Add("ShardIterator", shardIterator)
 		resp11, err := ksis.GetRecords(args)
 		if err != nil {
-			time.Sleep(1000 * time.Millisecond)
+			time.Sleep(1 * time.Second)
 			continue
 		}
 
 		if len(resp11.Records) > 0 {
-			fmt.Printf("[%s] GetRecords Data BEGIN\n", consumerName)
 			for _, d := range resp11.Records {
 				fmt.Printf("[%s] GetRecords  Data: %v\n", consumerName, string(d.GetData()))
 			}
-			fmt.Printf("[%s] GetRecords Data END\n", consumerName)
 		} else if resp11.NextShardIterator == "" || shardIterator == resp11.NextShardIterator || err != nil {
 			fmt.Printf("[%s] GetRecords ERROR: %v\n", consumerName, err)
 			break
@@ -54,17 +62,20 @@ func getRecords(ksis *kinesis.Kinesis, streamName, ShardId, consumerName string)
 
 		shardIterator = resp11.NextShardIterator
 		if consumerName == "consumer1" {
-			time.Sleep(1000 * time.Millisecond)
+			time.Sleep(1 * time.Second)
 		} else {
-			time.Sleep(2000 * time.Millisecond)
+			time.Sleep(2 * time.Second)
 		}
 	}
 }
 
 func describeStream(ksis *kinesis.Kinesis, streamName string) *kinesis.DescribeStreamResp {
 	args := kinesis.NewArgs()
-	resp2, _ := ksis.ListStreams(args)
-	fmt.Printf("ListStreams: %v\n", resp2)
+	listStreams, err := ksis.ListStreams(args)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("ListStreams: %v\n", listStreams)
 
 	resp := &kinesis.DescribeStreamResp{}
 
@@ -72,7 +83,10 @@ func describeStream(ksis *kinesis.Kinesis, streamName string) *kinesis.DescribeS
 	for {
 		args = kinesis.NewArgs()
 		args.Add("StreamName", streamName)
-		resp, _ = ksis.DescribeStream(args)
+		resp, err = ksis.DescribeStream(args)
+		if err != nil {
+			panic(err)
+		}
 		fmt.Printf("DescribeStream: %v\n", resp)
 
 		if resp.StreamDescription.StreamStatus != "ACTIVE" {
@@ -110,19 +124,31 @@ func main() {
 
 	stream := describeStream(ksis, streamName)
 
-	for _, shard := range stream.StreamDescription.Shards {
-		go getRecords(ksis, streamName, shard.ShardId, "consumer1")
-		go getRecords(ksis, streamName, shard.ShardId, "consumer2")
+	for idx := range stream.StreamDescription.Shards {
+		go getRecords(ksis, streamName, stream.StreamDescription.Shards[idx].ShardId, "consumer1")
+		go getRecords(ksis, streamName, stream.StreamDescription.Shards[idx].ShardId, "consumer2")
 	}
 
 	// Wait for user input
-	var inputGuess string
+	var (
+		inputGuess string
+		newConsumer = make(chan bool, 1)
+	)
 	fmt.Printf("waiting for input: ")
 	fmt.Scanf("%s\n", &inputGuess)
+
+	go func() {
+		<- time.After(20 * time.Second)
+		newConsumer <- true
+	}()
 
 	var i int
 	for {
 		select {
+		case <- newConsumer:
+			for idx := range stream.StreamDescription.Shards {
+				go getRecords(ksis, streamName, stream.StreamDescription.Shards[idx].ShardId, "consumer3")
+			}
 		case <- time.After(time.Duration(1) * time.Second):
 			go putRecord(ksis, streamName, i)
 			i++
