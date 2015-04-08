@@ -12,7 +12,7 @@ func putRecord(ksis *kinesis.Kinesis, streamName string, partitionID int) {
 	time.Sleep(time.Duration(rand.Intn(100) * 100) * time.Millisecond)
 	args := kinesis.NewArgs()
 	args.Add("StreamName", streamName)
-	data := []byte(fmt.Sprintf("Hello AWS Kinesis %d", partitionID))
+	data := []byte(fmt.Sprintf("Hello AWS Kinesis %s %d", streamName, partitionID))
 	partitionKey := fmt.Sprintf("partitionKey-%d", partitionID)
 	args.AddRecord(data, partitionKey)
 	resp4, err := ksis.PutRecord(args)
@@ -115,18 +115,25 @@ func setUp(ksis *kinesis.Kinesis, streamName string) {
 func main() {
 	fmt.Println("Begin")
 
-	streamName := "test"
+	stream1Name := "test1"
+	stream2Name := "test2"
 	// set env variables AWS_ACCESS_KEY and AWS_SECRET_KEY AWS_REGION_NAME
 	auth := kinesis.NewAuth()
 	ksis := kinesis.NewWithEndpoint(&auth, kinesis.Region{Name: "eu-central-1"}, "http://127.0.0.1:4567")
 
-	setUp(ksis, streamName)
+	setUp(ksis, stream1Name)
+	setUp(ksis, stream2Name)
 
-	stream := describeStream(ksis, streamName)
+	stream1 := describeStream(ksis, stream1Name)
+	stream2 := describeStream(ksis, stream2Name)
 
-	for idx := range stream.StreamDescription.Shards {
-		go getRecords(ksis, streamName, stream.StreamDescription.Shards[idx].ShardId, "consumer1")
-		go getRecords(ksis, streamName, stream.StreamDescription.Shards[idx].ShardId, "consumer2")
+	for idx := range stream1.StreamDescription.Shards {
+		go getRecords(ksis, stream1Name, stream1.StreamDescription.Shards[idx].ShardId, "s1c1")
+		go getRecords(ksis, stream1Name, stream1.StreamDescription.Shards[idx].ShardId, "s1c2")
+	}
+	for idx := range stream2.StreamDescription.Shards {
+		go getRecords(ksis, stream2Name, stream2.StreamDescription.Shards[idx].ShardId, "s2c1")
+		go getRecords(ksis, stream2Name, stream2.StreamDescription.Shards[idx].ShardId, "s2c2")
 	}
 
 	// Wait for user input
@@ -146,11 +153,16 @@ func main() {
 	for {
 		select {
 		case <- newConsumer:
-			for idx := range stream.StreamDescription.Shards {
-				go getRecords(ksis, streamName, stream.StreamDescription.Shards[idx].ShardId, "consumer3")
+			for idx := range stream1.StreamDescription.Shards {
+				go getRecords(ksis, stream1Name, stream1.StreamDescription.Shards[idx].ShardId, "s1c3")
+			}
+
+			for idx := range stream2.StreamDescription.Shards {
+				go getRecords(ksis, stream2Name, stream2.StreamDescription.Shards[idx].ShardId, "s2c3")
 			}
 		case <- time.After(time.Duration(1) * time.Second):
-			go putRecord(ksis, streamName, i)
+			go putRecord(ksis, stream1Name, i)
+			go putRecord(ksis, stream2Name, i)
 			i++
 		}
 	}
