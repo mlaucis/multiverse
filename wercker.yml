@@ -33,24 +33,12 @@ build:
           export WERCKER_SOURCE_DIR=${GOPATH}/src/github.com/tapglue/backend
           cd $WERCKER_SOURCE_DIR/v01/server
           GOPATH=`godep path`:$GOPATH gocov test -race -coverpkg=github.com/tapglue/backend/v01/server,github.com/tapglue/backend/v01/core,github.com/tapglue/backend/v01/context,github.com/tapglue/backend/v01/storage,github.com/tapglue/backend/v01/storage/redis,github.com/tapglue/backend/v01/validator,github.com/tapglue/backend/v01/validator/keys,github.com/tapglue/backend/v01/validator/tokens,github.com/tapglue/backend/v01/fixtures,github.com/tapglue/backend/v01/entity -check.v | GOPATH=`godep path`:$GOPATH gocov-xml > coverage.xml
-    - script:
-        name: test server v02
-        code: |-
-          export WERCKER_SOURCE_DIR=${GOPATH}/src/github.com/tapglue/backend
-          cd $WERCKER_SOURCE_DIR/v02/server
-          GOPATH=`godep path`:$GOPATH gocov test -race -coverpkg=github.com/tapglue/backend/v02/server,github.com/tapglue/backend/v02/core,github.com/tapglue/backend/v02/context,github.com/tapglue/backend/v02/storage,github.com/tapglue/backend/v02/storage/redis,github.com/tapglue/backend/v02/validator,github.com/tapglue/backend/v02/validator/keys,github.com/tapglue/backend/v02/validator/tokens,github.com/tapglue/backend/v02/fixtures,github.com/tapglue/backend/v02/entity -check.v | GOPATH=`godep path`:$GOPATH gocov-xml > coverage.xml
-    - script:
-        name: codecov server v01
-        code: |-
-          export WERCKER_SOURCE_DIR=${GOPATH}/src/github.com/tapglue/backend
-          cd $WERCKER_SOURCE_DIR/v01/server
-          codecov --token=$CODECOV_TOKEN
-    - script:
-        name: codecov server v02
-        code: |-
-          export WERCKER_SOURCE_DIR=${GOPATH}/src/github.com/tapglue/backend
-          cd $WERCKER_SOURCE_DIR/v02/server
-          codecov --token=$CODECOV_TOKEN
+#    - script:
+#        name: codecov server v01
+#        code: |-
+#          export WERCKER_SOURCE_DIR=${GOPATH}/src/github.com/tapglue/backend
+#          cd $WERCKER_SOURCE_DIR/v01/server
+#          codecov --token=$CODECOV_TOKEN
   after-steps:
         - sherzberg/slack-notify:
             subdomain: tapglue
