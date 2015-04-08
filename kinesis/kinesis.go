@@ -2,14 +2,14 @@ package main
 
 import (
 	"fmt"
-	"time"
 	"math/rand"
+	"time"
 
 	kinesis "github.com/sendgridlabs/go-kinesis"
 )
 
 func putRecord(ksis *kinesis.Kinesis, streamName string, partitionID int) {
-	time.Sleep(time.Duration(rand.Intn(100) * 100) * time.Millisecond)
+	time.Sleep(time.Duration(rand.Intn(100)*100) * time.Millisecond)
 	args := kinesis.NewArgs()
 	args.Add("StreamName", streamName)
 	data := []byte(fmt.Sprintf("Hello AWS Kinesis %s %d", streamName, partitionID))
@@ -23,10 +23,10 @@ func putRecord(ksis *kinesis.Kinesis, streamName string, partitionID int) {
 	}
 }
 
-func getRecords(ksis *kinesis.Kinesis, streamName, ShardId, consumerName string) {
+func getRecords(ksis *kinesis.Kinesis, streamName, ShardID, consumerName string) {
 	args := kinesis.NewArgs()
 	args.Add("StreamName", streamName)
-	args.Add("ShardId", ShardId)
+	args.Add("ShardId", ShardID)
 	args.Add("ShardIteratorType", "TRIM_HORIZON")
 	resp10, err := ksis.GetShardIterator(args)
 	if err != nil {
@@ -138,21 +138,21 @@ func main() {
 
 	// Wait for user input
 	var (
-		inputGuess string
+		inputGuess  string
 		newConsumer = make(chan bool, 1)
 	)
 	fmt.Printf("waiting for input: ")
 	fmt.Scanf("%s\n", &inputGuess)
 
 	go func() {
-		<- time.After(20 * time.Second)
+		<-time.After(20 * time.Second)
 		newConsumer <- true
 	}()
 
 	var i int
 	for {
 		select {
-		case <- newConsumer:
+		case <-newConsumer:
 			for idx := range stream1.StreamDescription.Shards {
 				go getRecords(ksis, stream1Name, stream1.StreamDescription.Shards[idx].ShardId, "s1c3")
 			}
@@ -160,12 +160,10 @@ func main() {
 			for idx := range stream2.StreamDescription.Shards {
 				go getRecords(ksis, stream2Name, stream2.StreamDescription.Shards[idx].ShardId, "s2c3")
 			}
-		case <- time.After(time.Duration(1) * time.Second):
+		case <-time.After(time.Duration(1) * time.Second):
 			go putRecord(ksis, stream1Name, i)
 			go putRecord(ksis, stream2Name, i)
 			i++
 		}
 	}
-
-	fmt.Println("End")
 }

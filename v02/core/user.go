@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/tapglue/backend/tgerrors"
-	. "github.com/tapglue/backend/utils"
+	"github.com/tapglue/backend/utils"
 	"github.com/tapglue/backend/v02/entity"
 )
 
@@ -52,10 +52,10 @@ func UpdateUser(existingUser, updatedUser entity.User, retrieve bool) (usr *enti
 	}
 
 	if existingUser.Email != updatedUser.Email {
-		emailListKey := storageClient.ApplicationUserByEmail(existingUser.AccountID, existingUser.ApplicationID, Base64Encode(existingUser.Email))
+		emailListKey := storageClient.ApplicationUserByEmail(existingUser.AccountID, existingUser.ApplicationID, utils.Base64Encode(existingUser.Email))
 		_, er = storageEngine.Del(emailListKey).Result()
 
-		emailListKey = storageClient.ApplicationUserByEmail(existingUser.AccountID, existingUser.ApplicationID, Base64Encode(updatedUser.Email))
+		emailListKey = storageClient.ApplicationUserByEmail(existingUser.AccountID, existingUser.ApplicationID, utils.Base64Encode(updatedUser.Email))
 		er = storageEngine.Set(emailListKey, fmt.Sprintf("%d", updatedUser.ID)).Err()
 		if er != nil {
 			return nil, tgerrors.NewInternalError("failed to update the application user (3)", er.Error())
@@ -63,10 +63,10 @@ func UpdateUser(existingUser, updatedUser entity.User, retrieve bool) (usr *enti
 	}
 
 	if existingUser.Username != updatedUser.Username {
-		usernameListKey := storageClient.ApplicationUserByUsername(existingUser.AccountID, existingUser.ApplicationID, Base64Encode(existingUser.Username))
+		usernameListKey := storageClient.ApplicationUserByUsername(existingUser.AccountID, existingUser.ApplicationID, utils.Base64Encode(existingUser.Username))
 		_, er = storageEngine.Del(usernameListKey).Result()
 
-		usernameListKey = storageClient.ApplicationUserByUsername(existingUser.AccountID, existingUser.ApplicationID, Base64Encode(updatedUser.Username))
+		usernameListKey = storageClient.ApplicationUserByUsername(existingUser.AccountID, existingUser.ApplicationID, utils.Base64Encode(updatedUser.Username))
 		er = storageEngine.Set(usernameListKey, fmt.Sprintf("%d", updatedUser.ID)).Err()
 
 		if er != nil {
@@ -207,7 +207,7 @@ func WriteUser(user *entity.User, retrieve bool) (usr *entity.User, err *tgerror
 
 	stringUserID := fmt.Sprintf("%d", user.ID)
 
-	emailListKey := storageClient.ApplicationUserByEmail(user.AccountID, user.ApplicationID, Base64Encode(user.Email))
+	emailListKey := storageClient.ApplicationUserByEmail(user.AccountID, user.ApplicationID, utils.Base64Encode(user.Email))
 	result, er := storageEngine.SetNX(emailListKey, stringUserID).Result()
 	if er != nil {
 		return nil, tgerrors.NewInternalError("failed to write the application user (6)", er.Error())
@@ -216,7 +216,7 @@ func WriteUser(user *entity.User, retrieve bool) (usr *entity.User, err *tgerror
 		return nil, tgerrors.NewInternalError("failed to write the application user (7)", "duplicate user by e-mail")
 	}
 
-	usernameListKey := storageClient.ApplicationUserByUsername(user.AccountID, user.ApplicationID, Base64Encode(user.Username))
+	usernameListKey := storageClient.ApplicationUserByUsername(user.AccountID, user.ApplicationID, utils.Base64Encode(user.Username))
 	result, er = storageEngine.SetNX(usernameListKey, stringUserID).Result()
 	if er != nil {
 		return nil, tgerrors.NewInternalError("failed to write the application user (8)", er.Error())
@@ -232,7 +232,7 @@ func WriteUser(user *entity.User, retrieve bool) (usr *entity.User, err *tgerror
 			user.AccountID,
 			user.ApplicationID,
 			idx,
-			Base64Encode(user.SocialIDs[idx]),
+			utils.Base64Encode(user.SocialIDs[idx]),
 		)
 		socialValues = append(socialValues, applicationSocialKey, stringUserID)
 	}
@@ -253,7 +253,7 @@ func WriteUser(user *entity.User, retrieve bool) (usr *entity.User, err *tgerror
 					user.AccountID,
 					user.ApplicationID,
 					socialPlatform,
-					Base64Encode(user.SocialConnectionsIDs[socialPlatform][idx]),
+					utils.Base64Encode(user.SocialConnectionsIDs[socialPlatform][idx]),
 				)
 				existingSocialIDsKeys = append(existingSocialIDsKeys, applicationSocialKey)
 			}
@@ -389,21 +389,21 @@ func DestroyApplicationUserSession(sessionToken string, user *entity.User) *tger
 
 // ApplicationUserByEmailExists checks if an application user exists by searching it via the email
 func ApplicationUserByEmailExists(accountID, applicationID int64, email string) (bool, error) {
-	emailListKey := storageClient.ApplicationUserByEmail(accountID, applicationID, Base64Encode(email))
+	emailListKey := storageClient.ApplicationUserByEmail(accountID, applicationID, utils.Base64Encode(email))
 
 	return storageEngine.Exists(emailListKey).Result()
 }
 
 // FindApplicationUserByEmail returns an application user by its email
 func FindApplicationUserByEmail(accountID, applicationID int64, email string) (*entity.User, *tgerrors.TGError) {
-	emailListKey := storageClient.ApplicationUserByEmail(accountID, applicationID, Base64Encode(email))
+	emailListKey := storageClient.ApplicationUserByEmail(accountID, applicationID, utils.Base64Encode(email))
 
 	return findApplicationUserByKey(accountID, applicationID, emailListKey)
 }
 
 // FindApplicationUserByUsername returns an application user by its username
 func FindApplicationUserByUsername(accountID, applicationID int64, username string) (*entity.User, *tgerrors.TGError) {
-	usernameListKey := storageClient.ApplicationUserByUsername(accountID, applicationID, Base64Encode(username))
+	usernameListKey := storageClient.ApplicationUserByUsername(accountID, applicationID, utils.Base64Encode(username))
 
 	return findApplicationUserByKey(accountID, applicationID, usernameListKey)
 }

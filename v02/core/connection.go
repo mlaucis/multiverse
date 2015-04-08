@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/tapglue/backend/tgerrors"
-	. "github.com/tapglue/backend/utils"
+	"github.com/tapglue/backend/utils"
 	"github.com/tapglue/backend/v02/entity"
 
 	red "gopkg.in/redis.v2"
@@ -288,7 +288,7 @@ func SocialConnect(user *entity.User, platform string, socialFriendsIDs []string
 			user.AccountID,
 			user.ApplicationID,
 			platform,
-			Base64Encode(socialFriendsIDs[idx])))
+			utils.Base64Encode(socialFriendsIDs[idx])))
 	}
 
 	ourStoredUsersIDs, er := storageEngine.MGet(encodedSocialFriendsIDs...).Result()
