@@ -11,16 +11,18 @@ import (
 	"math/rand"
 	"time"
 
-	. "github.com/tapglue/backend/utils"
+	"github.com/tapglue/backend/utils"
 	"github.com/tapglue/backend/v02/entity"
 
+	"github.com/sendgridlabs/go-kinesis"
 	red "gopkg.in/redis.v2"
 )
 
 type (
 	// Client structure holds the storage engine and functions needed to operate the backend
 	Client struct {
-		engine *red.Client
+		redisEngine   *red.Client
+		kinesisEngine *kinesis.Kinesis
 	}
 )
 
@@ -89,17 +91,17 @@ func generateTokenSalt(size int) string {
 
 // GenerateAccountID generates a new account ID
 func (client *Client) GenerateAccountID() (int64, error) {
-	return client.engine.Incr(idAccount).Result()
+	return client.redisEngine.Incr(idAccount).Result()
 }
 
 // GenerateAccountUserID generates a new account user id for a specified account
 func (client *Client) GenerateAccountUserID(accountID int64) (int64, error) {
-	return client.engine.Incr(fmt.Sprintf(idAccountUser, accountID)).Result()
+	return client.redisEngine.Incr(fmt.Sprintf(idAccountUser, accountID)).Result()
 }
 
 // GenerateApplicationID generates a new application ID
 func (client *Client) GenerateApplicationID(accountID int64) (int64, error) {
-	return client.engine.Incr(fmt.Sprintf(idAccountApp, accountID)).Result()
+	return client.redisEngine.Incr(fmt.Sprintf(idAccountApp, accountID)).Result()
 }
 
 // GenerateAccountSecretKey returns a token for the specified application of an account
@@ -117,7 +119,7 @@ func (client *Client) GenerateAccountSecretKey(account *entity.Account) string {
 	)))
 	token := hasher.Sum(nil)
 
-	return Base64Encode(fmt.Sprintf(
+	return utils.Base64Encode(fmt.Sprintf(
 		"%d:%s",
 		account.ID,
 		string(token),
@@ -140,7 +142,7 @@ func (client *Client) GenerateApplicationSecretKey(application *entity.Applicati
 	)))
 	token := hasher.Sum(nil)
 
-	return Base64Encode(fmt.Sprintf(
+	return utils.Base64Encode(fmt.Sprintf(
 		"%d:%d:%s",
 		application.AccountID,
 		application.ID,
@@ -150,19 +152,19 @@ func (client *Client) GenerateApplicationSecretKey(application *entity.Applicati
 
 // GenerateApplicationUserID generates the user id in the specified app
 func (client *Client) GenerateApplicationUserID(applicationID int64) (int64, error) {
-	return client.engine.Incr(fmt.Sprintf(idApplicationUser, applicationID)).Result()
+	return client.redisEngine.Incr(fmt.Sprintf(idApplicationUser, applicationID)).Result()
 }
 
 // GenerateApplicationEventID generates the event id in the specified app
 func (client *Client) GenerateApplicationEventID(applicationID int64) (int64, error) {
-	return client.engine.Incr(fmt.Sprintf(idApplicationEvent, applicationID)).Result()
+	return client.redisEngine.Incr(fmt.Sprintf(idApplicationEvent, applicationID)).Result()
 }
 
 // GenerateAccountSessionID generated the session id for the specific
 func (client *Client) GenerateAccountSessionID(user *entity.AccountUser) string {
 	randomToken := generateTokenSalt(16)
 
-	return Base64Encode(fmt.Sprintf(
+	return utils.Base64Encode(fmt.Sprintf(
 		"%d:%d:%s:%s",
 		user.AccountID,
 		user.ID,
@@ -175,7 +177,7 @@ func (client *Client) GenerateAccountSessionID(user *entity.AccountUser) string 
 func (client *Client) GenerateApplicationSessionID(user *entity.User) string {
 	randomToken := generateTokenSalt(16)
 
-	return Base64Encode(fmt.Sprintf(
+	return utils.Base64Encode(fmt.Sprintf(
 		"%d:%d:%d:%s:%s",
 		user.AccountID,
 		user.ApplicationID,
@@ -187,10 +189,10 @@ func (client *Client) GenerateApplicationSessionID(user *entity.User) string {
 
 // GenerateEncryptedPassword generates and encrypted password using the specific salt and time
 func (client *Client) GenerateEncryptedPassword(password, salt, time string) string {
-	return Base64Encode(
-		Sha256String(
-			Sha256String(
-				Sha256String(password+salt)+
+	return utils.Base64Encode(
+		utils.Sha256String(
+			utils.Sha256String(
+				utils.Sha256String(password+salt)+
 					time) +
 				"passwd"),
 	)
@@ -202,7 +204,7 @@ func (client *Client) EncryptPassword(password string) string {
 	timestamp := time.Now().Format(time.RFC3339)
 	encryptedPassword := client.GenerateEncryptedPassword(password, salt, timestamp)
 
-	return Base64Encode(fmt.Sprintf("%s:%s:%s", Base64Encode(salt), Base64Encode(timestamp), encryptedPassword))
+	return utils.Base64Encode(fmt.Sprintf("%s:%s:%s", utils.Base64Encode(salt), utils.Base64Encode(timestamp), encryptedPassword))
 }
 
 // Account returns the key for a specified account
@@ -335,16 +337,22 @@ func (client *Client) SessionTimeoutDuration() time.Duration {
 	return time.Duration(time.Hour * 24 * 356 * 10)
 }
 
-// Engine returns the storage engine used
-func (client *Client) Engine() *red.Client {
-	return client.engine
+// RedisEngine returns the storage engine used
+func (client *Client) RedisEngine() *red.Client {
+	return client.redisEngine
+}
+
+// KinesisEngine returns the storage engine used
+func (client *Client) KinesisEngine() *kinesis.Kinesis {
+	return client.kinesisEngine
 }
 
 // Init initializes the storage package with the required storage engine
-func Init(engine *red.Client) *Client {
+func Init(redisEngine *red.Client, kinesisEngine *kinesis.Kinesis) *Client {
 	if instance == nil {
 		instance = &Client{
-			engine: engine,
+			redisEngine:   redisEngine,
+			kinesisEngine: kinesisEngine,
 		}
 	}
 

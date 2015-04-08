@@ -5,30 +5,30 @@
 
 package fixtures
 
-import . "github.com/tapglue/backend/v01/entity"
+import "github.com/tapglue/backend/v01/entity"
 
 // Definition of test data
 var (
-	EmtpyAccount     = Account{}
-	EmtpyAccountUser = AccountUser{}
-	EmptyApplication = Application{}
-	EmptyUser        = User{}
-	EmptyEvent       = Event{}
-	CorrectAccount   = Account{
+	EmtpyAccount     = entity.Account{}
+	EmtpyAccountUser = entity.AccountUser{}
+	EmptyApplication = entity.Application{}
+	EmptyUser        = entity.User{}
+	EmptyEvent       = entity.Event{}
+	CorrectAccount   = entity.Account{
 		Name:        "Demo",
 		Description: "This is a demo account",
-		Common: Common{
+		Common: entity.Common{
 			Enabled: true,
 		},
 	}
-	CorrectAccountBig = Account{
+	CorrectAccountBig = entity.Account{
 		Name: "Demozdr;aryprawurpaiw;ayeaasjhdsakjdlksajdlsakjlsakdjsalkdjlkasfja;sjflsakfaf[wor3pouarjlkfhzslkfhasfha;fha;kfhaslkgjas;lfjajsdhals;jfasljfhals;fja;skfhas;lfjas;kfhaslkghas;kghaslkghaslfhdlsakjdaslfasjas;lgjsaljgajgasjgasgas;k'saldksa;gosaeugauypaotyaptua;otyqpotyapyrqyrapytalktypawrpauadadasasdads",
-		Common: Common{
+		Common: entity.Common{
 			Enabled: true,
 		},
 	}
-	CorrectAccountUser = AccountUser{
-		UserCommon: UserCommon{
+	CorrectAccountUser = entity.AccountUser{
+		UserCommon: entity.UserCommon{
 			Username:  "Demo User",
 			FirstName: "First name",
 			LastName:  "Last Name",
@@ -36,13 +36,13 @@ var (
 			Email:     "d@m.o",
 		},
 	}
-	CorrectApplication = Application{
+	CorrectApplication = entity.Application{
 		Name:        "Demo App",
 		Description: "This is the best application",
 		URL:         "http://tapglue.com",
 	}
-	CorrectUser = User{
-		UserCommon: UserCommon{
+	CorrectUser = entity.User{
+		UserCommon: entity.UserCommon{
 			Username:  "demouser",
 			FirstName: "Demo",
 			LastName:  "User",
@@ -50,8 +50,8 @@ var (
 			Email:     "user@tapglue.com",
 			URL:       "http://tapglue.com/users/1/demouser",
 		},
-		Common: Common{
-			Image: []*Image{
+		Common: entity.Common{
+			Image: []*entity.Image{
 				{
 					URL: "http://images.tapglue.com/1/demouser/profile.jpg",
 				},
@@ -59,20 +59,20 @@ var (
 			Metadata: "{\"customData\":\"customValue\"}",
 		},
 	}
-	CorrectConnection = Connection{
-		Common: Common{
+	CorrectConnection = entity.Connection{
+		Common: entity.Common{
 			Enabled: true,
 		},
 	}
-	CorrectEvent = Event{
+	CorrectEvent = entity.Event{
 		Verb:     "like",
 		Language: "en",
-		Object: &Object{
+		Object: &entity.Object{
 			DisplayName: map[string]string{
 				"en": "Event performed",
 			},
 		},
-		Common: Common{
+		Common: entity.Common{
 			Metadata: "{\"more\":\"data\"}",
 		},
 	}

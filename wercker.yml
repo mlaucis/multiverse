@@ -27,42 +27,18 @@ build:
           cd $WERCKER_SOURCE_DIR
           godep go build -o tapglue-backend backend.go
           cp tapglue-backend ${WERCKER_OUTPUT_DIR}/
-#    - script:
-#        name: test core
-#        code: |-
-#          export WERCKER_SOURCE_DIR=${GOPATH}/src/github.com/tapglue/backend
-#          cd $WERCKER_SOURCE_DIR/core
-#          go test -race -check.v
     - script:
         name: test server v01
         code: |-
           export WERCKER_SOURCE_DIR=${GOPATH}/src/github.com/tapglue/backend
           cd $WERCKER_SOURCE_DIR/v01/server
-          GOPATH=`godep path`:$GOPATH gocov test -race -check.v | GOPATH=`godep path`:$GOPATH gocov-xml > coverage.xml
-    - script:
-            name: test server v02
-            code: |-
-              export WERCKER_SOURCE_DIR=${GOPATH}/src/github.com/tapglue/backend
-              cd $WERCKER_SOURCE_DIR/v02/server
-              GOPATH=`godep path`:$GOPATH gocov test -race -check.v | GOPATH=`godep path`:$GOPATH gocov-xml > coverage.xml
-    - script:
-        name: codecov server v01
-        code: |-
-          export WERCKER_SOURCE_DIR=${GOPATH}/src/github.com/tapglue/backend
-          cd $WERCKER_SOURCE_DIR/v01/server
-          codecov --token=$CODECOV_TOKEN
-    - script:
-        name: codecov server v02
-        code: |-
-          export WERCKER_SOURCE_DIR=${GOPATH}/src/github.com/tapglue/backend
-          cd $WERCKER_SOURCE_DIR/v02/server
-          codecov --token=$CODECOV_TOKEN
+          GOPATH=`godep path`:$GOPATH gocov test -race -coverpkg=github.com/tapglue/backend/v01/server,github.com/tapglue/backend/v01/core,github.com/tapglue/backend/v01/context,github.com/tapglue/backend/v01/storage,github.com/tapglue/backend/v01/storage/redis,github.com/tapglue/backend/v01/validator,github.com/tapglue/backend/v01/validator/keys,github.com/tapglue/backend/v01/validator/tokens,github.com/tapglue/backend/v01/fixtures,github.com/tapglue/backend/v01/entity -check.v | GOPATH=`godep path`:$GOPATH gocov-xml > coverage.xml
 #    - script:
-#        name: bechmark core
+#        name: codecov server v01
 #        code: |-
 #          export WERCKER_SOURCE_DIR=${GOPATH}/src/github.com/tapglue/backend
-#          cd $WERCKER_SOURCE_DIR/core
-#          go test -check.b
+#          cd $WERCKER_SOURCE_DIR/v01/server
+#          codecov --token=$CODECOV_TOKEN
   after-steps:
         - sherzberg/slack-notify:
             subdomain: tapglue

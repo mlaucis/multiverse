@@ -17,14 +17,14 @@ import (
 
 // getApplication handles requests to a single application
 // Request: GET /account/:AccountID/application/:ApplicatonID
-func getApplication(ctx *context.Context) (err *tgerrors.TGError) {
+func GetApplication(ctx *context.Context) (err *tgerrors.TGError) {
 	WriteResponse(ctx, ctx.Application, http.StatusOK, 10)
 	return
 }
 
 // updateApplication handles requests updates an application
 // Request: PUT /account/:AccountID/application/:ApplicatonID
-func updateApplication(ctx *context.Context) (err *tgerrors.TGError) {
+func UpdateApplication(ctx *context.Context) (err *tgerrors.TGError) {
 	application := *ctx.Application
 	if er := json.Unmarshal(ctx.Body, &application); er != nil {
 		return tgerrors.NewBadRequestError("failed to update the application (1)\n"+er.Error(), er.Error())
@@ -48,7 +48,7 @@ func updateApplication(ctx *context.Context) (err *tgerrors.TGError) {
 
 // deleteApplication handles requests to delete a single application
 // Request: DELETE /account/:AccountID/application/:ApplicatonID
-func deleteApplication(ctx *context.Context) (err *tgerrors.TGError) {
+func DeleteApplication(ctx *context.Context) (err *tgerrors.TGError) {
 	if err = core.DeleteApplication(ctx.AccountID, ctx.ApplicationID); err != nil {
 		return
 	}
@@ -59,7 +59,7 @@ func deleteApplication(ctx *context.Context) (err *tgerrors.TGError) {
 
 // createApplication handles requests create an application
 // Request: POST /account/:AccountID/applications
-func createApplication(ctx *context.Context) (err *tgerrors.TGError) {
+func CreateApplication(ctx *context.Context) (err *tgerrors.TGError) {
 	var (
 		application = &entity.Application{}
 	)
@@ -84,7 +84,7 @@ func createApplication(ctx *context.Context) (err *tgerrors.TGError) {
 
 // getApplicationList handles requests list all account applications
 // Request: GET /account/:AccountID/applications
-func getApplicationList(ctx *context.Context) (err *tgerrors.TGError) {
+func GetApplicationList(ctx *context.Context) (err *tgerrors.TGError) {
 	var (
 		applications []*entity.Application
 	)

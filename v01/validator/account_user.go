@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/tapglue/backend/tgerrors"
-	. "github.com/tapglue/backend/utils"
+	"github.com/tapglue/backend/utils"
 	"github.com/tapglue/backend/v01/entity"
 )
 
@@ -197,7 +197,7 @@ func UpdateAccountUser(existingAccountUser, updatedAccountUser *entity.AccountUs
 
 // AccountUserCredentialsValid checks is a certain user has the right credentials
 func AccountUserCredentialsValid(password string, user *entity.AccountUser) *tgerrors.TGError {
-	pass, err := Base64Decode(user.Password)
+	pass, err := utils.Base64Decode(user.Password)
 	if err != nil {
 		return tgerrors.NewInternalError("failed to validate account user credentials (1)", err.Error())
 	}
@@ -206,12 +206,12 @@ func AccountUserCredentialsValid(password string, user *entity.AccountUser) *tge
 		return tgerrors.NewInternalError("failed to validate account user credentials (2)", "invalid password parts")
 	}
 
-	salt, err := Base64Decode(passwordParts[0])
+	salt, err := utils.Base64Decode(passwordParts[0])
 	if err != nil {
 		return tgerrors.NewInternalError("failed to validate account user credentials (3)", err.Error())
 	}
 
-	timestamp, err := Base64Decode(passwordParts[1])
+	timestamp, err := utils.Base64Decode(passwordParts[1])
 	if err != nil {
 		return tgerrors.NewInternalError("failed to validate account user credentials (4)", err.Error())
 	}
@@ -233,7 +233,7 @@ func CheckAccountSession(r *http.Request) (string, *tgerrors.TGError) {
 	}
 
 	encodedIds := r.Header.Get("x-tapglue-id")
-	decodedIds, err := Base64Decode(encodedIds)
+	decodedIds, err := utils.Base64Decode(encodedIds)
 	if err != nil {
 		return "", tgerrors.NewBadRequestError("failed to check session token (2)\nmalformed token received", err.Error())
 	}
@@ -243,7 +243,7 @@ func CheckAccountSession(r *http.Request) (string, *tgerrors.TGError) {
 		return "", tgerrors.NewBadRequestError("failed to check session token (3)\nmalformed token received", err.Error())
 	}
 
-	sessionToken, err := Base64Decode(encodedSessionToken)
+	sessionToken, err := utils.Base64Decode(encodedSessionToken)
 	if err != nil {
 		return "", tgerrors.NewBadRequestError("failed to check session token (4)\nmalformed token received", err.Error())
 	}

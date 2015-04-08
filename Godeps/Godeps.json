@@ -14,6 +14,11 @@
 			"Rev": "8a875a034c69b940914d83ea03d3f1299b4d094b"
 		},
 		{
+			"ImportPath": "github.com/sendgridlabs/go-kinesis",
+			"Comment": "0.3.0",
+			"Rev": "ac2b00fc3317cbec63b0f7b3d67e2daa86147e1b"
+		},
+		{
 			"ImportPath": "github.com/tapglue/geohash",
 			"Rev": "21724955d6d39d9bc671507e03869681fcfae043"
 		},

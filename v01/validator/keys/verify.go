@@ -10,13 +10,13 @@ import (
 	"strings"
 
 	"github.com/tapglue/backend/tgerrors"
-	. "github.com/tapglue/backend/utils"
+	"github.com/tapglue/backend/utils"
 	"github.com/tapglue/backend/v01/context"
 	"github.com/tapglue/backend/v01/core"
 )
 
 var (
-	emptyStringBase64 = Base64Encode(Sha256String(""))
+	emptyStringBase64 = utils.Base64Encode(utils.Sha256String(""))
 )
 
 // VerifyRequest verifies if a request is properly signed or not
@@ -26,12 +26,12 @@ func VerifyRequest(ctx *context.Context, numKeyParts int) *tgerrors.TGError {
 		return tgerrors.NewBadRequestError("failed to verify request signature (1)", "signature failed on 1")
 	}
 
-	if _, err := Base64Decode(signature); err != nil {
+	if _, err := utils.Base64Decode(signature); err != nil {
 		return tgerrors.NewBadRequestError("failed to verify request signature (2)", err.Error())
 	}
 
 	if ctx.Body != nil {
-		if Base64Encode(Sha256String(string(ctx.Body))) != ctx.R.Header.Get("x-tapglue-payload-hash") {
+		if utils.Base64Encode(utils.Sha256String(string(ctx.Body))) != ctx.R.Header.Get("x-tapglue-payload-hash") {
 			tgerrors.NewBadRequestError("failed to verify request signature (3)", "signature failed on 3")
 		}
 	} else {
@@ -41,7 +41,7 @@ func VerifyRequest(ctx *context.Context, numKeyParts int) *tgerrors.TGError {
 	}
 
 	encodedIds := ctx.R.Header.Get("x-tapglue-id")
-	decodedIds, err := Base64Decode(encodedIds)
+	decodedIds, err := utils.Base64Decode(encodedIds)
 	if err != nil {
 		return tgerrors.NewBadRequestError("failed to verify request signature (5)", err.Error())
 	}
@@ -83,12 +83,12 @@ func VerifyRequest(ctx *context.Context, numKeyParts int) *tgerrors.TGError {
 
 	/* TODO Debug content, don't remove unless you want to redo it later ** /
 	fmt.Printf("\nURL %s\n", ctx.R.URL.Path)
-	fmt.Printf("\nPayload %s - %s \n", ctx.R.Header.Get("x-tapglue-payload-hash"), Base64Encode(Sha256String(ctx.BodyString)))
+	fmt.Printf("\nPayload %s - %s \n", ctx.R.Header.Get("x-tapglue-payload-hash"), utils.Base64Encode(utils.Sha256String(ctx.BodyString)))
 	fmt.Printf("\nSession %s\n", ctx.R.Header.Get("x-tapglue-session"))
 	fmt.Printf("\nSignature parts %s - %s \n", signingKey, signString)
-	fmt.Printf("\nSignature %s - %s \n\n", ctx.R.Header.Get("x-tapglue-signature"), Base64Encode(Sha256String(signingKey+signString)))
+	fmt.Printf("\nSignature %s - %s \n\n", ctx.R.Header.Get("x-tapglue-signature"), utils.Base64Encode(utils.Sha256String(signingKey+signString)))
 	/**/
-	expectedSignature := Base64Encode(Sha256String(signingKey + signString))
+	expectedSignature := utils.Base64Encode(utils.Sha256String(signingKey + signString))
 	if ctx.R.Header.Get("x-tapglue-signature") == expectedSignature {
 		return nil
 	}

@@ -19,7 +19,7 @@ import (
 func ReadEvent(accountID, applicationID, userID, eventID int64) (event *entity.Event, err *tgerrors.TGError) {
 	key := storageClient.Event(accountID, applicationID, userID, eventID)
 
-	result, er := storageEngine.Get(key).Result()
+	result, er := redisEngine.Get(key).Result()
 	if er != nil {
 		return nil, tgerrors.NewInternalError("failed to read the event (1)", er.Error())
 	}
@@ -41,7 +41,7 @@ func UpdateEvent(existingEvent, updatedEvent entity.Event, retrieve bool) (evn *
 	}
 
 	key := storageClient.Event(updatedEvent.AccountID, updatedEvent.ApplicationID, updatedEvent.UserID, updatedEvent.ID)
-	if er = storageEngine.Set(key, string(val)).Err(); er != nil {
+	if er = redisEngine.Set(key, string(val)).Err(); er != nil {
 		return nil, tgerrors.NewInternalError("failed to update the event (1)", er.Error())
 	}
 
@@ -83,7 +83,7 @@ func UpdateEvent(existingEvent, updatedEvent entity.Event, retrieve bool) (evn *
 
 	if !updatedEvent.Enabled {
 		listKey := storageClient.Events(updatedEvent.AccountID, updatedEvent.ApplicationID, updatedEvent.UserID)
-		if er = storageEngine.ZRem(listKey, key).Err(); er != nil {
+		if er = redisEngine.ZRem(listKey, key).Err(); er != nil {
 			return nil, tgerrors.NewInternalError("failed to read the event (1)", er.Error())
 		}
 		if err = DeleteEventFromConnectionsLists(updatedEvent.AccountID, updatedEvent.ApplicationID, updatedEvent.UserID, key); err != nil {
@@ -119,7 +119,7 @@ func DeleteEvent(accountID, applicationID, userID, eventID int64) (err *tgerrors
 		return err
 	}
 
-	result, er := storageEngine.Del(key).Result()
+	result, er := redisEngine.Del(key).Result()
 	if er != nil {
 		return tgerrors.NewInternalError("failed to delete the event (1)", er.Error())
 	}
@@ -129,7 +129,7 @@ func DeleteEvent(accountID, applicationID, userID, eventID int64) (err *tgerrors
 	}
 
 	listKey := storageClient.Events(accountID, applicationID, userID)
-	if er = storageEngine.ZRem(listKey, key).Err(); er != nil {
+	if er = redisEngine.ZRem(listKey, key).Err(); er != nil {
 		return tgerrors.NewInternalError("failed to read the event (1)", er.Error())
 	}
 
@@ -148,7 +148,7 @@ func DeleteEvent(accountID, applicationID, userID, eventID int64) (err *tgerrors
 func ReadEventList(accountID, applicationID, userID int64) (events []*entity.Event, err *tgerrors.TGError) {
 	key := storageClient.Events(accountID, applicationID, userID)
 
-	result, er := storageEngine.ZRevRange(key, "0", "-1").Result()
+	result, er := redisEngine.ZRevRange(key, "0", "-1").Result()
 	if er != nil {
 		return nil, tgerrors.NewInternalError("failed to read the event list (1)", er.Error())
 	}
@@ -157,7 +157,7 @@ func ReadEventList(accountID, applicationID, userID int64) (events []*entity.Eve
 		return []*entity.Event{}, nil
 	}
 
-	resultList, er := storageEngine.MGet(result...).Result()
+	resultList, er := redisEngine.MGet(result...).Result()
 	if er != nil {
 		return nil, tgerrors.NewInternalError("failed to read the event list (2)", er.Error())
 	}
@@ -169,7 +169,7 @@ func ReadEventList(accountID, applicationID, userID int64) (events []*entity.Eve
 func ReadConnectionEventList(accountID, applicationID, userID int64) (events []*entity.Event, err *tgerrors.TGError) {
 	key := storageClient.ConnectionEvents(accountID, applicationID, userID)
 
-	result, er := storageEngine.ZRevRange(key, "0", "-1").Result()
+	result, er := redisEngine.ZRevRange(key, "0", "-1").Result()
 	if er != nil {
 		return nil, tgerrors.NewInternalError("failed to read the connections events (1)", er.Error())
 	}
@@ -179,7 +179,7 @@ func ReadConnectionEventList(accountID, applicationID, userID int64) (events []*
 		return []*entity.Event{}, nil
 	}
 
-	resultList, er := storageEngine.MGet(result...).Result()
+	resultList, er := redisEngine.MGet(result...).Result()
 	if er != nil {
 		return nil, tgerrors.NewInternalError("failed to read the connections events (2)", er.Error())
 	}
@@ -204,14 +204,14 @@ func WriteEvent(event *entity.Event, retrieve bool) (evn *entity.Event, err *tge
 	}
 
 	key := storageClient.Event(event.AccountID, event.ApplicationID, event.UserID, event.ID)
-	if er = storageEngine.Set(key, string(val)).Err(); err != nil {
+	if er = redisEngine.Set(key, string(val)).Err(); err != nil {
 		return nil, tgerrors.NewInternalError("failed to write the event (3)", er.Error())
 	}
 
 	listKey := storageClient.Events(event.AccountID, event.ApplicationID, event.UserID)
 
 	setVal := red.Z{Score: float64(event.CreatedAt.Unix()), Member: key}
-	if er = storageEngine.ZAdd(listKey, setVal).Err(); er != nil {
+	if er = redisEngine.ZAdd(listKey, setVal).Err(); er != nil {
 		return nil, tgerrors.NewInternalError("failed to write the event (4)", er.Error())
 	}
 
@@ -223,19 +223,19 @@ func WriteEvent(event *entity.Event, retrieve bool) (evn *entity.Event, err *tge
 		}
 
 		geoEventKey := storageClient.EventGeoKey(event.AccountID, event.ApplicationID)
-		georedis.AddCoordinates(storageEngine, geoEventKey, 52, coordinates)
+		georedis.AddCoordinates(redisEngine, geoEventKey, 52, coordinates)
 	}
 
 	if event.Object != nil {
 		objectEventKey := storageClient.EventObjectKey(event.AccountID, event.ApplicationID, event.Object.ID)
-		if er = storageEngine.SAdd(objectEventKey, key).Err(); er != nil {
+		if er = redisEngine.SAdd(objectEventKey, key).Err(); er != nil {
 			return nil, tgerrors.NewInternalError("failed to write the event (5)", er.Error())
 		}
 	}
 
 	if event.Location != "" {
 		locationEventKey := storageClient.EventLocationKey(event.AccountID, event.ApplicationID, event.Location)
-		if er = storageEngine.SAdd(locationEventKey, key).Err(); er != nil {
+		if er = redisEngine.SAdd(locationEventKey, key).Err(); er != nil {
 			return nil, tgerrors.NewInternalError("failed to write the event (6)", er.Error())
 		}
 	}
@@ -255,7 +255,7 @@ func WriteEvent(event *entity.Event, retrieve bool) (evn *entity.Event, err *tge
 func WriteEventToConnectionsLists(event *entity.Event, key string) (err *tgerrors.TGError) {
 	connectionsKey := storageClient.FollowedByUsers(event.AccountID, event.ApplicationID, event.UserID)
 
-	connections, er := storageEngine.LRange(connectionsKey, 0, -1).Result()
+	connections, er := redisEngine.LRange(connectionsKey, 0, -1).Result()
 	if er != nil {
 		return tgerrors.NewInternalError("failed to write the event to the lists (1)", er.Error())
 	}
@@ -264,7 +264,7 @@ func WriteEventToConnectionsLists(event *entity.Event, key string) (err *tgerror
 		feedKey := storageClient.ConnectionEventsLoop(userKey)
 
 		val := red.Z{Score: float64(event.CreatedAt.Unix()), Member: key}
-		if er = storageEngine.ZAdd(feedKey, val).Err(); er != nil {
+		if er = redisEngine.ZAdd(feedKey, val).Err(); er != nil {
 			return tgerrors.NewInternalError("failed to write the event to the list (2)", er.Error())
 		}
 	}
@@ -275,14 +275,14 @@ func WriteEventToConnectionsLists(event *entity.Event, key string) (err *tgerror
 // DeleteEventFromConnectionsLists takes a user id and key and deletes it to the user connections list
 func DeleteEventFromConnectionsLists(accountID, applicationID, userID int64, key string) (err *tgerrors.TGError) {
 	connectionsKey := storageClient.FollowedByUsers(accountID, applicationID, userID)
-	connections, er := storageEngine.LRange(connectionsKey, 0, -1).Result()
+	connections, er := redisEngine.LRange(connectionsKey, 0, -1).Result()
 	if er != nil {
 		return tgerrors.NewInternalError("failed to delete the event from list (1)", er.Error())
 	}
 
 	for _, userKey := range connections {
 		feedKey := storageClient.ConnectionEventsLoop(userKey)
-		if er = storageEngine.ZRem(feedKey, key).Err(); er != nil {
+		if er = redisEngine.ZRem(feedKey, key).Err(); er != nil {
 			return tgerrors.NewInternalError("failed to delete the event from list (2)", er.Error())
 		}
 	}
@@ -294,12 +294,12 @@ func DeleteEventFromConnectionsLists(accountID, applicationID, userID int64, key
 func SearchGeoEvents(accountID, applicationID int64, latitude, longitude, radius float64) (events []*entity.Event, err *tgerrors.TGError) {
 	geoEventKey := storageClient.EventGeoKey(accountID, applicationID)
 
-	eventKeys, er := georedis.SearchByRadius(storageEngine, geoEventKey, latitude, longitude, radius, 52)
+	eventKeys, er := georedis.SearchByRadius(redisEngine, geoEventKey, latitude, longitude, radius, 52)
 	if er != nil {
 		return nil, tgerrors.NewInternalError("failed to search for events by geo (1)", er.Error())
 	}
 
-	resultList, er := storageEngine.MGet(eventKeys...).Result()
+	resultList, er := redisEngine.MGet(eventKeys...).Result()
 	if err != nil {
 		return nil, tgerrors.NewInternalError("failed to search for events by geo (2)", er.Error())
 	}
@@ -323,7 +323,7 @@ func SearchLocationEvents(accountID, applicationID int64, locationKey string) ([
 
 // fetchEventsFromKeys returns all the events matching a certain search key from the specified bucket
 func fetchEventsFromKeys(accountID, applicationID int64, bucketName string) ([]*entity.Event, *tgerrors.TGError) {
-	_, keys, er := storageEngine.SScan(bucketName, 0, "", 300).Result()
+	_, keys, er := redisEngine.SScan(bucketName, 0, "", 300).Result()
 	if er != nil {
 		return nil, tgerrors.NewInternalError("failed to read the events (1)", er.Error())
 	}
@@ -332,7 +332,7 @@ func fetchEventsFromKeys(accountID, applicationID int64, bucketName string) ([]*
 		return []*entity.Event{}, nil
 	}
 
-	resultList, err := storageEngine.MGet(keys...).Result()
+	resultList, err := redisEngine.MGet(keys...).Result()
 	if err != nil {
 		return nil, tgerrors.NewInternalError("failed to read the events (2)", er.Error())
 	}
@@ -366,7 +366,7 @@ func addEventGeo(key string, updatedEvent *entity.Event) *tgerrors.TGError {
 	}
 
 	geoEventKey := storageClient.EventGeoKey(updatedEvent.AccountID, updatedEvent.ApplicationID)
-	_, er := georedis.AddCoordinates(storageEngine, geoEventKey, 52, coordinates)
+	_, er := georedis.AddCoordinates(redisEngine, geoEventKey, 52, coordinates)
 	if er == nil {
 		return nil
 	}
@@ -375,7 +375,7 @@ func addEventGeo(key string, updatedEvent *entity.Event) *tgerrors.TGError {
 
 func removeEventGeo(key string, updatedEvent *entity.Event) *tgerrors.TGError {
 	geoEventKey := storageClient.EventGeoKey(updatedEvent.AccountID, updatedEvent.ApplicationID)
-	_, er := georedis.RemoveCoordinatesByKeys(storageEngine, geoEventKey, key)
+	_, er := georedis.RemoveCoordinatesByKeys(redisEngine, geoEventKey, key)
 	if er == nil {
 		return nil
 	}
@@ -384,7 +384,7 @@ func removeEventGeo(key string, updatedEvent *entity.Event) *tgerrors.TGError {
 
 func addEventObject(key string, updatedEvent *entity.Event) *tgerrors.TGError {
 	objectEventKey := storageClient.EventObjectKey(updatedEvent.AccountID, updatedEvent.ApplicationID, updatedEvent.Object.ID)
-	er := storageEngine.SAdd(objectEventKey, key).Err()
+	er := redisEngine.SAdd(objectEventKey, key).Err()
 	if er == nil {
 		return nil
 	}
@@ -393,7 +393,7 @@ func addEventObject(key string, updatedEvent *entity.Event) *tgerrors.TGError {
 
 func removeEventObject(key string, updatedEvent *entity.Event) *tgerrors.TGError {
 	objectEventKey := storageClient.EventObjectKey(updatedEvent.AccountID, updatedEvent.ApplicationID, updatedEvent.Object.ID)
-	er := storageEngine.SRem(objectEventKey, key).Err()
+	er := redisEngine.SRem(objectEventKey, key).Err()
 	if er == nil {
 		return nil
 	}
@@ -402,7 +402,7 @@ func removeEventObject(key string, updatedEvent *entity.Event) *tgerrors.TGError
 
 func addEventLocation(key string, updatedEvent *entity.Event) *tgerrors.TGError {
 	locationEventKey := storageClient.EventLocationKey(updatedEvent.AccountID, updatedEvent.ApplicationID, updatedEvent.Location)
-	er := storageEngine.SAdd(locationEventKey, key).Err()
+	er := redisEngine.SAdd(locationEventKey, key).Err()
 	if er == nil {
 		return nil
 	}
@@ -411,7 +411,7 @@ func addEventLocation(key string, updatedEvent *entity.Event) *tgerrors.TGError 
 
 func removeEventLocation(key string, updatedEvent *entity.Event) *tgerrors.TGError {
 	locationEventKey := storageClient.EventLocationKey(updatedEvent.AccountID, updatedEvent.ApplicationID, updatedEvent.Location)
-	er := storageEngine.SRem(locationEventKey, key).Err()
+	er := redisEngine.SRem(locationEventKey, key).Err()
 	if er == nil {
 		return nil
 	}

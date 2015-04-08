@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/tapglue/backend/tgerrors"
-	. "github.com/tapglue/backend/utils"
+	"github.com/tapglue/backend/utils"
 	"github.com/tapglue/backend/v01/context"
 	"github.com/tapglue/backend/v01/core"
 )
@@ -18,7 +18,7 @@ import (
 // VerifyRequest verifies if a request is properly signed or not
 func VerifyRequest(ctx *context.Context, numKeyParts int) *tgerrors.TGError {
 	encodedIds := ctx.R.Header.Get("x-tapglue-app-key")
-	decodedIds, err := Base64Decode(encodedIds)
+	decodedIds, err := utils.Base64Decode(encodedIds)
 	if err != nil {
 		return tgerrors.NewBadRequestError("application key validation failed (1)", err.Error())
 	}

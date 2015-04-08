@@ -135,5 +135,5 @@ func UserExists(accountID, applicationID, userID int64) bool {
 // Init initializes the core package
 func Init(engine *storage.Client) {
 	storageClient = engine
-	storageEngine = engine.Engine()
+	storageEngine = engine.RedisEngine()
 }

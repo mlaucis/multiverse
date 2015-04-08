@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/tapglue/backend/tgerrors"
-	. "github.com/tapglue/backend/utils"
+	"github.com/tapglue/backend/utils"
 	"github.com/tapglue/backend/v01/entity"
 )
 
@@ -159,7 +159,7 @@ func WriteApplication(application *entity.Application, retrieve bool) (*entity.A
 
 	// Store the token details in redis
 	_, er = storageEngine.HMSet(
-		"tokens:"+Base64Encode(application.AuthToken),
+		"tokens:"+utils.Base64Encode(application.AuthToken),
 		"acc", strconv.FormatInt(application.AccountID, 10),
 		"app", strconv.FormatInt(application.ID, 10),
 	).Result()

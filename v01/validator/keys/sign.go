@@ -11,16 +11,16 @@ import (
 	"strconv"
 	"strings"
 
-	. "github.com/tapglue/backend/utils"
+	"github.com/tapglue/backend/utils"
 )
 
 // addHeaders adds the additional headers to the request before being signed
 func addHeaders(accountID, applicationID int64, r *http.Request) error {
-	r.Header.Add("x-tapglue-payload-hash", Base64Encode(Sha256String(PeakBody(r).String())))
+	r.Header.Add("x-tapglue-payload-hash", utils.Base64Encode(utils.Sha256String(utils.PeakBody(r).String())))
 	if applicationID == 0 {
-		r.Header.Add("x-tapglue-id", Base64Encode(fmt.Sprintf("%d", accountID)))
+		r.Header.Add("x-tapglue-id", utils.Base64Encode(fmt.Sprintf("%d", accountID)))
 	} else {
-		r.Header.Add("x-tapglue-id", Base64Encode(fmt.Sprintf("%d:%d", accountID, applicationID)))
+		r.Header.Add("x-tapglue-id", utils.Base64Encode(fmt.Sprintf("%d:%d", accountID, applicationID)))
 	}
 
 	return nil
@@ -46,7 +46,7 @@ func generateSigningString(scope, requestVersion string, r *http.Request) string
 	return requestVersion + "\n" +
 		r.Header.Get("x-tapglue-date") + "\n" +
 		getScope(r.Header.Get("x-tapglue-date"), scope, requestVersion) + "\n" +
-		Base64Encode(Sha256String(canonicalRequest(r)))
+		utils.Base64Encode(utils.Sha256String(canonicalRequest(r)))
 }
 
 // generateSigningKey returns the key used to sign the request
@@ -58,16 +58,16 @@ func generateSigningKey(secretKey, scope, requestVersion string, r *http.Request
 	)
 
 	//log.Printf("sign:\tkey\t%s", key)
-	key = Base64Encode(Sha256String(key))
+	key = utils.Base64Encode(utils.Sha256String(key))
 	//log.Printf("sign:\tsha key\t%s", key)
-	key = Base64Encode(Sha256String(key + r.Header.Get("x-tapglue-session")))
+	key = utils.Base64Encode(utils.Sha256String(key + r.Header.Get("x-tapglue-session")))
 	//log.Printf("sign:\tkey + session\t%s", key)
-	key = Base64Encode(Sha256String(key + scope))
+	key = utils.Base64Encode(utils.Sha256String(key + scope))
 	//log.Printf("sign:\tkey + scope\t%s", key)
-	key = Base64Encode(Sha256String(key + "api"))
+	key = utils.Base64Encode(utils.Sha256String(key + "api"))
 	//log.Printf("sign:\tkey + \"api\"\t%s", key)
 
-	key = Base64Encode(Sha256String(key + requestVersion))
+	key = utils.Base64Encode(utils.Sha256String(key + requestVersion))
 	//log.Printf("sign:\tkey + requestVersion\t%s", key)
 
 	return key
@@ -75,7 +75,7 @@ func generateSigningKey(secretKey, scope, requestVersion string, r *http.Request
 
 // SignRequest runs the signature algorithm on the request and adds the things it's missing
 func SignRequest(secretKey, requestScope, requestVersion string, numKeyParts int, r *http.Request) error {
-	rawKey, err := Base64Decode(secretKey)
+	rawKey, err := utils.Base64Decode(secretKey)
 	if err != nil {
 		return err
 	}
@@ -111,7 +111,7 @@ func SignRequest(secretKey, requestScope, requestVersion string, numKeyParts int
 	signingKey := generateSigningKey(secretKey, requestScope, requestVersion, r)
 
 	// Sign the request
-	r.Header.Add("x-tapglue-signature", Base64Encode(Sha256String(signingKey+signString)))
+	r.Header.Add("x-tapglue-signature", utils.Base64Encode(utils.Sha256String(signingKey+signString)))
 
 	return nil
 }

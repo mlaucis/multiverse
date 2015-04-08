@@ -22,6 +22,7 @@ import (
 	"github.com/tapglue/backend/v02/entity"
 	"github.com/tapglue/backend/v02/server"
 	"github.com/tapglue/backend/v02/storage"
+	"github.com/tapglue/backend/v02/storage/kinesis"
 	"github.com/tapglue/backend/v02/storage/redis"
 	"github.com/tapglue/backend/v02/validator"
 	"github.com/tapglue/backend/v02/validator/keys"
@@ -61,7 +62,8 @@ func (s *ServerSuite) SetUpTest(c *C) {
 	conf = config.NewConf("")
 	redis.Init(conf.Redis.Hosts[0], conf.Redis.Password, conf.Redis.DB, conf.Redis.PoolSize)
 	redis.Client().FlushDb()
-	storageClient = storage.Init(redis.Client())
+	kinesis.Init("test", "test", "test")
+	storageClient = storage.Init(redis.Client(), kinesis.Client())
 	core.Init(storageClient)
 	tgerrors.Init(true)
 	validator.Init(storageClient)

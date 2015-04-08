@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/tapglue/backend/tgerrors"
-	. "github.com/tapglue/backend/utils"
+	"github.com/tapglue/backend/utils"
 	"github.com/tapglue/backend/v02/context"
 	"github.com/tapglue/backend/v02/entity"
 )
@@ -185,7 +185,7 @@ func UpdateUser(existingApplicationUser, updatedApplicationUser *entity.User) *t
 
 // ApplicationUserCredentialsValid checks is a certain user has the right credentials
 func ApplicationUserCredentialsValid(password string, user *entity.User) *tgerrors.TGError {
-	pass, err := Base64Decode(user.Password)
+	pass, err := utils.Base64Decode(user.Password)
 	if err != nil {
 		return tgerrors.NewInternalError("failed to check the account user credentials (1)", err.Error())
 	}
@@ -194,12 +194,12 @@ func ApplicationUserCredentialsValid(password string, user *entity.User) *tgerro
 		return tgerrors.NewInternalError("failed to check the account user credentials (2)", "invalid password parts")
 	}
 
-	salt, err := Base64Decode(passwordParts[0])
+	salt, err := utils.Base64Decode(passwordParts[0])
 	if err != nil {
 		return tgerrors.NewInternalError("failed to check the account user credentials (3)", err.Error())
 	}
 
-	timestamp, err := Base64Decode(passwordParts[1])
+	timestamp, err := utils.Base64Decode(passwordParts[1])
 	if err != nil {
 		return tgerrors.NewInternalError("failed to check the account user credentials (4)", err.Error())
 	}
@@ -221,7 +221,7 @@ func CheckApplicationSession(r *http.Request) (string, *tgerrors.TGError) {
 	}
 
 	encodedIds := r.Header.Get("x-tapglue-id")
-	decodedIds, err := Base64Decode(encodedIds)
+	decodedIds, err := utils.Base64Decode(encodedIds)
 	if err != nil {
 		return "", tgerrors.NewBadRequestError("failed to check session token (2)", err.Error())
 	}
@@ -241,7 +241,7 @@ func CheckApplicationSession(r *http.Request) (string, *tgerrors.TGError) {
 		return "", tgerrors.NewBadRequestError("failed to check session token (5)", err.Error())
 	}
 
-	sessionToken, err := Base64Decode(encodedSessionToken)
+	sessionToken, err := utils.Base64Decode(encodedSessionToken)
 	if err != nil {
 		return "", tgerrors.NewBadRequestError("failed to check session token (6)", err.Error())
 	}
@@ -303,7 +303,7 @@ func CheckApplicationSimpleSession(ctx *context.Context) (string, *tgerrors.TGEr
 		return "", tgerrors.NewBadRequestError("failed to check session token (1)", "missing session token")
 	}
 
-	sessionToken, err := Base64Decode(encodedSessionToken)
+	sessionToken, err := utils.Base64Decode(encodedSessionToken)
 	if err != nil {
 		return "", tgerrors.NewBadRequestError("failed to check session token (2)", err.Error())
 	}
@@ -359,7 +359,7 @@ func CheckApplicationSimpleSession(ctx *context.Context) (string, *tgerrors.TGEr
 
 // DuplicateApplicationUserEmail checks if the user email is duplicate within the application or not
 func DuplicateApplicationUserEmail(accountID, applicationID int64, email string) (bool, *tgerrors.TGError) {
-	emailKey := storageClient.ApplicationUserByEmail(accountID, applicationID, Base64Encode(email))
+	emailKey := storageClient.ApplicationUserByEmail(accountID, applicationID, utils.Base64Encode(email))
 	if userExists, err := storageEngine.Exists(emailKey).Result(); userExists || err != nil {
 		if err != nil {
 			return false, tgerrors.NewInternalError("failed to perform email validation (1)", err.Error())
@@ -373,7 +373,7 @@ func DuplicateApplicationUserEmail(accountID, applicationID int64, email string)
 
 // DuplicateApplicationUserUsername checks if the username is duplicate within the application or not
 func DuplicateApplicationUserUsername(accountID, applicationID int64, username string) (bool, *tgerrors.TGError) {
-	usernameKey := storageClient.ApplicationUserByUsername(accountID, applicationID, Base64Encode(username))
+	usernameKey := storageClient.ApplicationUserByUsername(accountID, applicationID, utils.Base64Encode(username))
 	if userExists, err := storageEngine.Exists(usernameKey).Result(); userExists || err != nil {
 		if err != nil {
 			return false, tgerrors.NewInternalError("failed to perform username validation (1)", err.Error())
