@@ -16,7 +16,7 @@ import (
 
 // ReadApplication returns the application matching the ID or an error
 func ReadApplication(accountID, applicationID int64) (*entity.Application, *tgerrors.TGError) {
-	result, er := storageEngine.Get(storageClient.Application(accountID, applicationID)).Result()
+	result, er := redisEngine.Get(storageClient.Application(accountID, applicationID)).Result()
 	if er != nil {
 		return nil, tgerrors.NewInternalError("failed to read the application (1)", er.Error())
 	}
@@ -39,7 +39,7 @@ func UpdateApplication(existingApplication, updatedApplication entity.Applicatio
 	}
 
 	key := storageClient.Application(updatedApplication.AccountID, updatedApplication.ID)
-	exist, er := storageEngine.Exists(key).Result()
+	exist, er := redisEngine.Exists(key).Result()
 	if !exist {
 		return nil, tgerrors.NewNotFoundError("failed to update the application (2)", "app not found")
 	}
@@ -47,13 +47,13 @@ func UpdateApplication(existingApplication, updatedApplication entity.Applicatio
 		return nil, tgerrors.NewInternalError("failed to update the application (3)", er.Error())
 	}
 
-	if er = storageEngine.Set(key, string(val)).Err(); er != nil {
+	if er = redisEngine.Set(key, string(val)).Err(); er != nil {
 		return nil, tgerrors.NewInternalError("failed to update the application (4)", er.Error())
 	}
 
 	if !updatedApplication.Enabled {
 		listKey := storageClient.Applications(updatedApplication.AccountID)
-		if er = storageEngine.LRem(listKey, 0, key).Err(); er != nil {
+		if er = redisEngine.LRem(listKey, 0, key).Err(); er != nil {
 			return nil, tgerrors.NewInternalError("failed to update the application (5)", er.Error())
 		}
 	}
@@ -73,7 +73,7 @@ func DeleteApplication(accountID, applicationID int64) *tgerrors.TGError {
 	// TODO: Application events?
 
 	key := storageClient.Application(accountID, applicationID)
-	result, er := storageEngine.Del(key).Result()
+	result, er := redisEngine.Del(key).Result()
 	if er != nil {
 		return tgerrors.NewInternalError("failed to delete the application (1)", er.Error())
 	}
@@ -83,7 +83,7 @@ func DeleteApplication(accountID, applicationID int64) *tgerrors.TGError {
 	}
 
 	listKey := storageClient.Applications(accountID)
-	if er := storageEngine.LRem(listKey, 0, key).Err(); er != nil {
+	if er := redisEngine.LRem(listKey, 0, key).Err(); er != nil {
 		return tgerrors.NewInternalError("failed to delete the application (3)", er.Error())
 	}
 
@@ -94,7 +94,7 @@ func DeleteApplication(accountID, applicationID int64) *tgerrors.TGError {
 func ReadApplicationList(accountID int64) ([]*entity.Application, *tgerrors.TGError) {
 	key := storageClient.Applications(accountID)
 
-	result, er := storageEngine.LRange(key, 0, -1).Result()
+	result, er := redisEngine.LRange(key, 0, -1).Result()
 	if er != nil {
 		return nil, tgerrors.NewInternalError("failed to read the applications list (1)", er.Error())
 	}
@@ -104,7 +104,7 @@ func ReadApplicationList(accountID int64) ([]*entity.Application, *tgerrors.TGEr
 		return applications, nil
 	}
 
-	resultList, er := storageEngine.MGet(result...).Result()
+	resultList, er := redisEngine.MGet(result...).Result()
 	if er != nil {
 		return nil, tgerrors.NewInternalError("failed to read the applications list (2)", er.Error())
 	}
@@ -143,7 +143,7 @@ func WriteApplication(application *entity.Application, retrieve bool) (*entity.A
 
 	key := storageClient.Application(application.AccountID, application.ID)
 
-	exist, er := storageEngine.SetNX(key, string(val)).Result()
+	exist, er := redisEngine.SetNX(key, string(val)).Result()
 	if !exist {
 		return nil, tgerrors.NewInternalError("failed to create the application (3)", "duplicate app")
 	}
@@ -153,12 +153,12 @@ func WriteApplication(application *entity.Application, retrieve bool) (*entity.A
 
 	listKey := storageClient.Applications(application.AccountID)
 
-	if er = storageEngine.LPush(listKey, key).Err(); er != nil {
+	if er = redisEngine.LPush(listKey, key).Err(); er != nil {
 		return nil, tgerrors.NewInternalError("failed to create the application (5)", er.Error())
 	}
 
 	// Store the token details in redis
-	_, er = storageEngine.HMSet(
+	_, er = redisEngine.HMSet(
 		"tokens:"+utils.Base64Encode(application.AuthToken),
 		"acc", strconv.FormatInt(application.AccountID, 10),
 		"app", strconv.FormatInt(application.ID, 10),

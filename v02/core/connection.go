@@ -27,7 +27,7 @@ func UpdateConnection(existingConnection, updatedConnection entity.Connection, r
 	}
 
 	key := storageClient.Connection(updatedConnection.AccountID, updatedConnection.ApplicationID, updatedConnection.UserFromID, updatedConnection.UserToID)
-	exist, er := storageEngine.Exists(key).Result()
+	exist, er := redisEngine.Exists(key).Result()
 	if !exist {
 		return nil, tgerrors.NewNotFoundError("failed to update teh connection (2)", "connection not found")
 	}
@@ -35,23 +35,23 @@ func UpdateConnection(existingConnection, updatedConnection entity.Connection, r
 		return nil, tgerrors.NewInternalError("failed to update the connection (3)", er.Error())
 	}
 
-	if er = storageEngine.Set(key, string(val)).Err(); er != nil {
+	if er = redisEngine.Set(key, string(val)).Err(); er != nil {
 		return nil, tgerrors.NewInternalError("failed to update the connection (4)", er.Error())
 	}
 
 	if !updatedConnection.Enabled {
 		listKey := storageClient.Connections(updatedConnection.AccountID, updatedConnection.ApplicationID, updatedConnection.UserFromID)
-		if er = storageEngine.LRem(listKey, 0, key).Err(); er != nil {
+		if er = redisEngine.LRem(listKey, 0, key).Err(); er != nil {
 			return nil, tgerrors.NewInternalError("failed to update the connection (5)", er.Error())
 		}
 		userListKey := storageClient.ConnectionUsers(updatedConnection.AccountID, updatedConnection.ApplicationID, updatedConnection.UserFromID)
 		userKey := storageClient.User(updatedConnection.AccountID, updatedConnection.ApplicationID, updatedConnection.UserToID)
-		if er = storageEngine.LRem(userListKey, 0, userKey).Err(); er != nil {
+		if er = redisEngine.LRem(userListKey, 0, userKey).Err(); er != nil {
 			return nil, tgerrors.NewInternalError("failed to update the connection (6)", er.Error())
 		}
 		followerListKey := storageClient.FollowedByUsers(updatedConnection.AccountID, updatedConnection.ApplicationID, updatedConnection.UserToID)
 		followerKey := storageClient.User(updatedConnection.AccountID, updatedConnection.ApplicationID, updatedConnection.UserFromID)
-		if er = storageEngine.LRem(followerListKey, 0, followerKey).Err(); er != nil {
+		if er = redisEngine.LRem(followerListKey, 0, followerKey).Err(); er != nil {
 			return nil, tgerrors.NewInternalError("failed to update the connection (7)", er.Error())
 		}
 	}
@@ -66,7 +66,7 @@ func UpdateConnection(existingConnection, updatedConnection entity.Connection, r
 // DeleteConnection deletes the connection matching the IDs or an error
 func DeleteConnection(accountID, applicationID, userFromID, userToID int64) (err *tgerrors.TGError) {
 	key := storageClient.Connection(accountID, applicationID, userFromID, userToID)
-	result, er := storageEngine.Del(key).Result()
+	result, er := redisEngine.Del(key).Result()
 	if er != nil {
 		return tgerrors.NewInternalError("failed to delete the connection (1)", er.Error())
 	}
@@ -76,17 +76,17 @@ func DeleteConnection(accountID, applicationID, userFromID, userToID int64) (err
 	}
 
 	listKey := storageClient.Connections(accountID, applicationID, userFromID)
-	if er = storageEngine.LRem(listKey, 0, key).Err(); er != nil {
+	if er = redisEngine.LRem(listKey, 0, key).Err(); er != nil {
 		return tgerrors.NewInternalError("failed to delete the connection (3)", er.Error())
 	}
 	userListKey := storageClient.ConnectionUsers(accountID, applicationID, userFromID)
 	userKey := storageClient.User(accountID, applicationID, userToID)
-	if er = storageEngine.LRem(userListKey, 0, userKey).Err(); er != nil {
+	if er = redisEngine.LRem(userListKey, 0, userKey).Err(); er != nil {
 		return tgerrors.NewInternalError("failed to delete the connection (4)", er.Error())
 	}
 	followerListKey := storageClient.FollowedByUsers(accountID, applicationID, userToID)
 	followerKey := storageClient.User(accountID, applicationID, userFromID)
-	if er = storageEngine.LRem(followerListKey, 0, followerKey).Err(); er != nil {
+	if er = redisEngine.LRem(followerListKey, 0, followerKey).Err(); er != nil {
 		return tgerrors.NewInternalError("failed to delete the connection (5)", er.Error())
 	}
 
@@ -100,7 +100,7 @@ func DeleteConnection(accountID, applicationID, userFromID, userToID int64) (err
 // ReadConnectionList returns all connections from a certain user
 func ReadConnectionList(accountID, applicationID, userID int64) (users []*entity.User, err *tgerrors.TGError) {
 	key := storageClient.ConnectionUsers(accountID, applicationID, userID)
-	result, er := storageEngine.LRange(key, 0, -1).Result()
+	result, er := redisEngine.LRange(key, 0, -1).Result()
 	if er != nil {
 		return nil, tgerrors.NewInternalError("failed to read the connection list (1)", er.Error())
 	}
@@ -115,7 +115,7 @@ func ReadConnectionList(accountID, applicationID, userID int64) (users []*entity
 // ReadFollowedByList returns all connections from a certain user
 func ReadFollowedByList(accountID, applicationID, userID int64) (users []*entity.User, err *tgerrors.TGError) {
 	key := storageClient.FollowedByUsers(accountID, applicationID, userID)
-	result, er := storageEngine.LRange(key, 0, -1).Result()
+	result, er := redisEngine.LRange(key, 0, -1).Result()
 	if er != nil {
 		return nil, tgerrors.NewInternalError("failed to read the followers list (1)", er.Error())
 	}
@@ -141,7 +141,7 @@ func WriteConnection(connection *entity.Connection, retrieve bool) (con *entity.
 	}
 
 	key := storageClient.Connection(connection.AccountID, connection.ApplicationID, connection.UserFromID, connection.UserToID)
-	exist, er := storageEngine.SetNX(key, string(val)).Result()
+	exist, er := redisEngine.SetNX(key, string(val)).Result()
 	if er != nil {
 		return nil, tgerrors.NewInternalError("failed to write the user connection (2)", er.Error())
 	}
@@ -167,26 +167,26 @@ func ConfirmConnection(connection *entity.Connection, retrieve bool) (con *entit
 	key := storageClient.Connection(connection.AccountID, connection.ApplicationID, connection.UserFromID, connection.UserToID)
 
 	cmd := red.NewStringCmd("SET", key, string(val), "XX")
-	storageEngine.Process(cmd)
+	redisEngine.Process(cmd)
 	er = cmd.Err()
 	if er != nil {
 		return nil, tgerrors.NewInternalError("failed to confirm the connection (2)", er.Error())
 	}
 
 	listKey := storageClient.Connections(connection.AccountID, connection.ApplicationID, connection.UserFromID)
-	if er = storageEngine.LPush(listKey, key).Err(); er != nil {
+	if er = redisEngine.LPush(listKey, key).Err(); er != nil {
 		return nil, tgerrors.NewInternalError("failed to confirm the connection (3)", er.Error())
 	}
 
 	userListKey := storageClient.ConnectionUsers(connection.AccountID, connection.ApplicationID, connection.UserFromID)
 	userKey := storageClient.User(connection.AccountID, connection.ApplicationID, connection.UserToID)
-	if er = storageEngine.LPush(userListKey, userKey).Err(); er != nil {
+	if er = redisEngine.LPush(userListKey, userKey).Err(); er != nil {
 		return nil, tgerrors.NewInternalError("failed to confirm the connection (4)", er.Error())
 	}
 
 	followerListKey := storageClient.FollowedByUsers(connection.AccountID, connection.ApplicationID, connection.UserToID)
 	followerKey := storageClient.User(connection.AccountID, connection.ApplicationID, connection.UserFromID)
-	if er = storageEngine.LPush(followerListKey, followerKey).Err(); er != nil {
+	if er = redisEngine.LPush(followerListKey, followerKey).Err(); er != nil {
 		return nil, tgerrors.NewInternalError("failed to confirm the connection (5)", er.Error())
 	}
 
@@ -207,7 +207,7 @@ func WriteConnectionEventsToList(connection *entity.Connection) (err *tgerrors.T
 
 	eventsKey := storageClient.Events(connection.AccountID, connection.ApplicationID, connection.UserToID)
 
-	events, er := storageEngine.ZRevRangeWithScores(eventsKey, "0", "-1").Result()
+	events, er := redisEngine.ZRevRangeWithScores(eventsKey, "0", "-1").Result()
 	if er != nil {
 		return tgerrors.NewInternalError("failed to write the event to the list", er.Error())
 	}
@@ -220,7 +220,7 @@ func WriteConnectionEventsToList(connection *entity.Connection) (err *tgerrors.T
 			vals = append(vals, val)
 		}
 
-		if er = storageEngine.ZAdd(connectionEventsKey, vals...).Err(); er != nil {
+		if er = redisEngine.ZAdd(connectionEventsKey, vals...).Err(); er != nil {
 			return tgerrors.NewInternalError("failed to write the event to the list", er.Error())
 		}
 	}
@@ -234,7 +234,7 @@ func DeleteConnectionEventsFromLists(accountID, applicationID, userFromID, userT
 
 	eventsKey := storageClient.Events(accountID, applicationID, userToID)
 
-	events, er := storageEngine.ZRevRangeWithScores(eventsKey, "0", "-1").Result()
+	events, er := redisEngine.ZRevRangeWithScores(eventsKey, "0", "-1").Result()
 	if er != nil {
 		return tgerrors.NewInternalError("failed to delete the event from connections (1)", er.Error())
 	}
@@ -247,7 +247,7 @@ func DeleteConnectionEventsFromLists(accountID, applicationID, userFromID, userT
 			members = append(members, member)
 		}
 
-		if er = storageEngine.ZRem(connectionEventsKey, members...).Err(); er != nil {
+		if er = redisEngine.ZRem(connectionEventsKey, members...).Err(); er != nil {
 			return tgerrors.NewInternalError("failed to delete the event from the connections (2)", er.Error())
 		}
 	}
@@ -259,7 +259,7 @@ func DeleteConnectionEventsFromLists(accountID, applicationID, userFromID, userT
 func ReadConnection(accountID, applicationID, userFromID, userToID int64) (connection *entity.Connection, err *tgerrors.TGError) {
 	key := storageClient.Connection(accountID, applicationID, userFromID, userToID)
 
-	result, er := storageEngine.Get(key).Result()
+	result, er := redisEngine.Get(key).Result()
 	if er != nil {
 		if er.Error() == "redis: nil" {
 			return nil, nil
@@ -291,7 +291,7 @@ func SocialConnect(user *entity.User, platform string, socialFriendsIDs []string
 			utils.Base64Encode(socialFriendsIDs[idx])))
 	}
 
-	ourStoredUsersIDs, er := storageEngine.MGet(encodedSocialFriendsIDs...).Result()
+	ourStoredUsersIDs, er := redisEngine.MGet(encodedSocialFriendsIDs...).Result()
 	if er != nil {
 		return result, tgerrors.NewInternalError("social connection failed (1)", er.Error())
 	}
@@ -312,7 +312,7 @@ func autoConnectSocialFriends(user *entity.User, ourStoredUsersIDs []interface{}
 		}
 
 		key := storageClient.Connection(user.AccountID, user.ApplicationID, user.ID, userID)
-		if exists, err := storageEngine.Exists(key).Result(); exists || err != nil {
+		if exists, err := redisEngine.Exists(key).Result(); exists || err != nil {
 			// We don't want to update existing connections as we don't know if the user disabled them willingly or not
 			// TODO Figure out if this is the right thing to do
 			continue
@@ -366,7 +366,7 @@ func fetchAndDecodeMultipleUsers(keys []string) (users []*entity.User, err *tger
 		return []*entity.User{}, nil
 	}
 
-	resultList, er := storageEngine.MGet(keys...).Result()
+	resultList, er := redisEngine.MGet(keys...).Result()
 	if er != nil {
 		return nil, tgerrors.NewInternalError("failed to perform operation on user list (1)", er.Error())
 	}

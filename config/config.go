@@ -25,15 +25,23 @@ type (
 		PoolSize int      `json:"pool_size"`
 	}
 
+	// Kinesis structure
+	Kinesis struct {
+		AuthKey   string `json:"auth_key"`
+		SecretKey string `json:"secret_key"`
+		Region    string `json:"region"`
+	}
+
 	// Config structure for the application configuration
 	Config struct {
-		Environment    string `json:"env"`
-		UseArtwork     bool   `json:"use_artwork"`
-		UseSSL         bool   `json:"use_ssl"`
-		SkipSecurity   bool   `json:"skip_security"`
-		JSONLogs       bool   `json:"json_logs"`
-		ListenHostPort string `json:"listenHost"`
-		Redis          *Redis `json:"redis"`
+		Environment    string   `json:"env"`
+		UseArtwork     bool     `json:"use_artwork"`
+		UseSSL         bool     `json:"use_ssl"`
+		SkipSecurity   bool     `json:"skip_security"`
+		JSONLogs       bool     `json:"json_logs"`
+		ListenHostPort string   `json:"listenHost"`
+		Redis          *Redis   `json:"redis"`
+		Kinesis        *Kinesis `json:"kinesis"`
 	}
 )
 
@@ -51,6 +59,11 @@ func defaultConfig() *Config {
 
 	cfg.Redis = &Redis{}
 	cfg.Redis.Hosts = append(cfg.Redis.Hosts, "127.0.0.1:6379")
+
+	cfg.Kinesis = &Kinesis{}
+	cfg.Kinesis.AuthKey = ""
+	cfg.Kinesis.SecretKey = ""
+	cfg.Kinesis.Region = "eu-central-1"
 
 	return cfg
 }

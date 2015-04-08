@@ -17,7 +17,7 @@ import (
 
 // ReadAccount returns the account matching the ID or an error
 func ReadAccount(accountID int64) (account *entity.Account, err *tgerrors.TGError) {
-	result, er := storageEngine.Get(storageClient.Account(accountID)).Result()
+	result, er := redisEngine.Get(storageClient.Account(accountID)).Result()
 	if er != nil {
 		return nil, tgerrors.NewInternalError("failed to retrieve the account (1)", er.Error())
 	}
@@ -39,7 +39,7 @@ func UpdateAccount(existingAccount, updatedAccount entity.Account, retrieve bool
 	}
 
 	key := storageClient.Account(updatedAccount.ID)
-	exist, er := storageEngine.Exists(key).Result()
+	exist, er := redisEngine.Exists(key).Result()
 	if !exist {
 		return nil, tgerrors.NewInternalError("failed to update the account (2)\naccount does not exist", "account does not exist")
 	}
@@ -47,7 +47,7 @@ func UpdateAccount(existingAccount, updatedAccount entity.Account, retrieve bool
 		return nil, tgerrors.NewInternalError("failed to update the account (3)", er.Error())
 	}
 
-	if er = storageEngine.Set(key, string(val)).Err(); er != nil {
+	if er = redisEngine.Set(key, string(val)).Err(); er != nil {
 		return nil, tgerrors.NewInternalError("failed to update the account (4)", err.Error())
 	}
 
@@ -60,7 +60,7 @@ func UpdateAccount(existingAccount, updatedAccount entity.Account, retrieve bool
 
 // DeleteAccount deletes the account matching the ID or an error
 func DeleteAccount(accountID int64) (err *tgerrors.TGError) {
-	result, er := storageEngine.Del(storageClient.Account(accountID)).Result()
+	result, er := redisEngine.Del(storageClient.Account(accountID)).Result()
 	if er != nil {
 		return tgerrors.NewInternalError("failed to delete the account (1)", er.Error())
 	}
@@ -95,7 +95,7 @@ func WriteAccount(account *entity.Account, retrieve bool) (acc *entity.Account, 
 	}
 
 	// TODO this should never happen, maybe we should panic instead just to catch it better?
-	exist, er := storageEngine.SetNX(storageClient.Account(account.ID), string(val)).Result()
+	exist, er := redisEngine.SetNX(storageClient.Account(account.ID), string(val)).Result()
 	if !exist {
 		return nil, tgerrors.NewInternalError("failed to write the account (3)", "account id already present")
 	}
@@ -104,7 +104,7 @@ func WriteAccount(account *entity.Account, retrieve bool) (acc *entity.Account, 
 	}
 
 	// Store the token details in redis
-	_, er = storageEngine.HMSet(
+	_, er = redisEngine.HMSet(
 		"tokens:"+utils.Base64Encode(account.AuthToken),
 		"acc", strconv.FormatInt(account.ID, 10),
 	).Result()

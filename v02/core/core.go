@@ -8,16 +8,19 @@ package core
 import (
 	"github.com/tapglue/backend/v02/storage"
 
+	"github.com/sendgridlabs/go-kinesis"
 	"gopkg.in/redis.v2"
 )
 
 var (
 	storageClient *storage.Client
-	storageEngine *redis.Client
+	redisEngine   *redis.Client
+	kinesisEngine *kinesis.Kinesis
 )
 
 // Init initializes the core package
 func Init(engine *storage.Client) {
 	storageClient = engine
-	storageEngine = engine.Engine()
+	redisEngine = engine.RedisEngine()
+	kinesisEngine = engine.KinesisEngine()
 }

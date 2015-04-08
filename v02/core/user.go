@@ -19,7 +19,7 @@ import (
 func ReadApplicationUser(accountID, applicationID, userID int64) (user *entity.User, err *tgerrors.TGError) {
 	key := storageClient.User(accountID, applicationID, userID)
 
-	result, er := storageEngine.Get(key).Result()
+	result, er := redisEngine.Get(key).Result()
 	if err != nil {
 		return nil, tgerrors.NewInternalError("failed to read application user (1)", er.Error())
 	}
@@ -47,16 +47,16 @@ func UpdateUser(existingUser, updatedUser entity.User, retrieve bool) (usr *enti
 	}
 
 	key := storageClient.User(updatedUser.AccountID, updatedUser.ApplicationID, updatedUser.ID)
-	if er = storageEngine.Set(key, string(val)).Err(); er != nil {
+	if er = redisEngine.Set(key, string(val)).Err(); er != nil {
 		return nil, tgerrors.NewInternalError("failed to update the application user (2)", er.Error())
 	}
 
 	if existingUser.Email != updatedUser.Email {
 		emailListKey := storageClient.ApplicationUserByEmail(existingUser.AccountID, existingUser.ApplicationID, utils.Base64Encode(existingUser.Email))
-		_, er = storageEngine.Del(emailListKey).Result()
+		_, er = redisEngine.Del(emailListKey).Result()
 
 		emailListKey = storageClient.ApplicationUserByEmail(existingUser.AccountID, existingUser.ApplicationID, utils.Base64Encode(updatedUser.Email))
-		er = storageEngine.Set(emailListKey, fmt.Sprintf("%d", updatedUser.ID)).Err()
+		er = redisEngine.Set(emailListKey, fmt.Sprintf("%d", updatedUser.ID)).Err()
 		if er != nil {
 			return nil, tgerrors.NewInternalError("failed to update the application user (3)", er.Error())
 		}
@@ -64,10 +64,10 @@ func UpdateUser(existingUser, updatedUser entity.User, retrieve bool) (usr *enti
 
 	if existingUser.Username != updatedUser.Username {
 		usernameListKey := storageClient.ApplicationUserByUsername(existingUser.AccountID, existingUser.ApplicationID, utils.Base64Encode(existingUser.Username))
-		_, er = storageEngine.Del(usernameListKey).Result()
+		_, er = redisEngine.Del(usernameListKey).Result()
 
 		usernameListKey = storageClient.ApplicationUserByUsername(existingUser.AccountID, existingUser.ApplicationID, utils.Base64Encode(updatedUser.Username))
-		er = storageEngine.Set(usernameListKey, fmt.Sprintf("%d", updatedUser.ID)).Err()
+		er = redisEngine.Set(usernameListKey, fmt.Sprintf("%d", updatedUser.ID)).Err()
 
 		if er != nil {
 			return nil, tgerrors.NewInternalError("failed to update the application user (4)", er.Error())
@@ -76,12 +76,12 @@ func UpdateUser(existingUser, updatedUser entity.User, retrieve bool) (usr *enti
 
 	if !updatedUser.Enabled {
 		listKey := storageClient.Users(updatedUser.AccountID, updatedUser.ApplicationID)
-		if er = storageEngine.LRem(listKey, 0, key).Err(); er != nil {
+		if er = redisEngine.LRem(listKey, 0, key).Err(); er != nil {
 			return nil, tgerrors.NewInternalError("failed to update the application user (5)", er.Error())
 		}
 	} else {
 		listKey := storageClient.Users(updatedUser.AccountID, updatedUser.ApplicationID)
-		if er = storageEngine.LPush(listKey, key).Err(); er != nil {
+		if er = redisEngine.LPush(listKey, key).Err(); er != nil {
 			return nil, tgerrors.NewInternalError("failed to update the application user (6)", er.Error())
 		}
 	}
@@ -142,7 +142,7 @@ func DeleteUser(accountID, applicationID, userID int64) (err *tgerrors.TGError) 
 func ReadUserList(accountID, applicationID int64) (users []*entity.User, err *tgerrors.TGError) {
 	key := storageClient.Users(accountID, applicationID)
 
-	result, er := storageEngine.LRange(key, 0, -1).Result()
+	result, er := redisEngine.LRange(key, 0, -1).Result()
 	if er != nil {
 		return nil, tgerrors.NewInternalError("failed to read the application user list (1)", er.Error())
 	}
@@ -151,7 +151,7 @@ func ReadUserList(accountID, applicationID int64) (users []*entity.User, err *tg
 		return users, nil
 	}
 
-	resultList, er := storageEngine.MGet(result...).Result()
+	resultList, er := redisEngine.MGet(result...).Result()
 	if er != nil {
 		return nil, tgerrors.NewInternalError("failed to read the application user list (2)", er.Error())
 	}
@@ -197,7 +197,7 @@ func WriteUser(user *entity.User, retrieve bool) (usr *entity.User, err *tgerror
 
 	key := storageClient.User(user.AccountID, user.ApplicationID, user.ID)
 
-	exist, er := storageEngine.SetNX(key, string(val)).Result()
+	exist, er := redisEngine.SetNX(key, string(val)).Result()
 	if !exist {
 		return nil, tgerrors.NewInternalError("failed to write the application user (4)", "duplicate user")
 	}
@@ -208,7 +208,7 @@ func WriteUser(user *entity.User, retrieve bool) (usr *entity.User, err *tgerror
 	stringUserID := fmt.Sprintf("%d", user.ID)
 
 	emailListKey := storageClient.ApplicationUserByEmail(user.AccountID, user.ApplicationID, utils.Base64Encode(user.Email))
-	result, er := storageEngine.SetNX(emailListKey, stringUserID).Result()
+	result, er := redisEngine.SetNX(emailListKey, stringUserID).Result()
 	if er != nil {
 		return nil, tgerrors.NewInternalError("failed to write the application user (6)", er.Error())
 	}
@@ -217,7 +217,7 @@ func WriteUser(user *entity.User, retrieve bool) (usr *entity.User, err *tgerror
 	}
 
 	usernameListKey := storageClient.ApplicationUserByUsername(user.AccountID, user.ApplicationID, utils.Base64Encode(user.Username))
-	result, er = storageEngine.SetNX(usernameListKey, stringUserID).Result()
+	result, er = redisEngine.SetNX(usernameListKey, stringUserID).Result()
 	if er != nil {
 		return nil, tgerrors.NewInternalError("failed to write the application user (8)", er.Error())
 	}
@@ -238,7 +238,7 @@ func WriteUser(user *entity.User, retrieve bool) (usr *entity.User, err *tgerror
 	}
 
 	if applicationSocialKey != "" {
-		er := storageEngine.MSet(socialValues...).Err()
+		er := redisEngine.MSet(socialValues...).Err()
 		if er != nil {
 			return nil, tgerrors.NewInternalError("failed to write the application user (10)", er.Error())
 		}
@@ -260,7 +260,7 @@ func WriteUser(user *entity.User, retrieve bool) (usr *entity.User, err *tgerror
 		}
 
 		if applicationSocialKey != "" {
-			existingSocialIDs, er := storageEngine.MGet(existingSocialIDsKeys...).Result()
+			existingSocialIDs, er := redisEngine.MGet(existingSocialIDsKeys...).Result()
 			if er != nil {
 				return nil, tgerrors.NewInternalError("failed to write the application user (11)", er.Error())
 			}
@@ -274,7 +274,7 @@ func WriteUser(user *entity.User, retrieve bool) (usr *entity.User, err *tgerror
 	}
 
 	listKey := storageClient.Users(user.AccountID, user.ApplicationID)
-	if er = storageEngine.LPush(listKey, key).Err(); er != nil {
+	if er = redisEngine.LPush(listKey, key).Err(); er != nil {
 		return nil, tgerrors.NewInternalError("failed to write the application user (12)", er.Error())
 	}
 
@@ -295,11 +295,11 @@ func CreateApplicationUserSession(user *entity.User) (string, *tgerrors.TGError)
 	sessionKey := storageClient.ApplicationSessionKey(user.AccountID, user.ApplicationID, user.ID)
 	token := storageClient.GenerateApplicationSessionID(user)
 
-	if er := storageEngine.Set(sessionKey, token).Err(); er != nil {
+	if er := redisEngine.Set(sessionKey, token).Err(); er != nil {
 		return "", tgerrors.NewInternalError("failed to create the application user session (1)", er.Error())
 	}
 
-	expired, er := storageEngine.Expire(sessionKey, storageClient.SessionTimeoutDuration()).Result()
+	expired, er := redisEngine.Expire(sessionKey, storageClient.SessionTimeoutDuration()).Result()
 	if er != nil {
 		return "", tgerrors.NewInternalError("failed to create the application user session (2)", er.Error())
 	}
@@ -319,7 +319,7 @@ func RefreshApplicationUserSession(sessionToken string, user *entity.User) (stri
 
 	sessionKey := storageClient.ApplicationSessionKey(user.AccountID, user.ApplicationID, user.ID)
 
-	storedToken, er := storageEngine.Get(sessionKey).Result()
+	storedToken, er := redisEngine.Get(sessionKey).Result()
 	if er != nil {
 		return "", tgerrors.NewInternalError("failed to refresh the application user session (1)", er.Error())
 	}
@@ -330,11 +330,11 @@ func RefreshApplicationUserSession(sessionToken string, user *entity.User) (stri
 
 	token := storageClient.GenerateApplicationSessionID(user)
 
-	if er := storageEngine.Set(sessionKey, token).Err(); er != nil {
+	if er := redisEngine.Set(sessionKey, token).Err(); er != nil {
 		return "", tgerrors.NewInternalError("failed to refresh the application user session (3)", er.Error())
 	}
 
-	expired, er := storageEngine.Expire(sessionKey, storageClient.SessionTimeoutDuration()).Result()
+	expired, er := redisEngine.Expire(sessionKey, storageClient.SessionTimeoutDuration()).Result()
 	if er != nil {
 		return "", tgerrors.NewInternalError("failed to refresh the application user session (4)", er.Error())
 	}
@@ -348,7 +348,7 @@ func RefreshApplicationUserSession(sessionToken string, user *entity.User) (stri
 // GetApplicationUserSession returns the application user session
 func GetApplicationUserSession(user *entity.User) (string, error) {
 	sessionKey := storageClient.ApplicationSessionKey(user.AccountID, user.ApplicationID, user.ID)
-	storedSessionToken, err := storageEngine.Get(sessionKey).Result()
+	storedSessionToken, err := redisEngine.Get(sessionKey).Result()
 	if err != nil {
 		return "", fmt.Errorf("could not fetch session from storage")
 	}
@@ -366,7 +366,7 @@ func DestroyApplicationUserSession(sessionToken string, user *entity.User) *tger
 	// TODO rate limit this to x / per day?
 	sessionKey := storageClient.ApplicationSessionKey(user.AccountID, user.ApplicationID, user.ID)
 
-	storedToken, er := storageEngine.Get(sessionKey).Result()
+	storedToken, er := redisEngine.Get(sessionKey).Result()
 	if er != nil {
 		return tgerrors.NewInternalError("failed to destroy the application user session (1)", er.Error())
 	}
@@ -375,7 +375,7 @@ func DestroyApplicationUserSession(sessionToken string, user *entity.User) *tger
 		return tgerrors.NewInternalError("failed to destroy the application user session (2)", "session token mismatch")
 	}
 
-	result, er := storageEngine.Del(sessionKey).Result()
+	result, er := redisEngine.Del(sessionKey).Result()
 	if er != nil {
 		return tgerrors.NewInternalError("failed to destroy the application user session (3)", er.Error())
 	}
@@ -391,7 +391,7 @@ func DestroyApplicationUserSession(sessionToken string, user *entity.User) *tger
 func ApplicationUserByEmailExists(accountID, applicationID int64, email string) (bool, error) {
 	emailListKey := storageClient.ApplicationUserByEmail(accountID, applicationID, utils.Base64Encode(email))
 
-	return storageEngine.Exists(emailListKey).Result()
+	return redisEngine.Exists(emailListKey).Result()
 }
 
 // FindApplicationUserByEmail returns an application user by its email
@@ -410,7 +410,7 @@ func FindApplicationUserByUsername(accountID, applicationID int64, username stri
 
 // findApplicationUserByKey returns an application user regardless of the key used to search for him
 func findApplicationUserByKey(accountID, applicationID int64, bucketName string) (*entity.User, *tgerrors.TGError) {
-	storedValue, er := storageEngine.Get(bucketName).Result()
+	storedValue, er := redisEngine.Get(bucketName).Result()
 	if er != nil {
 		return nil, tgerrors.NewInternalError("failed to retrieve the application user (1)", er.Error())
 	}

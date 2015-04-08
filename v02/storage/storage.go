@@ -14,13 +14,15 @@ import (
 	"github.com/tapglue/backend/utils"
 	"github.com/tapglue/backend/v02/entity"
 
+	"github.com/sendgridlabs/go-kinesis"
 	red "gopkg.in/redis.v2"
 )
 
 type (
 	// Client structure holds the storage engine and functions needed to operate the backend
 	Client struct {
-		engine *red.Client
+		redisEngine   *red.Client
+		kinesisEngine *kinesis.Kinesis
 	}
 )
 
@@ -89,17 +91,17 @@ func generateTokenSalt(size int) string {
 
 // GenerateAccountID generates a new account ID
 func (client *Client) GenerateAccountID() (int64, error) {
-	return client.engine.Incr(idAccount).Result()
+	return client.redisEngine.Incr(idAccount).Result()
 }
 
 // GenerateAccountUserID generates a new account user id for a specified account
 func (client *Client) GenerateAccountUserID(accountID int64) (int64, error) {
-	return client.engine.Incr(fmt.Sprintf(idAccountUser, accountID)).Result()
+	return client.redisEngine.Incr(fmt.Sprintf(idAccountUser, accountID)).Result()
 }
 
 // GenerateApplicationID generates a new application ID
 func (client *Client) GenerateApplicationID(accountID int64) (int64, error) {
-	return client.engine.Incr(fmt.Sprintf(idAccountApp, accountID)).Result()
+	return client.redisEngine.Incr(fmt.Sprintf(idAccountApp, accountID)).Result()
 }
 
 // GenerateAccountSecretKey returns a token for the specified application of an account
@@ -150,12 +152,12 @@ func (client *Client) GenerateApplicationSecretKey(application *entity.Applicati
 
 // GenerateApplicationUserID generates the user id in the specified app
 func (client *Client) GenerateApplicationUserID(applicationID int64) (int64, error) {
-	return client.engine.Incr(fmt.Sprintf(idApplicationUser, applicationID)).Result()
+	return client.redisEngine.Incr(fmt.Sprintf(idApplicationUser, applicationID)).Result()
 }
 
 // GenerateApplicationEventID generates the event id in the specified app
 func (client *Client) GenerateApplicationEventID(applicationID int64) (int64, error) {
-	return client.engine.Incr(fmt.Sprintf(idApplicationEvent, applicationID)).Result()
+	return client.redisEngine.Incr(fmt.Sprintf(idApplicationEvent, applicationID)).Result()
 }
 
 // GenerateAccountSessionID generated the session id for the specific
@@ -335,16 +337,22 @@ func (client *Client) SessionTimeoutDuration() time.Duration {
 	return time.Duration(time.Hour * 24 * 356 * 10)
 }
 
-// Engine returns the storage engine used
-func (client *Client) Engine() *red.Client {
-	return client.engine
+// RedisEngine returns the storage engine used
+func (client *Client) RedisEngine() *red.Client {
+	return client.redisEngine
+}
+
+// KinesisEngine returns the storage engine used
+func (client *Client) KinesisEngine() *kinesis.Kinesis {
+	return client.kinesisEngine
 }
 
 // Init initializes the storage package with the required storage engine
-func Init(engine *red.Client) *Client {
+func Init(redisEngine *red.Client, kinesisEngine *kinesis.Kinesis) *Client {
 	if instance == nil {
 		instance = &Client{
-			engine: engine,
+			redisEngine:   redisEngine,
+			kinesisEngine: kinesisEngine,
 		}
 	}
 
