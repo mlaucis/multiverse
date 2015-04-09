@@ -136,16 +136,16 @@ func GetRoute(routeName string) *Route {
 	return Routes[routeName]
 }
 
-// validateGetCommon runs a series of predefined, common, tests for GET requests
-func validateGetCommon(ctx *context.Context) (err *tgerrors.TGError) {
+// ValidateGetCommon runs a series of predefined, common, tests for GET requests
+func ValidateGetCommon(ctx *context.Context) (err *tgerrors.TGError) {
 	if ctx.R.Header.Get("User-Agent") != "" {
 		return
 	}
 	return tgerrors.NewBadRequestError("User-Agent header must be set (1)", "missing ua header")
 }
 
-// validatePutCommon runs a series of predefinied, common, tests for PUT requests
-func validatePutCommon(ctx *context.Context) (err *tgerrors.TGError) {
+// ValidatePutCommon runs a series of predefinied, common, tests for PUT requests
+func ValidatePutCommon(ctx *context.Context) (err *tgerrors.TGError) {
 	if ctx.SkipSecurity {
 		return
 	}
@@ -182,8 +182,8 @@ func validatePutCommon(ctx *context.Context) (err *tgerrors.TGError) {
 	return
 }
 
-// validateDeleteCommon runs a series of predefinied, common, tests for DELETE requests
-func validateDeleteCommon(ctx *context.Context) (err *tgerrors.TGError) {
+// ValidateDeleteCommon runs a series of predefinied, common, tests for DELETE requests
+func ValidateDeleteCommon(ctx *context.Context) (err *tgerrors.TGError) {
 	if ctx.R.Header.Get("User-Agent") != "" {
 		return
 	}
@@ -191,8 +191,8 @@ func validateDeleteCommon(ctx *context.Context) (err *tgerrors.TGError) {
 	return tgerrors.NewBadRequestError("User-Agent header must be set (1)", "missing ua header")
 }
 
-// validatePostCommon runs a series of predefined, common, tests for the POST requests
-func validatePostCommon(ctx *context.Context) (err *tgerrors.TGError) {
+// ValidatePostCommon runs a series of predefined, common, tests for the POST requests
+func ValidatePostCommon(ctx *context.Context) (err *tgerrors.TGError) {
 	if ctx.SkipSecurity {
 		return
 	}
@@ -235,19 +235,19 @@ func CustomHandler(routeName, version string, route *Route, mainLog, errorLog ch
 	switch route.Method {
 	case "DELETE":
 		{
-			extraHandlers = append(extraHandlers, validateDeleteCommon)
+			extraHandlers = append(extraHandlers, ValidateDeleteCommon)
 		}
 	case "GET":
 		{
-			extraHandlers = append(extraHandlers, validateGetCommon)
+			extraHandlers = append(extraHandlers, ValidateGetCommon)
 		}
 	case "PUT":
 		{
-			extraHandlers = append(extraHandlers, validatePutCommon)
+			extraHandlers = append(extraHandlers, ValidatePutCommon)
 		}
 	case "POST":
 		{
-			extraHandlers = append(extraHandlers, validatePostCommon)
+			extraHandlers = append(extraHandlers, ValidatePostCommon)
 		}
 	}
 
