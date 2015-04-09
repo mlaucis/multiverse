@@ -487,7 +487,7 @@ func (s *ServerSuite) TestCreateConnectionAndCheckLists(c *C) {
 	c.Assert(code, Equals, http.StatusOK)
 	c.Assert(body, Not(Equals), "")
 
-	userConnections := []entity.User{}
+	userConnections := []entity.ApplicationUser{}
 	er = json.Unmarshal([]byte(body), &userConnections)
 	c.Assert(er, IsNil)
 
@@ -502,7 +502,7 @@ func (s *ServerSuite) TestCreateConnectionAndCheckLists(c *C) {
 	c.Assert(code, Equals, http.StatusOK)
 	c.Assert(body, Not(Equals), "")
 
-	userConnections = []entity.User{}
+	userConnections = []entity.ApplicationUser{}
 	er = json.Unmarshal([]byte(body), &userConnections)
 	c.Assert(er, IsNil)
 
@@ -1080,7 +1080,7 @@ func (s *ServerSuite) TestCreateSocialConnection(c *C) {
 	c.Assert(body, Not(Equals), "")
 	c.Assert(body, Not(Equals), "[]\n")
 
-	connectedUsers := []*entity.User{}
+	connectedUsers := []*entity.ApplicationUser{}
 	er = json.Unmarshal([]byte(body), &connectedUsers)
 	c.Assert(er, IsNil)
 	c.Assert(len(connectedUsers), Equals, 2)

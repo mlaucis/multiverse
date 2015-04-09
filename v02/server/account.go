@@ -8,35 +8,35 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/tgerrors"
-	"github.com/tapglue/backend/v02/context"
 	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/entity"
 	"github.com/tapglue/backend/v02/validator"
 )
 
-// getAccount handles requests to a single account
+// GetAccount handles requests to a single account
 // Request: GET /account/:AccountID
 func GetAccount(ctx *context.Context) (err *tgerrors.TGError) {
-	WriteResponse(ctx, ctx.Account, http.StatusOK, 10)
+	WriteResponse(ctx, ctx.Bag["account"].(*entity.Account), http.StatusOK, 10)
 	return
 }
 
-// updateAccount handles requests to update a single account
+// UpdateAccount handles requests to update a single account
 // Request: PUT /account/:AccountID
 func UpdateAccount(ctx *context.Context) (err *tgerrors.TGError) {
-	account := *ctx.Account
+	account := *(ctx.Bag["account"].(*entity.Account))
 	if er := json.Unmarshal(ctx.Body, &account); er != nil {
 		return tgerrors.NewBadRequestError("failed to update the account (1)\n"+er.Error(), "malformed json received")
 	}
 
-	account.ID = ctx.AccountID
+	account.ID = ctx.Bag["accountID"].(int64)
 
-	if err := validator.UpdateAccount(ctx.Account, &account); err != nil {
+	if err := validator.UpdateAccount(ctx.Bag["account"].(*entity.Account), &account); err != nil {
 		return err
 	}
 
-	updatedAccount, err := core.UpdateAccount(*ctx.Account, account, true)
+	updatedAccount, err := core.UpdateAccount(*(ctx.Bag["account"].(*entity.Account)), account, true)
 	if err != nil {
 		return err
 	}
@@ -45,10 +45,10 @@ func UpdateAccount(ctx *context.Context) (err *tgerrors.TGError) {
 	return nil
 }
 
-// deleteAccount handles requests to delete a single account
+// DeleteAccount handles requests to delete a single account
 // Request: DELETE /account/:AccountID
 func DeleteAccount(ctx *context.Context) (err *tgerrors.TGError) {
-	if err = core.DeleteAccount(ctx.AccountID); err != nil {
+	if err = core.DeleteAccount(ctx.Bag["accountID"].(int64)); err != nil {
 		return err
 	}
 
@@ -56,7 +56,7 @@ func DeleteAccount(ctx *context.Context) (err *tgerrors.TGError) {
 	return nil
 }
 
-// createAccount handles requests create an account
+// CreateAccount handles requests create an account
 // Request: POST /accounts
 func CreateAccount(ctx *context.Context) (err *tgerrors.TGError) {
 	var account = &entity.Account{}

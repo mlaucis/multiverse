@@ -98,7 +98,7 @@ func DeleteConnection(accountID, applicationID, userFromID, userToID int64) (err
 }
 
 // ReadConnectionList returns all connections from a certain user
-func ReadConnectionList(accountID, applicationID, userID int64) (users []*entity.User, err *tgerrors.TGError) {
+func ReadConnectionList(accountID, applicationID, userID int64) (users []*entity.ApplicationUser, err *tgerrors.TGError) {
 	key := storageClient.ConnectionUsers(accountID, applicationID, userID)
 	result, er := redisEngine.LRange(key, 0, -1).Result()
 	if er != nil {
@@ -106,14 +106,14 @@ func ReadConnectionList(accountID, applicationID, userID int64) (users []*entity
 	}
 
 	if len(result) == 0 {
-		return []*entity.User{}, nil
+		return []*entity.ApplicationUser{}, nil
 	}
 
 	return fetchAndDecodeMultipleUsers(result)
 }
 
 // ReadFollowedByList returns all connections from a certain user
-func ReadFollowedByList(accountID, applicationID, userID int64) (users []*entity.User, err *tgerrors.TGError) {
+func ReadFollowedByList(accountID, applicationID, userID int64) (users []*entity.ApplicationUser, err *tgerrors.TGError) {
 	key := storageClient.FollowedByUsers(accountID, applicationID, userID)
 	result, er := redisEngine.LRange(key, 0, -1).Result()
 	if er != nil {
@@ -121,7 +121,7 @@ func ReadFollowedByList(accountID, applicationID, userID int64) (users []*entity
 	}
 
 	if len(result) == 0 {
-		return []*entity.User{}, nil
+		return []*entity.ApplicationUser{}, nil
 	}
 
 	return fetchAndDecodeMultipleUsers(result)
@@ -279,8 +279,8 @@ func ReadConnection(accountID, applicationID, userFromID, userToID int64) (conne
 }
 
 // SocialConnect creates the connections between a user and his other social peers
-func SocialConnect(user *entity.User, platform string, socialFriendsIDs []string) ([]*entity.User, *tgerrors.TGError) {
-	result := []*entity.User{}
+func SocialConnect(user *entity.ApplicationUser, platform string, socialFriendsIDs []string) ([]*entity.ApplicationUser, *tgerrors.TGError) {
+	result := []*entity.ApplicationUser{}
 
 	encodedSocialFriendsIDs := []string{}
 	for idx := range socialFriendsIDs {
@@ -303,7 +303,7 @@ func SocialConnect(user *entity.User, platform string, socialFriendsIDs []string
 	return autoConnectSocialFriends(user, ourStoredUsersIDs)
 }
 
-func autoConnectSocialFriends(user *entity.User, ourStoredUsersIDs []interface{}) (users []*entity.User, err *tgerrors.TGError) {
+func autoConnectSocialFriends(user *entity.ApplicationUser, ourStoredUsersIDs []interface{}) (users []*entity.ApplicationUser, err *tgerrors.TGError) {
 	ourUserKeys := []string{}
 	for idx := range ourStoredUsersIDs {
 		userID, err := strconv.ParseInt(ourStoredUsersIDs[idx].(string), 10, 64)
@@ -361,9 +361,9 @@ func autoConnectSocialFriends(user *entity.User, ourStoredUsersIDs []interface{}
 	return fetchAndDecodeMultipleUsers(ourUserKeys)
 }
 
-func fetchAndDecodeMultipleUsers(keys []string) (users []*entity.User, err *tgerrors.TGError) {
+func fetchAndDecodeMultipleUsers(keys []string) (users []*entity.ApplicationUser, err *tgerrors.TGError) {
 	if len(keys) == 0 {
-		return []*entity.User{}, nil
+		return []*entity.ApplicationUser{}, nil
 	}
 
 	resultList, er := redisEngine.MGet(keys...).Result()
@@ -371,13 +371,13 @@ func fetchAndDecodeMultipleUsers(keys []string) (users []*entity.User, err *tger
 		return nil, tgerrors.NewInternalError("failed to perform operation on user list (1)", er.Error())
 	}
 
-	user := &entity.User{}
+	user := &entity.ApplicationUser{}
 	for _, result := range resultList {
 		if er = json.Unmarshal([]byte(result.(string)), user); er != nil {
 			return nil, tgerrors.NewInternalError("failed to perform operation on user list (2)", er.Error())
 		}
 		users = append(users, user)
-		user = &entity.User{}
+		user = &entity.ApplicationUser{}
 	}
 
 	return

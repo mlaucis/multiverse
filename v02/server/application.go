@@ -8,36 +8,36 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/tgerrors"
-	"github.com/tapglue/backend/v02/context"
 	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/entity"
 	"github.com/tapglue/backend/v02/validator"
 )
 
-// getApplication handles requests to a single application
+// GetApplication handles requests to a single application
 // Request: GET /account/:AccountID/application/:ApplicatonID
 func GetApplication(ctx *context.Context) (err *tgerrors.TGError) {
-	WriteResponse(ctx, ctx.Application, http.StatusOK, 10)
+	WriteResponse(ctx, ctx.Bag["application"].(*entity.Application), http.StatusOK, 10)
 	return
 }
 
-// updateApplication handles requests updates an application
+// UpdateApplication handles requests updates an application
 // Request: PUT /account/:AccountID/application/:ApplicatonID
 func UpdateApplication(ctx *context.Context) (err *tgerrors.TGError) {
-	application := *ctx.Application
+	application := *(ctx.Bag["application"].(*entity.Application))
 	if er := json.Unmarshal(ctx.Body, &application); er != nil {
 		return tgerrors.NewBadRequestError("failed to update the application (1)\n"+er.Error(), er.Error())
 	}
 
-	application.ID = ctx.ApplicationID
-	application.AccountID = ctx.AccountID
+	application.ID = ctx.Bag["applicationID"].(int64)
+	application.AccountID = ctx.Bag["accountID"].(int64)
 
-	if err = validator.UpdateApplication(ctx.Application, &application); err != nil {
+	if err = validator.UpdateApplication(ctx.Bag["application"].(*entity.Application), &application); err != nil {
 		return
 	}
 
-	updatedApplication, err := core.UpdateApplication(*ctx.Application, application, true)
+	updatedApplication, err := core.UpdateApplication(*ctx.Bag["application"].(*entity.Application), application, true)
 	if err != nil {
 		return
 	}
@@ -46,10 +46,10 @@ func UpdateApplication(ctx *context.Context) (err *tgerrors.TGError) {
 	return
 }
 
-// deleteApplication handles requests to delete a single application
+// DeleteApplication handles requests to delete a single application
 // Request: DELETE /account/:AccountID/application/:ApplicatonID
 func DeleteApplication(ctx *context.Context) (err *tgerrors.TGError) {
-	if err = core.DeleteApplication(ctx.AccountID, ctx.ApplicationID); err != nil {
+	if err = core.DeleteApplication(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64)); err != nil {
 		return
 	}
 
@@ -57,7 +57,7 @@ func DeleteApplication(ctx *context.Context) (err *tgerrors.TGError) {
 	return
 }
 
-// createApplication handles requests create an application
+// CreateApplication handles requests create an application
 // Request: POST /account/:AccountID/applications
 func CreateApplication(ctx *context.Context) (err *tgerrors.TGError) {
 	var (
@@ -68,7 +68,7 @@ func CreateApplication(ctx *context.Context) (err *tgerrors.TGError) {
 		return tgerrors.NewBadRequestError("failed to create the application (1)\n"+er.Error(), er.Error())
 	}
 
-	application.AccountID = ctx.AccountID
+	application.AccountID = ctx.Bag["accountID"].(int64)
 
 	if err = validator.CreateApplication(application); err != nil {
 		return
@@ -82,14 +82,14 @@ func CreateApplication(ctx *context.Context) (err *tgerrors.TGError) {
 	return
 }
 
-// getApplicationList handles requests list all account applications
+// GetApplicationList handles requests list all account applications
 // Request: GET /account/:AccountID/applications
 func GetApplicationList(ctx *context.Context) (err *tgerrors.TGError) {
 	var (
 		applications []*entity.Application
 	)
 
-	if applications, err = core.ReadApplicationList(ctx.AccountID); err != nil {
+	if applications, err = core.ReadApplicationList(ctx.Bag["accountID"].(int64)); err != nil {
 		return
 	}
 

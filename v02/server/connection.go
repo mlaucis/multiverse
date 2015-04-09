@@ -10,14 +10,14 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/tgerrors"
-	"github.com/tapglue/backend/v02/context"
 	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/entity"
 	"github.com/tapglue/backend/v02/validator"
 )
 
-// updateConnection handles requests to update a user connection
+// UpdateConnection handles requests to update a user connection
 // Request: PUT account/:AccountID/application/:ApplicationID/user/:UserFromID/connection/:UserToID
 func UpdateConnection(ctx *context.Context) (err *tgerrors.TGError) {
 	var (
@@ -29,7 +29,7 @@ func UpdateConnection(ctx *context.Context) (err *tgerrors.TGError) {
 		return tgerrors.NewBadRequestError("failed to update the connection (1)\n"+er.Error(), er.Error())
 	}
 
-	existingConnection, err := core.ReadConnection(ctx.AccountID, ctx.ApplicationID, ctx.ApplicationUserID, userToID)
+	existingConnection, err := core.ReadConnection(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(int64), userToID)
 	if err != nil {
 		return
 	}
@@ -42,10 +42,10 @@ func UpdateConnection(ctx *context.Context) (err *tgerrors.TGError) {
 		return tgerrors.NewBadRequestError("failed to update the connection (4)\n"+er.Error(), er.Error())
 	}
 
-	connection.AccountID = ctx.AccountID
-	connection.ApplicationID = ctx.ApplicationID
+	connection.AccountID = ctx.Bag["accountID"].(int64)
+	connection.ApplicationID = ctx.Bag["applicationID"].(int64)
 
-	if connection.UserFromID != ctx.ApplicationUserID {
+	if connection.UserFromID != ctx.Bag["applicationUserID"].(int64) {
 		return tgerrors.NewBadRequestError("failed to update the connection (5)\nuser_from mismatch", "user_from mismatch")
 	}
 
@@ -66,7 +66,7 @@ func UpdateConnection(ctx *context.Context) (err *tgerrors.TGError) {
 	return
 }
 
-// deleteConnection handles requests to delete a single connection
+// DeleteConnection handles requests to delete a single connection
 // Request: DELETE account/:AccountID/application/:ApplicationID/user/:UserFromID/connection/:UserToID
 func DeleteConnection(ctx *context.Context) (err *tgerrors.TGError) {
 	var (
@@ -78,7 +78,7 @@ func DeleteConnection(ctx *context.Context) (err *tgerrors.TGError) {
 		return tgerrors.NewBadRequestError("failed to delete the connection(1)\n"+er.Error(), er.Error())
 	}
 
-	if err = core.DeleteConnection(ctx.AccountID, ctx.ApplicationID, ctx.ApplicationUserID, userToID); err != nil {
+	if err = core.DeleteConnection(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(int64), userToID); err != nil {
 		return
 	}
 
@@ -86,7 +86,7 @@ func DeleteConnection(ctx *context.Context) (err *tgerrors.TGError) {
 	return
 }
 
-// createConnection handles requests to create a user connection
+// CreateConnection handles requests to create a user connection
 // Request: POST /application/:applicationId/user/:UserID/connections
 func CreateConnection(ctx *context.Context) (err *tgerrors.TGError) {
 	var (
@@ -101,9 +101,9 @@ func CreateConnection(ctx *context.Context) (err *tgerrors.TGError) {
 
 	receivedEnabled := connection.Enabled
 
-	connection.AccountID = ctx.AccountID
-	connection.ApplicationID = ctx.ApplicationID
-	connection.UserFromID = ctx.ApplicationUserID
+	connection.AccountID = ctx.Bag["accountID"].(int64)
+	connection.ApplicationID = ctx.Bag["applicationID"].(int64)
+	connection.UserFromID = ctx.Bag["applicationUserID"].(int64)
 
 	if connection.UserFromID == connection.UserToID {
 		return tgerrors.NewBadRequestError("failed to create connection (2)\nuser is connecting with itself", "self-connecting user")
@@ -127,12 +127,12 @@ func CreateConnection(ctx *context.Context) (err *tgerrors.TGError) {
 	return
 }
 
-// getConnectionList handles requests to list a users connections
+// GetConnectionList handles requests to list a users connections
 // Request: GET account/:AccountID/application/:ApplicationID/user/:UserID/connections
 func GetConnectionList(ctx *context.Context) (err *tgerrors.TGError) {
-	var users []*entity.User
+	var users []*entity.ApplicationUser
 
-	if users, err = core.ReadConnectionList(ctx.AccountID, ctx.ApplicationID, ctx.ApplicationUserID); err != nil {
+	if users, err = core.ReadConnectionList(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(int64)); err != nil {
 		return
 	}
 
@@ -144,12 +144,12 @@ func GetConnectionList(ctx *context.Context) (err *tgerrors.TGError) {
 	return
 }
 
-// getFollowedByUsersList handles requests to list a users list of users who follow him
+// GetFollowedByUsersList handles requests to list a users list of users who follow him
 // Request: GET account/:AccountID/application/:ApplicationID/user/:UserID/followers
 func GetFollowedByUsersList(ctx *context.Context) (err *tgerrors.TGError) {
-	var users []*entity.User
+	var users []*entity.ApplicationUser
 
-	if users, err = core.ReadFollowedByList(ctx.AccountID, ctx.ApplicationID, ctx.ApplicationUserID); err != nil {
+	if users, err = core.ReadFollowedByList(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(int64)); err != nil {
 		return
 	}
 
@@ -161,7 +161,7 @@ func GetFollowedByUsersList(ctx *context.Context) (err *tgerrors.TGError) {
 	return
 }
 
-// confirmConnection handles requests to confirm a user connection
+// ConfirmConnection handles requests to confirm a user connection
 // Request: POST account/:AccountID/application/:ApplicationID/user/:UserID/connection/confirm
 func ConfirmConnection(ctx *context.Context) (err *tgerrors.TGError) {
 	var connection = &entity.Connection{}
@@ -170,9 +170,9 @@ func ConfirmConnection(ctx *context.Context) (err *tgerrors.TGError) {
 		return tgerrors.NewBadRequestError("failed to confirm the connection (1)\n"+er.Error(), er.Error())
 	}
 
-	connection.AccountID = ctx.AccountID
-	connection.ApplicationID = ctx.ApplicationID
-	connection.UserFromID = ctx.ApplicationUserID
+	connection.AccountID = ctx.Bag["accountID"].(int64)
+	connection.ApplicationID = ctx.Bag["applicationID"].(int64)
+	connection.UserFromID = ctx.Bag["applicationUserID"].(int64)
 
 	if err = validator.ConfirmConnection(connection); err != nil {
 		return
@@ -193,6 +193,7 @@ var acceptedPlatforms = map[string]bool{
 	"abook":    true,
 }
 
+// CreateSocialConnections creates the social connections between users of the same social network
 func CreateSocialConnections(ctx *context.Context) (err *tgerrors.TGError) {
 	platformName := strings.ToLower(ctx.Vars["platformName"])
 
@@ -210,7 +211,7 @@ func CreateSocialConnections(ctx *context.Context) (err *tgerrors.TGError) {
 		return tgerrors.NewBadRequestError("social connecting failed (2)\n"+er.Error(), er.Error())
 	}
 
-	if ctx.ApplicationUserID != socialConnections.UserFromID {
+	if ctx.Bag["applicationUserID"].(int64) != socialConnections.UserFromID {
 		return tgerrors.NewBadRequestError("social connecting failed (3)\nuser mismatch", "user mismatch")
 	}
 
@@ -218,7 +219,7 @@ func CreateSocialConnections(ctx *context.Context) (err *tgerrors.TGError) {
 		return tgerrors.NewBadRequestError("social connecting failed (3)\nplatform mismatch", "platform mismatch")
 	}
 
-	users, err := core.SocialConnect(ctx.ApplicationUser, platformName, socialConnections.ConnectionsIDs)
+	users, err := core.SocialConnect(ctx.Bag["applicationUser"].(*entity.ApplicationUser), platformName, socialConnections.ConnectionsIDs)
 	if err != nil {
 		return
 	}

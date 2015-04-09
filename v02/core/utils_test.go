@@ -43,7 +43,7 @@ func AddCorrectApplication(accountID int64, fetchApplication bool) (app *entity.
 }
 
 // AddCorrectUser creates a correct user
-func AddCorrectUser(accountID, applicationID int64, fetchUser bool) (usr *entity.User, err error) {
+func AddCorrectUser(accountID, applicationID int64, fetchUser bool) (usr *entity.ApplicationUser, err error) {
 	userWithIDs := correctUser
 	userWithIDs.AccountID = accountID
 	userWithIDs.ApplicationID = applicationID
@@ -100,7 +100,7 @@ func CorrectApplication() *entity.Application {
 }
 
 // CorrectUser returns a correct user
-func CorrectUser() *entity.User {
+func CorrectUser() *entity.ApplicationUser {
 	return correctUser
 }
 

@@ -9,36 +9,36 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/tgerrors"
-	"github.com/tapglue/backend/v02/context"
 	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/entity"
 	"github.com/tapglue/backend/v02/validator"
 )
 
-// getAccountUser handles requests to a single account user
+// GetAccountUser handles requests to a single account user
 // Request: GET /account/:AccountID/user/:UserID
 func GetAccountUser(ctx *context.Context) (err *tgerrors.TGError) {
-	WriteResponse(ctx, ctx.AccountUser, http.StatusOK, 10)
+	WriteResponse(ctx, ctx.Bag["accountUser"].(*entity.AccountUser), http.StatusOK, 10)
 	return
 }
 
-// updateAccountUser handles requests update an account user
+// UpdateAccountUser handles requests update an account user
 // Request: PUT /account/:AccountID/user/:UserID
 func UpdateAccountUser(ctx *context.Context) (err *tgerrors.TGError) {
-	accountUser := *ctx.AccountUser
+	accountUser := *(ctx.Bag["accountUser"].(*entity.AccountUser))
 	if er := json.Unmarshal(ctx.Body, &accountUser); er != nil {
 		return tgerrors.NewBadRequestError("failed to update the account user (1)\n"+er.Error(), er.Error())
 	}
 
-	accountUser.ID = ctx.AccountUserID
-	accountUser.AccountID = ctx.AccountID
+	accountUser.ID = ctx.Bag["accountUserID"].(int64)
+	accountUser.AccountID = ctx.Bag["accountID"].(int64)
 
-	if err = validator.UpdateAccountUser(ctx.AccountUser, &accountUser); err != nil {
+	if err = validator.UpdateAccountUser(ctx.Bag["accountUser"].(*entity.AccountUser), &accountUser); err != nil {
 		return
 	}
 
-	updatedAccountUser, err := core.UpdateAccountUser(*ctx.AccountUser, accountUser, true)
+	updatedAccountUser, err := core.UpdateAccountUser(*(ctx.Bag["accountUser"].(*entity.AccountUser)), accountUser, true)
 	if err != nil {
 		return
 	}
@@ -48,10 +48,10 @@ func UpdateAccountUser(ctx *context.Context) (err *tgerrors.TGError) {
 	return
 }
 
-// deleteAccountUser handles requests to delete a single account user
+// DeleteAccountUser handles requests to delete a single account user
 // Request: DELETE /account/:AccountID/user/:UserID
 func DeleteAccountUser(ctx *context.Context) (err *tgerrors.TGError) {
-	if err = core.DeleteAccountUser(ctx.AccountID, ctx.AccountUserID); err != nil {
+	if err = core.DeleteAccountUser(ctx.Bag["accountID"].(int64), ctx.Bag["accountUserID"].(int64)); err != nil {
 		return
 	}
 
@@ -59,7 +59,7 @@ func DeleteAccountUser(ctx *context.Context) (err *tgerrors.TGError) {
 	return
 }
 
-// createAccountUser handles requests create an account user
+// CreateAccountUser handles requests create an account user
 // Request: POST /account/:AccountID/users
 func CreateAccountUser(ctx *context.Context) (err *tgerrors.TGError) {
 	var (
@@ -70,7 +70,7 @@ func CreateAccountUser(ctx *context.Context) (err *tgerrors.TGError) {
 		return tgerrors.NewBadRequestError("failed to create the account user (1)"+err.Error(), err.Error())
 	}
 
-	accountUser.AccountID = ctx.AccountID
+	accountUser.AccountID = ctx.Bag["accountID"].(int64)
 
 	if err = validator.CreateAccountUser(accountUser); err != nil {
 		return
@@ -86,14 +86,14 @@ func CreateAccountUser(ctx *context.Context) (err *tgerrors.TGError) {
 	return
 }
 
-// getAccountUserList handles requests to list all account users
+// GetAccountUserList handles requests to list all account users
 // Request: GET /account/:AccountID/users
 func GetAccountUserList(ctx *context.Context) (err *tgerrors.TGError) {
 	var (
 		accountUsers []*entity.AccountUser
 	)
 
-	if accountUsers, err = core.ReadAccountUserList(ctx.AccountID); err != nil {
+	if accountUsers, err = core.ReadAccountUserList(ctx.Bag["accountID"].(int64)); err != nil {
 		//		utils.ErrorHappened(ctx, "failed to retrieve the users (1)", http.StatusInternalServerError, err)
 		return
 	}
@@ -112,7 +112,7 @@ func GetAccountUserList(ctx *context.Context) (err *tgerrors.TGError) {
 	return
 }
 
-// loginAccountUser handles the requests to login the user in the system
+// LoginAccountUser handles the requests to login the user in the system
 // Request: POST /account/user/login
 func LoginAccountUser(ctx *context.Context) (err *tgerrors.TGError) {
 	var (
@@ -172,7 +172,7 @@ func LoginAccountUser(ctx *context.Context) (err *tgerrors.TGError) {
 	return
 }
 
-// refreshApplicationUserSession handles the requests to refresh the user session token
+// RefreshAccountUserSession handles the requests to refresh the account user session token
 // Request: Post /account/:AccountID/application/:ApplicationID/user/refreshsession
 func RefreshAccountUserSession(ctx *context.Context) (err *tgerrors.TGError) {
 	var (
@@ -190,7 +190,7 @@ func RefreshAccountUserSession(ctx *context.Context) (err *tgerrors.TGError) {
 		return tgerrors.NewBadRequestError("failed to refresh session token (2) \nsession token mismatch", "session token mismatch")
 	}
 
-	if sessionToken, err = core.RefreshAccountUserSession(ctx.SessionToken, ctx.AccountUser); err != nil {
+	if sessionToken, err = core.RefreshAccountUserSession(ctx.SessionToken, ctx.Bag["accountUser"].(*entity.AccountUser)); err != nil {
 		return
 	}
 
@@ -200,7 +200,7 @@ func RefreshAccountUserSession(ctx *context.Context) (err *tgerrors.TGError) {
 	return
 }
 
-// logoutApplicationUser handles the requests to logout the user from the system
+// LogoutAccountUser handles the requests to logout the account user from the system
 // Request: Post /account/:AccountID/application/:ApplicationID/user/logout
 func LogoutAccountUser(ctx *context.Context) (err *tgerrors.TGError) {
 	var logoutPayload struct {
@@ -215,7 +215,7 @@ func LogoutAccountUser(ctx *context.Context) (err *tgerrors.TGError) {
 		return tgerrors.NewBadRequestError("failed to logout the user (2) \nsession token mismatch", "session token mismatch")
 	}
 
-	if err = core.DestroyAccountUserSession(logoutPayload.Token, ctx.AccountUser); err != nil {
+	if err = core.DestroyAccountUserSession(logoutPayload.Token, ctx.Bag["accountUser"].(*entity.AccountUser)); err != nil {
 		return
 	}
 

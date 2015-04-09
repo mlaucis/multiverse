@@ -375,7 +375,7 @@ func getAccountUserSessionToken(user *entity.AccountUser) string {
 }
 
 // createApplicationUserSessionToken creates an application user session and returns the token
-func createApplicationUserSessionToken(user *entity.User) string {
+func createApplicationUserSessionToken(user *entity.ApplicationUser) string {
 	sessionToken, err := core.CreateApplicationUserSession(user)
 	if err != nil {
 		panic(err)

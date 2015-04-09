@@ -78,7 +78,7 @@ func (s *ServerSuite) TestCreateUser_OK(c *C) {
 
 	c.Assert(body, Not(Equals), "")
 
-	receivedUser := &entity.User{}
+	receivedUser := &entity.ApplicationUser{}
 	er := json.Unmarshal([]byte(body), receivedUser)
 	c.Assert(er, IsNil)
 	if receivedUser.ID < 1 {
@@ -118,7 +118,7 @@ func (s *ServerSuite) TestUpdateUser_OK(c *C) {
 
 	c.Assert(body, Not(Equals), "")
 
-	receivedUser := &entity.User{}
+	receivedUser := &entity.ApplicationUser{}
 	er := json.Unmarshal([]byte(body), receivedUser)
 	c.Assert(er, IsNil)
 	if receivedUser.ID < 1 {
@@ -265,7 +265,7 @@ func (s *ServerSuite) TestGetUser_OK(c *C) {
 
 	c.Assert(body, Not(Equals), "")
 
-	receivedUser := &entity.User{}
+	receivedUser := &entity.ApplicationUser{}
 	er := json.Unmarshal([]byte(body), receivedUser)
 	c.Assert(er, IsNil)
 	c.Assert(receivedUser.AccountID, Equals, account.ID)
@@ -488,7 +488,7 @@ func (s *ServerSuite) TestLoginChangePasswordLoginWorks(c *C) {
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
 
-	updatedUser := &entity.User{}
+	updatedUser := &entity.ApplicationUser{}
 	er = json.Unmarshal([]byte(body), updatedUser)
 	c.Assert(er, IsNil)
 	// WE need these to make DeepEquals work
@@ -708,7 +708,7 @@ func (s *ServerSuite) TestLoginChangeUsernameLogoutLoginWorks(c *C) {
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
 
-	updatedUser := &entity.User{}
+	updatedUser := &entity.ApplicationUser{}
 	er = json.Unmarshal([]byte(body), updatedUser)
 	c.Assert(er, IsNil)
 	c.Assert(updatedUser.Username, Equals, "newUserName")
@@ -790,7 +790,7 @@ func (s *ServerSuite) TestLoginChangeEmailLogoutLoginWorks(c *C) {
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
-	updatedUser := &entity.User{}
+	updatedUser := &entity.ApplicationUser{}
 	er = json.Unmarshal([]byte(body), updatedUser)
 	c.Assert(er, IsNil)
 	c.Assert(updatedUser.Email, Equals, "newUserEmail@tapglue.com")
@@ -877,7 +877,7 @@ func (s *ServerSuite) TestLoginDisableLoginFails(c *C) {
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
 
-	updatedUser := &entity.User{}
+	updatedUser := &entity.ApplicationUser{}
 	er = json.Unmarshal([]byte(body), updatedUser)
 	c.Assert(er, IsNil)
 	c.Assert(updatedUser.Enabled, Equals, false)
@@ -1062,7 +1062,7 @@ func (s *ServerSuite) TestLoginChangePasswordRefreshWorks(c *C) {
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
 
-	updatedUser := &entity.User{}
+	updatedUser := &entity.ApplicationUser{}
 	er = json.Unmarshal([]byte(body), updatedUser)
 	c.Assert(er, IsNil)
 	// WE need these to make DeepEquals work
@@ -1134,7 +1134,7 @@ func (s *ServerSuite) TestLoginChangeUsernameRefreshWorks(c *C) {
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
 
-	updatedUser := &entity.User{}
+	updatedUser := &entity.ApplicationUser{}
 	er = json.Unmarshal([]byte(body), updatedUser)
 	c.Assert(er, IsNil)
 	c.Assert(updatedUser.Username, Equals, "newUserName")
@@ -1207,7 +1207,7 @@ func (s *ServerSuite) TestLoginChangeEmailRefreshWorks(c *C) {
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
-	updatedUser := &entity.User{}
+	updatedUser := &entity.ApplicationUser{}
 	er = json.Unmarshal([]byte(body), updatedUser)
 	c.Assert(er, IsNil)
 	c.Assert(updatedUser.Email, Equals, "newUserEmail@tapglue.com")
@@ -1359,7 +1359,7 @@ func (s *ServerSuite) TestLoginChangeUsernameGetEventWorks(c *C) {
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
 
-	updatedUser := &entity.User{}
+	updatedUser := &entity.ApplicationUser{}
 	er = json.Unmarshal([]byte(body), updatedUser)
 	c.Assert(er, IsNil)
 	c.Assert(updatedUser.Username, Equals, "newUserName")
@@ -1515,7 +1515,7 @@ func (s *ServerSuite) TestCreateUserAutoBindSocialAccounts(c *C) {
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
 
-	receivedUser := &entity.User{}
+	receivedUser := &entity.ApplicationUser{}
 	err = json.Unmarshal([]byte(body), receivedUser)
 	c.Assert(err, IsNil)
 	if receivedUser.ID < 1 {
@@ -1538,7 +1538,7 @@ func (s *ServerSuite) TestCreateUserAutoBindSocialAccounts(c *C) {
 	c.Assert(code, Equals, http.StatusOK)
 	c.Assert(body, Not(Equals), "[]\n")
 
-	userConnections := []entity.User{}
+	userConnections := []entity.ApplicationUser{}
 	err = json.Unmarshal([]byte(body), &userConnections)
 	c.Assert(err, IsNil)
 

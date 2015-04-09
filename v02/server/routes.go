@@ -4,7 +4,7 @@
 
 package server
 
-import "github.com/tapglue/backend/v02/context"
+import "github.com/tapglue/backend/context"
 
 // Route definitions
 var Routes = map[string]*Route{

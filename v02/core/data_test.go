@@ -11,7 +11,7 @@ var (
 	emtpyAccount     = &entity.Account{}
 	emtpyAccountUser = &entity.AccountUser{}
 	emptyApplication = &entity.Application{}
-	emptyUser        = &entity.User{}
+	emptyUser        = &entity.ApplicationUser{}
 	emptyEvent       = &entity.Event{}
 	correctAccount   = &entity.Account{
 		Name:        "Demo",
@@ -40,7 +40,7 @@ var (
 		Description: "This is the best application",
 		URL:         "http://app.co",
 	}
-	correctUser = &entity.User{
+	correctUser = &entity.ApplicationUser{
 		AuthToken: "userToken123",
 		UserCommon: entity.UserCommon{
 			Username:  "Demo User",

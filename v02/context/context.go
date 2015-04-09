@@ -10,29 +10,10 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	ct "github.com/tapglue/backend/context"
+	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/logger"
 	"github.com/tapglue/backend/tgerrors"
 	"github.com/tapglue/backend/utils"
-	"github.com/tapglue/backend/v02/entity"
-)
-
-type (
-	// Context struct holds the request, response and additional informations about the context of the request
-	Context struct {
-		AccountID         int64
-		Account           *entity.Account
-		AccountUserID     int64
-		AccountUser       *entity.AccountUser
-		ApplicationID     int64
-		Application       *entity.Application
-		ApplicationUserID int64
-		ApplicationUser   *entity.User
-		ct.Context
-	}
-
-	// Filter is a callback that helps updating the context with extra information
-	Filter func(*Context) *tgerrors.TGError
 )
 
 // NewContext creates a new context from the current request
@@ -41,11 +22,11 @@ func NewContext(
 	r *http.Request,
 	mainLog, errorLog chan *logger.LogMsg,
 	routeName, scope, version string,
-	contextFilters []Filter,
+	contextFilters []context.Filter,
 	environment string,
-	debugMode bool) (ctx *Context, err *tgerrors.TGError) {
+	debugMode bool) (ctx *context.Context, err *tgerrors.TGError) {
 
-	ctx = new(Context)
+	ctx = new(context.Context)
 	ctx.StartTime = time.Now()
 	ctx.R = r
 	ctx.W = w
@@ -60,6 +41,7 @@ func NewContext(
 	ctx.Version = version
 	ctx.Environment = environment
 	ctx.DebugMode = debugMode
+	ctx.Bag = map[string]interface{}{}
 
 	for _, extraContext := range contextFilters {
 		err = extraContext(ctx)

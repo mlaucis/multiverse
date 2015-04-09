@@ -16,7 +16,7 @@ import (
 )
 
 // ReadApplicationUser returns the user matching the ID or an error
-func ReadApplicationUser(accountID, applicationID, userID int64) (user *entity.User, err *tgerrors.TGError) {
+func ReadApplicationUser(accountID, applicationID, userID int64) (user *entity.ApplicationUser, err *tgerrors.TGError) {
 	key := storageClient.User(accountID, applicationID, userID)
 
 	result, er := redisEngine.Get(key).Result()
@@ -32,7 +32,7 @@ func ReadApplicationUser(accountID, applicationID, userID int64) (user *entity.U
 }
 
 // UpdateUser updates a user in the database and returns the updates user or an error
-func UpdateUser(existingUser, updatedUser entity.User, retrieve bool) (usr *entity.User, err *tgerrors.TGError) {
+func UpdateUser(existingUser, updatedUser entity.ApplicationUser, retrieve bool) (usr *entity.ApplicationUser, err *tgerrors.TGError) {
 
 	if updatedUser.Password == "" {
 		updatedUser.Password = existingUser.Password
@@ -139,7 +139,7 @@ func DeleteUser(accountID, applicationID, userID int64) (err *tgerrors.TGError) 
 }
 
 // ReadUserList returns all users from a certain account
-func ReadUserList(accountID, applicationID int64) (users []*entity.User, err *tgerrors.TGError) {
+func ReadUserList(accountID, applicationID int64) (users []*entity.ApplicationUser, err *tgerrors.TGError) {
 	key := storageClient.Users(accountID, applicationID)
 
 	result, er := redisEngine.LRange(key, 0, -1).Result()
@@ -156,20 +156,20 @@ func ReadUserList(accountID, applicationID int64) (users []*entity.User, err *tg
 		return nil, tgerrors.NewInternalError("failed to read the application user list (2)", er.Error())
 	}
 
-	user := &entity.User{}
+	user := &entity.ApplicationUser{}
 	for _, result := range resultList {
 		if er = json.Unmarshal([]byte(result.(string)), user); er != nil {
 			return nil, tgerrors.NewInternalError("failed to read the application user list (3)", er.Error())
 		}
 		users = append(users, user)
-		user = &entity.User{}
+		user = &entity.ApplicationUser{}
 	}
 
 	return
 }
 
 // WriteUser adds a user to the database and returns the created user or an error
-func WriteUser(user *entity.User, retrieve bool) (usr *entity.User, err *tgerrors.TGError) {
+func WriteUser(user *entity.ApplicationUser, retrieve bool) (usr *entity.ApplicationUser, err *tgerrors.TGError) {
 	// TODO We should introduce an option for the application to either allow for activated/deactivated behavior
 	// and if they chose it, then we need to provide an endpoint to activate a user or not
 	//user.Activated = true
@@ -286,7 +286,7 @@ func WriteUser(user *entity.User, retrieve bool) (usr *entity.User, err *tgerror
 }
 
 // CreateApplicationUserSession handles the creation of a user session and returns the session token
-func CreateApplicationUserSession(user *entity.User) (string, *tgerrors.TGError) {
+func CreateApplicationUserSession(user *entity.ApplicationUser) (string, *tgerrors.TGError) {
 	// TODO support multiple sessions?
 	// TODO rate limit this to x / per day?
 	// TODO rate limit this to be at least x minutes after the logout
@@ -311,7 +311,7 @@ func CreateApplicationUserSession(user *entity.User) (string, *tgerrors.TGError)
 }
 
 // RefreshApplicationUserSession generates a new session token for the user session
-func RefreshApplicationUserSession(sessionToken string, user *entity.User) (string, *tgerrors.TGError) {
+func RefreshApplicationUserSession(sessionToken string, user *entity.ApplicationUser) (string, *tgerrors.TGError) {
 	// TODO support multiple sessions?
 	// TODO rate limit this to x / per day?
 	// TODO rate limit this to be at least x minutes after the logout
@@ -346,7 +346,7 @@ func RefreshApplicationUserSession(sessionToken string, user *entity.User) (stri
 }
 
 // GetApplicationUserSession returns the application user session
-func GetApplicationUserSession(user *entity.User) (string, error) {
+func GetApplicationUserSession(user *entity.ApplicationUser) (string, error) {
 	sessionKey := storageClient.ApplicationSessionKey(user.AccountID, user.ApplicationID, user.ID)
 	storedSessionToken, err := redisEngine.Get(sessionKey).Result()
 	if err != nil {
@@ -361,7 +361,7 @@ func GetApplicationUserSession(user *entity.User) (string, error) {
 }
 
 // DestroyApplicationUserSession removes the user session
-func DestroyApplicationUserSession(sessionToken string, user *entity.User) *tgerrors.TGError {
+func DestroyApplicationUserSession(sessionToken string, user *entity.ApplicationUser) *tgerrors.TGError {
 	// TODO support multiple sessions?
 	// TODO rate limit this to x / per day?
 	sessionKey := storageClient.ApplicationSessionKey(user.AccountID, user.ApplicationID, user.ID)
@@ -395,21 +395,21 @@ func ApplicationUserByEmailExists(accountID, applicationID int64, email string) 
 }
 
 // FindApplicationUserByEmail returns an application user by its email
-func FindApplicationUserByEmail(accountID, applicationID int64, email string) (*entity.User, *tgerrors.TGError) {
+func FindApplicationUserByEmail(accountID, applicationID int64, email string) (*entity.ApplicationUser, *tgerrors.TGError) {
 	emailListKey := storageClient.ApplicationUserByEmail(accountID, applicationID, utils.Base64Encode(email))
 
 	return findApplicationUserByKey(accountID, applicationID, emailListKey)
 }
 
 // FindApplicationUserByUsername returns an application user by its username
-func FindApplicationUserByUsername(accountID, applicationID int64, username string) (*entity.User, *tgerrors.TGError) {
+func FindApplicationUserByUsername(accountID, applicationID int64, username string) (*entity.ApplicationUser, *tgerrors.TGError) {
 	usernameListKey := storageClient.ApplicationUserByUsername(accountID, applicationID, utils.Base64Encode(username))
 
 	return findApplicationUserByKey(accountID, applicationID, usernameListKey)
 }
 
 // findApplicationUserByKey returns an application user regardless of the key used to search for him
-func findApplicationUserByKey(accountID, applicationID int64, bucketName string) (*entity.User, *tgerrors.TGError) {
+func findApplicationUserByKey(accountID, applicationID int64, bucketName string) (*entity.ApplicationUser, *tgerrors.TGError) {
 	storedValue, er := redisEngine.Get(bucketName).Result()
 	if er != nil {
 		return nil, tgerrors.NewInternalError("failed to retrieve the application user (1)", er.Error())

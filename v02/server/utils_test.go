@@ -49,7 +49,7 @@ func AddCorrectApplication(accountID int64, fetchApplication bool) (*entity.Appl
 }
 
 // AddCorrectUser creates a correct user
-func AddCorrectUser(accountID, applicationID int64, fetchUser bool) (usr *entity.User, err *tgerrors.TGError) {
+func AddCorrectUser(accountID, applicationID int64, fetchUser bool) (usr *entity.ApplicationUser, err *tgerrors.TGError) {
 	userWithIDs := fixtures.CorrectUser
 	userWithIDs.Password = "password"
 	userWithIDs.AccountID = accountID
@@ -63,7 +63,7 @@ func AddCorrectUser(accountID, applicationID int64, fetchUser bool) (usr *entity
 }
 
 // AddCorrectUser2 creates a correct user
-func AddCorrectUser2(accountID, applicationID int64, fetchUser bool) (usr *entity.User, err *tgerrors.TGError) {
+func AddCorrectUser2(accountID, applicationID int64, fetchUser bool) (usr *entity.ApplicationUser, err *tgerrors.TGError) {
 	userWithIDs := fixtures.CorrectUser
 	userWithIDs.Username = "demouser2"
 	userWithIDs.Password = "password"
@@ -139,13 +139,13 @@ func CorrectApplication() *entity.Application {
 }
 
 // CorrectUser returns a correct user
-func CorrectUser() *entity.User {
+func CorrectUser() *entity.ApplicationUser {
 	applicationUser := fixtures.CorrectUser
 	return &applicationUser
 }
 
 // CorrectUserWithDefaults returns a new user entity with prepoulated defaults
-func CorrectUserWithDefaults(accountID, applicationID, userNumber int64) *entity.User {
+func CorrectUserWithDefaults(accountID, applicationID, userNumber int64) *entity.ApplicationUser {
 	user := CorrectUser()
 	user.AccountID = accountID
 	user.ApplicationID = applicationID
@@ -249,7 +249,7 @@ func HookUp(accountID, applicationID, userFromID, userToID int64) {
 
 // HookUpUsers creates connection between all users that you provide
 // bidi:true will provide bidirectional connections
-func HookUpUsers(users []*entity.User, bidi bool) {
+func HookUpUsers(users []*entity.ApplicationUser, bidi bool) {
 	if len(users) < 2 {
 		return
 	}
@@ -272,7 +272,7 @@ func HookUpUsers(users []*entity.User, bidi bool) {
 // 3->4
 // 5->6
 // 7->8
-func HookUpUsersCustom(users []*entity.User) {
+func HookUpUsersCustom(users []*entity.ApplicationUser) {
 	if len(users) < 2 {
 		return
 	}
@@ -323,7 +323,7 @@ func HookUpUsersCustom(users []*entity.User) {
 	}
 }
 
-func LoginUsers(users []*entity.User) {
+func LoginUsers(users []*entity.ApplicationUser) {
 	for idx := range users {
 		sessionToken, err := core.CreateApplicationUserSession(users[idx])
 		if err != nil {
@@ -338,9 +338,9 @@ func LoginUsers(users []*entity.User) {
 	}
 }
 
-func AddCorrectApplicationUsers(application *entity.Application, numberOfUsersPerApplication int, hookUpUsers bool) []*entity.User {
+func AddCorrectApplicationUsers(application *entity.Application, numberOfUsersPerApplication int, hookUpUsers bool) []*entity.ApplicationUser {
 	var err *tgerrors.TGError
-	result := make([]*entity.User, numberOfUsersPerApplication)
+	result := make([]*entity.ApplicationUser, numberOfUsersPerApplication)
 	for i := 0; i < numberOfUsersPerApplication; i++ {
 		user := CorrectUserWithDefaults(application.AccountID, application.ID, int64(i+1))
 		password := user.Password
@@ -361,7 +361,7 @@ func AddCorrectApplicationUsers(application *entity.Application, numberOfUsersPe
 
 // AddCorrectUserEvents adds correct events to a user
 // If numberOfEventsPerUser < 4 then events are common, else they are user specific (thus unique)
-func AddCorrectUserEvents(user *entity.User, numberOfEventsPerUser int) []*entity.Event {
+func AddCorrectUserEvents(user *entity.ApplicationUser, numberOfEventsPerUser int) []*entity.Event {
 	var err *tgerrors.TGError
 	locations := []struct {
 		Lat   float64

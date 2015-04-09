@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/logger"
 	"github.com/tapglue/backend/tgerrors"
-	"github.com/tapglue/backend/v02/context"
 )
 
 type (

@@ -11,14 +11,14 @@ import (
 
 	"sort"
 
+	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/tgerrors"
-	"github.com/tapglue/backend/v02/context"
 	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/entity"
 	"github.com/tapglue/backend/v02/validator"
 )
 
-// getEvent handles requests to retrieve a single event
+// GetEvent handles requests to retrieve a single event
 // Request: GET account/:AccountID/application/:ApplicationID/event/:EventID
 func GetEvent(ctx *context.Context) (err *tgerrors.TGError) {
 	var (
@@ -31,7 +31,7 @@ func GetEvent(ctx *context.Context) (err *tgerrors.TGError) {
 		return tgerrors.NewBadRequestError("read event failed (1)\n"+er.Error(), er.Error())
 	}
 
-	if event, err = core.ReadEvent(ctx.AccountID, ctx.ApplicationID, ctx.ApplicationUserID, eventID); err != nil {
+	if event, err = core.ReadEvent(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(int64), eventID); err != nil {
 		return
 	}
 
@@ -39,7 +39,7 @@ func GetEvent(ctx *context.Context) (err *tgerrors.TGError) {
 	return
 }
 
-// updateEvent handles requests to update an event
+// UpdateEvent handles requests to update an event
 // Request: PUT account/:AccountID/application/:ApplicationID/event/:EventID
 func UpdateEvent(ctx *context.Context) (err *tgerrors.TGError) {
 	var (
@@ -51,7 +51,7 @@ func UpdateEvent(ctx *context.Context) (err *tgerrors.TGError) {
 		return tgerrors.NewBadRequestError("failed to update the event (1)\n"+er.Error(), er.Error())
 	}
 
-	existingEvent, err := core.ReadEvent(ctx.AccountID, ctx.ApplicationID, ctx.ApplicationUserID, eventID)
+	existingEvent, err := core.ReadEvent(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(int64), eventID)
 	if err != nil {
 		return
 	}
@@ -62,9 +62,9 @@ func UpdateEvent(ctx *context.Context) (err *tgerrors.TGError) {
 	}
 
 	event.ID = eventID
-	event.AccountID = ctx.AccountID
-	event.ApplicationID = ctx.ApplicationID
-	event.UserID = ctx.ApplicationUserID
+	event.AccountID = ctx.Bag["accountID"].(int64)
+	event.ApplicationID = ctx.Bag["applicationID"].(int64)
+	event.UserID = ctx.Bag["applicationUserID"].(int64)
 
 	if err = validator.UpdateEvent(existingEvent, &event); err != nil {
 		return
@@ -79,7 +79,7 @@ func UpdateEvent(ctx *context.Context) (err *tgerrors.TGError) {
 	return
 }
 
-// deleteEvent handles requests to delete a single event
+// DeleteEvent handles requests to delete a single event
 // Request: DELETE account/:AccountID/application/:ApplicationID/event/:EventID
 func DeleteEvent(ctx *context.Context) (err *tgerrors.TGError) {
 	var (
@@ -91,7 +91,7 @@ func DeleteEvent(ctx *context.Context) (err *tgerrors.TGError) {
 		return tgerrors.NewBadRequestError("failed to delete the event (1)\n"+er.Error(), er.Error())
 	}
 
-	if err = core.DeleteEvent(ctx.AccountID, ctx.ApplicationID, ctx.ApplicationUserID, eventID); err != nil {
+	if err = core.DeleteEvent(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(int64), eventID); err != nil {
 		return
 	}
 
@@ -99,12 +99,12 @@ func DeleteEvent(ctx *context.Context) (err *tgerrors.TGError) {
 	return
 }
 
-// getEventList handles requests to retrieve a users events
+// GetEventList handles requests to retrieve a users events
 // Request: GET account/:AccountID/application/:ApplicationID/user/:UserID/events
 func GetEventList(ctx *context.Context) (err *tgerrors.TGError) {
 	var events []*entity.Event
 
-	if events, err = core.ReadEventList(ctx.AccountID, ctx.ApplicationID, ctx.ApplicationUserID); err != nil {
+	if events, err = core.ReadEventList(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(int64)); err != nil {
 		return
 	}
 
@@ -112,12 +112,12 @@ func GetEventList(ctx *context.Context) (err *tgerrors.TGError) {
 	return
 }
 
-// getConnectionEventList handles requests to retrieve a users connections events
+// GetConnectionEventList handles requests to retrieve a users connections events
 // Request: GET account/:AccountID/application/:ApplicationID/user/:UserID/connections/events
 func GetConnectionEventList(ctx *context.Context) (err *tgerrors.TGError) {
 	var events = []*entity.Event{}
 
-	if events, err = core.ReadConnectionEventList(ctx.AccountID, ctx.ApplicationID, ctx.ApplicationUserID); err != nil {
+	if events, err = core.ReadConnectionEventList(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(int64)); err != nil {
 		return
 	}
 
@@ -125,7 +125,7 @@ func GetConnectionEventList(ctx *context.Context) (err *tgerrors.TGError) {
 	return
 }
 
-// createEvent handles requests to create an event
+// CreateEvent handles requests to create an event
 // Request: POST account/:AccountID/application/:ApplicationID/user/:UserID/events
 func CreateEvent(ctx *context.Context) (err *tgerrors.TGError) {
 	var (
@@ -137,9 +137,9 @@ func CreateEvent(ctx *context.Context) (err *tgerrors.TGError) {
 		return tgerrors.NewBadRequestError("failed to create the event (1)\n"+er.Error(), er.Error())
 	}
 
-	event.AccountID = ctx.AccountID
-	event.ApplicationID = ctx.ApplicationID
-	event.UserID = ctx.ApplicationUserID
+	event.AccountID = ctx.Bag["accountID"].(int64)
+	event.ApplicationID = ctx.Bag["applicationID"].(int64)
+	event.UserID = ctx.Bag["applicationUserID"].(int64)
 
 	if err = validator.CreateEvent(event); err != nil {
 		return
@@ -153,7 +153,7 @@ func CreateEvent(ctx *context.Context) (err *tgerrors.TGError) {
 	return
 }
 
-// getGeoEventList handles requests to retrieve a users connections events
+// GetGeoEventList handles requests to retrieve a users connections events
 // Request: GET account/:accountID/application/:applicationID/events/geo/:latitude/:longitude/:radius
 func GetGeoEventList(ctx *context.Context) (err *tgerrors.TGError) {
 	var (
@@ -178,7 +178,7 @@ func GetGeoEventList(ctx *context.Context) (err *tgerrors.TGError) {
 		return tgerrors.NewBadRequestError("failed to read the event by geo (4)\nLocation radius can't be smaller than 2 meters", "radius smaller than 2")
 	}
 
-	if events, err = core.SearchGeoEvents(ctx.AccountID, ctx.ApplicationID, latitude, longitude, radius); err != nil {
+	if events, err = core.SearchGeoEvents(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), latitude, longitude, radius); err != nil {
 		return
 	}
 
@@ -186,7 +186,7 @@ func GetGeoEventList(ctx *context.Context) (err *tgerrors.TGError) {
 	return
 }
 
-// getObjectEventList handles requests to retrieve events in a certain location / radius
+// GetObjectEventList handles requests to retrieve events in a certain location / radius
 // Request: GET account/:accountID/application/:applicationID/events/geo/:latitude/:longitude/:radius
 func GetObjectEventList(ctx *context.Context) (err *tgerrors.TGError) {
 	var (
@@ -196,7 +196,7 @@ func GetObjectEventList(ctx *context.Context) (err *tgerrors.TGError) {
 
 	objectKey = ctx.Vars["objectKey"]
 
-	if events, err = core.SearchObjectEvents(ctx.AccountID, ctx.ApplicationID, objectKey); err != nil {
+	if events, err = core.SearchObjectEvents(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), objectKey); err != nil {
 		return
 	}
 
@@ -206,7 +206,7 @@ func GetObjectEventList(ctx *context.Context) (err *tgerrors.TGError) {
 	return
 }
 
-// getLocationEventList handles requests to retrieve a users connections events
+// GetLocationEventList handles requests to retrieve a users connections events
 // Request: GET account/:accountID/application/:applicationID/events/geo/:latitude/:longitude/:radius
 func GetLocationEventList(ctx *context.Context) (err *tgerrors.TGError) {
 	var (
@@ -216,7 +216,7 @@ func GetLocationEventList(ctx *context.Context) (err *tgerrors.TGError) {
 
 	location = ctx.Vars["location"]
 
-	if events, err = core.SearchLocationEvents(ctx.AccountID, ctx.ApplicationID, location); err != nil {
+	if events, err = core.SearchLocationEvents(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), location); err != nil {
 		return
 	}
 

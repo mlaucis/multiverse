@@ -10,9 +10,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/tgerrors"
 	"github.com/tapglue/backend/utils"
-	"github.com/tapglue/backend/v02/context"
 	"github.com/tapglue/backend/v02/entity"
 )
 
@@ -42,7 +42,7 @@ var (
 )
 
 // CreateUser validates a user on create
-func CreateUser(user *entity.User) *tgerrors.TGError {
+func CreateUser(user *entity.ApplicationUser) *tgerrors.TGError {
 	errs := []*error{}
 
 	if !StringLengthBetween(user.FirstName, userNameMin, userNameMax) {
@@ -115,7 +115,7 @@ func CreateUser(user *entity.User) *tgerrors.TGError {
 }
 
 // UpdateUser validates a user on update
-func UpdateUser(existingApplicationUser, updatedApplicationUser *entity.User) *tgerrors.TGError {
+func UpdateUser(existingApplicationUser, updatedApplicationUser *entity.ApplicationUser) *tgerrors.TGError {
 	errs := []*error{}
 
 	if !StringLengthBetween(updatedApplicationUser.FirstName, userNameMin, userNameMax) {
@@ -184,7 +184,7 @@ func UpdateUser(existingApplicationUser, updatedApplicationUser *entity.User) *t
 }
 
 // ApplicationUserCredentialsValid checks is a certain user has the right credentials
-func ApplicationUserCredentialsValid(password string, user *entity.User) *tgerrors.TGError {
+func ApplicationUserCredentialsValid(password string, user *entity.ApplicationUser) *tgerrors.TGError {
 	pass, err := utils.Base64Decode(user.Password)
 	if err != nil {
 		return tgerrors.NewInternalError("failed to check the account user credentials (1)", err.Error())
@@ -293,9 +293,9 @@ func CheckApplicationSession(r *http.Request) (string, *tgerrors.TGError) {
 
 // CheckApplicationSimpleSession checks if the session is valid or not
 func CheckApplicationSimpleSession(ctx *context.Context) (string, *tgerrors.TGError) {
-	accountID := ctx.AccountID
-	applicationID := ctx.ApplicationID
-	applicationUserID := ctx.ApplicationUserID
+	accountID := ctx.Bag["accountID"].(int64)
+	applicationID := ctx.Bag["applicationID"].(int64)
+	applicationUserID := ctx.Bag["applicationUserID"].(int64)
 	r := ctx.R
 
 	encodedSessionToken := r.Header.Get("x-tapglue-session")

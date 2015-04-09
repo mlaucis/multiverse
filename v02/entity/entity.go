@@ -86,18 +86,18 @@ type (
 
 	// Application structure
 	Application struct {
-		ID          int64   `json:"id"`
-		AccountID   int64   `json:"account_id"`
-		AuthToken   string  `json:"auth_token"`
-		Name        string  `json:"name"`
-		Description string  `json:"description"`
-		URL         string  `json:"url"`
-		Users       []*User `json:"-"`
+		ID          int64              `json:"id"`
+		AccountID   int64              `json:"account_id"`
+		AuthToken   string             `json:"auth_token"`
+		Name        string             `json:"name"`
+		Description string             `json:"description"`
+		URL         string             `json:"url"`
+		Users       []*ApplicationUser `json:"-"`
 		Common
 	}
 
-	// User structure
-	User struct {
+	// ApplicationUser structure
+	ApplicationUser struct {
 		ID                   int64               `json:"id"`
 		AccountID            int64               `json:"account_id"`
 		ApplicationID        int64               `json:"application_id"`
@@ -107,7 +107,7 @@ type (
 		SocialConnectionsIDs map[string][]string `json:"social_connections_ids,omitempty"`
 		DeviceIDs            []string            `json:"device_ids,omitempty"`
 		Events               []*Event            `json:"events,omitempty"`
-		Connections          []*User             `json:"connections,omitempty"`
+		Connections          []*ApplicationUser  `json:"connections,omitempty"`
 		UserCommon
 		Common
 	}

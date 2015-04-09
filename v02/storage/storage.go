@@ -174,7 +174,7 @@ func (client *Client) GenerateAccountSessionID(user *entity.AccountUser) string 
 }
 
 // GenerateApplicationSessionID generated the session id for the specific
-func (client *Client) GenerateApplicationSessionID(user *entity.User) string {
+func (client *Client) GenerateApplicationSessionID(user *entity.ApplicationUser) string {
 	randomToken := generateTokenSalt(16)
 
 	return utils.Base64Encode(fmt.Sprintf(

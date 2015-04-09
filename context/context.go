@@ -36,6 +36,7 @@ type (
 		Environment  string
 		DebugMode    bool
 		SkipSecurity bool
+		Bag          map[string]interface{}
 	}
 
 	// Filter is a callback that helps updating the context with extra information
@@ -131,6 +132,7 @@ func NewContext(
 	ctx.Version = version
 	ctx.Environment = environment
 	ctx.DebugMode = debugMode
+	ctx.Bag = map[string]interface{}{}
 
 	for _, extraContext := range contextFilters {
 		err = extraContext(ctx)

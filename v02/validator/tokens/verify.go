@@ -9,9 +9,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/tgerrors"
 	"github.com/tapglue/backend/utils"
-	"github.com/tapglue/backend/v02/context"
 	"github.com/tapglue/backend/v02/core"
 )
 
@@ -33,8 +33,8 @@ func VerifyRequest(ctx *context.Context, numKeyParts int) *tgerrors.TGError {
 		return tgerrors.NewBadRequestError("application key validation failed (3)", "failed to parse account id")
 	}
 
-	if accountID != ctx.AccountID {
-		return tgerrors.NewBadRequestError("application key validation failed (4)", fmt.Sprintf("account id mismatch expected %d got %d", ctx.AccountID, accountID))
+	if accountID != ctx.Bag["accountID"].(int64) {
+		return tgerrors.NewBadRequestError("application key validation failed (4)", fmt.Sprintf("account id mismatch expected %d got %d", ctx.Bag["accountID"].(int64), accountID))
 	}
 
 	authToken := ""
@@ -50,8 +50,8 @@ func VerifyRequest(ctx *context.Context, numKeyParts int) *tgerrors.TGError {
 			return tgerrors.NewBadRequestError("application key validation failed (6)", er.Error())
 		}
 
-		if applicationID != ctx.ApplicationID {
-			return tgerrors.NewBadRequestError("application key validation failed (7)", fmt.Sprintf("app id mismatch expected %d got %d", ctx.ApplicationID, applicationID))
+		if applicationID != ctx.Bag["applicationID"].(int64) {
+			return tgerrors.NewBadRequestError("application key validation failed (7)", fmt.Sprintf("app id mismatch expected %d got %d", ctx.Bag["applicationID"].(int64), applicationID))
 		}
 
 		application, err := core.ReadApplication(accountID, applicationID)

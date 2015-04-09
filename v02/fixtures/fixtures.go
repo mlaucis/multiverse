@@ -12,7 +12,7 @@ var (
 	EmtpyAccount     = entity.Account{}
 	EmtpyAccountUser = entity.AccountUser{}
 	EmptyApplication = entity.Application{}
-	EmptyUser        = entity.User{}
+	EmptyUser        = entity.ApplicationUser{}
 	EmptyEvent       = entity.Event{}
 	CorrectAccount   = entity.Account{
 		Name:        "Demo",
@@ -41,7 +41,7 @@ var (
 		Description: "This is the best application",
 		URL:         "http://tapglue.com",
 	}
-	CorrectUser = entity.User{
+	CorrectUser = entity.ApplicationUser{
 		UserCommon: entity.UserCommon{
 			Username:  "demouser",
 			FirstName: "Demo",
