@@ -36,7 +36,7 @@ var generalRoutes = map[string]struct {
 // Request: GET /
 // Test with: `curl -i localhost/`
 func home(w http.ResponseWriter, r *http.Request) {
-	writeCommonHeaders(10*24*3600, w, r)
+	WriteCommonHeaders(10*24*3600, w, r)
 	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	w.Header().Set("Refresh", "3; url=https://tapglue.com")
 	w.Write([]byte(`these aren't the droids you're looking for`))
@@ -46,7 +46,7 @@ func home(w http.ResponseWriter, r *http.Request) {
 // Request: GET /humans.txt
 // Test with: curl -i localhost/humans.txt
 func humans(w http.ResponseWriter, r *http.Request) {
-	writeCommonHeaders(10*24*3600, w, r)
+	WriteCommonHeaders(10*24*3600, w, r)
 	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	w.Write([]byte(`/* TEAM */
 Founder: Normal Wiese, Onur Akpolat
@@ -65,7 +65,7 @@ Software: Go, Redis`))
 // Request: GET /robots.txt
 // Test with: curl -i localhost/robots.txt
 func robots(w http.ResponseWriter, r *http.Request) {
-	writeCommonHeaders(10*24*3600, w, r)
+	WriteCommonHeaders(10*24*3600, w, r)
 	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	w.Write([]byte(`User-agent: *
 Disallow: /`))
@@ -75,7 +75,7 @@ Disallow: /`))
 // Request: GET /versions
 // Test with: curl -i localhost/versions
 func versions(w http.ResponseWriter, r *http.Request) {
-	writeCommonHeaders(24*3600, w, r)
+	WriteCommonHeaders(24*3600, w, r)
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	json.NewEncoder(w).Encode(map[string]string{
 		"0.1": "deprecated",

@@ -14,8 +14,6 @@ import (
 	"github.com/tapglue/backend/logger"
 	"github.com/tapglue/backend/tgerrors"
 	"github.com/tapglue/backend/utils"
-
-	"github.com/gorilla/mux"
 )
 
 type (
@@ -123,7 +121,6 @@ func NewContext(
 	ctx.W = w
 	ctx.MainLog = mainLog
 	ctx.ErrorLog = errorLog
-	ctx.Vars = mux.Vars(r)
 	if r.Method != "GET" {
 		ctx.Body = utils.PeakBody(r).Bytes()
 	}

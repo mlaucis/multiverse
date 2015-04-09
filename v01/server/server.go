@@ -256,6 +256,7 @@ func CustomHandler(routeName, version string, route *Route, mainLog, errorLog ch
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		ctx, err := context.NewContext(w, r, mainLog, errorLog, routeName, route.Scope, version, route.Filters, environment, debugMode)
+		ctx.Vars = mux.Vars(r)
 		if err != nil {
 			ErrorHappened(ctx, err)
 			return

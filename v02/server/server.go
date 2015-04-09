@@ -252,6 +252,10 @@ func CustomHandler(routeName, version string, route *Route, mainLog, errorLog ch
 	}
 
 	route.Handlers = append(extraHandlers, route.Handlers...)
+	route.Filters = append([]context.Filter{func(ctx *context.Context) *tgerrors.TGError{
+		ctx.Vars = mux.Vars(ctx.R)
+		return nil
+	}}, route.Filters...)
 
 	return func(w http.ResponseWriter, r *http.Request) {
 

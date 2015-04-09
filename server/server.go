@@ -25,7 +25,7 @@ var (
 )
 
 // writeCommonHeaders will add the corresponding cache headers based on the time supplied (in seconds)
-func writeCommonHeaders(cacheTime uint, w http.ResponseWriter, r *http.Request) {
+func WriteCommonHeaders(cacheTime uint, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 	w.Header().Set("Access-Control-Allow-Headers", "User-Agent, Content-Type, Content-Length, Accept-Encoding")
