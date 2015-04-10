@@ -9,7 +9,7 @@ import (
 )
 
 // ValidateAccountRequestToken validates that the request contains a valid request token
-func ValidateAccountRequestToken(ctx *context.Context) (err *tgerrors.TGError) {
+func ValidateAccountRequestToken(ctx *context.Context) (err tgerrors.TGError) {
 	if ctx.SkipSecurity {
 		return
 	}
@@ -18,7 +18,7 @@ func ValidateAccountRequestToken(ctx *context.Context) (err *tgerrors.TGError) {
 }
 
 // ValidateApplicationRequestToken validates that the request contains a valid request token
-func ValidateApplicationRequestToken(ctx *context.Context) (err *tgerrors.TGError) {
+func ValidateApplicationRequestToken(ctx *context.Context) (err tgerrors.TGError) {
 	if ctx.SkipSecurity {
 		return nil
 	}
@@ -27,7 +27,7 @@ func ValidateApplicationRequestToken(ctx *context.Context) (err *tgerrors.TGErro
 }
 
 // CheckAccountSession checks if the session token is valid or not
-func CheckAccountSession(ctx *context.Context) (err *tgerrors.TGError) {
+func CheckAccountSession(ctx *context.Context) (err tgerrors.TGError) {
 	if ctx.SkipSecurity {
 		return
 	}
@@ -37,7 +37,7 @@ func CheckAccountSession(ctx *context.Context) (err *tgerrors.TGError) {
 }
 
 // CheckApplicationSession checks if the session token is valid or not
-func CheckApplicationSession(ctx *context.Context) (err *tgerrors.TGError) {
+func CheckApplicationSession(ctx *context.Context) (err tgerrors.TGError) {
 	if ctx.SkipSecurity {
 		return
 	}

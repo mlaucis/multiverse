@@ -12,11 +12,10 @@ import (
 	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/tgerrors"
 	"github.com/tapglue/backend/utils"
-	"github.com/tapglue/backend/v02/core"
 )
 
 // VerifyRequest verifies if a request is properly signed or not
-func VerifyRequest(ctx *context.Context, numKeyParts int) *tgerrors.TGError {
+func VerifyRequest(ctx *context.Context, numKeyParts int) tgerrors.TGError {
 	encodedIds := ctx.R.Header.Get("x-tapglue-app-key")
 	decodedIds, err := utils.Base64Decode(encodedIds)
 	if err != nil {
@@ -39,7 +38,7 @@ func VerifyRequest(ctx *context.Context, numKeyParts int) *tgerrors.TGError {
 
 	authToken := ""
 	if numKeyParts == 1 {
-		account, er := core.ReadAccount(accountID)
+		account, er := acc.Read(accountID)
 		if er != nil {
 			return tgerrors.NewBadRequestError("application key validation failed (5)", er.Error())
 		}
@@ -54,7 +53,7 @@ func VerifyRequest(ctx *context.Context, numKeyParts int) *tgerrors.TGError {
 			return tgerrors.NewBadRequestError("application key validation failed (7)", fmt.Sprintf("app id mismatch expected %d got %d", ctx.Bag["applicationID"].(int64), applicationID))
 		}
 
-		application, err := core.ReadApplication(accountID, applicationID)
+		application, err := app.Read(accountID, applicationID)
 		if err != nil {
 			return tgerrors.NewBadRequestError("application key validation failed (8)", er.Error())
 		}

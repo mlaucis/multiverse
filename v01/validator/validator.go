@@ -44,7 +44,7 @@ var (
 )
 
 // packErrors prints errors happened during validation
-func packErrors(errs []*error) *tgerrors.TGError {
+func packErrors(errs []*error) tgerrors.TGError {
 	if len(errs) == 0 {
 		return nil
 	}

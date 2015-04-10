@@ -16,7 +16,7 @@ import (
 )
 
 // ReadAccountUser returns the account matching the ID or an error
-func ReadAccountUser(accountID, accountUserID int64) (accountUser *entity.AccountUser, er *tgerrors.TGError) {
+func ReadAccountUser(accountID, accountUserID int64) (accountUser *entity.AccountUser, er tgerrors.TGError) {
 	result, err := storageEngine.Get(storageClient.AccountUser(accountID, accountUserID)).Result()
 	if err != nil {
 		return nil, tgerrors.NewInternalError("failed to read the account user (1)", err.Error())
@@ -31,7 +31,7 @@ func ReadAccountUser(accountID, accountUserID int64) (accountUser *entity.Accoun
 }
 
 // UpdateAccountUser update an account user in the database and returns the updated account user or an error
-func UpdateAccountUser(existingAccountUser, updatedAccountUser entity.AccountUser, retrieve bool) (*entity.AccountUser, *tgerrors.TGError) {
+func UpdateAccountUser(existingAccountUser, updatedAccountUser entity.AccountUser, retrieve bool) (*entity.AccountUser, tgerrors.TGError) {
 	updatedAccountUser.UpdatedAt = time.Now()
 
 	if updatedAccountUser.Password == "" {
@@ -92,7 +92,7 @@ func UpdateAccountUser(existingAccountUser, updatedAccountUser entity.AccountUse
 }
 
 // DeleteAccountUser deletes the account user matching the IDs or an error
-func DeleteAccountUser(accountID, userID int64) *tgerrors.TGError {
+func DeleteAccountUser(accountID, userID int64) tgerrors.TGError {
 	// TODO: Make not deletable if its the only account user of an account
 	accountUser, er := ReadAccountUser(accountID, userID)
 	if er != nil {
@@ -125,7 +125,7 @@ func DeleteAccountUser(accountID, userID int64) *tgerrors.TGError {
 }
 
 // ReadAccountUserList returns all the users from a certain account
-func ReadAccountUserList(accountID int64) (accountUsers []*entity.AccountUser, er *tgerrors.TGError) {
+func ReadAccountUserList(accountID int64) (accountUsers []*entity.AccountUser, er tgerrors.TGError) {
 	result, err := storageEngine.LRange(storageClient.AccountUsers(accountID), 0, -1).Result()
 	if err != nil {
 		return nil, tgerrors.NewInternalError("failed to read the account user list (1)", err.Error())
@@ -149,7 +149,7 @@ func ReadAccountUserList(accountID int64) (accountUsers []*entity.AccountUser, e
 }
 
 // WriteAccountUser adds a new account user to the database and returns the created account user or an error
-func WriteAccountUser(accountUser *entity.AccountUser, retrieve bool) (*entity.AccountUser, *tgerrors.TGError) {
+func WriteAccountUser(accountUser *entity.AccountUser, retrieve bool) (*entity.AccountUser, tgerrors.TGError) {
 	var err error
 	if accountUser.ID, err = storageClient.GenerateAccountUserID(accountUser.AccountID); err != nil {
 		return nil, tgerrors.NewInternalError("failed to create the account user (1)", err.Error())
@@ -215,7 +215,7 @@ func WriteAccountUser(accountUser *entity.AccountUser, retrieve bool) (*entity.A
 }
 
 // CreateAccountUserSession handles the creation of a user session and returns the session token
-func CreateAccountUserSession(user *entity.AccountUser) (string, *tgerrors.TGError) {
+func CreateAccountUserSession(user *entity.AccountUser) (string, tgerrors.TGError) {
 	// TODO support multiple sessions?
 	// TODO rate limit this to x / per day?
 	// TODO rate limit this to be at least x minutes after the logout
@@ -241,7 +241,7 @@ func CreateAccountUserSession(user *entity.AccountUser) (string, *tgerrors.TGErr
 }
 
 // RefreshAccountUserSession generates a new session token for the user session
-func RefreshAccountUserSession(sessionToken string, user *entity.AccountUser) (string, *tgerrors.TGError) {
+func RefreshAccountUserSession(sessionToken string, user *entity.AccountUser) (string, tgerrors.TGError) {
 	// TODO support multiple sessions?
 	// TODO rate limit this to x / per day?
 	// TODO rate limit this to be at least x minutes after the logout
@@ -277,7 +277,7 @@ func RefreshAccountUserSession(sessionToken string, user *entity.AccountUser) (s
 }
 
 // DestroyAccountUserSession removes the user session
-func DestroyAccountUserSession(sessionToken string, user *entity.AccountUser) *tgerrors.TGError {
+func DestroyAccountUserSession(sessionToken string, user *entity.AccountUser) tgerrors.TGError {
 	// TODO support multiple sessions?
 	// TODO rate limit this to x / per day?
 	sessionKey := storageClient.AccountSessionKey(user.AccountID, user.ID)
@@ -304,21 +304,21 @@ func DestroyAccountUserSession(sessionToken string, user *entity.AccountUser) *t
 }
 
 // FindAccountAndUserByEmail returns the account and account user for a certain e-mail address
-func FindAccountAndUserByEmail(email string) (*entity.Account, *entity.AccountUser, *tgerrors.TGError) {
+func FindAccountAndUserByEmail(email string) (*entity.Account, *entity.AccountUser, tgerrors.TGError) {
 	emailListKey := storageClient.AccountUserByEmail(utils.Base64Encode(email))
 
 	return findAccountByKey(emailListKey)
 }
 
 // FindAccountAndUserByUsername returns the account and account user for a certain username
-func FindAccountAndUserByUsername(username string) (*entity.Account, *entity.AccountUser, *tgerrors.TGError) {
+func FindAccountAndUserByUsername(username string) (*entity.Account, *entity.AccountUser, tgerrors.TGError) {
 	usernameListKey := storageClient.AccountUserByUsername(utils.Base64Encode(username))
 
 	return findAccountByKey(usernameListKey)
 }
 
 // findAccountByKey retrieves an account and accountUser that are stored by their key, regardless of the specified key
-func findAccountByKey(bucketName string) (*entity.Account, *entity.AccountUser, *tgerrors.TGError) {
+func findAccountByKey(bucketName string) (*entity.Account, *entity.AccountUser, tgerrors.TGError) {
 
 	details, err := storageEngine.HMGet(bucketName, "acc", "usr").Result()
 	if err != nil {

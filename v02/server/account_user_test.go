@@ -63,9 +63,7 @@ func (s *ServerSuite) TestCreateAccountUser_OK(c *C) {
 	route := getComposedRoute(routeName, account.ID)
 	code, body, err := runRequest(routeName, route, payload, account.AuthToken, "", 2)
 	c.Assert(err, IsNil)
-
 	c.Assert(code, Equals, http.StatusCreated)
-
 	c.Assert(body, Not(Equals), "")
 
 	receivedAccountUser := &entity.AccountUser{}

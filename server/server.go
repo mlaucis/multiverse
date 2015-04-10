@@ -24,7 +24,7 @@ var (
 	errorLogChan = make(chan *logger.LogMsg, 100000)
 )
 
-// writeCommonHeaders will add the corresponding cache headers based on the time supplied (in seconds)
+// WriteCommonHeaders will add the corresponding cache headers based on the time supplied (in seconds)
 func WriteCommonHeaders(cacheTime uint, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")

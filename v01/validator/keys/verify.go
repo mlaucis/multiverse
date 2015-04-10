@@ -20,7 +20,7 @@ var (
 )
 
 // VerifyRequest verifies if a request is properly signed or not
-func VerifyRequest(ctx *context.Context, numKeyParts int) *tgerrors.TGError {
+func VerifyRequest(ctx *context.Context, numKeyParts int) tgerrors.TGError {
 	signature := ctx.R.Header.Get("x-tapglue-signature")
 	if signature == "" {
 		return tgerrors.NewBadRequestError("failed to verify request signature (1)", "signature failed on 1")

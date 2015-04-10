@@ -16,7 +16,7 @@ import (
 )
 
 // ReadAccount returns the account matching the ID or an error
-func ReadAccount(accountID int64) (account *entity.Account, err *tgerrors.TGError) {
+func ReadAccount(accountID int64) (account *entity.Account, err tgerrors.TGError) {
 	result, er := storageEngine.Get(storageClient.Account(accountID)).Result()
 	if er != nil {
 		return nil, tgerrors.NewInternalError("failed to retrieve the account (1)", er.Error())
@@ -30,7 +30,7 @@ func ReadAccount(accountID int64) (account *entity.Account, err *tgerrors.TGErro
 }
 
 // UpdateAccount updates the account matching the ID or an error
-func UpdateAccount(existingAccount, updatedAccount entity.Account, retrieve bool) (acc *entity.Account, err *tgerrors.TGError) {
+func UpdateAccount(existingAccount, updatedAccount entity.Account, retrieve bool) (acc *entity.Account, err tgerrors.TGError) {
 	updatedAccount.UpdatedAt = time.Now()
 
 	val, er := json.Marshal(updatedAccount)
@@ -59,7 +59,7 @@ func UpdateAccount(existingAccount, updatedAccount entity.Account, retrieve bool
 }
 
 // DeleteAccount deletes the account matching the ID or an error
-func DeleteAccount(accountID int64) (err *tgerrors.TGError) {
+func DeleteAccount(accountID int64) (err tgerrors.TGError) {
 	result, er := storageEngine.Del(storageClient.Account(accountID)).Result()
 	if er != nil {
 		return tgerrors.NewInternalError("failed to delete the account (1)", er.Error())
@@ -78,7 +78,7 @@ func DeleteAccount(accountID int64) (err *tgerrors.TGError) {
 }
 
 // WriteAccount adds a new account to the database and returns the created account or an error
-func WriteAccount(account *entity.Account, retrieve bool) (acc *entity.Account, err *tgerrors.TGError) {
+func WriteAccount(account *entity.Account, retrieve bool) (acc *entity.Account, err tgerrors.TGError) {
 	var er error
 	if account.ID, er = storageClient.GenerateAccountID(); er != nil {
 		return nil, tgerrors.NewInternalError("failed to write the account (1)", er.Error())

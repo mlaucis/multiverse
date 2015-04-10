@@ -10,7 +10,7 @@ import (
 
 // AddCorrectAccount creates a correct account
 func AddCorrectAccount(fetchAccount bool) (acc *entity.Account, err error) {
-	account, err := WriteAccount(correctAccount, fetchAccount)
+	account, err := CreateAccount(correctAccount, fetchAccount)
 	if err != nil {
 		return nil, err
 	}

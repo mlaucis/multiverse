@@ -32,7 +32,7 @@ var (
 )
 
 // CreateAccount validates an account on create
-func CreateAccount(account *entity.Account) *tgerrors.TGError {
+func CreateAccount(account *entity.Account) tgerrors.TGError {
 	errs := []*error{}
 
 	if !StringLengthBetween(account.Name, accountNameMin, accountNameMax) {
@@ -69,7 +69,7 @@ func CreateAccount(account *entity.Account) *tgerrors.TGError {
 }
 
 // UpdateAccount validates an account on update
-func UpdateAccount(existingAccount, updatedAccount *entity.Account) *tgerrors.TGError {
+func UpdateAccount(existingAccount, updatedAccount *entity.Account) tgerrors.TGError {
 	errs := []*error{}
 
 	if updatedAccount.ID == 0 {

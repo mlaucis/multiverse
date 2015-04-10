@@ -19,6 +19,7 @@ import (
 	"github.com/tapglue/backend/tgerrors"
 	. "github.com/tapglue/backend/utils"
 	"github.com/tapglue/backend/v02/core"
+	coreRedis "github.com/tapglue/backend/v02/core/redis"
 	"github.com/tapglue/backend/v02/entity"
 	"github.com/tapglue/backend/v02/server"
 	"github.com/tapglue/backend/v02/storage"
@@ -48,6 +49,13 @@ var (
 	doLogResponseTimes = flag.Bool("rt", false, "Set flag in order to get logs with response times only")
 	mainLogChan        = make(chan *logger.LogMsg)
 	errorLogChan       = make(chan *logger.LogMsg)
+
+	coreAcc     core.Account
+	coreAccUser core.AccountUser
+	coreApp     core.Application
+	coreAppUser core.ApplicationUser
+	coreConn    core.Connection
+	coreEvt     core.Event
 )
 
 // Setup once when the suite starts running
@@ -66,7 +74,16 @@ func (s *ServerSuite) SetUpTest(c *C) {
 	storageClient = storage.Init(redis.Client(), kinesis.Client())
 	core.Init(storageClient)
 	tgerrors.Init(true)
-	validator.Init(storageClient)
+
+	coreAcc = coreRedis.NewAccount(storageClient, redis.Client())
+	coreAccUser = coreRedis.NewAccountUser(storageClient, redis.Client())
+	coreApp = coreRedis.NewApplication(storageClient, redis.Client())
+	coreAppUser = coreRedis.NewApplicationUser(storageClient, redis.Client())
+	coreConn = coreRedis.NewConnection(storageClient, redis.Client())
+	coreEvt = coreRedis.NewEvent(storageClient, redis.Client())
+
+	server.InitCores(coreAcc, coreAccUser, coreApp, coreAppUser, coreConn, coreEvt)
+	validator.Init(storageClient, coreAcc, coreAccUser, coreApp, coreAppUser)
 
 	if *doLogResponseTimes {
 		go logger.TGLogResponseTimes(mainLogChan)
@@ -307,7 +324,7 @@ func getComposedRouteString(routeName string, params ...interface{}) string {
 }
 
 // runRequest takes a route, path, payload and token, performs a request and return a response recorder
-func runRequest(routeName, routePath, payload, secretKey, sessionToken string, numKeyParts int) (int, string, *tgerrors.TGError) {
+func runRequest(routeName, routePath, payload, secretKey, sessionToken string, numKeyParts int) (int, string, tgerrors.TGError) {
 	var (
 		requestRoute *server.Route
 		routePattern string
@@ -366,7 +383,7 @@ func runRequest(routeName, routePath, payload, secretKey, sessionToken string, n
 
 // getAccountUserSessionToken retrieves the session token for a certain user
 func getAccountUserSessionToken(user *entity.AccountUser) string {
-	sessionToken, err := core.CreateAccountUserSession(user)
+	sessionToken, err := coreAccUser.CreateSession(user)
 	if err != nil {
 		panic(err)
 	}
@@ -376,7 +393,7 @@ func getAccountUserSessionToken(user *entity.AccountUser) string {
 
 // createApplicationUserSessionToken creates an application user session and returns the token
 func createApplicationUserSessionToken(user *entity.ApplicationUser) string {
-	sessionToken, err := core.CreateApplicationUserSession(user)
+	sessionToken, err := coreAppUser.CreateSession(user)
 	if err != nil {
 		panic(err)
 	}

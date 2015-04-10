@@ -15,7 +15,7 @@ import (
 )
 
 // ReadApplication returns the application matching the ID or an error
-func ReadApplication(accountID, applicationID int64) (*entity.Application, *tgerrors.TGError) {
+func ReadApplication(accountID, applicationID int64) (*entity.Application, tgerrors.TGError) {
 	result, er := storageEngine.Get(storageClient.Application(accountID, applicationID)).Result()
 	if er != nil {
 		return nil, tgerrors.NewInternalError("failed to read the application (1)", er.Error())
@@ -30,7 +30,7 @@ func ReadApplication(accountID, applicationID int64) (*entity.Application, *tger
 }
 
 // UpdateApplication updates an application in the database and returns the created applicaton user or an error
-func UpdateApplication(existingApplication, updatedApplication entity.Application, retrieve bool) (*entity.Application, *tgerrors.TGError) {
+func UpdateApplication(existingApplication, updatedApplication entity.Application, retrieve bool) (*entity.Application, tgerrors.TGError) {
 	updatedApplication.UpdatedAt = time.Now()
 
 	val, er := json.Marshal(updatedApplication)
@@ -66,7 +66,7 @@ func UpdateApplication(existingApplication, updatedApplication entity.Applicatio
 }
 
 // DeleteApplication deletes the application matching the IDs or an error
-func DeleteApplication(accountID, applicationID int64) *tgerrors.TGError {
+func DeleteApplication(accountID, applicationID int64) tgerrors.TGError {
 	// TODO: Disable application users?
 	// TODO: User connections?
 	// TODO: Application lists?
@@ -91,7 +91,7 @@ func DeleteApplication(accountID, applicationID int64) *tgerrors.TGError {
 }
 
 // ReadApplicationList returns all applications from a certain account
-func ReadApplicationList(accountID int64) ([]*entity.Application, *tgerrors.TGError) {
+func ReadApplicationList(accountID int64) ([]*entity.Application, tgerrors.TGError) {
 	key := storageClient.Applications(accountID)
 
 	result, er := storageEngine.LRange(key, 0, -1).Result()
@@ -122,7 +122,7 @@ func ReadApplicationList(accountID int64) ([]*entity.Application, *tgerrors.TGEr
 }
 
 // WriteApplication adds an application to the database and returns the created applicaton user or an error
-func WriteApplication(application *entity.Application, retrieve bool) (*entity.Application, *tgerrors.TGError) {
+func WriteApplication(application *entity.Application, retrieve bool) (*entity.Application, tgerrors.TGError) {
 	var er error
 	if application.ID, er = storageClient.GenerateApplicationID(application.AccountID); er != nil {
 		return nil, tgerrors.NewInternalError("failed to create the application (1)", er.Error())

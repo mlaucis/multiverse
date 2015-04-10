@@ -15,7 +15,7 @@ import (
 )
 
 // AddCorrectAccount creates a correct account
-func AddCorrectAccount(fetchAccount bool) (acc *entity.Account, err *tgerrors.TGError) {
+func AddCorrectAccount(fetchAccount bool) (acc *entity.Account, err tgerrors.TGError) {
 	account, err := core.WriteAccount(&fixtures.CorrectAccount, fetchAccount)
 	if err != nil {
 		return nil, err
@@ -25,7 +25,7 @@ func AddCorrectAccount(fetchAccount bool) (acc *entity.Account, err *tgerrors.TG
 }
 
 // AddCorrectAccountUser creates a correct account user
-func AddCorrectAccountUser(accountID int64, fetchUser bool) (accUsr *entity.AccountUser, err *tgerrors.TGError) {
+func AddCorrectAccountUser(accountID int64, fetchUser bool) (accUsr *entity.AccountUser, err tgerrors.TGError) {
 	accountUserWithAccountID := fixtures.CorrectAccountUser
 	accountUserWithAccountID.AccountID = accountID
 	accountUser, err := core.WriteAccountUser(&accountUserWithAccountID, fetchUser)
@@ -37,7 +37,7 @@ func AddCorrectAccountUser(accountID int64, fetchUser bool) (accUsr *entity.Acco
 }
 
 // AddCorrectApplication creates a correct application
-func AddCorrectApplication(accountID int64, fetchApplication bool) (*entity.Application, *tgerrors.TGError) {
+func AddCorrectApplication(accountID int64, fetchApplication bool) (*entity.Application, tgerrors.TGError) {
 	applicationWithAccountID := fixtures.CorrectApplication
 	applicationWithAccountID.AccountID = accountID
 	application, err := core.WriteApplication(&applicationWithAccountID, fetchApplication)
@@ -49,7 +49,7 @@ func AddCorrectApplication(accountID int64, fetchApplication bool) (*entity.Appl
 }
 
 // AddCorrectUser creates a correct user
-func AddCorrectUser(accountID, applicationID int64, fetchUser bool) (usr *entity.User, err *tgerrors.TGError) {
+func AddCorrectUser(accountID, applicationID int64, fetchUser bool) (usr *entity.User, err tgerrors.TGError) {
 	userWithIDs := fixtures.CorrectUser
 	userWithIDs.Password = "password"
 	userWithIDs.AccountID = accountID
@@ -63,7 +63,7 @@ func AddCorrectUser(accountID, applicationID int64, fetchUser bool) (usr *entity
 }
 
 // AddCorrectUser2 creates a correct user
-func AddCorrectUser2(accountID, applicationID int64, fetchUser bool) (usr *entity.User, err *tgerrors.TGError) {
+func AddCorrectUser2(accountID, applicationID int64, fetchUser bool) (usr *entity.User, err tgerrors.TGError) {
 	userWithIDs := fixtures.CorrectUser
 	userWithIDs.Username = "demouser2"
 	userWithIDs.Password = "password"
@@ -79,7 +79,7 @@ func AddCorrectUser2(accountID, applicationID int64, fetchUser bool) (usr *entit
 }
 
 // AddCorrectConnection creates a correct user connection
-func AddCorrectConnection(accountID, applicationID, userFromID, userToID int64, fetchConnection bool) (con *entity.Connection, err *tgerrors.TGError) {
+func AddCorrectConnection(accountID, applicationID, userFromID, userToID int64, fetchConnection bool) (con *entity.Connection, err tgerrors.TGError) {
 	connectionWithIDs := fixtures.CorrectConnection
 	connectionWithIDs.AccountID = accountID
 	connectionWithIDs.ApplicationID = applicationID
@@ -94,7 +94,7 @@ func AddCorrectConnection(accountID, applicationID, userFromID, userToID int64, 
 }
 
 // AddCorrectEvent creates a correct event
-func AddCorrectEvent(accountID, applicationID, userID int64, fetchEvent bool) (evn *entity.Event, err *tgerrors.TGError) {
+func AddCorrectEvent(accountID, applicationID, userID int64, fetchEvent bool) (evn *entity.Event, err tgerrors.TGError) {
 	eventWithIDs := fixtures.CorrectEvent
 	eventWithIDs.AccountID = accountID
 	eventWithIDs.ApplicationID = applicationID
@@ -171,7 +171,7 @@ func CorrectEvent() *entity.Event {
 }
 
 func AddCorrectAccounts(numberOfAccounts int) []*entity.Account {
-	var err *tgerrors.TGError
+	var err tgerrors.TGError
 	result := make([]*entity.Account, numberOfAccounts)
 	for i := 0; i < numberOfAccounts; i++ {
 		account := CorrectAccount()
@@ -187,7 +187,7 @@ func AddCorrectAccounts(numberOfAccounts int) []*entity.Account {
 }
 
 func AddCorrectAccountUsers(account *entity.Account, numberOfAccountUsersPerAccount int) []*entity.AccountUser {
-	var err *tgerrors.TGError
+	var err tgerrors.TGError
 	result := make([]*entity.AccountUser, numberOfAccountUsersPerAccount)
 	for i := 0; i < numberOfAccountUsersPerAccount; i++ {
 		accountUser := CorrectAccountUserWithDefaults(account.ID, int64(i+1))
@@ -219,7 +219,7 @@ func LoginAccountUsers(users []*entity.AccountUser) {
 }
 
 func AddCorrectApplications(account *entity.Account, numberOfApplicationsPerAccount int) []*entity.Application {
-	var err *tgerrors.TGError
+	var err tgerrors.TGError
 	result := make([]*entity.Application, numberOfApplicationsPerAccount)
 	for i := 0; i < numberOfApplicationsPerAccount; i++ {
 		application := CorrectApplication()
@@ -339,7 +339,7 @@ func LoginUsers(users []*entity.User) {
 }
 
 func AddCorrectApplicationUsers(application *entity.Application, numberOfUsersPerApplication int, hookUpUsers bool) []*entity.User {
-	var err *tgerrors.TGError
+	var err tgerrors.TGError
 	result := make([]*entity.User, numberOfUsersPerApplication)
 	for i := 0; i < numberOfUsersPerApplication; i++ {
 		user := CorrectUserWithDefaults(application.AccountID, application.ID, int64(i+1))
@@ -362,7 +362,7 @@ func AddCorrectApplicationUsers(application *entity.Application, numberOfUsersPe
 // AddCorrectUserEvents adds correct events to a user
 // If numberOfEventsPerUser < 4 then events are common, else they are user specific (thus unique)
 func AddCorrectUserEvents(user *entity.User, numberOfEventsPerUser int) []*entity.Event {
-	var err *tgerrors.TGError
+	var err tgerrors.TGError
 	locations := []struct {
 		Lat   float64
 		Lon   float64

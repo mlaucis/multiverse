@@ -18,14 +18,14 @@ import (
 
 // getAccountUser handles requests to a single account user
 // Request: GET /account/:AccountID/user/:UserID
-func getAccountUser(ctx *context.Context) (err *tgerrors.TGError) {
+func getAccountUser(ctx *context.Context) (err tgerrors.TGError) {
 	WriteResponse(ctx, ctx.AccountUser, http.StatusOK, 10)
 	return
 }
 
 // updateAccountUser handles requests update an account user
 // Request: PUT /account/:AccountID/user/:UserID
-func updateAccountUser(ctx *context.Context) (err *tgerrors.TGError) {
+func updateAccountUser(ctx *context.Context) (err tgerrors.TGError) {
 	accountUser := *ctx.AccountUser
 	if er := json.Unmarshal(ctx.Body, &accountUser); er != nil {
 		return tgerrors.NewBadRequestError("failed to update the account user (1)\n"+er.Error(), er.Error())
@@ -50,7 +50,7 @@ func updateAccountUser(ctx *context.Context) (err *tgerrors.TGError) {
 
 // deleteAccountUser handles requests to delete a single account user
 // Request: DELETE /account/:AccountID/user/:UserID
-func deleteAccountUser(ctx *context.Context) (err *tgerrors.TGError) {
+func deleteAccountUser(ctx *context.Context) (err tgerrors.TGError) {
 	if err = core.DeleteAccountUser(ctx.AccountID, ctx.AccountUserID); err != nil {
 		return
 	}
@@ -61,7 +61,7 @@ func deleteAccountUser(ctx *context.Context) (err *tgerrors.TGError) {
 
 // createAccountUser handles requests create an account user
 // Request: POST /account/:AccountID/users
-func createAccountUser(ctx *context.Context) (err *tgerrors.TGError) {
+func createAccountUser(ctx *context.Context) (err tgerrors.TGError) {
 	var (
 		accountUser = &entity.AccountUser{}
 	)
@@ -88,7 +88,7 @@ func createAccountUser(ctx *context.Context) (err *tgerrors.TGError) {
 
 // getAccountUserList handles requests to list all account users
 // Request: GET /account/:AccountID/users
-func getAccountUserList(ctx *context.Context) (err *tgerrors.TGError) {
+func getAccountUserList(ctx *context.Context) (err tgerrors.TGError) {
 	var (
 		accountUsers []*entity.AccountUser
 	)
@@ -114,7 +114,7 @@ func getAccountUserList(ctx *context.Context) (err *tgerrors.TGError) {
 
 // loginAccountUser handles the requests to login the user in the system
 // Request: POST /account/user/login
-func loginAccountUser(ctx *context.Context) (err *tgerrors.TGError) {
+func loginAccountUser(ctx *context.Context) (err tgerrors.TGError) {
 	var (
 		loginPayload = &entity.LoginPayload{}
 		account      *entity.Account
@@ -174,7 +174,7 @@ func loginAccountUser(ctx *context.Context) (err *tgerrors.TGError) {
 
 // refreshApplicationUserSession handles the requests to refresh the user session token
 // Request: Post /account/:AccountID/application/:ApplicationID/user/refreshsession
-func refreshAccountUserSession(ctx *context.Context) (err *tgerrors.TGError) {
+func refreshAccountUserSession(ctx *context.Context) (err tgerrors.TGError) {
 	var (
 		tokenPayload struct {
 			Token string `json:"token"`
@@ -202,7 +202,7 @@ func refreshAccountUserSession(ctx *context.Context) (err *tgerrors.TGError) {
 
 // logoutApplicationUser handles the requests to logout the user from the system
 // Request: Post /account/:AccountID/application/:ApplicationID/user/logout
-func logoutAccountUser(ctx *context.Context) (err *tgerrors.TGError) {
+func logoutAccountUser(ctx *context.Context) (err tgerrors.TGError) {
 	var logoutPayload struct {
 		Token string `json:"token"`
 	}

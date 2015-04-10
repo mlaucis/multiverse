@@ -13,11 +13,12 @@ import (
 	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/logger"
 	"github.com/tapglue/backend/tgerrors"
+	"github.com/tapglue/backend/v02/core"
 )
 
 type (
 	// RouteFunc defines the pattern for a route handling function
-	RouteFunc func(*context.Context) *tgerrors.TGError
+	RouteFunc func(*context.Context) tgerrors.TGError
 
 	// Route holds the route pattern
 	Route struct {
@@ -75,23 +76,23 @@ func WriteResponse(ctx *context.Context, response interface{}, code int, cacheTi
 }
 
 // ErrorHappened handles the error message
-func ErrorHappened(ctx *context.Context, err *tgerrors.TGError) {
+func ErrorHappened(ctx *context.Context, err tgerrors.TGError) {
 	WriteCommonHeaders(0, ctx)
 	ctx.W.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	// Write response
 	if !strings.Contains(ctx.R.Header.Get("Accept-Encoding"), "gzip") {
 		// No gzip support
-		ctx.W.WriteHeader(int(err.Type))
-		fmt.Fprintf(ctx.W, "%d %s", err.Type, err.Error())
+		ctx.W.WriteHeader(int(err.Type()))
+		fmt.Fprintf(ctx.W, "%d %s", err.Type(), err.Error())
 	} else {
 		ctx.W.Header().Set("Content-Encoding", "gzip")
-		ctx.W.WriteHeader(int(err.Type))
+		ctx.W.WriteHeader(int(err.Type()))
 		gz := gzip.NewWriter(ctx.W)
-		fmt.Fprintf(gz, "%d %s", int(err.Type), err.Error())
+		fmt.Fprintf(gz, "%d %s", int(err.Type()), err.Error())
 		gz.Close()
 	}
 
-	ctx.StatusCode = int(err.Type)
+	ctx.StatusCode = int(err.Type())
 	ctx.LogError(err)
 }
 
@@ -120,7 +121,7 @@ func WriteCorsHeaders(ctx *context.Context) {
 }
 
 // CorsHandler will handle the CORS requests
-func CorsHandler(ctx *context.Context) (err *tgerrors.TGError) {
+func CorsHandler(ctx *context.Context) (err tgerrors.TGError) {
 	WriteCommonHeaders(100, ctx)
 	WriteCorsHeaders(ctx)
 	ctx.W.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -137,7 +138,7 @@ func GetRoute(routeName string) *Route {
 }
 
 // ValidateGetCommon runs a series of predefined, common, tests for GET requests
-func ValidateGetCommon(ctx *context.Context) (err *tgerrors.TGError) {
+func ValidateGetCommon(ctx *context.Context) (err tgerrors.TGError) {
 	if ctx.R.Header.Get("User-Agent") != "" {
 		return
 	}
@@ -145,7 +146,7 @@ func ValidateGetCommon(ctx *context.Context) (err *tgerrors.TGError) {
 }
 
 // ValidatePutCommon runs a series of predefinied, common, tests for PUT requests
-func ValidatePutCommon(ctx *context.Context) (err *tgerrors.TGError) {
+func ValidatePutCommon(ctx *context.Context) (err tgerrors.TGError) {
 	if ctx.SkipSecurity {
 		return
 	}
@@ -183,7 +184,7 @@ func ValidatePutCommon(ctx *context.Context) (err *tgerrors.TGError) {
 }
 
 // ValidateDeleteCommon runs a series of predefinied, common, tests for DELETE requests
-func ValidateDeleteCommon(ctx *context.Context) (err *tgerrors.TGError) {
+func ValidateDeleteCommon(ctx *context.Context) (err tgerrors.TGError) {
 	if ctx.R.Header.Get("User-Agent") != "" {
 		return
 	}
@@ -192,7 +193,7 @@ func ValidateDeleteCommon(ctx *context.Context) (err *tgerrors.TGError) {
 }
 
 // ValidatePostCommon runs a series of predefined, common, tests for the POST requests
-func ValidatePostCommon(ctx *context.Context) (err *tgerrors.TGError) {
+func ValidatePostCommon(ctx *context.Context) (err tgerrors.TGError) {
 	if ctx.SkipSecurity {
 		return
 	}
@@ -252,14 +253,14 @@ func CustomHandler(routeName, version string, route *Route, mainLog, errorLog ch
 	}
 
 	route.Handlers = append(extraHandlers, route.Handlers...)
-	route.Filters = append([]context.Filter{func(ctx *context.Context) *tgerrors.TGError {
+	route.Filters = append([]context.Filter{func(ctx *context.Context) tgerrors.TGError {
 		ctx.Vars = mux.Vars(ctx.R)
 		return nil
 	}}, route.Filters...)
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		ctx, err := context.NewContext(w, r, mainLog, errorLog, routeName, route.Scope, version, route.Filters, environment, debugMode)
+		ctx, err := context.New(w, r, mainLog, errorLog, routeName, route.Scope, version, route.Filters, environment, debugMode)
 		if err != nil {
 			ErrorHappened(ctx, err)
 			return
@@ -289,4 +290,20 @@ func Init(router *mux.Router, mainLogChan, errorLogChan chan *logger.LogMsg, env
 			Name(routeName).
 			HandlerFunc(CustomHandler(routeName, version, route, mainLogChan, errorLogChan, environment, debugMode, skipSecurityChecks))
 	}
+}
+
+// InitCores takes care of initializing the core
+func InitCores(
+	account core.Account,
+	accountUser core.AccountUser,
+	application core.Application,
+	applicationUser core.ApplicationUser,
+	connection core.Connection,
+	event core.Event) {
+	acc = account
+	accUser = accountUser
+	app = application
+	appUser = applicationUser
+	conn = connection
+	evt = event
 }

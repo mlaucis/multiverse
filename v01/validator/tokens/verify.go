@@ -16,7 +16,7 @@ import (
 )
 
 // VerifyRequest verifies if a request is properly signed or not
-func VerifyRequest(ctx *context.Context, numKeyParts int) *tgerrors.TGError {
+func VerifyRequest(ctx *context.Context, numKeyParts int) tgerrors.TGError {
 	encodedIds := ctx.R.Header.Get("x-tapglue-app-key")
 	decodedIds, err := utils.Base64Decode(encodedIds)
 	if err != nil {

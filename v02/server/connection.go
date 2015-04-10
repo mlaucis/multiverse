@@ -17,9 +17,13 @@ import (
 	"github.com/tapglue/backend/v02/validator"
 )
 
+var (
+	conn core.Connection
+)
+
 // UpdateConnection handles requests to update a user connection
 // Request: PUT account/:AccountID/application/:ApplicationID/user/:UserFromID/connection/:UserToID
-func UpdateConnection(ctx *context.Context) (err *tgerrors.TGError) {
+func UpdateConnection(ctx *context.Context) (err tgerrors.TGError) {
 	var (
 		userToID int64
 		er       error
@@ -29,7 +33,7 @@ func UpdateConnection(ctx *context.Context) (err *tgerrors.TGError) {
 		return tgerrors.NewBadRequestError("failed to update the connection (1)\n"+er.Error(), er.Error())
 	}
 
-	existingConnection, err := core.ReadConnection(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(int64), userToID)
+	existingConnection, err := conn.Read(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(int64), userToID)
 	if err != nil {
 		return
 	}
@@ -57,7 +61,7 @@ func UpdateConnection(ctx *context.Context) (err *tgerrors.TGError) {
 		return
 	}
 
-	updatedConnection, err := core.UpdateConnection(*existingConnection, connection, false)
+	updatedConnection, err := conn.Update(*existingConnection, connection, false)
 	if err != nil {
 		return
 	}
@@ -68,7 +72,7 @@ func UpdateConnection(ctx *context.Context) (err *tgerrors.TGError) {
 
 // DeleteConnection handles requests to delete a single connection
 // Request: DELETE account/:AccountID/application/:ApplicationID/user/:UserFromID/connection/:UserToID
-func DeleteConnection(ctx *context.Context) (err *tgerrors.TGError) {
+func DeleteConnection(ctx *context.Context) (err tgerrors.TGError) {
 	var (
 		userToID int64
 		er       error
@@ -78,7 +82,7 @@ func DeleteConnection(ctx *context.Context) (err *tgerrors.TGError) {
 		return tgerrors.NewBadRequestError("failed to delete the connection(1)\n"+er.Error(), er.Error())
 	}
 
-	if err = core.DeleteConnection(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(int64), userToID); err != nil {
+	if err = conn.Delete(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(int64), userToID); err != nil {
 		return
 	}
 
@@ -88,7 +92,7 @@ func DeleteConnection(ctx *context.Context) (err *tgerrors.TGError) {
 
 // CreateConnection handles requests to create a user connection
 // Request: POST /application/:applicationId/user/:UserID/connections
-func CreateConnection(ctx *context.Context) (err *tgerrors.TGError) {
+func CreateConnection(ctx *context.Context) (err tgerrors.TGError) {
 	var (
 		connection = &entity.Connection{}
 		er         error
@@ -113,12 +117,12 @@ func CreateConnection(ctx *context.Context) (err *tgerrors.TGError) {
 		return
 	}
 
-	if connection, err = core.WriteConnection(connection, false); err != nil {
+	if connection, err = conn.Create(connection, false); err != nil {
 		return
 	}
 
 	if receivedEnabled {
-		if connection, err = core.ConfirmConnection(connection, true); err != nil {
+		if connection, err = conn.Confirm(connection, true); err != nil {
 			return
 		}
 	}
@@ -129,10 +133,10 @@ func CreateConnection(ctx *context.Context) (err *tgerrors.TGError) {
 
 // GetConnectionList handles requests to list a users connections
 // Request: GET account/:AccountID/application/:ApplicationID/user/:UserID/connections
-func GetConnectionList(ctx *context.Context) (err *tgerrors.TGError) {
+func GetConnectionList(ctx *context.Context) (err tgerrors.TGError) {
 	var users []*entity.ApplicationUser
 
-	if users, err = core.ReadConnectionList(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(int64)); err != nil {
+	if users, err = conn.List(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(int64)); err != nil {
 		return
 	}
 
@@ -146,10 +150,10 @@ func GetConnectionList(ctx *context.Context) (err *tgerrors.TGError) {
 
 // GetFollowedByUsersList handles requests to list a users list of users who follow him
 // Request: GET account/:AccountID/application/:ApplicationID/user/:UserID/followers
-func GetFollowedByUsersList(ctx *context.Context) (err *tgerrors.TGError) {
+func GetFollowedByUsersList(ctx *context.Context) (err tgerrors.TGError) {
 	var users []*entity.ApplicationUser
 
-	if users, err = core.ReadFollowedByList(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(int64)); err != nil {
+	if users, err = conn.FollowedBy(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(int64)); err != nil {
 		return
 	}
 
@@ -163,7 +167,7 @@ func GetFollowedByUsersList(ctx *context.Context) (err *tgerrors.TGError) {
 
 // ConfirmConnection handles requests to confirm a user connection
 // Request: POST account/:AccountID/application/:ApplicationID/user/:UserID/connection/confirm
-func ConfirmConnection(ctx *context.Context) (err *tgerrors.TGError) {
+func ConfirmConnection(ctx *context.Context) (err tgerrors.TGError) {
 	var connection = &entity.Connection{}
 
 	if er := json.Unmarshal(ctx.Body, connection); er != nil {
@@ -178,7 +182,7 @@ func ConfirmConnection(ctx *context.Context) (err *tgerrors.TGError) {
 		return
 	}
 
-	if connection, err = core.ConfirmConnection(connection, false); err != nil {
+	if connection, err = conn.Confirm(connection, false); err != nil {
 		return
 	}
 
@@ -194,7 +198,7 @@ var acceptedPlatforms = map[string]bool{
 }
 
 // CreateSocialConnections creates the social connections between users of the same social network
-func CreateSocialConnections(ctx *context.Context) (err *tgerrors.TGError) {
+func CreateSocialConnections(ctx *context.Context) (err tgerrors.TGError) {
 	platformName := strings.ToLower(ctx.Vars["platformName"])
 
 	if _, ok := acceptedPlatforms[platformName]; !ok {
@@ -219,7 +223,7 @@ func CreateSocialConnections(ctx *context.Context) (err *tgerrors.TGError) {
 		return tgerrors.NewBadRequestError("social connecting failed (3)\nplatform mismatch", "platform mismatch")
 	}
 
-	users, err := core.SocialConnect(ctx.Bag["applicationUser"].(*entity.ApplicationUser), platformName, socialConnections.ConnectionsIDs)
+	users, err := conn.SocialConnect(ctx.Bag["applicationUser"].(*entity.ApplicationUser), platformName, socialConnections.ConnectionsIDs)
 	if err != nil {
 		return
 	}

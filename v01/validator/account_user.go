@@ -43,7 +43,7 @@ var (
 )
 
 // CreateAccountUser validates an account user on create
-func CreateAccountUser(accountUser *entity.AccountUser) *tgerrors.TGError {
+func CreateAccountUser(accountUser *entity.AccountUser) tgerrors.TGError {
 	errs := []*error{}
 
 	if !StringLengthBetween(accountUser.FirstName, accountUserNameMin, accountUserNameMax) {
@@ -118,7 +118,7 @@ func CreateAccountUser(accountUser *entity.AccountUser) *tgerrors.TGError {
 }
 
 // UpdateAccountUser validates an account user on update
-func UpdateAccountUser(existingAccountUser, updatedAccountUser *entity.AccountUser) *tgerrors.TGError {
+func UpdateAccountUser(existingAccountUser, updatedAccountUser *entity.AccountUser) tgerrors.TGError {
 	errs := []*error{}
 
 	if !StringLengthBetween(updatedAccountUser.FirstName, accountUserNameMin, accountUserNameMax) {
@@ -196,7 +196,7 @@ func UpdateAccountUser(existingAccountUser, updatedAccountUser *entity.AccountUs
 }
 
 // AccountUserCredentialsValid checks is a certain user has the right credentials
-func AccountUserCredentialsValid(password string, user *entity.AccountUser) *tgerrors.TGError {
+func AccountUserCredentialsValid(password string, user *entity.AccountUser) tgerrors.TGError {
 	pass, err := utils.Base64Decode(user.Password)
 	if err != nil {
 		return tgerrors.NewInternalError("failed to validate account user credentials (1)", err.Error())
@@ -226,7 +226,7 @@ func AccountUserCredentialsValid(password string, user *entity.AccountUser) *tge
 }
 
 // CheckAccountSession checks if the session is valid or not
-func CheckAccountSession(r *http.Request) (string, *tgerrors.TGError) {
+func CheckAccountSession(r *http.Request) (string, tgerrors.TGError) {
 	encodedSessionToken := r.Header.Get("x-tapglue-session")
 	if encodedSessionToken == "" {
 		return "", tgerrors.NewBadRequestError("failed to check session token (1)", "missing session token")
@@ -290,7 +290,7 @@ func CheckAccountSession(r *http.Request) (string, *tgerrors.TGError) {
 }
 
 // DuplicateAccountUserEmail checks if the user e-mail is duplicate within the provided account
-func DuplicateAccountUserEmail(email string) (bool, *tgerrors.TGError) {
+func DuplicateAccountUserEmail(email string) (bool, tgerrors.TGError) {
 	emailKey := storageClient.AccountUserByEmail(email)
 	if userExists, err := storageEngine.Exists(emailKey).Result(); userExists || err != nil {
 		if err != nil {
@@ -304,7 +304,7 @@ func DuplicateAccountUserEmail(email string) (bool, *tgerrors.TGError) {
 }
 
 // DuplicateAccountUserUsername checks if the username is duplicate within the provided account
-func DuplicateAccountUserUsername(username string) (bool, *tgerrors.TGError) {
+func DuplicateAccountUserUsername(username string) (bool, tgerrors.TGError) {
 	usernameKey := storageClient.AccountUserByUsername(username)
 	if userExists, err := storageEngine.Exists(usernameKey).Result(); userExists || err != nil {
 		if err != nil {

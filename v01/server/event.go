@@ -20,7 +20,7 @@ import (
 
 // getEvent handles requests to retrieve a single event
 // Request: GET account/:AccountID/application/:ApplicationID/event/:EventID
-func getEvent(ctx *context.Context) (err *tgerrors.TGError) {
+func getEvent(ctx *context.Context) (err tgerrors.TGError) {
 	var (
 		event   = &entity.Event{}
 		eventID int64
@@ -41,7 +41,7 @@ func getEvent(ctx *context.Context) (err *tgerrors.TGError) {
 
 // updateEvent handles requests to update an event
 // Request: PUT account/:AccountID/application/:ApplicationID/event/:EventID
-func updateEvent(ctx *context.Context) (err *tgerrors.TGError) {
+func updateEvent(ctx *context.Context) (err tgerrors.TGError) {
 	var (
 		eventID int64
 		er      error
@@ -81,7 +81,7 @@ func updateEvent(ctx *context.Context) (err *tgerrors.TGError) {
 
 // deleteEvent handles requests to delete a single event
 // Request: DELETE account/:AccountID/application/:ApplicationID/event/:EventID
-func deleteEvent(ctx *context.Context) (err *tgerrors.TGError) {
+func deleteEvent(ctx *context.Context) (err tgerrors.TGError) {
 	var (
 		eventID int64
 		er      error
@@ -101,7 +101,7 @@ func deleteEvent(ctx *context.Context) (err *tgerrors.TGError) {
 
 // getEventList handles requests to retrieve a users events
 // Request: GET account/:AccountID/application/:ApplicationID/user/:UserID/events
-func getEventList(ctx *context.Context) (err *tgerrors.TGError) {
+func getEventList(ctx *context.Context) (err tgerrors.TGError) {
 	var events []*entity.Event
 
 	if events, err = core.ReadEventList(ctx.AccountID, ctx.ApplicationID, ctx.ApplicationUserID); err != nil {
@@ -114,7 +114,7 @@ func getEventList(ctx *context.Context) (err *tgerrors.TGError) {
 
 // getConnectionEventList handles requests to retrieve a users connections events
 // Request: GET account/:AccountID/application/:ApplicationID/user/:UserID/connections/events
-func getConnectionEventList(ctx *context.Context) (err *tgerrors.TGError) {
+func getConnectionEventList(ctx *context.Context) (err tgerrors.TGError) {
 	var events = []*entity.Event{}
 
 	if events, err = core.ReadConnectionEventList(ctx.AccountID, ctx.ApplicationID, ctx.ApplicationUserID); err != nil {
@@ -127,7 +127,7 @@ func getConnectionEventList(ctx *context.Context) (err *tgerrors.TGError) {
 
 // createEvent handles requests to create an event
 // Request: POST account/:AccountID/application/:ApplicationID/user/:UserID/events
-func createEvent(ctx *context.Context) (err *tgerrors.TGError) {
+func createEvent(ctx *context.Context) (err tgerrors.TGError) {
 	var (
 		event = &entity.Event{}
 		er    error
@@ -155,7 +155,7 @@ func createEvent(ctx *context.Context) (err *tgerrors.TGError) {
 
 // getGeoEventList handles requests to retrieve a users connections events
 // Request: GET account/:accountID/application/:applicationID/events/geo/:latitude/:longitude/:radius
-func getGeoEventList(ctx *context.Context) (err *tgerrors.TGError) {
+func getGeoEventList(ctx *context.Context) (err tgerrors.TGError) {
 	var (
 		events                      = []*entity.Event{}
 		latitude, longitude, radius float64
@@ -188,7 +188,7 @@ func getGeoEventList(ctx *context.Context) (err *tgerrors.TGError) {
 
 // getObjectEventList handles requests to retrieve events in a certain location / radius
 // Request: GET account/:accountID/application/:applicationID/events/geo/:latitude/:longitude/:radius
-func getObjectEventList(ctx *context.Context) (err *tgerrors.TGError) {
+func getObjectEventList(ctx *context.Context) (err tgerrors.TGError) {
 	var (
 		events    = []*entity.Event{}
 		objectKey string
@@ -208,7 +208,7 @@ func getObjectEventList(ctx *context.Context) (err *tgerrors.TGError) {
 
 // getLocationEventList handles requests to retrieve a users connections events
 // Request: GET account/:accountID/application/:applicationID/events/geo/:latitude/:longitude/:radius
-func getLocationEventList(ctx *context.Context) (err *tgerrors.TGError) {
+func getLocationEventList(ctx *context.Context) (err tgerrors.TGError) {
 	var (
 		events   = []*entity.Event{}
 		location string

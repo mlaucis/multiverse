@@ -11,18 +11,15 @@ import (
 	"net/url"
 	"regexp"
 
+	"github.com/tapglue/backend/tgerrors"
 	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/entity"
 	"github.com/tapglue/backend/v02/storage"
-
-	"github.com/tapglue/backend/tgerrors"
-	"gopkg.in/redis.v2"
+	"github.com/tapglue/backend/v02/validator/keys"
+	"github.com/tapglue/backend/v02/validator/tokens"
 )
 
 var (
-	storageClient *storage.Client
-	storageEngine *redis.Client
-
 	alpha                  = regexp.MustCompile("^[\u0020-\u007E\uFF61-\uFF9F\uFFA0-\uFFDC\uFFE8-\uFFEEa-zA-Z]+$")
 	alphaNum               = regexp.MustCompile("^[\u0020-\u007E\uFF61-\uFF9F\uFFA0-\uFFDC\uFFE8-\uFFEE0-9a-zA-Z]+$")
 	alphaNumExtra          = regexp.MustCompile("^[\u0020-\u007E\uFF61-\uFF9F\uFFA0-\uFFDC\uFFE8-\uFFEE0-9a-zA-Z ]+$")
@@ -41,10 +38,16 @@ var (
 	errorUserUsernameAlreadyExists = tgerrors.NewBadRequestError("user already exists (2)", "user already exists (2)")
 	errorEmailAddressInUse         = fmt.Errorf("email address already in use")
 	errorUsernameInUse             = fmt.Errorf("username already in use")
+
+	storageClient *storage.Client
+	acc           core.Account
+	accUser       core.AccountUser
+	app           core.Application
+	appUser       core.ApplicationUser
 )
 
 // packErrors prints errors happened during validation
-func packErrors(errs []*error) *tgerrors.TGError {
+func packErrors(errs []*error) tgerrors.TGError {
 	if len(errs) == 0 {
 		return nil
 	}
@@ -104,7 +107,7 @@ func StringLengthBetween(value string, minLength, maxLength int) bool {
 
 // AccountExists validates if an account exists and returns the account or an error
 func AccountExists(accountID int64) bool {
-	account, err := core.ReadAccount(accountID)
+	account, err := acc.Read(accountID)
 	if err != nil {
 		return false
 	}
@@ -114,7 +117,7 @@ func AccountExists(accountID int64) bool {
 
 // ApplicationExists validates if an application exists and returns the application or an error
 func ApplicationExists(accountID, applicationID int64) bool {
-	application, err := core.ReadApplication(accountID, applicationID)
+	application, err := app.Read(accountID, applicationID)
 	if err != nil {
 		return false
 	}
@@ -124,7 +127,7 @@ func ApplicationExists(accountID, applicationID int64) bool {
 
 // UserExists validates if a user exists and returns it or an error
 func UserExists(accountID, applicationID, userID int64) bool {
-	user, err := core.ReadApplicationUser(accountID, applicationID, userID)
+	user, err := appUser.Read(accountID, applicationID, userID)
 	if err != nil {
 		return false
 	}
@@ -133,7 +136,13 @@ func UserExists(accountID, applicationID, userID int64) bool {
 }
 
 // Init initializes the core package
-func Init(engine *storage.Client) {
-	storageClient = engine
-	storageEngine = engine.RedisEngine()
+func Init(sc *storage.Client, account core.Account, accountUser core.AccountUser, application core.Application, applicationUser core.ApplicationUser) {
+	storageClient = sc
+	acc = account
+	accUser = accountUser
+	app = application
+	appUser = applicationUser
+
+	keys.Init(acc, app)
+	tokens.Init(acc, app)
 }
