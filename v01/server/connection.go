@@ -19,7 +19,7 @@ import (
 
 // updateConnection handles requests to update a user connection
 // Request: PUT account/:AccountID/application/:ApplicationID/user/:UserFromID/connection/:UserToID
-func updateConnection(ctx *context.Context) (err *tgerrors.TGError) {
+func updateConnection(ctx *context.Context) (err tgerrors.TGError) {
 	var (
 		userToID int64
 		er       error
@@ -68,7 +68,7 @@ func updateConnection(ctx *context.Context) (err *tgerrors.TGError) {
 
 // deleteConnection handles requests to delete a single connection
 // Request: DELETE account/:AccountID/application/:ApplicationID/user/:UserFromID/connection/:UserToID
-func deleteConnection(ctx *context.Context) (err *tgerrors.TGError) {
+func deleteConnection(ctx *context.Context) (err tgerrors.TGError) {
 	var (
 		userToID int64
 		er       error
@@ -88,7 +88,7 @@ func deleteConnection(ctx *context.Context) (err *tgerrors.TGError) {
 
 // createConnection handles requests to create a user connection
 // Request: POST /application/:applicationId/user/:UserID/connections
-func createConnection(ctx *context.Context) (err *tgerrors.TGError) {
+func createConnection(ctx *context.Context) (err tgerrors.TGError) {
 	var (
 		connection = &entity.Connection{}
 		er         error
@@ -129,7 +129,7 @@ func createConnection(ctx *context.Context) (err *tgerrors.TGError) {
 
 // getConnectionList handles requests to list a users connections
 // Request: GET account/:AccountID/application/:ApplicationID/user/:UserID/connections
-func getConnectionList(ctx *context.Context) (err *tgerrors.TGError) {
+func getConnectionList(ctx *context.Context) (err tgerrors.TGError) {
 	var users []*entity.User
 
 	if users, err = core.ReadConnectionList(ctx.AccountID, ctx.ApplicationID, ctx.ApplicationUserID); err != nil {
@@ -146,7 +146,7 @@ func getConnectionList(ctx *context.Context) (err *tgerrors.TGError) {
 
 // getFollowedByUsersList handles requests to list a users list of users who follow him
 // Request: GET account/:AccountID/application/:ApplicationID/user/:UserID/followers
-func getFollowedByUsersList(ctx *context.Context) (err *tgerrors.TGError) {
+func getFollowedByUsersList(ctx *context.Context) (err tgerrors.TGError) {
 	var users []*entity.User
 
 	if users, err = core.ReadFollowedByList(ctx.AccountID, ctx.ApplicationID, ctx.ApplicationUserID); err != nil {
@@ -163,7 +163,7 @@ func getFollowedByUsersList(ctx *context.Context) (err *tgerrors.TGError) {
 
 // confirmConnection handles requests to confirm a user connection
 // Request: POST account/:AccountID/application/:ApplicationID/user/:UserID/connection/confirm
-func confirmConnection(ctx *context.Context) (err *tgerrors.TGError) {
+func confirmConnection(ctx *context.Context) (err tgerrors.TGError) {
 	var connection = &entity.Connection{}
 
 	if er := json.Unmarshal(ctx.Body, connection); er != nil {
@@ -193,7 +193,7 @@ var acceptedPlatforms = map[string]bool{
 	"abook":    true,
 }
 
-func createSocialConnections(ctx *context.Context) (err *tgerrors.TGError) {
+func createSocialConnections(ctx *context.Context) (err tgerrors.TGError) {
 	platformName := strings.ToLower(ctx.Vars["platformName"])
 
 	if _, ok := acceptedPlatforms[platformName]; !ok {

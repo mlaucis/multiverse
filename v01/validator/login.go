@@ -16,7 +16,7 @@ var (
 )
 
 // IsValidLoginPayload checks if the login payload is valid
-func IsValidLoginPayload(loginPayload *entity.LoginPayload) *tgerrors.TGError {
+func IsValidLoginPayload(loginPayload *entity.LoginPayload) tgerrors.TGError {
 	if loginPayload.Email != "" && loginPayload.Username != "" {
 		return errGotBothUsernameAndEmail
 	}

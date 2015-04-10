@@ -12,7 +12,6 @@ import (
 	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/tgerrors"
 	"github.com/tapglue/backend/utils"
-	"github.com/tapglue/backend/v02/core"
 )
 
 var (
@@ -20,7 +19,7 @@ var (
 )
 
 // VerifyRequest verifies if a request is properly signed or not
-func VerifyRequest(ctx *context.Context, numKeyParts int) *tgerrors.TGError {
+func VerifyRequest(ctx *context.Context, numKeyParts int) tgerrors.TGError {
 	signature := ctx.R.Header.Get("x-tapglue-signature")
 	if signature == "" {
 		return tgerrors.NewBadRequestError("failed to verify request signature (1)", "signature failed on 1")
@@ -58,7 +57,7 @@ func VerifyRequest(ctx *context.Context, numKeyParts int) *tgerrors.TGError {
 
 	authToken := ""
 	if numKeyParts == 1 {
-		account, err := core.ReadAccount(accountID)
+		account, err := acc.Read(accountID)
 		if err != nil {
 			return tgerrors.NewBadRequestError("failed to verify request signature (8)", err.Error())
 		}
@@ -69,7 +68,7 @@ func VerifyRequest(ctx *context.Context, numKeyParts int) *tgerrors.TGError {
 			return tgerrors.NewBadRequestError("failed to verify request signature (9)", err.Error())
 		}
 
-		application, er := core.ReadApplication(accountID, applicationID)
+		application, er := app.Read(accountID, applicationID)
 		if er != nil {
 			return tgerrors.NewBadRequestError("failed to verify request signature (10)", er.Error())
 		}

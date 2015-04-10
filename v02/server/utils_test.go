@@ -9,14 +9,13 @@ import (
 	"time"
 
 	"github.com/tapglue/backend/tgerrors"
-	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/entity"
 	"github.com/tapglue/backend/v02/fixtures"
 )
 
 // AddCorrectAccount creates a correct account
-func AddCorrectAccount(fetchAccount bool) (acc *entity.Account, err *tgerrors.TGError) {
-	account, err := core.WriteAccount(&fixtures.CorrectAccount, fetchAccount)
+func AddCorrectAccount(fetchAccount bool) (acc *entity.Account, err tgerrors.TGError) {
+	account, err := coreAcc.Create(&fixtures.CorrectAccount, fetchAccount)
 	if err != nil {
 		return nil, err
 	}
@@ -25,10 +24,10 @@ func AddCorrectAccount(fetchAccount bool) (acc *entity.Account, err *tgerrors.TG
 }
 
 // AddCorrectAccountUser creates a correct account user
-func AddCorrectAccountUser(accountID int64, fetchUser bool) (accUsr *entity.AccountUser, err *tgerrors.TGError) {
+func AddCorrectAccountUser(accountID int64, fetchUser bool) (accUsr *entity.AccountUser, err tgerrors.TGError) {
 	accountUserWithAccountID := fixtures.CorrectAccountUser
 	accountUserWithAccountID.AccountID = accountID
-	accountUser, err := core.WriteAccountUser(&accountUserWithAccountID, fetchUser)
+	accountUser, err := coreAccUser.Create(&accountUserWithAccountID, fetchUser)
 	if err != nil {
 		return nil, err
 	}
@@ -37,10 +36,10 @@ func AddCorrectAccountUser(accountID int64, fetchUser bool) (accUsr *entity.Acco
 }
 
 // AddCorrectApplication creates a correct application
-func AddCorrectApplication(accountID int64, fetchApplication bool) (*entity.Application, *tgerrors.TGError) {
+func AddCorrectApplication(accountID int64, fetchApplication bool) (*entity.Application, tgerrors.TGError) {
 	applicationWithAccountID := fixtures.CorrectApplication
 	applicationWithAccountID.AccountID = accountID
-	application, err := core.WriteApplication(&applicationWithAccountID, fetchApplication)
+	application, err := coreApp.Create(&applicationWithAccountID, fetchApplication)
 	if err != nil {
 		return nil, err
 	}
@@ -49,12 +48,12 @@ func AddCorrectApplication(accountID int64, fetchApplication bool) (*entity.Appl
 }
 
 // AddCorrectUser creates a correct user
-func AddCorrectUser(accountID, applicationID int64, fetchUser bool) (usr *entity.ApplicationUser, err *tgerrors.TGError) {
+func AddCorrectUser(accountID, applicationID int64, fetchUser bool) (usr *entity.ApplicationUser, err tgerrors.TGError) {
 	userWithIDs := fixtures.CorrectUser
 	userWithIDs.Password = "password"
 	userWithIDs.AccountID = accountID
 	userWithIDs.ApplicationID = applicationID
-	user, err := core.WriteUser(&userWithIDs, fetchUser)
+	user, err := coreAppUser.Create(&userWithIDs, fetchUser)
 	if err != nil {
 		return nil, err
 	}
@@ -63,14 +62,14 @@ func AddCorrectUser(accountID, applicationID int64, fetchUser bool) (usr *entity
 }
 
 // AddCorrectUser2 creates a correct user
-func AddCorrectUser2(accountID, applicationID int64, fetchUser bool) (usr *entity.ApplicationUser, err *tgerrors.TGError) {
+func AddCorrectUser2(accountID, applicationID int64, fetchUser bool) (usr *entity.ApplicationUser, err tgerrors.TGError) {
 	userWithIDs := fixtures.CorrectUser
 	userWithIDs.Username = "demouser2"
 	userWithIDs.Password = "password"
 	userWithIDs.Email = "user2@tapglue.com"
 	userWithIDs.AccountID = accountID
 	userWithIDs.ApplicationID = applicationID
-	user, err := core.WriteUser(&userWithIDs, fetchUser)
+	user, err := coreAppUser.Create(&userWithIDs, fetchUser)
 	if err != nil {
 		return nil, err
 	}
@@ -79,13 +78,13 @@ func AddCorrectUser2(accountID, applicationID int64, fetchUser bool) (usr *entit
 }
 
 // AddCorrectConnection creates a correct user connection
-func AddCorrectConnection(accountID, applicationID, userFromID, userToID int64, fetchConnection bool) (con *entity.Connection, err *tgerrors.TGError) {
+func AddCorrectConnection(accountID, applicationID, userFromID, userToID int64, fetchConnection bool) (con *entity.Connection, err tgerrors.TGError) {
 	connectionWithIDs := fixtures.CorrectConnection
 	connectionWithIDs.AccountID = accountID
 	connectionWithIDs.ApplicationID = applicationID
 	connectionWithIDs.UserFromID = userFromID
 	connectionWithIDs.UserToID = userToID
-	connection, err := core.WriteConnection(&connectionWithIDs, fetchConnection)
+	connection, err := coreConn.Create(&connectionWithIDs, fetchConnection)
 	if err != nil {
 		return nil, err
 	}
@@ -94,12 +93,12 @@ func AddCorrectConnection(accountID, applicationID, userFromID, userToID int64, 
 }
 
 // AddCorrectEvent creates a correct event
-func AddCorrectEvent(accountID, applicationID, userID int64, fetchEvent bool) (evn *entity.Event, err *tgerrors.TGError) {
+func AddCorrectEvent(accountID, applicationID, userID int64, fetchEvent bool) (evn *entity.Event, err tgerrors.TGError) {
 	eventWithIDs := fixtures.CorrectEvent
 	eventWithIDs.AccountID = accountID
 	eventWithIDs.ApplicationID = applicationID
 	eventWithIDs.UserID = userID
-	event, err := core.WriteEvent(&eventWithIDs, fetchEvent)
+	event, err := coreEvt.Create(&eventWithIDs, fetchEvent)
 	if err != nil {
 		return nil, err
 	}
@@ -171,13 +170,13 @@ func CorrectEvent() *entity.Event {
 }
 
 func AddCorrectAccounts(numberOfAccounts int) []*entity.Account {
-	var err *tgerrors.TGError
+	var err tgerrors.TGError
 	result := make([]*entity.Account, numberOfAccounts)
 	for i := 0; i < numberOfAccounts; i++ {
 		account := CorrectAccount()
 		account.Name = fmt.Sprintf("acc-%d", i+1)
 		account.Description = fmt.Sprintf("acc description %d", i+1)
-		result[i], err = core.WriteAccount(account, true)
+		result[i], err = coreAcc.Create(account, true)
 		if err != nil {
 			panic(err)
 		}
@@ -187,13 +186,13 @@ func AddCorrectAccounts(numberOfAccounts int) []*entity.Account {
 }
 
 func AddCorrectAccountUsers(account *entity.Account, numberOfAccountUsersPerAccount int) []*entity.AccountUser {
-	var err *tgerrors.TGError
+	var err tgerrors.TGError
 	result := make([]*entity.AccountUser, numberOfAccountUsersPerAccount)
 	for i := 0; i < numberOfAccountUsersPerAccount; i++ {
 		accountUser := CorrectAccountUserWithDefaults(account.ID, int64(i+1))
 		password := accountUser.Password
 		accountUser.Activated = true
-		result[i], err = core.WriteAccountUser(accountUser, true)
+		result[i], err = coreAccUser.Create(accountUser, true)
 		result[i].OriginalPassword = password
 		if err != nil {
 			panic(err)
@@ -205,13 +204,13 @@ func AddCorrectAccountUsers(account *entity.Account, numberOfAccountUsersPerAcco
 
 func LoginAccountUsers(users []*entity.AccountUser) {
 	for idx := range users {
-		sessionToken, err := core.CreateAccountUserSession(users[idx])
+		sessionToken, err := coreAccUser.CreateSession(users[idx])
 		if err != nil {
 			panic(err)
 		}
 		users[idx].SessionToken = sessionToken
 		users[idx].LastLogin = time.Now()
-		_, err = core.UpdateAccountUser(*users[idx], *users[idx], false)
+		_, err = coreAccUser.Update(*users[idx], *users[idx], false)
 		if err != nil {
 			panic(err)
 		}
@@ -219,14 +218,14 @@ func LoginAccountUsers(users []*entity.AccountUser) {
 }
 
 func AddCorrectApplications(account *entity.Account, numberOfApplicationsPerAccount int) []*entity.Application {
-	var err *tgerrors.TGError
+	var err tgerrors.TGError
 	result := make([]*entity.Application, numberOfApplicationsPerAccount)
 	for i := 0; i < numberOfApplicationsPerAccount; i++ {
 		application := CorrectApplication()
 		application.AccountID = account.ID
 		application.Name = fmt.Sprintf("acc-%d-app-%d", account.ID, i+1)
 		application.Description = fmt.Sprintf("acc %d app %d", account.ID, i+1)
-		result[i], err = core.WriteApplication(application, true)
+		result[i], err = coreApp.Create(application, true)
 		if err != nil {
 			panic(err)
 		}
@@ -243,8 +242,8 @@ func HookUp(accountID, applicationID, userFromID, userToID int64) {
 		UserFromID:    userFromID,
 		UserToID:      userToID,
 	}
-	core.WriteConnection(connection, false)
-	core.ConfirmConnection(connection, false)
+	coreConn.Create(connection, false)
+	coreConn.Confirm(connection, false)
 }
 
 // HookUpUsers creates connection between all users that you provide
@@ -299,7 +298,7 @@ func HookUpUsersCustom(users []*entity.ApplicationUser) {
 			UserFromID:    users[0].ID,
 			UserToID:      users[4].ID,
 		}
-		core.WriteConnection(connection, false)
+		coreConn.Create(connection, false)
 	}
 
 	if len(users) >= 6 {
@@ -309,7 +308,7 @@ func HookUpUsersCustom(users []*entity.ApplicationUser) {
 			UserFromID:    users[4].ID,
 			UserToID:      users[5].ID,
 		}
-		core.WriteConnection(connection, false)
+		coreConn.Create(connection, false)
 	}
 
 	if len(users) >= 8 {
@@ -319,19 +318,19 @@ func HookUpUsersCustom(users []*entity.ApplicationUser) {
 			UserFromID:    users[6].ID,
 			UserToID:      users[7].ID,
 		}
-		core.WriteConnection(connection, false)
+		coreConn.Create(connection, false)
 	}
 }
 
 func LoginUsers(users []*entity.ApplicationUser) {
 	for idx := range users {
-		sessionToken, err := core.CreateApplicationUserSession(users[idx])
+		sessionToken, err := coreAppUser.CreateSession(users[idx])
 		if err != nil {
 			panic(err)
 		}
 		users[idx].SessionToken = sessionToken
 		users[idx].LastLogin = time.Now()
-		_, err = core.UpdateUser(*users[idx], *users[idx], false)
+		_, err = coreAppUser.Update(*users[idx], *users[idx], false)
 		if err != nil {
 			panic(err)
 		}
@@ -339,13 +338,13 @@ func LoginUsers(users []*entity.ApplicationUser) {
 }
 
 func AddCorrectApplicationUsers(application *entity.Application, numberOfUsersPerApplication int, hookUpUsers bool) []*entity.ApplicationUser {
-	var err *tgerrors.TGError
+	var err tgerrors.TGError
 	result := make([]*entity.ApplicationUser, numberOfUsersPerApplication)
 	for i := 0; i < numberOfUsersPerApplication; i++ {
 		user := CorrectUserWithDefaults(application.AccountID, application.ID, int64(i+1))
 		password := user.Password
 		user.Activated = true
-		result[i], err = core.WriteUser(user, true)
+		result[i], err = coreAppUser.Create(user, true)
 		result[i].OriginalPassword = password
 		if err != nil {
 			panic(err)
@@ -362,7 +361,7 @@ func AddCorrectApplicationUsers(application *entity.Application, numberOfUsersPe
 // AddCorrectUserEvents adds correct events to a user
 // If numberOfEventsPerUser < 4 then events are common, else they are user specific (thus unique)
 func AddCorrectUserEvents(user *entity.ApplicationUser, numberOfEventsPerUser int) []*entity.Event {
-	var err *tgerrors.TGError
+	var err tgerrors.TGError
 	locations := []struct {
 		Lat   float64
 		Lon   float64
@@ -408,7 +407,7 @@ func AddCorrectUserEvents(user *entity.ApplicationUser, numberOfEventsPerUser in
 			event.Longitude = locations[i].Lon
 			event.Location = locations[i].Label
 		}
-		result[i], err = core.WriteEvent(event, true)
+		result[i], err = coreEvt.Create(event, true)
 		if err != nil {
 			panic(err)
 		}

@@ -27,6 +27,8 @@ import (
 	v01_redis "github.com/tapglue/backend/v01/storage/redis"
 	v01_validator "github.com/tapglue/backend/v01/validator"
 	v02_core "github.com/tapglue/backend/v02/core"
+	v02_redis_core "github.com/tapglue/backend/v02/core/redis"
+	v02_server "github.com/tapglue/backend/v02/server"
 	v02_storage "github.com/tapglue/backend/v02/storage"
 	v02_kinesis "github.com/tapglue/backend/v02/storage/kinesis"
 	v02_redis "github.com/tapglue/backend/v02/storage/redis"
@@ -73,10 +75,20 @@ func init() {
 	v02_kinesis.Init(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region)
 	v01StorageClient := v01_storage.Init(v01_redis.Client())
 	v02StorageClient := v02_storage.Init(v02_redis.Client(), v02_kinesis.Client())
+
+	account := v02_redis_core.NewAccount(v02StorageClient, v02_redis.Client())
+	accountUser := v02_redis_core.NewAccountUser(v02StorageClient, v02_redis.Client())
+	application := v02_redis_core.NewApplication(v02StorageClient, v02_redis.Client())
+	applicationUser := v02_redis_core.NewApplicationUser(v02StorageClient, v02_redis.Client())
+	connection := v02_redis_core.NewConnection(v02StorageClient, v02_redis.Client())
+	event := v02_redis_core.NewEvent(v02StorageClient, v02_redis.Client())
+
+	v02_server.InitCores(account, accountUser, application, applicationUser, connection, event)
+
 	v01_core.Init(v01StorageClient)
 	v02_core.Init(v02StorageClient)
 	v01_validator.Init(v01StorageClient)
-	v02_validator.Init(v02StorageClient)
+	v02_validator.Init(v02StorageClient, account, accountUser, application, applicationUser)
 }
 
 func main() {

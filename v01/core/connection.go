@@ -17,7 +17,7 @@ import (
 )
 
 // UpdateConnection updates a connection in the database and returns the updated connection user or an error
-func UpdateConnection(existingConnection, updatedConnection entity.Connection, retrieve bool) (con *entity.Connection, err *tgerrors.TGError) {
+func UpdateConnection(existingConnection, updatedConnection entity.Connection, retrieve bool) (con *entity.Connection, err tgerrors.TGError) {
 	updatedConnection.UpdatedAt = time.Now()
 	var er error
 
@@ -64,7 +64,7 @@ func UpdateConnection(existingConnection, updatedConnection entity.Connection, r
 }
 
 // DeleteConnection deletes the connection matching the IDs or an error
-func DeleteConnection(accountID, applicationID, userFromID, userToID int64) (err *tgerrors.TGError) {
+func DeleteConnection(accountID, applicationID, userFromID, userToID int64) (err tgerrors.TGError) {
 	key := storageClient.Connection(accountID, applicationID, userFromID, userToID)
 	result, er := storageEngine.Del(key).Result()
 	if er != nil {
@@ -98,7 +98,7 @@ func DeleteConnection(accountID, applicationID, userFromID, userToID int64) (err
 }
 
 // ReadConnectionList returns all connections from a certain user
-func ReadConnectionList(accountID, applicationID, userID int64) (users []*entity.User, err *tgerrors.TGError) {
+func ReadConnectionList(accountID, applicationID, userID int64) (users []*entity.User, err tgerrors.TGError) {
 	key := storageClient.ConnectionUsers(accountID, applicationID, userID)
 	result, er := storageEngine.LRange(key, 0, -1).Result()
 	if er != nil {
@@ -113,7 +113,7 @@ func ReadConnectionList(accountID, applicationID, userID int64) (users []*entity
 }
 
 // ReadFollowedByList returns all connections from a certain user
-func ReadFollowedByList(accountID, applicationID, userID int64) (users []*entity.User, err *tgerrors.TGError) {
+func ReadFollowedByList(accountID, applicationID, userID int64) (users []*entity.User, err tgerrors.TGError) {
 	key := storageClient.FollowedByUsers(accountID, applicationID, userID)
 	result, er := storageEngine.LRange(key, 0, -1).Result()
 	if er != nil {
@@ -128,7 +128,7 @@ func ReadFollowedByList(accountID, applicationID, userID int64) (users []*entity
 }
 
 // WriteConnection adds a user connection and returns the created connection or an error
-func WriteConnection(connection *entity.Connection, retrieve bool) (con *entity.Connection, err *tgerrors.TGError) {
+func WriteConnection(connection *entity.Connection, retrieve bool) (con *entity.Connection, err tgerrors.TGError) {
 	// We confirm the connection in the past forcefully so that we can update it at the confirmation time
 	connection.ConfirmedAt = time.Date(0, time.January, 1, 0, 0, 0, 0, time.UTC)
 	connection.Enabled = false
@@ -153,7 +153,7 @@ func WriteConnection(connection *entity.Connection, retrieve bool) (con *entity.
 }
 
 // ConfirmConnection confirms a user connection and returns the connection or an error
-func ConfirmConnection(connection *entity.Connection, retrieve bool) (con *entity.Connection, err *tgerrors.TGError) {
+func ConfirmConnection(connection *entity.Connection, retrieve bool) (con *entity.Connection, err tgerrors.TGError) {
 	// We confirm the connection in the past forcefully so that we can update it at the confirmation time
 	connection.Enabled = true
 	connection.ConfirmedAt = time.Now()
@@ -202,7 +202,7 @@ func ConfirmConnection(connection *entity.Connection, retrieve bool) (con *entit
 }
 
 // WriteConnectionEventsToList takes a connection and writes the events to the lists
-func WriteConnectionEventsToList(connection *entity.Connection) (err *tgerrors.TGError) {
+func WriteConnectionEventsToList(connection *entity.Connection) (err tgerrors.TGError) {
 	connectionEventsKey := storageClient.ConnectionEvents(connection.AccountID, connection.ApplicationID, connection.UserFromID)
 
 	eventsKey := storageClient.Events(connection.AccountID, connection.ApplicationID, connection.UserToID)
@@ -229,7 +229,7 @@ func WriteConnectionEventsToList(connection *entity.Connection) (err *tgerrors.T
 }
 
 // DeleteConnectionEventsFromLists takes a connection and deletes the events from the lists
-func DeleteConnectionEventsFromLists(accountID, applicationID, userFromID, userToID int64) (err *tgerrors.TGError) {
+func DeleteConnectionEventsFromLists(accountID, applicationID, userFromID, userToID int64) (err tgerrors.TGError) {
 	connectionEventsKey := storageClient.ConnectionEvents(accountID, applicationID, userFromID)
 
 	eventsKey := storageClient.Events(accountID, applicationID, userToID)
@@ -256,7 +256,7 @@ func DeleteConnectionEventsFromLists(accountID, applicationID, userFromID, userT
 }
 
 // ReadConnection returns the connection, if any, between two users
-func ReadConnection(accountID, applicationID, userFromID, userToID int64) (connection *entity.Connection, err *tgerrors.TGError) {
+func ReadConnection(accountID, applicationID, userFromID, userToID int64) (connection *entity.Connection, err tgerrors.TGError) {
 	key := storageClient.Connection(accountID, applicationID, userFromID, userToID)
 
 	result, er := storageEngine.Get(key).Result()
@@ -279,7 +279,7 @@ func ReadConnection(accountID, applicationID, userFromID, userToID int64) (conne
 }
 
 // SocialConnect creates the connections between a user and his other social peers
-func SocialConnect(user *entity.User, platform string, socialFriendsIDs []string) ([]*entity.User, *tgerrors.TGError) {
+func SocialConnect(user *entity.User, platform string, socialFriendsIDs []string) ([]*entity.User, tgerrors.TGError) {
 	result := []*entity.User{}
 
 	encodedSocialFriendsIDs := []string{}
@@ -303,7 +303,7 @@ func SocialConnect(user *entity.User, platform string, socialFriendsIDs []string
 	return autoConnectSocialFriends(user, ourStoredUsersIDs)
 }
 
-func autoConnectSocialFriends(user *entity.User, ourStoredUsersIDs []interface{}) (users []*entity.User, err *tgerrors.TGError) {
+func autoConnectSocialFriends(user *entity.User, ourStoredUsersIDs []interface{}) (users []*entity.User, err tgerrors.TGError) {
 	ourUserKeys := []string{}
 	for idx := range ourStoredUsersIDs {
 		userID, err := strconv.ParseInt(ourStoredUsersIDs[idx].(string), 10, 64)
@@ -361,7 +361,7 @@ func autoConnectSocialFriends(user *entity.User, ourStoredUsersIDs []interface{}
 	return fetchAndDecodeMultipleUsers(ourUserKeys)
 }
 
-func fetchAndDecodeMultipleUsers(keys []string) (users []*entity.User, err *tgerrors.TGError) {
+func fetchAndDecodeMultipleUsers(keys []string) (users []*entity.User, err tgerrors.TGError) {
 	if len(keys) == 0 {
 		return []*entity.User{}, nil
 	}

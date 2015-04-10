@@ -38,7 +38,7 @@ type (
 	}
 
 	// Filter is a callback that helps updating the context with extra information
-	Filter func(*Context) *tgerrors.TGError
+	Filter func(*Context) tgerrors.TGError
 )
 
 // LogRequest will generate a log message with the request status
@@ -105,15 +105,15 @@ func (ctx *Context) newLogMessage(stackDepth int) *logger.LogMsg {
 	}
 }
 
-// NewContext creates a new context from the current request
-func NewContext(
+// New creates a new context from the current request
+func New(
 	w http.ResponseWriter,
 	r *http.Request,
 	mainLog, errorLog chan *logger.LogMsg,
 	routeName, scope, version string,
 	contextFilters []Filter,
 	environment string,
-	debugMode bool) (ctx *Context, err *tgerrors.TGError) {
+	debugMode bool) (ctx *Context, err tgerrors.TGError) {
 
 	ctx = new(Context)
 	ctx.StartTime = time.Now()

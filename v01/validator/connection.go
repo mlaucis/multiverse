@@ -21,7 +21,7 @@ var (
 )
 
 // CreateConnection validates a connection on create
-func CreateConnection(connection *entity.Connection) *tgerrors.TGError {
+func CreateConnection(connection *entity.Connection) tgerrors.TGError {
 	errs := []*error{}
 
 	if connection.ApplicationID == 0 {
@@ -64,7 +64,7 @@ func CreateConnection(connection *entity.Connection) *tgerrors.TGError {
 }
 
 // ConfirmConnection validates a connection on confirmation
-func ConfirmConnection(connection *entity.Connection) *tgerrors.TGError {
+func ConfirmConnection(connection *entity.Connection) tgerrors.TGError {
 	errs := []*error{}
 
 	if connection.ApplicationID == 0 {
@@ -91,7 +91,7 @@ func ConfirmConnection(connection *entity.Connection) *tgerrors.TGError {
 }
 
 // UpdateConnection validates a connection on update
-func UpdateConnection(existingConnection, updatedConnection *entity.Connection) *tgerrors.TGError {
+func UpdateConnection(existingConnection, updatedConnection *entity.Connection) tgerrors.TGError {
 	errs := []*error{}
 
 	if updatedConnection.UserFromID == 0 {

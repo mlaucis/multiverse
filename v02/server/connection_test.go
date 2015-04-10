@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/entity"
 
 	. "gopkg.in/check.v1"
@@ -1019,7 +1018,7 @@ func (s *ServerSuite) TestCreateSocialConnection(c *C) {
 	userFrom.Username = "social1"
 	userFrom.Email = "social-connection@user1.com"
 	userFrom.SocialIDs = map[string]string{"facebook": "fb-id-1"}
-	userFrom, err = core.WriteUser(userFrom, true)
+	userFrom, err = coreAppUser.Create(userFrom, true)
 	c.Assert(err, IsNil)
 
 	user2 := CorrectUser()
@@ -1028,7 +1027,7 @@ func (s *ServerSuite) TestCreateSocialConnection(c *C) {
 	user2.Username = "social2"
 	user2.Email = "social-connection@user2.com"
 	user2.SocialIDs = map[string]string{"facebook": "fb-id-2"}
-	user2, err = core.WriteUser(user2, true)
+	user2, err = coreAppUser.Create(user2, true)
 	c.Assert(err, IsNil)
 
 	user3 := CorrectUser()
@@ -1037,7 +1036,7 @@ func (s *ServerSuite) TestCreateSocialConnection(c *C) {
 	user3.Username = "social3"
 	user3.Email = "social-connection@user3.com"
 	user3.SocialIDs = map[string]string{"facebook": "fb-id-3"}
-	user3, err = core.WriteUser(user3, true)
+	user3, err = coreAppUser.Create(user3, true)
 	c.Assert(err, IsNil)
 
 	user4 := CorrectUser()
@@ -1046,7 +1045,7 @@ func (s *ServerSuite) TestCreateSocialConnection(c *C) {
 	user4.Username = "social4"
 	user4.Email = "social-connection@user4.com"
 	user4.SocialIDs = map[string]string{"facebook": "fb-id-4"}
-	user4, err = core.WriteUser(user4, true)
+	user4, err = coreAppUser.Create(user4, true)
 	c.Assert(err, IsNil)
 
 	user5 := CorrectUser()
@@ -1055,7 +1054,7 @@ func (s *ServerSuite) TestCreateSocialConnection(c *C) {
 	user5.Username = "social5"
 	user5.Email = "social-connection@user5.com"
 	user5.SocialIDs = map[string]string{"facebook": "fb-id-5"}
-	user5, err = core.WriteUser(user5, true)
+	user5, err = coreAppUser.Create(user5, true)
 	c.Assert(err, IsNil)
 
 	payload, er := json.Marshal(struct {

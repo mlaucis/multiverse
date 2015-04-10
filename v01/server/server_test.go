@@ -307,7 +307,7 @@ func getComposedRouteString(routeName string, params ...interface{}) string {
 }
 
 // runRequest takes a route, path, payload and token, performs a request and return a response recorder
-func runRequest(routeName, routePath, payload, secretKey, sessionToken string, numKeyParts int) (int, string, *tgerrors.TGError) {
+func runRequest(routeName, routePath, payload, secretKey, sessionToken string, numKeyParts int) (int, string, tgerrors.TGError) {
 	var (
 		requestRoute *server.Route
 		routePattern string

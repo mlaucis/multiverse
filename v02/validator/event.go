@@ -27,7 +27,7 @@ var (
 )
 
 // CreateEvent validates an event on create
-func CreateEvent(event *entity.Event) *tgerrors.TGError {
+func CreateEvent(event *entity.Event) tgerrors.TGError {
 	errs := []*error{}
 
 	if event.ApplicationID == 0 {
@@ -58,7 +58,7 @@ func CreateEvent(event *entity.Event) *tgerrors.TGError {
 }
 
 // UpdateEvent validates an event on update
-func UpdateEvent(existingEvent, updatedEvent *entity.Event) *tgerrors.TGError {
+func UpdateEvent(existingEvent, updatedEvent *entity.Event) tgerrors.TGError {
 	errs := []*error{}
 
 	if !StringLengthBetween(updatedEvent.Verb, verbMin, verbMax) {

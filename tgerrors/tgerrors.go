@@ -17,11 +17,19 @@ type (
 	tgErrorType uint16
 
 	// TGError holds our custom error
-	TGError struct {
+	TGError interface {
+		Type() tgErrorType
+		Error() string
+		RawError() error
+		ErrorWithLocation() string
+		InternalErrorWithLocation() string
+	}
+
+	tgError struct {
 		internalMessage string
 		message         string
 		location        string
-		Type            tgErrorType
+		errType         tgErrorType
 	}
 )
 
@@ -38,7 +46,7 @@ const (
 var dbgMode = false
 
 // New generates a new error message
-func New(errorType tgErrorType, message, internalMessage string, withLocation bool) *TGError {
+func New(errorType tgErrorType, message, internalMessage string, withLocation bool) TGError {
 	stackDepth := -1
 	if withLocation {
 		stackDepth = 2
@@ -47,7 +55,7 @@ func New(errorType tgErrorType, message, internalMessage string, withLocation bo
 }
 
 // NewFromError generates a new error message from an existing error
-func NewFromError(errorType tgErrorType, err error, withLocation bool) *TGError {
+func NewFromError(errorType tgErrorType, err error, withLocation bool) TGError {
 	stackDepth := -1
 	if withLocation {
 		stackDepth = 2
@@ -56,27 +64,27 @@ func NewFromError(errorType tgErrorType, err error, withLocation bool) *TGError 
 }
 
 // NewBadRequestError generatates a new client error
-func NewBadRequestError(message, internalMessage string) *TGError {
+func NewBadRequestError(message, internalMessage string) TGError {
 	return newError(TGBadRequestError, message, internalMessage, -1)
 }
 
 // NewInternalError generatates a new client error
-func NewInternalError(message, internalMessage string) *TGError {
+func NewInternalError(message, internalMessage string) TGError {
 	return newError(TGInternalError, message, internalMessage, -1)
 }
 
 // NewUnauthorizedError generatates a new client error
-func NewUnauthorizedError(message, internalMessage string) *TGError {
+func NewUnauthorizedError(message, internalMessage string) TGError {
 	return newError(TGUnauthorizedError, message, internalMessage, -1)
 }
 
 // NewNotFoundError generatates a new client error
-func NewNotFoundError(message, internalMessage string) *TGError {
+func NewNotFoundError(message, internalMessage string) TGError {
 	return newError(TGNotFoundError, message, internalMessage, -1)
 }
 
-func newError(errorType tgErrorType, message, internalMessage string, stackDepth int) *TGError {
-	err := &TGError{message: message, internalMessage: internalMessage, Type: errorType}
+func newError(errorType tgErrorType, message, internalMessage string, stackDepth int) TGError {
+	err := &tgError{message: message, internalMessage: internalMessage, errType: errorType}
 	if stackDepth == -1 && !dbgMode {
 		return err
 	}
@@ -94,18 +102,23 @@ func newError(errorType tgErrorType, message, internalMessage string, stackDepth
 	return err
 }
 
+// Type returns the type of the error
+func (err *tgError) Type() tgErrorType {
+	return err.errType
+}
+
 // RawError generates a go error out of the existing error
-func (err TGError) RawError() error {
+func (err *tgError) RawError() error {
 	return errors.New(err.Error())
 }
 
 // Error returns the error message
-func (err TGError) Error() string {
+func (err *tgError) Error() string {
 	return err.message
 }
 
 // ErrorWithLocation returns the error and the location where it happened if that information is present
-func (err TGError) ErrorWithLocation() string {
+func (err *tgError) ErrorWithLocation() string {
 	if err.location != "" {
 		return fmt.Sprintf("%q in %s", err.message, err.location)
 	}
@@ -113,7 +126,7 @@ func (err TGError) ErrorWithLocation() string {
 }
 
 // InternalErrorWithLocation returns the internal error message and the location where it happened, if that exists
-func (err TGError) InternalErrorWithLocation() string {
+func (err *tgError) InternalErrorWithLocation() string {
 	if err.location != "" {
 		return fmt.Sprintf("%q in %s", err.message, err.location)
 	}

@@ -16,16 +16,20 @@ import (
 	"github.com/tapglue/backend/v02/validator"
 )
 
+var (
+	appUser core.ApplicationUser
+)
+
 // GetApplicationUser handles requests to retrieve a single user
 // Request: GET account/:AccountID/application/:ApplicationID/user/:UserID
-func GetApplicationUser(ctx *context.Context) (err *tgerrors.TGError) {
+func GetApplicationUser(ctx *context.Context) (err tgerrors.TGError) {
 	WriteResponse(ctx, ctx.Bag["applicationUser"].(*entity.ApplicationUser), http.StatusOK, 10)
 	return
 }
 
 // UpdateApplicationUser handles requests to update a user
 // Request: PUT account/:AccountID/application/:ApplicationID/user/:UserID
-func UpdateApplicationUser(ctx *context.Context) (err *tgerrors.TGError) {
+func UpdateApplicationUser(ctx *context.Context) (err tgerrors.TGError) {
 	user := *(ctx.Bag["applicationUser"].(*entity.ApplicationUser))
 	var er error
 	if er = json.Unmarshal(ctx.Body, &user); er != nil {
@@ -40,7 +44,7 @@ func UpdateApplicationUser(ctx *context.Context) (err *tgerrors.TGError) {
 		return
 	}
 
-	updatedUser, err := core.UpdateUser(*(ctx.Bag["applicationUser"].(*entity.ApplicationUser)), user, true)
+	updatedUser, err := appUser.Update(*(ctx.Bag["applicationUser"].(*entity.ApplicationUser)), user, true)
 	if err != nil {
 		return
 	}
@@ -53,8 +57,8 @@ func UpdateApplicationUser(ctx *context.Context) (err *tgerrors.TGError) {
 
 // DeleteApplicationUser handles requests to delete a single user
 // Request: DELETE account/:AccountID/application/:ApplicationID/user/:UserID
-func DeleteApplicationUser(ctx *context.Context) (err *tgerrors.TGError) {
-	if err = core.DeleteUser(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(int64)); err != nil {
+func DeleteApplicationUser(ctx *context.Context) (err tgerrors.TGError) {
+	if err = appUser.Delete(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(int64)); err != nil {
 		return
 	}
 
@@ -64,7 +68,7 @@ func DeleteApplicationUser(ctx *context.Context) (err *tgerrors.TGError) {
 
 // CreateApplicationUser handles requests to create a user
 // Request: POST account/:AccountID/application/:ApplicationID/users
-func CreateApplicationUser(ctx *context.Context) (err *tgerrors.TGError) {
+func CreateApplicationUser(ctx *context.Context) (err tgerrors.TGError) {
 	var (
 		user = &entity.ApplicationUser{}
 		er   error
@@ -81,7 +85,7 @@ func CreateApplicationUser(ctx *context.Context) (err *tgerrors.TGError) {
 		return
 	}
 
-	if user, err = core.WriteUser(user, true); err != nil {
+	if user, err = appUser.Create(user, true); err != nil {
 		return
 	}
 
@@ -93,7 +97,7 @@ func CreateApplicationUser(ctx *context.Context) (err *tgerrors.TGError) {
 
 // LoginApplicationUser handles the requests to login the user in the system
 // Request: POST account/:AccountID/application/:ApplicationID/user/login
-func LoginApplicationUser(ctx *context.Context) (err *tgerrors.TGError) {
+func LoginApplicationUser(ctx *context.Context) (err tgerrors.TGError) {
 	var (
 		loginPayload = &entity.LoginPayload{}
 		user         *entity.ApplicationUser
@@ -110,14 +114,14 @@ func LoginApplicationUser(ctx *context.Context) (err *tgerrors.TGError) {
 	}
 
 	if loginPayload.Email != "" {
-		user, err = core.FindApplicationUserByEmail(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), loginPayload.Email)
+		user, err = appUser.FindByEmail(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), loginPayload.Email)
 		if err != nil {
 			return
 		}
 	}
 
 	if loginPayload.Username != "" {
-		user, err = core.FindApplicationUserByUsername(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), loginPayload.Username)
+		user, err = appUser.FindByUsername(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), loginPayload.Username)
 		if err != nil {
 			return
 		}
@@ -135,12 +139,12 @@ func LoginApplicationUser(ctx *context.Context) (err *tgerrors.TGError) {
 		return
 	}
 
-	if sessionToken, err = core.CreateApplicationUserSession(user); err != nil {
+	if sessionToken, err = appUser.CreateSession(user); err != nil {
 		return
 	}
 
 	user.LastLogin = time.Now()
-	_, err = core.UpdateUser(*user, *user, false)
+	_, err = appUser.Update(*user, *user, false)
 	if err != nil {
 		return
 	}
@@ -157,7 +161,7 @@ func LoginApplicationUser(ctx *context.Context) (err *tgerrors.TGError) {
 
 // RefreshApplicationUserSession handles the requests to refresh the user session token
 // Request: POST account/:AccountID/application/:ApplicationID/user/refreshsession
-func RefreshApplicationUserSession(ctx *context.Context) (err *tgerrors.TGError) {
+func RefreshApplicationUserSession(ctx *context.Context) (err tgerrors.TGError) {
 	var (
 		tokenPayload struct {
 			Token string `json:"session_token"`
@@ -174,7 +178,7 @@ func RefreshApplicationUserSession(ctx *context.Context) (err *tgerrors.TGError)
 		return tgerrors.NewBadRequestError("failed to refresh the session token (2)\nsession token mismatch", "session token mismatch")
 	}
 
-	if sessionToken, err = core.RefreshApplicationUserSession(ctx.SessionToken, ctx.Bag["applicationUser"].(*entity.ApplicationUser)); err != nil {
+	if sessionToken, err = appUser.RefreshSession(ctx.SessionToken, ctx.Bag["applicationUser"].(*entity.ApplicationUser)); err != nil {
 		return
 	}
 
@@ -186,7 +190,7 @@ func RefreshApplicationUserSession(ctx *context.Context) (err *tgerrors.TGError)
 
 // LogoutApplicationUser handles the requests to logout the user from the system
 // Request: POST account/:AccountID/application/:ApplicationID/user/logout
-func LogoutApplicationUser(ctx *context.Context) (err *tgerrors.TGError) {
+func LogoutApplicationUser(ctx *context.Context) (err tgerrors.TGError) {
 	var (
 		tokenPayload struct {
 			Token string `json:"session_token"`
@@ -202,7 +206,7 @@ func LogoutApplicationUser(ctx *context.Context) (err *tgerrors.TGError) {
 		return tgerrors.NewBadRequestError("failed to logout the user (2)\nsession token mismatch", "session token mismatch")
 	}
 
-	if err = core.DestroyApplicationUserSession(ctx.SessionToken, ctx.Bag["applicationUser"].(*entity.ApplicationUser)); err != nil {
+	if err = appUser.DestroySession(ctx.SessionToken, ctx.Bag["applicationUser"].(*entity.ApplicationUser)); err != nil {
 		return
 	}
 

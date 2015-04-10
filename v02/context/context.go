@@ -16,15 +16,15 @@ import (
 	"github.com/tapglue/backend/utils"
 )
 
-// NewContext creates a new context from the current request
-func NewContext(
+// New creates a new context from the current request
+func New(
 	w http.ResponseWriter,
 	r *http.Request,
 	mainLog, errorLog chan *logger.LogMsg,
 	routeName, scope, version string,
 	contextFilters []context.Filter,
 	environment string,
-	debugMode bool) (ctx *context.Context, err *tgerrors.TGError) {
+	debugMode bool) (ctx *context.Context, err tgerrors.TGError) {
 
 	ctx = new(context.Context)
 	ctx.StartTime = time.Now()

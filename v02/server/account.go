@@ -15,16 +15,20 @@ import (
 	"github.com/tapglue/backend/v02/validator"
 )
 
+var (
+	acc core.Account
+)
+
 // GetAccount handles requests to a single account
 // Request: GET /account/:AccountID
-func GetAccount(ctx *context.Context) (err *tgerrors.TGError) {
+func GetAccount(ctx *context.Context) (err tgerrors.TGError) {
 	WriteResponse(ctx, ctx.Bag["account"].(*entity.Account), http.StatusOK, 10)
 	return
 }
 
 // UpdateAccount handles requests to update a single account
 // Request: PUT /account/:AccountID
-func UpdateAccount(ctx *context.Context) (err *tgerrors.TGError) {
+func UpdateAccount(ctx *context.Context) (err tgerrors.TGError) {
 	account := *(ctx.Bag["account"].(*entity.Account))
 	if er := json.Unmarshal(ctx.Body, &account); er != nil {
 		return tgerrors.NewBadRequestError("failed to update the account (1)\n"+er.Error(), "malformed json received")
@@ -36,7 +40,7 @@ func UpdateAccount(ctx *context.Context) (err *tgerrors.TGError) {
 		return err
 	}
 
-	updatedAccount, err := core.UpdateAccount(*(ctx.Bag["account"].(*entity.Account)), account, true)
+	updatedAccount, err := acc.Update(*(ctx.Bag["account"].(*entity.Account)), account, true)
 	if err != nil {
 		return err
 	}
@@ -47,8 +51,8 @@ func UpdateAccount(ctx *context.Context) (err *tgerrors.TGError) {
 
 // DeleteAccount handles requests to delete a single account
 // Request: DELETE /account/:AccountID
-func DeleteAccount(ctx *context.Context) (err *tgerrors.TGError) {
-	if err = core.DeleteAccount(ctx.Bag["accountID"].(int64)); err != nil {
+func DeleteAccount(ctx *context.Context) (err tgerrors.TGError) {
+	if err = acc.Delete(ctx.Bag["accountID"].(int64)); err != nil {
 		return err
 	}
 
@@ -58,7 +62,7 @@ func DeleteAccount(ctx *context.Context) (err *tgerrors.TGError) {
 
 // CreateAccount handles requests create an account
 // Request: POST /accounts
-func CreateAccount(ctx *context.Context) (err *tgerrors.TGError) {
+func CreateAccount(ctx *context.Context) (err tgerrors.TGError) {
 	var account = &entity.Account{}
 
 	if er := json.Unmarshal(ctx.Body, account); er != nil {
@@ -69,7 +73,7 @@ func CreateAccount(ctx *context.Context) (err *tgerrors.TGError) {
 		return
 	}
 
-	if account, err = core.WriteAccount(account, true); err != nil {
+	if account, err = acc.Create(account, true); err != nil {
 		return
 	}
 

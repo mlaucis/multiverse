@@ -34,7 +34,7 @@ var (
 )
 
 // CreateApplication validates an application on create
-func CreateApplication(application *entity.Application) *tgerrors.TGError {
+func CreateApplication(application *entity.Application) tgerrors.TGError {
 	errs := []*error{}
 
 	if !StringLengthBetween(application.Name, applicationNameMin, applicationNameMax) {
@@ -75,7 +75,7 @@ func CreateApplication(application *entity.Application) *tgerrors.TGError {
 }
 
 // UpdateApplication validates an application on update
-func UpdateApplication(existingApplication, updatedApplication *entity.Application) *tgerrors.TGError {
+func UpdateApplication(existingApplication, updatedApplication *entity.Application) tgerrors.TGError {
 	errs := []*error{}
 
 	if !StringLengthBetween(updatedApplication.Name, applicationNameMin, applicationNameMax) {
