@@ -17,6 +17,7 @@ type (
 	Client interface {
 		Client() *gksis.Kinesis
 		SetupStreams([]string) error
+		TeardownStreams([]string) error
 		PutRecord(streamName, partitionKey string, payload []byte) (*gksis.PutRecordResp, error)
 	}
 
@@ -30,6 +31,11 @@ const (
 	StreamNewAccount = "new_account"
 )
 
+var (
+	// Streams defines the array of all streams currently defined by the application
+	Streams = []string{StreamNewAccount}
+)
+
 // PutRecord sends a new record to a Kinesis stream
 func (c *cli) PutRecord(streamName, partitionKey string, payload []byte) (*gksis.PutRecordResp, error) {
 	time.Sleep(time.Duration(rand.Intn(100)*100) * time.Millisecond)
@@ -41,8 +47,21 @@ func (c *cli) PutRecord(streamName, partitionKey string, payload []byte) (*gksis
 
 // SetupStreams creates the needed Kinesis streams
 func (c *cli) SetupStreams(streamsName []string) error {
+	shardCount := 1 // TODO this should be configurable maybe?
 	for _, streamName := range streamsName {
-		err := c.kinesis.CreateStream(streamName, 1)
+		err := c.kinesis.CreateStream(streamName, shardCount)
+		if err != nil {
+			return err
+		}
+		time.Sleep(1 * time.Second)
+	}
+	return nil
+}
+
+// TeardownStreams destroys the streams from Kinesis
+func (c *cli) TeardownStreams(streamsName []string) error {
+	for _, streamName := range streamsName {
+		err := c.kinesis.DeleteStream(streamName)
 		if err != nil {
 			return err
 		}
