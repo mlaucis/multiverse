@@ -128,6 +128,16 @@ func CorsHandler(ctx *context.Context) (err tgerrors.TGError) {
 	return
 }
 
+// VersionHandler handlers the requests for the version status
+func VersionHandler(ctx *context.Context) tgerrors.TGError {
+	response := struct {
+		Version string `json:"version"`
+		Status  string `json:"status"`
+	}{"v" + version, "current"}
+	WriteResponse(ctx, response, 200, 86400)
+	return nil
+}
+
 // GetRoute takes a route name and returns the route including the version
 func GetRoute(routeName string) *Route {
 	if _, ok := Routes[routeName]; !ok {

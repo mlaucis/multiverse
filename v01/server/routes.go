@@ -630,4 +630,13 @@ var Routes = map[string]*Route{
 			contextHasApplicationID,
 		},
 	},
+	"version": &Route{
+		Method:   "GET",
+		Pattern:  "/version",
+		CPattern: "/version",
+		Scope:    "version",
+		Handlers: []RouteFunc{
+			VersionHandler,
+		},
+	},
 }
