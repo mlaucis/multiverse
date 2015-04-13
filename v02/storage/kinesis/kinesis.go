@@ -25,6 +25,11 @@ type (
 	}
 )
 
+const (
+	// StreamNewAccount stream name
+	StreamNewAccount = "new_account"
+)
+
 // PutRecord sends a new record to a Kinesis stream
 func (c *cli) PutRecord(streamName, partitionKey string, payload []byte) (*gksis.PutRecordResp, error) {
 	time.Sleep(time.Duration(rand.Intn(100)*100) * time.Millisecond)

@@ -274,7 +274,6 @@ func CustomHandler(routeName, version string, route *Route, mainLog, errorLog ch
 				ErrorHappened(ctx, err)
 				break
 			}
-
 		}
 
 		ctx.LogRequest(ctx.StatusCode, -1)
