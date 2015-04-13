@@ -6,8 +6,8 @@
 package kinesis
 
 import (
-	"time"
 	"math/rand"
+	"time"
 
 	gksis "github.com/sendgridlabs/go-kinesis"
 )
@@ -17,7 +17,7 @@ type (
 	Client interface {
 		Client() *gksis.Kinesis
 		SetupStreams([]string) error
-		PutRecord(streamName, partitionKey string,  payload []byte) (*gksis.PutRecordResp, error)
+		PutRecord(streamName, partitionKey string, payload []byte) (*gksis.PutRecordResp, error)
 	}
 
 	cli struct {
@@ -25,8 +25,8 @@ type (
 	}
 )
 
-	// PutRecord sends a new record to a Kinesis stream
-func (c *cli) PutRecord(streamName, partitionKey string,  payload []byte) (*gksis.PutRecordResp, error) {
+// PutRecord sends a new record to a Kinesis stream
+func (c *cli) PutRecord(streamName, partitionKey string, payload []byte) (*gksis.PutRecordResp, error) {
 	time.Sleep(time.Duration(rand.Intn(100)*100) * time.Millisecond)
 	args := gksis.NewArgs()
 	args.Add("StreamName", streamName)
@@ -58,7 +58,7 @@ func New(authKey, secretKey, region string) Client {
 		SecretKey: secretKey,
 	}
 
-	return  &cli{
+	return &cli{
 		kinesis: gksis.New(auth, gksis.Region{Name: region}),
 	}
 }
