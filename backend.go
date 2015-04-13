@@ -72,9 +72,9 @@ func init() {
 	tgerrors.Init(conf.Environment != "prod")
 	v01_redis.Init(conf.Redis.Hosts[0], conf.Redis.Password, conf.Redis.DB, conf.Redis.PoolSize)
 	v02_redis.Init(conf.Redis.Hosts[0], conf.Redis.Password, conf.Redis.DB, conf.Redis.PoolSize)
-	v02_kinesis.Init(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region)
+	kinesisClient := v02_kinesis.New(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region)
 	v01StorageClient := v01_storage.Init(v01_redis.Client())
-	v02StorageClient := v02_storage.Init(v02_redis.Client(), v02_kinesis.Client())
+	v02StorageClient := v02_storage.Init(v02_redis.Client(), kinesisClient)
 
 	account := v02_redis_core.NewAccount(v02StorageClient, v02_redis.Client())
 	accountUser := v02_redis_core.NewAccountUser(v02StorageClient, v02_redis.Client())

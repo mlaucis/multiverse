@@ -13,8 +13,8 @@ import (
 
 	"github.com/tapglue/backend/utils"
 	"github.com/tapglue/backend/v02/entity"
+	"github.com/tapglue/backend/v02/storage/kinesis"
 
-	"github.com/sendgridlabs/go-kinesis"
 	red "gopkg.in/redis.v2"
 )
 
@@ -22,7 +22,7 @@ type (
 	// Client structure holds the storage engine and functions needed to operate the backend
 	Client struct {
 		redisEngine   *red.Client
-		kinesisEngine *kinesis.Kinesis
+		kinesisEngine kinesis.Client
 	}
 )
 
@@ -343,12 +343,12 @@ func (client *Client) RedisEngine() *red.Client {
 }
 
 // KinesisEngine returns the storage engine used
-func (client *Client) KinesisEngine() *kinesis.Kinesis {
+func (client *Client) KinesisEngine() kinesis.Client {
 	return client.kinesisEngine
 }
 
 // Init initializes the storage package with the required storage engine
-func Init(redisEngine *red.Client, kinesisEngine *kinesis.Kinesis) *Client {
+func Init(redisEngine *red.Client, kinesisEngine kinesis.Client) *Client {
 	if instance == nil {
 		instance = &Client{
 			redisEngine:   redisEngine,
