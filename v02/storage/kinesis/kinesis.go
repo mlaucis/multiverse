@@ -67,3 +67,15 @@ func New(authKey, secretKey, region string) Client {
 		kinesis: gksis.New(auth, gksis.Region{Name: region}),
 	}
 }
+
+// NewTest returns a new testing-enabled client
+func NewTest(authKey, secretKey, region, endpoint string) Client {
+	auth := &gksis.Auth{
+		AccessKey: authKey,
+		SecretKey: secretKey,
+	}
+
+	return &cli{
+		kinesis: gksis.NewWithEndpoint(auth, gksis.Region{Name: region}, endpoint),
+	}
+}

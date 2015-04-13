@@ -30,6 +30,7 @@ type (
 		AuthKey   string `json:"auth_key"`
 		SecretKey string `json:"secret_key"`
 		Region    string `json:"region"`
+		Endpoint  string `json:"endpoint"`
 	}
 
 	// Config structure for the application configuration
@@ -64,6 +65,7 @@ func defaultConfig() *Config {
 	cfg.Kinesis.AuthKey = ""
 	cfg.Kinesis.SecretKey = ""
 	cfg.Kinesis.Region = "eu-central-1"
+	cfg.Kinesis.Endpoint = "http://127.0.0.1:4567"
 
 	return cfg
 }
