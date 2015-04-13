@@ -128,9 +128,9 @@ func (err *tgError) ErrorWithLocation() string {
 // InternalErrorWithLocation returns the internal error message and the location where it happened, if that exists
 func (err *tgError) InternalErrorWithLocation() string {
 	if err.location != "" {
-		return fmt.Sprintf("%q in %s", err.message, err.location)
+		return fmt.Sprintf("%q in %s", err.internalMessage, err.location)
 	}
-	return err.message
+	return err.internalMessage
 }
 
 // Init initializes the logging module

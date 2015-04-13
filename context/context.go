@@ -69,10 +69,11 @@ func (ctx *Context) LogError(err interface{}) {
 	var msg *logger.LogMsg
 	if tgError, ok := err.(tgerrors.TGError); ok {
 		msg = ctx.newLogMessage(-1)
-		msg.Message = tgError.InternalErrorWithLocation()
+		msg.RawError = tgError.InternalErrorWithLocation()
+		msg.Message = tgError.Error()
 	} else if er, ok := err.(error); ok {
 		msg = ctx.newLogMessage(-1)
-		msg.RawError = er
+		msg.RawError = er.Error()
 		msg.Message = er.Error()
 	}
 

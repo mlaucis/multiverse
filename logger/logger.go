@@ -35,7 +35,7 @@ type (
 		Payload    string
 		Duration   string
 		Message    string
-		RawError   error
+		RawError   string
 		Location   string
 		Start      time.Time
 		End        time.Time `json:"-"`
@@ -48,11 +48,6 @@ func TGLog(msg chan *LogMsg) {
 		select {
 		case m := <-msg:
 			{
-				rawError := ""
-				if m.RawError != nil {
-					rawError = m.RawError.Error()
-				}
-
 				log.Printf(
 					logFormat,
 					m.Message,
@@ -65,7 +60,7 @@ func TGLog(msg chan *LogMsg) {
 					m.Name,
 					m.Location,
 					m.End.Sub(m.Start),
-					rawError,
+					m.RawError,
 				)
 			}
 		}
