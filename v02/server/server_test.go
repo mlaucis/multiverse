@@ -70,8 +70,8 @@ func (s *ServerSuite) SetUpTest(c *C) {
 	conf = config.NewConf("")
 	redis.Init(conf.Redis.Hosts[0], conf.Redis.Password, conf.Redis.DB, conf.Redis.PoolSize)
 	redis.Client().FlushDb()
-	kinesis.Init("test", "test", "test")
-	storageClient = storage.Init(redis.Client(), kinesis.Client())
+	kinesisClient := kinesis.New("test", "test", "test")
+	storageClient = storage.Init(redis.Client(), kinesisClient)
 	core.Init(storageClient)
 	tgerrors.Init(true)
 
