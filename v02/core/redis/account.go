@@ -10,26 +10,26 @@ import (
 	"github.com/tapglue/backend/utils"
 	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/entity"
-	"github.com/tapglue/backend/v02/storage"
+	storageHelper "github.com/tapglue/backend/v02/storage/helper"
+	"github.com/tapglue/backend/v02/storage/redis"
 
 	red "gopkg.in/redis.v2"
 )
 
 type (
 	account struct {
-		storage *storage.Client
+		storage *redis.Client
 		redis   *red.Client
 	}
 )
 
-// Create adds a new account to the database and returns the created account or an error
 func (a *account) Create(account *entity.Account, retrieve bool) (acc *entity.Account, err tgerrors.TGError) {
 	var er error
 	if account.ID, er = a.storage.GenerateAccountID(); er != nil {
 		return nil, tgerrors.NewInternalError("failed to write the account (1)", er.Error())
 	}
 
-	account.AuthToken = a.storage.GenerateAccountSecretKey(account)
+	account.AuthToken = storageHelper.GenerateAccountSecretKey(account)
 	account.Enabled = true
 	account.CreatedAt = time.Now()
 	account.UpdatedAt = account.CreatedAt
@@ -40,7 +40,7 @@ func (a *account) Create(account *entity.Account, retrieve bool) (acc *entity.Ac
 	}
 
 	// TODO this should never happen, maybe we should panic instead just to catch it better?
-	exist, er := a.redis.SetNX(a.storage.Account(account.ID), string(val)).Result()
+	exist, er := a.redis.SetNX(storageHelper.Account(account.ID), string(val)).Result()
 	if !exist {
 		return nil, tgerrors.NewInternalError("failed to write the account (3)", "account id already present")
 	}
@@ -64,9 +64,8 @@ func (a *account) Create(account *entity.Account, retrieve bool) (acc *entity.Ac
 	return a.Read(account.ID)
 }
 
-// Read returns the account matching the ID or an error
 func (a *account) Read(accountID int64) (account *entity.Account, err tgerrors.TGError) {
-	result, er := a.redis.Get(a.storage.Account(accountID)).Result()
+	result, er := a.redis.Get(storageHelper.Account(accountID)).Result()
 	if er != nil {
 		return nil, tgerrors.NewInternalError("failed to retrieve the account (1)", er.Error())
 	}
@@ -78,7 +77,6 @@ func (a *account) Read(accountID int64) (account *entity.Account, err tgerrors.T
 	return
 }
 
-// Update updates the account matching the ID or an error
 func (a *account) Update(existingAccount, updatedAccount entity.Account, retrieve bool) (acc *entity.Account, err tgerrors.TGError) {
 	updatedAccount.UpdatedAt = time.Now()
 
@@ -87,7 +85,7 @@ func (a *account) Update(existingAccount, updatedAccount entity.Account, retriev
 		return nil, tgerrors.NewInternalError("failed to update the account (1)", er.Error())
 	}
 
-	key := a.storage.Account(updatedAccount.ID)
+	key := storageHelper.Account(updatedAccount.ID)
 	exist, er := a.redis.Exists(key).Result()
 	if !exist {
 		return nil, tgerrors.NewInternalError("failed to update the account (2)\naccount does not exist", "account does not exist")
@@ -107,9 +105,8 @@ func (a *account) Update(existingAccount, updatedAccount entity.Account, retriev
 	return a.Read(updatedAccount.ID)
 }
 
-// Delete deletes the account matching the ID or an error
 func (a *account) Delete(accountID int64) (err tgerrors.TGError) {
-	result, er := a.redis.Del(a.storage.Account(accountID)).Result()
+	result, er := a.redis.Del(storageHelper.Account(accountID)).Result()
 	if er != nil {
 		return tgerrors.NewInternalError("failed to delete the account (1)", er.Error())
 	}
@@ -126,10 +123,18 @@ func (a *account) Delete(accountID int64) (err tgerrors.TGError) {
 	return nil
 }
 
+func (a *account) Exists(accountID int64) bool {
+	account, err := a.Read(accountID)
+	if err != nil {
+		return false
+	}
+
+	return account.Enabled
+}
+
 // NewAccount creates a new Account
-func NewAccount(storageClient *storage.Client, storageEngine *red.Client) core.Account {
+func NewAccount(storageEngine *red.Client) core.Account {
 	return &account{
-		storage: storageClient,
-		redis:   storageEngine,
+		redis: storageEngine,
 	}
 }

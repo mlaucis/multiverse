@@ -10,7 +10,8 @@ import (
 	"github.com/tapglue/backend/utils"
 	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/entity"
-	"github.com/tapglue/backend/v02/storage"
+	storageHelper "github.com/tapglue/backend/v02/storage/helper"
+	"github.com/tapglue/backend/v02/storage/redis"
 
 	red "gopkg.in/redis.v2"
 )
@@ -18,12 +19,11 @@ import (
 type (
 	applicationUser struct {
 		c       core.Connection
-		storage *storage.Client
+		storage *redis.Client
 		redis   *red.Client
 	}
 )
 
-// WriteUser adds a user to the database and returns the created user or an error
 func (appu *applicationUser) Create(user *entity.ApplicationUser, retrieve bool) (usr *entity.ApplicationUser, err tgerrors.TGError) {
 	// TODO We should introduce an option for the application to either allow for activated/deactivated behavior
 	// and if they chose it, then we need to provide an endpoint to activate a user or not
@@ -43,14 +43,14 @@ func (appu *applicationUser) Create(user *entity.ApplicationUser, retrieve bool)
 	}
 
 	// Encrypt password
-	user.Password = appu.storage.EncryptPassword(user.Password)
+	user.Password = storageHelper.EncryptPassword(user.Password)
 
 	val, er := json.Marshal(user)
 	if er != nil {
 		return nil, tgerrors.NewInternalError("failed to write the application user (3)", er.Error())
 	}
 
-	key := appu.storage.User(user.AccountID, user.ApplicationID, user.ID)
+	key := storageHelper.User(user.AccountID, user.ApplicationID, user.ID)
 
 	exist, er := appu.redis.SetNX(key, string(val)).Result()
 	if !exist {
@@ -62,7 +62,7 @@ func (appu *applicationUser) Create(user *entity.ApplicationUser, retrieve bool)
 
 	stringUserID := fmt.Sprintf("%d", user.ID)
 
-	emailListKey := appu.storage.ApplicationUserByEmail(user.AccountID, user.ApplicationID, utils.Base64Encode(user.Email))
+	emailListKey := storageHelper.ApplicationUserByEmail(user.AccountID, user.ApplicationID, utils.Base64Encode(user.Email))
 	result, er := appu.redis.SetNX(emailListKey, stringUserID).Result()
 	if er != nil {
 		return nil, tgerrors.NewInternalError("failed to write the application user (6)", er.Error())
@@ -71,7 +71,7 @@ func (appu *applicationUser) Create(user *entity.ApplicationUser, retrieve bool)
 		return nil, tgerrors.NewInternalError("failed to write the application user (7)", "duplicate user by e-mail")
 	}
 
-	usernameListKey := appu.storage.ApplicationUserByUsername(user.AccountID, user.ApplicationID, utils.Base64Encode(user.Username))
+	usernameListKey := storageHelper.ApplicationUserByUsername(user.AccountID, user.ApplicationID, utils.Base64Encode(user.Username))
 	result, er = appu.redis.SetNX(usernameListKey, stringUserID).Result()
 	if er != nil {
 		return nil, tgerrors.NewInternalError("failed to write the application user (8)", er.Error())
@@ -83,7 +83,7 @@ func (appu *applicationUser) Create(user *entity.ApplicationUser, retrieve bool)
 	socialValues := []string{}
 	applicationSocialKey := ""
 	for idx := range user.SocialIDs {
-		applicationSocialKey = appu.storage.SocialConnection(
+		applicationSocialKey = storageHelper.SocialConnection(
 			user.AccountID,
 			user.ApplicationID,
 			idx,
@@ -104,7 +104,7 @@ func (appu *applicationUser) Create(user *entity.ApplicationUser, retrieve bool)
 		applicationSocialKey := ""
 		for socialPlatform := range user.SocialConnectionsIDs {
 			for idx := range user.SocialConnectionsIDs[socialPlatform] {
-				applicationSocialKey = appu.storage.SocialConnection(
+				applicationSocialKey = storageHelper.SocialConnection(
 					user.AccountID,
 					user.ApplicationID,
 					socialPlatform,
@@ -128,7 +128,7 @@ func (appu *applicationUser) Create(user *entity.ApplicationUser, retrieve bool)
 		}
 	}
 
-	listKey := appu.storage.Users(user.AccountID, user.ApplicationID)
+	listKey := storageHelper.Users(user.AccountID, user.ApplicationID)
 	if er = appu.redis.LPush(listKey, key).Err(); er != nil {
 		return nil, tgerrors.NewInternalError("failed to write the application user (12)", er.Error())
 	}
@@ -140,9 +140,8 @@ func (appu *applicationUser) Create(user *entity.ApplicationUser, retrieve bool)
 	return appu.Read(user.AccountID, user.ApplicationID, user.ID)
 }
 
-// ReadApplicationUser returns the user matching the ID or an error
 func (appu *applicationUser) Read(accountID, applicationID, userID int64) (user *entity.ApplicationUser, err tgerrors.TGError) {
-	key := appu.storage.User(accountID, applicationID, userID)
+	key := storageHelper.User(accountID, applicationID, userID)
 
 	result, er := appu.redis.Get(key).Result()
 	if err != nil {
@@ -156,14 +155,13 @@ func (appu *applicationUser) Read(accountID, applicationID, userID int64) (user 
 	return
 }
 
-// UpdateUser updates a user in the database and returns the updates user or an error
 func (appu *applicationUser) Update(existingUser, updatedUser entity.ApplicationUser, retrieve bool) (usr *entity.ApplicationUser, err tgerrors.TGError) {
 
 	if updatedUser.Password == "" {
 		updatedUser.Password = existingUser.Password
 	} else if updatedUser.Password != existingUser.Password {
 		// Encrypt password - we should do this only if the password changes
-		updatedUser.Password = appu.storage.EncryptPassword(updatedUser.Password)
+		updatedUser.Password = storageHelper.EncryptPassword(updatedUser.Password)
 	}
 
 	val, er := json.Marshal(updatedUser)
@@ -171,16 +169,16 @@ func (appu *applicationUser) Update(existingUser, updatedUser entity.Application
 		return nil, tgerrors.NewInternalError("failed to update the application user (1)", er.Error())
 	}
 
-	key := appu.storage.User(updatedUser.AccountID, updatedUser.ApplicationID, updatedUser.ID)
+	key := storageHelper.User(updatedUser.AccountID, updatedUser.ApplicationID, updatedUser.ID)
 	if er = appu.redis.Set(key, string(val)).Err(); er != nil {
 		return nil, tgerrors.NewInternalError("failed to update the application user (2)", er.Error())
 	}
 
 	if existingUser.Email != updatedUser.Email {
-		emailListKey := appu.storage.ApplicationUserByEmail(existingUser.AccountID, existingUser.ApplicationID, utils.Base64Encode(existingUser.Email))
+		emailListKey := storageHelper.ApplicationUserByEmail(existingUser.AccountID, existingUser.ApplicationID, utils.Base64Encode(existingUser.Email))
 		_, er = appu.redis.Del(emailListKey).Result()
 
-		emailListKey = appu.storage.ApplicationUserByEmail(existingUser.AccountID, existingUser.ApplicationID, utils.Base64Encode(updatedUser.Email))
+		emailListKey = storageHelper.ApplicationUserByEmail(existingUser.AccountID, existingUser.ApplicationID, utils.Base64Encode(updatedUser.Email))
 		er = appu.redis.Set(emailListKey, fmt.Sprintf("%d", updatedUser.ID)).Err()
 		if er != nil {
 			return nil, tgerrors.NewInternalError("failed to update the application user (3)", er.Error())
@@ -188,10 +186,10 @@ func (appu *applicationUser) Update(existingUser, updatedUser entity.Application
 	}
 
 	if existingUser.Username != updatedUser.Username {
-		usernameListKey := appu.storage.ApplicationUserByUsername(existingUser.AccountID, existingUser.ApplicationID, utils.Base64Encode(existingUser.Username))
+		usernameListKey := storageHelper.ApplicationUserByUsername(existingUser.AccountID, existingUser.ApplicationID, utils.Base64Encode(existingUser.Username))
 		_, er = appu.redis.Del(usernameListKey).Result()
 
-		usernameListKey = appu.storage.ApplicationUserByUsername(existingUser.AccountID, existingUser.ApplicationID, utils.Base64Encode(updatedUser.Username))
+		usernameListKey = storageHelper.ApplicationUserByUsername(existingUser.AccountID, existingUser.ApplicationID, utils.Base64Encode(updatedUser.Username))
 		er = appu.redis.Set(usernameListKey, fmt.Sprintf("%d", updatedUser.ID)).Err()
 
 		if er != nil {
@@ -200,12 +198,12 @@ func (appu *applicationUser) Update(existingUser, updatedUser entity.Application
 	}
 
 	if !updatedUser.Enabled {
-		listKey := appu.storage.Users(updatedUser.AccountID, updatedUser.ApplicationID)
+		listKey := storageHelper.Users(updatedUser.AccountID, updatedUser.ApplicationID)
 		if er = appu.redis.LRem(listKey, 0, key).Err(); er != nil {
 			return nil, tgerrors.NewInternalError("failed to update the application user (5)", er.Error())
 		}
 	} else {
-		listKey := appu.storage.Users(updatedUser.AccountID, updatedUser.ApplicationID)
+		listKey := storageHelper.Users(updatedUser.AccountID, updatedUser.ApplicationID)
 		if er = appu.redis.LPush(listKey, key).Err(); er != nil {
 			return nil, tgerrors.NewInternalError("failed to update the application user (6)", er.Error())
 		}
@@ -218,7 +216,6 @@ func (appu *applicationUser) Update(existingUser, updatedUser entity.Application
 	return appu.Read(updatedUser.AccountID, updatedUser.ApplicationID, updatedUser.ID)
 }
 
-// DeleteUser deletes the user matching the IDs or an error
 func (appu *applicationUser) Delete(accountID, applicationID, userID int64) (err tgerrors.TGError) {
 	user, err := appu.Read(accountID, applicationID, userID)
 	if err != nil {
@@ -263,9 +260,8 @@ func (appu *applicationUser) Delete(accountID, applicationID, userID int64) (err
 	*/
 }
 
-// ReadUserList returns all users from a certain account
 func (appu *applicationUser) List(accountID, applicationID int64) (users []*entity.ApplicationUser, err tgerrors.TGError) {
-	key := appu.storage.Users(accountID, applicationID)
+	key := storageHelper.Users(accountID, applicationID)
 
 	result, er := appu.redis.LRange(key, 0, -1).Result()
 	if er != nil {
@@ -293,21 +289,20 @@ func (appu *applicationUser) List(accountID, applicationID int64) (users []*enti
 	return
 }
 
-// CreateApplicationUserSession handles the creation of a user session and returns the session token
 func (appu *applicationUser) CreateSession(user *entity.ApplicationUser) (string, tgerrors.TGError) {
 	// TODO support multiple sessions?
 	// TODO rate limit this to x / per day?
 	// TODO rate limit this to be at least x minutes after the logout
 	// TODO do we customize the key session timeout per app
 
-	sessionKey := appu.storage.ApplicationSessionKey(user.AccountID, user.ApplicationID, user.ID)
-	token := appu.storage.GenerateApplicationSessionID(user)
+	sessionKey := storageHelper.ApplicationSessionKey(user.AccountID, user.ApplicationID, user.ID)
+	token := storageHelper.GenerateApplicationSessionID(user)
 
 	if er := appu.redis.Set(sessionKey, token).Err(); er != nil {
 		return "", tgerrors.NewInternalError("failed to create the application user session (1)", er.Error())
 	}
 
-	expired, er := appu.redis.Expire(sessionKey, appu.storage.SessionTimeoutDuration()).Result()
+	expired, er := appu.redis.Expire(sessionKey, storageHelper.SessionTimeoutDuration()).Result()
 	if er != nil {
 		return "", tgerrors.NewInternalError("failed to create the application user session (2)", er.Error())
 	}
@@ -318,14 +313,13 @@ func (appu *applicationUser) CreateSession(user *entity.ApplicationUser) (string
 	return token, nil
 }
 
-// RefreshApplicationUserSession generates a new session token for the user session
 func (appu *applicationUser) RefreshSession(sessionToken string, user *entity.ApplicationUser) (string, tgerrors.TGError) {
 	// TODO support multiple sessions?
 	// TODO rate limit this to x / per day?
 	// TODO rate limit this to be at least x minutes after the logout
 	// TODO do we customize the key session timeout per app
 
-	sessionKey := appu.storage.ApplicationSessionKey(user.AccountID, user.ApplicationID, user.ID)
+	sessionKey := storageHelper.ApplicationSessionKey(user.AccountID, user.ApplicationID, user.ID)
 
 	storedToken, er := appu.redis.Get(sessionKey).Result()
 	if er != nil {
@@ -336,13 +330,13 @@ func (appu *applicationUser) RefreshSession(sessionToken string, user *entity.Ap
 		return "", tgerrors.NewInternalError("failed to refresh the application user session (2)", "session token mismatch")
 	}
 
-	token := appu.storage.GenerateApplicationSessionID(user)
+	token := storageHelper.GenerateApplicationSessionID(user)
 
 	if er := appu.redis.Set(sessionKey, token).Err(); er != nil {
 		return "", tgerrors.NewInternalError("failed to refresh the application user session (3)", er.Error())
 	}
 
-	expired, er := appu.redis.Expire(sessionKey, appu.storage.SessionTimeoutDuration()).Result()
+	expired, er := appu.redis.Expire(sessionKey, storageHelper.SessionTimeoutDuration()).Result()
 	if er != nil {
 		return "", tgerrors.NewInternalError("failed to refresh the application user session (4)", er.Error())
 	}
@@ -353,9 +347,8 @@ func (appu *applicationUser) RefreshSession(sessionToken string, user *entity.Ap
 	return token, nil
 }
 
-// GetApplicationUserSession returns the application user session
 func (appu *applicationUser) GetSession(user *entity.ApplicationUser) (string, tgerrors.TGError) {
-	sessionKey := appu.storage.ApplicationSessionKey(user.AccountID, user.ApplicationID, user.ID)
+	sessionKey := storageHelper.ApplicationSessionKey(user.AccountID, user.ApplicationID, user.ID)
 	storedSessionToken, err := appu.redis.Get(sessionKey).Result()
 	if err != nil {
 		return "", tgerrors.NewInternalError("error while fetching session", "could not fetch session from storage")
@@ -368,11 +361,10 @@ func (appu *applicationUser) GetSession(user *entity.ApplicationUser) (string, t
 	return storedSessionToken, nil
 }
 
-// DestroyApplicationUserSession removes the user session
 func (appu *applicationUser) DestroySession(sessionToken string, user *entity.ApplicationUser) tgerrors.TGError {
 	// TODO support multiple sessions?
 	// TODO rate limit this to x / per day?
-	sessionKey := appu.storage.ApplicationSessionKey(user.AccountID, user.ApplicationID, user.ID)
+	sessionKey := storageHelper.ApplicationSessionKey(user.AccountID, user.ApplicationID, user.ID)
 
 	storedToken, er := appu.redis.Get(sessionKey).Result()
 	if er != nil {
@@ -395,30 +387,35 @@ func (appu *applicationUser) DestroySession(sessionToken string, user *entity.Ap
 	return nil
 }
 
-// FindApplicationUserByEmail returns an application user by its email
 func (appu *applicationUser) FindByEmail(accountID, applicationID int64, email string) (*entity.ApplicationUser, tgerrors.TGError) {
-	emailListKey := appu.storage.ApplicationUserByEmail(accountID, applicationID, utils.Base64Encode(email))
+	emailListKey := storageHelper.ApplicationUserByEmail(accountID, applicationID, utils.Base64Encode(email))
 
 	return appu.findApplicationUserByKey(accountID, applicationID, emailListKey)
 }
 
-// ExistsByEmail checks if an application user exists by searching it via the email
 func (appu *applicationUser) ExistsByEmail(accountID, applicationID int64, email string) (bool, tgerrors.TGError) {
-	emailListKey := appu.storage.ApplicationUserByEmail(accountID, applicationID, utils.Base64Encode(email))
+	emailListKey := storageHelper.ApplicationUserByEmail(accountID, applicationID, utils.Base64Encode(email))
 	return appu.existsByKey(emailListKey)
 }
 
-// FindApplicationUserByUsername returns an application user by its username
 func (appu *applicationUser) FindByUsername(accountID, applicationID int64, username string) (*entity.ApplicationUser, tgerrors.TGError) {
-	usernameListKey := appu.storage.ApplicationUserByUsername(accountID, applicationID, utils.Base64Encode(username))
+	usernameListKey := storageHelper.ApplicationUserByUsername(accountID, applicationID, utils.Base64Encode(username))
 
 	return appu.findApplicationUserByKey(accountID, applicationID, usernameListKey)
 }
 
-// ExistsByEmail checks if an application user exists by searching it via the email
 func (appu *applicationUser) ExistsByUsername(accountID, applicationID int64, username string) (bool, tgerrors.TGError) {
-	usernameListKey := appu.storage.ApplicationUserByUsername(accountID, applicationID, utils.Base64Encode(username))
+	usernameListKey := storageHelper.ApplicationUserByUsername(accountID, applicationID, utils.Base64Encode(username))
 	return appu.existsByKey(usernameListKey)
+}
+
+func (appu *applicationUser) ExistsByID(accountID, applicationID, userID int64) bool {
+	user, err := appu.Read(accountID, applicationID, userID)
+	if err != nil {
+		return false
+	}
+
+	return user.Enabled
 }
 
 // findApplicationUserByKey returns an application user regardless of the key used to search for him
@@ -451,7 +448,7 @@ func (appu *applicationUser) existsByKey(bucketName string) (bool, tgerrors.TGEr
 }
 
 // NewApplicationUser creates a new Event
-func NewApplicationUser(storageClient *storage.Client, storageEngine *red.Client) core.ApplicationUser {
+func NewApplicationUser(storageClient *redis.Client, storageEngine *red.Client) core.ApplicationUser {
 	return &applicationUser{
 		c:       NewConnection(storageClient, storageEngine),
 		storage: storageClient,
@@ -460,7 +457,7 @@ func NewApplicationUser(storageClient *storage.Client, storageEngine *red.Client
 }
 
 // NewApplicationUserWithConnection creates a new Event
-func NewApplicationUserWithConnection(storageClient *storage.Client, storageEngine *red.Client, c core.Connection) core.ApplicationUser {
+func NewApplicationUserWithConnection(storageClient *redis.Client, storageEngine *red.Client, c core.Connection) core.ApplicationUser {
 	return &applicationUser{
 		c:       c,
 		storage: storageClient,

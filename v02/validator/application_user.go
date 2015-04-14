@@ -6,14 +6,13 @@ package validator
 
 import (
 	"fmt"
-	"net/http"
-	"strconv"
 	"strings"
 
-	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/tgerrors"
 	"github.com/tapglue/backend/utils"
+	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/entity"
+	storageHelper "github.com/tapglue/backend/v02/storage/helper"
 )
 
 const (
@@ -42,7 +41,7 @@ var (
 )
 
 // CreateUser validates a user on create
-func CreateUser(user *entity.ApplicationUser) tgerrors.TGError {
+func CreateUser(datastore core.ApplicationUser, user *entity.ApplicationUser) tgerrors.TGError {
 	errs := []*error{}
 
 	if !StringLengthBetween(user.FirstName, userNameMin, userNameMax) {
@@ -87,11 +86,7 @@ func CreateUser(user *entity.ApplicationUser) tgerrors.TGError {
 		}
 	}
 
-	if !ApplicationExists(user.AccountID, user.ApplicationID) {
-		errs = append(errs, &errorApplicationDoesNotExists)
-	}
-
-	if isDuplicate, err := DuplicateApplicationUserEmail(user.AccountID, user.ApplicationID, user.Email); isDuplicate || err != nil {
+	if isDuplicate, err := DuplicateApplicationUserEmail(datastore, user.AccountID, user.ApplicationID, user.Email); isDuplicate || err != nil {
 		if isDuplicate {
 			rawErr := errorUserEmailAlreadyExists.RawError()
 			errs = append(errs, &rawErr)
@@ -101,7 +96,7 @@ func CreateUser(user *entity.ApplicationUser) tgerrors.TGError {
 		}
 	}
 
-	if isDuplicate, err := DuplicateApplicationUserUsername(user.AccountID, user.ApplicationID, user.Username); isDuplicate || err != nil {
+	if isDuplicate, err := DuplicateApplicationUserUsername(datastore, user.AccountID, user.ApplicationID, user.Username); isDuplicate || err != nil {
 		if isDuplicate {
 			rawErr := errorUserUsernameAlreadyExists.RawError()
 			errs = append(errs, &rawErr)
@@ -115,7 +110,7 @@ func CreateUser(user *entity.ApplicationUser) tgerrors.TGError {
 }
 
 // UpdateUser validates a user on update
-func UpdateUser(existingApplicationUser, updatedApplicationUser *entity.ApplicationUser) tgerrors.TGError {
+func UpdateUser(datastore core.ApplicationUser, existingApplicationUser, updatedApplicationUser *entity.ApplicationUser) tgerrors.TGError {
 	errs := []*error{}
 
 	if !StringLengthBetween(updatedApplicationUser.FirstName, userNameMin, userNameMax) {
@@ -157,7 +152,7 @@ func UpdateUser(existingApplicationUser, updatedApplicationUser *entity.Applicat
 	}
 
 	if existingApplicationUser.Email != updatedApplicationUser.Email {
-		isDuplicate, err := DuplicateApplicationUserEmail(updatedApplicationUser.AccountID, updatedApplicationUser.ApplicationID, updatedApplicationUser.Email)
+		isDuplicate, err := DuplicateApplicationUserEmail(datastore, updatedApplicationUser.AccountID, updatedApplicationUser.ApplicationID, updatedApplicationUser.Email)
 		if isDuplicate || err != nil {
 			if isDuplicate {
 				errs = append(errs, &errorEmailAddressInUse)
@@ -169,7 +164,7 @@ func UpdateUser(existingApplicationUser, updatedApplicationUser *entity.Applicat
 	}
 
 	if existingApplicationUser.Username != updatedApplicationUser.Username {
-		isDuplicate, err := DuplicateApplicationUserUsername(updatedApplicationUser.AccountID, updatedApplicationUser.ApplicationID, updatedApplicationUser.Username)
+		isDuplicate, err := DuplicateApplicationUserUsername(datastore, updatedApplicationUser.AccountID, updatedApplicationUser.ApplicationID, updatedApplicationUser.Username)
 		if isDuplicate || err != nil {
 			if isDuplicate {
 				errs = append(errs, &errorUsernameInUse)
@@ -204,7 +199,7 @@ func ApplicationUserCredentialsValid(password string, user *entity.ApplicationUs
 		return tgerrors.NewInternalError("failed to check the account user credentials (4)", err.Error())
 	}
 
-	encryptedPassword := storageClient.GenerateEncryptedPassword(password, string(salt), string(timestamp))
+	encryptedPassword := storageHelper.GenerateEncryptedPassword(password, string(salt), string(timestamp))
 
 	if encryptedPassword != passwordParts[2] {
 		return tgerrors.NewInternalError("failed to check the account user credentials (5)\ninvalid user credentials", "password mismatch")
@@ -213,159 +208,9 @@ func ApplicationUserCredentialsValid(password string, user *entity.ApplicationUs
 	return nil
 }
 
-// CheckApplicationSession checks if the session is valid or not
-func CheckApplicationSession(r *http.Request) (string, tgerrors.TGError) {
-	encodedSessionToken := r.Header.Get("x-tapglue-session")
-	if encodedSessionToken == "" {
-		return "", tgerrors.NewBadRequestError("failed to check session token (1)\nmissing session token", "missing session token")
-	}
-
-	encodedIds := r.Header.Get("x-tapglue-id")
-	decodedIds, err := utils.Base64Decode(encodedIds)
-	if err != nil {
-		return "", tgerrors.NewBadRequestError("failed to check session token (2)", err.Error())
-	}
-
-	ids := strings.SplitN(string(decodedIds), ":", 2)
-	if len(ids) != 2 {
-		return "", tgerrors.NewBadRequestError("failed to check session token (3)", fmt.Sprintf("expected %d got %d", 2, len(ids)))
-	}
-
-	accountID, err := strconv.ParseInt(ids[0], 10, 64)
-	if err != nil {
-		return "", tgerrors.NewBadRequestError("failed to check session token (4)", err.Error())
-	}
-
-	applicationID, err := strconv.ParseInt(ids[1], 10, 64)
-	if err != nil {
-		return "", tgerrors.NewBadRequestError("failed to check session token (5)", err.Error())
-	}
-
-	sessionToken, err := utils.Base64Decode(encodedSessionToken)
-	if err != nil {
-		return "", tgerrors.NewBadRequestError("failed to check session token (6)", err.Error())
-	}
-
-	splitSessionToken := strings.SplitN(string(sessionToken), ":", 5)
-	if len(splitSessionToken) != 5 {
-		return "", tgerrors.NewBadRequestError("failed to check session token (7)", fmt.Sprintf("expected %d got %d", 5, len(splitSessionToken)))
-	}
-
-	accID, err := strconv.ParseInt(splitSessionToken[0], 10, 64)
-	if err != nil {
-		return "", tgerrors.NewBadRequestError("failed to check session token (8)", err.Error())
-	}
-
-	appID, err := strconv.ParseInt(splitSessionToken[1], 10, 64)
-	if err != nil {
-		return "", tgerrors.NewBadRequestError("failed to check session token (9)", err.Error())
-	}
-
-	userID, err := strconv.ParseInt(splitSessionToken[2], 10, 64)
-	if err != nil {
-		return "", tgerrors.NewBadRequestError("failed to check session token (10)", err.Error())
-	}
-
-	if accountID != accID {
-		return "", tgerrors.NewBadRequestError("failed to check session token (11)", fmt.Sprintf("expected %d got %d", accountID, accID))
-	}
-
-	if applicationID != appID {
-		return "", tgerrors.NewBadRequestError("failed to check session token (12)", fmt.Sprintf("expected %d got %d", applicationID, appID))
-	}
-
-	applicationUser, err := appUser.Read(accountID, applicationID, userID)
-	if err != nil {
-		return "", tgerrors.NewInternalError("failed to check session token (12)", err.Error())
-	}
-	storedSessionToken, err := appUser.GetSession(applicationUser)
-	if err != nil {
-		return "", tgerrors.NewBadRequestError("failed to check session token (13)", err.Error())
-	}
-
-	if storedSessionToken == "" {
-		return "", tgerrors.NewBadRequestError("failed to check session token (14)", "session not found")
-	}
-
-	if storedSessionToken != encodedSessionToken {
-		return encodedSessionToken, nil
-	}
-
-	return "", tgerrors.NewBadRequestError("failed to check session token (15)", fmt.Sprintf("expected %s got %s", storedSessionToken, encodedSessionToken))
-}
-
-// CheckApplicationSimpleSession checks if the session is valid or not
-func CheckApplicationSimpleSession(ctx *context.Context) (string, tgerrors.TGError) {
-	accountID := ctx.Bag["accountID"].(int64)
-	applicationID := ctx.Bag["applicationID"].(int64)
-	applicationUserID := ctx.Bag["applicationUserID"].(int64)
-	r := ctx.R
-
-	encodedSessionToken := r.Header.Get("x-tapglue-session")
-	if encodedSessionToken == "" {
-		return "", tgerrors.NewBadRequestError("failed to check session token (1)", "missing session token")
-	}
-
-	sessionToken, err := utils.Base64Decode(encodedSessionToken)
-	if err != nil {
-		return "", tgerrors.NewBadRequestError("failed to check session token (2)", err.Error())
-	}
-
-	splitSessionToken := strings.SplitN(string(sessionToken), ":", 5)
-	if len(splitSessionToken) != 5 {
-		return "", tgerrors.NewBadRequestError("failed to check session token (3)", fmt.Sprintf("expected %d got %d", 5, len(splitSessionToken)))
-	}
-
-	tokenAccountID, err := strconv.ParseInt(splitSessionToken[0], 10, 64)
-	if err != nil {
-		return "", tgerrors.NewBadRequestError("failed to check session token (4)", err.Error())
-	}
-
-	if tokenAccountID != accountID {
-		return "", tgerrors.NewBadRequestError("failed to check session token (5)", fmt.Sprintf("expected %d got %d", accountID, tokenAccountID))
-	}
-
-	tokenApplicationID, err := strconv.ParseInt(splitSessionToken[1], 10, 64)
-	if err != nil {
-		return "", tgerrors.NewBadRequestError("failed to check session token (6)", err.Error())
-	}
-
-	if tokenApplicationID != applicationID {
-		return "", tgerrors.NewBadRequestError("failed to check session token (7)", fmt.Sprintf("expected %d got %d", applicationID, tokenApplicationID))
-	}
-
-	tokenApplicationUserID, err := strconv.ParseInt(splitSessionToken[2], 10, 64)
-	if err != nil {
-		return "", tgerrors.NewBadRequestError("failed to check session token (8)", err.Error())
-	}
-
-	if tokenApplicationUserID != applicationUserID {
-		return "", tgerrors.NewBadRequestError("failed to check session token (9)", fmt.Sprintf("expected %d got %d", applicationUserID, tokenApplicationUserID))
-	}
-
-	applicationUser, err := appUser.Read(accountID, applicationID, applicationUserID)
-	if err != nil {
-		return "", tgerrors.NewInternalError("failed to check session token (12)", err.Error())
-	}
-	storedSessionToken, err := appUser.GetSession(applicationUser)
-	if err != nil {
-		return "", tgerrors.NewBadRequestError("failed to check session token (10)", err.Error())
-	}
-
-	if storedSessionToken == "" {
-		return "", tgerrors.NewBadRequestError("failed to check session token (11)\nsession not found", "session not found")
-	}
-
-	if storedSessionToken == encodedSessionToken {
-		return encodedSessionToken, nil
-	}
-
-	return "", tgerrors.NewBadRequestError("failed to check session token (12)\nsession mismatch", fmt.Sprintf("expected %s got %s", storedSessionToken, encodedSessionToken))
-}
-
 // DuplicateApplicationUserEmail checks if the user email is duplicate within the application or not
-func DuplicateApplicationUserEmail(accountID, applicationID int64, email string) (bool, tgerrors.TGError) {
-	if userExists, err := appUser.ExistsByEmail(accountID, applicationID, email); userExists || err != nil {
+func DuplicateApplicationUserEmail(datastore core.ApplicationUser, accountID, applicationID int64, email string) (bool, tgerrors.TGError) {
+	if userExists, err := datastore.ExistsByEmail(accountID, applicationID, email); userExists || err != nil {
 		if err != nil {
 			return false, tgerrors.NewInternalError("failed to perform email validation (1)", err.Error())
 		} else if userExists {
@@ -377,8 +222,8 @@ func DuplicateApplicationUserEmail(accountID, applicationID int64, email string)
 }
 
 // DuplicateApplicationUserUsername checks if the username is duplicate within the application or not
-func DuplicateApplicationUserUsername(accountID, applicationID int64, username string) (bool, tgerrors.TGError) {
-	if userExists, err := appUser.ExistsByUsername(accountID, applicationID, username); userExists || err != nil {
+func DuplicateApplicationUserUsername(datastore core.ApplicationUser, accountID, applicationID int64, username string) (bool, tgerrors.TGError) {
+	if userExists, err := datastore.ExistsByUsername(accountID, applicationID, username); userExists || err != nil {
 		if err != nil {
 			return false, tgerrors.NewInternalError("failed to perform username validation (1)", err.Error())
 		} else if userExists {

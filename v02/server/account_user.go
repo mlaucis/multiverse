@@ -66,7 +66,7 @@ func (accUser *accountUser) Update(ctx *context.Context) (err tgerrors.TGError) 
 	accountUser.ID = ctx.Bag["accountUserID"].(int64)
 	accountUser.AccountID = ctx.Bag["accountID"].(int64)
 
-	if err = validator.UpdateAccountUser(ctx.Bag["accountUser"].(*entity.AccountUser), &accountUser); err != nil {
+	if err = validator.UpdateAccountUser(accUser.storage, ctx.Bag["accountUser"].(*entity.AccountUser), &accountUser); err != nil {
 		return
 	}
 
@@ -98,7 +98,7 @@ func (accUser *accountUser) Create(ctx *context.Context) (err tgerrors.TGError) 
 
 	accountUser.AccountID = ctx.Bag["accountID"].(int64)
 
-	if err = validator.CreateAccountUser(accountUser); err != nil {
+	if err = validator.CreateAccountUser(accUser.storage, accountUser); err != nil {
 		return
 	}
 

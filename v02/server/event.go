@@ -50,6 +50,7 @@ type (
 	}
 
 	event struct {
+		appUser core.ApplicationUser
 		storage core.Event
 	}
 )
@@ -165,7 +166,7 @@ func (evt *event) Create(ctx *context.Context) (err tgerrors.TGError) {
 	event.ApplicationID = ctx.Bag["applicationID"].(int64)
 	event.UserID = ctx.Bag["applicationUserID"].(int64)
 
-	if err = validator.CreateEvent(event); err != nil {
+	if err = validator.CreateEvent(evt.appUser, event); err != nil {
 		return
 	}
 
@@ -248,6 +249,14 @@ func (evt *event) SearchLocation(ctx *context.Context) (err tgerrors.TGError) {
 func NewEvent(storage core.Event) Event {
 	return &event{
 		storage: storage,
+	}
+}
+
+// NewEventWithApplicationUser returns a new event handler
+func NewEventWithApplicationUser(storage core.Event, appUser core.ApplicationUser) Event {
+	return &event{
+		storage: storage,
+		appUser: appUser,
 	}
 }
 

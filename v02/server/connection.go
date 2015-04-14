@@ -43,6 +43,7 @@ type (
 	}
 
 	connection struct {
+		appUser core.ApplicationUser
 		storage core.Connection
 	}
 )
@@ -88,7 +89,7 @@ func (conn *connection) Update(ctx *context.Context) (err tgerrors.TGError) {
 		return tgerrors.NewBadRequestError("failed to update the connection (6)\nuser_to mismatch", "user_to mismatch")
 	}
 
-	if err = validator.UpdateConnection(existingConnection, &connection); err != nil {
+	if err = validator.UpdateConnection(conn.appUser, existingConnection, &connection); err != nil {
 		return
 	}
 
@@ -140,7 +141,7 @@ func (conn *connection) Create(ctx *context.Context) (err tgerrors.TGError) {
 		return tgerrors.NewBadRequestError("failed to create connection (2)\nuser is connecting with itself", "self-connecting user")
 	}
 
-	if err = validator.CreateConnection(connection); err != nil {
+	if err = validator.CreateConnection(conn.appUser, connection); err != nil {
 		return
 	}
 
@@ -199,7 +200,7 @@ func (conn *connection) Confirm(ctx *context.Context) (err tgerrors.TGError) {
 	connection.ApplicationID = ctx.Bag["applicationID"].(int64)
 	connection.UserFromID = ctx.Bag["applicationUserID"].(int64)
 
-	if err = validator.ConfirmConnection(connection); err != nil {
+	if err = validator.ConfirmConnection(conn.appUser, connection); err != nil {
 		return
 	}
 
@@ -253,5 +254,13 @@ func (conn *connection) CreateSocial(ctx *context.Context) (err tgerrors.TGError
 func NewConnection(storage core.Connection) Connection {
 	return &connection{
 		storage: storage,
+	}
+}
+
+// NewConnectionWithApplicationUser initializes a new connection with an application user
+func NewConnectionWithApplicationUser(storage core.Connection, appUser core.ApplicationUser) Connection {
+	return &connection{
+		storage: storage,
+		appUser: appUser,
 	}
 }

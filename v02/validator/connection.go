@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	"github.com/tapglue/backend/tgerrors"
+	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/entity"
 )
 
@@ -20,7 +21,7 @@ var (
 )
 
 // CreateConnection validates a connection on create
-func CreateConnection(connection *entity.Connection) tgerrors.TGError {
+func CreateConnection(datastore core.ApplicationUser, connection *entity.Connection) tgerrors.TGError {
 	errs := []*error{}
 
 	if connection.ApplicationID == 0 {
@@ -35,10 +36,10 @@ func CreateConnection(connection *entity.Connection) tgerrors.TGError {
 		errs = append(errs, &errorUserToIDZero)
 	}
 
-	if !UserExists(connection.AccountID, connection.ApplicationID, connection.UserFromID) {
+	if !datastore.ExistsByID(connection.AccountID, connection.ApplicationID, connection.UserFromID) {
 		errs = append(errs, &errorUserDoesNotExists)
 	}
-	userFrom, err := appUser.Read(connection.AccountID, connection.ApplicationID, connection.UserFromID)
+	userFrom, err := datastore.Read(connection.AccountID, connection.ApplicationID, connection.UserFromID)
 	if err != nil {
 		errs = append(errs, &errorUserDoesNotExists)
 	}
@@ -47,10 +48,10 @@ func CreateConnection(connection *entity.Connection) tgerrors.TGError {
 		errs = append(errs, &err)
 	}
 
-	if !UserExists(connection.AccountID, connection.ApplicationID, connection.UserToID) {
+	if !datastore.ExistsByID(connection.AccountID, connection.ApplicationID, connection.UserToID) {
 		errs = append(errs, &errorUserDoesNotExists)
 	}
-	userTo, err := appUser.Read(connection.AccountID, connection.ApplicationID, connection.UserToID)
+	userTo, err := datastore.Read(connection.AccountID, connection.ApplicationID, connection.UserToID)
 	if err != nil {
 		errs = append(errs, &errorUserDoesNotExists)
 	}
@@ -63,7 +64,7 @@ func CreateConnection(connection *entity.Connection) tgerrors.TGError {
 }
 
 // ConfirmConnection validates a connection on confirmation
-func ConfirmConnection(connection *entity.Connection) tgerrors.TGError {
+func ConfirmConnection(datastore core.ApplicationUser, connection *entity.Connection) tgerrors.TGError {
 	errs := []*error{}
 
 	if connection.ApplicationID == 0 {
@@ -78,11 +79,11 @@ func ConfirmConnection(connection *entity.Connection) tgerrors.TGError {
 		errs = append(errs, &errorUserToIDZero)
 	}
 
-	if !UserExists(connection.AccountID, connection.ApplicationID, connection.UserFromID) {
+	if !datastore.ExistsByID(connection.AccountID, connection.ApplicationID, connection.UserFromID) {
 		errs = append(errs, &errorUserDoesNotExists)
 	}
 
-	if !UserExists(connection.AccountID, connection.ApplicationID, connection.UserToID) {
+	if !datastore.ExistsByID(connection.AccountID, connection.ApplicationID, connection.UserToID) {
 		errs = append(errs, &errorUserDoesNotExists)
 	}
 
@@ -90,7 +91,7 @@ func ConfirmConnection(connection *entity.Connection) tgerrors.TGError {
 }
 
 // UpdateConnection validates a connection on update
-func UpdateConnection(existingConnection, updatedConnection *entity.Connection) tgerrors.TGError {
+func UpdateConnection(datastore core.ApplicationUser, existingConnection, updatedConnection *entity.Connection) tgerrors.TGError {
 	errs := []*error{}
 
 	if updatedConnection.UserFromID == 0 {
@@ -101,7 +102,7 @@ func UpdateConnection(existingConnection, updatedConnection *entity.Connection) 
 		errs = append(errs, &errorUserToIDZero)
 	}
 
-	if !UserExists(updatedConnection.AccountID, updatedConnection.ApplicationID, updatedConnection.UserToID) {
+	if !datastore.ExistsByID(updatedConnection.AccountID, updatedConnection.ApplicationID, updatedConnection.UserToID) {
 		errs = append(errs, &errorUserDoesNotExists)
 	}
 

@@ -9,19 +9,19 @@ import (
 	"github.com/tapglue/backend/utils"
 	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/entity"
-	"github.com/tapglue/backend/v02/storage"
+	storageHelper "github.com/tapglue/backend/v02/storage/helper"
+	"github.com/tapglue/backend/v02/storage/redis"
 
 	red "gopkg.in/redis.v2"
 )
 
 type (
 	application struct {
-		storage *storage.Client
+		storage *redis.Client
 		redis   *red.Client
 	}
 )
 
-// CreateApplication adds an application to the database and returns the created applicaton user or an error
 func (app *application) Create(application *entity.Application, retrieve bool) (*entity.Application, tgerrors.TGError) {
 	var er error
 	if application.ID, er = app.storage.GenerateApplicationID(application.AccountID); er != nil {
@@ -32,7 +32,7 @@ func (app *application) Create(application *entity.Application, retrieve bool) (
 	application.CreatedAt = time.Now()
 	application.UpdatedAt = application.CreatedAt
 
-	if application.AuthToken, er = app.storage.GenerateApplicationSecretKey(application); er != nil {
+	if application.AuthToken, er = storageHelper.GenerateApplicationSecretKey(application); er != nil {
 		return nil, tgerrors.NewInternalError("failed to create the application (2)", er.Error())
 	}
 
@@ -41,8 +41,7 @@ func (app *application) Create(application *entity.Application, retrieve bool) (
 		return nil, tgerrors.NewInternalError("failed to create the application (3)", er.Error())
 	}
 
-	key := app.storage.Application(application.AccountID, application.ID)
-
+	key := storageHelper.Application(application.AccountID, application.ID)
 	exist, er := app.redis.SetNX(key, string(val)).Result()
 	if !exist {
 		return nil, tgerrors.NewInternalError("failed to create the application (3)", "duplicate app")
@@ -51,8 +50,7 @@ func (app *application) Create(application *entity.Application, retrieve bool) (
 		return nil, tgerrors.NewInternalError("failed to create the application (4)", er.Error())
 	}
 
-	listKey := app.storage.Applications(application.AccountID)
-
+	listKey := storageHelper.Applications(application.AccountID)
 	if er = app.redis.LPush(listKey, key).Err(); er != nil {
 		return nil, tgerrors.NewInternalError("failed to create the application (5)", er.Error())
 	}
@@ -74,9 +72,8 @@ func (app *application) Create(application *entity.Application, retrieve bool) (
 	return app.Read(application.AccountID, application.ID)
 }
 
-// ReadApplication returns the application matching the ID or an error
 func (app *application) Read(accountID, applicationID int64) (*entity.Application, tgerrors.TGError) {
-	result, er := app.redis.Get(app.storage.Application(accountID, applicationID)).Result()
+	result, er := app.redis.Get(storageHelper.Application(accountID, applicationID)).Result()
 	if er != nil {
 		return nil, tgerrors.NewInternalError("failed to read the application (1)", er.Error())
 	}
@@ -89,7 +86,6 @@ func (app *application) Read(accountID, applicationID int64) (*entity.Applicatio
 	return application, nil
 }
 
-// UpdateApplication updates an application in the database and returns the created applicaton user or an error
 func (app *application) Update(existingApplication, updatedApplication entity.Application, retrieve bool) (*entity.Application, tgerrors.TGError) {
 	updatedApplication.UpdatedAt = time.Now()
 
@@ -98,7 +94,7 @@ func (app *application) Update(existingApplication, updatedApplication entity.Ap
 		return nil, tgerrors.NewInternalError("failed to update the application (1)\n"+er.Error(), er.Error())
 	}
 
-	key := app.storage.Application(updatedApplication.AccountID, updatedApplication.ID)
+	key := storageHelper.Application(updatedApplication.AccountID, updatedApplication.ID)
 	exist, er := app.redis.Exists(key).Result()
 	if !exist {
 		return nil, tgerrors.NewNotFoundError("failed to update the application (2)", "app not found")
@@ -112,7 +108,7 @@ func (app *application) Update(existingApplication, updatedApplication entity.Ap
 	}
 
 	if !updatedApplication.Enabled {
-		listKey := app.storage.Applications(updatedApplication.AccountID)
+		listKey := storageHelper.Applications(updatedApplication.AccountID)
 		if er = app.redis.LRem(listKey, 0, key).Err(); er != nil {
 			return nil, tgerrors.NewInternalError("failed to update the application (5)", er.Error())
 		}
@@ -125,14 +121,13 @@ func (app *application) Update(existingApplication, updatedApplication entity.Ap
 	return app.Read(updatedApplication.AccountID, updatedApplication.ID)
 }
 
-// DeleteApplication deletes the application matching the IDs or an error
 func (app *application) Delete(accountID, applicationID int64) tgerrors.TGError {
 	// TODO: Disable application users?
 	// TODO: User connections?
 	// TODO: Application lists?
 	// TODO: Application events?
 
-	key := app.storage.Application(accountID, applicationID)
+	key := storageHelper.Application(accountID, applicationID)
 	result, er := app.redis.Del(key).Result()
 	if er != nil {
 		return tgerrors.NewInternalError("failed to delete the application (1)", er.Error())
@@ -142,7 +137,7 @@ func (app *application) Delete(accountID, applicationID int64) tgerrors.TGError 
 		return tgerrors.NewInternalError("failed to delete the application (2)", "app not found")
 	}
 
-	listKey := app.storage.Applications(accountID)
+	listKey := storageHelper.Applications(accountID)
 	if er := app.redis.LRem(listKey, 0, key).Err(); er != nil {
 		return tgerrors.NewInternalError("failed to delete the application (3)", er.Error())
 	}
@@ -150,9 +145,8 @@ func (app *application) Delete(accountID, applicationID int64) tgerrors.TGError 
 	return nil
 }
 
-// ReadApplicationList returns all applications from a certain account
 func (app *application) List(accountID int64) ([]*entity.Application, tgerrors.TGError) {
-	key := app.storage.Applications(accountID)
+	key := storageHelper.Applications(accountID)
 
 	result, er := app.redis.LRange(key, 0, -1).Result()
 	if er != nil {
@@ -181,8 +175,17 @@ func (app *application) List(accountID int64) ([]*entity.Application, tgerrors.T
 	return applications, nil
 }
 
+func (app *application) Exists(accountID, applicationID int64) bool {
+	application, err := app.Read(accountID, applicationID)
+	if err != nil {
+		return false
+	}
+
+	return application.Enabled
+}
+
 // NewApplication creates a new Application
-func NewApplication(storageClient *storage.Client, storageEngine *red.Client) core.Application {
+func NewApplication(storageClient *redis.Client, storageEngine *red.Client) core.Application {
 	return &application{
 		storage: storageClient,
 		redis:   storageEngine,

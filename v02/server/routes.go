@@ -15,9 +15,9 @@ var Routes = map[string]*Route{
 		CPattern: "/account/%d",
 		Scope:    "account/index",
 		Handlers: []RouteFunc{
-			ValidateAccountRequestToken,
-			CheckAccountSession,
-			//GetAccount,
+		//ValidateAccountRequestToken,
+		//CheckAccountSession,
+		//GetAccount,
 		},
 		Filters: []context.Filter{
 		//ContextHasAccountID,
@@ -31,9 +31,9 @@ var Routes = map[string]*Route{
 		CPattern: "/account/%d",
 		Scope:    "account/update",
 		Handlers: []RouteFunc{
-			ValidateAccountRequestToken,
-			CheckAccountSession,
-			//UpdateAccount,
+		//ValidateAccountRequestToken,
+		//CheckAccountSession,
+		//UpdateAccount,
 		},
 		Filters: []context.Filter{
 		//ContextHasAccountID,
@@ -46,9 +46,9 @@ var Routes = map[string]*Route{
 		CPattern: "/account/%d",
 		Scope:    "account/delete",
 		Handlers: []RouteFunc{
-			ValidateAccountRequestToken,
-			CheckAccountSession,
-			//DeleteAccount,
+		//ValidateAccountRequestToken,
+		//CheckAccountSession,
+		//DeleteAccount,
 		},
 		Filters: []context.Filter{
 		//ContextHasAccountID,
@@ -71,9 +71,9 @@ var Routes = map[string]*Route{
 		CPattern: "/account/%d/user/%d",
 		Scope:    "account/user/index",
 		Handlers: []RouteFunc{
-			ValidateAccountRequestToken,
-			CheckAccountSession,
-			//GetAccountUser,
+		//ValidateAccountRequestToken,
+		//CheckAccountSession,
+		//GetAccountUser,
 		},
 		Filters: []context.Filter{
 		//ContextHasAccountID,
@@ -87,9 +87,9 @@ var Routes = map[string]*Route{
 		CPattern: "/account/%d/user/%d",
 		Scope:    "account/user/update",
 		Handlers: []RouteFunc{
-			ValidateAccountRequestToken,
-			CheckAccountSession,
-			//UpdateAccountUser,
+		//ValidateAccountRequestToken,
+		//CheckAccountSession,
+		//UpdateAccountUser,
 		},
 		Filters: []context.Filter{
 		//ContextHasAccountID,
@@ -103,9 +103,9 @@ var Routes = map[string]*Route{
 		CPattern: "/account/%d/user/%d",
 		Scope:    "account/user/delete",
 		Handlers: []RouteFunc{
-			ValidateAccountRequestToken,
-			CheckAccountSession,
-			//DeleteAccountUser,
+		//ValidateAccountRequestToken,
+		//CheckAccountSession,
+		//DeleteAccountUser,
 		},
 		Filters: []context.Filter{
 		//ContextHasAccountID,
@@ -118,8 +118,8 @@ var Routes = map[string]*Route{
 		CPattern: "/account/%d/users",
 		Scope:    "account/user/create",
 		Handlers: []RouteFunc{
-			ValidateAccountRequestToken,
-			//CreateAccountUser,
+		//ValidateAccountRequestToken,
+		//CreateAccountUser,
 		},
 		Filters: []context.Filter{
 		//ContextHasAccountID,
@@ -131,9 +131,9 @@ var Routes = map[string]*Route{
 		CPattern: "/account/%d/users",
 		Scope:    "account/user/list",
 		Handlers: []RouteFunc{
-			ValidateAccountRequestToken,
-			CheckAccountSession,
-			//GetAccountUserList,
+		//ValidateAccountRequestToken,
+		//CheckAccountSession,
+		//GetAccountUserList,
 		},
 		Filters: []context.Filter{
 		//ContextHasAccountID,
@@ -154,9 +154,9 @@ var Routes = map[string]*Route{
 		CPattern: "/account/%d/user/%d/refreshSession",
 		Scope:    "account/user/refreshAccountUserSession",
 		Handlers: []RouteFunc{
-			ValidateAccountRequestToken,
-			CheckAccountSession,
-			//RefreshAccountUserSession,
+		//ValidateAccountRequestToken,
+		//CheckAccountSession,
+		//RefreshAccountUserSession,
 		},
 		Filters: []context.Filter{
 		//ContextHasAccountID,
@@ -170,9 +170,9 @@ var Routes = map[string]*Route{
 		CPattern: "/account/%d/user/%d/logout",
 		Scope:    "account/user/logout",
 		Handlers: []RouteFunc{
-			ValidateAccountRequestToken,
-			CheckAccountSession,
-			//LogoutAccountUser,
+		//ValidateAccountRequestToken,
+		//CheckAccountSession,
+		//LogoutAccountUser,
 		},
 		Filters: []context.Filter{
 		//ContextHasAccountID,
@@ -187,9 +187,9 @@ var Routes = map[string]*Route{
 		CPattern: "/account/%d/application/%d",
 		Scope:    "application/index",
 		Handlers: []RouteFunc{
-			ValidateAccountRequestToken,
-			CheckAccountSession,
-			//GetApplication,
+		//ValidateAccountRequestToken,
+		//CheckAccountSession,
+		//GetApplication,
 		},
 		Filters: []context.Filter{
 		//ContextHasAccountID,
@@ -203,9 +203,9 @@ var Routes = map[string]*Route{
 		CPattern: "/account/%d/application/%d",
 		Scope:    "application/update",
 		Handlers: []RouteFunc{
-			ValidateAccountRequestToken,
-			CheckAccountSession,
-			//UpdateApplication,
+		//ValidateAccountRequestToken,
+		//CheckAccountSession,
+		//UpdateApplication,
 		},
 		Filters: []context.Filter{
 		//ContextHasAccountID,
@@ -219,9 +219,9 @@ var Routes = map[string]*Route{
 		CPattern: "/account/%d/application/%d",
 		Scope:    "application/delete",
 		Handlers: []RouteFunc{
-			ValidateAccountRequestToken,
-			CheckAccountSession,
-			//DeleteApplication,
+		//ValidateAccountRequestToken,
+		//CheckAccountSession,
+		//DeleteApplication,
 		},
 		Filters: []context.Filter{
 		//ContextHasAccountID,
@@ -234,9 +234,9 @@ var Routes = map[string]*Route{
 		CPattern: "/account/%d/applications",
 		Scope:    "application/create",
 		Handlers: []RouteFunc{
-			ValidateAccountRequestToken,
-			CheckAccountSession,
-			//CreateApplication,
+		//ValidateAccountRequestToken,
+		//CheckAccountSession,
+		//CreateApplication,
 		},
 		Filters: []context.Filter{
 		//ContextHasAccountID,
@@ -248,9 +248,9 @@ var Routes = map[string]*Route{
 		CPattern: "/account/%d/applications",
 		Scope:    "account/applications/list",
 		Handlers: []RouteFunc{
-			ValidateAccountRequestToken,
-			CheckAccountSession,
-			//GetApplicationList,
+		//ValidateAccountRequestToken,
+		//CheckAccountSession,
+		//GetApplicationList,
 		},
 		Filters: []context.Filter{
 		//ContextHasAccountID,
@@ -263,9 +263,9 @@ var Routes = map[string]*Route{
 		CPattern: "/account/%d/application/%d/user/%d",
 		Scope:    "application/user/index",
 		Handlers: []RouteFunc{
-			ValidateApplicationRequestToken,
-			CheckApplicationSession,
-			//GetApplicationUser,
+		//ValidateApplicationRequestToken,
+		//CheckApplicationSession,
+		//GetApplicationUser,
 		},
 		Filters: []context.Filter{
 		//ContextHasAccountID,
@@ -280,9 +280,9 @@ var Routes = map[string]*Route{
 		CPattern: "/account/%d/application/%d/user/%d",
 		Scope:    "application/user/update",
 		Handlers: []RouteFunc{
-			ValidateApplicationRequestToken,
-			CheckApplicationSession,
-			//UpdateApplicationUser,
+		//ValidateApplicationRequestToken,
+		//CheckApplicationSession,
+		//UpdateApplicationUser,
 		},
 		Filters: []context.Filter{
 		//ContextHasAccountID,
@@ -297,9 +297,9 @@ var Routes = map[string]*Route{
 		CPattern: "/account/%d/application/%d/user/%d",
 		Scope:    "application/user/delete",
 		Handlers: []RouteFunc{
-			ValidateApplicationRequestToken,
-			CheckApplicationSession,
-			//DeleteApplicationUser,
+		//ValidateApplicationRequestToken,
+		//CheckApplicationSession,
+		//DeleteApplicationUser,
 		},
 		Filters: []context.Filter{
 		//ContextHasAccountID,
@@ -313,8 +313,8 @@ var Routes = map[string]*Route{
 		CPattern: "/account/%d/application/%d/users",
 		Scope:    "application/user/create",
 		Handlers: []RouteFunc{
-			ValidateApplicationRequestToken,
-			//CreateApplicationUser,
+		//ValidateApplicationRequestToken,
+		//CreateApplicationUser,
 		},
 		Filters: []context.Filter{
 		//ContextHasAccountID,
@@ -327,8 +327,8 @@ var Routes = map[string]*Route{
 		CPattern: "/account/%d/application/%d/user/login",
 		Scope:    "application/user/login",
 		Handlers: []RouteFunc{
-			ValidateApplicationRequestToken,
-			//LoginApplicationUser,
+		//ValidateApplicationRequestToken,
+		//LoginApplicationUser,
 		},
 		Filters: []context.Filter{
 		//ContextHasAccountID,
@@ -341,9 +341,9 @@ var Routes = map[string]*Route{
 		CPattern: "/account/%d/application/%d/user/%d/refreshSession",
 		Scope:    "application/user/refreshSession",
 		Handlers: []RouteFunc{
-			ValidateApplicationRequestToken,
-			CheckApplicationSession,
-			//RefreshApplicationUserSession,
+		//ValidateApplicationRequestToken,
+		//CheckApplicationSession,
+		//RefreshApplicationUserSession,
 		},
 		Filters: []context.Filter{
 		//ContextHasAccountID,
@@ -358,9 +358,9 @@ var Routes = map[string]*Route{
 		CPattern: "/account/%d/application/%d/user/%d/logout",
 		Scope:    "application/user/logout",
 		Handlers: []RouteFunc{
-			ValidateApplicationRequestToken,
-			CheckApplicationSession,
-			//LogoutApplicationUser,
+		//ValidateApplicationRequestToken,
+		//CheckApplicationSession,
+		//LogoutApplicationUser,
 		},
 		Filters: []context.Filter{
 		//ContextHasAccountID,
@@ -384,9 +384,9 @@ var Routes = map[string]*Route{
 		CPattern: "/account/%d/application/%d/user/%d/connections",
 		Scope:    "application/user/connection/create",
 		Handlers: []RouteFunc{
-			ValidateApplicationRequestToken,
-			CheckApplicationSession,
-			//CreateConnection,
+		//ValidateApplicationRequestToken,
+		//CheckApplicationSession,
+		//CreateConnection,
 		},
 		Filters: []context.Filter{
 		//ContextHasAccountID,
@@ -400,9 +400,9 @@ var Routes = map[string]*Route{
 		CPattern: "/account/%d/application/%d/user/%d/connection/%d",
 		Scope:    "application/user/connection/update",
 		Handlers: []RouteFunc{
-			ValidateApplicationRequestToken,
-			CheckApplicationSession,
-			//UpdateConnection,
+		//ValidateApplicationRequestToken,
+		//CheckApplicationSession,
+		//UpdateConnection,
 		},
 		Filters: []context.Filter{
 		//ContextHasAccountID,
@@ -416,9 +416,9 @@ var Routes = map[string]*Route{
 		CPattern: "/account/%d/application/%d/user/%d/connection/%d",
 		Scope:    "application/user/connection/delete",
 		Handlers: []RouteFunc{
-			ValidateApplicationRequestToken,
-			CheckApplicationSession,
-			//DeleteConnection,
+		//ValidateApplicationRequestToken,
+		//CheckApplicationSession,
+		//DeleteConnection,
 		},
 		Filters: []context.Filter{
 		//ContextHasAccountID,
@@ -432,9 +432,9 @@ var Routes = map[string]*Route{
 		CPattern: "/account/%d/application/%d/user/%d/connections",
 		Scope:    "application/user/connections/list",
 		Handlers: []RouteFunc{
-			ValidateApplicationRequestToken,
-			CheckApplicationSession,
-			//GetConnectionList,
+		//ValidateApplicationRequestToken,
+		//CheckApplicationSession,
+		//GetConnectionList,
 		},
 		Filters: []context.Filter{
 		//ContextHasAccountID,
@@ -448,9 +448,9 @@ var Routes = map[string]*Route{
 		CPattern: "/account/%d/application/%d/user/%d/followers",
 		Scope:    "application/user/followers/list",
 		Handlers: []RouteFunc{
-			ValidateApplicationRequestToken,
-			CheckApplicationSession,
-			//GetFollowedByUsersList,
+		//ValidateApplicationRequestToken,
+		//CheckApplicationSession,
+		//GetFollowedByUsersList,
 		},
 		Filters: []context.Filter{
 		//ContextHasAccountID,
@@ -464,9 +464,9 @@ var Routes = map[string]*Route{
 		CPattern: "/account/%d/application/%d/user/%d/connection/confirm",
 		Scope:    "application/user/connection/confirm",
 		Handlers: []RouteFunc{
-			ValidateApplicationRequestToken,
-			CheckApplicationSession,
-			//ConfirmConnection,
+		//ValidateApplicationRequestToken,
+		//CheckApplicationSession,
+		//ConfirmConnection,
 		},
 		Filters: []context.Filter{
 		//ContextHasAccountID,
@@ -480,9 +480,9 @@ var Routes = map[string]*Route{
 		CPattern: "/account/%d/application/%d/user/%d/connections/social/%s",
 		Scope:    "application/user/connections/social",
 		Handlers: []RouteFunc{
-			ValidateApplicationRequestToken,
-			CheckApplicationSession,
-			//CreateSocialConnections,
+		//ValidateApplicationRequestToken,
+		//CheckApplicationSession,
+		//CreateSocialConnections,
 		},
 		Filters: []context.Filter{
 		//ContextHasAccountID,
@@ -498,9 +498,9 @@ var Routes = map[string]*Route{
 		CPattern: "/account/%d/application/%d/user/%d/event/%d",
 		Scope:    "application/user/event/index",
 		Handlers: []RouteFunc{
-			ValidateApplicationRequestToken,
-			CheckApplicationSession,
-			//GetEvent,
+		//ValidateApplicationRequestToken,
+		//CheckApplicationSession,
+		//GetEvent,
 		},
 		Filters: []context.Filter{
 		//ContextHasAccountID,
@@ -514,9 +514,9 @@ var Routes = map[string]*Route{
 		CPattern: "/account/%d/application/%d/user/%d/event/%d",
 		Scope:    "application/user/event/update",
 		Handlers: []RouteFunc{
-			ValidateApplicationRequestToken,
-			CheckApplicationSession,
-			//UpdateEvent,
+		//ValidateApplicationRequestToken,
+		//CheckApplicationSession,
+		//UpdateEvent,
 		},
 		Filters: []context.Filter{
 		//ContextHasAccountID,
@@ -530,9 +530,9 @@ var Routes = map[string]*Route{
 		CPattern: "/account/%d/application/%d/user/%d/event/%d",
 		Scope:    "application/user/event/delete",
 		Handlers: []RouteFunc{
-			ValidateApplicationRequestToken,
-			CheckApplicationSession,
-			//DeleteEvent,
+		//ValidateApplicationRequestToken,
+		//CheckApplicationSession,
+		//DeleteEvent,
 		},
 		Filters: []context.Filter{
 		//ContextHasAccountID,
@@ -546,9 +546,9 @@ var Routes = map[string]*Route{
 		CPattern: "/account/%d/application/%d/user/%d/events",
 		Scope:    "application/user/event/create",
 		Handlers: []RouteFunc{
-			ValidateApplicationRequestToken,
-			CheckApplicationSession,
-			//CreateEvent,
+		//ValidateApplicationRequestToken,
+		//CheckApplicationSession,
+		//CreateEvent,
 		},
 		Filters: []context.Filter{
 		//ContextHasAccountID,
@@ -562,9 +562,9 @@ var Routes = map[string]*Route{
 		CPattern: "/account/%d/application/%d/user/%d/events",
 		Scope:    "application/user/events/list",
 		Handlers: []RouteFunc{
-			ValidateApplicationRequestToken,
-			CheckApplicationSession,
-			//GetEventList,
+		//ValidateApplicationRequestToken,
+		//CheckApplicationSession,
+		//GetEventList,
 		},
 		Filters: []context.Filter{
 		//ContextHasAccountID,
@@ -578,9 +578,9 @@ var Routes = map[string]*Route{
 		CPattern: "/account/%d/application/%d/user/%d/connections/events",
 		Scope:    "application/user/connection/events",
 		Handlers: []RouteFunc{
-			ValidateApplicationRequestToken,
-			CheckApplicationSession,
-			//GetConnectionEventList,
+		//ValidateApplicationRequestToken,
+		//CheckApplicationSession,
+		//GetConnectionEventList,
 		},
 		Filters: []context.Filter{
 		//ContextHasAccountID,
@@ -594,8 +594,8 @@ var Routes = map[string]*Route{
 		CPattern: "/account/%d/application/%d/events/geo/%.7f/%.7f/%.7f",
 		Scope:    "application/events/geo",
 		Handlers: []RouteFunc{
-			ValidateApplicationRequestToken,
-			//GetGeoEventList,
+		//ValidateApplicationRequestToken,
+		//GetGeoEventList,
 		},
 		Filters: []context.Filter{
 		//ContextHasAccountID,
@@ -608,8 +608,8 @@ var Routes = map[string]*Route{
 		CPattern: "/account/%d/application/%d/events/object/%s",
 		Scope:    "application/events/object",
 		Handlers: []RouteFunc{
-			ValidateApplicationRequestToken,
-			//GetObjectEventList,
+		//ValidateApplicationRequestToken,
+		//GetObjectEventList,
 		},
 		Filters: []context.Filter{
 		//ContextHasAccountID,
@@ -622,8 +622,8 @@ var Routes = map[string]*Route{
 		CPattern: "/account/%d/application/%d/events/location/%s",
 		Scope:    "application/events/location",
 		Handlers: []RouteFunc{
-			ValidateApplicationRequestToken,
-			//GetLocationEventList,
+		//ValidateApplicationRequestToken,
+		//GetLocationEventList,
 		},
 		Filters: []context.Filter{
 		//ContextHasAccountID,

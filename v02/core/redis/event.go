@@ -7,7 +7,8 @@ import (
 	"github.com/tapglue/backend/tgerrors"
 	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/entity"
-	"github.com/tapglue/backend/v02/storage"
+	storageHelper "github.com/tapglue/backend/v02/storage/helper"
+	"github.com/tapglue/backend/v02/storage/redis"
 
 	"github.com/tapglue/georedis"
 	red "gopkg.in/redis.v2"
@@ -15,12 +16,11 @@ import (
 
 type (
 	event struct {
-		storage *storage.Client
+		storage *redis.Client
 		redis   *red.Client
 	}
 )
 
-// Create adds an event to the database and returns the created event or an error
 func (e *event) Create(event *entity.Event, retrieve bool) (evn *entity.Event, err tgerrors.TGError) {
 	event.Enabled = true
 	event.CreatedAt = time.Now()
@@ -36,12 +36,12 @@ func (e *event) Create(event *entity.Event, retrieve bool) (evn *entity.Event, e
 		return nil, tgerrors.NewInternalError("failed to write the event (2)", er.Error())
 	}
 
-	key := e.storage.Event(event.AccountID, event.ApplicationID, event.UserID, event.ID)
+	key := storageHelper.Event(event.AccountID, event.ApplicationID, event.UserID, event.ID)
 	if er = e.redis.Set(key, string(val)).Err(); err != nil {
 		return nil, tgerrors.NewInternalError("failed to write the event (3)", er.Error())
 	}
 
-	listKey := e.storage.Events(event.AccountID, event.ApplicationID, event.UserID)
+	listKey := storageHelper.Events(event.AccountID, event.ApplicationID, event.UserID)
 
 	setVal := red.Z{Score: float64(event.CreatedAt.Unix()), Member: key}
 	if er = e.redis.ZAdd(listKey, setVal).Err(); er != nil {
@@ -55,19 +55,19 @@ func (e *event) Create(event *entity.Event, retrieve bool) (evn *entity.Event, e
 			Label: key,
 		}
 
-		geoEventKey := e.storage.EventGeoKey(event.AccountID, event.ApplicationID)
+		geoEventKey := storageHelper.EventGeoKey(event.AccountID, event.ApplicationID)
 		georedis.AddCoordinates(e.redis, geoEventKey, 52, coordinates)
 	}
 
 	if event.Object != nil {
-		objectEventKey := e.storage.EventObjectKey(event.AccountID, event.ApplicationID, event.Object.ID)
+		objectEventKey := storageHelper.EventObjectKey(event.AccountID, event.ApplicationID, event.Object.ID)
 		if er = e.redis.SAdd(objectEventKey, key).Err(); er != nil {
 			return nil, tgerrors.NewInternalError("failed to write the event (5)", er.Error())
 		}
 	}
 
 	if event.Location != "" {
-		locationEventKey := e.storage.EventLocationKey(event.AccountID, event.ApplicationID, event.Location)
+		locationEventKey := storageHelper.EventLocationKey(event.AccountID, event.ApplicationID, event.Location)
 		if er = e.redis.SAdd(locationEventKey, key).Err(); er != nil {
 			return nil, tgerrors.NewInternalError("failed to write the event (6)", er.Error())
 		}
@@ -84,9 +84,8 @@ func (e *event) Create(event *entity.Event, retrieve bool) (evn *entity.Event, e
 	return e.Read(event.AccountID, event.ApplicationID, event.UserID, event.ID)
 }
 
-// ReadEvent returns the event matching the ID or an error
 func (e *event) Read(accountID, applicationID, userID, eventID int64) (event *entity.Event, err tgerrors.TGError) {
-	key := e.storage.Event(accountID, applicationID, userID, eventID)
+	key := storageHelper.Event(accountID, applicationID, userID, eventID)
 
 	result, er := e.redis.Get(key).Result()
 	if er != nil {
@@ -100,7 +99,6 @@ func (e *event) Read(accountID, applicationID, userID, eventID int64) (event *en
 	return
 }
 
-// UpdateEvent updates an event in the database and returns the updated event or an error
 func (e *event) Update(existingEvent, updatedEvent entity.Event, retrieve bool) (evn *entity.Event, err tgerrors.TGError) {
 	updatedEvent.UpdatedAt = time.Now()
 
@@ -109,7 +107,7 @@ func (e *event) Update(existingEvent, updatedEvent entity.Event, retrieve bool) 
 		return nil, tgerrors.NewInternalError("failed to update the event (1)", er.Error())
 	}
 
-	key := e.storage.Event(updatedEvent.AccountID, updatedEvent.ApplicationID, updatedEvent.UserID, updatedEvent.ID)
+	key := storageHelper.Event(updatedEvent.AccountID, updatedEvent.ApplicationID, updatedEvent.UserID, updatedEvent.ID)
 	if er = e.redis.Set(key, string(val)).Err(); er != nil {
 		return nil, tgerrors.NewInternalError("failed to update the event (1)", er.Error())
 	}
@@ -151,7 +149,7 @@ func (e *event) Update(existingEvent, updatedEvent entity.Event, retrieve bool) 
 	}
 
 	if !updatedEvent.Enabled {
-		listKey := e.storage.Events(updatedEvent.AccountID, updatedEvent.ApplicationID, updatedEvent.UserID)
+		listKey := storageHelper.Events(updatedEvent.AccountID, updatedEvent.ApplicationID, updatedEvent.UserID)
 		if er = e.redis.ZRem(listKey, key).Err(); er != nil {
 			return nil, tgerrors.NewInternalError("failed to read the event (1)", er.Error())
 		}
@@ -179,9 +177,8 @@ func (e *event) Update(existingEvent, updatedEvent entity.Event, retrieve bool) 
 	return e.Read(updatedEvent.AccountID, updatedEvent.ApplicationID, updatedEvent.UserID, updatedEvent.ID)
 }
 
-// DeleteEvent deletes the event matching the IDs or an error
 func (e *event) Delete(accountID, applicationID, userID, eventID int64) (err tgerrors.TGError) {
-	key := e.storage.Event(accountID, applicationID, userID, eventID)
+	key := storageHelper.Event(accountID, applicationID, userID, eventID)
 
 	event, err := e.Read(accountID, applicationID, userID, eventID)
 	if err != nil {
@@ -197,7 +194,7 @@ func (e *event) Delete(accountID, applicationID, userID, eventID int64) (err tge
 		return tgerrors.NewInternalError("failed to delete the event (2)", "event already deleted")
 	}
 
-	listKey := e.storage.Events(accountID, applicationID, userID)
+	listKey := storageHelper.Events(accountID, applicationID, userID)
 	if er = e.redis.ZRem(listKey, key).Err(); er != nil {
 		return tgerrors.NewInternalError("failed to read the event (1)", er.Error())
 	}
@@ -213,9 +210,8 @@ func (e *event) Delete(accountID, applicationID, userID, eventID int64) (err tge
 	return nil
 }
 
-// ReadEventList returns all events from a certain user
 func (e *event) List(accountID, applicationID, userID int64) (events []*entity.Event, err tgerrors.TGError) {
-	key := e.storage.Events(accountID, applicationID, userID)
+	key := storageHelper.Events(accountID, applicationID, userID)
 
 	result, er := e.redis.ZRevRange(key, "0", "-1").Result()
 	if er != nil {
@@ -234,9 +230,8 @@ func (e *event) List(accountID, applicationID, userID int64) (events []*entity.E
 	return e.toEvents(resultList)
 }
 
-// ReadConnectionEventList returns all events from connections
 func (e *event) ConnectionList(accountID, applicationID, userID int64) (events []*entity.Event, err tgerrors.TGError) {
-	key := e.storage.ConnectionEvents(accountID, applicationID, userID)
+	key := storageHelper.ConnectionEvents(accountID, applicationID, userID)
 
 	result, er := e.redis.ZRevRange(key, "0", "-1").Result()
 	if er != nil {
@@ -256,9 +251,8 @@ func (e *event) ConnectionList(accountID, applicationID, userID int64) (events [
 	return e.toEvents(resultList)
 }
 
-// WriteEventToConnectionsLists takes an event and writes it to the user connections list
 func (e *event) WriteToConnectionsLists(event *entity.Event, key string) (err tgerrors.TGError) {
-	connectionsKey := e.storage.FollowedByUsers(event.AccountID, event.ApplicationID, event.UserID)
+	connectionsKey := storageHelper.FollowedByUsers(event.AccountID, event.ApplicationID, event.UserID)
 
 	connections, er := e.redis.LRange(connectionsKey, 0, -1).Result()
 	if er != nil {
@@ -266,7 +260,7 @@ func (e *event) WriteToConnectionsLists(event *entity.Event, key string) (err tg
 	}
 
 	for _, userKey := range connections {
-		feedKey := e.storage.ConnectionEventsLoop(userKey)
+		feedKey := storageHelper.ConnectionEventsLoop(userKey)
 
 		val := red.Z{Score: float64(event.CreatedAt.Unix()), Member: key}
 		if er = e.redis.ZAdd(feedKey, val).Err(); er != nil {
@@ -277,16 +271,15 @@ func (e *event) WriteToConnectionsLists(event *entity.Event, key string) (err tg
 	return nil
 }
 
-// DeleteEventFromConnectionsLists takes a user id and key and deletes it to the user connections list
 func (e *event) DeleteFromConnectionsLists(accountID, applicationID, userID int64, key string) (err tgerrors.TGError) {
-	connectionsKey := e.storage.FollowedByUsers(accountID, applicationID, userID)
+	connectionsKey := storageHelper.FollowedByUsers(accountID, applicationID, userID)
 	connections, er := e.redis.LRange(connectionsKey, 0, -1).Result()
 	if er != nil {
 		return tgerrors.NewInternalError("failed to delete the event from list (1)", er.Error())
 	}
 
 	for _, userKey := range connections {
-		feedKey := e.storage.ConnectionEventsLoop(userKey)
+		feedKey := storageHelper.ConnectionEventsLoop(userKey)
 		if er = e.redis.ZRem(feedKey, key).Err(); er != nil {
 			return tgerrors.NewInternalError("failed to delete the event from list (2)", er.Error())
 		}
@@ -295,9 +288,8 @@ func (e *event) DeleteFromConnectionsLists(accountID, applicationID, userID int6
 	return nil
 }
 
-// GeoSearch retrieves all the events from an application within a radius of the provided coordinates
 func (e *event) GeoSearch(accountID, applicationID int64, latitude, longitude, radius float64) (events []*entity.Event, err tgerrors.TGError) {
-	geoEventKey := e.storage.EventGeoKey(accountID, applicationID)
+	geoEventKey := storageHelper.EventGeoKey(accountID, applicationID)
 
 	eventKeys, er := georedis.SearchByRadius(e.redis, geoEventKey, latitude, longitude, radius, 52)
 	if er != nil {
@@ -312,16 +304,14 @@ func (e *event) GeoSearch(accountID, applicationID int64, latitude, longitude, r
 	return e.toEvents(resultList)
 }
 
-// ObjectSearch returns all the events for a specific object
 func (e *event) ObjectSearch(accountID, applicationID int64, objectKey string) ([]*entity.Event, tgerrors.TGError) {
-	objectEventKey := e.storage.EventObjectKey(accountID, applicationID, objectKey)
+	objectEventKey := storageHelper.EventObjectKey(accountID, applicationID, objectKey)
 
 	return e.fetchEventsFromKeys(accountID, applicationID, objectEventKey)
 }
 
-// LocationSearch returns all the events for a specific object
 func (e *event) LocationSearch(accountID, applicationID int64, locationKey string) ([]*entity.Event, tgerrors.TGError) {
-	locationEventKey := e.storage.EventLocationKey(accountID, applicationID, locationKey)
+	locationEventKey := storageHelper.EventLocationKey(accountID, applicationID, locationKey)
 
 	return e.fetchEventsFromKeys(accountID, applicationID, locationEventKey)
 }
@@ -370,7 +360,7 @@ func (e *event) addEventGeo(key string, updatedEvent *entity.Event) tgerrors.TGE
 		Label: key,
 	}
 
-	geoEventKey := e.storage.EventGeoKey(updatedEvent.AccountID, updatedEvent.ApplicationID)
+	geoEventKey := storageHelper.EventGeoKey(updatedEvent.AccountID, updatedEvent.ApplicationID)
 	_, er := georedis.AddCoordinates(e.redis, geoEventKey, 52, coordinates)
 	if er == nil {
 		return nil
@@ -379,7 +369,7 @@ func (e *event) addEventGeo(key string, updatedEvent *entity.Event) tgerrors.TGE
 }
 
 func (e *event) removeEventGeo(key string, updatedEvent *entity.Event) tgerrors.TGError {
-	geoEventKey := e.storage.EventGeoKey(updatedEvent.AccountID, updatedEvent.ApplicationID)
+	geoEventKey := storageHelper.EventGeoKey(updatedEvent.AccountID, updatedEvent.ApplicationID)
 	_, er := georedis.RemoveCoordinatesByKeys(e.redis, geoEventKey, key)
 	if er == nil {
 		return nil
@@ -388,7 +378,7 @@ func (e *event) removeEventGeo(key string, updatedEvent *entity.Event) tgerrors.
 }
 
 func (e *event) addEventObject(key string, updatedEvent *entity.Event) tgerrors.TGError {
-	objectEventKey := e.storage.EventObjectKey(updatedEvent.AccountID, updatedEvent.ApplicationID, updatedEvent.Object.ID)
+	objectEventKey := storageHelper.EventObjectKey(updatedEvent.AccountID, updatedEvent.ApplicationID, updatedEvent.Object.ID)
 	er := e.redis.SAdd(objectEventKey, key).Err()
 	if er == nil {
 		return nil
@@ -397,7 +387,7 @@ func (e *event) addEventObject(key string, updatedEvent *entity.Event) tgerrors.
 }
 
 func (e *event) removeEventObject(key string, updatedEvent *entity.Event) tgerrors.TGError {
-	objectEventKey := e.storage.EventObjectKey(updatedEvent.AccountID, updatedEvent.ApplicationID, updatedEvent.Object.ID)
+	objectEventKey := storageHelper.EventObjectKey(updatedEvent.AccountID, updatedEvent.ApplicationID, updatedEvent.Object.ID)
 	er := e.redis.SRem(objectEventKey, key).Err()
 	if er == nil {
 		return nil
@@ -406,7 +396,7 @@ func (e *event) removeEventObject(key string, updatedEvent *entity.Event) tgerro
 }
 
 func (e *event) addEventLocation(key string, updatedEvent *entity.Event) tgerrors.TGError {
-	locationEventKey := e.storage.EventLocationKey(updatedEvent.AccountID, updatedEvent.ApplicationID, updatedEvent.Location)
+	locationEventKey := storageHelper.EventLocationKey(updatedEvent.AccountID, updatedEvent.ApplicationID, updatedEvent.Location)
 	er := e.redis.SAdd(locationEventKey, key).Err()
 	if er == nil {
 		return nil
@@ -415,7 +405,7 @@ func (e *event) addEventLocation(key string, updatedEvent *entity.Event) tgerror
 }
 
 func (e *event) removeEventLocation(key string, updatedEvent *entity.Event) tgerrors.TGError {
-	locationEventKey := e.storage.EventLocationKey(updatedEvent.AccountID, updatedEvent.ApplicationID, updatedEvent.Location)
+	locationEventKey := storageHelper.EventLocationKey(updatedEvent.AccountID, updatedEvent.ApplicationID, updatedEvent.Location)
 	er := e.redis.SRem(locationEventKey, key).Err()
 	if er == nil {
 		return nil
@@ -424,7 +414,7 @@ func (e *event) removeEventLocation(key string, updatedEvent *entity.Event) tger
 }
 
 // NewEvent creates a new Event
-func NewEvent(storageClient *storage.Client, storageEngine *red.Client) core.Event {
+func NewEvent(storageClient *redis.Client, storageEngine *red.Client) core.Event {
 	return &event{
 		storage: storageClient,
 		redis:   storageEngine,

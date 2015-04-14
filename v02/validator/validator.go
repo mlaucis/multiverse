@@ -12,11 +12,7 @@ import (
 	"regexp"
 
 	"github.com/tapglue/backend/tgerrors"
-	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/entity"
-	"github.com/tapglue/backend/v02/storage"
-	"github.com/tapglue/backend/v02/validator/keys"
-	"github.com/tapglue/backend/v02/validator/tokens"
 )
 
 var (
@@ -38,12 +34,6 @@ var (
 	errorUserUsernameAlreadyExists = tgerrors.NewBadRequestError("user already exists (2)", "user already exists (2)")
 	errorEmailAddressInUse         = fmt.Errorf("email address already in use")
 	errorUsernameInUse             = fmt.Errorf("username already in use")
-
-	storageClient *storage.Client
-	acc           core.Account
-	accUser       core.AccountUser
-	app           core.Application
-	appUser       core.ApplicationUser
 )
 
 // packErrors prints errors happened during validation
@@ -103,46 +93,4 @@ func StringLengthBetween(value string, minLength, maxLength int) bool {
 	}
 
 	return true
-}
-
-// AccountExists validates if an account exists and returns the account or an error
-func AccountExists(accountID int64) bool {
-	account, err := acc.Read(accountID)
-	if err != nil {
-		return false
-	}
-
-	return account.Enabled
-}
-
-// ApplicationExists validates if an application exists and returns the application or an error
-func ApplicationExists(accountID, applicationID int64) bool {
-	application, err := app.Read(accountID, applicationID)
-	if err != nil {
-		return false
-	}
-
-	return application.Enabled
-}
-
-// UserExists validates if a user exists and returns it or an error
-func UserExists(accountID, applicationID, userID int64) bool {
-	user, err := appUser.Read(accountID, applicationID, userID)
-	if err != nil {
-		return false
-	}
-
-	return user.Enabled
-}
-
-// Init initializes the core package
-func Init(sc *storage.Client, account core.Account, accountUser core.AccountUser, application core.Application, applicationUser core.ApplicationUser) {
-	storageClient = sc
-	acc = account
-	accUser = accountUser
-	app = application
-	appUser = applicationUser
-
-	keys.Init(acc, app)
-	tokens.Init(acc, app)
 }

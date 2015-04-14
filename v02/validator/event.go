@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	"github.com/tapglue/backend/tgerrors"
+	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/entity"
 )
 
@@ -27,7 +28,7 @@ var (
 )
 
 // CreateEvent validates an event on create
-func CreateEvent(event *entity.Event) tgerrors.TGError {
+func CreateEvent(datastore core.ApplicationUser, event *entity.Event) tgerrors.TGError {
 	errs := []*error{}
 
 	if event.ApplicationID == 0 {
@@ -50,7 +51,7 @@ func CreateEvent(event *entity.Event) tgerrors.TGError {
 		errs = append(errs, &errorEventIDIsAlreadySet)
 	}
 
-	if !UserExists(event.AccountID, event.ApplicationID, event.UserID) {
+	if !datastore.ExistsByID(event.AccountID, event.ApplicationID, event.UserID) {
 		errs = append(errs, &errorUserDoesNotExists)
 	}
 
