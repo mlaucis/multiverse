@@ -2,7 +2,6 @@
  * @author Florin Patan <florinpatan@gmail.com>
  */
 
-
 /*
 Package basic checks if the request is signed with the proper credentials using HTTP Basic Authentication.
 

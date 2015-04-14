@@ -8,8 +8,9 @@ import (
 	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/tgerrors"
 
-	httpBasic "github.com/tapglue/intaker/v02/validator/request/basic"
 	"strings"
+
+	httpBasic "github.com/tapglue/intaker/v02/validator/request/basic"
 )
 
 var errAuthMethodNotSupported = tgerrors.NewBadRequestError("authorization method not supported", "auth method not supported")
@@ -23,7 +24,7 @@ func SignAccount(ctx *context.Context) tgerrors.TGError {
 func VerifyAccount(ctx *context.Context) tgerrors.TGError {
 	if ctx.R.Header.Get("Authorization") != "" {
 		httpAuthorization := ctx.R.Header.Get("Authorization")
-		if (strings.HasPrefix(httpAuthorization, "Basic ")) {
+		if strings.HasPrefix(httpAuthorization, "Basic ") {
 			return httpBasic.VerifyAccount(ctx)
 		}
 	}
@@ -40,7 +41,7 @@ func SignAccountUser(ctx *context.Context) tgerrors.TGError {
 func VerifyAccountUser(ctx *context.Context) tgerrors.TGError {
 	if ctx.R.Header.Get("Authorization") != "" {
 		httpAuthorization := ctx.R.Header.Get("Authorization")
-		if (strings.HasPrefix(httpAuthorization, "Basic ")) {
+		if strings.HasPrefix(httpAuthorization, "Basic ") {
 			return httpBasic.VerifyAccountUser(ctx)
 		}
 	}
@@ -57,7 +58,7 @@ func SignApplication(ctx *context.Context) tgerrors.TGError {
 func VerifyApplication(ctx *context.Context) tgerrors.TGError {
 	if ctx.R.Header.Get("Authorization") != "" {
 		httpAuthorization := ctx.R.Header.Get("Authorization")
-		if (strings.HasPrefix(httpAuthorization, "Basic ")) {
+		if strings.HasPrefix(httpAuthorization, "Basic ") {
 			return httpBasic.VerifyApplication(ctx)
 		}
 	}
@@ -74,7 +75,7 @@ func SignApplicationUser(ctx *context.Context) tgerrors.TGError {
 func VerifyApplicationUser(ctx *context.Context) tgerrors.TGError {
 	if ctx.R.Header.Get("Authorization") != "" {
 		httpAuthorization := ctx.R.Header.Get("Authorization")
-		if (strings.HasPrefix(httpAuthorization, "Basic ")) {
+		if strings.HasPrefix(httpAuthorization, "Basic ") {
 			return httpBasic.VerifyApplicationUser(ctx)
 		}
 	}

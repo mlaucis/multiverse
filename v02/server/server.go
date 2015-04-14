@@ -13,7 +13,6 @@ import (
 	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/logger"
 	"github.com/tapglue/backend/tgerrors"
-	"github.com/tapglue/backend/v02/core"
 )
 
 type (
@@ -299,20 +298,4 @@ func Init(router *mux.Router, mainLogChan, errorLogChan chan *logger.LogMsg, env
 			Name(routeName).
 			HandlerFunc(CustomHandler(routeName, version, route, mainLogChan, errorLogChan, environment, debugMode, skipSecurityChecks))
 	}
-}
-
-// InitCores takes care of initializing the core
-func InitCores(
-	account core.Account,
-	accountUser core.AccountUser,
-	application core.Application,
-	applicationUser core.ApplicationUser,
-	connection core.Connection,
-	event core.Event) {
-	acc = account
-	accUser = accountUser
-	app = application
-	appUser = applicationUser
-	conn = connection
-	evt = event
 }
