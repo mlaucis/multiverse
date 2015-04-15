@@ -384,17 +384,19 @@ func (au *accountUser) existsByKey(bucketName string) (bool, tgerrors.TGError) {
 }
 
 // NewAccountUser creates a new AccountUser
-func NewAccountUser(storageEngine *red.Client) core.AccountUser {
+func NewAccountUser(storageClient *redis.Client, storageEngine *red.Client) core.AccountUser {
 	return &accountUser{
-		a:     NewAccount(storageEngine),
-		redis: storageEngine,
+		storage: storageClient,
+		a:       NewAccount(storageClient, storageEngine),
+		redis:   storageEngine,
 	}
 }
 
 // NewAccountUserWithAccount creates a new AccountUser
-func NewAccountUserWithAccount(storageEngine *red.Client, a core.Account) core.AccountUser {
+func NewAccountUserWithAccount(storageClient *redis.Client, storageEngine *red.Client, a core.Account) core.AccountUser {
 	return &accountUser{
-		a:     a,
-		redis: storageEngine,
+		storage: storageClient,
+		redis:   storageEngine,
+		a:       a,
 	}
 }
