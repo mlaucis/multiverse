@@ -133,9 +133,9 @@ func (a *account) Exists(accountID int64) bool {
 }
 
 // NewAccount creates a new Account
-func NewAccount(storageClient *redis.Client, storageEngine *red.Client) core.Account {
+func NewAccount(storageClient *redis.Client) core.Account {
 	return &account{
 		storage: storageClient,
-		redis:   storageEngine,
+		redis:   storageClient.Datastore(),
 	}
 }

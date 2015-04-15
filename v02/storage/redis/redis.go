@@ -45,6 +45,11 @@ func (c *Client) GenerateApplicationEventID(applicationID int64) (int64, error) 
 	return c.datastore.Incr(fmt.Sprintf(storageHelper.IDApplicationEvent, applicationID)).Result()
 }
 
+// Datastore returns the client datastore
+func (c *Client) Datastore() *red.Client {
+	return c.datastore
+}
+
 // New initializes the redis client
 func New(address, password string, db int64, poolSize int) *Client {
 	options := &red.Options{

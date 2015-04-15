@@ -414,9 +414,9 @@ func (e *event) removeEventLocation(key string, updatedEvent *entity.Event) tger
 }
 
 // NewEvent creates a new Event
-func NewEvent(storageClient *redis.Client, storageEngine *red.Client) core.Event {
+func NewEvent(storageClient *redis.Client) core.Event {
 	return &event{
 		storage: storageClient,
-		redis:   storageEngine,
+		redis:   storageClient.Datastore(),
 	}
 }

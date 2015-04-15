@@ -185,9 +185,9 @@ func (app *application) Exists(accountID, applicationID int64) bool {
 }
 
 // NewApplication creates a new Application
-func NewApplication(storageClient *redis.Client, storageEngine *red.Client) core.Application {
+func NewApplication(storageClient *redis.Client) core.Application {
 	return &application{
 		storage: storageClient,
-		redis:   storageEngine,
+		redis:   storageClient.Datastore(),
 	}
 }

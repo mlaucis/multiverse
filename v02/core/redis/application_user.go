@@ -448,19 +448,19 @@ func (appu *applicationUser) existsByKey(bucketName string) (bool, tgerrors.TGEr
 }
 
 // NewApplicationUser creates a new Event
-func NewApplicationUser(storageClient *redis.Client, storageEngine *red.Client) core.ApplicationUser {
+func NewApplicationUser(storageClient *redis.Client) core.ApplicationUser {
 	return &applicationUser{
-		c:       NewConnection(storageClient, storageEngine),
+		c:       NewConnection(storageClient),
 		storage: storageClient,
-		redis:   storageEngine,
+		redis:   storageClient.Datastore(),
 	}
 }
 
 // NewApplicationUserWithConnection creates a new Event
-func NewApplicationUserWithConnection(storageClient *redis.Client, storageEngine *red.Client, c core.Connection) core.ApplicationUser {
+func NewApplicationUserWithConnection(storageClient *redis.Client, c core.Connection) core.ApplicationUser {
 	return &applicationUser{
 		c:       c,
 		storage: storageClient,
-		redis:   storageEngine,
+		redis:   storageClient.Datastore(),
 	}
 }

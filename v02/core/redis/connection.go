@@ -384,9 +384,9 @@ func (c *connection) fetchAndDecodeMultipleUsers(keys []string) (users []*entity
 }
 
 // NewConnection creates a new Connection
-func NewConnection(storageClient *redis.Client, storageEngine *red.Client) core.Connection {
+func NewConnection(storageClient *redis.Client) core.Connection {
 	return &connection{
 		storage: storageClient,
-		redis:   storageEngine,
+		redis:   storageClient.Datastore(),
 	}
 }
