@@ -10,6 +10,7 @@ import (
 	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/tgerrors"
 	httpBasic "github.com/tapglue/backend/v02/validator/request/basic"
+	"net/http"
 )
 
 var errAuthMethodNotSupported = tgerrors.NewBadRequestError("authorization method not supported", "auth method not supported")
@@ -80,4 +81,9 @@ func VerifyApplicationUser(ctx *context.Context) tgerrors.TGError {
 	}
 
 	return errAuthMethodNotSupported
+}
+
+// SignRequest is just a dummy placeholder
+func SignRequest(r *http.Request, key string) error {
+	return nil
 }
