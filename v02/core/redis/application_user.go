@@ -19,7 +19,7 @@ import (
 type (
 	applicationUser struct {
 		c       core.Connection
-		storage *redis.Client
+		storage redis.Client
 		redis   *red.Client
 	}
 )
@@ -448,7 +448,7 @@ func (appu *applicationUser) existsByKey(bucketName string) (bool, tgerrors.TGEr
 }
 
 // NewApplicationUser creates a new Event
-func NewApplicationUser(storageClient *redis.Client) core.ApplicationUser {
+func NewApplicationUser(storageClient redis.Client) core.ApplicationUser {
 	return &applicationUser{
 		c:       NewConnection(storageClient),
 		storage: storageClient,
@@ -457,7 +457,7 @@ func NewApplicationUser(storageClient *redis.Client) core.ApplicationUser {
 }
 
 // NewApplicationUserWithConnection creates a new Event
-func NewApplicationUserWithConnection(storageClient *redis.Client, c core.Connection) core.ApplicationUser {
+func NewApplicationUserWithConnection(storageClient redis.Client, c core.Connection) core.ApplicationUser {
 	return &applicationUser{
 		c:       c,
 		storage: storageClient,

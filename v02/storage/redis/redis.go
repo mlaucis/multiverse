@@ -15,43 +15,57 @@ import (
 
 type (
 	// Client structure
-	Client struct {
+	Client interface {
+		// GenerateAccountID generates a new account ID
+		GenerateAccountID() (int64, error)
+
+		// GenerateAccountUserID generates a new account user id for a specified account
+		GenerateAccountUserID(accountID int64) (int64, error)
+
+		// GenerateApplicationID generates a new application ID
+		GenerateApplicationID(accountID int64) (int64, error)
+
+		// GenerateApplicationUserID generates the user id in the specified app
+		GenerateApplicationUserID(applicationID int64) (int64, error)
+
+		// GenerateApplicationEventID generates the event id in the specified app
+		GenerateApplicationEventID(applicationID int64) (int64, error)
+
+		// Datastore returns the client datastore
+		Datastore() *red.Client
+	}
+
+	cli struct {
 		datastore *red.Client
 	}
 )
 
-// GenerateAccountID generates a new account ID
-func (c *Client) GenerateAccountID() (int64, error) {
+func (c *cli) GenerateAccountID() (int64, error) {
 	return c.datastore.Incr(storageHelper.IDAccount).Result()
 }
 
-// GenerateAccountUserID generates a new account user id for a specified account
-func (c *Client) GenerateAccountUserID(accountID int64) (int64, error) {
+func (c *cli) GenerateAccountUserID(accountID int64) (int64, error) {
 	return c.datastore.Incr(fmt.Sprintf(storageHelper.IDAccountUser, accountID)).Result()
 }
 
-// GenerateApplicationID generates a new application ID
-func (c *Client) GenerateApplicationID(accountID int64) (int64, error) {
+func (c *cli) GenerateApplicationID(accountID int64) (int64, error) {
 	return c.datastore.Incr(fmt.Sprintf(storageHelper.IDAccountApp, accountID)).Result()
 }
 
-// GenerateApplicationUserID generates the user id in the specified app
-func (c *Client) GenerateApplicationUserID(applicationID int64) (int64, error) {
+func (c *cli) GenerateApplicationUserID(applicationID int64) (int64, error) {
 	return c.datastore.Incr(fmt.Sprintf(storageHelper.IDApplicationUser, applicationID)).Result()
 }
 
-// GenerateApplicationEventID generates the event id in the specified app
-func (c *Client) GenerateApplicationEventID(applicationID int64) (int64, error) {
+func (c *cli) GenerateApplicationEventID(applicationID int64) (int64, error) {
 	return c.datastore.Incr(fmt.Sprintf(storageHelper.IDApplicationEvent, applicationID)).Result()
 }
 
-// Datastore returns the client datastore
-func (c *Client) Datastore() *red.Client {
+func (c *cli) Datastore() *red.Client {
 	return c.datastore
 }
 
 // New initializes the redis client
-func New(address, password string, db int64, poolSize int) *Client {
+func New(address, password string, db int64, poolSize int) Client {
 	options := &red.Options{
 		Addr:     address,
 		Password: password,
@@ -59,7 +73,7 @@ func New(address, password string, db int64, poolSize int) *Client {
 		PoolSize: poolSize,
 	}
 
-	return &Client{
+	return &cli{
 		datastore: red.NewTCPClient(options),
 	}
 }

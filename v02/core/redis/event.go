@@ -16,7 +16,7 @@ import (
 
 type (
 	event struct {
-		storage *redis.Client
+		storage redis.Client
 		redis   *red.Client
 	}
 )
@@ -414,7 +414,7 @@ func (e *event) removeEventLocation(key string, updatedEvent *entity.Event) tger
 }
 
 // NewEvent creates a new Event
-func NewEvent(storageClient *redis.Client) core.Event {
+func NewEvent(storageClient redis.Client) core.Event {
 	return &event{
 		storage: storageClient,
 		redis:   storageClient.Datastore(),

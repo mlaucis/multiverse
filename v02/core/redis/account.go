@@ -18,7 +18,7 @@ import (
 
 type (
 	account struct {
-		storage *redis.Client
+		storage redis.Client
 		redis   *red.Client
 	}
 )
@@ -133,7 +133,7 @@ func (a *account) Exists(accountID int64) bool {
 }
 
 // NewAccount creates a new Account
-func NewAccount(storageClient *redis.Client) core.Account {
+func NewAccount(storageClient redis.Client) core.Account {
 	return &account{
 		storage: storageClient,
 		redis:   storageClient.Datastore(),

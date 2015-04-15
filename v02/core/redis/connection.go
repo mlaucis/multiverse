@@ -21,7 +21,7 @@ import (
 
 type (
 	connection struct {
-		storage *redis.Client
+		storage redis.Client
 		redis   *red.Client
 	}
 )
@@ -384,7 +384,7 @@ func (c *connection) fetchAndDecodeMultipleUsers(keys []string) (users []*entity
 }
 
 // NewConnection creates a new Connection
-func NewConnection(storageClient *redis.Client) core.Connection {
+func NewConnection(storageClient redis.Client) core.Connection {
 	return &connection{
 		storage: storageClient,
 		redis:   storageClient.Datastore(),

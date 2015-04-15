@@ -17,7 +17,7 @@ import (
 
 type (
 	application struct {
-		storage *redis.Client
+		storage redis.Client
 		redis   *red.Client
 	}
 )
@@ -185,7 +185,7 @@ func (app *application) Exists(accountID, applicationID int64) bool {
 }
 
 // NewApplication creates a new Application
-func NewApplication(storageClient *redis.Client) core.Application {
+func NewApplication(storageClient redis.Client) core.Application {
 	return &application{
 		storage: storageClient,
 		redis:   storageClient.Datastore(),

@@ -19,7 +19,7 @@ import (
 type (
 	accountUser struct {
 		a       core.Account
-		storage *redis.Client
+		storage redis.Client
 		redis   *red.Client
 	}
 )
@@ -384,7 +384,7 @@ func (au *accountUser) existsByKey(bucketName string) (bool, tgerrors.TGError) {
 }
 
 // NewAccountUser creates a new AccountUser
-func NewAccountUser(storageClient *redis.Client) core.AccountUser {
+func NewAccountUser(storageClient redis.Client) core.AccountUser {
 	return &accountUser{
 		storage: storageClient,
 		redis:   storageClient.Datastore(),
@@ -393,7 +393,7 @@ func NewAccountUser(storageClient *redis.Client) core.AccountUser {
 }
 
 // NewAccountUserWithAccount creates a new AccountUser
-func NewAccountUserWithAccount(storageClient *redis.Client, a core.Account) core.AccountUser {
+func NewAccountUserWithAccount(storageClient redis.Client, a core.Account) core.AccountUser {
 	return &accountUser{
 		storage: storageClient,
 		redis:   storageClient.Datastore(),
