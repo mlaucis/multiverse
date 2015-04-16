@@ -5,12 +5,12 @@
 package request
 
 import (
+	"net/http"
 	"strings"
 
 	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/tgerrors"
 	httpBasic "github.com/tapglue/backend/v02/validator/request/basic"
-	"net/http"
 )
 
 var errAuthMethodNotSupported = tgerrors.NewBadRequestError("authorization method not supported", "auth method not supported")
