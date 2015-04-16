@@ -10,6 +10,7 @@ import (
 	"time"
 
 	gksis "github.com/sendgridlabs/go-kinesis"
+	"github.com/tapglue/backend/tgerrors"
 )
 
 type (
@@ -19,7 +20,7 @@ type (
 		SetupStreams([]string) error
 
 		// PutRecord sends a new record to a Kinesis stream
-		PutRecord(streamName, partitionKey string, payload []byte) (*gksis.PutRecordResp, error)
+		PutRecord(streamName, partitionKey string, payload []byte) (*gksis.PutRecordResp, tgerrors.TGError)
 
 		// TeardownStreams destroys the streams from Kinesis
 		TeardownStreams(streamsName []string) error
@@ -43,12 +44,17 @@ var (
 	Streams = []string{StreamNewAccount}
 )
 
-func (c *cli) PutRecord(streamName, partitionKey string, payload []byte) (*gksis.PutRecordResp, error) {
+func (c *cli) PutRecord(streamName, partitionKey string, payload []byte) (*gksis.PutRecordResp, tgerrors.TGError) {
 	time.Sleep(time.Duration(rand.Intn(100)*100) * time.Millisecond)
 	args := gksis.NewArgs()
 	args.Add("StreamName", streamName)
 	args.AddRecord(payload, partitionKey)
-	return c.kinesis.PutRecord(args)
+	resp, err := c.kinesis.PutRecord(args)
+	if err != nil {
+		return nil, tgerrors.NewInternalError("failed to execute operation (1)", err.Error())
+	}
+
+	return resp, nil
 }
 
 func (c *cli) SetupStreams(streamsName []string) error {
