@@ -6,6 +6,9 @@ import (
 	"github.com/tapglue/backend/v02/entity"
 	"github.com/tapglue/backend/v02/storage/kinesis"
 
+	"encoding/json"
+	"fmt"
+
 	ksis "github.com/sendgridlabs/go-kinesis"
 )
 
@@ -26,11 +29,27 @@ func (appu *applicationUser) Read(accountID, applicationID, userID int64) (user 
 }
 
 func (appu *applicationUser) Update(existingUser, updatedUser entity.ApplicationUser, retrieve bool) (usr *entity.ApplicationUser, err tgerrors.TGError) {
-	return nil, tgerrors.NewNotFoundError("not found", "invalid handler specified")
+	data, er := json.Marshal(updatedUser)
+	if er != nil {
+		return tgerrors.NewInternalError("error while updating the user (1)", er.Error())
+	}
+
+	partitionKey := fmt.Sprintf("application-user-update-%d-%d-%d", updatedUser.AccountID, updatedUser.ApplicationID, updatedUser.ID)
+	_, err = appu.storage.PutRecord("application_user_update", partitionKey, data)
+
+	return nil, err
 }
 
-func (appu *applicationUser) Delete(accountID, applicationID, userID int64) (err tgerrors.TGError) {
-	return tgerrors.NewNotFoundError("not found", "invalid handler specified")
+func (appu *applicationUser) Delete(applicationUser *entity.ApplicationUser) (err tgerrors.TGError) {
+	data, er := json.Marshal(applicationUser)
+	if er != nil {
+		return tgerrors.NewInternalError("error while deleting the user (1)", er.Error())
+	}
+
+	partitionKey := fmt.Sprintf("application-user-delete-%d-%d-%d", applicationUser.AccountID, applicationUser.ApplicationID, applicationUser.ID)
+	_, err = appu.storage.PutRecord("application_user_delete", partitionKey, data)
+
+	return err
 }
 
 func (appu *applicationUser) List(accountID, applicationID int64) (users []*entity.ApplicationUser, err tgerrors.TGError) {

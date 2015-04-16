@@ -1,6 +1,9 @@
 package redis
 
 import (
+	"encoding/json"
+	"fmt"
+
 	"github.com/tapglue/backend/tgerrors"
 	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/entity"
@@ -18,7 +21,15 @@ type (
 )
 
 func (au *accountUser) Create(accountUser *entity.AccountUser, retrieve bool) (*entity.AccountUser, tgerrors.TGError) {
-	return nil, tgerrors.NewNotFoundError("not found", "invalid handler specified")
+	data, er := json.Marshal(accountUser)
+	if er != nil {
+		return tgerrors.NewInternalError("error while creating the account user (1)", er.Error())
+	}
+
+	partitionKey := fmt.Sprintf("account-user-%d-%d", accountUser.AccountID, accountUser.ID)
+	_, err := au.storage.PutRecord("account_user_create", partitionKey, data)
+
+	return nil, err
 }
 
 func (au *accountUser) Read(accountID, accountUserID int64) (accountUser *entity.AccountUser, er tgerrors.TGError) {
@@ -26,11 +37,27 @@ func (au *accountUser) Read(accountID, accountUserID int64) (accountUser *entity
 }
 
 func (au *accountUser) Update(existingAccountUser, updatedAccountUser entity.AccountUser, retrieve bool) (*entity.AccountUser, tgerrors.TGError) {
-	return nil, tgerrors.NewNotFoundError("not found", "invalid handler specified")
+	data, er := json.Marshal(updatedAccountUser)
+	if er != nil {
+		return tgerrors.NewInternalError("error while updating the account user (1)", er.Error())
+	}
+
+	partitionKey := fmt.Sprintf("account-user-%d-%d", updatedAccountUser.AccountID, updatedAccountUser.ID)
+	_, err := au.storage.PutRecord("account_user_update", partitionKey, data)
+
+	return nil, err
 }
 
-func (au *accountUser) Delete(accountID, userID int64) tgerrors.TGError {
-	return tgerrors.NewNotFoundError("not found", "invalid handler specified")
+func (au *accountUser) Delete(accountUser *entity.AccountUser) tgerrors.TGError {
+	data, er := json.Marshal(accountUser)
+	if er != nil {
+		return tgerrors.NewInternalError("error while creating the event (1)", er.Error())
+	}
+
+	partitionKey := fmt.Sprintf("account-user-%d-%d", accountUser.AccountID, accountUser.ID)
+	_, err := au.storage.PutRecord("account_user_delete", partitionKey, data)
+
+	return nil, err
 }
 
 func (au *accountUser) List(accountID int64) (accountUsers []*entity.AccountUser, er tgerrors.TGError) {

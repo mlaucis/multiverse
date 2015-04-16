@@ -1,6 +1,9 @@
 package redis
 
 import (
+	"encoding/json"
+	"fmt"
+
 	"github.com/tapglue/backend/tgerrors"
 	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/entity"
@@ -25,16 +28,31 @@ func (a *account) Read(accountID int64) (account *entity.Account, err tgerrors.T
 }
 
 func (a *account) Update(existingAccount, updatedAccount entity.Account, retrieve bool) (acc *entity.Account, err tgerrors.TGError) {
-	return nil, tgerrors.NewNotFoundError("not found", "invalid handler specified")
+	data, er := json.Marshal(updatedAccount)
+	if er != nil {
+		return tgerrors.NewInternalError("error while updating the account (1)", er.Error())
+	}
+
+	partitionKey := fmt.Sprintf("account-%d-update", updatedAccount.ID)
+	_, err = a.storage.PutRecord("account_update", partitionKey, data)
+
+	return nil, err
 }
 
-func (a *account) Delete(accountID int64) (err tgerrors.TGError) {
-	return tgerrors.NewNotFoundError("not found", "invalid handler specified")
+func (a *account) Delete(account *entity.Account) (err tgerrors.TGError) {
+	data, er := json.Marshal(account)
+	if er != nil {
+		return tgerrors.NewInternalError("error while deleting the account (1)", er.Error())
+	}
+
+	partitionKey := fmt.Sprintf("partition-%d-delete", account.ID)
+	_, err = a.storage.PutRecord("account_delete", partitionKey, data)
+
+	return nil, err
 }
 
 func (a *account) Exists(accountID int64) bool {
-	panic("not implemented yet")
-	return false
+	return nil, tgerrors.NewNotFoundError("not found", "invalid handler specified")
 }
 
 // NewAccount creates a new Account
