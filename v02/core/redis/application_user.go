@@ -216,8 +216,8 @@ func (appu *applicationUser) Update(existingUser, updatedUser entity.Application
 	return appu.Read(updatedUser.AccountID, updatedUser.ApplicationID, updatedUser.ID)
 }
 
-func (appu *applicationUser) Delete(accountID, applicationID, userID int64) (err tgerrors.TGError) {
-	user, err := appu.Read(accountID, applicationID, userID)
+func (appu *applicationUser) Delete(applicationUser *entity.ApplicationUser) (err tgerrors.TGError) {
+	user, err := appu.Read(applicationUser.AccountID, applicationUser.ApplicationID, applicationUser.ID)
 	if err != nil {
 		return err
 	}

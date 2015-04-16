@@ -49,7 +49,7 @@ func (acc *account) Update(ctx *context.Context) (err tgerrors.TGError) {
 }
 
 func (acc *account) Delete(ctx *context.Context) (err tgerrors.TGError) {
-	if err = acc.storage.Delete(ctx.Bag["accountID"].(int64)); err != nil {
+	if err = acc.storage.Delete(ctx.Bag["account"].(*entity.Account)); err != nil {
 		return err
 	}
 

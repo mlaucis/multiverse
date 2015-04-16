@@ -73,16 +73,12 @@ func (conn *connection) Update(ctx *context.Context) (err tgerrors.TGError) {
 }
 
 func (conn *connection) Delete(ctx *context.Context) (err tgerrors.TGError) {
-	var (
-		userToID int64
-		er       error
-	)
-
-	if userToID, er = strconv.ParseInt(ctx.Vars["userToId"], 10, 64); er != nil {
-		return tgerrors.NewBadRequestError("failed to delete the connection(1)\n"+er.Error(), er.Error())
+	connection := &entity.Connection{}
+	if er := json.Unmarshal(ctx.Body, connection); er != nil {
+		return tgerrors.NewBadRequestError(er.Error(), er.Error())
 	}
 
-	if err = conn.storage.Delete(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(int64), userToID); err != nil {
+	if err = conn.storage.Delete(connection); err != nil {
 		return
 	}
 

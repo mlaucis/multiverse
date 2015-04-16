@@ -163,14 +163,9 @@ func (au *accountUser) Update(existingAccountUser, updatedAccountUser entity.Acc
 	return au.Read(updatedAccountUser.AccountID, updatedAccountUser.ID)
 }
 
-func (au *accountUser) Delete(accountID, userID int64) tgerrors.TGError {
+func (au *accountUser) Delete(accountUser *entity.AccountUser) tgerrors.TGError {
 	// TODO: Make not deletable if its the only account user of an account
-	accountUser, er := au.Read(accountID, userID)
-	if er != nil {
-		return er
-	}
-
-	key := storageHelper.AccountUser(accountID, userID)
+	key := storageHelper.AccountUser(accountUser.AccountID, accountUser.ID)
 	result, err := au.redis.Del(key).Result()
 	if err != nil {
 		return tgerrors.NewInternalError("failed to delete the account user (1)", err.Error())
@@ -180,7 +175,7 @@ func (au *accountUser) Delete(accountID, userID int64) tgerrors.TGError {
 		return tgerrors.NewNotFoundError("failed to delete the account user (2)", "account user not found")
 	}
 
-	listKey := storageHelper.AccountUsers(accountID)
+	listKey := storageHelper.AccountUsers(accountUser.AccountID)
 	if err = au.redis.LRem(listKey, 0, key).Err(); err != nil {
 		return tgerrors.NewInternalError("failed to delete the account user (3)", err.Error())
 	}

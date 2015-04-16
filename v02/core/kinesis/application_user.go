@@ -31,7 +31,7 @@ func (appu *applicationUser) Read(accountID, applicationID, userID int64) (user 
 func (appu *applicationUser) Update(existingUser, updatedUser entity.ApplicationUser, retrieve bool) (usr *entity.ApplicationUser, err tgerrors.TGError) {
 	data, er := json.Marshal(updatedUser)
 	if er != nil {
-		return tgerrors.NewInternalError("error while updating the user (1)", er.Error())
+		return nil, tgerrors.NewInternalError("error while updating the user (1)", er.Error())
 	}
 
 	partitionKey := fmt.Sprintf("application-user-update-%d-%d-%d", updatedUser.AccountID, updatedUser.ApplicationID, updatedUser.ID)
@@ -90,7 +90,6 @@ func (appu *applicationUser) ExistsByUsername(accountID, applicationID int64, us
 
 func (appu *applicationUser) ExistsByID(accountID, applicationID, userID int64) bool {
 	panic("not implemented yet")
-	return false
 }
 
 // NewApplicationUser creates a new Event

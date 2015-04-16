@@ -121,13 +121,13 @@ func (app *application) Update(existingApplication, updatedApplication entity.Ap
 	return app.Read(updatedApplication.AccountID, updatedApplication.ID)
 }
 
-func (app *application) Delete(accountID, applicationID int64) tgerrors.TGError {
+func (app *application) Delete(application *entity.Application) tgerrors.TGError {
 	// TODO: Disable application users?
 	// TODO: User connections?
 	// TODO: Application lists?
 	// TODO: Application events?
 
-	key := storageHelper.Application(accountID, applicationID)
+	key := storageHelper.Application(application.AccountID, application.ID)
 	result, er := app.redis.Del(key).Result()
 	if er != nil {
 		return tgerrors.NewInternalError("failed to delete the application (1)", er.Error())
@@ -137,7 +137,7 @@ func (app *application) Delete(accountID, applicationID int64) tgerrors.TGError 
 		return tgerrors.NewInternalError("failed to delete the application (2)", "app not found")
 	}
 
-	listKey := storageHelper.Applications(accountID)
+	listKey := storageHelper.Applications(application.AccountID)
 	if er := app.redis.LRem(listKey, 0, key).Err(); er != nil {
 		return tgerrors.NewInternalError("failed to delete the application (3)", er.Error())
 	}

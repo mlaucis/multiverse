@@ -23,7 +23,7 @@ type (
 func (au *accountUser) Create(accountUser *entity.AccountUser, retrieve bool) (*entity.AccountUser, tgerrors.TGError) {
 	data, er := json.Marshal(accountUser)
 	if er != nil {
-		return tgerrors.NewInternalError("error while creating the account user (1)", er.Error())
+		return nil, tgerrors.NewInternalError("error while creating the account user (1)", er.Error())
 	}
 
 	partitionKey := fmt.Sprintf("account-user-%d-%d", accountUser.AccountID, accountUser.ID)
@@ -39,7 +39,7 @@ func (au *accountUser) Read(accountID, accountUserID int64) (accountUser *entity
 func (au *accountUser) Update(existingAccountUser, updatedAccountUser entity.AccountUser, retrieve bool) (*entity.AccountUser, tgerrors.TGError) {
 	data, er := json.Marshal(updatedAccountUser)
 	if er != nil {
-		return tgerrors.NewInternalError("error while updating the account user (1)", er.Error())
+		return nil, tgerrors.NewInternalError("error while updating the account user (1)", er.Error())
 	}
 
 	partitionKey := fmt.Sprintf("account-user-%d-%d", updatedAccountUser.AccountID, updatedAccountUser.ID)
@@ -57,7 +57,7 @@ func (au *accountUser) Delete(accountUser *entity.AccountUser) tgerrors.TGError 
 	partitionKey := fmt.Sprintf("account-user-%d-%d", accountUser.AccountID, accountUser.ID)
 	_, err := au.storage.PutRecord("account_user_delete", partitionKey, data)
 
-	return nil, err
+	return err
 }
 
 func (au *accountUser) List(accountID int64) (accountUsers []*entity.AccountUser, er tgerrors.TGError) {
@@ -98,7 +98,6 @@ func (au *accountUser) ExistsByUsername(username string) (bool, tgerrors.TGError
 
 func (au *accountUser) ExistsByID(accountID, userID int64) bool {
 	panic("not implemented yet")
-	return false
 }
 
 // NewAccountUser creates a new AccountUser

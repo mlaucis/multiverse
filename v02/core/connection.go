@@ -22,7 +22,7 @@ type (
 		Update(existingConnection, updatedConnection entity.Connection, retrieve bool) (con *entity.Connection, err tgerrors.TGError)
 
 		// Delete deletes the connection matching the IDs or an error
-		Delete(accountID, applicationID, userFromID, userToID int64) (err tgerrors.TGError)
+		Delete(*entity.Connection) (err tgerrors.TGError)
 
 		// List returns all connections from a certain user
 		List(accountID, applicationID, userID int64) (users []*entity.ApplicationUser, err tgerrors.TGError)

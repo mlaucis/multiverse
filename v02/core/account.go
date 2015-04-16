@@ -22,7 +22,7 @@ type (
 		Update(existingAccount, updatedAccount entity.Account, retrieve bool) (*entity.Account, tgerrors.TGError)
 
 		// Delete deletes the account matching the ID or an error
-		Delete(accountID int64) tgerrors.TGError
+		Delete(*entity.Account) tgerrors.TGError
 
 		// Exists validates if an account exists and returns the account or an error
 		Exists(accountID int64) bool

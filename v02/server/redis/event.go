@@ -83,16 +83,12 @@ func (evt *event) Update(ctx *context.Context) (err tgerrors.TGError) {
 }
 
 func (evt *event) Delete(ctx *context.Context) (err tgerrors.TGError) {
-	var (
-		eventID int64
-		er      error
-	)
-
-	if eventID, er = strconv.ParseInt(ctx.Vars["eventId"], 10, 64); er != nil {
+	event := &entity.Event{}
+	if er := json.Unmarshal(ctx.Body, event); er != nil {
 		return tgerrors.NewBadRequestError("failed to delete the event (1)\n"+er.Error(), er.Error())
 	}
 
-	if err = evt.storage.Delete(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(int64), eventID); err != nil {
+	if err = evt.storage.Delete(event); err != nil {
 		return
 	}
 

@@ -30,7 +30,7 @@ func (a *account) Read(accountID int64) (account *entity.Account, err tgerrors.T
 func (a *account) Update(existingAccount, updatedAccount entity.Account, retrieve bool) (acc *entity.Account, err tgerrors.TGError) {
 	data, er := json.Marshal(updatedAccount)
 	if er != nil {
-		return tgerrors.NewInternalError("error while updating the account (1)", er.Error())
+		return nil, tgerrors.NewInternalError("error while updating the account (1)", er.Error())
 	}
 
 	partitionKey := fmt.Sprintf("account-%d-update", updatedAccount.ID)
@@ -48,11 +48,11 @@ func (a *account) Delete(account *entity.Account) (err tgerrors.TGError) {
 	partitionKey := fmt.Sprintf("partition-%d-delete", account.ID)
 	_, err = a.storage.PutRecord("account_delete", partitionKey, data)
 
-	return nil, err
+	return err
 }
 
 func (a *account) Exists(accountID int64) bool {
-	return nil, tgerrors.NewNotFoundError("not found", "invalid handler specified")
+	panic("not implemented yet")
 }
 
 // NewAccount creates a new Account

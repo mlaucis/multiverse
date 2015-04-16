@@ -22,7 +22,7 @@ type (
 		Update(existingAccountUser, updatedAccountUser entity.AccountUser, retrieve bool) (*entity.AccountUser, tgerrors.TGError)
 
 		// Delete deletes the account user matching the IDs or an error
-		Delete(accountID, userID int64) tgerrors.TGError
+		Delete(*entity.AccountUser) tgerrors.TGError
 
 		// List returns all the users from a certain account
 		List(accountID int64) (accountUsers []*entity.AccountUser, er tgerrors.TGError)

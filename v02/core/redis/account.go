@@ -105,8 +105,8 @@ func (a *account) Update(existingAccount, updatedAccount entity.Account, retriev
 	return a.Read(updatedAccount.ID)
 }
 
-func (a *account) Delete(accountID int64) (err tgerrors.TGError) {
-	result, er := a.redis.Del(storageHelper.Account(accountID)).Result()
+func (a *account) Delete(account *entity.Account) (err tgerrors.TGError) {
+	result, er := a.redis.Del(storageHelper.Account(account.ID)).Result()
 	if er != nil {
 		return tgerrors.NewInternalError("failed to delete the account (1)", er.Error())
 	}
@@ -117,7 +117,7 @@ func (a *account) Delete(accountID int64) (err tgerrors.TGError) {
 	// TODO: Disable Applications Events
 
 	if result != 1 {
-		return tgerrors.NewNotFoundError("The resource for the provided id doesn't exist", fmt.Sprintf("unexisting account for id %d", accountID))
+		return tgerrors.NewNotFoundError("The resource for the provided id doesn't exist", fmt.Sprintf("unexisting account for id %d", account.ID))
 	}
 
 	return nil

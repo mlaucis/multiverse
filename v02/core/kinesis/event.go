@@ -22,7 +22,7 @@ type (
 func (e *event) Create(event *entity.Event, retrieve bool) (evn *entity.Event, err tgerrors.TGError) {
 	data, er := json.Marshal(event)
 	if er != nil {
-		return tgerrors.NewInternalError("error while creating the event (1)", er.Error())
+		return nil, tgerrors.NewInternalError("error while creating the event (1)", er.Error())
 	}
 
 	partitionKey := fmt.Sprintf("partitionKey-%d-%d", event.AccountID, event.ApplicationID)
@@ -32,13 +32,13 @@ func (e *event) Create(event *entity.Event, retrieve bool) (evn *entity.Event, e
 }
 
 func (e *event) Read(accountID, applicationID, userID, eventID int64) (event *entity.Event, err tgerrors.TGError) {
-	return tgerrors.NewNotFoundError("not found", "invalid handler specified")
+	return nil, tgerrors.NewNotFoundError("not found", "invalid handler specified")
 }
 
 func (e *event) Update(existingEvent, updatedEvent entity.Event, retrieve bool) (evn *entity.Event, err tgerrors.TGError) {
 	data, er := json.Marshal(updatedEvent)
 	if er != nil {
-		return tgerrors.NewInternalError("error while updating the event (1)", er.Error())
+		return nil, tgerrors.NewInternalError("error while updating the event (1)", er.Error())
 	}
 
 	partitionKey := fmt.Sprintf("partitionKey-%d-%d", updatedEvent.AccountID, updatedEvent.ApplicationID)
@@ -56,15 +56,15 @@ func (e *event) Delete(event *entity.Event) (err tgerrors.TGError) {
 	partitionKey := fmt.Sprintf("partitionKey-%d-%d", event.AccountID, event.ApplicationID)
 	_, err = e.storage.PutRecord("event_delete", partitionKey, data)
 
-	return nil, err
+	return err
 }
 
 func (e *event) List(accountID, applicationID, userID int64) (events []*entity.Event, err tgerrors.TGError) {
-	return tgerrors.NewNotFoundError("not found", "invalid handler specified")
+	return nil, tgerrors.NewNotFoundError("not found", "invalid handler specified")
 }
 
 func (e *event) ConnectionList(accountID, applicationID, userID int64) (events []*entity.Event, err tgerrors.TGError) {
-	return tgerrors.NewNotFoundError("not found", "invalid handler specified")
+	return nil, tgerrors.NewNotFoundError("not found", "invalid handler specified")
 }
 
 func (e *event) WriteToConnectionsLists(event *entity.Event, key string) (err tgerrors.TGError) {
@@ -76,15 +76,15 @@ func (e *event) DeleteFromConnectionsLists(accountID, applicationID, userID int6
 }
 
 func (e *event) GeoSearch(accountID, applicationID int64, latitude, longitude, radius float64) (events []*entity.Event, err tgerrors.TGError) {
-	return tgerrors.NewNotFoundError("not found", "invalid handler specified")
+	return nil, tgerrors.NewNotFoundError("not found", "invalid handler specified")
 }
 
 func (e *event) ObjectSearch(accountID, applicationID int64, objectKey string) ([]*entity.Event, tgerrors.TGError) {
-	return tgerrors.NewNotFoundError("not found", "invalid handler specified")
+	return nil, tgerrors.NewNotFoundError("not found", "invalid handler specified")
 }
 
 func (e *event) LocationSearch(accountID, applicationID int64, locationKey string) ([]*entity.Event, tgerrors.TGError) {
-	return tgerrors.NewNotFoundError("not found", "invalid handler specified")
+	return nil, tgerrors.NewNotFoundError("not found", "invalid handler specified")
 }
 
 // NewEvent creates a new Event

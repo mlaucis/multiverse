@@ -50,7 +50,7 @@ func (app *application) Update(ctx *context.Context) (err tgerrors.TGError) {
 }
 
 func (app *application) Delete(ctx *context.Context) (err tgerrors.TGError) {
-	if err = app.storage.Delete(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64)); err != nil {
+	if err = app.storage.Delete(ctx.Bag["application"].(*entity.Application)); err != nil {
 		return
 	}
 

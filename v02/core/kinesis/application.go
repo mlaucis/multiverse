@@ -22,7 +22,7 @@ type (
 func (app *application) Create(application *entity.Application, retrieve bool) (*entity.Application, tgerrors.TGError) {
 	data, er := json.Marshal(application)
 	if er != nil {
-		return tgerrors.NewInternalError("error while creating the application (1)", er.Error())
+		return nil, tgerrors.NewInternalError("error while creating the application (1)", er.Error())
 	}
 
 	partitionKey := fmt.Sprintf("application-create-%d", application.AccountID)
@@ -38,7 +38,7 @@ func (app *application) Read(accountID, applicationID int64) (*entity.Applicatio
 func (app *application) Update(existingApplication, updatedApplication entity.Application, retrieve bool) (*entity.Application, tgerrors.TGError) {
 	data, er := json.Marshal(updatedApplication)
 	if er != nil {
-		return tgerrors.NewInternalError("error while updating the application (1)", er.Error())
+		return nil, tgerrors.NewInternalError("error while updating the application (1)", er.Error())
 	}
 
 	partitionKey := fmt.Sprintf("application-update-%d-%d", updatedApplication.AccountID, updatedApplication.ID)
@@ -47,13 +47,13 @@ func (app *application) Update(existingApplication, updatedApplication entity.Ap
 	return nil, err
 }
 
-func (app *application) Delete(accountUser *entity.AccountUser) tgerrors.TGError {
-	data, er := json.Marshal(accountUser)
+func (app *application) Delete(application *entity.Application) tgerrors.TGError {
+	data, er := json.Marshal(application)
 	if er != nil {
 		return tgerrors.NewInternalError("error while deleting the application (1)", er.Error())
 	}
 
-	partitionKey := fmt.Sprintf("application-delete-%d-%d", accountUser.AccountID, accountUser.ID)
+	partitionKey := fmt.Sprintf("application-delete-%d-%d", application.AccountID, application.ID)
 	_, err := app.storage.PutRecord("application_delete", partitionKey, data)
 
 	return err
@@ -65,7 +65,6 @@ func (app *application) List(accountID int64) ([]*entity.Application, tgerrors.T
 
 func (app *application) Exists(accountID, applicationID int64) bool {
 	panic("not implemented yet")
-	return false
 }
 
 // NewApplication creates a new Application

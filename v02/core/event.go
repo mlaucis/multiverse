@@ -22,7 +22,7 @@ type (
 		Update(existingEvent, updatedEvent entity.Event, retrieve bool) (evn *entity.Event, err tgerrors.TGError)
 
 		// Delete deletes the event matching the IDs or an error
-		Delete(accountID, applicationID, userID, eventID int64) (err tgerrors.TGError)
+		Delete(*entity.Event) (err tgerrors.TGError)
 
 		// List returns all events from a certain user
 		List(accountID, applicationID, userID int64) (events []*entity.Event, err tgerrors.TGError)

@@ -177,14 +177,8 @@ func (e *event) Update(existingEvent, updatedEvent entity.Event, retrieve bool) 
 	return e.Read(updatedEvent.AccountID, updatedEvent.ApplicationID, updatedEvent.UserID, updatedEvent.ID)
 }
 
-func (e *event) Delete(accountID, applicationID, userID, eventID int64) (err tgerrors.TGError) {
-	key := storageHelper.Event(accountID, applicationID, userID, eventID)
-
-	event, err := e.Read(accountID, applicationID, userID, eventID)
-	if err != nil {
-		return err
-	}
-
+func (e *event) Delete(event *entity.Event) (err tgerrors.TGError) {
+	key := storageHelper.Event(event.AccountID, event.ApplicationID, event.UserID, event.ID)
 	result, er := e.redis.Del(key).Result()
 	if er != nil {
 		return tgerrors.NewInternalError("failed to delete the event (1)", er.Error())
@@ -194,12 +188,12 @@ func (e *event) Delete(accountID, applicationID, userID, eventID int64) (err tge
 		return tgerrors.NewInternalError("failed to delete the event (2)", "event already deleted")
 	}
 
-	listKey := storageHelper.Events(accountID, applicationID, userID)
+	listKey := storageHelper.Events(event.AccountID, event.ApplicationID, event.UserID)
 	if er = e.redis.ZRem(listKey, key).Err(); er != nil {
 		return tgerrors.NewInternalError("failed to read the event (1)", er.Error())
 	}
 
-	if err = e.DeleteFromConnectionsLists(accountID, applicationID, userID, key); err != nil {
+	if err = e.DeleteFromConnectionsLists(event.AccountID, event.ApplicationID, event.UserID, key); err != nil {
 		return
 	}
 

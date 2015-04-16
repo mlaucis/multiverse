@@ -118,8 +118,8 @@ func (c *connection) Update(existingConnection, updatedConnection entity.Connect
 	return c.Read(updatedConnection.AccountID, updatedConnection.ApplicationID, updatedConnection.UserFromID, updatedConnection.UserToID)
 }
 
-func (c *connection) Delete(accountID, applicationID, userFromID, userToID int64) (err tgerrors.TGError) {
-	key := storageHelper.Connection(accountID, applicationID, userFromID, userToID)
+func (c *connection) Delete(connection *entity.Connection) (err tgerrors.TGError) {
+	key := storageHelper.Connection(connection.AccountID, connection.ApplicationID, connection.UserFromID, connection.UserToID)
 	result, er := c.redis.Del(key).Result()
 	if er != nil {
 		return tgerrors.NewInternalError("failed to delete the connection (1)", er.Error())
@@ -129,22 +129,22 @@ func (c *connection) Delete(accountID, applicationID, userFromID, userToID int64
 		return tgerrors.NewNotFoundError("failed to delete the connection (2)", "connection not found")
 	}
 
-	listKey := storageHelper.Connections(accountID, applicationID, userFromID)
+	listKey := storageHelper.Connections(connection.AccountID, connection.ApplicationID, connection.UserFromID)
 	if er = c.redis.LRem(listKey, 0, key).Err(); er != nil {
 		return tgerrors.NewInternalError("failed to delete the connection (3)", er.Error())
 	}
-	userListKey := storageHelper.ConnectionUsers(accountID, applicationID, userFromID)
-	userKey := storageHelper.User(accountID, applicationID, userToID)
+	userListKey := storageHelper.ConnectionUsers(connection.AccountID, connection.ApplicationID, connection.UserFromID)
+	userKey := storageHelper.User(connection.AccountID, connection.ApplicationID, connection.UserToID)
 	if er = c.redis.LRem(userListKey, 0, userKey).Err(); er != nil {
 		return tgerrors.NewInternalError("failed to delete the connection (4)", er.Error())
 	}
-	followerListKey := storageHelper.FollowedByUsers(accountID, applicationID, userToID)
-	followerKey := storageHelper.User(accountID, applicationID, userFromID)
+	followerListKey := storageHelper.FollowedByUsers(connection.AccountID, connection.ApplicationID, connection.UserToID)
+	followerKey := storageHelper.User(connection.AccountID, connection.ApplicationID, connection.UserFromID)
 	if er = c.redis.LRem(followerListKey, 0, followerKey).Err(); er != nil {
 		return tgerrors.NewInternalError("failed to delete the connection (5)", er.Error())
 	}
 
-	if err := c.DeleteEventsFromLists(accountID, applicationID, userFromID, userToID); err != nil {
+	if err := c.DeleteEventsFromLists(connection.AccountID, connection.ApplicationID, connection.UserFromID, connection.UserToID); err != nil {
 		return tgerrors.NewInternalError("failed to delete the connection (6)", err.Error())
 	}
 

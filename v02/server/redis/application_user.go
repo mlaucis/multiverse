@@ -55,7 +55,7 @@ func (appUser *applicationUser) Update(ctx *context.Context) (err tgerrors.TGErr
 }
 
 func (appUser *applicationUser) Delete(ctx *context.Context) (err tgerrors.TGError) {
-	if err = appUser.storage.Delete(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(int64)); err != nil {
+	if err = appUser.storage.Delete(ctx.Bag["applicationUser"].(*entity.ApplicationUser)); err != nil {
 		return
 	}
 

@@ -26,7 +26,7 @@ type (
 func (c *connection) Create(conn *entity.Connection, retrieve bool) (con *entity.Connection, err tgerrors.TGError) {
 	data, er := json.Marshal(conn)
 	if er != nil {
-		return tgerrors.NewInternalError("error while creating the connection (1)", er.Error())
+		return nil, tgerrors.NewInternalError("error while creating the connection (1)", er.Error())
 	}
 
 	partitionKey := fmt.Sprintf("partitionKey-%d-%d", conn.AccountID, conn.ApplicationID)
@@ -42,7 +42,7 @@ func (c *connection) Read(accountID, applicationID, userFromID, userToID int64) 
 func (c *connection) Update(existingConnection, updatedConnection entity.Connection, retrieve bool) (con *entity.Connection, err tgerrors.TGError) {
 	data, er := json.Marshal(updatedConnection)
 	if er != nil {
-		return tgerrors.NewInternalError("error while updating the connection (1)", er.Error())
+		return nil, tgerrors.NewInternalError("error while updating the connection (1)", er.Error())
 	}
 
 	partitionKey := fmt.Sprintf("partitionKey-%d-%d", updatedConnection.AccountID, updatedConnection.ApplicationID)
@@ -60,7 +60,7 @@ func (c *connection) Delete(connection *entity.Connection) (err tgerrors.TGError
 	partitionKey := fmt.Sprintf("partitionKey-%d-%d", connection.AccountID, connection.ApplicationID)
 	_, err = c.storage.PutRecord("connection_delete", partitionKey, data)
 
-	return nil, err
+	return err
 }
 
 func (c *connection) List(accountID, applicationID, userID int64) (users []*entity.ApplicationUser, err tgerrors.TGError) {
@@ -74,7 +74,7 @@ func (c *connection) FollowedBy(accountID, applicationID, userID int64) (users [
 func (c *connection) Confirm(connection *entity.Connection, retrieve bool) (con *entity.Connection, err tgerrors.TGError) {
 	data, er := json.Marshal(connection)
 	if er != nil {
-		return tgerrors.NewInternalError("error while confirming the connection (1)", er.Error())
+		return nil, tgerrors.NewInternalError("error while confirming the connection (1)", er.Error())
 	}
 
 	partitionKey := fmt.Sprintf("partitionKey-%d-%d", connection.AccountID, connection.ApplicationID)
@@ -102,7 +102,7 @@ func (c *connection) SocialConnect(user *entity.ApplicationUser, platform string
 		socialFriendsIDs: socialFriendsIDs,
 	})
 	if er != nil {
-		return tgerrors.NewInternalError("error while confirming the connection (1)", er.Error())
+		return nil, tgerrors.NewInternalError("error while confirming the connection (1)", er.Error())
 	}
 
 	partitionKey := fmt.Sprintf("partitionKey-%d-%d", user.AccountID, user.ApplicationID)
@@ -120,7 +120,7 @@ func (c *connection) AutoConnectSocialFriends(user *entity.ApplicationUser, ourS
 		ourStoredUsersIDs: ourStoredUsersIDs,
 	})
 	if er != nil {
-		return tgerrors.NewInternalError("error while creating the connections via social platform (1)", er.Error())
+		return nil, tgerrors.NewInternalError("error while creating the connections via social platform (1)", er.Error())
 	}
 
 	partitionKey := fmt.Sprintf("partitionKey-%d-%d", user.AccountID, user.ApplicationID)

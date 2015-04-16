@@ -22,7 +22,7 @@ type (
 		Update(existingApplication, updatedApplication entity.Application, retrieve bool) (*entity.Application, tgerrors.TGError)
 
 		// Delete deletes the application matching the IDs or an error
-		Delete(accountID, applicationID int64) tgerrors.TGError
+		Delete(*entity.Application) tgerrors.TGError
 
 		// List returns all applications from a certain account
 		List(accountID int64) ([]*entity.Application, tgerrors.TGError)
