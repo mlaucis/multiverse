@@ -18,68 +18,55 @@ type (
 )
 
 func (au *accountUser) Create(accountUser *entity.AccountUser, retrieve bool) (*entity.AccountUser, tgerrors.TGError) {
-	panic("not implemented yet")
-	return nil, nil
+	return nil, tgerrors.NewNotFoundError("not found", "invalid handler specified")
 }
 
 func (au *accountUser) Read(accountID, accountUserID int64) (accountUser *entity.AccountUser, er tgerrors.TGError) {
-	panic("not implemented yet")
-	return nil, nil
+	return nil, tgerrors.NewNotFoundError("not found", "invalid handler specified")
 }
 
 func (au *accountUser) Update(existingAccountUser, updatedAccountUser entity.AccountUser, retrieve bool) (*entity.AccountUser, tgerrors.TGError) {
-	panic("not implemented yet")
-	return nil, nil
+	return nil, tgerrors.NewNotFoundError("not found", "invalid handler specified")
 }
 
 func (au *accountUser) Delete(accountID, userID int64) tgerrors.TGError {
-	panic("not implemented yet")
-	return nil
+	return tgerrors.NewNotFoundError("not found", "invalid handler specified")
 }
 
 func (au *accountUser) List(accountID int64) (accountUsers []*entity.AccountUser, er tgerrors.TGError) {
-	panic("not implemented yet")
-	return nil, nil
+	return accountUsers, tgerrors.NewNotFoundError("not found", "invalid handler specified")
 }
 
 func (au *accountUser) CreateSession(user *entity.AccountUser) (string, tgerrors.TGError) {
-	panic("not implemented yet")
-	return "", nil
+	return "", tgerrors.NewNotFoundError("not found", "invalid handler specified")
 }
 
 func (au *accountUser) RefreshSession(sessionToken string, user *entity.AccountUser) (string, tgerrors.TGError) {
-	panic("not implemented yet")
-	return "", nil
+	return "", tgerrors.NewNotFoundError("not found", "invalid handler specified")
 }
 
 func (au *accountUser) DestroySession(sessionToken string, user *entity.AccountUser) tgerrors.TGError {
-	panic("not implemented yet")
-	return nil
+	return tgerrors.NewNotFoundError("not found", "invalid handler specified")
 }
 
 func (au *accountUser) GetSession(user *entity.AccountUser) (string, tgerrors.TGError) {
-	panic("not implemented yet")
-	return "", nil
+	return "", tgerrors.NewNotFoundError("not found", "invalid handler specified")
 }
 
 func (au *accountUser) FindByEmail(email string) (*entity.Account, *entity.AccountUser, tgerrors.TGError) {
-	panic("not implemented yet")
-	return nil, nil, nil
+	return nil, nil, tgerrors.NewNotFoundError("not found", "invalid handler specified")
 }
 
 func (au *accountUser) ExistsByEmail(email string) (bool, tgerrors.TGError) {
-	panic("not implemented yet")
-	return false, nil
+	return false, tgerrors.NewNotFoundError("not found", "invalid handler specified")
 }
 
 func (au *accountUser) FindByUsername(username string) (*entity.Account, *entity.AccountUser, tgerrors.TGError) {
-	panic("not implemented yet")
-	return nil, nil, nil
+	return nil, nil, tgerrors.NewNotFoundError("not found", "invalid handler specified")
 }
 
 func (au *accountUser) ExistsByUsername(username string) (bool, tgerrors.TGError) {
-	panic("not implemented yet")
-	return false, nil
+	return false, tgerrors.NewNotFoundError("not found", "invalid handler specified")
 }
 
 func (au *accountUser) ExistsByID(accountID, userID int64) bool {

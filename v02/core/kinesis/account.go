@@ -17,23 +17,19 @@ type (
 )
 
 func (a *account) Create(account *entity.Account, retrieve bool) (acc *entity.Account, err tgerrors.TGError) {
-	panic("not implemented yet")
-	return nil, nil
+	return nil, tgerrors.NewNotFoundError("not found", "invalid handler specified")
 }
 
 func (a *account) Read(accountID int64) (account *entity.Account, err tgerrors.TGError) {
-	panic("not implemented yet")
-	return nil, nil
+	return nil, tgerrors.NewNotFoundError("not found", "invalid handler specified")
 }
 
 func (a *account) Update(existingAccount, updatedAccount entity.Account, retrieve bool) (acc *entity.Account, err tgerrors.TGError) {
-	panic("not implemented yet")
-	return nil, nil
+	return nil, tgerrors.NewNotFoundError("not found", "invalid handler specified")
 }
 
 func (a *account) Delete(accountID int64) (err tgerrors.TGError) {
-	panic("not implemented yet")
-	return nil
+	return tgerrors.NewNotFoundError("not found", "invalid handler specified")
 }
 
 func (a *account) Exists(accountID int64) bool {

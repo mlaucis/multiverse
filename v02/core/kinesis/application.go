@@ -17,28 +17,23 @@ type (
 )
 
 func (app *application) Create(application *entity.Application, retrieve bool) (*entity.Application, tgerrors.TGError) {
-	panic("not implemented yet")
-	return nil, nil
+	return nil, tgerrors.NewNotFoundError("not found", "invalid handler specified")
 }
 
 func (app *application) Read(accountID, applicationID int64) (*entity.Application, tgerrors.TGError) {
-	panic("not implemented yet")
-	return nil, nil
+	return nil, tgerrors.NewNotFoundError("not found", "invalid handler specified")
 }
 
 func (app *application) Update(existingApplication, updatedApplication entity.Application, retrieve bool) (*entity.Application, tgerrors.TGError) {
-	panic("not implemented yet")
-	return nil, nil
+	return nil, tgerrors.NewNotFoundError("not found", "invalid handler specified")
 }
 
 func (app *application) Delete(accountID, applicationID int64) tgerrors.TGError {
-	panic("not implemented yet")
-	return nil
+	return tgerrors.NewNotFoundError("not found", "invalid handler specified")
 }
 
 func (app *application) List(accountID int64) ([]*entity.Application, tgerrors.TGError) {
-	panic("not implemented yet")
-	return nil, nil
+	return nil, tgerrors.NewNotFoundError("not found", "invalid handler specified")
 }
 
 func (app *application) Exists(accountID, applicationID int64) bool {
