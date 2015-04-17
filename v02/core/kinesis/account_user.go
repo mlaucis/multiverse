@@ -27,7 +27,7 @@ func (au *accountUser) Create(accountUser *entity.AccountUser, retrieve bool) (*
 	}
 
 	partitionKey := fmt.Sprintf("account-user-%d-%d", accountUser.AccountID, accountUser.ID)
-	_, err := au.storage.PutRecord("account_user_create", partitionKey, data)
+	_, err := au.storage.PutRecord("v02_account_user_create", partitionKey, data)
 
 	return nil, err
 }
@@ -43,7 +43,7 @@ func (au *accountUser) Update(existingAccountUser, updatedAccountUser entity.Acc
 	}
 
 	partitionKey := fmt.Sprintf("account-user-%d-%d", updatedAccountUser.AccountID, updatedAccountUser.ID)
-	_, err := au.storage.PutRecord("account_user_update", partitionKey, data)
+	_, err := au.storage.PutRecord("v02_account_user_update", partitionKey, data)
 
 	return nil, err
 }
@@ -55,7 +55,7 @@ func (au *accountUser) Delete(accountUser *entity.AccountUser) tgerrors.TGError 
 	}
 
 	partitionKey := fmt.Sprintf("account-user-%d-%d", accountUser.AccountID, accountUser.ID)
-	_, err := au.storage.PutRecord("account_user_delete", partitionKey, data)
+	_, err := au.storage.PutRecord("v02_account_user_delete", partitionKey, data)
 
 	return err
 }
