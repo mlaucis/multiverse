@@ -26,7 +26,7 @@ func (e *event) Create(event *entity.Event, retrieve bool) (evn *entity.Event, e
 	}
 
 	partitionKey := fmt.Sprintf("partitionKey-%d-%d", event.AccountID, event.ApplicationID)
-	_, err = e.storage.PutRecord("v02_event_create", partitionKey, data)
+	_, err = e.storage.PutRecord(kinesis.StreamEventCreate, partitionKey, data)
 
 	return nil, err
 }
@@ -42,7 +42,7 @@ func (e *event) Update(existingEvent, updatedEvent entity.Event, retrieve bool) 
 	}
 
 	partitionKey := fmt.Sprintf("partitionKey-%d-%d", updatedEvent.AccountID, updatedEvent.ApplicationID)
-	_, err = e.storage.PutRecord("v02_event_update", partitionKey, data)
+	_, err = e.storage.PutRecord(kinesis.StreamEventUpdate, partitionKey, data)
 
 	return nil, err
 }
@@ -54,7 +54,7 @@ func (e *event) Delete(event *entity.Event) (err tgerrors.TGError) {
 	}
 
 	partitionKey := fmt.Sprintf("partitionKey-%d-%d", event.AccountID, event.ApplicationID)
-	_, err = e.storage.PutRecord("v02_event_delete", partitionKey, data)
+	_, err = e.storage.PutRecord(kinesis.StreamEventDelete, partitionKey, data)
 
 	return err
 }

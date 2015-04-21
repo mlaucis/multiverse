@@ -48,6 +48,54 @@ type (
 	}
 )
 
+// These are the names of the Kinesis streams that we can use across various platforms
+const (
+	StreamAccountUpdate           = "v02_account_update"
+	StreamAccountDelete           = "v02_account_delete"
+	StreamAccountUserCreate       = "v02_account_user_create"
+	StreamAccountUserUpdate       = "v02_account_user_update"
+	StreamAccountUserDelete       = "v02_account_user_delete"
+	StreamApplicationCreate       = "v02_application_create"
+	StreamApplicationUpdate       = "v02_application_update"
+	StreamApplicationDelete       = "v02_application_delete"
+	StreamApplicationUserUpdate   = "v02_application_user_update"
+	StreamApplicationUserDelete   = "v02_application_user_delete"
+	StreamConnectionCreate        = "v02_connection_create"
+	StreamConnectionUpdate        = "v02_connection_update"
+	StreamConnectionDelete        = "v02_connection_delete"
+	StreamConnectionConfirm       = "v02_connection_confirm"
+	StreamConnectionSocialConnect = "v02_connection_social_connect"
+	StreamConnectionAutoConnect   = "v02_connection_auto_connect"
+	StreamEventCreate             = "v02_event_create"
+	StreamEventUpdate             = "v02_event_update"
+	StreamEventDelete             = "v02_event_delete"
+)
+
+var (
+	// Streams defines the array of all streams currently defined by the application
+	Streams = []string{
+		StreamAccountUpdate,
+		StreamAccountDelete,
+		StreamAccountUserCreate,
+		StreamAccountUserUpdate,
+		StreamAccountUserDelete,
+		StreamApplicationCreate,
+		StreamApplicationUpdate,
+		StreamApplicationDelete,
+		StreamApplicationUserUpdate,
+		StreamApplicationUserDelete,
+		StreamConnectionCreate,
+		StreamConnectionUpdate,
+		StreamConnectionDelete,
+		StreamConnectionConfirm,
+		StreamConnectionSocialConnect,
+		StreamConnectionAutoConnect,
+		StreamEventCreate,
+		StreamEventUpdate,
+		StreamEventDelete,
+	}
+)
+
 func (c *cli) PutRecord(streamName, partitionKey string, payload []byte) (*gksis.PutRecordResp, tgerrors.TGError) {
 	time.Sleep(time.Duration(rand.Intn(100)*100) * time.Millisecond)
 	args := gksis.NewArgs()

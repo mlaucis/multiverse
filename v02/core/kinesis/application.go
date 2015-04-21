@@ -26,7 +26,7 @@ func (app *application) Create(application *entity.Application, retrieve bool) (
 	}
 
 	partitionKey := fmt.Sprintf("application-create-%d", application.AccountID)
-	_, err := app.storage.PutRecord("v02_application_create", partitionKey, data)
+	_, err := app.storage.PutRecord(kinesis.StreamApplicationCreate, partitionKey, data)
 
 	return nil, err
 }
@@ -42,7 +42,7 @@ func (app *application) Update(existingApplication, updatedApplication entity.Ap
 	}
 
 	partitionKey := fmt.Sprintf("application-update-%d-%d", updatedApplication.AccountID, updatedApplication.ID)
-	_, err := app.storage.PutRecord("v02_application_update", partitionKey, data)
+	_, err := app.storage.PutRecord(kinesis.StreamApplicationUpdate, partitionKey, data)
 
 	return nil, err
 }
@@ -54,7 +54,7 @@ func (app *application) Delete(application *entity.Application) tgerrors.TGError
 	}
 
 	partitionKey := fmt.Sprintf("application-delete-%d-%d", application.AccountID, application.ID)
-	_, err := app.storage.PutRecord("v02_application_delete", partitionKey, data)
+	_, err := app.storage.PutRecord(kinesis.StreamApplicationDelete, partitionKey, data)
 
 	return err
 }

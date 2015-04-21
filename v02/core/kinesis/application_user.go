@@ -35,7 +35,7 @@ func (appu *applicationUser) Update(existingUser, updatedUser entity.Application
 	}
 
 	partitionKey := fmt.Sprintf("application-user-update-%d-%d-%d", updatedUser.AccountID, updatedUser.ApplicationID, updatedUser.ID)
-	_, err = appu.storage.PutRecord("v02_application_user_update", partitionKey, data)
+	_, err = appu.storage.PutRecord(kinesis.StreamApplicationUserUpdate, partitionKey, data)
 
 	return nil, err
 }
@@ -47,7 +47,7 @@ func (appu *applicationUser) Delete(applicationUser *entity.ApplicationUser) (er
 	}
 
 	partitionKey := fmt.Sprintf("application-user-delete-%d-%d-%d", applicationUser.AccountID, applicationUser.ApplicationID, applicationUser.ID)
-	_, err = appu.storage.PutRecord("v02_application_user_delete", partitionKey, data)
+	_, err = appu.storage.PutRecord(kinesis.StreamApplicationUserDelete, partitionKey, data)
 
 	return err
 }
