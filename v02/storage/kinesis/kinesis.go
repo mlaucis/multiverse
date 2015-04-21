@@ -96,7 +96,7 @@ func (c *cli) GetRecords(streamName, shardID, consumerName string, maxEntries in
 	return result, nil
 }
 
-func (c *cli) StreamRecords(streamName, consumerName string, maxEntries int) (output chan string, errors chan tgerrors.TGError, done chan struct{}) {
+func (c *cli) StreamRecords(streamName, consumerName string, maxEntries int) (output <-chan string, errors <-chan tgerrors.TGError, done <-chan struct{}) {
 
 	stream, err := c.DescribeStream(streamName)
 	if err != nil {
