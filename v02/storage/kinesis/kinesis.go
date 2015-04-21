@@ -29,7 +29,7 @@ type (
 
 		// StreamRecords will stream all the records it can from from all the shards of a stream
 		// To stop it, just close the output channel
-		StreamRecords(streamName, consumerName string, output <-chan string, errors <-chan tgerrors.TGError)
+		StreamRecords(streamName, consumerName string, maxEntries int) (output <-chan string, errors <-chan tgerrors.TGError, done <-chan struct{})
 
 		// DescribeStream will return the Kinesis stream descriptiont that AWS has if the stream is active.
 		// If the stream is not active then it will return an error
