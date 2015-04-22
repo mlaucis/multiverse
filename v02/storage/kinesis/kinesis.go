@@ -6,11 +6,13 @@
 package kinesis
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/rand"
 	"time"
 
 	"github.com/tapglue/backend/errors"
+	"github.com/tapglue/backend/utils"
 
 	gksis "github.com/sendgridlabs/go-kinesis"
 )
@@ -24,12 +26,20 @@ type (
 		// PutRecord sends a new record to a Kinesis stream
 		PutRecord(streamName, partitionKey string, payload []byte) (*gksis.PutRecordResp, errors.Error)
 
+		// PackAndPutRecords will pack the record to minimize the number of needed streams
+		//
+		// Use UnpackRecord to get the original target stream and message
+		PackAndPutRecord(streamName, partitionKey string, payload []byte) (*gksis.PutRecordResp, errors.Error)
+
 		// GetRecords returns at most the specified number of records from the desired stream / shard
 		GetRecords(streamName, shardID, consumerName string, maxEntries int) ([]string, errors.Error)
 
 		// StreamRecords will stream all the records it can from from all the shards of a stream
 		// To stop it, just close the output channel
 		StreamRecords(streamName, consumerName string, maxEntries int) (output <-chan string, errors <-chan errors.Error, done <-chan struct{})
+
+		// UnpackRecord takes a record and unpacks it then returns the stream name and the original message as a string
+		UnpackRecord(message string) (streamName, unpackedMessage string, err errors.Error)
 
 		// DescribeStream will return the Kinesis stream descriptiont that AWS has if the stream is active.
 		// If the stream is not active then it will return an error
@@ -44,7 +54,13 @@ type (
 	}
 
 	cli struct {
-		kinesis *gksis.Kinesis
+		kinesis          *gksis.Kinesis
+		packedStreamName string
+	}
+
+	packedPayload struct {
+		StreamName string `json:"stream_name"`
+		Message    string `json:"message"`
 	}
 )
 
@@ -69,6 +85,10 @@ const (
 	StreamEventCreate             = "v02_event_create"
 	StreamEventUpdate             = "v02_event_update"
 	StreamEventDelete             = "v02_event_delete"
+
+	PackedStreamNameDev        = "dev"
+	PackedStreamNameTest       = "test"
+	PackedStreamNameProduction = "production"
 )
 
 var (
@@ -107,6 +127,18 @@ func (c *cli) PutRecord(streamName, partitionKey string, payload []byte) (*gksis
 	}
 
 	return resp, nil
+}
+
+func (c *cli) PackAndPutRecord(streamName, partitionKey string, payload []byte) (*gksis.PutRecordResp, errors.Error) {
+	packedPayload := packedPayload{
+		StreamName: streamName,
+		Message:    utils.Base64Encode(string(payload)),
+	}
+	myPayload, err := json.Marshal(packedPayload)
+	if err != nil {
+		return nil, errors.NewInternalError("failed to generate the message", err.Error())
+	}
+	return c.PutRecord(c.packedStreamName, partitionKey, myPayload)
 }
 
 func (c *cli) GetRecords(streamName, shardID, consumerName string, maxEntries int) ([]string, errors.Error) {
@@ -226,6 +258,19 @@ func (c *cli) StreamRecords(streamName, consumerName string, maxEntries int) (<-
 	return output, errs, done
 }
 
+func (c *cli) UnpackRecord(message string) (streamName, unpackedMessage string, err errors.Error) {
+	unpackedPayload := packedPayload{}
+	er := json.Unmarshal([]byte(message), &unpackedPayload)
+	if er != nil {
+		return "", "", errors.NewInternalError("failed to receive the message", er.Error())
+	}
+	unpackedMessage, er = utils.Base64Decode(unpackedPayload.Message)
+	if er != nil {
+		return "", "", errors.NewInternalError("failed to decode the received message", er.Error())
+	}
+	return unpackedPayload.StreamName, unpackedMessage, nil
+}
+
 func (c *cli) SetupStreams(streamsName []string) error {
 	shardCount := 1 // TODO this should be configurable maybe?
 	for _, streamName := range streamsName {
@@ -297,25 +342,49 @@ func (c *cli) Datastore() *gksis.Kinesis {
 }
 
 // New returns a new Kinesis client
-func New(authKey, secretKey, region string) Client {
+func New(authKey, secretKey, region, env string) Client {
 	auth := &gksis.Auth{
 		AccessKey: authKey,
 		SecretKey: secretKey,
 	}
 
+	packedStreamName := "dev"
+
+	switch env {
+	case "dev":
+		packedStreamName = PackedStreamNameDev
+	case "test":
+		packedStreamName = PackedStreamNameTest
+	case "prod":
+		packedStreamName = PackedStreamNameProduction
+	}
+
 	return &cli{
-		kinesis: gksis.New(auth, gksis.Region{Name: region}),
+		kinesis:          gksis.New(auth, gksis.Region{Name: region}),
+		packedStreamName: packedStreamName,
 	}
 }
 
 // NewTest returns a new testing-enabled client
-func NewTest(authKey, secretKey, region, endpoint string) Client {
+func NewTest(authKey, secretKey, region, endpoint, env string) Client {
 	auth := &gksis.Auth{
 		AccessKey: authKey,
 		SecretKey: secretKey,
 	}
 
+	packedStreamName := "dev"
+
+	switch env {
+	case "dev":
+		packedStreamName = PackedStreamNameDev
+	case "test":
+		packedStreamName = PackedStreamNameTest
+	case "prod":
+		packedStreamName = PackedStreamNameProduction
+	}
+
 	return &cli{
 		kinesis: gksis.NewWithEndpoint(auth, gksis.Region{Name: region}, endpoint),
+		packedStreamName: packedStreamName,
 	}
 }
