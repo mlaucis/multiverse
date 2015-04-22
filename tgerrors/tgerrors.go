@@ -83,6 +83,11 @@ func NewNotFoundError(message, internalMessage string) TGError {
 	return newError(TGNotFoundError, message, internalMessage, -1)
 }
 
+// Fatal will cause the message to be printed and then panic
+func Fatal(message error) {
+	panic(message)
+}
+
 func newError(errorType tgErrorType, message, internalMessage string, stackDepth int) TGError {
 	err := &tgError{message: message, internalMessage: internalMessage, errType: errorType}
 	if stackDepth == -1 && !dbgMode {
