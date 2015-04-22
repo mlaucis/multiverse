@@ -34,7 +34,7 @@ func (a *account) Update(existingAccount, updatedAccount entity.Account, retriev
 	}
 
 	partitionKey := fmt.Sprintf("account-%d-update", updatedAccount.ID)
-	_, err = a.storage.PutRecord(kinesis.StreamAccountUpdate, partitionKey, data)
+	_, err = a.storage.PackAndPutRecord(kinesis.StreamAccountUpdate, partitionKey, data)
 
 	return nil, err
 }
@@ -46,7 +46,7 @@ func (a *account) Delete(account *entity.Account) (err errors.Error) {
 	}
 
 	partitionKey := fmt.Sprintf("partition-%d-delete", account.ID)
-	_, err = a.storage.PutRecord(kinesis.StreamAccountDelete, partitionKey, data)
+	_, err = a.storage.PackAndPutRecord(kinesis.StreamAccountDelete, partitionKey, data)
 
 	return err
 }

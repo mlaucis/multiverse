@@ -30,7 +30,7 @@ func (c *connection) Create(conn *entity.Connection, retrieve bool) (con *entity
 	}
 
 	partitionKey := fmt.Sprintf("partitionKey-%d-%d", conn.AccountID, conn.ApplicationID)
-	_, err = c.storage.PutRecord(kinesis.StreamConnectionCreate, partitionKey, data)
+	_, err = c.storage.PackAndPutRecord(kinesis.StreamConnectionCreate, partitionKey, data)
 
 	return nil, err
 }
@@ -46,7 +46,7 @@ func (c *connection) Update(existingConnection, updatedConnection entity.Connect
 	}
 
 	partitionKey := fmt.Sprintf("partitionKey-%d-%d", updatedConnection.AccountID, updatedConnection.ApplicationID)
-	_, err = c.storage.PutRecord(kinesis.StreamConnectionUpdate, partitionKey, data)
+	_, err = c.storage.PackAndPutRecord(kinesis.StreamConnectionUpdate, partitionKey, data)
 
 	return nil, err
 }
@@ -58,7 +58,7 @@ func (c *connection) Delete(connection *entity.Connection) (err errors.Error) {
 	}
 
 	partitionKey := fmt.Sprintf("partitionKey-%d-%d", connection.AccountID, connection.ApplicationID)
-	_, err = c.storage.PutRecord(kinesis.StreamConnectionDelete, partitionKey, data)
+	_, err = c.storage.PackAndPutRecord(kinesis.StreamConnectionDelete, partitionKey, data)
 
 	return err
 }
@@ -78,7 +78,7 @@ func (c *connection) Confirm(connection *entity.Connection, retrieve bool) (con 
 	}
 
 	partitionKey := fmt.Sprintf("partitionKey-%d-%d", connection.AccountID, connection.ApplicationID)
-	_, err = c.storage.PutRecord(kinesis.StreamConnectionConfirm, partitionKey, data)
+	_, err = c.storage.PackAndPutRecord(kinesis.StreamConnectionConfirm, partitionKey, data)
 
 	return nil, err
 }
@@ -106,7 +106,7 @@ func (c *connection) SocialConnect(user *entity.ApplicationUser, platform string
 	}
 
 	partitionKey := fmt.Sprintf("partitionKey-%d-%d", user.AccountID, user.ApplicationID)
-	_, err = c.storage.PutRecord(kinesis.StreamConnectionSocialConnect, partitionKey, data)
+	_, err = c.storage.PackAndPutRecord(kinesis.StreamConnectionSocialConnect, partitionKey, data)
 
 	return nil, err
 }
@@ -124,7 +124,7 @@ func (c *connection) AutoConnectSocialFriends(user *entity.ApplicationUser, ourS
 	}
 
 	partitionKey := fmt.Sprintf("partitionKey-%d-%d", user.AccountID, user.ApplicationID)
-	_, err = c.storage.PutRecord(kinesis.StreamConnectionAutoConnect, partitionKey, data)
+	_, err = c.storage.PackAndPutRecord(kinesis.StreamConnectionAutoConnect, partitionKey, data)
 
 	return nil, err
 }
