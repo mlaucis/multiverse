@@ -26,7 +26,7 @@ type (
 	}
 )
 
-func (c *cli) Datastore() {
+func (c *cli) Datastore() *sql.DB {
 	return c.postgres
 }
 
