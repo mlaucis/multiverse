@@ -384,7 +384,7 @@ func NewTest(authKey, secretKey, region, endpoint, env string) Client {
 	}
 
 	return &cli{
-		kinesis: gksis.NewWithEndpoint(auth, gksis.Region{Name: region}, endpoint),
+		kinesis:          gksis.NewWithEndpoint(auth, gksis.Region{Name: region}, endpoint),
 		packedStreamName: packedStreamName,
 	}
 }
