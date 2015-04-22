@@ -10,6 +10,7 @@ import (
 
 	"github.com/tapglue/backend/errors"
 
+	// Well, we want to have PostgreSQL as database so we kinda need this..
 	_ "github.com/lib/pq"
 )
 

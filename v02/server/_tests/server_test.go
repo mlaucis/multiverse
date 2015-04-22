@@ -15,8 +15,8 @@ import (
 	"testing"
 
 	"github.com/tapglue/backend/config"
-	"github.com/tapglue/backend/logger"
 	"github.com/tapglue/backend/errors"
+	"github.com/tapglue/backend/logger"
 	. "github.com/tapglue/backend/utils"
 	"github.com/tapglue/backend/v02/core"
 	coreRedis "github.com/tapglue/backend/v02/core/redis"

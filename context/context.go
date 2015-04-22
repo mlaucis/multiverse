@@ -11,8 +11,8 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/tapglue/backend/logger"
 	"github.com/tapglue/backend/errors"
+	"github.com/tapglue/backend/logger"
 	"github.com/tapglue/backend/utils"
 )
 

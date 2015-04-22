@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/tapglue/backend/logger"
 	"github.com/tapglue/backend/errors"
+	"github.com/tapglue/backend/logger"
 	"github.com/tapglue/backend/v01/context"
 )
 

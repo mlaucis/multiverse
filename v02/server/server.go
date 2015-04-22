@@ -11,8 +11,8 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/tapglue/backend/context"
-	"github.com/tapglue/backend/logger"
 	"github.com/tapglue/backend/errors"
+	"github.com/tapglue/backend/logger"
 )
 
 type (
