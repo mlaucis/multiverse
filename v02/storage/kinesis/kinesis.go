@@ -238,6 +238,7 @@ func (c *cli) StreamRecords(streamName, consumerName string, maxEntries int) (<-
 				}
 
 				shardIterator = records.NextShardIterator
+				time.Sleep(1 * time.Second)
 			}
 		}(streamName, stream.StreamDescription.Shards[idx].ShardId, maxEntries, output, errs, internalDone)
 	}
