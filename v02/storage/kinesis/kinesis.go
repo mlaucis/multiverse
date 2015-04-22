@@ -116,7 +116,7 @@ func (c *cli) GetRecords(streamName, shardID, consumerName string, maxEntries in
 	args.Add("ShardIteratorType", "TRIM_HORIZON")
 	shardIteratorResponse, err := c.kinesis.GetShardIterator(args)
 	if err != nil {
-		return "", tgerrors.NewInternalError("error while reading the internal data", err.Error())
+		return []string{}, tgerrors.NewInternalError("error while reading the internal data", err.Error())
 	}
 
 	shardIterator := shardIteratorResponse.ShardIterator
@@ -126,15 +126,19 @@ func (c *cli) GetRecords(streamName, shardID, consumerName string, maxEntries in
 	args.Add("Limit", maxEntries)
 	records, err := c.kinesis.GetRecords(args)
 	if err != nil {
-		return "", tgerrors.NewInternalError("error while reading the internal data", err.Error())
+		return []string{}, tgerrors.NewInternalError("error while reading the internal data", err.Error())
 	}
 
 	if err != nil {
-		return "", tgerrors.NewInternalError("error while reading the internal data", err.Error())
+		return []string{}, tgerrors.NewInternalError("error while reading the internal data", err.Error())
 	}
 
-	if records.NextShardIterator == "" || shardIterator == records.NextShardIterator || len(records.Records) == 0 {
-		return nil
+	if records.NextShardIterator == "" || shardIterator == records.NextShardIterator {
+		return []string{}, tgerrors.NewInternalError("error while reading the internal data", "malformed pointer received")
+	}
+
+	if len(records.Records) == 0 {
+		return []string{}, nil
 	}
 
 	var result []string
@@ -144,22 +148,24 @@ func (c *cli) GetRecords(streamName, shardID, consumerName string, maxEntries in
 	return result, nil
 }
 
-func (c *cli) StreamRecords(streamName, consumerName string, maxEntries int) (output <-chan string, errors <-chan tgerrors.TGError, done <-chan struct{}) {
+func (c *cli) StreamRecords(streamName, consumerName string, maxEntries int) (<-chan string, <-chan tgerrors.TGError, <-chan struct{}) {
+
+	output := make(chan string, 10*maxEntries)
+	errors := make(chan tgerrors.TGError, 10)
+	done := make(chan struct{})
 
 	stream, err := c.DescribeStream(streamName)
 	if err != nil {
 		errors <- err
-		return
+		close(done)
+		return output, errors, done
 	}
 
-	output = make(chan string, len(stream.StreamDescription.Shards*maxEntries))
-	errors = make(chan tgerrors.TGError, len(stream.StreamDescription.Shards*maxEntries))
-	done = make(chan struct{})
 	// Keep track of internal producers and when all of them have quit, we should quit as well
 	internalDone := make(chan bool, len(stream.StreamDescription.Shards))
 
 	for idx := range stream.StreamDescription.Shards {
-		go func(streamName, shardID string, maxEntries int, output chan<- string, errors chan<- tgerrors.TGError, done chan struct{}) {
+		go func(streamName, shardID string, maxEntries int, output chan<- string, errors chan<- tgerrors.TGError, done chan bool) {
 			defer func() {
 				done <- true
 			}()
@@ -206,7 +212,7 @@ func (c *cli) StreamRecords(streamName, consumerName string, maxEntries int) (ou
 
 	go func() {
 		i := 0
-		for _ := range internalDone {
+		for _ = range internalDone {
 			i++
 			if i == cap(internalDone) {
 				break
@@ -216,6 +222,8 @@ func (c *cli) StreamRecords(streamName, consumerName string, maxEntries int) (ou
 		close(errors)
 		close(done)
 	}()
+
+	return output, errors, done
 }
 
 func (c *cli) SetupStreams(streamsName []string) error {
