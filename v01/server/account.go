@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/tapglue/backend/tgerrors"
+	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/v01/context"
 	"github.com/tapglue/backend/v01/core"
 	"github.com/tapglue/backend/v01/entity"
@@ -17,17 +17,17 @@ import (
 
 // getAccount handles requests to a single account
 // Request: GET /account/:AccountID
-func getAccount(ctx *context.Context) (err tgerrors.TGError) {
+func getAccount(ctx *context.Context) (err errors.Error) {
 	WriteResponse(ctx, ctx.Account, http.StatusOK, 10)
 	return
 }
 
 // updateAccount handles requests to update a single account
 // Request: PUT /account/:AccountID
-func updateAccount(ctx *context.Context) (err tgerrors.TGError) {
+func updateAccount(ctx *context.Context) (err errors.Error) {
 	account := *ctx.Account
 	if er := json.Unmarshal(ctx.Body, &account); er != nil {
-		return tgerrors.NewBadRequestError("failed to update the account (1)\n"+er.Error(), "malformed json received")
+		return errors.NewBadRequestError("failed to update the account (1)\n"+er.Error(), "malformed json received")
 	}
 
 	account.ID = ctx.AccountID
@@ -47,7 +47,7 @@ func updateAccount(ctx *context.Context) (err tgerrors.TGError) {
 
 // deleteAccount handles requests to delete a single account
 // Request: DELETE /account/:AccountID
-func deleteAccount(ctx *context.Context) (err tgerrors.TGError) {
+func deleteAccount(ctx *context.Context) (err errors.Error) {
 	if err = core.DeleteAccount(ctx.AccountID); err != nil {
 		return err
 	}
@@ -58,11 +58,11 @@ func deleteAccount(ctx *context.Context) (err tgerrors.TGError) {
 
 // createAccount handles requests create an account
 // Request: POST /accounts
-func createAccount(ctx *context.Context) (err tgerrors.TGError) {
+func createAccount(ctx *context.Context) (err errors.Error) {
 	var account = &entity.Account{}
 
 	if er := json.Unmarshal(ctx.Body, account); er != nil {
-		return tgerrors.NewBadRequestError("failed to create the account (1)\n"+er.Error(), er.Error())
+		return errors.NewBadRequestError("failed to create the account (1)\n"+er.Error(), er.Error())
 	}
 
 	if err = validator.CreateAccount(account); err != nil {

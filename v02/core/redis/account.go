@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/tapglue/backend/tgerrors"
+	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/utils"
 	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/entity"
@@ -23,10 +23,10 @@ type (
 	}
 )
 
-func (a *account) Create(account *entity.Account, retrieve bool) (acc *entity.Account, err tgerrors.TGError) {
+func (a *account) Create(account *entity.Account, retrieve bool) (acc *entity.Account, err errors.Error) {
 	var er error
 	if account.ID, er = a.storage.GenerateAccountID(); er != nil {
-		return nil, tgerrors.NewInternalError("failed to write the account (1)", er.Error())
+		return nil, errors.NewInternalError("failed to write the account (1)", er.Error())
 	}
 
 	account.AuthToken = storageHelper.GenerateAccountSecretKey(account)
@@ -36,16 +36,16 @@ func (a *account) Create(account *entity.Account, retrieve bool) (acc *entity.Ac
 
 	val, er := json.Marshal(account)
 	if er != nil {
-		return nil, tgerrors.NewInternalError("failed to write the account (2)", er.Error())
+		return nil, errors.NewInternalError("failed to write the account (2)", er.Error())
 	}
 
 	// TODO this should never happen, maybe we should panic instead just to catch it better?
 	exist, er := a.redis.SetNX(storageHelper.Account(account.ID), string(val)).Result()
 	if !exist {
-		return nil, tgerrors.NewInternalError("failed to write the account (3)", "account id already present")
+		return nil, errors.NewInternalError("failed to write the account (3)", "account id already present")
 	}
 	if er != nil {
-		return nil, tgerrors.NewInternalError("failed to write the account (4)", er.Error())
+		return nil, errors.NewInternalError("failed to write the account (4)", er.Error())
 	}
 
 	// Store the token details in redis
@@ -54,7 +54,7 @@ func (a *account) Create(account *entity.Account, retrieve bool) (acc *entity.Ac
 		"acc", strconv.FormatInt(account.ID, 10),
 	).Result()
 	if er != nil {
-		return nil, tgerrors.NewInternalError("failed to write the account (5)", er.Error())
+		return nil, errors.NewInternalError("failed to write the account (5)", er.Error())
 	}
 
 	if !retrieve {
@@ -64,38 +64,38 @@ func (a *account) Create(account *entity.Account, retrieve bool) (acc *entity.Ac
 	return a.Read(account.ID)
 }
 
-func (a *account) Read(accountID int64) (account *entity.Account, err tgerrors.TGError) {
+func (a *account) Read(accountID int64) (account *entity.Account, err errors.Error) {
 	result, er := a.redis.Get(storageHelper.Account(accountID)).Result()
 	if er != nil {
-		return nil, tgerrors.NewInternalError("failed to retrieve the account (1)", er.Error())
+		return nil, errors.NewInternalError("failed to retrieve the account (1)", er.Error())
 	}
 
 	if er := json.Unmarshal([]byte(result), &account); er != nil {
-		return nil, tgerrors.NewInternalError("failed to retrieve the account (2)", er.Error())
+		return nil, errors.NewInternalError("failed to retrieve the account (2)", er.Error())
 	}
 
 	return
 }
 
-func (a *account) Update(existingAccount, updatedAccount entity.Account, retrieve bool) (acc *entity.Account, err tgerrors.TGError) {
+func (a *account) Update(existingAccount, updatedAccount entity.Account, retrieve bool) (acc *entity.Account, err errors.Error) {
 	updatedAccount.UpdatedAt = time.Now()
 
 	val, er := json.Marshal(updatedAccount)
 	if er != nil {
-		return nil, tgerrors.NewInternalError("failed to update the account (1)", er.Error())
+		return nil, errors.NewInternalError("failed to update the account (1)", er.Error())
 	}
 
 	key := storageHelper.Account(updatedAccount.ID)
 	exist, er := a.redis.Exists(key).Result()
 	if !exist {
-		return nil, tgerrors.NewInternalError("failed to update the account (2)\naccount does not exist", "account does not exist")
+		return nil, errors.NewInternalError("failed to update the account (2)\naccount does not exist", "account does not exist")
 	}
 	if er != nil {
-		return nil, tgerrors.NewInternalError("failed to update the account (3)", er.Error())
+		return nil, errors.NewInternalError("failed to update the account (3)", er.Error())
 	}
 
 	if er = a.redis.Set(key, string(val)).Err(); er != nil {
-		return nil, tgerrors.NewInternalError("failed to update the account (4)", err.Error())
+		return nil, errors.NewInternalError("failed to update the account (4)", err.Error())
 	}
 
 	if !retrieve {
@@ -105,10 +105,10 @@ func (a *account) Update(existingAccount, updatedAccount entity.Account, retriev
 	return a.Read(updatedAccount.ID)
 }
 
-func (a *account) Delete(account *entity.Account) (err tgerrors.TGError) {
+func (a *account) Delete(account *entity.Account) (err errors.Error) {
 	result, er := a.redis.Del(storageHelper.Account(account.ID)).Result()
 	if er != nil {
-		return tgerrors.NewInternalError("failed to delete the account (1)", er.Error())
+		return errors.NewInternalError("failed to delete the account (1)", er.Error())
 	}
 
 	// TODO: Disable Account users
@@ -117,7 +117,7 @@ func (a *account) Delete(account *entity.Account) (err tgerrors.TGError) {
 	// TODO: Disable Applications Events
 
 	if result != 1 {
-		return tgerrors.NewNotFoundError("The resource for the provided id doesn't exist", fmt.Sprintf("unexisting account for id %d", account.ID))
+		return errors.NewNotFoundError("The resource for the provided id doesn't exist", fmt.Sprintf("unexisting account for id %d", account.ID))
 	}
 
 	return nil

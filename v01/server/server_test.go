@@ -16,7 +16,7 @@ import (
 
 	"github.com/tapglue/backend/config"
 	"github.com/tapglue/backend/logger"
-	"github.com/tapglue/backend/tgerrors"
+	"github.com/tapglue/backend/errors"
 	. "github.com/tapglue/backend/utils"
 	"github.com/tapglue/backend/v01/core"
 	"github.com/tapglue/backend/v01/entity"
@@ -65,7 +65,7 @@ func (s *ServerSuite) SetUpTest(c *C) {
 	redis.Client().FlushDb()
 	storageClient = storage.Init(redis.Client())
 	core.Init(storageClient)
-	tgerrors.Init(true)
+	errors.Init(true)
 	validator.Init(storageClient)
 
 	if *doLogResponseTimes {
@@ -307,7 +307,7 @@ func getComposedRouteString(routeName string, params ...interface{}) string {
 }
 
 // runRequest takes a route, path, payload and token, performs a request and return a response recorder
-func runRequest(routeName, routePath, payload, secretKey, sessionToken string, numKeyParts int) (int, string, tgerrors.TGError) {
+func runRequest(routeName, routePath, payload, secretKey, sessionToken string, numKeyParts int) (int, string, errors.Error) {
 	var (
 		requestRoute *server.Route
 		routePattern string

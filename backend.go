@@ -21,7 +21,7 @@ import (
 	"github.com/tapglue/backend/config"
 	"github.com/tapglue/backend/logger"
 	"github.com/tapglue/backend/server"
-	"github.com/tapglue/backend/tgerrors"
+	"github.com/tapglue/backend/errors"
 	v01_core "github.com/tapglue/backend/v01/core"
 	v01_storage "github.com/tapglue/backend/v01/storage"
 	v01_redis "github.com/tapglue/backend/v01/storage/redis"
@@ -62,7 +62,7 @@ func init() {
 		log.Printf("launching with no security checks enabled\n")
 	}
 
-	tgerrors.Init(conf.Environment != "prod")
+	errors.Init(conf.Environment != "prod")
 	v01_redis.Init(conf.Redis.Hosts[0], conf.Redis.Password, conf.Redis.DB, conf.Redis.PoolSize)
 	v01StorageClient := v01_storage.Init(v01_redis.Client())
 	v01_core.Init(v01StorageClient)

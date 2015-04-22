@@ -6,34 +6,34 @@ package server
 
 import (
 	"github.com/tapglue/backend/context"
-	"github.com/tapglue/backend/tgerrors"
+	"github.com/tapglue/backend/errors"
 )
 
 type (
 	// ApplicationUser defines the application user routes
 	ApplicationUser interface {
 		// Read handles requests to retrieve a single user
-		Read(*context.Context) tgerrors.TGError
+		Read(*context.Context) errors.Error
 
 		// Update handles requests to update a user
-		Update(*context.Context) tgerrors.TGError
+		Update(*context.Context) errors.Error
 
 		// Delete handles requests to delete a single user
-		Delete(*context.Context) tgerrors.TGError
+		Delete(*context.Context) errors.Error
 
 		// Create handles requests to create a user
-		Create(*context.Context) tgerrors.TGError
+		Create(*context.Context) errors.Error
 
 		// Login handles the requests to login the user in the system
-		Login(*context.Context) tgerrors.TGError
+		Login(*context.Context) errors.Error
 
 		// RefreshSession handles the requests to refresh the user session token
-		RefreshSession(*context.Context) tgerrors.TGError
+		RefreshSession(*context.Context) errors.Error
 
 		// Logout handles the requests to logout the user from the system
-		Logout(*context.Context) tgerrors.TGError
+		Logout(*context.Context) errors.Error
 
 		// PopulateContext adds the applicationUser to the context
-		PopulateContext(*context.Context) tgerrors.TGError
+		PopulateContext(*context.Context) errors.Error
 	}
 )

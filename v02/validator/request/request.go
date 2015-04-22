@@ -9,19 +9,19 @@ import (
 	"strings"
 
 	"github.com/tapglue/backend/context"
-	"github.com/tapglue/backend/tgerrors"
+	"github.com/tapglue/backend/errors"
 	httpBasic "github.com/tapglue/backend/v02/validator/request/basic"
 )
 
-var errAuthMethodNotSupported = tgerrors.NewBadRequestError("authorization method not supported", "auth method not supported")
+var errAuthMethodNotSupported = errors.NewBadRequestError("authorization method not supported", "auth method not supported")
 
 // SignAccount checks that the current request is a signed account request
-func SignAccount(ctx *context.Context) tgerrors.TGError {
+func SignAccount(ctx *context.Context) errors.Error {
 	return httpBasic.SignAccount(ctx)
 }
 
 // VerifyAccount checks that the current request is a signed account request
-func VerifyAccount(ctx *context.Context) tgerrors.TGError {
+func VerifyAccount(ctx *context.Context) errors.Error {
 	if ctx.R.Header.Get("Authorization") != "" {
 		httpAuthorization := ctx.R.Header.Get("Authorization")
 		if strings.HasPrefix(httpAuthorization, "Basic ") {
@@ -33,12 +33,12 @@ func VerifyAccount(ctx *context.Context) tgerrors.TGError {
 }
 
 // SignAccountUser checks that the current request is a signed account request
-func SignAccountUser(ctx *context.Context) tgerrors.TGError {
+func SignAccountUser(ctx *context.Context) errors.Error {
 	return httpBasic.SignAccountUser(ctx)
 }
 
 // VerifyAccountUser checks that the current request is a signed account request
-func VerifyAccountUser(ctx *context.Context) tgerrors.TGError {
+func VerifyAccountUser(ctx *context.Context) errors.Error {
 	if ctx.R.Header.Get("Authorization") != "" {
 		httpAuthorization := ctx.R.Header.Get("Authorization")
 		if strings.HasPrefix(httpAuthorization, "Basic ") {
@@ -50,12 +50,12 @@ func VerifyAccountUser(ctx *context.Context) tgerrors.TGError {
 }
 
 // SignApplication checks that the current request is a signed account request
-func SignApplication(ctx *context.Context) tgerrors.TGError {
+func SignApplication(ctx *context.Context) errors.Error {
 	return httpBasic.SignApplication(ctx)
 }
 
 // VerifyApplication checks that the current request is a signed app request
-func VerifyApplication(ctx *context.Context) tgerrors.TGError {
+func VerifyApplication(ctx *context.Context) errors.Error {
 	if ctx.R.Header.Get("Authorization") != "" {
 		httpAuthorization := ctx.R.Header.Get("Authorization")
 		if strings.HasPrefix(httpAuthorization, "Basic ") {
@@ -67,12 +67,12 @@ func VerifyApplication(ctx *context.Context) tgerrors.TGError {
 }
 
 // SignApplicationUser signs the request as an app user
-func SignApplicationUser(ctx *context.Context) tgerrors.TGError {
+func SignApplicationUser(ctx *context.Context) errors.Error {
 	return httpBasic.SignApplicationUser(ctx)
 }
 
 // VerifyApplicationUser checks that the current request is a signed app:appUser request
-func VerifyApplicationUser(ctx *context.Context) tgerrors.TGError {
+func VerifyApplicationUser(ctx *context.Context) errors.Error {
 	if ctx.R.Header.Get("Authorization") != "" {
 		httpAuthorization := ctx.R.Header.Get("Authorization")
 		if strings.HasPrefix(httpAuthorization, "Basic ") {

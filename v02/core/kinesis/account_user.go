@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/tapglue/backend/tgerrors"
+	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/entity"
 	"github.com/tapglue/backend/v02/storage/kinesis"
@@ -20,10 +20,10 @@ type (
 	}
 )
 
-func (au *accountUser) Create(accountUser *entity.AccountUser, retrieve bool) (*entity.AccountUser, tgerrors.TGError) {
+func (au *accountUser) Create(accountUser *entity.AccountUser, retrieve bool) (*entity.AccountUser, errors.Error) {
 	data, er := json.Marshal(accountUser)
 	if er != nil {
-		return nil, tgerrors.NewInternalError("error while creating the account user (1)", er.Error())
+		return nil, errors.NewInternalError("error while creating the account user (1)", er.Error())
 	}
 
 	partitionKey := fmt.Sprintf("account-user-%d-%d", accountUser.AccountID, accountUser.ID)
@@ -32,14 +32,14 @@ func (au *accountUser) Create(accountUser *entity.AccountUser, retrieve bool) (*
 	return nil, err
 }
 
-func (au *accountUser) Read(accountID, accountUserID int64) (accountUser *entity.AccountUser, er tgerrors.TGError) {
-	return nil, tgerrors.NewNotFoundError("not found", "invalid handler specified")
+func (au *accountUser) Read(accountID, accountUserID int64) (accountUser *entity.AccountUser, er errors.Error) {
+	return nil, errors.NewNotFoundError("not found", "invalid handler specified")
 }
 
-func (au *accountUser) Update(existingAccountUser, updatedAccountUser entity.AccountUser, retrieve bool) (*entity.AccountUser, tgerrors.TGError) {
+func (au *accountUser) Update(existingAccountUser, updatedAccountUser entity.AccountUser, retrieve bool) (*entity.AccountUser, errors.Error) {
 	data, er := json.Marshal(updatedAccountUser)
 	if er != nil {
-		return nil, tgerrors.NewInternalError("error while updating the account user (1)", er.Error())
+		return nil, errors.NewInternalError("error while updating the account user (1)", er.Error())
 	}
 
 	partitionKey := fmt.Sprintf("account-user-%d-%d", updatedAccountUser.AccountID, updatedAccountUser.ID)
@@ -48,10 +48,10 @@ func (au *accountUser) Update(existingAccountUser, updatedAccountUser entity.Acc
 	return nil, err
 }
 
-func (au *accountUser) Delete(accountUser *entity.AccountUser) tgerrors.TGError {
+func (au *accountUser) Delete(accountUser *entity.AccountUser) errors.Error {
 	data, er := json.Marshal(accountUser)
 	if er != nil {
-		return tgerrors.NewInternalError("error while creating the event (1)", er.Error())
+		return errors.NewInternalError("error while creating the event (1)", er.Error())
 	}
 
 	partitionKey := fmt.Sprintf("account-user-%d-%d", accountUser.AccountID, accountUser.ID)
@@ -60,40 +60,40 @@ func (au *accountUser) Delete(accountUser *entity.AccountUser) tgerrors.TGError 
 	return err
 }
 
-func (au *accountUser) List(accountID int64) (accountUsers []*entity.AccountUser, er tgerrors.TGError) {
-	return accountUsers, tgerrors.NewNotFoundError("not found", "invalid handler specified")
+func (au *accountUser) List(accountID int64) (accountUsers []*entity.AccountUser, er errors.Error) {
+	return accountUsers, errors.NewNotFoundError("not found", "invalid handler specified")
 }
 
-func (au *accountUser) CreateSession(user *entity.AccountUser) (string, tgerrors.TGError) {
-	return "", tgerrors.NewNotFoundError("not found", "invalid handler specified")
+func (au *accountUser) CreateSession(user *entity.AccountUser) (string, errors.Error) {
+	return "", errors.NewNotFoundError("not found", "invalid handler specified")
 }
 
-func (au *accountUser) RefreshSession(sessionToken string, user *entity.AccountUser) (string, tgerrors.TGError) {
-	return "", tgerrors.NewNotFoundError("not found", "invalid handler specified")
+func (au *accountUser) RefreshSession(sessionToken string, user *entity.AccountUser) (string, errors.Error) {
+	return "", errors.NewNotFoundError("not found", "invalid handler specified")
 }
 
-func (au *accountUser) DestroySession(sessionToken string, user *entity.AccountUser) tgerrors.TGError {
-	return tgerrors.NewNotFoundError("not found", "invalid handler specified")
+func (au *accountUser) DestroySession(sessionToken string, user *entity.AccountUser) errors.Error {
+	return errors.NewNotFoundError("not found", "invalid handler specified")
 }
 
-func (au *accountUser) GetSession(user *entity.AccountUser) (string, tgerrors.TGError) {
-	return "", tgerrors.NewNotFoundError("not found", "invalid handler specified")
+func (au *accountUser) GetSession(user *entity.AccountUser) (string, errors.Error) {
+	return "", errors.NewNotFoundError("not found", "invalid handler specified")
 }
 
-func (au *accountUser) FindByEmail(email string) (*entity.Account, *entity.AccountUser, tgerrors.TGError) {
-	return nil, nil, tgerrors.NewNotFoundError("not found", "invalid handler specified")
+func (au *accountUser) FindByEmail(email string) (*entity.Account, *entity.AccountUser, errors.Error) {
+	return nil, nil, errors.NewNotFoundError("not found", "invalid handler specified")
 }
 
-func (au *accountUser) ExistsByEmail(email string) (bool, tgerrors.TGError) {
-	return false, tgerrors.NewNotFoundError("not found", "invalid handler specified")
+func (au *accountUser) ExistsByEmail(email string) (bool, errors.Error) {
+	return false, errors.NewNotFoundError("not found", "invalid handler specified")
 }
 
-func (au *accountUser) FindByUsername(username string) (*entity.Account, *entity.AccountUser, tgerrors.TGError) {
-	return nil, nil, tgerrors.NewNotFoundError("not found", "invalid handler specified")
+func (au *accountUser) FindByUsername(username string) (*entity.Account, *entity.AccountUser, errors.Error) {
+	return nil, nil, errors.NewNotFoundError("not found", "invalid handler specified")
 }
 
-func (au *accountUser) ExistsByUsername(username string) (bool, tgerrors.TGError) {
-	return false, tgerrors.NewNotFoundError("not found", "invalid handler specified")
+func (au *accountUser) ExistsByUsername(username string) (bool, errors.Error) {
+	return false, errors.NewNotFoundError("not found", "invalid handler specified")
 }
 
 func (au *accountUser) ExistsByID(accountID, userID int64) bool {

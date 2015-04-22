@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/tapglue/backend/logger"
-	"github.com/tapglue/backend/tgerrors"
+	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/utils"
 )
 
@@ -38,7 +38,7 @@ type (
 	}
 
 	// Filter is a callback that helps updating the context with extra information
-	Filter func(*Context) tgerrors.TGError
+	Filter func(*Context) errors.Error
 )
 
 // LogRequest will generate a log message with the request status
@@ -67,7 +67,7 @@ func (ctx *Context) LogMessage(message string, stackDepth int) {
 // LogError provides the ability to log and error
 func (ctx *Context) LogError(err interface{}) {
 	var msg *logger.LogMsg
-	if tgError, ok := err.(tgerrors.TGError); ok {
+	if tgError, ok := err.(errors.Error); ok {
 		msg = ctx.newLogMessage(-1)
 		msg.RawError = tgError.InternalErrorWithLocation()
 		msg.Message = tgError.Error()
@@ -114,7 +114,7 @@ func New(
 	routeName, scope, version string,
 	contextFilters []Filter,
 	environment string,
-	debugMode bool) (ctx *Context, err tgerrors.TGError) {
+	debugMode bool) (ctx *Context, err errors.Error) {
 
 	ctx = new(Context)
 	ctx.StartTime = time.Now()

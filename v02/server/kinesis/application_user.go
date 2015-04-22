@@ -6,7 +6,7 @@ package kinesis
 
 import (
 	"github.com/tapglue/backend/context"
-	"github.com/tapglue/backend/tgerrors"
+	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/server"
 )
@@ -17,35 +17,35 @@ type (
 	}
 )
 
-func (appUser *applicationUser) Read(ctx *context.Context) (err tgerrors.TGError) {
+func (appUser *applicationUser) Read(ctx *context.Context) (err errors.Error) {
 	return nil
 }
 
-func (appUser *applicationUser) Update(ctx *context.Context) (err tgerrors.TGError) {
+func (appUser *applicationUser) Update(ctx *context.Context) (err errors.Error) {
 	return nil
 }
 
-func (appUser *applicationUser) Delete(ctx *context.Context) (err tgerrors.TGError) {
+func (appUser *applicationUser) Delete(ctx *context.Context) (err errors.Error) {
 	return nil
 }
 
-func (appUser *applicationUser) Create(ctx *context.Context) (err tgerrors.TGError) {
+func (appUser *applicationUser) Create(ctx *context.Context) (err errors.Error) {
 	return nil
 }
 
-func (appUser *applicationUser) Login(ctx *context.Context) (err tgerrors.TGError) {
+func (appUser *applicationUser) Login(ctx *context.Context) (err errors.Error) {
 	return nil
 }
 
-func (appUser *applicationUser) RefreshSession(ctx *context.Context) (err tgerrors.TGError) {
+func (appUser *applicationUser) RefreshSession(ctx *context.Context) (err errors.Error) {
 	return nil
 }
 
-func (appUser *applicationUser) Logout(ctx *context.Context) (err tgerrors.TGError) {
+func (appUser *applicationUser) Logout(ctx *context.Context) (err errors.Error) {
 	return nil
 }
 
-func (appUser *applicationUser) PopulateContext(ctx *context.Context) (err tgerrors.TGError) {
+func (appUser *applicationUser) PopulateContext(ctx *context.Context) (err errors.Error) {
 	return nil
 }
 

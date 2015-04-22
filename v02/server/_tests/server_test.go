@@ -16,7 +16,7 @@ import (
 
 	"github.com/tapglue/backend/config"
 	"github.com/tapglue/backend/logger"
-	"github.com/tapglue/backend/tgerrors"
+	"github.com/tapglue/backend/errors"
 	. "github.com/tapglue/backend/utils"
 	"github.com/tapglue/backend/v02/core"
 	coreRedis "github.com/tapglue/backend/v02/core/redis"
@@ -73,7 +73,7 @@ func (s *ServerSuite) SetUpTest(c *C) {
 	kinesisClient := kinesis.New("test", "test", "test")
 	storageClient = storage.Init(redis.Client(), kinesisClient)
 	core.Init(storageClient)
-	tgerrors.Init(true)
+	errors.Init(true)
 
 	coreAcc = coreRedis.NewAccount(storageClient, redis.Client())
 	coreAccUser = coreRedis.NewAccountUser(storageClient, redis.Client())
@@ -324,7 +324,7 @@ func getComposedRouteString(routeName string, params ...interface{}) string {
 }
 
 // runRequest takes a route, path, payload and token, performs a request and return a response recorder
-func runRequest(routeName, routePath, payload, secretKey, sessionToken string, numKeyParts int) (int, string, tgerrors.TGError) {
+func runRequest(routeName, routePath, payload, secretKey, sessionToken string, numKeyParts int) (int, string, errors.Error) {
 	var (
 		requestRoute *server.Route
 		routePattern string

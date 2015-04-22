@@ -10,7 +10,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/tapglue/backend/tgerrors"
+	"github.com/tapglue/backend/errors"
 
 	gksis "github.com/sendgridlabs/go-kinesis"
 )
@@ -22,19 +22,19 @@ type (
 		SetupStreams([]string) error
 
 		// PutRecord sends a new record to a Kinesis stream
-		PutRecord(streamName, partitionKey string, payload []byte) (*gksis.PutRecordResp, tgerrors.TGError)
+		PutRecord(streamName, partitionKey string, payload []byte) (*gksis.PutRecordResp, errors.Error)
 
 		// GetRecords returns at most the specified number of records from the desired stream / shard
-		GetRecords(streamName, shardID, consumerName string, maxEntries int) ([]string, tgerrors.TGError)
+		GetRecords(streamName, shardID, consumerName string, maxEntries int) ([]string, errors.Error)
 
 		// StreamRecords will stream all the records it can from from all the shards of a stream
 		// To stop it, just close the output channel
-		StreamRecords(streamName, consumerName string, maxEntries int) (output <-chan string, errors <-chan tgerrors.TGError, done <-chan struct{})
+		StreamRecords(streamName, consumerName string, maxEntries int) (output <-chan string, errors <-chan errors.Error, done <-chan struct{})
 
 		// DescribeStream will return the Kinesis stream descriptiont that AWS has if the stream is active.
 		// If the stream is not active then it will return an error
 		// It will also timeout after 30 seconds (one try per second)
-		DescribeStream(streamName string) (*gksis.DescribeStreamResp, tgerrors.TGError)
+		DescribeStream(streamName string) (*gksis.DescribeStreamResp, errors.Error)
 
 		// TeardownStreams destroys the streams from Kinesis
 		TeardownStreams(streamsName []string) error
@@ -96,27 +96,27 @@ var (
 	}
 )
 
-func (c *cli) PutRecord(streamName, partitionKey string, payload []byte) (*gksis.PutRecordResp, tgerrors.TGError) {
+func (c *cli) PutRecord(streamName, partitionKey string, payload []byte) (*gksis.PutRecordResp, errors.Error) {
 	time.Sleep(time.Duration(rand.Intn(100)*100) * time.Millisecond)
 	args := gksis.NewArgs()
 	args.Add("StreamName", streamName)
 	args.AddRecord(payload, partitionKey)
 	resp, err := c.kinesis.PutRecord(args)
 	if err != nil {
-		return nil, tgerrors.NewInternalError("failed to execute operation (1)", err.Error())
+		return nil, errors.NewInternalError("failed to execute operation (1)", err.Error())
 	}
 
 	return resp, nil
 }
 
-func (c *cli) GetRecords(streamName, shardID, consumerName string, maxEntries int) ([]string, tgerrors.TGError) {
+func (c *cli) GetRecords(streamName, shardID, consumerName string, maxEntries int) ([]string, errors.Error) {
 	args := gksis.NewArgs()
 	args.Add("StreamName", streamName)
 	args.Add("ShardId", shardID)
 	args.Add("ShardIteratorType", "TRIM_HORIZON")
 	shardIteratorResponse, err := c.kinesis.GetShardIterator(args)
 	if err != nil {
-		return []string{}, tgerrors.NewInternalError("error while reading the internal data", err.Error())
+		return []string{}, errors.NewInternalError("error while reading the internal data", err.Error())
 	}
 
 	shardIterator := shardIteratorResponse.ShardIterator
@@ -126,15 +126,15 @@ func (c *cli) GetRecords(streamName, shardID, consumerName string, maxEntries in
 	args.Add("Limit", maxEntries)
 	records, err := c.kinesis.GetRecords(args)
 	if err != nil {
-		return []string{}, tgerrors.NewInternalError("error while reading the internal data", err.Error())
+		return []string{}, errors.NewInternalError("error while reading the internal data", err.Error())
 	}
 
 	if err != nil {
-		return []string{}, tgerrors.NewInternalError("error while reading the internal data", err.Error())
+		return []string{}, errors.NewInternalError("error while reading the internal data", err.Error())
 	}
 
 	if records.NextShardIterator == "" || shardIterator == records.NextShardIterator {
-		return []string{}, tgerrors.NewInternalError("error while reading the internal data", "malformed pointer received")
+		return []string{}, errors.NewInternalError("error while reading the internal data", "malformed pointer received")
 	}
 
 	if len(records.Records) == 0 {
@@ -148,24 +148,24 @@ func (c *cli) GetRecords(streamName, shardID, consumerName string, maxEntries in
 	return result, nil
 }
 
-func (c *cli) StreamRecords(streamName, consumerName string, maxEntries int) (<-chan string, <-chan tgerrors.TGError, <-chan struct{}) {
+func (c *cli) StreamRecords(streamName, consumerName string, maxEntries int) (<-chan string, <-chan errors.Error, <-chan struct{}) {
 
 	output := make(chan string, 10*maxEntries)
-	errors := make(chan tgerrors.TGError, 10)
+	errs := make(chan errors.Error, 10)
 	done := make(chan struct{})
 
 	stream, err := c.DescribeStream(streamName)
 	if err != nil {
-		errors <- err
+		errs <- err
 		close(done)
-		return output, errors, done
+		return output, errs, done
 	}
 
 	// Keep track of internal producers and when all of them have quit, we should quit as well
 	internalDone := make(chan bool, len(stream.StreamDescription.Shards))
 
 	for idx := range stream.StreamDescription.Shards {
-		go func(streamName, shardID string, maxEntries int, output chan<- string, errors chan<- tgerrors.TGError, done chan bool) {
+		go func(streamName, shardID string, maxEntries int, output chan<- string, errs chan<- errors.Error, done chan bool) {
 			defer func() {
 				done <- true
 			}()
@@ -175,7 +175,7 @@ func (c *cli) StreamRecords(streamName, consumerName string, maxEntries int) (<-
 			args.Add("ShardIteratorType", "TRIM_HORIZON")
 			shardIteratorResponse, err := c.kinesis.GetShardIterator(args)
 			if err != nil {
-				errors <- tgerrors.NewInternalError("error while reading the internal data", err.Error())
+				errs <- errors.NewInternalError("error while reading the internal data", err.Error())
 				return
 			}
 
@@ -187,17 +187,17 @@ func (c *cli) StreamRecords(streamName, consumerName string, maxEntries int) (<-
 				args.Add("Limit", maxEntries)
 				records, err := c.kinesis.GetRecords(args)
 				if err != nil {
-					errors <- tgerrors.NewInternalError("error while reading the internal data", err.Error())
+					errs <- errors.NewInternalError("error while reading the internal data", err.Error())
 					break
 				}
 
 				if err != nil {
-					errors <- tgerrors.NewInternalError("error while reading the internal data", err.Error())
+					errs <- errors.NewInternalError("error while reading the internal data", err.Error())
 					break
 				}
 
 				if records.NextShardIterator == "" || shardIterator == records.NextShardIterator {
-					errors <- tgerrors.NewInternalError("error while reading the internal data", "shard iterator returned an inconsistent iterator")
+					errs <- errors.NewInternalError("error while reading the internal data", "shard iterator returned an inconsistent iterator")
 					break
 				}
 
@@ -207,7 +207,7 @@ func (c *cli) StreamRecords(streamName, consumerName string, maxEntries int) (<-
 
 				shardIterator = records.NextShardIterator
 			}
-		}(streamName, stream.StreamDescription.Shards[idx].ShardId, maxEntries, output, errors, internalDone)
+		}(streamName, stream.StreamDescription.Shards[idx].ShardId, maxEntries, output, errs, internalDone)
 	}
 
 	go func() {
@@ -219,11 +219,11 @@ func (c *cli) StreamRecords(streamName, consumerName string, maxEntries int) (<-
 			}
 		}
 		close(output)
-		close(errors)
+		close(errs)
 		close(done)
 	}()
 
-	return output, errors, done
+	return output, errs, done
 }
 
 func (c *cli) SetupStreams(streamsName []string) error {
@@ -238,10 +238,10 @@ func (c *cli) SetupStreams(streamsName []string) error {
 	return nil
 }
 
-func (c *cli) DescribeStream(streamName string) (*gksis.DescribeStreamResp, tgerrors.TGError) {
+func (c *cli) DescribeStream(streamName string) (*gksis.DescribeStreamResp, errors.Error) {
 	type Response struct {
 		Descriptor *gksis.DescribeStreamResp
-		Error      tgerrors.TGError
+		Error      errors.Error
 	}
 
 	respChan := make(chan Response, 1)
@@ -257,7 +257,7 @@ func (c *cli) DescribeStream(streamName string) (*gksis.DescribeStreamResp, tger
 			if err != nil {
 				response <- Response{
 					Descriptor: nil,
-					Error:      tgerrors.NewInternalError("failed to read storage", err.Error()),
+					Error:      errors.NewInternalError("failed to read storage", err.Error()),
 				}
 				return
 			}
@@ -275,7 +275,7 @@ func (c *cli) DescribeStream(streamName string) (*gksis.DescribeStreamResp, tger
 
 	select {
 	case <-time.After(30 * time.Second):
-		return nil, tgerrors.NewInternalError("could not connect to the storage in a timely manner", fmt.Sprintf("more than 30 passed in attempting to describe stream %q", streamName))
+		return nil, errors.NewInternalError("could not connect to the storage in a timely manner", fmt.Sprintf("more than 30 passed in attempting to describe stream %q", streamName))
 	case resp := <-respChan:
 		return resp.Descriptor, resp.Error
 	}

@@ -6,7 +6,7 @@ package kinesis
 
 import (
 	"github.com/tapglue/backend/context"
-	"github.com/tapglue/backend/tgerrors"
+	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/server"
 )
@@ -18,39 +18,39 @@ type (
 	}
 )
 
-func (evt *event) Read(ctx *context.Context) (err tgerrors.TGError) {
+func (evt *event) Read(ctx *context.Context) (err errors.Error) {
 	return nil
 }
 
-func (evt *event) Update(ctx *context.Context) (err tgerrors.TGError) {
+func (evt *event) Update(ctx *context.Context) (err errors.Error) {
 	return nil
 }
 
-func (evt *event) Delete(ctx *context.Context) (err tgerrors.TGError) {
+func (evt *event) Delete(ctx *context.Context) (err errors.Error) {
 	return nil
 }
 
-func (evt *event) List(ctx *context.Context) (err tgerrors.TGError) {
+func (evt *event) List(ctx *context.Context) (err errors.Error) {
 	return nil
 }
 
-func (evt *event) ConnectionEventsList(ctx *context.Context) (err tgerrors.TGError) {
+func (evt *event) ConnectionEventsList(ctx *context.Context) (err errors.Error) {
 	return nil
 }
 
-func (evt *event) Create(ctx *context.Context) (err tgerrors.TGError) {
+func (evt *event) Create(ctx *context.Context) (err errors.Error) {
 	return nil
 }
 
-func (evt *event) SearchGeo(ctx *context.Context) (err tgerrors.TGError) {
+func (evt *event) SearchGeo(ctx *context.Context) (err errors.Error) {
 	return nil
 }
 
-func (evt *event) SearchObject(ctx *context.Context) (err tgerrors.TGError) {
+func (evt *event) SearchObject(ctx *context.Context) (err errors.Error) {
 	return nil
 }
 
-func (evt *event) SearchLocation(ctx *context.Context) (err tgerrors.TGError) {
+func (evt *event) SearchLocation(ctx *context.Context) (err errors.Error) {
 	return nil
 }
 

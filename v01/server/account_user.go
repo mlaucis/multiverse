@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/tapglue/backend/tgerrors"
+	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/v01/context"
 	"github.com/tapglue/backend/v01/core"
 	"github.com/tapglue/backend/v01/entity"
@@ -18,17 +18,17 @@ import (
 
 // getAccountUser handles requests to a single account user
 // Request: GET /account/:AccountID/user/:UserID
-func getAccountUser(ctx *context.Context) (err tgerrors.TGError) {
+func getAccountUser(ctx *context.Context) (err errors.Error) {
 	WriteResponse(ctx, ctx.AccountUser, http.StatusOK, 10)
 	return
 }
 
 // updateAccountUser handles requests update an account user
 // Request: PUT /account/:AccountID/user/:UserID
-func updateAccountUser(ctx *context.Context) (err tgerrors.TGError) {
+func updateAccountUser(ctx *context.Context) (err errors.Error) {
 	accountUser := *ctx.AccountUser
 	if er := json.Unmarshal(ctx.Body, &accountUser); er != nil {
-		return tgerrors.NewBadRequestError("failed to update the account user (1)\n"+er.Error(), er.Error())
+		return errors.NewBadRequestError("failed to update the account user (1)\n"+er.Error(), er.Error())
 	}
 
 	accountUser.ID = ctx.AccountUserID
@@ -50,7 +50,7 @@ func updateAccountUser(ctx *context.Context) (err tgerrors.TGError) {
 
 // deleteAccountUser handles requests to delete a single account user
 // Request: DELETE /account/:AccountID/user/:UserID
-func deleteAccountUser(ctx *context.Context) (err tgerrors.TGError) {
+func deleteAccountUser(ctx *context.Context) (err errors.Error) {
 	if err = core.DeleteAccountUser(ctx.AccountID, ctx.AccountUserID); err != nil {
 		return
 	}
@@ -61,13 +61,13 @@ func deleteAccountUser(ctx *context.Context) (err tgerrors.TGError) {
 
 // createAccountUser handles requests create an account user
 // Request: POST /account/:AccountID/users
-func createAccountUser(ctx *context.Context) (err tgerrors.TGError) {
+func createAccountUser(ctx *context.Context) (err errors.Error) {
 	var (
 		accountUser = &entity.AccountUser{}
 	)
 
 	if err := json.Unmarshal(ctx.Body, accountUser); err != nil {
-		return tgerrors.NewBadRequestError("failed to create the account user (1)"+err.Error(), err.Error())
+		return errors.NewBadRequestError("failed to create the account user (1)"+err.Error(), err.Error())
 	}
 
 	accountUser.AccountID = ctx.AccountID
@@ -88,7 +88,7 @@ func createAccountUser(ctx *context.Context) (err tgerrors.TGError) {
 
 // getAccountUserList handles requests to list all account users
 // Request: GET /account/:AccountID/users
-func getAccountUserList(ctx *context.Context) (err tgerrors.TGError) {
+func getAccountUserList(ctx *context.Context) (err errors.Error) {
 	var (
 		accountUsers []*entity.AccountUser
 	)
@@ -114,7 +114,7 @@ func getAccountUserList(ctx *context.Context) (err tgerrors.TGError) {
 
 // loginAccountUser handles the requests to login the user in the system
 // Request: POST /account/user/login
-func loginAccountUser(ctx *context.Context) (err tgerrors.TGError) {
+func loginAccountUser(ctx *context.Context) (err errors.Error) {
 	var (
 		loginPayload = &entity.LoginPayload{}
 		account      *entity.Account
@@ -124,7 +124,7 @@ func loginAccountUser(ctx *context.Context) (err tgerrors.TGError) {
 	)
 
 	if er = json.Unmarshal(ctx.Body, loginPayload); er != nil {
-		return tgerrors.NewBadRequestError("failed to login the user (1)\n"+er.Error(), er.Error())
+		return errors.NewBadRequestError("failed to login the user (1)\n"+er.Error(), er.Error())
 	}
 
 	if err = validator.IsValidLoginPayload(loginPayload); err != nil {
@@ -174,7 +174,7 @@ func loginAccountUser(ctx *context.Context) (err tgerrors.TGError) {
 
 // refreshApplicationUserSession handles the requests to refresh the user session token
 // Request: Post /account/:AccountID/application/:ApplicationID/user/refreshsession
-func refreshAccountUserSession(ctx *context.Context) (err tgerrors.TGError) {
+func refreshAccountUserSession(ctx *context.Context) (err errors.Error) {
 	var (
 		tokenPayload struct {
 			Token string `json:"token"`
@@ -183,11 +183,11 @@ func refreshAccountUserSession(ctx *context.Context) (err tgerrors.TGError) {
 	)
 
 	if er := json.Unmarshal(ctx.Body, &tokenPayload); er != nil {
-		return tgerrors.NewBadRequestError("failed to refresh session token (1)\n"+er.Error(), er.Error())
+		return errors.NewBadRequestError("failed to refresh session token (1)\n"+er.Error(), er.Error())
 	}
 
 	if ctx.SessionToken != tokenPayload.Token {
-		return tgerrors.NewBadRequestError("failed to refresh session token (2) \nsession token mismatch", "session token mismatch")
+		return errors.NewBadRequestError("failed to refresh session token (2) \nsession token mismatch", "session token mismatch")
 	}
 
 	if sessionToken, err = core.RefreshAccountUserSession(ctx.SessionToken, ctx.AccountUser); err != nil {
@@ -202,17 +202,17 @@ func refreshAccountUserSession(ctx *context.Context) (err tgerrors.TGError) {
 
 // logoutApplicationUser handles the requests to logout the user from the system
 // Request: Post /account/:AccountID/application/:ApplicationID/user/logout
-func logoutAccountUser(ctx *context.Context) (err tgerrors.TGError) {
+func logoutAccountUser(ctx *context.Context) (err errors.Error) {
 	var logoutPayload struct {
 		Token string `json:"token"`
 	}
 
 	if er := json.Unmarshal(ctx.Body, &logoutPayload); er != nil {
-		return tgerrors.NewBadRequestError("failed to logout the user (1)\n"+er.Error(), er.Error())
+		return errors.NewBadRequestError("failed to logout the user (1)\n"+er.Error(), er.Error())
 	}
 
 	if ctx.SessionToken != logoutPayload.Token {
-		return tgerrors.NewBadRequestError("failed to logout the user (2) \nsession token mismatch", "session token mismatch")
+		return errors.NewBadRequestError("failed to logout the user (2) \nsession token mismatch", "session token mismatch")
 	}
 
 	if err = core.DestroyAccountUserSession(logoutPayload.Token, ctx.AccountUser); err != nil {

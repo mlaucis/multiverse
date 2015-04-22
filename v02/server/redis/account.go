@@ -9,7 +9,7 @@ import (
 	"net/http"
 
 	"github.com/tapglue/backend/context"
-	"github.com/tapglue/backend/tgerrors"
+	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/entity"
 	"github.com/tapglue/backend/v02/server"
@@ -22,15 +22,15 @@ type (
 	}
 )
 
-func (acc *account) Read(ctx *context.Context) (err tgerrors.TGError) {
+func (acc *account) Read(ctx *context.Context) (err errors.Error) {
 	server.WriteResponse(ctx, ctx.Bag["account"].(*entity.Account), http.StatusOK, 10)
 	return
 }
 
-func (acc *account) Update(ctx *context.Context) (err tgerrors.TGError) {
+func (acc *account) Update(ctx *context.Context) (err errors.Error) {
 	account := *(ctx.Bag["account"].(*entity.Account))
 	if er := json.Unmarshal(ctx.Body, &account); er != nil {
-		return tgerrors.NewBadRequestError("failed to update the account (1)\n"+er.Error(), "malformed json received")
+		return errors.NewBadRequestError("failed to update the account (1)\n"+er.Error(), "malformed json received")
 	}
 
 	account.ID = ctx.Bag["accountID"].(int64)
@@ -48,7 +48,7 @@ func (acc *account) Update(ctx *context.Context) (err tgerrors.TGError) {
 	return nil
 }
 
-func (acc *account) Delete(ctx *context.Context) (err tgerrors.TGError) {
+func (acc *account) Delete(ctx *context.Context) (err errors.Error) {
 	if err = acc.storage.Delete(ctx.Bag["account"].(*entity.Account)); err != nil {
 		return err
 	}
@@ -57,11 +57,11 @@ func (acc *account) Delete(ctx *context.Context) (err tgerrors.TGError) {
 	return nil
 }
 
-func (acc *account) Create(ctx *context.Context) (err tgerrors.TGError) {
+func (acc *account) Create(ctx *context.Context) (err errors.Error) {
 	var account = &entity.Account{}
 
 	if er := json.Unmarshal(ctx.Body, account); er != nil {
-		return tgerrors.NewBadRequestError("failed to create the account (1)\n"+er.Error(), er.Error())
+		return errors.NewBadRequestError("failed to create the account (1)\n"+er.Error(), er.Error())
 	}
 
 	if err = validator.CreateAccount(account); err != nil {
@@ -76,7 +76,7 @@ func (acc *account) Create(ctx *context.Context) (err tgerrors.TGError) {
 	return
 }
 
-func (acc *account) PopulateContext(ctx *context.Context) (err tgerrors.TGError) {
+func (acc *account) PopulateContext(ctx *context.Context) (err errors.Error) {
 	ctx.Bag["account"], err = acc.storage.Read(ctx.Bag["accountID"].(int64))
 	return
 }

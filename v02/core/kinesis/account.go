@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/tapglue/backend/tgerrors"
+	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/entity"
 	"github.com/tapglue/backend/v02/storage/kinesis"
@@ -19,18 +19,18 @@ type (
 	}
 )
 
-func (a *account) Create(account *entity.Account, retrieve bool) (acc *entity.Account, err tgerrors.TGError) {
-	return nil, tgerrors.NewNotFoundError("not found", "invalid handler specified")
+func (a *account) Create(account *entity.Account, retrieve bool) (acc *entity.Account, err errors.Error) {
+	return nil, errors.NewNotFoundError("not found", "invalid handler specified")
 }
 
-func (a *account) Read(accountID int64) (account *entity.Account, err tgerrors.TGError) {
-	return nil, tgerrors.NewNotFoundError("not found", "invalid handler specified")
+func (a *account) Read(accountID int64) (account *entity.Account, err errors.Error) {
+	return nil, errors.NewNotFoundError("not found", "invalid handler specified")
 }
 
-func (a *account) Update(existingAccount, updatedAccount entity.Account, retrieve bool) (acc *entity.Account, err tgerrors.TGError) {
+func (a *account) Update(existingAccount, updatedAccount entity.Account, retrieve bool) (acc *entity.Account, err errors.Error) {
 	data, er := json.Marshal(updatedAccount)
 	if er != nil {
-		return nil, tgerrors.NewInternalError("error while updating the account (1)", er.Error())
+		return nil, errors.NewInternalError("error while updating the account (1)", er.Error())
 	}
 
 	partitionKey := fmt.Sprintf("account-%d-update", updatedAccount.ID)
@@ -39,10 +39,10 @@ func (a *account) Update(existingAccount, updatedAccount entity.Account, retriev
 	return nil, err
 }
 
-func (a *account) Delete(account *entity.Account) (err tgerrors.TGError) {
+func (a *account) Delete(account *entity.Account) (err errors.Error) {
 	data, er := json.Marshal(account)
 	if er != nil {
-		return tgerrors.NewInternalError("error while deleting the account (1)", er.Error())
+		return errors.NewInternalError("error while deleting the account (1)", er.Error())
 	}
 
 	partitionKey := fmt.Sprintf("partition-%d-delete", account.ID)

@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/tapglue/backend/tgerrors"
+	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/v01/context"
 	"github.com/tapglue/backend/v01/core"
 	"github.com/tapglue/backend/v01/entity"
@@ -17,17 +17,17 @@ import (
 
 // getApplication handles requests to a single application
 // Request: GET /account/:AccountID/application/:ApplicatonID
-func getApplication(ctx *context.Context) (err tgerrors.TGError) {
+func getApplication(ctx *context.Context) (err errors.Error) {
 	WriteResponse(ctx, ctx.Application, http.StatusOK, 10)
 	return
 }
 
 // updateApplication handles requests updates an application
 // Request: PUT /account/:AccountID/application/:ApplicatonID
-func updateApplication(ctx *context.Context) (err tgerrors.TGError) {
+func updateApplication(ctx *context.Context) (err errors.Error) {
 	application := *ctx.Application
 	if er := json.Unmarshal(ctx.Body, &application); er != nil {
-		return tgerrors.NewBadRequestError("failed to update the application (1)\n"+er.Error(), er.Error())
+		return errors.NewBadRequestError("failed to update the application (1)\n"+er.Error(), er.Error())
 	}
 
 	application.ID = ctx.ApplicationID
@@ -48,7 +48,7 @@ func updateApplication(ctx *context.Context) (err tgerrors.TGError) {
 
 // deleteApplication handles requests to delete a single application
 // Request: DELETE /account/:AccountID/application/:ApplicatonID
-func deleteApplication(ctx *context.Context) (err tgerrors.TGError) {
+func deleteApplication(ctx *context.Context) (err errors.Error) {
 	if err = core.DeleteApplication(ctx.AccountID, ctx.ApplicationID); err != nil {
 		return
 	}
@@ -59,13 +59,13 @@ func deleteApplication(ctx *context.Context) (err tgerrors.TGError) {
 
 // createApplication handles requests create an application
 // Request: POST /account/:AccountID/applications
-func createApplication(ctx *context.Context) (err tgerrors.TGError) {
+func createApplication(ctx *context.Context) (err errors.Error) {
 	var (
 		application = &entity.Application{}
 	)
 
 	if er := json.Unmarshal(ctx.Body, application); er != nil {
-		return tgerrors.NewBadRequestError("failed to create the application (1)\n"+er.Error(), er.Error())
+		return errors.NewBadRequestError("failed to create the application (1)\n"+er.Error(), er.Error())
 	}
 
 	application.AccountID = ctx.AccountID
@@ -84,7 +84,7 @@ func createApplication(ctx *context.Context) (err tgerrors.TGError) {
 
 // getApplicationList handles requests list all account applications
 // Request: GET /account/:AccountID/applications
-func getApplicationList(ctx *context.Context) (err tgerrors.TGError) {
+func getApplicationList(ctx *context.Context) (err errors.Error) {
 	var (
 		applications []*entity.Application
 	)

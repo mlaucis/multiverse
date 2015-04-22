@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/tapglue/backend/tgerrors"
+	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/utils"
 	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/entity"
@@ -41,7 +41,7 @@ var (
 )
 
 // CreateUser validates a user on create
-func CreateUser(datastore core.ApplicationUser, user *entity.ApplicationUser) tgerrors.TGError {
+func CreateUser(datastore core.ApplicationUser, user *entity.ApplicationUser) errors.Error {
 	errs := []*error{}
 
 	if !StringLengthBetween(user.FirstName, userNameMin, userNameMax) {
@@ -88,20 +88,20 @@ func CreateUser(datastore core.ApplicationUser, user *entity.ApplicationUser) tg
 
 	if isDuplicate, err := DuplicateApplicationUserEmail(datastore, user.AccountID, user.ApplicationID, user.Email); isDuplicate || err != nil {
 		if isDuplicate {
-			rawErr := errorUserEmailAlreadyExists.RawError()
+			rawErr := errorUserEmailAlreadyExists.Raw()
 			errs = append(errs, &rawErr)
 		} else {
-			rawErr := err.RawError()
+			rawErr := err.Raw()
 			errs = append(errs, &rawErr)
 		}
 	}
 
 	if isDuplicate, err := DuplicateApplicationUserUsername(datastore, user.AccountID, user.ApplicationID, user.Username); isDuplicate || err != nil {
 		if isDuplicate {
-			rawErr := errorUserUsernameAlreadyExists.RawError()
+			rawErr := errorUserUsernameAlreadyExists.Raw()
 			errs = append(errs, &rawErr)
 		} else {
-			rawErr := err.RawError()
+			rawErr := err.Raw()
 			errs = append(errs, &rawErr)
 		}
 	}
@@ -110,7 +110,7 @@ func CreateUser(datastore core.ApplicationUser, user *entity.ApplicationUser) tg
 }
 
 // UpdateUser validates a user on update
-func UpdateUser(datastore core.ApplicationUser, existingApplicationUser, updatedApplicationUser *entity.ApplicationUser) tgerrors.TGError {
+func UpdateUser(datastore core.ApplicationUser, existingApplicationUser, updatedApplicationUser *entity.ApplicationUser) errors.Error {
 	errs := []*error{}
 
 	if !StringLengthBetween(updatedApplicationUser.FirstName, userNameMin, userNameMax) {
@@ -157,7 +157,7 @@ func UpdateUser(datastore core.ApplicationUser, existingApplicationUser, updated
 			if isDuplicate {
 				errs = append(errs, &errorEmailAddressInUse)
 			} else if err != nil {
-				rawErr := err.RawError()
+				rawErr := err.Raw()
 				errs = append(errs, &rawErr)
 			}
 		}
@@ -169,7 +169,7 @@ func UpdateUser(datastore core.ApplicationUser, existingApplicationUser, updated
 			if isDuplicate {
 				errs = append(errs, &errorUsernameInUse)
 			} else if err != nil {
-				rawErr := err.RawError()
+				rawErr := err.Raw()
 				errs = append(errs, &rawErr)
 			}
 		}
@@ -179,40 +179,40 @@ func UpdateUser(datastore core.ApplicationUser, existingApplicationUser, updated
 }
 
 // ApplicationUserCredentialsValid checks is a certain user has the right credentials
-func ApplicationUserCredentialsValid(password string, user *entity.ApplicationUser) tgerrors.TGError {
+func ApplicationUserCredentialsValid(password string, user *entity.ApplicationUser) errors.Error {
 	pass, err := utils.Base64Decode(user.Password)
 	if err != nil {
-		return tgerrors.NewInternalError("failed to check the account user credentials (1)", err.Error())
+		return errors.NewInternalError("failed to check the account user credentials (1)", err.Error())
 	}
 	passwordParts := strings.SplitN(string(pass), ":", 3)
 	if len(passwordParts) != 3 {
-		return tgerrors.NewInternalError("failed to check the account user credentials (2)", "invalid password parts")
+		return errors.NewInternalError("failed to check the account user credentials (2)", "invalid password parts")
 	}
 
 	salt, err := utils.Base64Decode(passwordParts[0])
 	if err != nil {
-		return tgerrors.NewInternalError("failed to check the account user credentials (3)", err.Error())
+		return errors.NewInternalError("failed to check the account user credentials (3)", err.Error())
 	}
 
 	timestamp, err := utils.Base64Decode(passwordParts[1])
 	if err != nil {
-		return tgerrors.NewInternalError("failed to check the account user credentials (4)", err.Error())
+		return errors.NewInternalError("failed to check the account user credentials (4)", err.Error())
 	}
 
 	encryptedPassword := storageHelper.GenerateEncryptedPassword(password, string(salt), string(timestamp))
 
 	if encryptedPassword != passwordParts[2] {
-		return tgerrors.NewInternalError("failed to check the account user credentials (5)\ninvalid user credentials", "password mismatch")
+		return errors.NewInternalError("failed to check the account user credentials (5)\ninvalid user credentials", "password mismatch")
 	}
 
 	return nil
 }
 
 // DuplicateApplicationUserEmail checks if the user email is duplicate within the application or not
-func DuplicateApplicationUserEmail(datastore core.ApplicationUser, accountID, applicationID int64, email string) (bool, tgerrors.TGError) {
+func DuplicateApplicationUserEmail(datastore core.ApplicationUser, accountID, applicationID int64, email string) (bool, errors.Error) {
 	if userExists, err := datastore.ExistsByEmail(accountID, applicationID, email); userExists || err != nil {
 		if err != nil {
-			return false, tgerrors.NewInternalError("failed to perform email validation (1)", err.Error())
+			return false, errors.NewInternalError("failed to perform email validation (1)", err.Error())
 		} else if userExists {
 			return true, errorUserEmailAlreadyExists
 		}
@@ -222,10 +222,10 @@ func DuplicateApplicationUserEmail(datastore core.ApplicationUser, accountID, ap
 }
 
 // DuplicateApplicationUserUsername checks if the username is duplicate within the application or not
-func DuplicateApplicationUserUsername(datastore core.ApplicationUser, accountID, applicationID int64, username string) (bool, tgerrors.TGError) {
+func DuplicateApplicationUserUsername(datastore core.ApplicationUser, accountID, applicationID int64, username string) (bool, errors.Error) {
 	if userExists, err := datastore.ExistsByUsername(accountID, applicationID, username); userExists || err != nil {
 		if err != nil {
-			return false, tgerrors.NewInternalError("failed to perform username validation (1)", err.Error())
+			return false, errors.NewInternalError("failed to perform username validation (1)", err.Error())
 		} else if userExists {
 			return true, errorUserUsernameAlreadyExists
 		}

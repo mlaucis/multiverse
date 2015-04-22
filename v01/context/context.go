@@ -12,7 +12,7 @@ import (
 	"github.com/gorilla/mux"
 	ct "github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/logger"
-	"github.com/tapglue/backend/tgerrors"
+	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/utils"
 	"github.com/tapglue/backend/v01/entity"
 )
@@ -32,7 +32,7 @@ type (
 	}
 
 	// Filter is a callback that helps updating the context with extra information
-	Filter func(*Context) tgerrors.TGError
+	Filter func(*Context) errors.Error
 )
 
 // New creates a new context from the current request
@@ -43,7 +43,7 @@ func New(
 	routeName, scope, version string,
 	contextFilters []Filter,
 	environment string,
-	debugMode bool) (ctx *Context, err tgerrors.TGError) {
+	debugMode bool) (ctx *Context, err errors.Error) {
 
 	ctx = new(Context)
 	ctx.StartTime = time.Now()

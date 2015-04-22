@@ -6,7 +6,7 @@ package kinesis
 
 import (
 	"github.com/tapglue/backend/context"
-	"github.com/tapglue/backend/tgerrors"
+	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/server"
 )
@@ -18,31 +18,31 @@ type (
 	}
 )
 
-func (conn *connection) Update(ctx *context.Context) (err tgerrors.TGError) {
+func (conn *connection) Update(ctx *context.Context) (err errors.Error) {
 	return nil
 }
 
-func (conn *connection) Delete(ctx *context.Context) (err tgerrors.TGError) {
+func (conn *connection) Delete(ctx *context.Context) (err errors.Error) {
 	return nil
 }
 
-func (conn *connection) Create(ctx *context.Context) (err tgerrors.TGError) {
+func (conn *connection) Create(ctx *context.Context) (err errors.Error) {
 	return nil
 }
 
-func (conn *connection) List(ctx *context.Context) (err tgerrors.TGError) {
+func (conn *connection) List(ctx *context.Context) (err errors.Error) {
 	return nil
 }
 
-func (conn *connection) FollowedByList(ctx *context.Context) (err tgerrors.TGError) {
+func (conn *connection) FollowedByList(ctx *context.Context) (err errors.Error) {
 	return nil
 }
 
-func (conn *connection) Confirm(ctx *context.Context) (err tgerrors.TGError) {
+func (conn *connection) Confirm(ctx *context.Context) (err errors.Error) {
 	return nil
 }
 
-func (conn *connection) CreateSocial(ctx *context.Context) (err tgerrors.TGError) {
+func (conn *connection) CreateSocial(ctx *context.Context) (err errors.Error) {
 	return nil
 }
 

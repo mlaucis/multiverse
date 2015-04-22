@@ -2,25 +2,24 @@
  * @author Florin Patan <florinpatan@gmail.com>
  */
 
-// Package tgerrors holds the custom error
-package tgerrors
+// Package errors holds the custom error
+package errors
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"runtime"
 )
 
 type (
-	// TGErrorType defines our custom type
-	tgErrorType uint16
+	// errorType defines our custom type
+	errorType uint16
 
-	// TGError holds our custom error
-	TGError interface {
-		Type() tgErrorType
+	// Error holds our custom error
+	Error interface {
+		Type() errorType
 		Error() string
-		RawError() error
+		Raw() error
 		ErrorWithLocation() string
 		InternalErrorWithLocation() string
 	}
@@ -29,7 +28,7 @@ type (
 		internalMessage string
 		message         string
 		location        string
-		errType         tgErrorType
+		errType         errorType
 	}
 )
 
@@ -37,16 +36,16 @@ type (
 // TGClienterror represents an error that is caused by the client
 // TGAuthenticationError represents an error that is because the client is not authenticated
 const (
-	TGInternalError     tgErrorType = http.StatusInternalServerError
-	TGBadRequestError   tgErrorType = http.StatusBadRequest
-	TGUnauthorizedError tgErrorType = http.StatusUnauthorized
-	TGNotFoundError     tgErrorType = http.StatusNotFound
+	TGInternalError     errorType = http.StatusInternalServerError
+	TGBadRequestError   errorType = http.StatusBadRequest
+	TGUnauthorizedError errorType = http.StatusUnauthorized
+	TGNotFoundError     errorType = http.StatusNotFound
 )
 
 var dbgMode = false
 
 // New generates a new error message
-func New(errorType tgErrorType, message, internalMessage string, withLocation bool) TGError {
+func New(errorType errorType, message, internalMessage string, withLocation bool) Error {
 	stackDepth := -1
 	if withLocation {
 		stackDepth = 2
@@ -55,7 +54,7 @@ func New(errorType tgErrorType, message, internalMessage string, withLocation bo
 }
 
 // NewFromError generates a new error message from an existing error
-func NewFromError(errorType tgErrorType, err error, withLocation bool) TGError {
+func NewFromError(errorType errorType, err error, withLocation bool) Error {
 	stackDepth := -1
 	if withLocation {
 		stackDepth = 2
@@ -64,22 +63,22 @@ func NewFromError(errorType tgErrorType, err error, withLocation bool) TGError {
 }
 
 // NewBadRequestError generatates a new client error
-func NewBadRequestError(message, internalMessage string) TGError {
+func NewBadRequestError(message, internalMessage string) Error {
 	return newError(TGBadRequestError, message, internalMessage, -1)
 }
 
 // NewInternalError generatates a new client error
-func NewInternalError(message, internalMessage string) TGError {
+func NewInternalError(message, internalMessage string) Error {
 	return newError(TGInternalError, message, internalMessage, -1)
 }
 
 // NewUnauthorizedError generatates a new client error
-func NewUnauthorizedError(message, internalMessage string) TGError {
+func NewUnauthorizedError(message, internalMessage string) Error {
 	return newError(TGUnauthorizedError, message, internalMessage, -1)
 }
 
 // NewNotFoundError generatates a new client error
-func NewNotFoundError(message, internalMessage string) TGError {
+func NewNotFoundError(message, internalMessage string) Error {
 	return newError(TGNotFoundError, message, internalMessage, -1)
 }
 
@@ -88,7 +87,7 @@ func Fatal(message error) {
 	panic(message)
 }
 
-func newError(errorType tgErrorType, message, internalMessage string, stackDepth int) TGError {
+func newError(errorType errorType, message, internalMessage string, stackDepth int) Error {
 	err := &tgError{message: message, internalMessage: internalMessage, errType: errorType}
 	if stackDepth == -1 && !dbgMode {
 		return err
@@ -108,13 +107,13 @@ func newError(errorType tgErrorType, message, internalMessage string, stackDepth
 }
 
 // Type returns the type of the error
-func (err *tgError) Type() tgErrorType {
+func (err *tgError) Type() errorType {
 	return err.errType
 }
 
 // RawError generates a go error out of the existing error
-func (err *tgError) RawError() error {
-	return errors.New(err.Error())
+func (err *tgError) Raw() error {
+	return fmt.Errorf(err.Error())
 }
 
 // Error returns the error message

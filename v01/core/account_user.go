@@ -10,28 +10,28 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/tapglue/backend/tgerrors"
+	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/utils"
 	"github.com/tapglue/backend/v01/entity"
 )
 
 // ReadAccountUser returns the account matching the ID or an error
-func ReadAccountUser(accountID, accountUserID int64) (accountUser *entity.AccountUser, er tgerrors.TGError) {
+func ReadAccountUser(accountID, accountUserID int64) (accountUser *entity.AccountUser, er errors.Error) {
 	result, err := storageEngine.Get(storageClient.AccountUser(accountID, accountUserID)).Result()
 	if err != nil {
-		return nil, tgerrors.NewInternalError("failed to read the account user (1)", err.Error())
+		return nil, errors.NewInternalError("failed to read the account user (1)", err.Error())
 	}
 
 	// Parse JSON
 	if err = json.Unmarshal([]byte(result), &accountUser); err != nil {
-		return nil, tgerrors.NewInternalError("failed to read the account user (2)", err.Error())
+		return nil, errors.NewInternalError("failed to read the account user (2)", err.Error())
 	}
 
 	return
 }
 
 // UpdateAccountUser update an account user in the database and returns the updated account user or an error
-func UpdateAccountUser(existingAccountUser, updatedAccountUser entity.AccountUser, retrieve bool) (*entity.AccountUser, tgerrors.TGError) {
+func UpdateAccountUser(existingAccountUser, updatedAccountUser entity.AccountUser, retrieve bool) (*entity.AccountUser, errors.Error) {
 	updatedAccountUser.UpdatedAt = time.Now()
 
 	if updatedAccountUser.Password == "" {
@@ -42,12 +42,12 @@ func UpdateAccountUser(existingAccountUser, updatedAccountUser entity.AccountUse
 
 	val, err := json.Marshal(updatedAccountUser)
 	if err != nil {
-		return nil, tgerrors.NewInternalError("failed to update the account user (1)", err.Error())
+		return nil, errors.NewInternalError("failed to update the account user (1)", err.Error())
 	}
 
 	key := storageClient.AccountUser(updatedAccountUser.AccountID, updatedAccountUser.ID)
 	if err = storageEngine.Set(key, string(val)).Err(); err != nil {
-		return nil, tgerrors.NewInternalError("failed to update the account user (2)", err.Error())
+		return nil, errors.NewInternalError("failed to update the account user (2)", err.Error())
 	}
 
 	emailListKey := storageClient.AccountUserByEmail(utils.Base64Encode(existingAccountUser.Email))
@@ -58,7 +58,7 @@ func UpdateAccountUser(existingAccountUser, updatedAccountUser entity.AccountUse
 	if !updatedAccountUser.Enabled {
 		listKey := storageClient.AccountUsers(updatedAccountUser.AccountID)
 		if err = storageEngine.LRem(listKey, 0, key).Err(); err != nil {
-			return nil, tgerrors.NewInternalError("failed to update the account user (3)", err.Error())
+			return nil, errors.NewInternalError("failed to update the account user (3)", err.Error())
 		}
 	} else {
 		emailListKey := storageClient.AccountUserByEmail(utils.Base64Encode(updatedAccountUser.Email))
@@ -69,7 +69,7 @@ func UpdateAccountUser(existingAccountUser, updatedAccountUser entity.AccountUse
 		).Err()
 
 		if err != nil {
-			return nil, tgerrors.NewInternalError("failed to update the account user (4)", err.Error())
+			return nil, errors.NewInternalError("failed to update the account user (4)", err.Error())
 		}
 
 		usernameListKey := storageClient.AccountUserByUsername(utils.Base64Encode(updatedAccountUser.Username))
@@ -80,7 +80,7 @@ func UpdateAccountUser(existingAccountUser, updatedAccountUser entity.AccountUse
 		).Err()
 
 		if err != nil {
-			return nil, tgerrors.NewInternalError("failed to update the account user (5)", err.Error())
+			return nil, errors.NewInternalError("failed to update the account user (5)", err.Error())
 		}
 	}
 
@@ -92,7 +92,7 @@ func UpdateAccountUser(existingAccountUser, updatedAccountUser entity.AccountUse
 }
 
 // DeleteAccountUser deletes the account user matching the IDs or an error
-func DeleteAccountUser(accountID, userID int64) tgerrors.TGError {
+func DeleteAccountUser(accountID, userID int64) errors.Error {
 	// TODO: Make not deletable if its the only account user of an account
 	accountUser, er := ReadAccountUser(accountID, userID)
 	if er != nil {
@@ -102,16 +102,16 @@ func DeleteAccountUser(accountID, userID int64) tgerrors.TGError {
 	key := storageClient.AccountUser(accountID, userID)
 	result, err := storageEngine.Del(key).Result()
 	if err != nil {
-		return tgerrors.NewInternalError("failed to delete the account user (1)", err.Error())
+		return errors.NewInternalError("failed to delete the account user (1)", err.Error())
 	}
 
 	if result != 1 {
-		return tgerrors.NewNotFoundError("failed to delete the account user (2)", "account user not found")
+		return errors.NewNotFoundError("failed to delete the account user (2)", "account user not found")
 	}
 
 	listKey := storageClient.AccountUsers(accountID)
 	if err = storageEngine.LRem(listKey, 0, key).Err(); err != nil {
-		return tgerrors.NewInternalError("failed to delete the account user (3)", err.Error())
+		return errors.NewInternalError("failed to delete the account user (3)", err.Error())
 	}
 
 	emailListKey := storageClient.AccountUserByEmail(utils.Base64Encode(accountUser.Email))
@@ -121,25 +121,25 @@ func DeleteAccountUser(accountID, userID int64) tgerrors.TGError {
 		return nil
 	}
 
-	return tgerrors.NewInternalError("failed to delete the account user (4)", err.Error())
+	return errors.NewInternalError("failed to delete the account user (4)", err.Error())
 }
 
 // ReadAccountUserList returns all the users from a certain account
-func ReadAccountUserList(accountID int64) (accountUsers []*entity.AccountUser, er tgerrors.TGError) {
+func ReadAccountUserList(accountID int64) (accountUsers []*entity.AccountUser, er errors.Error) {
 	result, err := storageEngine.LRange(storageClient.AccountUsers(accountID), 0, -1).Result()
 	if err != nil {
-		return nil, tgerrors.NewInternalError("failed to read the account user list (1)", err.Error())
+		return nil, errors.NewInternalError("failed to read the account user list (1)", err.Error())
 	}
 
 	resultList, err := storageEngine.MGet(result...).Result()
 	if err != nil {
-		return nil, tgerrors.NewInternalError("failed to read the account user list (2)", err.Error())
+		return nil, errors.NewInternalError("failed to read the account user list (2)", err.Error())
 	}
 
 	accountUser := &entity.AccountUser{}
 	for _, result := range resultList {
 		if err = json.Unmarshal([]byte(result.(string)), accountUser); err != nil {
-			return nil, tgerrors.NewInternalError("failed to read the account user list (3)", err.Error())
+			return nil, errors.NewInternalError("failed to read the account user list (3)", err.Error())
 		}
 		accountUsers = append(accountUsers, accountUser)
 		accountUser = &entity.AccountUser{}
@@ -149,10 +149,10 @@ func ReadAccountUserList(accountID int64) (accountUsers []*entity.AccountUser, e
 }
 
 // WriteAccountUser adds a new account user to the database and returns the created account user or an error
-func WriteAccountUser(accountUser *entity.AccountUser, retrieve bool) (*entity.AccountUser, tgerrors.TGError) {
+func WriteAccountUser(accountUser *entity.AccountUser, retrieve bool) (*entity.AccountUser, errors.Error) {
 	var err error
 	if accountUser.ID, err = storageClient.GenerateAccountUserID(accountUser.AccountID); err != nil {
-		return nil, tgerrors.NewInternalError("failed to create the account user (1)", err.Error())
+		return nil, errors.NewInternalError("failed to create the account user (1)", err.Error())
 	}
 
 	accountUser.Enabled = true
@@ -160,7 +160,7 @@ func WriteAccountUser(accountUser *entity.AccountUser, retrieve bool) (*entity.A
 	accountUser.UpdatedAt = accountUser.CreatedAt
 	accountUser.LastLogin, err = time.Parse(time.RFC3339, "0000-01-01T00:00:00Z")
 	if err != nil {
-		return nil, tgerrors.NewInternalError("failed to create the account user (2)", err.Error())
+		return nil, errors.NewInternalError("failed to create the account user (2)", err.Error())
 	}
 
 	// Encrypt password
@@ -168,21 +168,21 @@ func WriteAccountUser(accountUser *entity.AccountUser, retrieve bool) (*entity.A
 
 	val, err := json.Marshal(accountUser)
 	if err != nil {
-		return nil, tgerrors.NewInternalError("failed to create the account user (3)", err.Error())
+		return nil, errors.NewInternalError("failed to create the account user (3)", err.Error())
 	}
 
 	key := storageClient.AccountUser(accountUser.AccountID, accountUser.ID)
 	exist, err := storageEngine.SetNX(key, string(val)).Result()
 	if !exist {
-		return nil, tgerrors.NewInternalError("failed to create the account user (4)", "account user missing")
+		return nil, errors.NewInternalError("failed to create the account user (4)", "account user missing")
 	}
 	if err != nil {
-		return nil, tgerrors.NewInternalError("failed to create the account user (5)", err.Error())
+		return nil, errors.NewInternalError("failed to create the account user (5)", err.Error())
 	}
 
 	idListKey := storageClient.AccountUsers(accountUser.AccountID)
 	if err = storageEngine.LPush(idListKey, key).Err(); err != nil {
-		return nil, tgerrors.NewInternalError("failed to create the account user (6)", err.Error())
+		return nil, errors.NewInternalError("failed to create the account user (6)", err.Error())
 	}
 
 	emailListKey := storageClient.AccountUserByEmail(utils.Base64Encode(accountUser.Email))
@@ -193,7 +193,7 @@ func WriteAccountUser(accountUser *entity.AccountUser, retrieve bool) (*entity.A
 	).Err()
 
 	if err != nil {
-		return nil, tgerrors.NewInternalError("failed to create the account user (7)", err.Error())
+		return nil, errors.NewInternalError("failed to create the account user (7)", err.Error())
 	}
 
 	usernameListKey := storageClient.AccountUserByUsername(utils.Base64Encode(accountUser.Username))
@@ -204,7 +204,7 @@ func WriteAccountUser(accountUser *entity.AccountUser, retrieve bool) (*entity.A
 	).Err()
 
 	if err != nil {
-		return nil, tgerrors.NewInternalError("failed to create the account user (8)", err.Error())
+		return nil, errors.NewInternalError("failed to create the account user (8)", err.Error())
 	}
 
 	if !retrieve {
@@ -215,7 +215,7 @@ func WriteAccountUser(accountUser *entity.AccountUser, retrieve bool) (*entity.A
 }
 
 // CreateAccountUserSession handles the creation of a user session and returns the session token
-func CreateAccountUserSession(user *entity.AccountUser) (string, tgerrors.TGError) {
+func CreateAccountUserSession(user *entity.AccountUser) (string, errors.Error) {
 	// TODO support multiple sessions?
 	// TODO rate limit this to x / per day?
 	// TODO rate limit this to be at least x minutes after the logout
@@ -226,22 +226,22 @@ func CreateAccountUserSession(user *entity.AccountUser) (string, tgerrors.TGErro
 
 	_, err := storageEngine.Set(sessionKey, token).Result()
 	if err != nil {
-		return "", tgerrors.NewInternalError("failed to create the account user session (1)", err.Error())
+		return "", errors.NewInternalError("failed to create the account user session (1)", err.Error())
 	}
 
 	expired, err := storageEngine.Expire(sessionKey, storageClient.SessionTimeoutDuration()).Result()
 	if err != nil {
-		return "", tgerrors.NewInternalError("failed to create the account user session (2)", err.Error())
+		return "", errors.NewInternalError("failed to create the account user session (2)", err.Error())
 	}
 	if !expired {
-		return "", tgerrors.NewInternalError("failed to create the account user session (3)", "failed to set expired stuff")
+		return "", errors.NewInternalError("failed to create the account user session (3)", "failed to set expired stuff")
 	}
 
 	return token, nil
 }
 
 // RefreshAccountUserSession generates a new session token for the user session
-func RefreshAccountUserSession(sessionToken string, user *entity.AccountUser) (string, tgerrors.TGError) {
+func RefreshAccountUserSession(sessionToken string, user *entity.AccountUser) (string, errors.Error) {
 	// TODO support multiple sessions?
 	// TODO rate limit this to x / per day?
 	// TODO rate limit this to be at least x minutes after the logout
@@ -251,25 +251,25 @@ func RefreshAccountUserSession(sessionToken string, user *entity.AccountUser) (s
 
 	storedToken, err := storageEngine.Get(sessionKey).Result()
 	if err != nil {
-		return "", tgerrors.NewInternalError("failed to refresh session token (1)", err.Error())
+		return "", errors.NewInternalError("failed to refresh session token (1)", err.Error())
 	}
 
 	if storedToken != sessionToken {
-		return "", tgerrors.NewInternalError("failed to refresh session token (2)\nsession token mismatch", err.Error())
+		return "", errors.NewInternalError("failed to refresh session token (2)\nsession token mismatch", err.Error())
 	}
 
 	token := storageClient.GenerateAccountSessionID(user)
 
 	if err := storageEngine.Set(sessionKey, token).Err(); err != nil {
-		return "", tgerrors.NewInternalError("failed to refresh session token (3)", err.Error())
+		return "", errors.NewInternalError("failed to refresh session token (3)", err.Error())
 	}
 
 	expired, err := storageEngine.Expire(sessionKey, storageClient.SessionTimeoutDuration()).Result()
 	if err != nil {
-		return "", tgerrors.NewInternalError("failed to refresh session token (4)", err.Error())
+		return "", errors.NewInternalError("failed to refresh session token (4)", err.Error())
 	}
 	if !expired {
-		tgerrors.NewInternalError("failed to refresh session token (5)", "could not set expire time")
+		errors.NewInternalError("failed to refresh session token (5)", "could not set expire time")
 
 	}
 
@@ -277,66 +277,66 @@ func RefreshAccountUserSession(sessionToken string, user *entity.AccountUser) (s
 }
 
 // DestroyAccountUserSession removes the user session
-func DestroyAccountUserSession(sessionToken string, user *entity.AccountUser) tgerrors.TGError {
+func DestroyAccountUserSession(sessionToken string, user *entity.AccountUser) errors.Error {
 	// TODO support multiple sessions?
 	// TODO rate limit this to x / per day?
 	sessionKey := storageClient.AccountSessionKey(user.AccountID, user.ID)
 
 	storedToken, err := storageEngine.Get(sessionKey).Result()
 	if err != nil {
-		return tgerrors.NewInternalError("failed to destroy the session token (1)", err.Error())
+		return errors.NewInternalError("failed to destroy the session token (1)", err.Error())
 	}
 
 	if storedToken != sessionToken {
-		return tgerrors.NewInternalError("failed to destroy the session token (2)", "session token mismatch")
+		return errors.NewInternalError("failed to destroy the session token (2)", "session token mismatch")
 	}
 
 	result, err := storageEngine.Del(sessionKey).Result()
 	if err != nil {
-		return tgerrors.NewInternalError("failed to destroy the session token (3)", err.Error())
+		return errors.NewInternalError("failed to destroy the session token (3)", err.Error())
 	}
 
 	if result != 1 {
-		return tgerrors.NewInternalError("failed to destroy the session token (4)", "invalid session")
+		return errors.NewInternalError("failed to destroy the session token (4)", "invalid session")
 	}
 
 	return nil
 }
 
 // FindAccountAndUserByEmail returns the account and account user for a certain e-mail address
-func FindAccountAndUserByEmail(email string) (*entity.Account, *entity.AccountUser, tgerrors.TGError) {
+func FindAccountAndUserByEmail(email string) (*entity.Account, *entity.AccountUser, errors.Error) {
 	emailListKey := storageClient.AccountUserByEmail(utils.Base64Encode(email))
 
 	return findAccountByKey(emailListKey)
 }
 
 // FindAccountAndUserByUsername returns the account and account user for a certain username
-func FindAccountAndUserByUsername(username string) (*entity.Account, *entity.AccountUser, tgerrors.TGError) {
+func FindAccountAndUserByUsername(username string) (*entity.Account, *entity.AccountUser, errors.Error) {
 	usernameListKey := storageClient.AccountUserByUsername(utils.Base64Encode(username))
 
 	return findAccountByKey(usernameListKey)
 }
 
 // findAccountByKey retrieves an account and accountUser that are stored by their key, regardless of the specified key
-func findAccountByKey(bucketName string) (*entity.Account, *entity.AccountUser, tgerrors.TGError) {
+func findAccountByKey(bucketName string) (*entity.Account, *entity.AccountUser, errors.Error) {
 
 	details, err := storageEngine.HMGet(bucketName, "acc", "usr").Result()
 	if err != nil {
-		return nil, nil, tgerrors.NewInternalError("failed to find the account user (1)", err.Error())
+		return nil, nil, errors.NewInternalError("failed to find the account user (1)", err.Error())
 	}
 
 	if len(details) != 2 || details[0] == nil || details[1] == nil {
-		return nil, nil, tgerrors.NewInternalError("failed to find the account user (2)", "mismatching or nil parts")
+		return nil, nil, errors.NewInternalError("failed to find the account user (2)", "mismatching or nil parts")
 	}
 
 	accountID, err := strconv.ParseInt(details[0].(string), 10, 64)
 	if err != nil {
-		return nil, nil, tgerrors.NewInternalError("failed to find the account user (3)", err.Error())
+		return nil, nil, errors.NewInternalError("failed to find the account user (3)", err.Error())
 	}
 
 	userID, err := strconv.ParseInt(details[1].(string), 10, 64)
 	if err != nil {
-		return nil, nil, tgerrors.NewInternalError("failed to find the account user (4)", err.Error())
+		return nil, nil, errors.NewInternalError("failed to find the account user (4)", err.Error())
 	}
 
 	account, er := ReadAccount(accountID)

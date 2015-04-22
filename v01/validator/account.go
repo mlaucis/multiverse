@@ -7,7 +7,7 @@ package validator
 import (
 	"fmt"
 
-	"github.com/tapglue/backend/tgerrors"
+	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/v01/entity"
 )
 
@@ -32,7 +32,7 @@ var (
 )
 
 // CreateAccount validates an account on create
-func CreateAccount(account *entity.Account) tgerrors.TGError {
+func CreateAccount(account *entity.Account) errors.Error {
 	errs := []*error{}
 
 	if !StringLengthBetween(account.Name, accountNameMin, accountNameMax) {
@@ -69,7 +69,7 @@ func CreateAccount(account *entity.Account) tgerrors.TGError {
 }
 
 // UpdateAccount validates an account on update
-func UpdateAccount(existingAccount, updatedAccount *entity.Account) tgerrors.TGError {
+func UpdateAccount(existingAccount, updatedAccount *entity.Account) errors.Error {
 	errs := []*error{}
 
 	if updatedAccount.ID == 0 {

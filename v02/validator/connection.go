@@ -7,7 +7,7 @@ package validator
 import (
 	"fmt"
 
-	"github.com/tapglue/backend/tgerrors"
+	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/entity"
 )
@@ -21,7 +21,7 @@ var (
 )
 
 // CreateConnection validates a connection on create
-func CreateConnection(datastore core.ApplicationUser, connection *entity.Connection) tgerrors.TGError {
+func CreateConnection(datastore core.ApplicationUser, connection *entity.Connection) errors.Error {
 	errs := []*error{}
 
 	if connection.ApplicationID == 0 {
@@ -64,7 +64,7 @@ func CreateConnection(datastore core.ApplicationUser, connection *entity.Connect
 }
 
 // ConfirmConnection validates a connection on confirmation
-func ConfirmConnection(datastore core.ApplicationUser, connection *entity.Connection) tgerrors.TGError {
+func ConfirmConnection(datastore core.ApplicationUser, connection *entity.Connection) errors.Error {
 	errs := []*error{}
 
 	if connection.ApplicationID == 0 {
@@ -91,7 +91,7 @@ func ConfirmConnection(datastore core.ApplicationUser, connection *entity.Connec
 }
 
 // UpdateConnection validates a connection on update
-func UpdateConnection(datastore core.ApplicationUser, existingConnection, updatedConnection *entity.Connection) tgerrors.TGError {
+func UpdateConnection(datastore core.ApplicationUser, existingConnection, updatedConnection *entity.Connection) errors.Error {
 	errs := []*error{}
 
 	if updatedConnection.UserFromID == 0 {

@@ -10,29 +10,29 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/tapglue/backend/tgerrors"
+	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/utils"
 	"github.com/tapglue/backend/v01/entity"
 )
 
 // ReadApplicationUser returns the user matching the ID or an error
-func ReadApplicationUser(accountID, applicationID, userID int64) (user *entity.User, err tgerrors.TGError) {
+func ReadApplicationUser(accountID, applicationID, userID int64) (user *entity.User, err errors.Error) {
 	key := storageClient.User(accountID, applicationID, userID)
 
 	result, er := storageEngine.Get(key).Result()
 	if err != nil {
-		return nil, tgerrors.NewInternalError("failed to read application user (1)", er.Error())
+		return nil, errors.NewInternalError("failed to read application user (1)", er.Error())
 	}
 
 	if er = json.Unmarshal([]byte(result), &user); er != nil {
-		return nil, tgerrors.NewInternalError("failed to read application user (2)", er.Error())
+		return nil, errors.NewInternalError("failed to read application user (2)", er.Error())
 	}
 
 	return
 }
 
 // UpdateUser updates a user in the database and returns the updates user or an error
-func UpdateUser(existingUser, updatedUser entity.User, retrieve bool) (usr *entity.User, err tgerrors.TGError) {
+func UpdateUser(existingUser, updatedUser entity.User, retrieve bool) (usr *entity.User, err errors.Error) {
 
 	if updatedUser.Password == "" {
 		updatedUser.Password = existingUser.Password
@@ -43,12 +43,12 @@ func UpdateUser(existingUser, updatedUser entity.User, retrieve bool) (usr *enti
 
 	val, er := json.Marshal(updatedUser)
 	if er != nil {
-		return nil, tgerrors.NewInternalError("failed to update the application user (1)", er.Error())
+		return nil, errors.NewInternalError("failed to update the application user (1)", er.Error())
 	}
 
 	key := storageClient.User(updatedUser.AccountID, updatedUser.ApplicationID, updatedUser.ID)
 	if er = storageEngine.Set(key, string(val)).Err(); er != nil {
-		return nil, tgerrors.NewInternalError("failed to update the application user (2)", er.Error())
+		return nil, errors.NewInternalError("failed to update the application user (2)", er.Error())
 	}
 
 	if existingUser.Email != updatedUser.Email {
@@ -58,7 +58,7 @@ func UpdateUser(existingUser, updatedUser entity.User, retrieve bool) (usr *enti
 		emailListKey = storageClient.ApplicationUserByEmail(existingUser.AccountID, existingUser.ApplicationID, utils.Base64Encode(updatedUser.Email))
 		er = storageEngine.Set(emailListKey, fmt.Sprintf("%d", updatedUser.ID)).Err()
 		if er != nil {
-			return nil, tgerrors.NewInternalError("failed to update the application user (3)", er.Error())
+			return nil, errors.NewInternalError("failed to update the application user (3)", er.Error())
 		}
 	}
 
@@ -70,19 +70,19 @@ func UpdateUser(existingUser, updatedUser entity.User, retrieve bool) (usr *enti
 		er = storageEngine.Set(usernameListKey, fmt.Sprintf("%d", updatedUser.ID)).Err()
 
 		if er != nil {
-			return nil, tgerrors.NewInternalError("failed to update the application user (4)", er.Error())
+			return nil, errors.NewInternalError("failed to update the application user (4)", er.Error())
 		}
 	}
 
 	if !updatedUser.Enabled {
 		listKey := storageClient.Users(updatedUser.AccountID, updatedUser.ApplicationID)
 		if er = storageEngine.LRem(listKey, 0, key).Err(); er != nil {
-			return nil, tgerrors.NewInternalError("failed to update the application user (5)", er.Error())
+			return nil, errors.NewInternalError("failed to update the application user (5)", er.Error())
 		}
 	} else {
 		listKey := storageClient.Users(updatedUser.AccountID, updatedUser.ApplicationID)
 		if er = storageEngine.LPush(listKey, key).Err(); er != nil {
-			return nil, tgerrors.NewInternalError("failed to update the application user (6)", er.Error())
+			return nil, errors.NewInternalError("failed to update the application user (6)", er.Error())
 		}
 	}
 
@@ -94,7 +94,7 @@ func UpdateUser(existingUser, updatedUser entity.User, retrieve bool) (usr *enti
 }
 
 // DeleteUser deletes the user matching the IDs or an error
-func DeleteUser(accountID, applicationID, userID int64) (err tgerrors.TGError) {
+func DeleteUser(accountID, applicationID, userID int64) (err errors.Error) {
 	user, err := ReadApplicationUser(accountID, applicationID, userID)
 	if err != nil {
 		return err
@@ -139,12 +139,12 @@ func DeleteUser(accountID, applicationID, userID int64) (err tgerrors.TGError) {
 }
 
 // ReadUserList returns all users from a certain account
-func ReadUserList(accountID, applicationID int64) (users []*entity.User, err tgerrors.TGError) {
+func ReadUserList(accountID, applicationID int64) (users []*entity.User, err errors.Error) {
 	key := storageClient.Users(accountID, applicationID)
 
 	result, er := storageEngine.LRange(key, 0, -1).Result()
 	if er != nil {
-		return nil, tgerrors.NewInternalError("failed to read the application user list (1)", er.Error())
+		return nil, errors.NewInternalError("failed to read the application user list (1)", er.Error())
 	}
 
 	if len(result) == 0 {
@@ -153,13 +153,13 @@ func ReadUserList(accountID, applicationID int64) (users []*entity.User, err tge
 
 	resultList, er := storageEngine.MGet(result...).Result()
 	if er != nil {
-		return nil, tgerrors.NewInternalError("failed to read the application user list (2)", er.Error())
+		return nil, errors.NewInternalError("failed to read the application user list (2)", er.Error())
 	}
 
 	user := &entity.User{}
 	for _, result := range resultList {
 		if er = json.Unmarshal([]byte(result.(string)), user); er != nil {
-			return nil, tgerrors.NewInternalError("failed to read the application user list (3)", er.Error())
+			return nil, errors.NewInternalError("failed to read the application user list (3)", er.Error())
 		}
 		users = append(users, user)
 		user = &entity.User{}
@@ -169,7 +169,7 @@ func ReadUserList(accountID, applicationID int64) (users []*entity.User, err tge
 }
 
 // WriteUser adds a user to the database and returns the created user or an error
-func WriteUser(user *entity.User, retrieve bool) (usr *entity.User, err tgerrors.TGError) {
+func WriteUser(user *entity.User, retrieve bool) (usr *entity.User, err errors.Error) {
 	// TODO We should introduce an option for the application to either allow for activated/deactivated behavior
 	// and if they chose it, then we need to provide an endpoint to activate a user or not
 	//user.Activated = true
@@ -180,11 +180,11 @@ func WriteUser(user *entity.User, retrieve bool) (usr *entity.User, err tgerrors
 	user.UpdatedAt = user.CreatedAt
 	user.LastLogin, er = time.Parse(time.RFC3339, "0000-01-01T00:00:00Z")
 	if er != nil {
-		return nil, tgerrors.NewInternalError("failed to write the application user (1)", er.Error())
+		return nil, errors.NewInternalError("failed to write the application user (1)", er.Error())
 	}
 
 	if user.ID, er = storageClient.GenerateApplicationUserID(user.ApplicationID); er != nil {
-		return nil, tgerrors.NewInternalError("failed to write the application user (2)", er.Error())
+		return nil, errors.NewInternalError("failed to write the application user (2)", er.Error())
 	}
 
 	// Encrypt password
@@ -192,17 +192,17 @@ func WriteUser(user *entity.User, retrieve bool) (usr *entity.User, err tgerrors
 
 	val, er := json.Marshal(user)
 	if er != nil {
-		return nil, tgerrors.NewInternalError("failed to write the application user (3)", er.Error())
+		return nil, errors.NewInternalError("failed to write the application user (3)", er.Error())
 	}
 
 	key := storageClient.User(user.AccountID, user.ApplicationID, user.ID)
 
 	exist, er := storageEngine.SetNX(key, string(val)).Result()
 	if !exist {
-		return nil, tgerrors.NewInternalError("failed to write the application user (4)", "duplicate user")
+		return nil, errors.NewInternalError("failed to write the application user (4)", "duplicate user")
 	}
 	if err != nil {
-		return nil, tgerrors.NewInternalError("failed to write the application user (5)", er.Error())
+		return nil, errors.NewInternalError("failed to write the application user (5)", er.Error())
 	}
 
 	stringUserID := fmt.Sprintf("%d", user.ID)
@@ -210,19 +210,19 @@ func WriteUser(user *entity.User, retrieve bool) (usr *entity.User, err tgerrors
 	emailListKey := storageClient.ApplicationUserByEmail(user.AccountID, user.ApplicationID, utils.Base64Encode(user.Email))
 	result, er := storageEngine.SetNX(emailListKey, stringUserID).Result()
 	if er != nil {
-		return nil, tgerrors.NewInternalError("failed to write the application user (6)", er.Error())
+		return nil, errors.NewInternalError("failed to write the application user (6)", er.Error())
 	}
 	if !result {
-		return nil, tgerrors.NewInternalError("failed to write the application user (7)", "duplicate user by e-mail")
+		return nil, errors.NewInternalError("failed to write the application user (7)", "duplicate user by e-mail")
 	}
 
 	usernameListKey := storageClient.ApplicationUserByUsername(user.AccountID, user.ApplicationID, utils.Base64Encode(user.Username))
 	result, er = storageEngine.SetNX(usernameListKey, stringUserID).Result()
 	if er != nil {
-		return nil, tgerrors.NewInternalError("failed to write the application user (8)", er.Error())
+		return nil, errors.NewInternalError("failed to write the application user (8)", er.Error())
 	}
 	if !result {
-		return nil, tgerrors.NewInternalError("failed to write the application user (9)", "duplicate user by username")
+		return nil, errors.NewInternalError("failed to write the application user (9)", "duplicate user by username")
 	}
 
 	socialValues := []string{}
@@ -240,7 +240,7 @@ func WriteUser(user *entity.User, retrieve bool) (usr *entity.User, err tgerrors
 	if applicationSocialKey != "" {
 		er := storageEngine.MSet(socialValues...).Err()
 		if er != nil {
-			return nil, tgerrors.NewInternalError("failed to write the application user (10)", er.Error())
+			return nil, errors.NewInternalError("failed to write the application user (10)", er.Error())
 		}
 	}
 
@@ -262,7 +262,7 @@ func WriteUser(user *entity.User, retrieve bool) (usr *entity.User, err tgerrors
 		if applicationSocialKey != "" {
 			existingSocialIDs, er := storageEngine.MGet(existingSocialIDsKeys...).Result()
 			if er != nil {
-				return nil, tgerrors.NewInternalError("failed to write the application user (11)", er.Error())
+				return nil, errors.NewInternalError("failed to write the application user (11)", er.Error())
 			}
 			if len(existingSocialIDs) > 0 {
 				user.Connections, err = autoConnectSocialFriends(user, existingSocialIDs)
@@ -275,7 +275,7 @@ func WriteUser(user *entity.User, retrieve bool) (usr *entity.User, err tgerrors
 
 	listKey := storageClient.Users(user.AccountID, user.ApplicationID)
 	if er = storageEngine.LPush(listKey, key).Err(); er != nil {
-		return nil, tgerrors.NewInternalError("failed to write the application user (12)", er.Error())
+		return nil, errors.NewInternalError("failed to write the application user (12)", er.Error())
 	}
 
 	if !retrieve {
@@ -286,7 +286,7 @@ func WriteUser(user *entity.User, retrieve bool) (usr *entity.User, err tgerrors
 }
 
 // CreateApplicationUserSession handles the creation of a user session and returns the session token
-func CreateApplicationUserSession(user *entity.User) (string, tgerrors.TGError) {
+func CreateApplicationUserSession(user *entity.User) (string, errors.Error) {
 	// TODO support multiple sessions?
 	// TODO rate limit this to x / per day?
 	// TODO rate limit this to be at least x minutes after the logout
@@ -296,22 +296,22 @@ func CreateApplicationUserSession(user *entity.User) (string, tgerrors.TGError) 
 	token := storageClient.GenerateApplicationSessionID(user)
 
 	if er := storageEngine.Set(sessionKey, token).Err(); er != nil {
-		return "", tgerrors.NewInternalError("failed to create the application user session (1)", er.Error())
+		return "", errors.NewInternalError("failed to create the application user session (1)", er.Error())
 	}
 
 	expired, er := storageEngine.Expire(sessionKey, storageClient.SessionTimeoutDuration()).Result()
 	if er != nil {
-		return "", tgerrors.NewInternalError("failed to create the application user session (2)", er.Error())
+		return "", errors.NewInternalError("failed to create the application user session (2)", er.Error())
 	}
 	if !expired {
-		return "", tgerrors.NewInternalError("failed to create the application user session (3)", "failed to set the expired")
+		return "", errors.NewInternalError("failed to create the application user session (3)", "failed to set the expired")
 	}
 
 	return token, nil
 }
 
 // RefreshApplicationUserSession generates a new session token for the user session
-func RefreshApplicationUserSession(sessionToken string, user *entity.User) (string, tgerrors.TGError) {
+func RefreshApplicationUserSession(sessionToken string, user *entity.User) (string, errors.Error) {
 	// TODO support multiple sessions?
 	// TODO rate limit this to x / per day?
 	// TODO rate limit this to be at least x minutes after the logout
@@ -321,25 +321,25 @@ func RefreshApplicationUserSession(sessionToken string, user *entity.User) (stri
 
 	storedToken, er := storageEngine.Get(sessionKey).Result()
 	if er != nil {
-		return "", tgerrors.NewInternalError("failed to refresh the application user session (1)", er.Error())
+		return "", errors.NewInternalError("failed to refresh the application user session (1)", er.Error())
 	}
 
 	if storedToken != sessionToken {
-		return "", tgerrors.NewInternalError("failed to refresh the application user session (2)", "session token mismatch")
+		return "", errors.NewInternalError("failed to refresh the application user session (2)", "session token mismatch")
 	}
 
 	token := storageClient.GenerateApplicationSessionID(user)
 
 	if er := storageEngine.Set(sessionKey, token).Err(); er != nil {
-		return "", tgerrors.NewInternalError("failed to refresh the application user session (3)", er.Error())
+		return "", errors.NewInternalError("failed to refresh the application user session (3)", er.Error())
 	}
 
 	expired, er := storageEngine.Expire(sessionKey, storageClient.SessionTimeoutDuration()).Result()
 	if er != nil {
-		return "", tgerrors.NewInternalError("failed to refresh the application user session (4)", er.Error())
+		return "", errors.NewInternalError("failed to refresh the application user session (4)", er.Error())
 	}
 	if !expired {
-		return "", tgerrors.NewInternalError("failed to refresh the application user session (5)", "failed to set expired")
+		return "", errors.NewInternalError("failed to refresh the application user session (5)", "failed to set expired")
 	}
 
 	return token, nil
@@ -361,27 +361,27 @@ func GetApplicationUserSession(user *entity.User) (string, error) {
 }
 
 // DestroyApplicationUserSession removes the user session
-func DestroyApplicationUserSession(sessionToken string, user *entity.User) tgerrors.TGError {
+func DestroyApplicationUserSession(sessionToken string, user *entity.User) errors.Error {
 	// TODO support multiple sessions?
 	// TODO rate limit this to x / per day?
 	sessionKey := storageClient.ApplicationSessionKey(user.AccountID, user.ApplicationID, user.ID)
 
 	storedToken, er := storageEngine.Get(sessionKey).Result()
 	if er != nil {
-		return tgerrors.NewInternalError("failed to destroy the application user session (1)", er.Error())
+		return errors.NewInternalError("failed to destroy the application user session (1)", er.Error())
 	}
 
 	if storedToken != sessionToken {
-		return tgerrors.NewInternalError("failed to destroy the application user session (2)", "session token mismatch")
+		return errors.NewInternalError("failed to destroy the application user session (2)", "session token mismatch")
 	}
 
 	result, er := storageEngine.Del(sessionKey).Result()
 	if er != nil {
-		return tgerrors.NewInternalError("failed to destroy the application user session (3)", er.Error())
+		return errors.NewInternalError("failed to destroy the application user session (3)", er.Error())
 	}
 
 	if result != 1 {
-		return tgerrors.NewInternalError("failed to destroy the application user session (4)", er.Error())
+		return errors.NewInternalError("failed to destroy the application user session (4)", er.Error())
 	}
 
 	return nil
@@ -395,29 +395,29 @@ func ApplicationUserByEmailExists(accountID, applicationID int64, email string) 
 }
 
 // FindApplicationUserByEmail returns an application user by its email
-func FindApplicationUserByEmail(accountID, applicationID int64, email string) (*entity.User, tgerrors.TGError) {
+func FindApplicationUserByEmail(accountID, applicationID int64, email string) (*entity.User, errors.Error) {
 	emailListKey := storageClient.ApplicationUserByEmail(accountID, applicationID, utils.Base64Encode(email))
 
 	return findApplicationUserByKey(accountID, applicationID, emailListKey)
 }
 
 // FindApplicationUserByUsername returns an application user by its username
-func FindApplicationUserByUsername(accountID, applicationID int64, username string) (*entity.User, tgerrors.TGError) {
+func FindApplicationUserByUsername(accountID, applicationID int64, username string) (*entity.User, errors.Error) {
 	usernameListKey := storageClient.ApplicationUserByUsername(accountID, applicationID, utils.Base64Encode(username))
 
 	return findApplicationUserByKey(accountID, applicationID, usernameListKey)
 }
 
 // findApplicationUserByKey returns an application user regardless of the key used to search for him
-func findApplicationUserByKey(accountID, applicationID int64, bucketName string) (*entity.User, tgerrors.TGError) {
+func findApplicationUserByKey(accountID, applicationID int64, bucketName string) (*entity.User, errors.Error) {
 	storedValue, er := storageEngine.Get(bucketName).Result()
 	if er != nil {
-		return nil, tgerrors.NewInternalError("failed to retrieve the application user (1)", er.Error())
+		return nil, errors.NewInternalError("failed to retrieve the application user (1)", er.Error())
 	}
 
 	userID, er := strconv.ParseInt(storedValue, 10, 64)
 	if er != nil {
-		return nil, tgerrors.NewInternalError("failed to retrieve the application user (2)", er.Error())
+		return nil, errors.NewInternalError("failed to retrieve the application user (2)", er.Error())
 	}
 
 	applicationUser, err := ReadApplicationUser(accountID, applicationID, userID)

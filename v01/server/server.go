@@ -11,13 +11,13 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/tapglue/backend/logger"
-	"github.com/tapglue/backend/tgerrors"
+	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/v01/context"
 )
 
 type (
 	// RouteFunc defines the pattern for a route handling function
-	RouteFunc func(*context.Context) tgerrors.TGError
+	RouteFunc func(*context.Context) errors.Error
 
 	// Route holds the route pattern
 	Route struct {
@@ -75,7 +75,7 @@ func WriteResponse(ctx *context.Context, response interface{}, code int, cacheTi
 }
 
 // ErrorHappened handles the error message
-func ErrorHappened(ctx *context.Context, err tgerrors.TGError) {
+func ErrorHappened(ctx *context.Context, err errors.Error) {
 	WriteCommonHeaders(0, ctx)
 	ctx.W.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	// Write response
@@ -120,7 +120,7 @@ func WriteCorsHeaders(ctx *context.Context) {
 }
 
 // CorsHandler will handle the CORS requests
-func CorsHandler(ctx *context.Context) (err tgerrors.TGError) {
+func CorsHandler(ctx *context.Context) (err errors.Error) {
 	WriteCommonHeaders(100, ctx)
 	WriteCorsHeaders(ctx)
 	ctx.W.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -128,7 +128,7 @@ func CorsHandler(ctx *context.Context) (err tgerrors.TGError) {
 }
 
 // VersionHandler handlers the requests for the version status
-func VersionHandler(ctx *context.Context) tgerrors.TGError {
+func VersionHandler(ctx *context.Context) errors.Error {
 	response := struct {
 		Version string `json:"version"`
 		Status  string `json:"status"`
@@ -147,94 +147,94 @@ func GetRoute(routeName string) *Route {
 }
 
 // validateGetCommon runs a series of predefined, common, tests for GET requests
-func validateGetCommon(ctx *context.Context) (err tgerrors.TGError) {
+func validateGetCommon(ctx *context.Context) (err errors.Error) {
 	if ctx.R.Header.Get("User-Agent") != "" {
 		return
 	}
-	return tgerrors.NewBadRequestError("User-Agent header must be set (1)", "missing ua header")
+	return errors.NewBadRequestError("User-Agent header must be set (1)", "missing ua header")
 }
 
 // validatePutCommon runs a series of predefinied, common, tests for PUT requests
-func validatePutCommon(ctx *context.Context) (err tgerrors.TGError) {
+func validatePutCommon(ctx *context.Context) (err errors.Error) {
 	if ctx.SkipSecurity {
 		return
 	}
 
 	if ctx.R.Header.Get("User-Agent") == "" {
-		return tgerrors.NewBadRequestError("User-Agent header must be set (1)", "missing ua header")
+		return errors.NewBadRequestError("User-Agent header must be set (1)", "missing ua header")
 	}
 
 	if ctx.R.Header.Get("Content-Length") == "" {
-		return tgerrors.NewBadRequestError("Content-Length header missing", "missing content-length header")
+		return errors.NewBadRequestError("Content-Length header missing", "missing content-length header")
 	}
 
 	if ctx.R.Header.Get("Content-Type") == "" {
-		return tgerrors.NewBadRequestError("Content-Type header empty", "missing content-type header")
+		return errors.NewBadRequestError("Content-Type header empty", "missing content-type header")
 	}
 
 	if ctx.R.Header.Get("Content-Type") != "application/json" &&
 		ctx.R.Header.Get("Content-Type") != "application/json; charset=UTF-8" {
-		return tgerrors.NewBadRequestError("Content-Type header is empty", "content-type header mismatch")
+		return errors.NewBadRequestError("Content-Type header is empty", "content-type header mismatch")
 	}
 
 	reqCL, er := strconv.ParseInt(ctx.R.Header.Get("Content-Length"), 10, 64)
 	if er != nil {
-		return tgerrors.NewBadRequestError("Content-Length header is invalid", "content-length header is not an int")
+		return errors.NewBadRequestError("Content-Length header is invalid", "content-length header is not an int")
 	}
 
 	if reqCL != ctx.R.ContentLength {
-		return tgerrors.NewBadRequestError("Content-Length header size mismatch", "content-length header size mismatch")
+		return errors.NewBadRequestError("Content-Length header size mismatch", "content-length header size mismatch")
 	}
 
 	if ctx.R.Body == nil {
-		return tgerrors.NewBadRequestError("Empty request body", "empty request body")
+		return errors.NewBadRequestError("Empty request body", "empty request body")
 	}
 	return
 }
 
 // validateDeleteCommon runs a series of predefinied, common, tests for DELETE requests
-func validateDeleteCommon(ctx *context.Context) (err tgerrors.TGError) {
+func validateDeleteCommon(ctx *context.Context) (err errors.Error) {
 	if ctx.R.Header.Get("User-Agent") != "" {
 		return
 	}
 
-	return tgerrors.NewBadRequestError("User-Agent header must be set (1)", "missing ua header")
+	return errors.NewBadRequestError("User-Agent header must be set (1)", "missing ua header")
 }
 
 // validatePostCommon runs a series of predefined, common, tests for the POST requests
-func validatePostCommon(ctx *context.Context) (err tgerrors.TGError) {
+func validatePostCommon(ctx *context.Context) (err errors.Error) {
 	if ctx.SkipSecurity {
 		return
 	}
 
 	if ctx.R.Header.Get("User-Agent") == "" {
-		return tgerrors.NewBadRequestError("User-Agent header must be set (1)", "missing ua header")
+		return errors.NewBadRequestError("User-Agent header must be set (1)", "missing ua header")
 	}
 
 	if ctx.R.Header.Get("Content-Length") == "" {
-		return tgerrors.NewBadRequestError("Content-Length header missing", "missing content-length header")
+		return errors.NewBadRequestError("Content-Length header missing", "missing content-length header")
 	}
 
 	if ctx.R.Header.Get("Content-Type") == "" {
-		return tgerrors.NewBadRequestError("Content-Type header empty", "missing content-type header")
+		return errors.NewBadRequestError("Content-Type header empty", "missing content-type header")
 	}
 
 	if ctx.R.Header.Get("Content-Type") != "application/json" &&
 		ctx.R.Header.Get("Content-Type") != "application/json; charset=UTF-8" {
-		return tgerrors.NewBadRequestError("Content-Type header is empty", "content-type header mismatch")
+		return errors.NewBadRequestError("Content-Type header is empty", "content-type header mismatch")
 	}
 
 	reqCL, er := strconv.ParseInt(ctx.R.Header.Get("Content-Length"), 10, 64)
 	if er != nil {
-		return tgerrors.NewBadRequestError("Content-Length header is invalid", "content-length header is not an int")
+		return errors.NewBadRequestError("Content-Length header is invalid", "content-length header is not an int")
 	}
 
 	if reqCL != ctx.R.ContentLength {
-		return tgerrors.NewBadRequestError("Content-Length header size mismatch", "content-length header size mismatch")
+		return errors.NewBadRequestError("Content-Length header size mismatch", "content-length header size mismatch")
 	}
 
 	if ctx.R.Body == nil {
-		return tgerrors.NewBadRequestError("Empty request body", "empty request body")
+		return errors.NewBadRequestError("Empty request body", "empty request body")
 	}
 	return
 }

@@ -8,7 +8,7 @@ package postgres
 import (
 	"database/sql"
 
-	"github.com/tapglue/backend/tgerrors"
+	"github.com/tapglue/backend/errors"
 
 	_ "github.com/lib/pq"
 )
@@ -39,7 +39,7 @@ func (c *cli) Datastore() {
 func New(connectionURL string) Client {
 	db, err := sql.Open("postgres", connectionURL)
 	if err != nil {
-		tgerrors.Fatal(err)
+		errors.Fatal(err)
 	}
 
 	return &cli{

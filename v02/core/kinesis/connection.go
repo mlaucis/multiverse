@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/tapglue/backend/tgerrors"
+	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/entity"
 	"github.com/tapglue/backend/v02/storage/kinesis"
@@ -23,10 +23,10 @@ type (
 	}
 )
 
-func (c *connection) Create(conn *entity.Connection, retrieve bool) (con *entity.Connection, err tgerrors.TGError) {
+func (c *connection) Create(conn *entity.Connection, retrieve bool) (con *entity.Connection, err errors.Error) {
 	data, er := json.Marshal(conn)
 	if er != nil {
-		return nil, tgerrors.NewInternalError("error while creating the connection (1)", er.Error())
+		return nil, errors.NewInternalError("error while creating the connection (1)", er.Error())
 	}
 
 	partitionKey := fmt.Sprintf("partitionKey-%d-%d", conn.AccountID, conn.ApplicationID)
@@ -35,14 +35,14 @@ func (c *connection) Create(conn *entity.Connection, retrieve bool) (con *entity
 	return nil, err
 }
 
-func (c *connection) Read(accountID, applicationID, userFromID, userToID int64) (connection *entity.Connection, err tgerrors.TGError) {
-	return connection, tgerrors.NewInternalError("no suitable implementation found", "no suitable implementation found")
+func (c *connection) Read(accountID, applicationID, userFromID, userToID int64) (connection *entity.Connection, err errors.Error) {
+	return connection, errors.NewInternalError("no suitable implementation found", "no suitable implementation found")
 }
 
-func (c *connection) Update(existingConnection, updatedConnection entity.Connection, retrieve bool) (con *entity.Connection, err tgerrors.TGError) {
+func (c *connection) Update(existingConnection, updatedConnection entity.Connection, retrieve bool) (con *entity.Connection, err errors.Error) {
 	data, er := json.Marshal(updatedConnection)
 	if er != nil {
-		return nil, tgerrors.NewInternalError("error while updating the connection (1)", er.Error())
+		return nil, errors.NewInternalError("error while updating the connection (1)", er.Error())
 	}
 
 	partitionKey := fmt.Sprintf("partitionKey-%d-%d", updatedConnection.AccountID, updatedConnection.ApplicationID)
@@ -51,10 +51,10 @@ func (c *connection) Update(existingConnection, updatedConnection entity.Connect
 	return nil, err
 }
 
-func (c *connection) Delete(connection *entity.Connection) (err tgerrors.TGError) {
+func (c *connection) Delete(connection *entity.Connection) (err errors.Error) {
 	data, er := json.Marshal(connection)
 	if er != nil {
-		return tgerrors.NewInternalError("error while deleting the connection (1)", er.Error())
+		return errors.NewInternalError("error while deleting the connection (1)", er.Error())
 	}
 
 	partitionKey := fmt.Sprintf("partitionKey-%d-%d", connection.AccountID, connection.ApplicationID)
@@ -63,18 +63,18 @@ func (c *connection) Delete(connection *entity.Connection) (err tgerrors.TGError
 	return err
 }
 
-func (c *connection) List(accountID, applicationID, userID int64) (users []*entity.ApplicationUser, err tgerrors.TGError) {
-	return users, tgerrors.NewInternalError("no suitable implementation found", "no suitable implementation found")
+func (c *connection) List(accountID, applicationID, userID int64) (users []*entity.ApplicationUser, err errors.Error) {
+	return users, errors.NewInternalError("no suitable implementation found", "no suitable implementation found")
 }
 
-func (c *connection) FollowedBy(accountID, applicationID, userID int64) (users []*entity.ApplicationUser, err tgerrors.TGError) {
-	return users, tgerrors.NewInternalError("no suitable implementation found", "no suitable implementation found")
+func (c *connection) FollowedBy(accountID, applicationID, userID int64) (users []*entity.ApplicationUser, err errors.Error) {
+	return users, errors.NewInternalError("no suitable implementation found", "no suitable implementation found")
 }
 
-func (c *connection) Confirm(connection *entity.Connection, retrieve bool) (con *entity.Connection, err tgerrors.TGError) {
+func (c *connection) Confirm(connection *entity.Connection, retrieve bool) (con *entity.Connection, err errors.Error) {
 	data, er := json.Marshal(connection)
 	if er != nil {
-		return nil, tgerrors.NewInternalError("error while confirming the connection (1)", er.Error())
+		return nil, errors.NewInternalError("error while confirming the connection (1)", er.Error())
 	}
 
 	partitionKey := fmt.Sprintf("partitionKey-%d-%d", connection.AccountID, connection.ApplicationID)
@@ -83,15 +83,15 @@ func (c *connection) Confirm(connection *entity.Connection, retrieve bool) (con 
 	return nil, err
 }
 
-func (c *connection) WriteEventsToList(connection *entity.Connection) (err tgerrors.TGError) {
-	return tgerrors.NewInternalError("no suitable implementation found", "no suitable implementation found")
+func (c *connection) WriteEventsToList(connection *entity.Connection) (err errors.Error) {
+	return errors.NewInternalError("no suitable implementation found", "no suitable implementation found")
 }
 
-func (c *connection) DeleteEventsFromLists(accountID, applicationID, userFromID, userToID int64) (err tgerrors.TGError) {
-	return tgerrors.NewInternalError("no suitable implementation found", "no suitable implementation found")
+func (c *connection) DeleteEventsFromLists(accountID, applicationID, userFromID, userToID int64) (err errors.Error) {
+	return errors.NewInternalError("no suitable implementation found", "no suitable implementation found")
 }
 
-func (c *connection) SocialConnect(user *entity.ApplicationUser, platform string, socialFriendsIDs []string) (users []*entity.ApplicationUser, err tgerrors.TGError) {
+func (c *connection) SocialConnect(user *entity.ApplicationUser, platform string, socialFriendsIDs []string) (users []*entity.ApplicationUser, err errors.Error) {
 	data, er := json.Marshal(struct {
 		user             *entity.ApplicationUser
 		platform         string
@@ -102,7 +102,7 @@ func (c *connection) SocialConnect(user *entity.ApplicationUser, platform string
 		socialFriendsIDs: socialFriendsIDs,
 	})
 	if er != nil {
-		return nil, tgerrors.NewInternalError("error while confirming the connection (1)", er.Error())
+		return nil, errors.NewInternalError("error while confirming the connection (1)", er.Error())
 	}
 
 	partitionKey := fmt.Sprintf("partitionKey-%d-%d", user.AccountID, user.ApplicationID)
@@ -111,7 +111,7 @@ func (c *connection) SocialConnect(user *entity.ApplicationUser, platform string
 	return nil, err
 }
 
-func (c *connection) AutoConnectSocialFriends(user *entity.ApplicationUser, ourStoredUsersIDs []interface{}) (users []*entity.ApplicationUser, err tgerrors.TGError) {
+func (c *connection) AutoConnectSocialFriends(user *entity.ApplicationUser, ourStoredUsersIDs []interface{}) (users []*entity.ApplicationUser, err errors.Error) {
 	data, er := json.Marshal(struct {
 		user              *entity.ApplicationUser
 		ourStoredUsersIDs []interface{}
@@ -120,7 +120,7 @@ func (c *connection) AutoConnectSocialFriends(user *entity.ApplicationUser, ourS
 		ourStoredUsersIDs: ourStoredUsersIDs,
 	})
 	if er != nil {
-		return nil, tgerrors.NewInternalError("error while creating the connections via social platform (1)", er.Error())
+		return nil, errors.NewInternalError("error while creating the connections via social platform (1)", er.Error())
 	}
 
 	partitionKey := fmt.Sprintf("partitionKey-%d-%d", user.AccountID, user.ApplicationID)
