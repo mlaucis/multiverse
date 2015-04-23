@@ -26,6 +26,7 @@ type (
 )
 
 func (conn *connection) Update(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	var (
 		userToID int64
 		er       error
@@ -73,6 +74,7 @@ func (conn *connection) Update(ctx *context.Context) (err errors.Error) {
 }
 
 func (conn *connection) Delete(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	connection := &entity.Connection{}
 	if er := json.Unmarshal(ctx.Body, connection); er != nil {
 		return errors.NewBadRequestError(er.Error(), er.Error())
@@ -87,6 +89,7 @@ func (conn *connection) Delete(ctx *context.Context) (err errors.Error) {
 }
 
 func (conn *connection) Create(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	var (
 		connection = &entity.Connection{}
 		er         error
@@ -126,6 +129,7 @@ func (conn *connection) Create(ctx *context.Context) (err errors.Error) {
 }
 
 func (conn *connection) List(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	var users []*entity.ApplicationUser
 
 	if users, err = conn.storage.List(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(int64)); err != nil {
@@ -141,6 +145,7 @@ func (conn *connection) List(ctx *context.Context) (err errors.Error) {
 }
 
 func (conn *connection) FollowedByList(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	var users []*entity.ApplicationUser
 
 	if users, err = conn.storage.FollowedBy(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(int64)); err != nil {
@@ -156,6 +161,7 @@ func (conn *connection) FollowedByList(ctx *context.Context) (err errors.Error) 
 }
 
 func (conn *connection) Confirm(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	var connection = &entity.Connection{}
 
 	if er := json.Unmarshal(ctx.Body, connection); er != nil {
@@ -179,6 +185,7 @@ func (conn *connection) Confirm(ctx *context.Context) (err errors.Error) {
 }
 
 func (conn *connection) CreateSocial(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	platformName := strings.ToLower(ctx.Vars["platformName"])
 
 	if _, ok := server.AcceptedPlatforms[platformName]; !ok {

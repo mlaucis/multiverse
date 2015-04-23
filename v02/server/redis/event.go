@@ -26,6 +26,7 @@ type (
 )
 
 func (evt *event) Read(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	var (
 		event   = &entity.Event{}
 		eventID int64
@@ -45,6 +46,7 @@ func (evt *event) Read(ctx *context.Context) (err errors.Error) {
 }
 
 func (evt *event) Update(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	var (
 		eventID int64
 		er      error
@@ -83,6 +85,7 @@ func (evt *event) Update(ctx *context.Context) (err errors.Error) {
 }
 
 func (evt *event) Delete(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	event := &entity.Event{}
 	if er := json.Unmarshal(ctx.Body, event); er != nil {
 		return errors.NewBadRequestError("failed to delete the event (1)\n"+er.Error(), er.Error())
@@ -97,6 +100,7 @@ func (evt *event) Delete(ctx *context.Context) (err errors.Error) {
 }
 
 func (evt *event) List(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	var events []*entity.Event
 
 	if events, err = evt.storage.List(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(int64)); err != nil {
@@ -108,6 +112,7 @@ func (evt *event) List(ctx *context.Context) (err errors.Error) {
 }
 
 func (evt *event) ConnectionEventsList(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	var events = []*entity.Event{}
 
 	if events, err = evt.storage.ConnectionList(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(int64)); err != nil {
@@ -119,6 +124,7 @@ func (evt *event) ConnectionEventsList(ctx *context.Context) (err errors.Error) 
 }
 
 func (evt *event) Create(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	var (
 		event = &entity.Event{}
 		er    error
@@ -145,6 +151,7 @@ func (evt *event) Create(ctx *context.Context) (err errors.Error) {
 }
 
 func (evt *event) SearchGeo(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	var (
 		events                      = []*entity.Event{}
 		latitude, longitude, radius float64
@@ -176,6 +183,7 @@ func (evt *event) SearchGeo(ctx *context.Context) (err errors.Error) {
 }
 
 func (evt *event) SearchObject(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	var (
 		events    = []*entity.Event{}
 		objectKey string
@@ -194,6 +202,7 @@ func (evt *event) SearchObject(ctx *context.Context) (err errors.Error) {
 }
 
 func (evt *event) SearchLocation(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	var (
 		events   = []*entity.Event{}
 		location string

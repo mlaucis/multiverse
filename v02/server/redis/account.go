@@ -23,11 +23,13 @@ type (
 )
 
 func (acc *account) Read(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	server.WriteResponse(ctx, ctx.Bag["account"].(*entity.Account), http.StatusOK, 10)
 	return
 }
 
 func (acc *account) Update(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	account := *(ctx.Bag["account"].(*entity.Account))
 	if er := json.Unmarshal(ctx.Body, &account); er != nil {
 		return errors.NewBadRequestError("failed to update the account (1)\n"+er.Error(), "malformed json received")
@@ -49,6 +51,7 @@ func (acc *account) Update(ctx *context.Context) (err errors.Error) {
 }
 
 func (acc *account) Delete(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	if err = acc.storage.Delete(ctx.Bag["account"].(*entity.Account)); err != nil {
 		return err
 	}
@@ -58,6 +61,7 @@ func (acc *account) Delete(ctx *context.Context) (err errors.Error) {
 }
 
 func (acc *account) Create(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	var account = &entity.Account{}
 
 	if er := json.Unmarshal(ctx.Body, account); er != nil {
@@ -77,6 +81,7 @@ func (acc *account) Create(ctx *context.Context) (err errors.Error) {
 }
 
 func (acc *account) PopulateContext(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	ctx.Bag["account"], err = acc.storage.Read(ctx.Bag["accountID"].(int64))
 	return
 }

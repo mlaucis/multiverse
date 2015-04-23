@@ -23,11 +23,13 @@ type (
 )
 
 func (app *application) Read(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	server.WriteResponse(ctx, ctx.Bag["application"].(*entity.Application), http.StatusOK, 10)
 	return
 }
 
 func (app *application) Update(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	application := *(ctx.Bag["application"].(*entity.Application))
 	if er := json.Unmarshal(ctx.Body, &application); er != nil {
 		return errors.NewBadRequestError("failed to update the application (1)\n"+er.Error(), er.Error())
@@ -50,6 +52,7 @@ func (app *application) Update(ctx *context.Context) (err errors.Error) {
 }
 
 func (app *application) Delete(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	if err = app.storage.Delete(ctx.Bag["application"].(*entity.Application)); err != nil {
 		return
 	}
@@ -59,6 +62,7 @@ func (app *application) Delete(ctx *context.Context) (err errors.Error) {
 }
 
 func (app *application) Create(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	var (
 		application = &entity.Application{}
 	)
@@ -82,6 +86,7 @@ func (app *application) Create(ctx *context.Context) (err errors.Error) {
 }
 
 func (app *application) List(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	var (
 		applications []*entity.Application
 	)
@@ -101,6 +106,7 @@ func (app *application) List(ctx *context.Context) (err errors.Error) {
 }
 
 func (app *application) PopulateContext(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	ctx.Bag["application"], err = app.storage.Read(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64))
 	return
 }

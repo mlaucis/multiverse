@@ -24,11 +24,13 @@ type (
 )
 
 func (appUser *applicationUser) Read(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	server.WriteResponse(ctx, ctx.Bag["applicationUser"].(*entity.ApplicationUser), http.StatusOK, 10)
 	return
 }
 
 func (appUser *applicationUser) Update(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	user := *(ctx.Bag["applicationUser"].(*entity.ApplicationUser))
 	var er error
 	if er = json.Unmarshal(ctx.Body, &user); er != nil {
@@ -55,6 +57,7 @@ func (appUser *applicationUser) Update(ctx *context.Context) (err errors.Error) 
 }
 
 func (appUser *applicationUser) Delete(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	if err = appUser.storage.Delete(ctx.Bag["applicationUser"].(*entity.ApplicationUser)); err != nil {
 		return
 	}
@@ -64,6 +67,7 @@ func (appUser *applicationUser) Delete(ctx *context.Context) (err errors.Error) 
 }
 
 func (appUser *applicationUser) Create(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	var (
 		user = &entity.ApplicationUser{}
 		er   error
@@ -91,6 +95,7 @@ func (appUser *applicationUser) Create(ctx *context.Context) (err errors.Error) 
 }
 
 func (appUser *applicationUser) Login(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	var (
 		loginPayload = &entity.LoginPayload{}
 		user         *entity.ApplicationUser
@@ -153,6 +158,7 @@ func (appUser *applicationUser) Login(ctx *context.Context) (err errors.Error) {
 }
 
 func (appUser *applicationUser) RefreshSession(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	var (
 		tokenPayload struct {
 			Token string `json:"session_token"`
@@ -180,6 +186,7 @@ func (appUser *applicationUser) RefreshSession(ctx *context.Context) (err errors
 }
 
 func (appUser *applicationUser) Logout(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	var (
 		tokenPayload struct {
 			Token string `json:"session_token"`
@@ -204,6 +211,7 @@ func (appUser *applicationUser) Logout(ctx *context.Context) (err errors.Error) 
 }
 
 func (appUser *applicationUser) PopulateContext(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	ctx.Bag["applicationUser"], err = appUser.storage.Read(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(int64))
 	return
 }
