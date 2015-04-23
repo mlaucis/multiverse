@@ -93,9 +93,9 @@ func (c *connection) DeleteEventsFromLists(accountID, applicationID, userFromID,
 
 func (c *connection) SocialConnect(user *entity.ApplicationUser, platform string, socialFriendsIDs []string) (users []*entity.ApplicationUser, err errors.Error) {
 	data, er := json.Marshal(struct {
-		user             *entity.ApplicationUser
-		platform         string
-		socialFriendsIDs []string
+		User             *entity.ApplicationUser `json:"user"`
+		Platform         string                  `json:"platform"`
+		SocialFriendsIDs []string                `json:"social_friends_ids"`
 	}{
 		user:             user,
 		platform:         platform,
@@ -113,11 +113,11 @@ func (c *connection) SocialConnect(user *entity.ApplicationUser, platform string
 
 func (c *connection) AutoConnectSocialFriends(user *entity.ApplicationUser, ourStoredUsersIDs []interface{}) (users []*entity.ApplicationUser, err errors.Error) {
 	data, er := json.Marshal(struct {
-		user              *entity.ApplicationUser
-		ourStoredUsersIDs []interface{}
+		User              *entity.ApplicationUser `json:"user"`
+		OurStoredUsersIDs []interface{}           `json:"our_stored_users_ids"`
 	}{
-		user:              user,
-		ourStoredUsersIDs: ourStoredUsersIDs,
+		User:              user,
+		OurStoredUsersIDs: ourStoredUsersIDs,
 	})
 	if er != nil {
 		return nil, errors.NewInternalError("error while creating the connections via social platform (1)", er.Error())

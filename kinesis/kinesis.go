@@ -5,9 +5,10 @@ import (
 	"math/rand"
 	"time"
 
-	kinesis "github.com/sendgridlabs/go-kinesis"
 	"flag"
 	"os"
+
+	kinesis "github.com/sendgridlabs/go-kinesis"
 )
 
 func putRecord(ksis *kinesis.Kinesis, streamName string, partitionID int, producerName string) {
@@ -183,7 +184,7 @@ func main() {
 			}
 		case <-time.After(time.Duration(1) * time.Second):
 			producers := rand.Intn(50)
-			for j:=1; j<producers; j++ {
+			for j := 1; j < producers; j++ {
 				go putRecord(ksis, stream1Name, i, fmt.Sprintf("s1p%d", j))
 			}
 			i++
