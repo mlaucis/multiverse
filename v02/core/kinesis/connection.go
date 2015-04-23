@@ -97,9 +97,9 @@ func (c *connection) SocialConnect(user *entity.ApplicationUser, platform string
 		Platform         string                  `json:"platform"`
 		SocialFriendsIDs []string                `json:"social_friends_ids"`
 	}{
-		user:             user,
-		platform:         platform,
-		socialFriendsIDs: socialFriendsIDs,
+		User:             user,
+		Platform:         platform,
+		SocialFriendsIDs: socialFriendsIDs,
 	})
 	if er != nil {
 		return nil, errors.NewInternalError("error while confirming the connection (1)", er.Error())
