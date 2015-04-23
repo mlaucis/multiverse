@@ -182,7 +182,10 @@ func main() {
 				go getRecords(ksis, stream1Name, stream1.StreamDescription.Shards[idx].ShardId, "s1c3", sequenceNumber)
 			}
 		case <-time.After(time.Duration(1) * time.Second):
-			go putRecord(ksis, stream1Name, i, "s1p1")
+			producers := rand.Intn(50)
+			for j:=1; j<producers; j++ {
+				go putRecord(ksis, stream1Name, i, fmt.Sprintf("s1p%d", j))
+			}
 			i++
 		}
 	}
