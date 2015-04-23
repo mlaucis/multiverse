@@ -18,40 +18,40 @@ type (
 )
 
 func (accUser *accountUser) Read(ctx *context.Context) (err errors.Error) {
-	return nil
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
 func (accUser *accountUser) Update(ctx *context.Context) (err errors.Error) {
-	return nil
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
 func (accUser *accountUser) Delete(ctx *context.Context) (err errors.Error) {
-	return nil
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
 func (accUser *accountUser) Create(ctx *context.Context) (err errors.Error) {
-	return nil
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
 func (accUser *accountUser) List(ctx *context.Context) (err errors.Error) {
-	return nil
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
 func (accUser *accountUser) Login(ctx *context.Context) (err errors.Error) {
-	return nil
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
 func (accUser *accountUser) RefreshSession(ctx *context.Context) (err errors.Error) {
-	return nil
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
 func (accUser *accountUser) Logout(ctx *context.Context) (err errors.Error) {
-	return nil
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
 // PopulateContext adds the accountUser to the context
 func (accUser *accountUser) PopulateContext(ctx *context.Context) (err errors.Error) {
-	return nil
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
 // NewAccountUser creates a new Account Route handler

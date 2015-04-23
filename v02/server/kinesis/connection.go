@@ -19,31 +19,31 @@ type (
 )
 
 func (conn *connection) Update(ctx *context.Context) (err errors.Error) {
-	return nil
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
 func (conn *connection) Delete(ctx *context.Context) (err errors.Error) {
-	return nil
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
 func (conn *connection) Create(ctx *context.Context) (err errors.Error) {
-	return nil
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
 func (conn *connection) List(ctx *context.Context) (err errors.Error) {
-	return nil
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
 func (conn *connection) FollowedByList(ctx *context.Context) (err errors.Error) {
-	return nil
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
 func (conn *connection) Confirm(ctx *context.Context) (err errors.Error) {
-	return nil
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
 func (conn *connection) CreateSocial(ctx *context.Context) (err errors.Error) {
-	return nil
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
 // NewConnection returns a new connection handler

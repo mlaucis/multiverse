@@ -18,27 +18,27 @@ type (
 )
 
 func (app *application) Read(ctx *context.Context) (err errors.Error) {
-	return nil
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
 func (app *application) Update(ctx *context.Context) (err errors.Error) {
-	return nil
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
 func (app *application) Delete(ctx *context.Context) (err errors.Error) {
-	return nil
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
 func (app *application) Create(ctx *context.Context) (err errors.Error) {
-	return nil
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
 func (app *application) List(ctx *context.Context) (err errors.Error) {
-	return nil
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
 func (app *application) PopulateContext(ctx *context.Context) (err errors.Error) {
-	return nil
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
 // NewApplication returns a new application route handler

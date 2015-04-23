@@ -18,35 +18,35 @@ type (
 )
 
 func (appUser *applicationUser) Read(ctx *context.Context) (err errors.Error) {
-	return nil
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
 func (appUser *applicationUser) Update(ctx *context.Context) (err errors.Error) {
-	return nil
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
 func (appUser *applicationUser) Delete(ctx *context.Context) (err errors.Error) {
-	return nil
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
 func (appUser *applicationUser) Create(ctx *context.Context) (err errors.Error) {
-	return nil
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
 func (appUser *applicationUser) Login(ctx *context.Context) (err errors.Error) {
-	return nil
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
 func (appUser *applicationUser) RefreshSession(ctx *context.Context) (err errors.Error) {
-	return nil
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
 func (appUser *applicationUser) Logout(ctx *context.Context) (err errors.Error) {
-	return nil
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
 func (appUser *applicationUser) PopulateContext(ctx *context.Context) (err errors.Error) {
-	return nil
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
 // NewApplicationUser returns a new application user routes handler
