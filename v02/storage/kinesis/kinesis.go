@@ -145,7 +145,9 @@ func (c *cli) GetRecords(streamName, shardID, consumerName string, maxEntries in
 	args := gksis.NewArgs()
 	args.Add("StreamName", streamName)
 	args.Add("ShardId", shardID)
-	args.Add("ShardIteratorType", "TRIM_HORIZON")
+	// TODO this one should actually be retrieved from REDIS or other place where we can store the current iterator
+	// so that we can have resume support for it
+	args.Add("ShardIteratorType", "LATEST")
 	shardIteratorResponse, err := c.kinesis.GetShardIterator(args)
 	if err != nil {
 		return []string{}, errors.NewInternalError("error while reading the internal data", err.Error())
@@ -204,7 +206,9 @@ func (c *cli) StreamRecords(streamName, consumerName string, maxEntries int) (<-
 			args := gksis.NewArgs()
 			args.Add("StreamName", streamName)
 			args.Add("ShardId", shardID)
-			args.Add("ShardIteratorType", "TRIM_HORIZON")
+			// TODO this one should actually be retrieved from REDIS or other place where we can store the current iterator
+			// so that we can have resume support for it
+			args.Add("ShardIteratorType", "LATEST")
 			shardIteratorResponse, err := c.kinesis.GetShardIterator(args)
 			if err != nil {
 				errs <- errors.NewInternalError("error while reading the internal data", err.Error())
@@ -218,11 +222,6 @@ func (c *cli) StreamRecords(streamName, consumerName string, maxEntries int) (<-
 				args.Add("ShardIterator", shardIterator)
 				args.Add("Limit", maxEntries)
 				records, err := c.kinesis.GetRecords(args)
-				if err != nil {
-					errs <- errors.NewInternalError("error while reading the internal data", err.Error())
-					break
-				}
-
 				if err != nil {
 					errs <- errors.NewInternalError("error while reading the internal data", err.Error())
 					break
