@@ -6,13 +6,18 @@ import (
 	"time"
 
 	kinesis "github.com/sendgridlabs/go-kinesis"
+	"flag"
+	"os"
 )
 
-func putRecord(ksis *kinesis.Kinesis, streamName string, partitionID int) {
+func putRecord(ksis *kinesis.Kinesis, streamName string, partitionID int, producerName string) {
+	if !*hasWrite {
+		return
+	}
 	time.Sleep(time.Duration(rand.Intn(100)*100) * time.Millisecond)
 	args := kinesis.NewArgs()
 	args.Add("StreamName", streamName)
-	data := []byte(fmt.Sprintf("Hello AWS Kinesis %s %d", streamName, partitionID))
+	data := []byte(fmt.Sprintf("Hello AWS Kinesis %s %d. Produced by %s @ %s", streamName, partitionID, producerName, time.Now()))
 	partitionKey := fmt.Sprintf("partitionKey-%d", partitionID)
 	args.AddRecord(data, partitionKey)
 	resp4, err := ksis.PutRecord(args)
@@ -23,11 +28,19 @@ func putRecord(ksis *kinesis.Kinesis, streamName string, partitionID int) {
 	}
 }
 
-func getRecords(ksis *kinesis.Kinesis, streamName, ShardID, consumerName string) {
+func getRecords(ksis *kinesis.Kinesis, streamName, ShardID, consumerName, shardSequence string) {
+	if !*hasRead {
+		return
+	}
 	args := kinesis.NewArgs()
 	args.Add("StreamName", streamName)
 	args.Add("ShardId", ShardID)
-	args.Add("ShardIteratorType", "TRIM_HORIZON")
+	if shardSequence == "" {
+		args.Add("ShardIteratorType", "TRIM_HORIZON")
+	} else {
+		args.Add("ShardIteratorType", "AT_SEQUENCE_NUMBER")
+		args.Add("StartingSequenceNumber", shardSequence)
+	}
 	resp10, err := ksis.GetShardIterator(args)
 	if err != nil {
 		panic(err)
@@ -40,13 +53,14 @@ func getRecords(ksis *kinesis.Kinesis, streamName, ShardID, consumerName string)
 		if consumerName == "consumer1" {
 			args.Add("Limit", 1)
 		} else if consumerName == "consumer2" {
-			args.Add("Limit", 2)
-		} else {
 			args.Add("Limit", 10)
+		} else {
+			args.Add("Limit", 20)
 		}
 		args.Add("ShardIterator", shardIterator)
 		resp11, err := ksis.GetRecords(args)
 		if err != nil {
+			fmt.Printf("[%s] There was an error %q\n", consumerName, err.Error())
 			time.Sleep(1 * time.Second)
 			continue
 		}
@@ -55,6 +69,8 @@ func getRecords(ksis *kinesis.Kinesis, streamName, ShardID, consumerName string)
 			for _, d := range resp11.Records {
 				fmt.Printf("[%s] GetRecords  Data: %v\n", consumerName, string(d.GetData()))
 			}
+		} else if len(resp11.Records) == 0 {
+			fmt.Printf("[%s] Got empty response\n", consumerName)
 		} else if resp11.NextShardIterator == "" || shardIterator == resp11.NextShardIterator || err != nil {
 			fmt.Printf("[%s] GetRecords ERROR: %v\n", consumerName, err)
 			break
@@ -71,15 +87,15 @@ func getRecords(ksis *kinesis.Kinesis, streamName, ShardID, consumerName string)
 
 func describeStream(ksis *kinesis.Kinesis, streamName string) *kinesis.DescribeStreamResp {
 	args := kinesis.NewArgs()
-	listStreams, err := ksis.ListStreams(args)
+	/*listStreams, err := ksis.ListStreams(args)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("ListStreams: %v\n", listStreams)
+	fmt.Printf("ListStreams: %v\n", listStreams)*/
 
 	resp := &kinesis.DescribeStreamResp{}
+	var err error
 
-	timeout := make(chan bool, 30)
 	for {
 		args = kinesis.NewArgs()
 		args.Add("StreamName", streamName)
@@ -91,7 +107,6 @@ func describeStream(ksis *kinesis.Kinesis, streamName string) *kinesis.DescribeS
 
 		if resp.StreamDescription.StreamStatus != "ACTIVE" {
 			time.Sleep(1 * time.Second)
-			timeout <- true
 		} else {
 			break
 		}
@@ -112,28 +127,37 @@ func setUp(ksis *kinesis.Kinesis, streamName string) {
 	}
 }
 
+var hasRead = flag.Bool("read", false, "read")
+var hasWrite = flag.Bool("write", false, "write")
+
+func init() {
+	flag.Parse()
+	if !*hasRead && !*hasWrite {
+		fmt.Printf("You must specify if it has at least one of read write")
+		os.Exit(64)
+	}
+}
+
 func main() {
 	fmt.Println("Begin")
 
-	stream1Name := "test1"
-	stream2Name := "test2"
+	stream1Name := "dev"
 	// set env variables AWS_ACCESS_KEY and AWS_SECRET_KEY AWS_REGION_NAME
-	auth := kinesis.NewAuth()
-	ksis := kinesis.NewWithEndpoint(&auth, kinesis.Region{Name: "eu-central-1"}, "http://127.0.0.1:4567")
+	auth := &kinesis.Auth{
+		AccessKey: "AKIAIJ73VAPGUEDRXISA",
+		SecretKey: "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",
+	}
+	ksis := kinesis.New(auth, kinesis.Region{Name: "eu-central-1"})
+	//ksis := kinesis.NewWithEndpoint(&auth, kinesis.Region{Name: "eu-central-1"}, "http://127.0.0.1:4567")
 
 	setUp(ksis, stream1Name)
-	setUp(ksis, stream2Name)
 
 	stream1 := describeStream(ksis, stream1Name)
-	stream2 := describeStream(ksis, stream2Name)
-
+	fmt.Printf("Stream %s description %#v\n", stream1Name, stream1.StreamDescription.Shards)
 	for idx := range stream1.StreamDescription.Shards {
-		go getRecords(ksis, stream1Name, stream1.StreamDescription.Shards[idx].ShardId, "s1c1")
-		go getRecords(ksis, stream1Name, stream1.StreamDescription.Shards[idx].ShardId, "s1c2")
-	}
-	for idx := range stream2.StreamDescription.Shards {
-		go getRecords(ksis, stream2Name, stream2.StreamDescription.Shards[idx].ShardId, "s2c1")
-		go getRecords(ksis, stream2Name, stream2.StreamDescription.Shards[idx].ShardId, "s2c2")
+		sequenceNumber := stream1.StreamDescription.Shards[idx].SequenceNumberRange.StartingSequenceNumber
+		go getRecords(ksis, stream1Name, stream1.StreamDescription.Shards[idx].ShardId, "s1c1", sequenceNumber)
+		go getRecords(ksis, stream1Name, stream1.StreamDescription.Shards[idx].ShardId, "s1c2", sequenceNumber)
 	}
 
 	// Wait for user input
@@ -141,11 +165,11 @@ func main() {
 		inputGuess  string
 		newConsumer = make(chan bool, 1)
 	)
-	fmt.Printf("waiting for input: ")
+	fmt.Printf("waiting for input ...\n")
 	fmt.Scanf("%s\n", &inputGuess)
 
 	go func() {
-		<-time.After(20 * time.Second)
+		<-time.After(7 * time.Second)
 		newConsumer <- true
 	}()
 
@@ -154,15 +178,11 @@ func main() {
 		select {
 		case <-newConsumer:
 			for idx := range stream1.StreamDescription.Shards {
-				go getRecords(ksis, stream1Name, stream1.StreamDescription.Shards[idx].ShardId, "s1c3")
-			}
-
-			for idx := range stream2.StreamDescription.Shards {
-				go getRecords(ksis, stream2Name, stream2.StreamDescription.Shards[idx].ShardId, "s2c3")
+				sequenceNumber := stream1.StreamDescription.Shards[idx].SequenceNumberRange.StartingSequenceNumber
+				go getRecords(ksis, stream1Name, stream1.StreamDescription.Shards[idx].ShardId, "s1c3", sequenceNumber)
 			}
 		case <-time.After(time.Duration(1) * time.Second):
-			go putRecord(ksis, stream1Name, i)
-			go putRecord(ksis, stream2Name, i)
+			go putRecord(ksis, stream1Name, i, "s1p1")
 			i++
 		}
 	}
