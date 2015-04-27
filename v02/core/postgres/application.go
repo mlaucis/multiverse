@@ -40,7 +40,7 @@ func (app *application) List(accountID int64) ([]*entity.Application, errors.Err
 	return []*entity.Application{}, errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
-func (app *application) Exists(accountID, applicationID int64) bool {
+func (app *application) Exists(accountID, applicationID int64) (bool, errors.Error) {
 	panic("not implemented yet")
 }
 

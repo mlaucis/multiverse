@@ -23,9 +23,9 @@ type (
 )
 
 const (
-	insertAccountQuery     = "INSERT INTO accounts(authkey, data) VALUES ($1, $2) RETURNING id"
-	selectAccountByIDQuery = "SELECT data FROM accounts WHERE id = $1"
-	updateAccountByIDQuery = "UPDATE accounts SET authkey = $1, data = $2 WHERE id = $3"
+	insertAccountQuery     = "INSERT INTO accounts(json_data) VALUES ($1, $2) RETURNING id"
+	selectAccountByIDQuery = "SELECT id, json_data FROM accounts WHERE id = $1"
+	updateAccountByIDQuery = "UPDATE accounts SET json_data = $1 WHERE id = $2"
 	deleteAccountByIDQuery = "DELETE FROM accounts WHERE id = $1"
 )
 
@@ -38,7 +38,7 @@ func (a *account) Create(account *entity.Account, retrieve bool) (*entity.Accoun
 
 	var createdAccountID int64
 	err = a.mainPg.
-		QueryRow(insertAccountQuery, account.AuthToken, accountJSON).
+		QueryRow(insertAccountQuery, accountJSON).
 		Scan(&createdAccountID)
 	if err != nil {
 		return nil, errors.NewInternalError("error while creating the account", err.Error())
@@ -52,19 +52,23 @@ func (a *account) Create(account *entity.Account, retrieve bool) (*entity.Accoun
 }
 
 func (a *account) Read(accountID int64) (*entity.Account, errors.Error) {
-	var accountJSON string
+	accountJSON := &struct {
+		ID       int64
+		JSONData string
+	}{}
 	err := a.pg.SlaveDatastore(-1).
 		QueryRow(selectAccountByIDQuery, accountID).
-		Scan(&accountJSON)
+		Scan(accountJSON)
 	if err != nil {
 		return nil, errors.NewInternalError("error while reading the account", err.Error())
 	}
 
 	acc := &entity.Account{}
-	err = json.Unmarshal([]byte(accountJSON), acc)
+	err = json.Unmarshal([]byte(accountJSON.JSONData), acc)
 	if err != nil {
 		return nil, errors.NewInternalError("error while reading the account", err.Error())
 	}
+	acc.ID = accountID
 
 	return acc, nil
 }
@@ -79,7 +83,7 @@ func (a *account) Update(existingAccount, updatedAccount entity.Account, retriev
 		return nil, errors.NewInternalError("error while updating the account", err.Error())
 	}
 
-	_, err = a.mainPg.Exec(updateAccountByIDQuery, updatedAccount.AuthToken, accountJSON, existingAccount.ID)
+	_, err = a.mainPg.Exec(updateAccountByIDQuery, accountJSON, existingAccount.ID)
 	if err != nil {
 		return nil, errors.NewInternalError("error while updating the account", err.Error())
 	}
@@ -99,12 +103,18 @@ func (a *account) Delete(acc *entity.Account) errors.Error {
 	return nil
 }
 
-func (a *account) Exists(accountID int64) bool {
-	acc, err := a.Read(accountID)
+func (a *account) Exists(accountID int64) (bool, errors.Error) {
+	accountJSON := &struct {
+		ID       int64
+		JSONData string
+	}{}
+	err := a.pg.SlaveDatastore(-1).
+		QueryRow(selectAccountByIDQuery, accountID).
+		Scan(accountJSON)
 	if err != nil {
-		return false
+		return false, errors.NewInternalError("error while reading the account", err.Error())
 	}
-	return acc != nil
+	return true, nil
 }
 
 // NewAccount returns a new account handler with PostgreSQL as storage driver

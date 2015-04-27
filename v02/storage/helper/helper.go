@@ -61,8 +61,8 @@ const (
 )
 
 var (
-	alpha1Len = rand.Intn(len(alpha1))
-	alpha2Len = rand.Intn(len(alpha2))
+	alpha1Len = len(alpha1)
+	alpha2Len = len(alpha2)
 )
 
 func generateTokenSalt(size int) string {
@@ -125,29 +125,12 @@ func GenerateApplicationSecretKey(application *entity.Application) (string, erro
 
 // GenerateAccountSessionID generated the session id for the specific
 func GenerateAccountSessionID(user *entity.AccountUser) string {
-	randomToken := generateTokenSalt(16)
-
-	return utils.Base64Encode(fmt.Sprintf(
-		"%d:%d:%s:%s",
-		user.AccountID,
-		user.ID,
-		time.Now().Format(time.RFC3339),
-		randomToken,
-	))
+	return generateTokenSalt(20)
 }
 
 // GenerateApplicationSessionID generated the session id for the specific
 func GenerateApplicationSessionID(user *entity.ApplicationUser) string {
-	randomToken := generateTokenSalt(16)
-
-	return utils.Base64Encode(fmt.Sprintf(
-		"%d:%d:%d:%s:%s",
-		user.AccountID,
-		user.ApplicationID,
-		user.ID,
-		time.Now().Format(time.RFC3339),
-		randomToken,
-	))
+	return generateTokenSalt(20)
 }
 
 // GenerateEncryptedPassword generates and encrypted password using the specific salt and time

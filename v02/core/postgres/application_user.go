@@ -72,7 +72,7 @@ func (au *applicationUser) ExistsByUsername(accountID, applicationID int64, emai
 	return false, errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
-func (au *applicationUser) ExistsByID(accountID, applicationID, userID int64) bool {
+func (au *applicationUser) ExistsByID(accountID, applicationID, userID int64) (bool, errors.Error) {
 	panic("not implemented yet")
 }
 
