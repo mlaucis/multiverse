@@ -123,13 +123,13 @@ func (a *account) Delete(account *entity.Account) (err errors.Error) {
 	return nil
 }
 
-func (a *account) Exists(accountID int64) bool {
+func (a *account) Exists(accountID int64) (bool, errors.Error) {
 	account, err := a.Read(accountID)
 	if err != nil {
-		return false
+		return false, err
 	}
 
-	return account.Enabled
+	return account.Enabled, nil
 }
 
 // NewAccount creates a new Account

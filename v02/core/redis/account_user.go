@@ -328,10 +328,13 @@ func (au *accountUser) ExistsByUsername(username string) (bool, errors.Error) {
 	return au.existsByKey(usernameListKey)
 }
 
-func (au *accountUser) ExistsByID(accountID, userID int64) bool {
+func (au *accountUser) ExistsByID(accountID, userID int64) (bool, errors.Error) {
 	userKey := storageHelper.AccountUser(accountID, userID)
 	exists, err := au.redis.Exists(userKey).Result()
-	return err == nil && exists
+	if err != nil {
+		return false, errors.NewInternalError("error while reading the account user", err.Error())
+	}
+	return exists, nil
 }
 
 // findByKey retrieves an account and accountUser that are stored by their key, regardless of the specified key

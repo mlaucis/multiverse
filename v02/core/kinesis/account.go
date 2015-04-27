@@ -51,7 +51,7 @@ func (a *account) Delete(account *entity.Account) (err errors.Error) {
 	return err
 }
 
-func (a *account) Exists(accountID int64) bool {
+func (a *account) Exists(accountID int64) (bool, errors.Error) {
 	panic("not implemented yet")
 }
 

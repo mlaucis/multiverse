@@ -409,13 +409,13 @@ func (appu *applicationUser) ExistsByUsername(accountID, applicationID int64, us
 	return appu.existsByKey(usernameListKey)
 }
 
-func (appu *applicationUser) ExistsByID(accountID, applicationID, userID int64) bool {
+func (appu *applicationUser) ExistsByID(accountID, applicationID, userID int64) (bool, errors.Error) {
 	user, err := appu.Read(accountID, applicationID, userID)
 	if err != nil {
-		return false
+		return false, err
 	}
 
-	return user.Enabled
+	return user.Enabled, nil
 }
 
 // findApplicationUserByKey returns an application user regardless of the key used to search for him

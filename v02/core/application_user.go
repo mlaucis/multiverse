@@ -52,6 +52,6 @@ type (
 		ExistsByUsername(accountID, applicationID int64, email string) (bool, errors.Error)
 
 		// ExistsByID validates if a user exists and returns it or an error
-		ExistsByID(accountID, applicationID, userID int64) bool
+		ExistsByID(accountID, applicationID, userID int64) (bool, errors.Error)
 	}
 )

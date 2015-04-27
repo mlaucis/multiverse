@@ -175,13 +175,13 @@ func (app *application) List(accountID int64) ([]*entity.Application, errors.Err
 	return applications, nil
 }
 
-func (app *application) Exists(accountID, applicationID int64) bool {
+func (app *application) Exists(accountID, applicationID int64) (bool, errors.Error) {
 	application, err := app.Read(accountID, applicationID)
 	if err != nil {
-		return false
+		return false, err
 	}
 
-	return application.Enabled
+	return application.Enabled, nil
 }
 
 // NewApplication creates a new Application

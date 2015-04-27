@@ -25,6 +25,6 @@ type (
 		Delete(*entity.Account) errors.Error
 
 		// Exists validates if an account exists and returns the account or an error
-		Exists(accountID int64) bool
+		Exists(accountID int64) (bool, errors.Error)
 	}
 )

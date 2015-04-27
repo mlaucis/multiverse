@@ -22,7 +22,7 @@ type (
 		Update(existingConnection, updatedConnection entity.Connection, retrieve bool) (con *entity.Connection, err errors.Error)
 
 		// Delete deletes the connection matching the IDs or an error
-		Delete(*entity.Connection) (err errors.Error)
+		Delete(*entity.Connection) errors.Error
 
 		// List returns all connections from a certain user
 		List(accountID, applicationID, userID int64) (users []*entity.ApplicationUser, err errors.Error)
@@ -34,15 +34,15 @@ type (
 		Confirm(connection *entity.Connection, retrieve bool) (con *entity.Connection, err errors.Error)
 
 		// WriteEventsToList takes a connection and writes the events to the lists
-		WriteEventsToList(connection *entity.Connection) (err errors.Error)
+		WriteEventsToList(*entity.Connection) errors.Error
 
 		// DeleteEventsFromLists takes a connection and deletes the events from the lists
-		DeleteEventsFromLists(accountID, applicationID, userFromID, userToID int64) (err errors.Error)
+		DeleteEventsFromLists(accountID, applicationID, userFromID, userToID int64) errors.Error
 
 		// SocialConnect creates the connections between a user and his other social peers
 		SocialConnect(user *entity.ApplicationUser, platform string, socialFriendsIDs []string) ([]*entity.ApplicationUser, errors.Error)
 
 		// AutoConnectSocialFriends will connect a user with their its friends on from another social network
-		AutoConnectSocialFriends(user *entity.ApplicationUser, ourStoredUsersIDs []interface{}) (users []*entity.ApplicationUser, err errors.Error)
+		AutoConnectSocialFriends(user *entity.ApplicationUser, ourStoredUsersIDs []interface{}) ([]*entity.ApplicationUser, errors.Error)
 	}
 )

@@ -88,7 +88,7 @@ func (appu *applicationUser) ExistsByUsername(accountID, applicationID int64, us
 	return false, errors.NewNotFoundError("not found", "invalid handler specified")
 }
 
-func (appu *applicationUser) ExistsByID(accountID, applicationID, userID int64) bool {
+func (appu *applicationUser) ExistsByID(accountID, applicationID, userID int64) (bool, errors.Error) {
 	panic("not implemented yet")
 }
 

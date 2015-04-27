@@ -96,7 +96,7 @@ func (au *accountUser) ExistsByUsername(username string) (bool, errors.Error) {
 	return false, errors.NewNotFoundError("not found", "invalid handler specified")
 }
 
-func (au *accountUser) ExistsByID(accountID, userID int64) bool {
+func (au *accountUser) ExistsByID(accountID, userID int64) (bool, errors.Error) {
 	panic("not implemented yet")
 }
 

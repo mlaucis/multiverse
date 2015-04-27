@@ -36,7 +36,7 @@ func CreateConnection(datastore core.ApplicationUser, connection *entity.Connect
 		errs = append(errs, &errorUserToIDZero)
 	}
 
-	if !datastore.ExistsByID(connection.AccountID, connection.ApplicationID, connection.UserFromID) {
+	if exists, err := datastore.ExistsByID(connection.AccountID, connection.ApplicationID, connection.UserFromID); !exists || err != nil {
 		errs = append(errs, &errorUserDoesNotExists)
 	}
 	userFrom, err := datastore.Read(connection.AccountID, connection.ApplicationID, connection.UserFromID)
@@ -48,7 +48,7 @@ func CreateConnection(datastore core.ApplicationUser, connection *entity.Connect
 		errs = append(errs, &err)
 	}
 
-	if !datastore.ExistsByID(connection.AccountID, connection.ApplicationID, connection.UserToID) {
+	if exists, err := datastore.ExistsByID(connection.AccountID, connection.ApplicationID, connection.UserToID); !exists || err != nil {
 		errs = append(errs, &errorUserDoesNotExists)
 	}
 	userTo, err := datastore.Read(connection.AccountID, connection.ApplicationID, connection.UserToID)
@@ -79,11 +79,11 @@ func ConfirmConnection(datastore core.ApplicationUser, connection *entity.Connec
 		errs = append(errs, &errorUserToIDZero)
 	}
 
-	if !datastore.ExistsByID(connection.AccountID, connection.ApplicationID, connection.UserFromID) {
+	if exists, err := datastore.ExistsByID(connection.AccountID, connection.ApplicationID, connection.UserFromID); !exists || err != nil {
 		errs = append(errs, &errorUserDoesNotExists)
 	}
 
-	if !datastore.ExistsByID(connection.AccountID, connection.ApplicationID, connection.UserToID) {
+	if exists, err := datastore.ExistsByID(connection.AccountID, connection.ApplicationID, connection.UserToID); !exists || err != nil {
 		errs = append(errs, &errorUserDoesNotExists)
 	}
 
@@ -102,7 +102,7 @@ func UpdateConnection(datastore core.ApplicationUser, existingConnection, update
 		errs = append(errs, &errorUserToIDZero)
 	}
 
-	if !datastore.ExistsByID(updatedConnection.AccountID, updatedConnection.ApplicationID, updatedConnection.UserToID) {
+	if exists, err := datastore.ExistsByID(updatedConnection.AccountID, updatedConnection.ApplicationID, updatedConnection.UserToID); !exists || err != nil {
 		errs = append(errs, &errorUserDoesNotExists)
 	}
 

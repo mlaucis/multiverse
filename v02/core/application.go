@@ -28,6 +28,6 @@ type (
 		List(accountID int64) ([]*entity.Application, errors.Error)
 
 		// Exists validates if an application exists and returns the application or an error
-		Exists(accountID, applicationID int64) bool
+		Exists(accountID, applicationID int64) (bool, errors.Error)
 	}
 )

@@ -63,7 +63,7 @@ func (app *application) List(accountID int64) ([]*entity.Application, errors.Err
 	return nil, errors.NewNotFoundError("not found", "invalid handler specified")
 }
 
-func (app *application) Exists(accountID, applicationID int64) bool {
+func (app *application) Exists(accountID, applicationID int64) (bool, errors.Error) {
 	panic("not implemented yet")
 }
 

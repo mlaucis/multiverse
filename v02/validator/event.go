@@ -51,7 +51,7 @@ func CreateEvent(datastore core.ApplicationUser, event *entity.Event) errors.Err
 		errs = append(errs, &errorEventIDIsAlreadySet)
 	}
 
-	if !datastore.ExistsByID(event.AccountID, event.ApplicationID, event.UserID) {
+	if exists, err := datastore.ExistsByID(event.AccountID, event.ApplicationID, event.UserID); !exists || err != nil {
 		errs = append(errs, &errorUserDoesNotExists)
 	}
 

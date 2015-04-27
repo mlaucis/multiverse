@@ -22,7 +22,7 @@ type (
 		Update(existingEvent, updatedEvent entity.Event, retrieve bool) (evn *entity.Event, err errors.Error)
 
 		// Delete deletes the event matching the IDs or an error
-		Delete(*entity.Event) (err errors.Error)
+		Delete(*entity.Event) errors.Error
 
 		// List returns all events from a certain user
 		List(accountID, applicationID, userID int64) (events []*entity.Event, err errors.Error)
@@ -31,7 +31,7 @@ type (
 		ConnectionList(accountID, applicationID, userID int64) (events []*entity.Event, err errors.Error)
 
 		// WriteEventToConnectionsLists takes an event and writes it to the user connections list
-		WriteToConnectionsLists(event *entity.Event, key string) (err errors.Error)
+		WriteToConnectionsLists(event *entity.Event, key string) errors.Error
 
 		// DeleteEventFromConnectionsLists takes a user id and key and deletes it to the user connections list
 		DeleteFromConnectionsLists(accountID, applicationID, userID int64, key string) (err errors.Error)

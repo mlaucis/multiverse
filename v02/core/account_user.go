@@ -52,6 +52,6 @@ type (
 		ExistsByUsername(username string) (bool, errors.Error)
 
 		// ExistsByID checks if an account user exists by ID or not
-		ExistsByID(accountID, accountUserID int64) bool
+		ExistsByID(accountID, accountUserID int64) (bool, errors.Error)
 	}
 )
