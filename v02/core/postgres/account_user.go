@@ -47,7 +47,7 @@ func (au *accountUser) Create(accountUser *entity.AccountUser, retrieve bool) (*
 
 	var accountUserID int64
 	err = au.mainPg.
-		QueryRow(createAccountUserQuery, accountUser.AccountID, accountUserJSON).
+		QueryRow(createAccountUserQuery, accountUser.AccountID, string(accountUserJSON)).
 		Scan(&accountUserID)
 	if err != nil {
 		return nil, errors.NewInternalError("error while creating the account user", err.Error())
@@ -95,7 +95,7 @@ func (au *accountUser) Update(existingAccountUser, updatedAccountUser entity.Acc
 	}
 
 	_, err = au.pg.SlaveDatastore(-1).
-		Exec(updateAccountUserByIDQuery, accountUserJSON, existingAccountUser.ID, existingAccountUser.AccountID)
+		Exec(updateAccountUserByIDQuery, string(accountUserJSON), existingAccountUser.ID, existingAccountUser.AccountID)
 	if err != nil {
 		return nil, errors.NewInternalError("error while updating the account user", err.Error())
 	}

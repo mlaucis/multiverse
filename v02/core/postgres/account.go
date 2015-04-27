@@ -23,10 +23,10 @@ type (
 )
 
 const (
-	insertAccountQuery     = "INSERT INTO accounts(json_data) VALUES ($1, $2) RETURNING id"
-	selectAccountByIDQuery = "SELECT id, json_data FROM accounts WHERE id = $1"
-	updateAccountByIDQuery = "UPDATE accounts SET json_data = $1 WHERE id = $2"
-	deleteAccountByIDQuery = "DELETE FROM accounts WHERE id = $1"
+	createAccountQuery     = `INSERT INTO accounts(json_data) VALUES ($1, $2) RETURNING id`
+	selectAccountByIDQuery = `SELECT id, json_data FROM accounts WHERE id = $1`
+	updateAccountByIDQuery = `UPDATE accounts SET json_data = $1 WHERE id = $2`
+	deleteAccountByIDQuery = `DELETE FROM accounts WHERE id = $1`
 )
 
 func (a *account) Create(account *entity.Account, retrieve bool) (*entity.Account, errors.Error) {
@@ -38,7 +38,7 @@ func (a *account) Create(account *entity.Account, retrieve bool) (*entity.Accoun
 
 	var createdAccountID int64
 	err = a.mainPg.
-		QueryRow(insertAccountQuery, accountJSON).
+		QueryRow(createAccountQuery, string(accountJSON)).
 		Scan(&createdAccountID)
 	if err != nil {
 		return nil, errors.NewInternalError("error while creating the account", err.Error())
@@ -83,7 +83,7 @@ func (a *account) Update(existingAccount, updatedAccount entity.Account, retriev
 		return nil, errors.NewInternalError("error while updating the account", err.Error())
 	}
 
-	_, err = a.mainPg.Exec(updateAccountByIDQuery, accountJSON, existingAccount.ID)
+	_, err = a.mainPg.Exec(updateAccountByIDQuery, string(accountJSON), existingAccount.ID)
 	if err != nil {
 		return nil, errors.NewInternalError("error while updating the account", err.Error())
 	}
@@ -95,8 +95,8 @@ func (a *account) Update(existingAccount, updatedAccount entity.Account, retriev
 	return a.Read(existingAccount.ID)
 }
 
-func (a *account) Delete(acc *entity.Account) errors.Error {
-	_, err := a.mainPg.Exec(deleteAccountByIDQuery, acc.ID)
+func (a *account) Delete(account *entity.Account) errors.Error {
+	_, err := a.mainPg.Exec(deleteAccountByIDQuery, account.ID)
 	if err != nil {
 		return errors.NewInternalError("error while deleting the account", err.Error())
 	}
