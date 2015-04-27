@@ -33,11 +33,11 @@ func IsValidLoginPayload(loginPayload *entity.LoginPayload) errors.Error {
 
 	if loginPayload.Username != "" {
 		if !StringLengthBetween(loginPayload.Username, accountUserNameMin, accountUserNameMax) {
-			return errors.NewFromError(errors.TGBadRequestError, errorAccountUserUsernameSize, false)
+			return errors.NewFromError(errors.BadRequestError, errorAccountUserUsernameSize, false)
 		}
 
 		if !alphaNumExtraCharFirst.Match([]byte(loginPayload.Username)) {
-			return errors.NewFromError(errors.TGBadRequestError, errorAccountUserUsernameType, false)
+			return errors.NewFromError(errors.BadRequestError, errorAccountUserUsernameType, false)
 		}
 	}
 

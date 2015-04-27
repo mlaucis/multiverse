@@ -32,14 +32,12 @@ type (
 	}
 )
 
-// TGInternalError represents an error that is caused by us
-// TGClienterror represents an error that is caused by the client
-// TGAuthenticationError represents an error that is because the client is not authenticated
+// This represents a list of common errors and their status codes
 const (
-	TGInternalError     errorType = http.StatusInternalServerError
-	TGBadRequestError   errorType = http.StatusBadRequest
-	TGUnauthorizedError errorType = http.StatusUnauthorized
-	TGNotFoundError     errorType = http.StatusNotFound
+	InternalError     errorType = http.StatusInternalServerError
+	BadRequestError   errorType = http.StatusBadRequest
+	UnauthorizedError errorType = http.StatusUnauthorized
+	NotFoundError     errorType = http.StatusNotFound
 )
 
 var dbgMode = false
@@ -64,22 +62,22 @@ func NewFromError(errorType errorType, err error, withLocation bool) Error {
 
 // NewBadRequestError generatates a new client error
 func NewBadRequestError(message, internalMessage string) Error {
-	return newError(TGBadRequestError, message, internalMessage, -1)
+	return newError(BadRequestError, message, internalMessage, -1)
 }
 
 // NewInternalError generatates a new client error
 func NewInternalError(message, internalMessage string) Error {
-	return newError(TGInternalError, message, internalMessage, -1)
+	return newError(InternalError, message, internalMessage, -1)
 }
 
 // NewUnauthorizedError generatates a new client error
 func NewUnauthorizedError(message, internalMessage string) Error {
-	return newError(TGUnauthorizedError, message, internalMessage, -1)
+	return newError(UnauthorizedError, message, internalMessage, -1)
 }
 
 // NewNotFoundError generatates a new client error
 func NewNotFoundError(message, internalMessage string) Error {
-	return newError(TGNotFoundError, message, internalMessage, -1)
+	return newError(NotFoundError, message, internalMessage, -1)
 }
 
 // Fatal will cause the message to be printed and then panic
