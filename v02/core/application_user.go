@@ -49,7 +49,7 @@ type (
 		FindByUsername(accountID, applicationID int64, username string) (*entity.ApplicationUser, errors.Error)
 
 		// ExistsByUsername checks if an application user exists by searching it via the username
-		ExistsByUsername(accountID, applicationID int64, email string) (bool, errors.Error)
+		ExistsByUsername(accountID, applicationID int64, username string) (bool, errors.Error)
 
 		// ExistsByID validates if a user exists and returns it or an error
 		ExistsByID(accountID, applicationID, userID int64) (bool, errors.Error)

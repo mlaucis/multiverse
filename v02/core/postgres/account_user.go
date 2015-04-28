@@ -29,7 +29,7 @@ const (
 	createAccountUserQuery           = `INSERT INTO account_users(account_id, json_data) VALUES($1, $2) RETURNING id`
 	selectAccountUserByIDQuery       = `SELECT id, json_data FROM account_users WHERE id = $1 AND account_id = $2`
 	updateAccountUserByIDQuery       = `UPDATE account_users SET json_data = $1 WHERE id = $2 AND account_id = $3`
-	deleteAccountUserByIDQuery       = `DELETE FROM account_users WHERE id = $1`
+	deleteAccountUserByIDQuery       = `UPDATE account_users SET enabled = 0 WHERE id = $1`
 	listAccountUsersByAccountIDQuery = `SELECT id, json_data FROM account_users WHERE account_id = $1`
 	selectAccountUserByEmailQuery    = `SELECT id, json_data FROM account_users WHERE json_data @> '{"email": $1}'`
 	selectAccountUserByUsernameQuery = `SELECT id, json_data FROM account_users WHERE json_data @> '{"username": $1}'`

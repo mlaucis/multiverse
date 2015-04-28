@@ -42,6 +42,12 @@ const (
 		json_data JSONB NOT NULL,
 		enabled INT DEFAULT 1 NOT NULL
 	);
+	CREATE TABLE app_$1_$2.sessions
+	(
+		user_id INT NOT NULL,
+		session_id CHAR(20) NOT NULL,
+		created_at TIMESTAMP DEFAULT now() NOT NULL
+	);
 
 	CREATE INDEX on app_$1_$2.users USING GIN (json_data jsonb_path_ops);
 	CREATE INDEX on app_$1_$2.events USING GIN (json_data jsonb_path_ops);
@@ -49,7 +55,7 @@ const (
 	`
 	selectApplicationEntryByIDQuery       = `SELECT json_data, enabled FROM applications WHERE id = $1 AND account_id = $2`
 	updateApplicationEntryByIDQuery       = `UPDATE applications SET json_data = $1 WHERE id = $2 AND account_id = $3`
-	deleteApplicationEntryByIDQuery       = `UPDATE applications SET enabled = 1 WHERE id = $1 AND account_id = $2`
+	deleteApplicationEntryByIDQuery       = `UPDATE applications SET enabled = 0 WHERE id = $1 AND account_id = $2`
 	listApplicationsEntryByAccountIDQuery = `SELECT id, json_data, enabled FROM applications where account_id = $1`
 )
 
