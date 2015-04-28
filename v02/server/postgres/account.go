@@ -33,11 +33,33 @@ func (acc *account) Read(ctx *context.Context) (err errors.Error) {
 }
 
 func (acc *account) Update(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+	account := *(ctx.Bag["account"].(*entity.Account))
+	if er := json.Unmarshal(ctx.Body, &account); er != nil {
+		return errors.NewBadRequestError("failed to update the account (1)\n"+er.Error(), "malformed json received")
+	}
+
+	account.ID = ctx.Bag["accountID"].(int64)
+
+	if err := validator.UpdateAccount(ctx.Bag["account"].(*entity.Account), &account); err != nil {
+		return err
+	}
+
+	updatedAccount, err := acc.storage.Update(*(ctx.Bag["account"].(*entity.Account)), account, true)
+	if err != nil {
+		return err
+	}
+
+	server.WriteResponse(ctx, updatedAccount, http.StatusCreated, 10)
+	return nil
 }
 
 func (acc *account) Delete(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+	if err = acc.storage.Delete(ctx.Bag["account"].(*entity.Account)); err != nil {
+		return err
+	}
+
+	server.WriteResponse(ctx, "", http.StatusNoContent, 10)
+	return nil
 }
 
 func (acc *account) Create(ctx *context.Context) (err errors.Error) {
