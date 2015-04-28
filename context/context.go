@@ -122,7 +122,7 @@ func New(
 	ctx.W = w
 	ctx.MainLog = mainLog
 	ctx.ErrorLog = errorLog
-	if r.Method != "GET" {
+	if r.Method == "POST" || r.Method == "PUT" {
 		ctx.Body = utils.PeakBody(r).Bytes()
 	}
 	ctx.RouteName = routeName

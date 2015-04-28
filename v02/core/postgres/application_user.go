@@ -25,7 +25,7 @@ type (
 
 const (
 	createApplicationUserQuery               = `INSERT INTO app_$1_$2.users(json_data) VALUES($3) RETURNING id`
-	selectApplicationUserByIDQuery           = `SELECT id, json_data FROM app_$1_$2.users WHERE id = $3`
+	selectApplicationUserByIDQuery           = `SELECT json_data, enabled FROM app_$1_$2.users WHERE id = $3`
 	updateApplicationUserByIDQuery           = `UPDATE app_$1_$2.users SET json_data = $3 WHERE id = $4`
 	deleteApplicationUserByIDQuery           = `UPDATE app_$1_$2.users SET enabled = 0 WHERE id = $3`
 	listApplicationUsersByApplicationIDQuery = `SELECT id, json_data FROM app_$1_$2.users`
@@ -58,25 +58,24 @@ func (au *applicationUser) Create(user *entity.ApplicationUser, retrieve bool) (
 }
 
 func (au *applicationUser) Read(accountID, applicationID, userID int64) (*entity.ApplicationUser, errors.Error) {
-	applicationUserJSON := &struct {
-		ID       int64
+	var (
 		JSONData string
 		Enabled  bool
-	}{}
+	)
 	err := au.pg.SlaveDatastore(-1).
 		QueryRow(selectApplicationUserByIDQuery, accountID, applicationID, userID).
-		Scan(applicationUserJSON)
+		Scan(&JSONData, &Enabled)
 	if err != nil {
 		return nil, errors.NewInternalError("error while reading the application user", err.Error())
 	}
 
 	applicationUser := &entity.ApplicationUser{}
-	err = json.Unmarshal([]byte(applicationUserJSON.JSONData), applicationUser)
+	err = json.Unmarshal([]byte(JSONData), applicationUser)
 	if err != nil {
 		return nil, errors.NewInternalError("error while reading the application user", err.Error())
 	}
 	applicationUser.ID = userID
-	applicationUser.Enabled = applicationUserJSON.Enabled
+	applicationUser.Enabled = Enabled
 
 	return applicationUser, nil
 }
@@ -124,22 +123,22 @@ func (au *applicationUser) List(accountID, applicationID int64) (users []*entity
 	}
 	defer rows.Close()
 	for rows.Next() {
-		userJSON := &struct {
+		var (
 			ID       int64
 			JSONData string
 			Enabled  bool
-		}{}
-		err := rows.Scan(userJSON)
+		)
+		err := rows.Scan(&ID, &JSONData, &Enabled)
 		if err != nil {
 			return []*entity.ApplicationUser{}, errors.NewInternalError("error while retrieving list of application users", err.Error())
 		}
 		user := &entity.ApplicationUser{}
-		err = json.Unmarshal([]byte(userJSON.JSONData), user)
+		err = json.Unmarshal([]byte(JSONData), user)
 		if err != nil {
 			return []*entity.ApplicationUser{}, errors.NewInternalError("error while retrieving list of application users", err.Error())
 		}
-		user.ID = userJSON.ID
-		user.Enabled = userJSON.Enabled
+		user.ID = ID
+		user.Enabled = Enabled
 
 		users = append(users, user)
 	}
@@ -199,37 +198,37 @@ func (au *applicationUser) DestroySession(sessionToken string, user *entity.Appl
 }
 
 func (au *applicationUser) FindByEmail(accountID, applicationID int64, email string) (*entity.ApplicationUser, errors.Error) {
-	userJSON := &struct {
+	var (
 		ID       int64
 		JSONData string
 		Enabled  bool
-	}{}
+	)
 	err := au.pg.SlaveDatastore(-1).
 		QueryRow(selectApplicationUserByEmailQuery, accountID, applicationID, email).
-		Scan(userJSON)
+		Scan(&ID, &JSONData, &Enabled)
 	if err != nil {
 		return nil, errors.NewInternalError("error while reading the application user", err.Error())
 	}
 	user := &entity.ApplicationUser{}
-	err = json.Unmarshal([]byte(userJSON.JSONData), user)
+	err = json.Unmarshal([]byte(JSONData), user)
 	if err != nil {
 		return nil, errors.NewInternalError("error while reading the application user", err.Error())
 	}
-	user.ID = userJSON.ID
-	user.Enabled = userJSON.Enabled
+	user.ID = ID
+	user.Enabled = Enabled
 
 	return user, nil
 }
 
 func (au *applicationUser) ExistsByEmail(accountID, applicationID int64, email string) (bool, errors.Error) {
-	userJSON := &struct {
+	var (
 		ID       int64
 		JSONData string
 		Enabled  bool
-	}{}
+	)
 	err := au.pg.SlaveDatastore(-1).
 		QueryRow(selectApplicationUserByEmailQuery, accountID, applicationID, email).
-		Scan(userJSON)
+		Scan(&ID, &JSONData, &Enabled)
 	if err != nil {
 		return false, errors.NewInternalError("error while reading the application user", err.Error())
 	}
@@ -238,37 +237,37 @@ func (au *applicationUser) ExistsByEmail(accountID, applicationID int64, email s
 }
 
 func (au *applicationUser) FindByUsername(accountID, applicationID int64, username string) (*entity.ApplicationUser, errors.Error) {
-	userJSON := &struct {
+	var (
 		ID       int64
 		JSONData string
 		Enabled  bool
-	}{}
+	)
 	err := au.pg.SlaveDatastore(-1).
 		QueryRow(selectApplicationUserByUsernameQuery, accountID, applicationID, username).
-		Scan(userJSON)
+		Scan(&ID, &JSONData, &Enabled)
 	if err != nil {
 		return nil, errors.NewInternalError("error while reading the application user", err.Error())
 	}
 	user := &entity.ApplicationUser{}
-	err = json.Unmarshal([]byte(userJSON.JSONData), user)
+	err = json.Unmarshal([]byte(JSONData), user)
 	if err != nil {
 		return nil, errors.NewInternalError("error while reading the application user", err.Error())
 	}
-	user.ID = userJSON.ID
-	user.Enabled = userJSON.Enabled
+	user.ID = ID
+	user.Enabled = Enabled
 
 	return user, nil
 }
 
 func (au *applicationUser) ExistsByUsername(accountID, applicationID int64, username string) (bool, errors.Error) {
-	userJSON := &struct {
+	var (
 		ID       int64
 		JSONData string
 		Enabled  bool
-	}{}
+	)
 	err := au.pg.SlaveDatastore(-1).
 		QueryRow(selectApplicationUserByUsernameQuery, accountID, applicationID, username).
-		Scan(userJSON)
+		Scan(&ID, &JSONData, &Enabled)
 	if err != nil {
 		return false, errors.NewInternalError("error while reading the application user", err.Error())
 	}
@@ -277,14 +276,14 @@ func (au *applicationUser) ExistsByUsername(accountID, applicationID int64, user
 }
 
 func (au *applicationUser) ExistsByID(accountID, applicationID, userID int64) (bool, errors.Error) {
-	userJSON := &struct {
+	var (
 		ID       int64
 		JSONData string
 		Enabled  bool
-	}{}
+	)
 	err := au.pg.SlaveDatastore(-1).
 		QueryRow(selectApplicationUserByIDQuery, accountID, applicationID, userID).
-		Scan(userJSON)
+		Scan(&ID, &JSONData, &Enabled)
 	if err != nil {
 		return false, errors.NewInternalError("error while reading the application user", err.Error())
 	}

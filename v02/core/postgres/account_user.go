@@ -27,7 +27,7 @@ type (
 
 const (
 	createAccountUserQuery           = `INSERT INTO account_users(account_id, json_data) VALUES($1, $2) RETURNING id`
-	selectAccountUserByIDQuery       = `SELECT id, json_data FROM account_users WHERE id = $1 AND account_id = $2`
+	selectAccountUserByIDQuery       = `SELECT json_data FROM account_users WHERE id = $1 AND account_id = $2`
 	updateAccountUserByIDQuery       = `UPDATE account_users SET json_data = $1 WHERE id = $2 AND account_id = $3`
 	deleteAccountUserByIDQuery       = `UPDATE account_users SET enabled = 0 WHERE id = $1`
 	listAccountUsersByAccountIDQuery = `SELECT id, json_data FROM account_users WHERE account_id = $1`
@@ -60,19 +60,16 @@ func (au *accountUser) Create(accountUser *entity.AccountUser, retrieve bool) (*
 }
 
 func (au *accountUser) Read(accountID, accountUserID int64) (accountUser *entity.AccountUser, er errors.Error) {
-	accountUserJSON := &struct {
-		ID       int64
-		JSONData string
-	}{}
+	var JSONData string
 	err := au.pg.SlaveDatastore(-1).
 		QueryRow(selectAccountUserByIDQuery, accountUserID, accountID).
-		Scan(accountUserJSON)
+		Scan(&JSONData)
 	if err != nil {
 		return nil, errors.NewInternalError("error while reading the account user", err.Error())
 	}
 
 	accountUser = &entity.AccountUser{}
-	err = json.Unmarshal([]byte(accountUserJSON.JSONData), accountUser)
+	err = json.Unmarshal([]byte(JSONData), accountUser)
 	if err != nil {
 		return nil, errors.NewInternalError("error while reading the account user", err.Error())
 	}
@@ -125,20 +122,20 @@ func (au *accountUser) List(accountID int64) (accountUsers []*entity.AccountUser
 	}
 	defer rows.Close()
 	for rows.Next() {
-		accountUserJSON := &struct {
+		var (
 			ID       int64
 			JSONData string
-		}{}
-		err := rows.Scan(accountUserJSON)
+		)
+		err := rows.Scan(&ID, &JSONData)
 		if err != nil {
 			return []*entity.AccountUser{}, errors.NewInternalError("error while retrieving list of account users", err.Error())
 		}
 		accountUser := &entity.AccountUser{}
-		err = json.Unmarshal([]byte(accountUserJSON.JSONData), accountUser)
+		err = json.Unmarshal([]byte(JSONData), accountUser)
 		if err != nil {
 			return []*entity.AccountUser{}, errors.NewInternalError("error while retrieving list of account users", err.Error())
 		}
-		accountUser.ID = accountUserJSON.ID
+		accountUser.ID = ID
 
 		accountUsers = append(accountUsers, accountUser)
 	}
@@ -198,22 +195,22 @@ func (au *accountUser) GetSession(user *entity.AccountUser) (string, errors.Erro
 }
 
 func (au *accountUser) FindByEmail(email string) (*entity.Account, *entity.AccountUser, errors.Error) {
-	accountUserJSON := &struct {
+	var (
 		ID       int64
 		JSONData string
-	}{}
+	)
 	err := au.pg.SlaveDatastore(-1).
 		QueryRow(selectAccountUserByEmailQuery, email).
-		Scan(accountUserJSON)
+		Scan(&ID, &JSONData)
 	if err != nil {
 		return nil, nil, errors.NewInternalError("error while reading the account user", err.Error())
 	}
 	accountUser := &entity.AccountUser{}
-	err = json.Unmarshal([]byte(accountUserJSON.JSONData), accountUser)
+	err = json.Unmarshal([]byte(JSONData), accountUser)
 	if err != nil {
 		return nil, nil, errors.NewInternalError("error while reading the account user", err.Error())
 	}
-	accountUser.ID = accountUserJSON.ID
+	accountUser.ID = ID
 
 	account, er := au.a.Read(accountUser.AccountID)
 	if er != nil {
@@ -224,13 +221,13 @@ func (au *accountUser) FindByEmail(email string) (*entity.Account, *entity.Accou
 }
 
 func (au *accountUser) ExistsByEmail(email string) (bool, errors.Error) {
-	accountUserJSON := &struct {
+	var (
 		ID       int64
 		JSONData string
-	}{}
+	)
 	err := au.pg.SlaveDatastore(-1).
 		QueryRow(selectAccountUserByEmailQuery, email).
-		Scan(accountUserJSON)
+		Scan(&ID, &JSONData)
 	if err != nil {
 		return false, errors.NewInternalError("error while reading the account user", err.Error())
 	}
@@ -238,22 +235,22 @@ func (au *accountUser) ExistsByEmail(email string) (bool, errors.Error) {
 }
 
 func (au *accountUser) FindByUsername(username string) (*entity.Account, *entity.AccountUser, errors.Error) {
-	accountUserJSON := &struct {
+	var (
 		ID       int64
 		JSONData string
-	}{}
+	)
 	err := au.pg.SlaveDatastore(-1).
 		QueryRow(selectAccountUserByUsernameQuery, username).
-		Scan(accountUserJSON)
+		Scan(&ID, &JSONData)
 	if err != nil {
 		return nil, nil, errors.NewInternalError("error while reading the account user", err.Error())
 	}
 	accountUser := &entity.AccountUser{}
-	err = json.Unmarshal([]byte(accountUserJSON.JSONData), accountUser)
+	err = json.Unmarshal([]byte(JSONData), accountUser)
 	if err != nil {
 		return nil, nil, errors.NewInternalError("error while reading the account user", err.Error())
 	}
-	accountUser.ID = accountUserJSON.ID
+	accountUser.ID = ID
 
 	account, er := au.a.Read(accountUser.AccountID)
 	if er != nil {
@@ -264,13 +261,13 @@ func (au *accountUser) FindByUsername(username string) (*entity.Account, *entity
 }
 
 func (au *accountUser) ExistsByUsername(username string) (bool, errors.Error) {
-	accountUserJSON := &struct {
+	var (
 		ID       int64
 		JSONData string
-	}{}
+	)
 	err := au.pg.SlaveDatastore(-1).
 		QueryRow(selectAccountUserByUsernameQuery, username).
-		Scan(accountUserJSON)
+		Scan(&ID, &JSONData)
 	if err != nil {
 		return false, errors.NewInternalError("error while reading the account user", err.Error())
 	}
@@ -278,13 +275,13 @@ func (au *accountUser) ExistsByUsername(username string) (bool, errors.Error) {
 }
 
 func (au *accountUser) ExistsByID(accountID, accountUserID int64) (bool, errors.Error) {
-	accountUserJSON := &struct {
+	var (
 		ID       int64
 		JSONData string
-	}{}
+	)
 	err := au.pg.SlaveDatastore(-1).
 		QueryRow(selectAccountUserByIDQuery, accountUserID, accountID).
-		Scan(accountUserJSON)
+		Scan(&ID, &JSONData)
 	if err != nil {
 		return false, errors.NewInternalError("error while reading the account user", err.Error())
 	}

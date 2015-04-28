@@ -49,23 +49,23 @@ func (c *connection) Create(connection *entity.Connection, retrieve bool) (*enti
 }
 
 func (c *connection) Read(accountID, applicationID, userFromID, userToID int64) (*entity.Connection, errors.Error) {
-	connectionJSON := &struct {
+	var (
 		JSONData string
 		Enabled  bool
-	}{}
+	)
 	err := c.pg.SlaveDatastore(-1).
 		QueryRow(selectConnectionQuery, accountID, applicationID, userFromID, userToID).
-		Scan(connectionJSON)
+		Scan(&JSONData, &Enabled)
 	if err != nil {
 		return nil, errors.NewInternalError("error while reading the connection", err.Error())
 	}
 
 	connection := &entity.Connection{}
-	err = json.Unmarshal([]byte(connectionJSON.JSONData), connection)
+	err = json.Unmarshal([]byte(JSONData), connection)
 	if err != nil {
 		return nil, errors.NewInternalError("error while reading the connection", err.Error())
 	}
-	connection.Enabled = connectionJSON.Enabled
+	connection.Enabled = Enabled
 
 	return connection, nil
 }
@@ -107,22 +107,22 @@ func (c *connection) List(accountID, applicationID, userID int64) (users []*enti
 	}
 	defer rows.Close()
 	for rows.Next() {
-		userJSON := &struct {
+		var (
 			ID       int64
 			JSONData string
 			Enabled  bool
-		}{}
-		err := rows.Scan(userJSON)
+		)
+		err := rows.Scan(&ID, &JSONData, &Enabled)
 		if err != nil {
 			return []*entity.ApplicationUser{}, errors.NewInternalError("error while retrieving list of connections", err.Error())
 		}
 		user := &entity.ApplicationUser{}
-		err = json.Unmarshal([]byte(userJSON.JSONData), user)
+		err = json.Unmarshal([]byte(JSONData), user)
 		if err != nil {
 			return []*entity.ApplicationUser{}, errors.NewInternalError("error while retrieving list of connections", err.Error())
 		}
-		user.ID = userJSON.ID
-		user.Enabled = userJSON.Enabled
+		user.ID = ID
+		user.Enabled = Enabled
 
 		users = append(users, user)
 	}
@@ -140,22 +140,22 @@ func (c *connection) FollowedBy(accountID, applicationID, userID int64) ([]*enti
 	}
 	defer rows.Close()
 	for rows.Next() {
-		userJSON := &struct {
+		var (
 			ID       int64
 			JSONData string
 			Enabled  bool
-		}{}
-		err := rows.Scan(userJSON)
+		)
+		err := rows.Scan(&ID, &JSONData, &Enabled)
 		if err != nil {
 			return []*entity.ApplicationUser{}, errors.NewInternalError("error while retrieving list of followers", err.Error())
 		}
 		user := &entity.ApplicationUser{}
-		err = json.Unmarshal([]byte(userJSON.JSONData), user)
+		err = json.Unmarshal([]byte(JSONData), user)
 		if err != nil {
 			return []*entity.ApplicationUser{}, errors.NewInternalError("error while retrieving list of followers", err.Error())
 		}
-		user.ID = userJSON.ID
-		user.Enabled = userJSON.Enabled
+		user.ID = ID
+		user.Enabled = Enabled
 
 		users = append(users, user)
 	}

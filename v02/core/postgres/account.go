@@ -9,6 +9,8 @@ import (
 
 	"encoding/json"
 
+	"time"
+
 	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/entity"
@@ -23,14 +25,17 @@ type (
 )
 
 const (
-	createAccountQuery     = `INSERT INTO accounts(json_data) VALUES ($1, $2) RETURNING id`
-	selectAccountByIDQuery = `SELECT id, json_data FROM accounts WHERE id = $1`
+	createAccountQuery     = `INSERT INTO accounts(json_data) VALUES ($1) RETURNING id`
+	selectAccountByIDQuery = `SELECT json_data FROM accounts WHERE id = $1`
 	updateAccountByIDQuery = `UPDATE accounts SET json_data = $1 WHERE id = $2`
 	deleteAccountByIDQuery = `DELETE FROM accounts WHERE id = $1`
 )
 
 func (a *account) Create(account *entity.Account, retrieve bool) (*entity.Account, errors.Error) {
 	// TODO we should generate the account auth key here... it would be nice to do so
+	account.CreatedAt = time.Now()
+	account.UpdatedAt = account.CreatedAt
+
 	accountJSON, err := json.Marshal(account)
 	if err != nil {
 		return nil, errors.NewInternalError("error while creating the account", err.Error())
@@ -52,19 +57,16 @@ func (a *account) Create(account *entity.Account, retrieve bool) (*entity.Accoun
 }
 
 func (a *account) Read(accountID int64) (*entity.Account, errors.Error) {
-	accountJSON := &struct {
-		ID       int64
-		JSONData string
-	}{}
+	var JSONData string
 	err := a.pg.SlaveDatastore(-1).
 		QueryRow(selectAccountByIDQuery, accountID).
-		Scan(accountJSON)
+		Scan(&JSONData)
 	if err != nil {
 		return nil, errors.NewInternalError("error while reading the account", err.Error())
 	}
 
 	acc := &entity.Account{}
-	err = json.Unmarshal([]byte(accountJSON.JSONData), acc)
+	err = json.Unmarshal([]byte(JSONData), acc)
 	if err != nil {
 		return nil, errors.NewInternalError("error while reading the account", err.Error())
 	}
@@ -104,13 +106,10 @@ func (a *account) Delete(account *entity.Account) errors.Error {
 }
 
 func (a *account) Exists(accountID int64) (bool, errors.Error) {
-	accountJSON := &struct {
-		ID       int64
-		JSONData string
-	}{}
+	var JSONData string
 	err := a.pg.SlaveDatastore(-1).
 		QueryRow(selectAccountByIDQuery, accountID).
-		Scan(accountJSON)
+		Scan(&JSONData)
 	if err != nil {
 		return false, errors.NewInternalError("error while reading the account", err.Error())
 	}

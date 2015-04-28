@@ -24,10 +24,11 @@ type (
 		InternalErrorWithLocation() string
 	}
 
-	tgError struct {
+	myError struct {
 		internalMessage string
 		message         string
 		location        string
+		extraData       map[string]string
 		errType         errorType
 	}
 )
@@ -86,7 +87,7 @@ func Fatal(message error) {
 }
 
 func newError(errorType errorType, message, internalMessage string, stackDepth int) Error {
-	err := &tgError{message: message, internalMessage: internalMessage, errType: errorType}
+	err := &myError{message: message, internalMessage: internalMessage, errType: errorType}
 	if stackDepth == -1 && !dbgMode {
 		return err
 	}
@@ -101,26 +102,27 @@ func newError(errorType errorType, message, internalMessage string, stackDepth i
 		err.location = fmt.Sprintf("%s from %s:%d", err.location, filename, line)
 
 	}
+	err.extraData = map[string]string{}
 	return err
 }
 
 // Type returns the type of the error
-func (err *tgError) Type() errorType {
+func (err *myError) Type() errorType {
 	return err.errType
 }
 
 // RawError generates a go error out of the existing error
-func (err *tgError) Raw() error {
+func (err *myError) Raw() error {
 	return fmt.Errorf(err.Error())
 }
 
 // Error returns the error message
-func (err *tgError) Error() string {
+func (err *myError) Error() string {
 	return err.message
 }
 
 // ErrorWithLocation returns the error and the location where it happened if that information is present
-func (err *tgError) ErrorWithLocation() string {
+func (err *myError) ErrorWithLocation() string {
 	if err.location != "" {
 		return fmt.Sprintf("%q in %s", err.message, err.location)
 	}
@@ -128,11 +130,18 @@ func (err *tgError) ErrorWithLocation() string {
 }
 
 // InternalErrorWithLocation returns the internal error message and the location where it happened, if that exists
-func (err *tgError) InternalErrorWithLocation() string {
+func (err *myError) InternalErrorWithLocation() string {
 	if err.location != "" {
 		return fmt.Sprintf("%q in %s", err.internalMessage, err.location)
 	}
 	return err.internalMessage
+}
+
+// ExtraData is usefull if you want to attach more data to the error while producing the error.
+// This MUST be considered debug data and not be displayed to the user!
+func (err *myError) ExtraData(key, value string) Error {
+	err.extraData[key] = value
+	return err
 }
 
 // Init initializes the logging module

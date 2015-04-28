@@ -78,24 +78,24 @@ func (app *application) Create(application *entity.Application, retrieve bool) (
 }
 
 func (app *application) Read(accountID, applicationID int64) (*entity.Application, errors.Error) {
-	applicationJSON := &struct {
+	var (
 		JSONData string
-		Enabled  bool
-	}{}
+		enabled  bool
+	)
 	err := app.pg.SlaveDatastore(-1).
 		QueryRow(selectApplicationEntryByIDQuery, applicationID, accountID).
-		Scan(applicationJSON)
+		Scan(&JSONData, &enabled)
 	if err != nil {
 		return nil, errors.NewInternalError("error while reading application", err.Error())
 	}
 
 	application := &entity.Application{}
-	err = json.Unmarshal([]byte(applicationJSON.JSONData), application)
+	err = json.Unmarshal([]byte(JSONData), application)
 	if err != nil {
 		return nil, errors.NewInternalError("error while reading application", err.Error())
 	}
 	application.ID = applicationID
-	application.Enabled = applicationJSON.Enabled
+	application.Enabled = enabled
 
 	return application, nil
 }
@@ -138,22 +138,22 @@ func (app *application) List(accountID int64) ([]*entity.Application, errors.Err
 	}
 	defer rows.Close()
 	for rows.Next() {
-		applicationJSON := &struct {
+		var (
 			ID       int64
 			JSONData string
 			Enabled  bool
-		}{}
-		err := rows.Scan(applicationJSON)
+		)
+		err := rows.Scan(&ID, &JSONData, &Enabled)
 		if err != nil {
 			return []*entity.Application{}, errors.NewInternalError("failed to read the applications", err.Error())
 		}
 		application := &entity.Application{}
-		err = json.Unmarshal([]byte(applicationJSON.JSONData), application)
+		err = json.Unmarshal([]byte(JSONData), application)
 		if err != nil {
 			return []*entity.Application{}, errors.NewInternalError("failed to read the applications", err.Error())
 		}
-		application.ID = applicationJSON.ID
-		application.Enabled = applicationJSON.Enabled
+		application.ID = ID
+		application.Enabled = Enabled
 
 		applications = append(applications, application)
 	}
@@ -162,13 +162,13 @@ func (app *application) List(accountID int64) ([]*entity.Application, errors.Err
 }
 
 func (app *application) Exists(accountID, applicationID int64) (bool, errors.Error) {
-	applicationJSON := &struct {
+	var (
 		ID       int
 		JSONData string
-	}{}
+	)
 	err := app.pg.SlaveDatastore(-1).
 		QueryRow(selectApplicationEntryByIDQuery, applicationID, accountID).
-		Scan(applicationJSON)
+		Scan(&ID, &JSONData)
 	if err != nil {
 		return false, errors.NewInternalError("error while reading application", err.Error())
 	}

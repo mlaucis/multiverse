@@ -55,25 +55,25 @@ func (e *event) Create(event *entity.Event, retrieve bool) (*entity.Event, error
 }
 
 func (e *event) Read(accountID, applicationID, userID, eventID int64) (*entity.Event, errors.Error) {
-	eventJSON := &struct {
+	var (
 		ID       int64
 		JSONData string
 		Enabled  bool
-	}{}
+	)
 	err := e.pg.SlaveDatastore(-1).
 		QueryRow(selectEventByIDQuery, accountID, applicationID, eventID, userID).
-		Scan(eventJSON)
+		Scan(&ID, &JSONData, &Enabled)
 	if err != nil {
 		return nil, errors.NewInternalError("error while reading the event", err.Error())
 	}
 
 	event := &entity.Event{}
-	err = json.Unmarshal([]byte(eventJSON.JSONData), event)
+	err = json.Unmarshal([]byte(JSONData), event)
 	if err != nil {
 		return nil, errors.NewInternalError("error while reading the account user", err.Error())
 	}
-	event.ID = eventJSON.ID
-	event.Enabled = eventJSON.Enabled
+	event.ID = ID
+	event.Enabled = Enabled
 
 	return event, nil
 }
@@ -114,22 +114,22 @@ func (e *event) List(accountID, applicationID, userID int64) (events []*entity.E
 	}
 	defer rows.Close()
 	for rows.Next() {
-		eventJSON := &struct {
+		var (
 			ID       int64
 			JSONData string
 			Enabled  bool
-		}{}
-		err := rows.Scan(eventJSON)
+		)
+		err := rows.Scan(&ID, &JSONData, &Enabled)
 		if err != nil {
 			return []*entity.Event{}, errors.NewInternalError("failed to read the events", err.Error())
 		}
 		event := &entity.Event{}
-		err = json.Unmarshal([]byte(eventJSON.JSONData), event)
+		err = json.Unmarshal([]byte(JSONData), event)
 		if err != nil {
 			return []*entity.Event{}, errors.NewInternalError("failed to read the events", err.Error())
 		}
-		event.ID = eventJSON.ID
-		event.Enabled = eventJSON.Enabled
+		event.ID = ID
+		event.Enabled = Enabled
 
 		events = append(events, event)
 	}
@@ -161,22 +161,22 @@ func (e *event) ConnectionList(accountID, applicationID, userID int64) (events [
 	}
 	defer rows.Close()
 	for rows.Next() {
-		eventJSON := &struct {
+		var (
 			ID       int64
 			JSONData string
 			Enabled  bool
-		}{}
-		err := rows.Scan(eventJSON)
+		)
+		err := rows.Scan(&ID, &JSONData, &Enabled)
 		if err != nil {
 			return []*entity.Event{}, errors.NewInternalError("failed to read the events", err.Error())
 		}
 		event := &entity.Event{}
-		err = json.Unmarshal([]byte(eventJSON.JSONData), event)
+		err = json.Unmarshal([]byte(JSONData), event)
 		if err != nil {
 			return []*entity.Event{}, errors.NewInternalError("failed to read the events", err.Error())
 		}
-		event.ID = eventJSON.ID
-		event.Enabled = eventJSON.Enabled
+		event.ID = ID
+		event.Enabled = Enabled
 
 		events = append(events, event)
 	}
