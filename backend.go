@@ -26,6 +26,20 @@ import (
 	v01_storage "github.com/tapglue/backend/v01/storage"
 	v01_redis "github.com/tapglue/backend/v01/storage/redis"
 	v01_validator "github.com/tapglue/backend/v01/validator"
+
+	_ "github.com/tapglue/backend/v02/core"
+	_ "github.com/tapglue/backend/v02/core/kinesis"
+	_ "github.com/tapglue/backend/v02/core/postgres"
+	_ "github.com/tapglue/backend/v02/core/redis"
+	_ "github.com/tapglue/backend/v02/entity"
+	_ "github.com/tapglue/backend/v02/server"
+	_ "github.com/tapglue/backend/v02/server/kinesis"
+	_ "github.com/tapglue/backend/v02/server/postgres"
+	_ "github.com/tapglue/backend/v02/server/redis"
+	_ "github.com/tapglue/backend/v02/storage/helper"
+	_ "github.com/tapglue/backend/v02/storage/kinesis"
+	_ "github.com/tapglue/backend/v02/storage/postgres"
+	_ "github.com/tapglue/backend/v02/storage/redis"
 )
 
 const (
