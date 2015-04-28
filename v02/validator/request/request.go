@@ -22,6 +22,10 @@ func SignAccount(ctx *context.Context) errors.Error {
 
 // VerifyAccount checks that the current request is a signed account request
 func VerifyAccount(ctx *context.Context) errors.Error {
+	if ctx.SkipSecurity {
+		return nil
+	}
+
 	if ctx.R.Header.Get("Authorization") != "" {
 		httpAuthorization := ctx.R.Header.Get("Authorization")
 		if strings.HasPrefix(httpAuthorization, "Basic ") {
@@ -39,6 +43,10 @@ func SignAccountUser(ctx *context.Context) errors.Error {
 
 // VerifyAccountUser checks that the current request is a signed account request
 func VerifyAccountUser(ctx *context.Context) errors.Error {
+	if ctx.SkipSecurity {
+		return nil
+	}
+
 	if ctx.R.Header.Get("Authorization") != "" {
 		httpAuthorization := ctx.R.Header.Get("Authorization")
 		if strings.HasPrefix(httpAuthorization, "Basic ") {
@@ -56,6 +64,10 @@ func SignApplication(ctx *context.Context) errors.Error {
 
 // VerifyApplication checks that the current request is a signed app request
 func VerifyApplication(ctx *context.Context) errors.Error {
+	if ctx.SkipSecurity {
+		return nil
+	}
+
 	if ctx.R.Header.Get("Authorization") != "" {
 		httpAuthorization := ctx.R.Header.Get("Authorization")
 		if strings.HasPrefix(httpAuthorization, "Basic ") {
@@ -73,6 +85,10 @@ func SignApplicationUser(ctx *context.Context) errors.Error {
 
 // VerifyApplicationUser checks that the current request is a signed app:appUser request
 func VerifyApplicationUser(ctx *context.Context) errors.Error {
+	if ctx.SkipSecurity {
+		return nil
+	}
+
 	if ctx.R.Header.Get("Authorization") != "" {
 		httpAuthorization := ctx.R.Header.Get("Authorization")
 		if strings.HasPrefix(httpAuthorization, "Basic ") {
