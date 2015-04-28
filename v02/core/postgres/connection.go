@@ -73,7 +73,7 @@ func (c *connection) Read(accountID, applicationID, userFromID, userToID int64) 
 func (c *connection) Update(existingConnection, updatedConnection entity.Connection, retrieve bool) (*entity.Connection, errors.Error) {
 	connectionJSON, err := json.Marshal(updatedConnection)
 	if err != nil {
-		return errors.NewInternalError("error while updating the connection", err.Error())
+		return nil, errors.NewInternalError("error while updating the connection", err.Error())
 	}
 
 	_, err = c.mainPg.Exec(updateConnectionQuery, existingConnection.AccountID, existingConnection.ApplicationID, string(connectionJSON))
@@ -130,8 +130,8 @@ func (c *connection) List(accountID, applicationID, userID int64) (users []*enti
 	return users, nil
 }
 
-func (c *connection) FollowedBy(accountID, applicationID, userID int64) (users []*entity.ApplicationUser, err errors.Error) {
-	users = []*entity.ApplicationUser{}
+func (c *connection) FollowedBy(accountID, applicationID, userID int64) ([]*entity.ApplicationUser, errors.Error) {
+	users := []*entity.ApplicationUser{}
 
 	rows, err := c.pg.SlaveDatastore(-1).
 		Query(followedByConnectionQuery, accountID, applicationID, userID)
@@ -163,12 +163,12 @@ func (c *connection) FollowedBy(accountID, applicationID, userID int64) (users [
 	return users, nil
 }
 
-func (c *connection) Confirm(connection *entity.Connection, retrieve bool) (con *entity.Connection, err errors.Error) {
+func (c *connection) Confirm(connection *entity.Connection, retrieve bool) (*entity.Connection, errors.Error) {
 	connection.Enabled = true
 	connection.ConfirmedAt = time.Now()
 	connection.UpdatedAt = connection.ConfirmedAt
 
-	return c.Update(connection, connection, retrieve)
+	return c.Update(*connection, *connection, retrieve)
 }
 
 func (c *connection) WriteEventsToList(connection *entity.Connection) (err errors.Error) {
