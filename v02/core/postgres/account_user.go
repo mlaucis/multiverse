@@ -235,6 +235,9 @@ func (au *accountUser) ExistsByEmail(email string) (bool, errors.Error) {
 	err := au.pg.SlaveDatastore(-1).
 		QueryRow(selectAccountUserByEmailQuery, email).
 		Scan(&ID, &JSONData)
+	if err == sql.ErrNoRows {
+		return false, nil
+	}
 	if err != nil {
 		return false, errors.NewInternalError("error while reading the account user", err.Error())
 	}
@@ -275,6 +278,9 @@ func (au *accountUser) ExistsByUsername(username string) (bool, errors.Error) {
 	err := au.pg.SlaveDatastore(-1).
 		QueryRow(selectAccountUserByUsernameQuery, username).
 		Scan(&ID, &JSONData)
+	if err == sql.ErrNoRows {
+		return false, nil
+	}
 	if err != nil {
 		return false, errors.NewInternalError("error while reading the account user", err.Error())
 	}
@@ -289,6 +295,9 @@ func (au *accountUser) ExistsByID(accountID, accountUserID int64) (bool, errors.
 	err := au.pg.SlaveDatastore(-1).
 		QueryRow(selectAccountUserByIDQuery, accountUserID, accountID).
 		Scan(&ID, &JSONData)
+	if err == sql.ErrNoRows {
+		return false, nil
+	}
 	if err != nil {
 		return false, errors.NewInternalError("error while reading the account user", err.Error())
 	}
@@ -301,6 +310,9 @@ func (au *accountUser) FindBySession(sessionKey string) (*entity.AccountUser, er
 	err := au.pg.SlaveDatastore(-1).
 		QueryRow(selectAccountUserBySessionQuery, sessionKey).
 		Scan(&accountID, &accountUserID)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
 	if err != nil {
 		return nil, errors.NewInternalError("error while loading the account user", err.Error())
 	}

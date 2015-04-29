@@ -230,6 +230,9 @@ func (au *applicationUser) ExistsByEmail(accountID, applicationID int64, email s
 	err := au.pg.SlaveDatastore(-1).
 		QueryRow(selectApplicationUserByEmailQuery, accountID, applicationID, email).
 		Scan(&ID, &JSONData, &Enabled)
+	if err == sql.ErrNoRows {
+		return false, nil
+	}
 	if err != nil {
 		return false, errors.NewInternalError("error while reading the application user", err.Error())
 	}
@@ -269,6 +272,9 @@ func (au *applicationUser) ExistsByUsername(accountID, applicationID int64, user
 	err := au.pg.SlaveDatastore(-1).
 		QueryRow(selectApplicationUserByUsernameQuery, accountID, applicationID, username).
 		Scan(&ID, &JSONData, &Enabled)
+	if err == sql.ErrNoRows {
+		return false, nil
+	}
 	if err != nil {
 		return false, errors.NewInternalError("error while reading the application user", err.Error())
 	}
@@ -285,6 +291,9 @@ func (au *applicationUser) ExistsByID(accountID, applicationID, userID int64) (b
 	err := au.pg.SlaveDatastore(-1).
 		QueryRow(selectApplicationUserByIDQuery, accountID, applicationID, userID).
 		Scan(&ID, &JSONData, &Enabled)
+	if err == sql.ErrNoRows {
+		return false, nil
+	}
 	if err != nil {
 		return false, errors.NewInternalError("error while reading the application user", err.Error())
 	}

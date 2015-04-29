@@ -170,6 +170,9 @@ func (app *application) Exists(accountID, applicationID int64) (bool, errors.Err
 	err := app.pg.SlaveDatastore(-1).
 		QueryRow(selectApplicationEntryByIDQuery, applicationID, accountID).
 		Scan(&ID, &JSONData)
+	if err == sql.ErrNoRows {
+		return false, nil
+	}
 	if err != nil {
 		return false, errors.NewInternalError("error while reading application", err.Error())
 	}
