@@ -6,7 +6,7 @@
 package helper
 
 import (
-	"crypto/sha256"
+	"crypto/md5"
 	"fmt"
 	"math/rand"
 	"time"
@@ -83,44 +83,29 @@ func GenerateAccountSecretKey(account *entity.Account) string {
 	keySalt := generateTokenSalt(8)
 
 	// Generate the token itself
-	hasher := sha256.New()
+	hasher := md5.New()
 	hasher.Write([]byte(fmt.Sprintf(
-		"%d%s%s",
-		account.ID,
+		"%s%s",
 		keySalt,
 		account.CreatedAt.Format(time.RFC3339),
 	)))
-	token := hasher.Sum(nil)
-
-	return utils.Base64Encode(fmt.Sprintf(
-		"%d:%s",
-		account.ID,
-		string(token),
-	))
+	return fmt.Sprintf("%x", hasher.Sum(nil))
 }
 
 // GenerateApplicationSecretKey returns a token for the specified application of an account
-func GenerateApplicationSecretKey(application *entity.Application) (string, error) {
+func GenerateApplicationSecretKey(application *entity.Application) string {
 	// Generate a random salt for the token
 	keySalt := generateTokenSalt(8)
 
 	// Generate the token itself
-	hasher := sha256.New()
+	hasher := md5.New()
 	hasher.Write([]byte(fmt.Sprintf(
-		"%d%d%s%s",
+		"%d%s%s",
 		application.AccountID,
-		application.ID,
 		keySalt,
 		application.CreatedAt.Format(time.RFC3339),
 	)))
-	token := hasher.Sum(nil)
-
-	return utils.Base64Encode(fmt.Sprintf(
-		"%d:%d:%s",
-		application.AccountID,
-		application.ID,
-		string(token),
-	)), nil
+	return fmt.Sprintf("%x", hasher.Sum(nil))
 }
 
 // GenerateAccountSessionID generated the session id for the specific

@@ -31,10 +31,7 @@ func (app *application) Create(application *entity.Application, retrieve bool) (
 	application.Enabled = true
 	application.CreatedAt = time.Now()
 	application.UpdatedAt = application.CreatedAt
-
-	if application.AuthToken, er = storageHelper.GenerateApplicationSecretKey(application); er != nil {
-		return nil, errors.NewInternalError("failed to create the application (2)", er.Error())
-	}
+	application.AuthToken = storageHelper.GenerateApplicationSecretKey(application)
 
 	val, er := json.Marshal(application)
 	if er != nil {

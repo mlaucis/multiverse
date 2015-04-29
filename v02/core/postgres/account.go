@@ -34,10 +34,10 @@ const (
 )
 
 func (a *account) Create(account *entity.Account, retrieve bool) (*entity.Account, errors.Error) {
-	account.AuthToken = storageHelper.GenerateAccountSecretKey(account)
 	account.Enabled = true
-	account.CreatedAt, _ = time.Parse(time.RFC3339, "0000-01-01T00:00:00Z")
+	account.CreatedAt = time.Now()
 	account.UpdatedAt = account.CreatedAt
+	account.AuthToken = storageHelper.GenerateAccountSecretKey(account)
 
 	accountJSON, err := json.Marshal(account)
 	if err != nil {
