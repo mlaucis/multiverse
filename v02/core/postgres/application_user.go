@@ -30,7 +30,7 @@ const (
 	deleteApplicationUserByIDQuery           = `UPDATE app_$1_$2.users SET enabled = 0 WHERE id = $3`
 	listApplicationUsersByApplicationIDQuery = `SELECT id, json_data FROM app_$1_$2.users`
 	selectApplicationUserByEmailQuery        = `SELECT id, json_data FROM app_$1_$2.users WHERE json_data->>'email' = $3`
-	selectApplicationUserByUsernameQuery     = `SELECT id, json_data FROM app_$1_$2.users WHERE json_data->>'username' = $3`
+	selectApplicationUserByUsernameQuery     = `SELECT id, json_data FROM app_$1_$2.users WHERE json_data->>'user_name' = $3`
 	createApplicationUserSessionQuery        = `INSERT INTO app_$1_$2.sessions(user_id, session_id) VALUES($3, $4, $5)`
 	selectApplicationUserSessionQuery        = `SELECT session_id FROM app_$1_$2.sessions WHERE user_id = $3`
 	selectApplicationUserBySessionQuery      = `SELECT user_id FROM app_$1_$2.sessions WHERE session_id = $3`

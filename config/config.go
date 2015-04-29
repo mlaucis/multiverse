@@ -33,16 +33,32 @@ type (
 		Endpoint  string `json:"endpoint"`
 	}
 
+	// PostgresDB structure
+	PostgresDB struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+		Host     string `json:"host"`
+		Options  string `json:"options"`
+	}
+
+	// Postgres structure
+	Postgres struct {
+		Database string       `json:"database"`
+		Master   PostgresDB   `json:"master"`
+		Slaves   []PostgresDB `json:"slaves"`
+	}
+
 	// Config structure for the application configuration
 	Config struct {
-		Environment    string   `json:"env"`
-		UseArtwork     bool     `json:"use_artwork"`
-		UseSSL         bool     `json:"use_ssl"`
-		SkipSecurity   bool     `json:"skip_security"`
-		JSONLogs       bool     `json:"json_logs"`
-		ListenHostPort string   `json:"listenHost"`
-		Redis          *Redis   `json:"redis"`
-		Kinesis        *Kinesis `json:"kinesis"`
+		Environment    string    `json:"env"`
+		UseArtwork     bool      `json:"use_artwork"`
+		UseSSL         bool      `json:"use_ssl"`
+		SkipSecurity   bool      `json:"skip_security"`
+		JSONLogs       bool      `json:"json_logs"`
+		ListenHostPort string    `json:"listenHost"`
+		Redis          *Redis    `json:"redis"`
+		Kinesis        *Kinesis  `json:"kinesis"`
+		Postgres       *Postgres `json:"postgres"`
 	}
 )
 

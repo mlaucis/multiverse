@@ -95,7 +95,7 @@ func GenerateAccountSecretKey(account *entity.Account) string {
 // GenerateApplicationSecretKey returns a token for the specified application of an account
 func GenerateApplicationSecretKey(application *entity.Application) string {
 	// Generate a random salt for the token
-	keySalt := generateTokenSalt(8)
+	keySalt := generateTokenSalt(20)
 
 	// Generate the token itself
 	hasher := md5.New()
@@ -110,12 +110,12 @@ func GenerateApplicationSecretKey(application *entity.Application) string {
 
 // GenerateAccountSessionID generated the session id for the specific
 func GenerateAccountSessionID(user *entity.AccountUser) string {
-	return generateTokenSalt(20)
+	return utils.Base64Encode(generateTokenSalt(20))
 }
 
 // GenerateApplicationSessionID generated the session id for the specific
 func GenerateApplicationSessionID(user *entity.ApplicationUser) string {
-	return generateTokenSalt(20)
+	return utils.Base64Encode(generateTokenSalt(20))
 }
 
 // GenerateEncryptedPassword generates and encrypted password using the specific salt and time

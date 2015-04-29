@@ -6,12 +6,14 @@ package postgres
 
 import (
 	"database/sql"
-
 	"encoding/json"
+	"fmt"
+	"time"
 
 	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/entity"
+	storageHelper "github.com/tapglue/backend/v02/storage/helper"
 	"github.com/tapglue/backend/v02/storage/postgres"
 )
 
@@ -23,36 +25,7 @@ type (
 )
 
 const (
-	createApplicationEntryQuery     = `INSERT INTO applications (account_id, json_data) VALUES($1, $2) RETURNING id`
-	createApplicationNamespaceQuery = `CREATE DATABASE app_$1_$2;
-	CREATE TABLE app_$1_$2.users
-	(
-		id SERIAL PRIMARY KEY NOT NULL,
-		json_data JSONB NOT NULL,
-		enabled INT DEFAULT 1 NOT NULL
-	);
-	CREATE TABLE app_$1_$2.events
-	(
-		id SERIAL PRIMARY KEY NOT NULL,
-		json_data JSONB NOT NULL,
-		enabled INT DEFAULT 1 NOT NULL
-	);
-	CREATE TABLE app_$1_$2.connections
-	(
-		json_data JSONB NOT NULL,
-		enabled INT DEFAULT 1 NOT NULL
-	);
-	CREATE TABLE app_$1_$2.sessions
-	(
-		user_id INT NOT NULL,
-		session_id CHAR(20) NOT NULL,
-		created_at TIMESTAMP DEFAULT now() NOT NULL
-	);
-
-	CREATE INDEX on app_$1_$2.users USING GIN (json_data jsonb_path_ops);
-	CREATE INDEX on app_$1_$2.events USING GIN (json_data jsonb_path_ops);
-	CREATE INDEX on app_$1_$2.connections USING GIN (json_data jsonb_path_ops);
-	`
+	createApplicationEntryQuery           = `INSERT INTO applications (account_id, json_data) VALUES($1, $2) RETURNING id`
 	selectApplicationEntryByIDQuery       = `SELECT json_data, enabled FROM applications WHERE id = $1 AND account_id = $2`
 	selectApplicationEntryByKeyQuery      = `SELECT id, account_id, json_data, enabled FROM applications WHERE json_data->>'token' = $1`
 	updateApplicationEntryByIDQuery       = `UPDATE applications SET json_data = $1 WHERE id = $2 AND account_id = $3`
@@ -60,7 +33,44 @@ const (
 	listApplicationsEntryByAccountIDQuery = `SELECT id, json_data, enabled FROM applications where account_id = $1`
 )
 
+var (
+	createApplicationNamespaceQuery = []string{
+		`CREATE DATABASE app_%d_%d`,
+		`CREATE TABLE app_%d_%d.users
+	(
+		id SERIAL PRIMARY KEY NOT NULL,
+		json_data JSONB NOT NULL,
+		enabled INT DEFAULT 1 NOT NULL
+	)`,
+		`CREATE TABLE app_%d_%d.events
+	(
+		id SERIAL PRIMARY KEY NOT NULL,
+		json_data JSONB NOT NULL,
+		enabled INT DEFAULT 1 NOT NULL
+	)`,
+		`CREATE TABLE app_%d_%d.connections
+	(
+		json_data JSONB NOT NULL,
+		enabled INT DEFAULT 1 NOT NULL
+	)`,
+		`CREATE TABLE app_%d_%d.sessions
+	(
+		user_id INT NOT NULL,
+		session_id CHAR(40) NOT NULL,
+		created_at TIMESTAMP DEFAULT now() NOT NULL
+	)`,
+
+		`CREATE INDEX on app_%d_%d.users USING GIN (json_data jsonb_path_ops)`,
+		`CREATE INDEX on app_%d_%d.events USING GIN (json_data jsonb_path_ops)`,
+		`CREATE INDEX on app_%d_%d.connections USING GIN (json_data jsonb_path_ops)`,
+	}
+)
+
 func (app *application) Create(application *entity.Application, retrieve bool) (*entity.Application, errors.Error) {
+	application.Enabled = true
+	application.CreatedAt = time.Now()
+	application.UpdatedAt = application.CreatedAt
+	application.AuthToken = storageHelper.GenerateApplicationSecretKey(application)
 	applicationJSON, err := json.Marshal(application)
 	if err != nil {
 		return nil, errors.NewInternalError("error while creating the application", err.Error())
@@ -70,6 +80,20 @@ func (app *application) Create(application *entity.Application, retrieve bool) (
 	err = app.mainPg.
 		QueryRow(createApplicationEntryQuery, application.AccountID, applicationJSON).
 		Scan(&applicationID)
+	if err != nil {
+		return nil, errors.NewInternalError("error while creating the application", err.Error())
+	}
+	application.ID = applicationID
+
+	for idx := range createApplicationNamespaceQuery {
+		println("Executing: " + createApplicationNamespaceQuery[idx])
+		_, err = app.mainPg.Exec(fmt.Sprintf(createApplicationNamespaceQuery[idx], application.AccountID, application.ID))
+		if err != nil {
+			// TODO rollback the creation from the field if we fail to create all the stuff here
+			// TODO learn transactions :)
+			return nil, errors.NewInternalError("error while creating the application", err.Error())
+		}
+	}
 
 	if !retrieve {
 		return nil, nil
