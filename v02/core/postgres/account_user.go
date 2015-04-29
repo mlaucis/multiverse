@@ -41,6 +41,7 @@ const (
 )
 
 func (au *accountUser) Create(accountUser *entity.AccountUser, retrieve bool) (*entity.AccountUser, errors.Error) {
+	accountUser.Password = storageHelper.EncryptPassword(accountUser.Password)
 	accountUser.Enabled = true
 	accountUser.CreatedAt, _ = time.Parse(time.RFC3339, "0000-01-01T00:00:00Z")
 	accountUser.UpdatedAt = accountUser.CreatedAt

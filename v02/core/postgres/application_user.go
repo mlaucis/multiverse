@@ -39,6 +39,7 @@ const (
 )
 
 func (au *applicationUser) Create(user *entity.ApplicationUser, retrieve bool) (*entity.ApplicationUser, errors.Error) {
+	user.Password = storageHelper.EncryptPassword(user.Password)
 	applicationUserJSON, err := json.Marshal(user)
 	if err != nil {
 		return nil, errors.NewInternalError("error while creating the application user", err.Error())
