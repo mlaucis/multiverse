@@ -8,6 +8,8 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"fmt"
+
 	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/v02/core"
@@ -101,8 +103,14 @@ func (app *application) List(ctx *context.Context) (err errors.Error) {
 }
 
 func (app *application) PopulateContext(ctx *context.Context) (err errors.Error) {
-	ctx.Bag["application"], err = app.storage.Read(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64))
-	return
+	user, pass, ok := ctx.BasicAuth()
+	if !ok {
+		return errors.NewBadRequestError("error while reading application credentials", fmt.Sprintf("got %s:%s", user, pass))
+	}
+	ctx.Bag["application"], err = app.storage.FindByKey(user)
+	if err == nil {
+		ctx.Bag["applicationID"] = ctx.Bag["application"].(*entity.Application).ID
+	}
 }
 
 // NewApplication returns a new application route handler

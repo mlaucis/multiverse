@@ -35,11 +35,20 @@ type (
 		DebugMode    bool
 		SkipSecurity bool
 		Bag          map[string]interface{}
+
+		authUsername string
+		authPassword string
+		authOk       bool
 	}
 
 	// Filter is a callback that helps updating the context with extra information
 	Filter func(*Context) errors.Error
 )
+
+// BasicAuth is a wrapper method for getting the basic auth info from the local cache rather that parse it always
+func (ctx *Context) BasicAuth() (username, password string, ok bool) {
+	return ctx.authUsername, ctx.authPassword, ctx.authOk
+}
 
 // LogRequest will generate a log message with the request status
 // It is usable to log the request itself
@@ -131,6 +140,7 @@ func New(
 	ctx.Environment = environment
 	ctx.DebugMode = debugMode
 	ctx.Bag = map[string]interface{}{}
+	ctx.authUsername, ctx.authPassword, ctx.authOk = r.BasicAuth()
 
 	for _, extraContext := range contextFilters {
 		err = extraContext(ctx)

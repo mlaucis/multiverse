@@ -6,6 +6,7 @@ package postgres
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/tapglue/backend/context"
@@ -82,7 +83,15 @@ func (acc *account) Create(ctx *context.Context) (err errors.Error) {
 }
 
 func (acc *account) PopulateContext(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+	user, pass, ok := ctx.BasicAuth()
+	if !ok {
+		return errors.NewBadRequestError("error while reading account credentials", fmt.Sprintf("got %s:%s", user, pass))
+	}
+	ctx.Bag["account"], err = acc.storage.FindByKey(user)
+	if err == nil {
+		ctx.Bag["accountID"] = ctx.Bag["account"].(*entity.Account).ID
+	}
+	return
 }
 
 // NewAccount returns a new account handler tweaked specifically for Kinesis

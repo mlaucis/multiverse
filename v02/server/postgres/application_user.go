@@ -6,6 +6,7 @@ package postgres
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -204,7 +205,14 @@ func (appUser *applicationUser) Logout(ctx *context.Context) (err errors.Error) 
 }
 
 func (appUser *applicationUser) PopulateContext(ctx *context.Context) (err errors.Error) {
-	ctx.Bag["applicationUser"], err = appUser.storage.Read(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(int64))
+	user, pass, ok := ctx.BasicAuth()
+	if !ok {
+		return errors.NewBadRequestError("error while reading user credentials", fmt.Sprintf("got %s:%s", user, pass))
+	}
+	ctx.Bag["applicationUser"], err = appUser.storage.FindBySession(pass)
+	if err == nil {
+		ctx.Bag["applicationUserID"] = ctx.Bag["applicationUser"].(*entity.ApplicationUser).ID
+	}
 	return
 }
 
