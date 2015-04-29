@@ -27,10 +27,10 @@ type (
 
 const (
 	createEventQuery                = `INSERT INTO app_$1_$2.events(json_data, enabled) VALUES($3, $4) RETURNING id`
-	selectEventByIDQuery            = `SELECT json_data, enabled FROM app_$1_$2.events WHERE id = $3 AND json_data @> '{"user_id": $4}'`
-	updateEventByIDQuery            = `UPDATE app_$1_$2.events SET json_data = $3, enabled = $4 WHERE id = $5 AND json_data @> '{"user_id": $6}'`
-	deleteEventByIDQuery            = `UPDATE app_$1_$2.events SET enabled = 0 WHERE id = $4 AND json_data @> '{"user_id": $4}'`
-	listEventsByUserIDQuery         = `SELECT id, json_data, enabled FROM app_$1_$2.events WHERE json_data @> '{"user_id": $3}'`
+	selectEventByIDQuery            = `SELECT json_data, enabled FROM app_$1_$2.events WHERE id = $3 AND json_data->>'user_id' = $4`
+	updateEventByIDQuery            = `UPDATE app_$1_$2.events SET json_data = $3, enabled = $4 WHERE id = $5 AND json_data->>'user_id' = $6`
+	deleteEventByIDQuery            = `UPDATE app_$1_$2.events SET enabled = 0 WHERE id = $3 AND json_data->>'{user_id' = $4`
+	listEventsByUserIDQuery         = `SELECT id, json_data, enabled FROM app_$1_$2.events WHERE json_data->>'user_id' = $3`
 	listEventsByUserFollowerIDQuery = `SELECT id, json_data, enabled FROM app_$1_$2.events WHERE %s ORDER BY json_data->>'created_at' DESC LIMIT 200`
 )
 

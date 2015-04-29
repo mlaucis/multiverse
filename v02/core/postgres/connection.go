@@ -25,11 +25,11 @@ type (
 
 const (
 	createConnectionQuery     = `INSERT INTO app_$1_$2.connections(json_data, enabled) VALUES ($3, $4)`
-	selectConnectionQuery     = `SELECT json_data, enabled FROM app_$1_$2 WHERE json_data @> '{"user_from_id": $3, "user_to_id": $4}'`
-	updateConnectionQuery     = `UPDATE app_$1_$2.connections SET json_data = $3 WHERE json_data @> '{"user_from_id": $3, "user_to_id": $4}'`
-	deleteConnectionQuery     = `UPDATE app_$1_$2.connections SET enabled = 0 WHERE json_data @> '{"user_from_id": $3, "user_to_id": $4}'`
-	listConnectionQuery       = `SELECT json_data, enabled FROM app_$1_$2.connections WHERE json_data @> '{"user_from_id": $3}'`
-	followedByConnectionQuery = `SELECT json_data, enabled FROM app_$1_$2.connections WHERE json_data @> '{"user_to_id": $3}'`
+	selectConnectionQuery     = `SELECT json_data, enabled FROM app_$1_$2 WHERE json_data->>'user_from_id' = $3 AND json_data->>'user_to_id' = $4`
+	updateConnectionQuery     = `UPDATE app_$1_$2.connections SET json_data = $3 WHERE json_data->>'user_from_id' = $3 AND json_data->>'user_to_id' = $4`
+	deleteConnectionQuery     = `UPDATE app_$1_$2.connections SET enabled = 0 WHERE json_data->>'user_from_id' = $3 AND json_data->>'user_to_id' = $4`
+	listConnectionQuery       = `SELECT json_data, enabled FROM app_$1_$2.connections WHERE json_data->>'user_from_id' = $3`
+	followedByConnectionQuery = `SELECT json_data, enabled FROM app_$1_$2.connections WHERE json_data->>'user_to_id' = $3`
 )
 
 func (c *connection) Create(connection *entity.Connection, retrieve bool) (*entity.Connection, errors.Error) {

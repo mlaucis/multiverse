@@ -54,7 +54,7 @@ const (
 	CREATE INDEX on app_$1_$2.connections USING GIN (json_data jsonb_path_ops);
 	`
 	selectApplicationEntryByIDQuery       = `SELECT json_data, enabled FROM applications WHERE id = $1 AND account_id = $2`
-	selectApplicationEntryByKeyQuery      = `SELECT id, account_id, json_data, enabled FROM applications WHERE json_data @> '{"token": $1}'`
+	selectApplicationEntryByKeyQuery      = `SELECT id, account_id, json_data, enabled FROM applications WHERE json_data->>'token' = $1`
 	updateApplicationEntryByIDQuery       = `UPDATE applications SET json_data = $1 WHERE id = $2 AND account_id = $3`
 	deleteApplicationEntryByIDQuery       = `UPDATE applications SET enabled = 0 WHERE id = $1 AND account_id = $2`
 	listApplicationsEntryByAccountIDQuery = `SELECT id, json_data, enabled FROM applications where account_id = $1`
