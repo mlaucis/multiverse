@@ -132,6 +132,10 @@ func (a *account) Exists(accountID int64) (bool, errors.Error) {
 	return account.Enabled, nil
 }
 
+func (a *account) FindByKey(authKey string) (*entity.Account, errors.Error) {
+	return nil, errors.NewInternalError("not implemented yet", "not implemented yet")
+}
+
 // NewAccount creates a new Account
 func NewAccount(storageClient redis.Client) core.Account {
 	return &account{

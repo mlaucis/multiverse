@@ -290,6 +290,10 @@ func (au *applicationUser) ExistsByID(accountID, applicationID, userID int64) (b
 	return true, nil
 }
 
+func (au *applicationUser) FindBySession(sessionKey string) (*entity.ApplicationUser, errors.Error) {
+	return nil, errors.NewInternalError("not implemented yet", "not implemented yet")
+}
+
 // NewApplicationUser returns a new application user handler with PostgreSQL as storage driver
 func NewApplicationUser(pgsql postgres.Client) core.ApplicationUser {
 	return &applicationUser{

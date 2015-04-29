@@ -53,5 +53,8 @@ type (
 
 		// ExistsByID checks if an account user exists by ID or not
 		ExistsByID(accountID, accountUserID int64) (bool, errors.Error)
+
+		// FindBySession will load an account by the session key, if it exists
+		FindBySession(sessionKey string) (*entity.AccountUser, errors.Error)
 	}
 )

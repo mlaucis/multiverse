@@ -6,9 +6,9 @@ package postgres
 
 import (
 	"database/sql"
-	"math/rand"
-
 	"encoding/json"
+	"math/rand"
+	"time"
 
 	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/v02/core"
@@ -40,6 +40,11 @@ const (
 )
 
 func (au *accountUser) Create(accountUser *entity.AccountUser, retrieve bool) (*entity.AccountUser, errors.Error) {
+	accountUser.Enabled = true
+	accountUser.CreatedAt, _ = time.Parse(time.RFC3339, "0000-01-01T00:00:00Z")
+	accountUser.UpdatedAt = accountUser.CreatedAt
+	accountUser.LastLogin = accountUser.CreatedAt
+
 	accountUserJSON, err := json.Marshal(accountUser)
 	if err != nil {
 		return nil, errors.NewInternalError("error while creating the account user", err.Error())
@@ -85,6 +90,7 @@ func (au *accountUser) Update(existingAccountUser, updatedAccountUser entity.Acc
 	} else if updatedAccountUser.Password != existingAccountUser.Password {
 		updatedAccountUser.Password = storageHelper.EncryptPassword(updatedAccountUser.Password)
 	}
+	updatedAccountUser.UpdatedAt, _ = time.Parse(time.RFC3339, "0000-01-01T00:00:00Z")
 
 	accountUserJSON, err := json.Marshal(updatedAccountUser)
 	if err != nil {
@@ -286,6 +292,10 @@ func (au *accountUser) ExistsByID(accountID, accountUserID int64) (bool, errors.
 		return false, errors.NewInternalError("error while reading the account user", err.Error())
 	}
 	return true, nil
+}
+
+func (au *accountUser) FindBySession(sessionKey string) (*entity.AccountUser, errors.Error) {
+	return nil, errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
 // NewAccountUser returns a new account user handler with PostgreSQL as storage driver

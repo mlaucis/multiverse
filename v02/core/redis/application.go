@@ -184,6 +184,10 @@ func (app *application) Exists(accountID, applicationID int64) (bool, errors.Err
 	return application.Enabled, nil
 }
 
+func (app *application) FindByKey(applicationKey string) (*entity.Application, errors.Error) {
+	return nil, errors.NewInternalError("not implemented yet", "not implemented yet")
+}
+
 // NewApplication creates a new Application
 func NewApplication(storageClient redis.Client) core.Application {
 	return &application{

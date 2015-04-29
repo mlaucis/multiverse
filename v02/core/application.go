@@ -29,5 +29,8 @@ type (
 
 		// Exists validates if an application exists and returns the application or an error
 		Exists(accountID, applicationID int64) (bool, errors.Error)
+
+		// FindByKey will load an application by the application key, if it exists
+		FindByKey(applicationKey string) (*entity.Application, errors.Error)
 	}
 )

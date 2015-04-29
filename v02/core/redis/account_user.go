@@ -381,6 +381,10 @@ func (au *accountUser) existsByKey(bucketName string) (bool, errors.Error) {
 	return exists, nil
 }
 
+func (au *accountUser) FindBySession(sessionKey string) (*entity.AccountUser, errors.Error) {
+	return nil, errors.NewInternalError("not implemented yet", "not implemented yet")
+}
+
 // NewAccountUser creates a new AccountUser
 func NewAccountUser(storageClient redis.Client) core.AccountUser {
 	return &accountUser{

@@ -53,5 +53,8 @@ type (
 
 		// ExistsByID validates if a user exists and returns it or an error
 		ExistsByID(accountID, applicationID, userID int64) (bool, errors.Error)
+
+		// FindBySession will load an application user by the session key, if it exists
+		FindBySession(sessionKey string) (*entity.ApplicationUser, errors.Error)
 	}
 )

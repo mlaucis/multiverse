@@ -447,6 +447,10 @@ func (appu *applicationUser) existsByKey(bucketName string) (bool, errors.Error)
 	return exists, nil
 }
 
+func (appu *applicationUser) FindBySession(sessionKey string) (*entity.ApplicationUser, errors.Error) {
+	return nil, errors.NewInternalError("not implemented yet", "not implemented yet")
+}
+
 // NewApplicationUser creates a new Event
 func NewApplicationUser(storageClient redis.Client) core.ApplicationUser {
 	return &applicationUser{

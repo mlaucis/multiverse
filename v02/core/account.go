@@ -26,5 +26,8 @@ type (
 
 		// Exists validates if an account exists and returns the account or an error
 		Exists(accountID int64) (bool, errors.Error)
+
+		// FindByKey will load an account by the account key, if it exists
+		FindByKey(authKey string) (*entity.Account, errors.Error)
 	}
 )

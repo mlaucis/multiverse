@@ -52,7 +52,11 @@ func (a *account) Delete(account *entity.Account) (err errors.Error) {
 }
 
 func (a *account) Exists(accountID int64) (bool, errors.Error) {
-	panic("not implemented yet")
+	return false, errors.NewInternalError("not implemented yet", "not implemented yet")
+}
+
+func (a *account) FindByKey(authKey string) (*entity.Account, errors.Error) {
+	return nil, errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
 // NewAccount creates a new Account

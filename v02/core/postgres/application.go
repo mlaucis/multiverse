@@ -175,6 +175,10 @@ func (app *application) Exists(accountID, applicationID int64) (bool, errors.Err
 	return true, nil
 }
 
+func (app *application) FindByKey(applicationKey string) (*entity.Application, errors.Error) {
+	return nil, errors.NewInternalError("not implemented yet", "not implemented yet")
+}
+
 // NewApplication returns a new application handler with PostgreSQL as storage driver
 func NewApplication(pgsql postgres.Client) core.Application {
 	return &application{

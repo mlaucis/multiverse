@@ -89,7 +89,11 @@ func (appu *applicationUser) ExistsByUsername(accountID, applicationID int64, us
 }
 
 func (appu *applicationUser) ExistsByID(accountID, applicationID, userID int64) (bool, errors.Error) {
-	panic("not implemented yet")
+	return false, errors.NewInternalError("not implemented yet", "not implemented yet")
+}
+
+func (appu *applicationUser) FindBySession(sessionKey string) (*entity.ApplicationUser, errors.Error) {
+	return nil, errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
 // NewApplicationUser creates a new Event

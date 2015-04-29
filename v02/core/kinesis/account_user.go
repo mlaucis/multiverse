@@ -97,7 +97,11 @@ func (au *accountUser) ExistsByUsername(username string) (bool, errors.Error) {
 }
 
 func (au *accountUser) ExistsByID(accountID, userID int64) (bool, errors.Error) {
-	panic("not implemented yet")
+	return false, errors.NewInternalError("not implemented yet", "not implemented yet")
+}
+
+func (au *accountUser) FindBySession(sessionKey string) (*entity.AccountUser, errors.Error) {
+	return nil, errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
 // NewAccountUser creates a new AccountUser

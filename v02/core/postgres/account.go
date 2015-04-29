@@ -14,6 +14,7 @@ import (
 	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/entity"
+	storageHelper "github.com/tapglue/backend/v02/storage/helper"
 	"github.com/tapglue/backend/v02/storage/postgres"
 )
 
@@ -32,8 +33,9 @@ const (
 )
 
 func (a *account) Create(account *entity.Account, retrieve bool) (*entity.Account, errors.Error) {
-	// TODO we should generate the account auth key here... it would be nice to do so
-	account.CreatedAt = time.Now()
+	account.AuthToken = storageHelper.GenerateAccountSecretKey(account)
+	account.Enabled = true
+	account.CreatedAt, _ = time.Parse(time.RFC3339, "0000-01-01T00:00:00Z")
 	account.UpdatedAt = account.CreatedAt
 
 	accountJSON, err := json.Marshal(account)
@@ -77,9 +79,9 @@ func (a *account) Read(accountID int64) (*entity.Account, errors.Error) {
 
 func (a *account) Update(existingAccount, updatedAccount entity.Account, retrieve bool) (*entity.Account, errors.Error) {
 	if updatedAccount.AuthToken == "" {
-		// TODO we should regenerate the account key here somehow?
 		updatedAccount.AuthToken = existingAccount.AuthToken
 	}
+	updatedAccount.UpdatedAt, _ = time.Parse(time.RFC3339, "0000-01-01T00:00:00Z")
 	accountJSON, err := json.Marshal(updatedAccount)
 	if err != nil {
 		return nil, errors.NewInternalError("error while updating the account", err.Error())
@@ -114,6 +116,10 @@ func (a *account) Exists(accountID int64) (bool, errors.Error) {
 		return false, errors.NewInternalError("error while reading the account", err.Error())
 	}
 	return true, nil
+}
+
+func (a *account) FindByKey(authKey string) (*entity.Account, errors.Error) {
+	return nil, errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
 // NewAccount returns a new account handler with PostgreSQL as storage driver
