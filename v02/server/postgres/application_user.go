@@ -209,7 +209,7 @@ func (appUser *applicationUser) PopulateContext(ctx *context.Context) (err error
 	if !ok {
 		return errors.NewBadRequestError("error while reading user credentials", fmt.Sprintf("got %s:%s", user, pass))
 	}
-	ctx.Bag["applicationUser"], err = appUser.storage.FindBySession(pass)
+	ctx.Bag["applicationUser"], err = appUser.storage.FindBySession(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), pass)
 	if err == nil {
 		ctx.Bag["applicationUserID"] = ctx.Bag["applicationUser"].(*entity.ApplicationUser).ID
 	}

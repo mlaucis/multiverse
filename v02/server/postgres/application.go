@@ -111,6 +111,7 @@ func (app *application) PopulateContext(ctx *context.Context) (err errors.Error)
 	if err == nil {
 		ctx.Bag["applicationID"] = ctx.Bag["application"].(*entity.Application).ID
 	}
+	return
 }
 
 // NewApplication returns a new application route handler
