@@ -33,6 +33,7 @@ const (
 	selectApplicationUserByUsernameQuery     = `SELECT id, json_data FROM app_$1_$2.users WHERE json_data @> '{"username": $3}'`
 	createApplicationUserSessionQuery        = `INSERT INTO app_$1_$2.sessions(user_id, session_id) VALUES($3, $4, $5)`
 	selectApplicationUserSessionQuery        = `SELECT session_id FROM app_$1_$2.sessions WHERE user_id = $3`
+	selectApplicationUserBySessionQuery      = `SELECT user_id FROM app_$1_$2.sessions WHERE session_id = $3`
 	updateApplicationUserSessionQuery        = `UPDATE app_$1_$2.sessions SET session_id = $3 WHERE user_id = $4 AND session_id = $5`
 	destroyApplicationUserSessionQuery       = `DELETE FROM app_$1_$2.sessions WHERE user_id = $3 AND session_id = $4`
 )
@@ -290,8 +291,17 @@ func (au *applicationUser) ExistsByID(accountID, applicationID, userID int64) (b
 	return true, nil
 }
 
-func (au *applicationUser) FindBySession(sessionKey string) (*entity.ApplicationUser, errors.Error) {
-	return nil, errors.NewInternalError("not implemented yet", "not implemented yet")
+func (au *applicationUser) FindBySession(accountID, applicationID int64, sessionKey string) (*entity.ApplicationUser, errors.Error) {
+	var userID int64
+
+	err := au.pg.SlaveDatastore(-1).
+		QueryRow(selectApplicationUserBySessionQuery, sessionKey).
+		Scan(&userID)
+	if err != nil {
+		return nil, errors.NewInternalError("error while loading the account user", err.Error())
+	}
+
+	return au.Read(accountID, applicationID, userID)
 }
 
 // NewApplicationUser returns a new application user handler with PostgreSQL as storage driver

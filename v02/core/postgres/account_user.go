@@ -35,6 +35,7 @@ const (
 	selectAccountUserByUsernameQuery = `SELECT id, json_data FROM account_users WHERE json_data @> '{"username": $1}'`
 	createAccountUserSessionQuery    = `INSERT INTO account_user_sessions(account_id, account_user_id, session_id) VALUES($1, $2, $3)`
 	selectAccountUserSessionQuery    = `SELECT session_id FROM account_user_sessions WHERE account_id = $1 AND account_user_id = $2`
+	selectAccountUserBySessionQuery  = `SELECT account_id, account_user_id FROM account_user_sessions WHERE session_id`
 	updateAccountUserSessionQuery    = `UPDATE account_user_sessions SET session_id = $1 WHERE account_id = $2 AND account_user_id = $3 AND session_id = $4`
 	destroyAccountUserSessionQuery   = `DELETE FROM account_user_sessions WHERE account_id = $1 AND account_user_id = $2 AND session_id = $3`
 )
@@ -295,7 +296,16 @@ func (au *accountUser) ExistsByID(accountID, accountUserID int64) (bool, errors.
 }
 
 func (au *accountUser) FindBySession(sessionKey string) (*entity.AccountUser, errors.Error) {
-	return nil, errors.NewInternalError("not implemented yet", "not implemented yet")
+	var accountID, accountUserID int64
+
+	err := au.pg.SlaveDatastore(-1).
+		QueryRow(selectAccountUserBySessionQuery, sessionKey).
+		Scan(&accountID, &accountUserID)
+	if err != nil {
+		return nil, errors.NewInternalError("error while loading the account user", err.Error())
+	}
+
+	return au.Read(accountID, accountUserID)
 }
 
 // NewAccountUser returns a new account user handler with PostgreSQL as storage driver

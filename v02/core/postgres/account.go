@@ -26,10 +26,11 @@ type (
 )
 
 const (
-	createAccountQuery     = `INSERT INTO accounts(json_data) VALUES ($1) RETURNING id`
-	selectAccountByIDQuery = `SELECT json_data FROM accounts WHERE id = $1`
-	updateAccountByIDQuery = `UPDATE accounts SET json_data = $1 WHERE id = $2`
-	deleteAccountByIDQuery = `DELETE FROM accounts WHERE id = $1`
+	createAccountQuery      = `INSERT INTO accounts(json_data) VALUES ($1) RETURNING id`
+	selectAccountByIDQuery  = `SELECT json_data FROM accounts WHERE id = $1`
+	selectAccountByKeyQuery = `SELECT id, json_data FROM accounts WHERE json_data @> '{"token": $1}'`
+	updateAccountByIDQuery  = `UPDATE accounts SET json_data = $1 WHERE id = $2`
+	deleteAccountByIDQuery  = `DELETE FROM accounts WHERE id = $1`
 )
 
 func (a *account) Create(account *entity.Account, retrieve bool) (*entity.Account, errors.Error) {
@@ -119,7 +120,24 @@ func (a *account) Exists(accountID int64) (bool, errors.Error) {
 }
 
 func (a *account) FindByKey(authKey string) (*entity.Account, errors.Error) {
-	return nil, errors.NewInternalError("not implemented yet", "not implemented yet")
+	var (
+		ID       int64
+		JSONData string
+	)
+	err := a.pg.SlaveDatastore(-1).
+		QueryRow(selectAccountByKeyQuery, authKey).
+		Scan(&ID, &JSONData)
+	if err != nil {
+		return nil, errors.NewInternalError("error while loading the account", err.Error())
+	}
+	account := &entity.Account{}
+	err = json.Unmarshal([]byte(JSONData), account)
+	if err != nil {
+		return nil, errors.NewInternalError("error while loading the account", err.Error())
+	}
+	account.ID = ID
+
+	return account, nil
 }
 
 // NewAccount returns a new account handler with PostgreSQL as storage driver

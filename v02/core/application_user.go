@@ -55,6 +55,6 @@ type (
 		ExistsByID(accountID, applicationID, userID int64) (bool, errors.Error)
 
 		// FindBySession will load an application user by the session key, if it exists
-		FindBySession(sessionKey string) (*entity.ApplicationUser, errors.Error)
+		FindBySession(accountID, applicationID int64, sessionKey string) (*entity.ApplicationUser, errors.Error)
 	}
 )

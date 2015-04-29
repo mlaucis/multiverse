@@ -92,7 +92,7 @@ func (appu *applicationUser) ExistsByID(accountID, applicationID, userID int64) 
 	return false, errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
-func (appu *applicationUser) FindBySession(sessionKey string) (*entity.ApplicationUser, errors.Error) {
+func (appu *applicationUser) FindBySession(accountID, applicationID int64, sessionKey string) (*entity.ApplicationUser, errors.Error) {
 	return nil, errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 

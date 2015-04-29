@@ -88,7 +88,7 @@ type (
 	Application struct {
 		ID          int64              `json:"id"`
 		AccountID   int64              `json:"account_id"`
-		AuthToken   string             `json:"auth_token"`
+		AuthToken   string             `json:"token"`
 		Name        string             `json:"name"`
 		Description string             `json:"description"`
 		URL         string             `json:"url"`
