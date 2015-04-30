@@ -32,7 +32,7 @@ func (evt *event) Read(ctx *context.Context) (err errors.Error) {
 		er      error
 	)
 
-	if eventID, er = strconv.ParseInt(ctx.Vars["eventId"], 10, 64); er != nil {
+	if eventID, er = strconv.ParseInt(ctx.Vars["eventID"], 10, 64); er != nil {
 		return errors.NewBadRequestError("read event failed (1)\n"+er.Error(), er.Error())
 	}
 
@@ -50,7 +50,7 @@ func (evt *event) Update(ctx *context.Context) (err errors.Error) {
 		er      error
 	)
 
-	if eventID, er = strconv.ParseInt(ctx.Vars["eventId"], 10, 64); er != nil {
+	if eventID, er = strconv.ParseInt(ctx.Vars["eventID"], 10, 64); er != nil {
 		return errors.NewBadRequestError("failed to update the event (1)\n"+er.Error(), er.Error())
 	}
 
