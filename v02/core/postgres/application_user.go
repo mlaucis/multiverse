@@ -27,7 +27,7 @@ const (
 	createApplicationUserQuery               = `INSERT INTO app_%d_%d.users(json_data) VALUES($1) RETURNING id`
 	selectApplicationUserByIDQuery           = `SELECT json_data, enabled FROM app_%d_%d.users WHERE id = $1`
 	updateApplicationUserByIDQuery           = `UPDATE app_%d_%d.users SET json_data = $1 WHERE id = $2`
-	deleteApplicationUserByIDQuery           = `UPDATE app_%d_%d.users SET enabled = 0 WHERE id = $1`
+	deleteApplicationUserByIDQuery           = `UPDATE app_%d_%d.users SET enabled = FALSE WHERE id = $1`
 	listApplicationUsersByApplicationIDQuery = `SELECT id, json_data FROM app_%d_%d.users`
 	selectApplicationUserByEmailQuery        = `SELECT id, json_data, enabled FROM app_%d_%d.users WHERE json_data->>'email' = $1`
 	selectApplicationUserByUsernameQuery     = `SELECT id, json_data, enabled FROM app_%d_%d.users WHERE json_data->>'user_name' = $1`

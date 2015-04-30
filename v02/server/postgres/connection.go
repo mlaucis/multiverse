@@ -73,10 +73,17 @@ func (conn *connection) Update(ctx *context.Context) (err errors.Error) {
 }
 
 func (conn *connection) Delete(ctx *context.Context) (err errors.Error) {
-	connection := &entity.Connection{}
-	if er := json.Unmarshal(ctx.Body, connection); er != nil {
-		return errors.NewBadRequestError(er.Error(), er.Error())
+	connection := &entity.Connection{
+		AccountID:     ctx.Bag["accountID"].(int64),
+		ApplicationID: ctx.Bag["applicationID"].(int64),
+		UserFromID:    ctx.Bag["applicationUserID"].(int64),
 	}
+
+	userToID, er := strconv.ParseInt(ctx.Vars["applicationUserToID"], 10, 64)
+	if er != nil {
+		return errors.NewBadRequestError("userToID is not a valid integer", er.Error())
+	}
+	connection.UserToID = userToID
 
 	if err = conn.storage.Delete(connection); err != nil {
 		return

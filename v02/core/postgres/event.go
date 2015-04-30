@@ -29,7 +29,7 @@ const (
 	createEventQuery                = `INSERT INTO app_%d_%d.events(json_data, enabled) VALUES($1, $2) RETURNING id`
 	selectEventByIDQuery            = `SELECT json_data, enabled FROM app_%d_%d.events WHERE id = $1 AND json_data->>'user_id' = $2`
 	updateEventByIDQuery            = `UPDATE app_%d_%d.events SET json_data = $1, enabled = $2 WHERE id = $3 AND json_data->>'user_id' = $4`
-	deleteEventByIDQuery            = `UPDATE app_%d_%d.events SET enabled = 0 WHERE id = $1 AND json_data->>'user_id' = $1`
+	deleteEventByIDQuery            = `UPDATE app_%d_%d.events SET enabled = FALSE WHERE id = $1 AND json_data->>'user_id' = $1`
 	listEventsByUserIDQuery         = `SELECT id, json_data, enabled FROM app_%d_%d.events WHERE json_data->>'user_id' = $1`
 	listEventsByUserFollowerIDQuery = `SELECT id, json_data, enabled FROM app_%d_%d.events WHERE %s ORDER BY json_data->>'created_at' DESC LIMIT 200`
 )

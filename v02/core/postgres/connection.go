@@ -18,8 +18,9 @@ import (
 
 type (
 	connection struct {
-		pg     postgres.Client
-		mainPg *sql.DB
+		pg      postgres.Client
+		mainPg  *sql.DB
+		appUser core.ApplicationUser
 	}
 )
 
@@ -27,7 +28,7 @@ const (
 	createConnectionQuery     = `INSERT INTO app_%d_%d.connections(json_data, enabled) VALUES ($1, $2)`
 	selectConnectionQuery     = `SELECT json_data, enabled FROM app_%d_%d.connections WHERE json_data->>'user_from_id' = $1 AND json_data->>'user_to_id' = $2`
 	updateConnectionQuery     = `UPDATE app_%d_%d.connections SET json_data = $1 WHERE json_data->>'user_from_id' = $2 AND json_data->>'user_to_id' = $3`
-	deleteConnectionQuery     = `UPDATE app_%d_%d.connections SET enabled = 0 WHERE json_data->>'user_from_id' = $1 AND json_data->>'user_to_id' = $2`
+	deleteConnectionQuery     = `UPDATE app_%d_%d.connections SET enabled = FALSE WHERE json_data->>'user_from_id' = $1 AND json_data->>'user_to_id' = $2`
 	listConnectionQuery       = `SELECT json_data, enabled FROM app_%d_%d.connections WHERE json_data->>'user_from_id' = $1`
 	followedByConnectionQuery = `SELECT json_data, enabled FROM app_%d_%d.connections WHERE json_data->>'user_to_id' = $1`
 )
@@ -108,21 +109,22 @@ func (c *connection) List(accountID, applicationID, userID int64) (users []*enti
 	defer rows.Close()
 	for rows.Next() {
 		var (
-			ID       int64
 			JSONData string
 			Enabled  bool
 		)
-		err := rows.Scan(&ID, &JSONData, &Enabled)
+		err := rows.Scan(&JSONData, &Enabled)
 		if err != nil {
-			return []*entity.ApplicationUser{}, errors.NewInternalError("error while retrieving list of connections", err.Error())
+			return []*entity.ApplicationUser{}, errors.NewInternalError("error while retrieving list of following", err.Error())
 		}
-		user := &entity.ApplicationUser{}
-		err = json.Unmarshal([]byte(JSONData), user)
+		conn := &entity.Connection{}
+		err = json.Unmarshal([]byte(JSONData), conn)
 		if err != nil {
-			return []*entity.ApplicationUser{}, errors.NewInternalError("error while retrieving list of connections", err.Error())
+			return []*entity.ApplicationUser{}, errors.NewInternalError("error while retrieving list of following", err.Error())
 		}
-		user.ID = ID
-		user.Enabled = Enabled
+		user, er := c.appUser.Read(accountID, applicationID, conn.UserToID)
+		if er != nil {
+			return []*entity.ApplicationUser{}, er
+		}
 
 		users = append(users, user)
 	}
@@ -141,21 +143,22 @@ func (c *connection) FollowedBy(accountID, applicationID, userID int64) ([]*enti
 	defer rows.Close()
 	for rows.Next() {
 		var (
-			ID       int64
 			JSONData string
 			Enabled  bool
 		)
-		err := rows.Scan(&ID, &JSONData, &Enabled)
+		err := rows.Scan(&JSONData, &Enabled)
 		if err != nil {
 			return []*entity.ApplicationUser{}, errors.NewInternalError("error while retrieving list of followers", err.Error())
 		}
-		user := &entity.ApplicationUser{}
-		err = json.Unmarshal([]byte(JSONData), user)
+		conn := &entity.Connection{}
+		err = json.Unmarshal([]byte(JSONData), conn)
 		if err != nil {
 			return []*entity.ApplicationUser{}, errors.NewInternalError("error while retrieving list of followers", err.Error())
 		}
-		user.ID = ID
-		user.Enabled = Enabled
+		user, er := c.appUser.Read(accountID, applicationID, conn.UserToID)
+		if er != nil {
+			return []*entity.ApplicationUser{}, er
+		}
 
 		users = append(users, user)
 	}
@@ -190,7 +193,8 @@ func (c *connection) AutoConnectSocialFriends(user *entity.ApplicationUser, ourS
 // NewConnection returns a new connection handler with PostgreSQL as storage driver
 func NewConnection(pgsql postgres.Client) core.Connection {
 	return &connection{
-		pg:     pgsql,
-		mainPg: pgsql.MainDatastore(),
+		pg:      pgsql,
+		mainPg:  pgsql.MainDatastore(),
+		appUser: NewApplicationUser(pgsql),
 	}
 }
