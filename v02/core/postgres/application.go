@@ -35,7 +35,7 @@ const (
 
 var (
 	createApplicationNamespaceQuery = []string{
-		`CREATE DATABASE app_%d_%d`,
+		`CREATE SCHEMA app_%d_%d`,
 		`CREATE TABLE app_%d_%d.users
 	(
 		id SERIAL PRIMARY KEY NOT NULL,

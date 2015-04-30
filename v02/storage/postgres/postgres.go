@@ -29,16 +29,11 @@ type (
 		//
 		// If there's no slave connection available, then the main connection is returned
 		SlaveDatastore(id int) *sql.DB
-
-		// Database returns a specific database connection. It might be nil so check for it
-		Database(database string) Client
 	}
 
 	cli struct {
 		master *config.PostgresDB
 		slaves []config.PostgresDB
-
-		connections map[string]*cli
 
 		mainPg  *sql.DB
 		slavePg []*sql.DB
@@ -59,23 +54,6 @@ func (c *cli) SlaveDatastore(id int) *sql.DB {
 	}
 
 	return c.slavePg[id]
-}
-
-func (c *cli) Database(database string) Client {
-	if db, ok := c.connections[database]; ok {
-		return db
-	}
-
-	db := &cli{
-		mainPg: composeConnection(database, c.master),
-	}
-
-	for idx := range c.slaves {
-		db.slavePg = append(db.slavePg, composeConnection(database, &c.slaves[idx]))
-	}
-
-	c.connections[database] = db
-	return db
 }
 
 func formatConnectionURL(database string, config *config.PostgresDB) string {
