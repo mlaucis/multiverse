@@ -181,26 +181,11 @@ func (appUser *applicationUser) RefreshSession(ctx *context.Context) (err errors
 }
 
 func (appUser *applicationUser) Logout(ctx *context.Context) (err errors.Error) {
-	var (
-		tokenPayload struct {
-			Token string `json:"session_token"`
-		}
-		er error
-	)
-
-	if er = json.Unmarshal(ctx.Body, &tokenPayload); er != nil {
-		return errors.NewBadRequestError("failed to logout the user (1)\n"+er.Error(), er.Error())
-	}
-
-	if tokenPayload.Token != ctx.SessionToken {
-		return errors.NewBadRequestError("failed to logout the user (2)\nsession token mismatch", "session token mismatch")
-	}
-
 	if err = appUser.storage.DestroySession(ctx.SessionToken, ctx.Bag["applicationUser"].(*entity.ApplicationUser)); err != nil {
 		return
 	}
 
-	server.WriteResponse(ctx, "logged out", http.StatusOK, 0)
+	server.WriteResponse(ctx, "", http.StatusNoContent, 0)
 	return
 }
 
