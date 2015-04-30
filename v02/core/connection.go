@@ -40,9 +40,9 @@ type (
 		DeleteEventsFromLists(accountID, applicationID, userFromID, userToID int64) errors.Error
 
 		// SocialConnect creates the connections between a user and his other social peers
-		SocialConnect(user *entity.ApplicationUser, platform string, socialFriendsIDs []string) ([]*entity.ApplicationUser, errors.Error)
+		SocialConnect(user *entity.ApplicationUser, platform string, socialFriendsIDs []string, connectionType string) ([]*entity.ApplicationUser, errors.Error)
 
 		// AutoConnectSocialFriends will connect a user with their its friends on from another social network
-		AutoConnectSocialFriends(user *entity.ApplicationUser, ourStoredUsersIDs []interface{}) ([]*entity.ApplicationUser, errors.Error)
+		AutoConnectSocialFriends(user *entity.ApplicationUser, connectionType string, ourStoredUsersIDs []*entity.ApplicationUser) ([]*entity.ApplicationUser, errors.Error)
 	}
 )

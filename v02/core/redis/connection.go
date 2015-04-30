@@ -6,7 +6,6 @@ package redis
 
 import (
 	"encoding/json"
-	"strconv"
 	"time"
 
 	"github.com/tapglue/backend/errors"
@@ -279,7 +278,7 @@ func (c *connection) DeleteEventsFromLists(accountID, applicationID, userFromID,
 	return nil
 }
 
-func (c *connection) SocialConnect(user *entity.ApplicationUser, platform string, socialFriendsIDs []string) ([]*entity.ApplicationUser, errors.Error) {
+func (c *connection) SocialConnect(user *entity.ApplicationUser, platform string, socialFriendsIDs []string, connectionType string) ([]*entity.ApplicationUser, errors.Error) {
 	result := []*entity.ApplicationUser{}
 
 	encodedSocialFriendsIDs := []string{}
@@ -300,16 +299,15 @@ func (c *connection) SocialConnect(user *entity.ApplicationUser, platform string
 		return result, nil
 	}
 
-	return c.AutoConnectSocialFriends(user, ourStoredUsersIDs)
+	// TODO FIX THIS
+	//return c.AutoConnectSocialFriends(user, ourStoredUsersIDs)
+	return c.AutoConnectSocialFriends(user, connectionType, nil)
 }
 
-func (c *connection) AutoConnectSocialFriends(user *entity.ApplicationUser, ourStoredUsersIDs []interface{}) (users []*entity.ApplicationUser, err errors.Error) {
+func (c *connection) AutoConnectSocialFriends(user *entity.ApplicationUser, connectionType string, ourStoredUsersIDs []*entity.ApplicationUser) (users []*entity.ApplicationUser, err errors.Error) {
 	ourUserKeys := []string{}
 	for idx := range ourStoredUsersIDs {
-		userID, err := strconv.ParseInt(ourStoredUsersIDs[idx].(string), 10, 64)
-		if err != nil {
-			continue
-		}
+		userID := ourStoredUsersIDs[idx].ID
 
 		key := storageHelper.Connection(user.AccountID, user.ApplicationID, user.ID, userID)
 		if exists, err := c.redis.Exists(key).Result(); exists || err != nil {

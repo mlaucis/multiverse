@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/errors"
@@ -186,31 +185,31 @@ func (conn *connection) Confirm(ctx *context.Context) (err errors.Error) {
 }
 
 func (conn *connection) CreateSocial(ctx *context.Context) (err errors.Error) {
-	platformName := strings.ToLower(ctx.Vars["platformName"])
-
-	if _, ok := server.AcceptedPlatforms[platformName]; !ok {
-		return errors.NewNotFoundError("social connecting failed (1)\nunexpected social platform", "platform not found")
-	}
-
-	socialConnections := struct {
-		UserFromID     int64    `json:"user_from_id"`
-		SocialPlatform string   `json:"social_platform"`
+	request := struct {
+		PlatformUserID string   `json:"platform_user_id"`
+		SocialPlatform string   `json:"platform"`
 		ConnectionsIDs []string `json:"connection_ids"`
+		ConnectionType string   `json:"type"`
 	}{}
 
-	if er := json.Unmarshal(ctx.Body, &socialConnections); er != nil {
+	if er := json.Unmarshal(ctx.Body, &request); er != nil {
 		return errors.NewBadRequestError("social connecting failed (2)\n"+er.Error(), er.Error())
 	}
 
-	if ctx.Bag["applicationUserID"].(int64) != socialConnections.UserFromID {
-		return errors.NewBadRequestError("social connecting failed (3)\nuser mismatch", "user mismatch")
+	user := ctx.Bag["applicationUser"].(*entity.ApplicationUser)
+
+	if _, ok := user.SocialIDs[request.SocialPlatform]; !ok {
+		if len(user.SocialIDs[request.SocialPlatform]) == 0 {
+			user.SocialIDs = map[string]string{}
+		}
+		user.SocialIDs[request.SocialPlatform] = request.PlatformUserID
+		_, err = conn.appUser.Update(*user, *user, false)
+		if err != nil {
+			return err
+		}
 	}
 
-	if platformName != strings.ToLower(socialConnections.SocialPlatform) {
-		return errors.NewBadRequestError("social connecting failed (3)\nplatform mismatch", "platform mismatch")
-	}
-
-	users, err := conn.storage.SocialConnect(ctx.Bag["applicationUser"].(*entity.ApplicationUser), platformName, socialConnections.ConnectionsIDs)
+	users, err := conn.storage.SocialConnect(user, request.SocialPlatform, request.ConnectionsIDs, request.ConnectionType)
 	if err != nil {
 		return
 	}

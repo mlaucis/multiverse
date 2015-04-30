@@ -34,11 +34,3 @@ type (
 		CreateSocial(*context.Context) errors.Error
 	}
 )
-
-// AcceptedPlatforms defines which social platforms we accept right now
-var AcceptedPlatforms = map[string]bool{
-	"facebook": true,
-	"twitter":  true,
-	"gplus":    true,
-	"abook":    true,
-}

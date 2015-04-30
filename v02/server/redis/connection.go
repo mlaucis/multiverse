@@ -188,14 +188,11 @@ func (conn *connection) CreateSocial(ctx *context.Context) (err errors.Error) {
 	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	platformName := strings.ToLower(ctx.Vars["platformName"])
 
-	if _, ok := server.AcceptedPlatforms[platformName]; !ok {
-		return errors.NewNotFoundError("social connecting failed (1)\nunexpected social platform", "platform not found")
-	}
-
 	socialConnections := struct {
 		UserFromID     int64    `json:"user_from_id"`
 		SocialPlatform string   `json:"social_platform"`
 		ConnectionsIDs []string `json:"connection_ids"`
+		ConnectionType string   `json:"type"`
 	}{}
 
 	if er := json.Unmarshal(ctx.Body, &socialConnections); er != nil {
@@ -210,7 +207,7 @@ func (conn *connection) CreateSocial(ctx *context.Context) (err errors.Error) {
 		return errors.NewBadRequestError("social connecting failed (3)\nplatform mismatch", "platform mismatch")
 	}
 
-	users, err := conn.storage.SocialConnect(ctx.Bag["applicationUser"].(*entity.ApplicationUser), platformName, socialConnections.ConnectionsIDs)
+	users, err := conn.storage.SocialConnect(ctx.Bag["applicationUser"].(*entity.ApplicationUser), platformName, socialConnections.ConnectionsIDs, socialConnections.ConnectionType)
 	if err != nil {
 		return
 	}

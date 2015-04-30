@@ -91,7 +91,7 @@ func (c *connection) DeleteEventsFromLists(accountID, applicationID, userFromID,
 	return errors.NewInternalError("no suitable implementation found", "no suitable implementation found")
 }
 
-func (c *connection) SocialConnect(user *entity.ApplicationUser, platform string, socialFriendsIDs []string) (users []*entity.ApplicationUser, err errors.Error) {
+func (c *connection) SocialConnect(user *entity.ApplicationUser, platform string, socialFriendsIDs []string, connectionType string) (users []*entity.ApplicationUser, err errors.Error) {
 	data, er := json.Marshal(struct {
 		User             *entity.ApplicationUser `json:"user"`
 		Platform         string                  `json:"platform"`
@@ -111,10 +111,10 @@ func (c *connection) SocialConnect(user *entity.ApplicationUser, platform string
 	return nil, err
 }
 
-func (c *connection) AutoConnectSocialFriends(user *entity.ApplicationUser, ourStoredUsersIDs []interface{}) (users []*entity.ApplicationUser, err errors.Error) {
+func (c *connection) AutoConnectSocialFriends(user *entity.ApplicationUser, connectionType string, ourStoredUsersIDs []*entity.ApplicationUser) (users []*entity.ApplicationUser, err errors.Error) {
 	data, er := json.Marshal(struct {
-		User              *entity.ApplicationUser `json:"user"`
-		OurStoredUsersIDs []interface{}           `json:"our_stored_users_ids"`
+		User              *entity.ApplicationUser   `json:"user"`
+		OurStoredUsersIDs []*entity.ApplicationUser `json:"our_stored_users_ids"`
 	}{
 		User:              user,
 		OurStoredUsersIDs: ourStoredUsersIDs,

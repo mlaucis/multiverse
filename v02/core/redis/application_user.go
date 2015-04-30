@@ -120,7 +120,8 @@ func (appu *applicationUser) Create(user *entity.ApplicationUser, retrieve bool)
 				return nil, errors.NewInternalError("failed to write the application user (11)", er.Error())
 			}
 			if len(existingSocialIDs) > 0 {
-				user.Connections, err = appu.c.AutoConnectSocialFriends(user, existingSocialIDs)
+				// TODO FIX THIS
+				//user.Connections, err = appu.c.AutoConnectSocialFriends(user, existingSocialIDs)
 				if err != nil {
 					return
 				}

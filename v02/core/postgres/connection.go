@@ -6,8 +6,9 @@ package postgres
 
 import (
 	"database/sql"
-
 	"encoding/json"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/tapglue/backend/errors"
@@ -31,6 +32,7 @@ const (
 	deleteConnectionQuery     = `UPDATE app_%d_%d.connections SET enabled = FALSE WHERE json_data->>'user_from_id' = $1 AND json_data->>'user_to_id' = $2`
 	listConnectionQuery       = `SELECT json_data, enabled FROM app_%d_%d.connections WHERE json_data->>'user_from_id' = $1`
 	followedByConnectionQuery = `SELECT json_data, enabled FROM app_%d_%d.connections WHERE json_data->>'user_to_id' = $1`
+	listUsersBySocialIDQuery  = `SELECT json_data, enabled FROM app_%d_%d.users WHERE %s`
 )
 
 func (c *connection) Create(connection *entity.Connection, retrieve bool) (*entity.Connection, errors.Error) {
@@ -182,12 +184,82 @@ func (c *connection) DeleteEventsFromLists(accountID, applicationID, userFromID,
 	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
-func (c *connection) SocialConnect(user *entity.ApplicationUser, platform string, socialFriendsIDs []string) ([]*entity.ApplicationUser, errors.Error) {
-	return []*entity.ApplicationUser{}, errors.NewInternalError("not implemented yet", "not implemented yet")
+func (c *connection) SocialConnect(user *entity.ApplicationUser, platform string, socialFriendsIDs []string, connectionType string) ([]*entity.ApplicationUser, errors.Error) {
+	users := []*entity.ApplicationUser{}
+
+	var conditions []string
+	for idx := range socialFriendsIDs {
+		conditions = append(conditions, fmt.Sprintf(`json_data @> '{"social_ids": {%q: %q}}'`, platform, socialFriendsIDs[idx]))
+	}
+
+	dbUsers, err := c.pg.SlaveDatastore(-1).
+		Query(fmt.Sprintf(listUsersBySocialIDQuery, user.AccountID, user.ApplicationID, strings.Join(conditions, " OR ")))
+	if err != nil {
+		return users, errors.NewInternalError("error while connecting the users", err.Error())
+	}
+	defer dbUsers.Close()
+	for dbUsers.Next() {
+		var (
+			JSONData string
+			Enabled  bool
+		)
+		err := dbUsers.Scan(&JSONData, &Enabled)
+		if err != nil {
+			return []*entity.ApplicationUser{}, errors.NewInternalError("error while connecting the users", err.Error())
+		}
+		user := &entity.ApplicationUser{}
+		err = json.Unmarshal([]byte(JSONData), user)
+		if err != nil {
+			return []*entity.ApplicationUser{}, errors.NewInternalError("error while connecting the users", err.Error())
+		}
+		users = append(users, user)
+	}
+
+	return c.AutoConnectSocialFriends(user, connectionType, users)
 }
 
-func (c *connection) AutoConnectSocialFriends(user *entity.ApplicationUser, ourStoredUsersIDs []interface{}) (users []*entity.ApplicationUser, err errors.Error) {
-	return []*entity.ApplicationUser{}, errors.NewInternalError("not implemented yet", "not implemented yet")
+func (c *connection) AutoConnectSocialFriends(user *entity.ApplicationUser, connectionType string, ourStoredUsersIDs []*entity.ApplicationUser) ([]*entity.ApplicationUser, errors.Error) {
+	if len(ourStoredUsersIDs) == 0 {
+		return ourStoredUsersIDs, nil
+	}
+
+	for idx := range ourStoredUsersIDs {
+		connection := &entity.Connection{
+			AccountID:     user.AccountID,
+			ApplicationID: user.ApplicationID,
+			UserFromID:    user.ID,
+			UserToID:      ourStoredUsersIDs[idx].ID,
+		}
+
+		if _, err := c.Create(connection, false); err != nil {
+			return nil, err
+		}
+
+		if _, err := c.Confirm(connection, false); err != nil {
+			return nil, err
+		}
+
+		if connectionType != "friend" {
+			continue
+		}
+
+		connection = &entity.Connection{
+			AccountID:     user.AccountID,
+			ApplicationID: user.ApplicationID,
+			UserFromID:    ourStoredUsersIDs[idx].ID,
+			UserToID:      user.ID,
+		}
+
+		if _, err := c.Create(connection, false); err != nil {
+			return nil, err
+		}
+
+		if _, err := c.Confirm(connection, false); err != nil {
+			return nil, err
+		}
+	}
+
+	return ourStoredUsersIDs, nil
 }
 
 // NewConnection returns a new connection handler with PostgreSQL as storage driver

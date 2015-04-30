@@ -20,6 +20,7 @@ type (
 	applicationUser struct {
 		pg     postgres.Client
 		mainPg *sql.DB
+		conn   core.Connection
 	}
 )
 
@@ -39,6 +40,8 @@ const (
 )
 
 func (au *applicationUser) Create(user *entity.ApplicationUser, retrieve bool) (*entity.ApplicationUser, errors.Error) {
+	connectionType := user.SocialConnectionType
+	user.SocialConnectionType = ""
 	user.Activated = true
 	user.Password = storageHelper.EncryptPassword(user.Password)
 	applicationUserJSON, err := json.Marshal(user)
@@ -52,6 +55,14 @@ func (au *applicationUser) Create(user *entity.ApplicationUser, retrieve bool) (
 		Scan(&applicationUserID)
 	if err != nil {
 		return nil, errors.NewInternalError("error while creating the application user", err.Error())
+	}
+	user.ID = applicationUserID
+
+	for platform := range user.SocialIDs {
+		_, err := au.conn.SocialConnect(user, platform, user.SocialConnectionsIDs[platform], connectionType)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if !retrieve {
@@ -84,6 +95,7 @@ func (au *applicationUser) Read(accountID, applicationID, userID int64) (*entity
 }
 
 func (au *applicationUser) Update(existingUser, updatedUser entity.ApplicationUser, retrieve bool) (*entity.ApplicationUser, errors.Error) {
+	updatedUser.SocialConnectionType = ""
 	if updatedUser.Password == "" {
 		updatedUser.Password = existingUser.Password
 	} else if updatedUser.Password != existingUser.Password {
@@ -319,5 +331,6 @@ func NewApplicationUser(pgsql postgres.Client) core.ApplicationUser {
 	return &applicationUser{
 		pg:     pgsql,
 		mainPg: pgsql.MainDatastore(),
+		conn:   NewConnection(pgsql),
 	}
 }

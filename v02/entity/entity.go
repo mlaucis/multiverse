@@ -105,6 +105,7 @@ type (
 		SessionToken         string              `json:"-"`
 		SocialIDs            map[string]string   `json:"social_ids,omitempty"`
 		SocialConnectionsIDs map[string][]string `json:"social_connections_ids,omitempty"`
+		SocialConnectionType string              `json:"connection_type,omitempty"`
 		DeviceIDs            []string            `json:"device_ids,omitempty"`
 		Events               []*Event            `json:"events,omitempty"`
 		Connections          []*ApplicationUser  `json:"connections,omitempty"`
