@@ -25,7 +25,7 @@ type (
 
 const (
 	createConnectionQuery     = `INSERT INTO app_%d_%d.connections(json_data, enabled) VALUES ($1, $2)`
-	selectConnectionQuery     = `SELECT json_data, enabled FROM app_%d_%d WHERE json_data->>'user_from_id' = $1 AND json_data->>'user_to_id' = $2`
+	selectConnectionQuery     = `SELECT json_data, enabled FROM app_%d_%d.connections WHERE json_data->>'user_from_id' = $1 AND json_data->>'user_to_id' = $2`
 	updateConnectionQuery     = `UPDATE app_%d_%d.connections SET json_data = $1 WHERE json_data->>'user_from_id' = $2 AND json_data->>'user_to_id' = $3`
 	deleteConnectionQuery     = `UPDATE app_%d_%d.connections SET enabled = 0 WHERE json_data->>'user_from_id' = $1 AND json_data->>'user_to_id' = $2`
 	listConnectionQuery       = `SELECT json_data, enabled FROM app_%d_%d.connections WHERE json_data->>'user_from_id' = $1`
@@ -76,7 +76,7 @@ func (c *connection) Update(existingConnection, updatedConnection entity.Connect
 		return nil, errors.NewInternalError("error while updating the connection", err.Error())
 	}
 
-	_, err = c.mainPg.Exec(appSchema(updateConnectionQuery, existingConnection.AccountID, existingConnection.ApplicationID), string(connectionJSON))
+	_, err = c.mainPg.Exec(appSchema(updateConnectionQuery, existingConnection.AccountID, existingConnection.ApplicationID), string(connectionJSON), existingConnection.UserFromID, existingConnection.UserToID)
 	if err != nil {
 		return nil, errors.NewInternalError("error while updating the connection", err.Error())
 	}

@@ -39,6 +39,7 @@ const (
 )
 
 func (au *applicationUser) Create(user *entity.ApplicationUser, retrieve bool) (*entity.ApplicationUser, errors.Error) {
+	user.Activated = true
 	user.Password = storageHelper.EncryptPassword(user.Password)
 	applicationUserJSON, err := json.Marshal(user)
 	if err != nil {

@@ -111,7 +111,7 @@ func (conn *connection) Create(ctx *context.Context) (err errors.Error) {
 		return
 	}
 
-	if connection, err = conn.storage.Create(connection, false); err != nil {
+	if connection, err = conn.storage.Create(connection, true); err != nil {
 		return
 	}
 
