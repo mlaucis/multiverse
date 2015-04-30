@@ -29,7 +29,6 @@ var (
 	errorInvalidImageURL           = fmt.Errorf("image url is not valid")
 	errorAccountDoesNotExists      = fmt.Errorf("account does not exists")
 	errorApplicationDoesNotExists  = fmt.Errorf("application does not exists")
-	errorUserDoesNotExists         = fmt.Errorf("user does not exists")
 	errorUserEmailAlreadyExists    = errors.NewBadRequestError("user already exists (1)", "user already exists (1)")
 	errorUserUsernameAlreadyExists = errors.NewBadRequestError("user already exists (2)", "user already exists (2)")
 	errorEmailAddressInUse         = fmt.Errorf("email address already in use")

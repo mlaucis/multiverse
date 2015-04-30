@@ -37,11 +37,18 @@ func CreateConnection(datastore core.ApplicationUser, connection *entity.Connect
 	}
 
 	if exists, err := datastore.ExistsByID(connection.AccountID, connection.ApplicationID, connection.UserFromID); !exists || err != nil {
-		errs = append(errs, &errorUserDoesNotExists)
+		if err != nil {
+			er := err.Raw()
+			errs = append(errs, &er)
+		} else {
+			err := fmt.Errorf("user %d does not exists", connection.UserFromID)
+			errs = append(errs, &err)
+		}
 	}
 	userFrom, err := datastore.Read(connection.AccountID, connection.ApplicationID, connection.UserFromID)
 	if err != nil {
-		errs = append(errs, &errorUserDoesNotExists)
+		er := err.Raw()
+		errs = append(errs, &er)
 	}
 	if !userFrom.Activated {
 		err := fmt.Errorf("user %s is not activated", userFrom.Username)
@@ -49,11 +56,18 @@ func CreateConnection(datastore core.ApplicationUser, connection *entity.Connect
 	}
 
 	if exists, err := datastore.ExistsByID(connection.AccountID, connection.ApplicationID, connection.UserToID); !exists || err != nil {
-		errs = append(errs, &errorUserDoesNotExists)
+		if err != nil {
+			er := err.Raw()
+			errs = append(errs, &er)
+		} else {
+			err := fmt.Errorf("user %d does not exists", connection.UserFromID)
+			errs = append(errs, &err)
+		}
 	}
 	userTo, err := datastore.Read(connection.AccountID, connection.ApplicationID, connection.UserToID)
 	if err != nil {
-		errs = append(errs, &errorUserDoesNotExists)
+		er := err.Raw()
+		errs = append(errs, &er)
 	}
 	if !userTo.Activated {
 		err := fmt.Errorf("user %s is not activated", userTo.Username)
@@ -80,11 +94,23 @@ func ConfirmConnection(datastore core.ApplicationUser, connection *entity.Connec
 	}
 
 	if exists, err := datastore.ExistsByID(connection.AccountID, connection.ApplicationID, connection.UserFromID); !exists || err != nil {
-		errs = append(errs, &errorUserDoesNotExists)
+		if err != nil {
+			er := err.Raw()
+			errs = append(errs, &er)
+		} else {
+			err := fmt.Errorf("user %d does not exists", connection.UserFromID)
+			errs = append(errs, &err)
+		}
 	}
 
 	if exists, err := datastore.ExistsByID(connection.AccountID, connection.ApplicationID, connection.UserToID); !exists || err != nil {
-		errs = append(errs, &errorUserDoesNotExists)
+		if err != nil {
+			er := err.Raw()
+			errs = append(errs, &er)
+		} else {
+			err := fmt.Errorf("user %d does not exists", connection.UserFromID)
+			errs = append(errs, &err)
+		}
 	}
 
 	return packErrors(errs)
@@ -103,7 +129,13 @@ func UpdateConnection(datastore core.ApplicationUser, existingConnection, update
 	}
 
 	if exists, err := datastore.ExistsByID(updatedConnection.AccountID, updatedConnection.ApplicationID, updatedConnection.UserToID); !exists || err != nil {
-		errs = append(errs, &errorUserDoesNotExists)
+		if err != nil {
+			er := err.Raw()
+			errs = append(errs, &er)
+		} else {
+			err := fmt.Errorf("user %d does not exists", updatedConnection.UserFromID)
+			errs = append(errs, &err)
+		}
 	}
 
 	return packErrors(errs)

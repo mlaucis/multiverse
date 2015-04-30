@@ -216,13 +216,6 @@ func (conn *connection) CreateSocial(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-// NewConnection returns a new connection handler
-func NewConnection(storage core.Connection) server.Connection {
-	return &connection{
-		storage: storage,
-	}
-}
-
 // NewConnectionWithApplicationUser initializes a new connection with an application user
 func NewConnectionWithApplicationUser(storage core.Connection, appUser core.ApplicationUser) server.Connection {
 	return &connection{

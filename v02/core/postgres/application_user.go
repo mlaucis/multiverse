@@ -285,13 +285,12 @@ func (au *applicationUser) ExistsByUsername(accountID, applicationID int64, user
 
 func (au *applicationUser) ExistsByID(accountID, applicationID, userID int64) (bool, errors.Error) {
 	var (
-		ID       int64
 		JSONData string
 		Enabled  bool
 	)
 	err := au.pg.SlaveDatastore(-1).
 		QueryRow(appSchema(selectApplicationUserByIDQuery, accountID, applicationID), userID).
-		Scan(&ID, &JSONData, &Enabled)
+		Scan(&JSONData, &Enabled)
 	if err == sql.ErrNoRows {
 		return false, nil
 	}

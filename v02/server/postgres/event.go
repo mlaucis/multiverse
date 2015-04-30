@@ -217,13 +217,6 @@ func (a byIDDesc) Len() int           { return len(a) }
 func (a byIDDesc) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a byIDDesc) Less(i, j int) bool { return a[i].ID > a[j].ID }
 
-// NewEvent returns a new event handler
-func NewEvent(storage core.Event) server.Event {
-	return &event{
-		storage: storage,
-	}
-}
-
 // NewEventWithApplicationUser returns a new event handler
 func NewEventWithApplicationUser(storage core.Event, appUser core.ApplicationUser) server.Event {
 	return &event{
