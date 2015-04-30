@@ -26,12 +26,12 @@ type (
 )
 
 const (
-	createEventQuery                = `INSERT INTO app_$1_$2.events(json_data, enabled) VALUES($3, $4) RETURNING id`
-	selectEventByIDQuery            = `SELECT json_data, enabled FROM app_$1_$2.events WHERE id = $3 AND json_data->>'user_id' = $4`
-	updateEventByIDQuery            = `UPDATE app_$1_$2.events SET json_data = $3, enabled = $4 WHERE id = $5 AND json_data->>'user_id' = $6`
-	deleteEventByIDQuery            = `UPDATE app_$1_$2.events SET enabled = 0 WHERE id = $3 AND json_data->>'{user_id' = $4`
-	listEventsByUserIDQuery         = `SELECT id, json_data, enabled FROM app_$1_$2.events WHERE json_data->>'user_id' = $3`
-	listEventsByUserFollowerIDQuery = `SELECT id, json_data, enabled FROM app_$1_$2.events WHERE %s ORDER BY json_data->>'created_at' DESC LIMIT 200`
+	createEventQuery                = `INSERT INTO app_%d_%d.events(json_data, enabled) VALUES($1, $2) RETURNING id`
+	selectEventByIDQuery            = `SELECT json_data, enabled FROM app_%d_%d.events WHERE id = $1 AND json_data->>'user_id' = $2`
+	updateEventByIDQuery            = `UPDATE app_%d_%d.events SET json_data = $1, enabled = $2 WHERE id = $3 AND json_data->>'user_id' = $4`
+	deleteEventByIDQuery            = `UPDATE app_%d_%d.events SET enabled = 0 WHERE id = $1 AND json_data->>'user_id' = $1`
+	listEventsByUserIDQuery         = `SELECT id, json_data, enabled FROM app_%d_%d.events WHERE json_data->>'user_id' = $1`
+	listEventsByUserFollowerIDQuery = `SELECT id, json_data, enabled FROM app_%d_%d.events WHERE %s ORDER BY json_data->>'created_at' DESC LIMIT 200`
 )
 
 func (e *event) Create(event *entity.Event, retrieve bool) (*entity.Event, errors.Error) {
@@ -42,7 +42,7 @@ func (e *event) Create(event *entity.Event, retrieve bool) (*entity.Event, error
 
 	var eventID int64
 	err = e.mainPg.
-		QueryRow(createEventQuery, event.AccountID, event.ApplicationID, string(eventJSON), event.Enabled).
+		QueryRow(appSchema(createEventQuery, event.AccountID, event.ApplicationID), string(eventJSON), event.Enabled).
 		Scan(&eventID)
 	if err != nil {
 		return nil, errors.NewInternalError("error while saving the event", err.Error())
@@ -61,7 +61,7 @@ func (e *event) Read(accountID, applicationID, userID, eventID int64) (*entity.E
 		Enabled  bool
 	)
 	err := e.pg.SlaveDatastore(-1).
-		QueryRow(selectEventByIDQuery, accountID, applicationID, eventID, userID).
+		QueryRow(appSchema(selectEventByIDQuery, accountID, applicationID), eventID, userID).
 		Scan(&ID, &JSONData, &Enabled)
 	if err != nil {
 		return nil, errors.NewInternalError("error while reading the event", err.Error())
@@ -84,7 +84,7 @@ func (e *event) Update(existingEvent, updatedEvent entity.Event, retrieve bool) 
 		return nil, errors.NewInternalError("failed to update the event", err.Error())
 	}
 
-	_, err = e.mainPg.Exec(updateEventByIDQuery, existingEvent.AccountID, existingEvent.ApplicationID, string(eventJSON), updatedEvent.Enabled, existingEvent.ID, existingEvent.UserID)
+	_, err = e.mainPg.Exec(appSchema(updateEventByIDQuery, existingEvent.AccountID, existingEvent.ApplicationID), string(eventJSON), updatedEvent.Enabled, existingEvent.ID, existingEvent.UserID)
 	if err != nil {
 		return nil, errors.NewInternalError("failed to update the event", err.Error())
 	}
@@ -108,7 +108,7 @@ func (e *event) List(accountID, applicationID, userID int64) (events []*entity.E
 	events = []*entity.Event{}
 
 	rows, err := e.pg.SlaveDatastore(-1).
-		Query(listEventsByUserIDQuery, accountID, applicationID, userID)
+		Query(appSchema(listEventsByUserIDQuery, accountID, applicationID), userID)
 	if err != nil {
 		return events, errors.NewInternalError("failed to read the events", err.Error())
 	}
@@ -155,7 +155,7 @@ func (e *event) ConnectionList(accountID, applicationID, userID int64) (events [
 	}
 
 	rows, err := e.pg.SlaveDatastore(-1).
-		Query(fmt.Sprintf(listEventsByUserFollowerIDQuery, strings.Join(condition, " AND ")), accountID, applicationID, userID)
+		Query(fmt.Sprintf(appSchema(listEventsByUserFollowerIDQuery, accountID, applicationID), strings.Join(condition, " AND ")), userID)
 	if err != nil {
 		return events, errors.NewInternalError("failed to read the events", err.Error())
 	}

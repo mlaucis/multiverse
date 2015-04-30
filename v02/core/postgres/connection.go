@@ -24,12 +24,12 @@ type (
 )
 
 const (
-	createConnectionQuery     = `INSERT INTO app_$1_$2.connections(json_data, enabled) VALUES ($3, $4)`
-	selectConnectionQuery     = `SELECT json_data, enabled FROM app_$1_$2 WHERE json_data->>'user_from_id' = $3 AND json_data->>'user_to_id' = $4`
-	updateConnectionQuery     = `UPDATE app_$1_$2.connections SET json_data = $3 WHERE json_data->>'user_from_id' = $3 AND json_data->>'user_to_id' = $4`
-	deleteConnectionQuery     = `UPDATE app_$1_$2.connections SET enabled = 0 WHERE json_data->>'user_from_id' = $3 AND json_data->>'user_to_id' = $4`
-	listConnectionQuery       = `SELECT json_data, enabled FROM app_$1_$2.connections WHERE json_data->>'user_from_id' = $3`
-	followedByConnectionQuery = `SELECT json_data, enabled FROM app_$1_$2.connections WHERE json_data->>'user_to_id' = $3`
+	createConnectionQuery     = `INSERT INTO app_%d_%d.connections(json_data, enabled) VALUES ($1, $2)`
+	selectConnectionQuery     = `SELECT json_data, enabled FROM app_%d_%d WHERE json_data->>'user_from_id' = $1 AND json_data->>'user_to_id' = $2`
+	updateConnectionQuery     = `UPDATE app_%d_%d.connections SET json_data = $1 WHERE json_data->>'user_from_id' = $2 AND json_data->>'user_to_id' = $3`
+	deleteConnectionQuery     = `UPDATE app_%d_%d.connections SET enabled = 0 WHERE json_data->>'user_from_id' = $1 AND json_data->>'user_to_id' = $2`
+	listConnectionQuery       = `SELECT json_data, enabled FROM app_%d_%d.connections WHERE json_data->>'user_from_id' = $1`
+	followedByConnectionQuery = `SELECT json_data, enabled FROM app_%d_%d.connections WHERE json_data->>'user_to_id' = $1`
 )
 
 func (c *connection) Create(connection *entity.Connection, retrieve bool) (*entity.Connection, errors.Error) {
@@ -37,7 +37,7 @@ func (c *connection) Create(connection *entity.Connection, retrieve bool) (*enti
 	if err != nil {
 		return nil, errors.NewInternalError("error while saving the connection", err.Error())
 	}
-	_, err = c.mainPg.Exec(createConnectionQuery, connection.AccountID, connection.ApplicationID, string(connectionJSON), connection.Enabled)
+	_, err = c.mainPg.Exec(appSchema(createConnectionQuery, connection.AccountID, connection.ApplicationID), string(connectionJSON), connection.Enabled)
 	if err != nil {
 		return nil, errors.NewInternalError("error while saving the connection", err.Error())
 	}
@@ -54,7 +54,7 @@ func (c *connection) Read(accountID, applicationID, userFromID, userToID int64) 
 		Enabled  bool
 	)
 	err := c.pg.SlaveDatastore(-1).
-		QueryRow(selectConnectionQuery, accountID, applicationID, userFromID, userToID).
+		QueryRow(appSchema(selectConnectionQuery, accountID, applicationID), userFromID, userToID).
 		Scan(&JSONData, &Enabled)
 	if err != nil {
 		return nil, errors.NewInternalError("error while reading the connection", err.Error())
@@ -76,7 +76,7 @@ func (c *connection) Update(existingConnection, updatedConnection entity.Connect
 		return nil, errors.NewInternalError("error while updating the connection", err.Error())
 	}
 
-	_, err = c.mainPg.Exec(updateConnectionQuery, existingConnection.AccountID, existingConnection.ApplicationID, string(connectionJSON))
+	_, err = c.mainPg.Exec(appSchema(updateConnectionQuery, existingConnection.AccountID, existingConnection.ApplicationID), string(connectionJSON))
 	if err != nil {
 		return nil, errors.NewInternalError("error while updating the connection", err.Error())
 	}
@@ -89,7 +89,7 @@ func (c *connection) Update(existingConnection, updatedConnection entity.Connect
 }
 
 func (c *connection) Delete(connection *entity.Connection) errors.Error {
-	_, err := c.mainPg.Exec(deleteConnectionQuery, connection.AccountID, connection.ApplicationID, connection.UserFromID, connection.UserToID)
+	_, err := c.mainPg.Exec(appSchema(deleteConnectionQuery, connection.AccountID, connection.ApplicationID), connection.UserFromID, connection.UserToID)
 	if err != nil {
 		return errors.NewInternalError("error while deleting the connection", err.Error())
 	}
@@ -101,7 +101,7 @@ func (c *connection) List(accountID, applicationID, userID int64) (users []*enti
 	users = []*entity.ApplicationUser{}
 
 	rows, err := c.pg.SlaveDatastore(-1).
-		Query(listConnectionQuery, accountID, applicationID, userID)
+		Query(appSchema(listConnectionQuery, accountID, applicationID), userID)
 	if err != nil {
 		return users, errors.NewInternalError("error while retrieving list of account users", err.Error())
 	}
@@ -134,7 +134,7 @@ func (c *connection) FollowedBy(accountID, applicationID, userID int64) ([]*enti
 	users := []*entity.ApplicationUser{}
 
 	rows, err := c.pg.SlaveDatastore(-1).
-		Query(followedByConnectionQuery, accountID, applicationID, userID)
+		Query(appSchema(followedByConnectionQuery, accountID, applicationID), userID)
 	if err != nil {
 		return users, errors.NewInternalError("error while retrieving list of account users", err.Error())
 	}

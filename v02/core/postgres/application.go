@@ -86,7 +86,6 @@ func (app *application) Create(application *entity.Application, retrieve bool) (
 	application.ID = applicationID
 
 	for idx := range createApplicationNamespaceQuery {
-		println("Executing: " + createApplicationNamespaceQuery[idx])
 		_, err = app.mainPg.Exec(fmt.Sprintf(createApplicationNamespaceQuery[idx], application.AccountID, application.ID))
 		if err != nil {
 			// TODO rollback the creation from the field if we fail to create all the stuff here

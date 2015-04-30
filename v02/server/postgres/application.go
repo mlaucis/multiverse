@@ -109,6 +109,7 @@ func (app *application) PopulateContext(ctx *context.Context) (err errors.Error)
 	}
 	ctx.Bag["application"], err = app.storage.FindByKey(user)
 	if err == nil {
+		ctx.Bag["accountID"] = ctx.Bag["application"].(*entity.Application).AccountID
 		ctx.Bag["applicationID"] = ctx.Bag["application"].(*entity.Application).ID
 	}
 	return
