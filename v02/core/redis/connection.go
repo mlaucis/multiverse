@@ -49,7 +49,7 @@ func (c *connection) Create(accountID, applicationID int64, connection *entity.C
 	return connection, nil
 }
 
-func (c *connection) Read(accountID, applicationID, userFromID, userToID int64) (connection *entity.Connection, err errors.Error) {
+func (c *connection) Read(accountID, applicationID int64, userFromID, userToID string) (connection *entity.Connection, err errors.Error) {
 	key := storageHelper.Connection(accountID, applicationID, userFromID, userToID)
 
 	result, er := c.redis.Get(key).Result()
@@ -150,7 +150,7 @@ func (c *connection) Delete(accountID, applicationID int64, connection *entity.C
 	return nil
 }
 
-func (c *connection) List(accountID, applicationID, userID int64) (users []*entity.ApplicationUser, err errors.Error) {
+func (c *connection) List(accountID, applicationID int64, userID string) (users []*entity.ApplicationUser, err errors.Error) {
 	key := storageHelper.ConnectionUsers(accountID, applicationID, userID)
 	result, er := c.redis.LRange(key, 0, -1).Result()
 	if er != nil {
@@ -164,7 +164,7 @@ func (c *connection) List(accountID, applicationID, userID int64) (users []*enti
 	return c.fetchAndDecodeMultipleUsers(result)
 }
 
-func (c *connection) FollowedBy(accountID, applicationID, userID int64) (users []*entity.ApplicationUser, err errors.Error) {
+func (c *connection) FollowedBy(accountID, applicationID int64, userID string) (users []*entity.ApplicationUser, err errors.Error) {
 	key := storageHelper.FollowedByUsers(accountID, applicationID, userID)
 	result, er := c.redis.LRange(key, 0, -1).Result()
 	if er != nil {
@@ -252,7 +252,7 @@ func (c *connection) WriteEventsToList(accountID, applicationID int64, connectio
 	return
 }
 
-func (c *connection) DeleteEventsFromLists(accountID, applicationID, userFromID, userToID int64) (err errors.Error) {
+func (c *connection) DeleteEventsFromLists(accountID, applicationID int64, userFromID, userToID string) (err errors.Error) {
 	connectionEventsKey := storageHelper.ConnectionEvents(accountID, applicationID, userFromID)
 
 	eventsKey := storageHelper.Events(accountID, applicationID, userToID)

@@ -13,6 +13,8 @@ import (
 
 	"github.com/tapglue/backend/utils"
 	"github.com/tapglue/backend/v02/entity"
+
+	"github.com/satori/go.uuid"
 )
 
 // Defining keys
@@ -33,27 +35,27 @@ const (
 	application  = "acc:%d:app:%d"
 	applications = "acc:%d:apps"
 
-	applicationUser           = "acc:%d:app:%d:user:%d"
+	applicationUser           = "acc:%d:app:%d:user:%s"
 	applicationUsers          = "acc:%d:app:%d:user"
 	applicationUserByEmail    = "acc:%d:app:%d:byemail:%s"
 	applicationUserByUsername = "acc:%d:app:%d:byuname:%s"
 
 	accountSession     = "acc:%d:sess:%d"
-	applicationSession = "acc:%d:app:%d:sess:%d"
+	applicationSession = "acc:%d:app:%d:sess:%s"
 
-	connection       = "acc:%d:app:%d:user:%d:connection:%d"
-	connections      = "acc:%d:app:%d:user:%d:connections"
-	followsUsers     = "acc:%d:app:%d:user:%d:followsUsers"
-	followedByUsers  = "acc:%d:app:%d:user:%d:follwedByUsers"
+	connection       = "acc:%d:app:%d:user:%s:connection:%s"
+	connections      = "acc:%d:app:%d:user:%s:connections"
+	followsUsers     = "acc:%d:app:%d:user:%s:followsUsers"
+	followedByUsers  = "acc:%d:app:%d:user:%s:follwedByUsers"
 	socialConnection = "acc:%d:app:%d:social:%s:%s"
 
-	event            = "acc:%d:app:%d:user:%d:event:%d"
-	events           = "acc:%d:app:%d:user:%d:events"
+	event            = "acc:%d:app:%d:user:%s:event:%s"
+	events           = "acc:%d:app:%d:user:%s:events"
 	eventGeoKey      = "acc:%d:app:%d:events:geo"
 	eventObjectKey   = "acc:%d:app:%d:events:object:%s"
 	eventLocationKey = "acc:%d:app:%d:events:location:%s"
 
-	connectionEvents     = "acc:%d:app:%d:user:%d:connectionEvents"
+	connectionEvents     = "acc:%d:app:%d:user:%s:connectionEvents"
 	connectionEventsLoop = "%s:connectionEvents"
 
 	alpha1 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ~!@#$%^&*()_+{}:\"|<>?"
@@ -63,9 +65,28 @@ const (
 var (
 	alpha1Len = len(alpha1)
 	alpha2Len = len(alpha2)
+
+	// OIDUUIDNamespace refers to the Object ID UUID Namespace http://tools.ietf.org/html/rfc4122.html#section-4.3
+	OIDUUIDNamespace = uuid.NamespaceOID.String()
 )
 
-func generateTokenSalt(size int) string {
+// GenerateUUIDV5 will generate a new
+func GenerateUUIDV5(namespace, payload string) string {
+	ns, err := uuid.FromString(namespace)
+	if err != nil {
+		ns = uuid.NamespaceOID
+	}
+	return uuid.NewV5(ns, payload).String()
+}
+
+// CheckUUID checks if a string is a valid UUID
+func CheckUUID(uuidString string) bool {
+	_, err := uuid.FromString(uuidString)
+	return err != nil
+}
+
+// GenerateRandomString returns a random string of the given size
+func GenerateRandomString(size int) string {
 	rand.Seed(time.Now().UnixNano())
 	salt := ""
 
@@ -80,7 +101,7 @@ func generateTokenSalt(size int) string {
 // GenerateAccountSecretKey returns a token for the specified application of an account
 func GenerateAccountSecretKey(account *entity.Account) string {
 	// Generate a random salt for the token
-	keySalt := generateTokenSalt(8)
+	keySalt := GenerateRandomString(8)
 
 	// Generate the token itself
 	hasher := md5.New()
@@ -95,7 +116,7 @@ func GenerateAccountSecretKey(account *entity.Account) string {
 // GenerateApplicationSecretKey returns a token for the specified application of an account
 func GenerateApplicationSecretKey(application *entity.Application) string {
 	// Generate a random salt for the token
-	keySalt := generateTokenSalt(20)
+	keySalt := GenerateRandomString(20)
 
 	// Generate the token itself
 	hasher := md5.New()
@@ -110,12 +131,12 @@ func GenerateApplicationSecretKey(application *entity.Application) string {
 
 // GenerateAccountSessionID generated the session id for the specific
 func GenerateAccountSessionID(user *entity.AccountUser) string {
-	return utils.Base64Encode(generateTokenSalt(20))
+	return utils.Base64Encode(GenerateRandomString(20))
 }
 
 // GenerateApplicationSessionID generated the session id for the specific
 func GenerateApplicationSessionID(user *entity.ApplicationUser) string {
-	return utils.Base64Encode(generateTokenSalt(20))
+	return utils.Base64Encode(GenerateRandomString(20))
 }
 
 // GenerateEncryptedPassword generates and encrypted password using the specific salt and time
@@ -131,7 +152,7 @@ func GenerateEncryptedPassword(password, salt, time string) string {
 
 // EncryptPassword will encrypt a string with the password encryption algorithm
 func EncryptPassword(password string) string {
-	salt := generateTokenSalt(32)
+	salt := GenerateRandomString(32)
 	timestamp := time.Now().Format(time.RFC3339)
 	encryptedPassword := GenerateEncryptedPassword(password, salt, timestamp)
 
@@ -174,7 +195,7 @@ func Applications(accountID int64) string {
 }
 
 // Connection gets the key for the connection
-func Connection(accountID, applicationID, userFromID, userToID int64) string {
+func Connection(accountID, applicationID int64, userFromID, userToID string) string {
 	return fmt.Sprintf(connection, accountID, applicationID, userFromID, userToID)
 }
 
@@ -184,22 +205,22 @@ func SocialConnection(accountID, applicationID int64, platformName, socialID str
 }
 
 // Connections gets the key for the connections list
-func Connections(accountID, applicationID, userFromID int64) string {
+func Connections(accountID, applicationID int64, userFromID string) string {
 	return fmt.Sprintf(connections, accountID, applicationID, userFromID)
 }
 
 // ConnectionUsers gets the key for the connection users list
-func ConnectionUsers(accountID, applicationID, userFromID int64) string {
+func ConnectionUsers(accountID, applicationID int64, userFromID string) string {
 	return fmt.Sprintf(followsUsers, accountID, applicationID, userFromID)
 }
 
 // FollowedByUsers gets the key for the list of followers
-func FollowedByUsers(accountID, applicationID, userToID int64) string {
+func FollowedByUsers(accountID, applicationID int64, userToID string) string {
 	return fmt.Sprintf(followedByUsers, accountID, applicationID, userToID)
 }
 
 // User gets the key for the user
-func User(accountID, applicationID, userID int64) string {
+func User(accountID, applicationID int64, userID string) string {
 	return fmt.Sprintf(applicationUser, accountID, applicationID, userID)
 }
 
@@ -219,7 +240,7 @@ func Users(accountID, applicationID int64) string {
 }
 
 // Event gets the key for an event
-func Event(accountID, applicationID, userID, eventID int64) string {
+func Event(accountID, applicationID int64, userID, eventID string) string {
 	return fmt.Sprintf(event, accountID, applicationID, userID, eventID)
 }
 
@@ -239,12 +260,12 @@ func EventLocationKey(accountID, applicationID int64, location string) string {
 }
 
 // Events get the key for the events list
-func Events(accountID, applicationID, userID int64) string {
+func Events(accountID, applicationID int64, userID string) string {
 	return fmt.Sprintf(events, accountID, applicationID, userID)
 }
 
 // ConnectionEvents get the key for the connections events list
-func ConnectionEvents(accountID, applicationID, userID int64) string {
+func ConnectionEvents(accountID, applicationID int64, userID string) string {
 	return fmt.Sprintf(connectionEvents, accountID, applicationID, userID)
 }
 
@@ -259,7 +280,7 @@ func AccountSessionKey(accountID, userID int64) string {
 }
 
 // ApplicationSessionKey returns the key to be used for a certain session
-func ApplicationSessionKey(accountID, applicationID, userID int64) string {
+func ApplicationSessionKey(accountID, applicationID int64, userID string) string {
 	return fmt.Sprintf(applicationSession, accountID, applicationID, userID)
 }
 

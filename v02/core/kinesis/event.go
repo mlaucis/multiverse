@@ -31,7 +31,7 @@ func (e *event) Create(accountID, applicationID int64, event *entity.Event, retr
 	return nil, err
 }
 
-func (e *event) Read(accountID, applicationID, userID, eventID int64) (event *entity.Event, err errors.Error) {
+func (e *event) Read(accountID, applicationID int64, userID, eventID string) (event *entity.Event, err errors.Error) {
 	return nil, errors.NewNotFoundError("not found", "invalid handler specified")
 }
 
@@ -59,11 +59,11 @@ func (e *event) Delete(accountID, applicationID int64, event *entity.Event) (err
 	return err
 }
 
-func (e *event) List(accountID, applicationID, userID int64) (events []*entity.Event, err errors.Error) {
+func (e *event) List(accountID, applicationID int64, userID string) (events []*entity.Event, err errors.Error) {
 	return nil, errors.NewNotFoundError("not found", "invalid handler specified")
 }
 
-func (e *event) ConnectionList(accountID, applicationID, userID int64) (events []*entity.Event, err errors.Error) {
+func (e *event) ConnectionList(accountID, applicationID int64, userID string) (events []*entity.Event, err errors.Error) {
 	return nil, errors.NewNotFoundError("not found", "invalid handler specified")
 }
 
@@ -71,7 +71,7 @@ func (e *event) WriteToConnectionsLists(accountID, applicationID int64, event *e
 	return errors.NewNotFoundError("not found", "invalid handler specified")
 }
 
-func (e *event) DeleteFromConnectionsLists(accountID, applicationID, userID int64, key string) (err errors.Error) {
+func (e *event) DeleteFromConnectionsLists(accountID, applicationID int64, userID, key string) (err errors.Error) {
 	return errors.NewNotFoundError("not found", "invalid handler specified")
 }
 

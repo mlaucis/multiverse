@@ -16,7 +16,7 @@ type (
 		Create(accountID, applicationID int64, connection *entity.Connection, retrieve bool) (con *entity.Connection, err errors.Error)
 
 		// Read returns the connection, if any, between two users
-		Read(accountID, applicationID, userFromID, userToID int64) (connection *entity.Connection, err errors.Error)
+		Read(accountID, applicationID int64, userFromID, userToID string) (connection *entity.Connection, err errors.Error)
 
 		// Update updates a connection in the database and returns the updated connection user or an error
 		Update(accountID, applicationID int64, existingConnection, updatedConnection entity.Connection, retrieve bool) (con *entity.Connection, err errors.Error)
@@ -25,10 +25,10 @@ type (
 		Delete(accountID, applicationID int64, conn *entity.Connection) errors.Error
 
 		// List returns all connections from a certain user
-		List(accountID, applicationID, userID int64) (users []*entity.ApplicationUser, err errors.Error)
+		List(accountID, applicationID int64, userID string) (users []*entity.ApplicationUser, err errors.Error)
 
 		// FollowedBy returns all connections from a certain user
-		FollowedBy(accountID, applicationID, userID int64) (users []*entity.ApplicationUser, err errors.Error)
+		FollowedBy(accountID, applicationID int64, userID string) (users []*entity.ApplicationUser, err errors.Error)
 
 		// Confirm confirms a user connection and returns the connection or an error
 		Confirm(accountID, applicationID int64, connection *entity.Connection, retrieve bool) (con *entity.Connection, err errors.Error)
@@ -37,7 +37,7 @@ type (
 		WriteEventsToList(accountID, applicationID int64, conn *entity.Connection) errors.Error
 
 		// DeleteEventsFromLists takes a connection and deletes the events from the lists
-		DeleteEventsFromLists(accountID, applicationID, userFromID, userToID int64) errors.Error
+		DeleteEventsFromLists(accountID, applicationID int64, userFromID, userToID string) errors.Error
 
 		// SocialConnect creates the connections between a user and his other social peers
 		SocialConnect(accountID, applicationID int64, user *entity.ApplicationUser, platform string, socialFriendsIDs []string, connectionType string) ([]*entity.ApplicationUser, errors.Error)

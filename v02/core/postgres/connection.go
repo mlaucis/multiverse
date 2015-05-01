@@ -26,7 +26,7 @@ type (
 )
 
 const (
-	createConnectionQuery     = `INSERT INTO app_%d_%d.connections(json_data) VALUES ($1, $2)`
+	createConnectionQuery     = `INSERT INTO app_%d_%d.connections(json_data) VALUES ($1)`
 	selectConnectionQuery     = `SELECT json_data FROM app_%d_%d.connections WHERE json_data->>'user_from_id' = $1 AND json_data->>'user_to_id' = $2`
 	updateConnectionQuery     = `UPDATE app_%d_%d.connections SET json_data = $1 WHERE json_data->>'user_from_id' = $2 AND json_data->>'user_to_id' = $3`
 	listConnectionQuery       = `SELECT json_data FROM app_%d_%d.connections WHERE json_data->>'user_from_id' = $1`
@@ -50,7 +50,7 @@ func (c *connection) Create(accountID, applicationID int64, connection *entity.C
 	return c.Read(accountID, applicationID, connection.UserFromID, connection.UserToID)
 }
 
-func (c *connection) Read(accountID, applicationID, userFromID, userToID int64) (*entity.Connection, errors.Error) {
+func (c *connection) Read(accountID, applicationID int64, userFromID, userToID string) (*entity.Connection, errors.Error) {
 	var JSONData string
 	err := c.pg.SlaveDatastore(-1).
 		QueryRow(appSchema(selectConnectionQuery, accountID, applicationID), userFromID, userToID).
@@ -93,7 +93,7 @@ func (c *connection) Delete(accountID, applicationID int64, connection *entity.C
 	return err
 }
 
-func (c *connection) List(accountID, applicationID, userID int64) (users []*entity.ApplicationUser, er errors.Error) {
+func (c *connection) List(accountID, applicationID int64, userID string) (users []*entity.ApplicationUser, er errors.Error) {
 	users = []*entity.ApplicationUser{}
 
 	rows, err := c.pg.SlaveDatastore(-1).
@@ -124,7 +124,7 @@ func (c *connection) List(accountID, applicationID, userID int64) (users []*enti
 	return users, nil
 }
 
-func (c *connection) FollowedBy(accountID, applicationID, userID int64) ([]*entity.ApplicationUser, errors.Error) {
+func (c *connection) FollowedBy(accountID, applicationID int64, userID string) ([]*entity.ApplicationUser, errors.Error) {
 	users := []*entity.ApplicationUser{}
 
 	rows, err := c.pg.SlaveDatastore(-1).
@@ -167,7 +167,7 @@ func (c *connection) WriteEventsToList(accountID, applicationID int64, connectio
 	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
-func (c *connection) DeleteEventsFromLists(accountID, applicationID, userFromID, userToID int64) (err errors.Error) {
+func (c *connection) DeleteEventsFromLists(accountID, applicationID int64, userFromID, userToID string) (err errors.Error) {
 	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 

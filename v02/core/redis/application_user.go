@@ -3,7 +3,6 @@ package redis
 import (
 	"encoding/json"
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/tapglue/backend/errors"
@@ -141,7 +140,7 @@ func (appu *applicationUser) Create(accountID, applicationID int64, user *entity
 	return appu.Read(accountID, applicationID, user.ID)
 }
 
-func (appu *applicationUser) Read(accountID, applicationID, userID int64) (user *entity.ApplicationUser, err errors.Error) {
+func (appu *applicationUser) Read(accountID, applicationID int64, userID string) (user *entity.ApplicationUser, err errors.Error) {
 	key := storageHelper.User(accountID, applicationID, userID)
 
 	result, er := appu.redis.Get(key).Result()
@@ -410,7 +409,7 @@ func (appu *applicationUser) ExistsByUsername(accountID, applicationID int64, us
 	return appu.existsByKey(usernameListKey)
 }
 
-func (appu *applicationUser) ExistsByID(accountID, applicationID, userID int64) (bool, errors.Error) {
+func (appu *applicationUser) ExistsByID(accountID, applicationID int64, userID string) (bool, errors.Error) {
 	user, err := appu.Read(accountID, applicationID, userID)
 	if err != nil {
 		return false, err
@@ -426,12 +425,7 @@ func (appu *applicationUser) findApplicationUserByKey(accountID, applicationID i
 		return nil, errors.NewInternalError("failed to retrieve the application user (1)", er.Error())
 	}
 
-	userID, er := strconv.ParseInt(storedValue, 10, 64)
-	if er != nil {
-		return nil, errors.NewInternalError("failed to retrieve the application user (2)", er.Error())
-	}
-
-	applicationUser, err := appu.Read(accountID, applicationID, userID)
+	applicationUser, err := appu.Read(accountID, applicationID, storedValue)
 	if err != nil {
 		return nil, err
 	}

@@ -7,7 +7,6 @@ package redis
 import (
 	"encoding/json"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/tapglue/backend/context"
@@ -28,15 +27,17 @@ type (
 func (conn *connection) Update(ctx *context.Context) (err errors.Error) {
 	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	var (
-		userToID int64
+		userToID string
 		er       error
 	)
 
-	if userToID, er = strconv.ParseInt(ctx.Vars["userToId"], 10, 64); er != nil {
-		return errors.NewBadRequestError("failed to update the connection (1)\n"+er.Error(), er.Error())
-	}
+	userToID = ctx.Vars["userToId"]
 
-	existingConnection, err := conn.storage.Read(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(int64), userToID)
+	existingConnection, err := conn.storage.Read(
+		ctx.Bag["accountID"].(int64),
+		ctx.Bag["applicationID"].(int64),
+		ctx.Bag["applicationUserID"].(string),
+		userToID)
 	if err != nil {
 		return
 	}
@@ -49,7 +50,7 @@ func (conn *connection) Update(ctx *context.Context) (err errors.Error) {
 		return errors.NewBadRequestError("failed to update the connection (4)\n"+er.Error(), er.Error())
 	}
 
-	if connection.UserFromID != ctx.Bag["applicationUserID"].(int64) {
+	if connection.UserFromID != ctx.Bag["applicationUserID"].(string) {
 		return errors.NewBadRequestError("failed to update the connection (5)\nuser_from mismatch", "user_from mismatch")
 	}
 
@@ -112,7 +113,7 @@ func (conn *connection) Create(ctx *context.Context) (err errors.Error) {
 
 	receivedEnabled := connection.Enabled
 
-	connection.UserFromID = ctx.Bag["applicationUserID"].(int64)
+	connection.UserFromID = ctx.Bag["applicationUserID"].(string)
 
 	if connection.UserFromID == connection.UserToID {
 		return errors.NewBadRequestError("failed to create connection (2)\nuser is connecting with itself", "self-connecting user")
@@ -155,7 +156,7 @@ func (conn *connection) List(ctx *context.Context) (err errors.Error) {
 	if users, err = conn.storage.List(
 		ctx.Bag["accountID"].(int64),
 		ctx.Bag["applicationID"].(int64),
-		ctx.Bag["applicationUserID"].(int64)); err != nil {
+		ctx.Bag["applicationUserID"].(string)); err != nil {
 		return
 	}
 
@@ -171,7 +172,7 @@ func (conn *connection) FollowedByList(ctx *context.Context) (err errors.Error) 
 	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	var users []*entity.ApplicationUser
 
-	if users, err = conn.storage.FollowedBy(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(int64)); err != nil {
+	if users, err = conn.storage.FollowedBy(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(string)); err != nil {
 		return
 	}
 
@@ -191,7 +192,7 @@ func (conn *connection) Confirm(ctx *context.Context) (err errors.Error) {
 		return errors.NewBadRequestError("failed to confirm the connection (1)\n"+er.Error(), er.Error())
 	}
 
-	connection.UserFromID = ctx.Bag["applicationUserID"].(int64)
+	connection.UserFromID = ctx.Bag["applicationUserID"].(string)
 
 	if err = validator.ConfirmConnection(
 		conn.appUser,
@@ -218,7 +219,7 @@ func (conn *connection) CreateSocial(ctx *context.Context) (err errors.Error) {
 	platformName := strings.ToLower(ctx.Vars["platformName"])
 
 	socialConnections := struct {
-		UserFromID     int64    `json:"user_from_id"`
+		UserFromID     string   `json:"user_from_id"`
 		SocialPlatform string   `json:"social_platform"`
 		ConnectionsIDs []string `json:"connection_ids"`
 		ConnectionType string   `json:"type"`
@@ -228,7 +229,7 @@ func (conn *connection) CreateSocial(ctx *context.Context) (err errors.Error) {
 		return errors.NewBadRequestError("social connecting failed (2)\n"+er.Error(), er.Error())
 	}
 
-	if ctx.Bag["applicationUserID"].(int64) != socialConnections.UserFromID {
+	if ctx.Bag["applicationUserID"].(string) != socialConnections.UserFromID {
 		return errors.NewBadRequestError("social connecting failed (3)\nuser mismatch", "user mismatch")
 	}
 

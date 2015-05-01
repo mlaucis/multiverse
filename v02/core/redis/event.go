@@ -84,7 +84,7 @@ func (e *event) Create(accountID, applicationID int64, event *entity.Event, retr
 	return e.Read(accountID, applicationID, event.UserID, event.ID)
 }
 
-func (e *event) Read(accountID, applicationID, userID, eventID int64) (event *entity.Event, err errors.Error) {
+func (e *event) Read(accountID, applicationID int64, userID, eventID string) (event *entity.Event, err errors.Error) {
 	key := storageHelper.Event(accountID, applicationID, userID, eventID)
 
 	result, er := e.redis.Get(key).Result()
@@ -204,7 +204,7 @@ func (e *event) Delete(accountID, applicationID int64, event *entity.Event) (err
 	return nil
 }
 
-func (e *event) List(accountID, applicationID, userID int64) (events []*entity.Event, err errors.Error) {
+func (e *event) List(accountID, applicationID int64, userID string) (events []*entity.Event, err errors.Error) {
 	key := storageHelper.Events(accountID, applicationID, userID)
 
 	result, er := e.redis.ZRevRange(key, "0", "-1").Result()
@@ -224,7 +224,7 @@ func (e *event) List(accountID, applicationID, userID int64) (events []*entity.E
 	return e.toEvents(resultList)
 }
 
-func (e *event) ConnectionList(accountID, applicationID, userID int64) (events []*entity.Event, err errors.Error) {
+func (e *event) ConnectionList(accountID, applicationID int64, userID string) (events []*entity.Event, err errors.Error) {
 	key := storageHelper.ConnectionEvents(accountID, applicationID, userID)
 
 	result, er := e.redis.ZRevRange(key, "0", "-1").Result()
@@ -265,7 +265,7 @@ func (e *event) WriteToConnectionsLists(accountID, applicationID int64, event *e
 	return nil
 }
 
-func (e *event) DeleteFromConnectionsLists(accountID, applicationID, userID int64, key string) (err errors.Error) {
+func (e *event) DeleteFromConnectionsLists(accountID, applicationID int64, userID, key string) (err errors.Error) {
 	connectionsKey := storageHelper.FollowedByUsers(accountID, applicationID, userID)
 	connections, er := e.redis.LRange(connectionsKey, 0, -1).Result()
 	if er != nil {

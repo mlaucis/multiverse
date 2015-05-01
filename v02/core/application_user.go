@@ -16,7 +16,7 @@ type (
 		Create(accountID, applicationID int64, user *entity.ApplicationUser, retrieve bool) (usr *entity.ApplicationUser, err errors.Error)
 
 		// Read returns the user matching the ID or an error
-		Read(accountID, applicationID, userID int64) (user *entity.ApplicationUser, err errors.Error)
+		Read(accountID, applicationID int64, userID string) (user *entity.ApplicationUser, err errors.Error)
 
 		// Update updates a user in the database and returns the updates user or an error
 		Update(accountID, applicationID int64, existingUser, updatedUser entity.ApplicationUser, retrieve bool) (usr *entity.ApplicationUser, err errors.Error)
@@ -52,7 +52,7 @@ type (
 		ExistsByUsername(accountID, applicationID int64, username string) (bool, errors.Error)
 
 		// ExistsByID validates if a user exists and returns it or an error
-		ExistsByID(accountID, applicationID, userID int64) (bool, errors.Error)
+		ExistsByID(accountID, applicationID int64, userID string) (bool, errors.Error)
 
 		// FindBySession will load an application user by the session key, if it exists
 		FindBySession(accountID, applicationID int64, sessionKey string) (*entity.ApplicationUser, errors.Error)

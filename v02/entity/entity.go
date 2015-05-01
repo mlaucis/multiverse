@@ -98,7 +98,7 @@ type (
 
 	// ApplicationUser structure
 	ApplicationUser struct {
-		ID                   int64               `json:"id"`
+		ID                   string              `json:"id"`
 		CustomID             string              `json:"custom_id,omitempty"`
 		SessionToken         string              `json:"-"`
 		SocialIDs            map[string]string   `json:"social_ids,omitempty"`
@@ -113,8 +113,8 @@ type (
 
 	// Connection structure holds the connections of the users
 	Connection struct {
-		UserFromID  int64     `json:"user_from_id"`
-		UserToID    int64     `json:"user_to_id"`
+		UserFromID  string    `json:"user_from_id"`
+		UserToID    string    `json:"user_to_id"`
 		Type        string    `json:"type"`
 		ConfirmedAt time.Time `json:"confirmed_at,omitempty"`
 		Common
@@ -151,8 +151,8 @@ type (
 
 	// Event structure
 	Event struct {
-		ID                 int64          `json:"id"`
-		UserID             int64          `json:"user_id"`
+		ID                 string         `json:"id"`
+		UserID             string         `json:"user_id"`
 		Verb               string         `json:"verb"`
 		Language           string         `json:"language,omitempty"`
 		Priority           string         `json:"priority,omitempty"`

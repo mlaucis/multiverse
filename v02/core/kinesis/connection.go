@@ -35,7 +35,7 @@ func (c *connection) Create(accountID, applicationID int64, conn *entity.Connect
 	return nil, err
 }
 
-func (c *connection) Read(accountID, applicationID, userFromID, userToID int64) (connection *entity.Connection, err errors.Error) {
+func (c *connection) Read(accountID, applicationID int64, userFromID, userToID string) (connection *entity.Connection, err errors.Error) {
 	return connection, errors.NewInternalError("no suitable implementation found", "no suitable implementation found")
 }
 
@@ -63,11 +63,11 @@ func (c *connection) Delete(accountID, applicationID int64, connection *entity.C
 	return err
 }
 
-func (c *connection) List(accountID, applicationID, userID int64) (users []*entity.ApplicationUser, err errors.Error) {
+func (c *connection) List(accountID, applicationID int64, userID string) (users []*entity.ApplicationUser, err errors.Error) {
 	return users, errors.NewInternalError("no suitable implementation found", "no suitable implementation found")
 }
 
-func (c *connection) FollowedBy(accountID, applicationID, userID int64) (users []*entity.ApplicationUser, err errors.Error) {
+func (c *connection) FollowedBy(accountID, applicationID int64, userID string) (users []*entity.ApplicationUser, err errors.Error) {
 	return users, errors.NewInternalError("no suitable implementation found", "no suitable implementation found")
 }
 
@@ -87,7 +87,7 @@ func (c *connection) WriteEventsToList(accountID, applicationID int64, connectio
 	return errors.NewInternalError("no suitable implementation found", "no suitable implementation found")
 }
 
-func (c *connection) DeleteEventsFromLists(accountID, applicationID, userFromID, userToID int64) (err errors.Error) {
+func (c *connection) DeleteEventsFromLists(accountID, applicationID int64, userFromID, userToID string) (err errors.Error) {
 	return errors.NewInternalError("no suitable implementation found", "no suitable implementation found")
 }
 

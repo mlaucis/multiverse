@@ -31,10 +31,6 @@ var (
 func CreateEvent(datastore core.ApplicationUser, accountID, applicationID int64, event *entity.Event) errors.Error {
 	errs := []*error{}
 
-	if event.UserID == 0 {
-		errs = append(errs, &errorUserIDZero)
-	}
-
 	if !StringLengthBetween(event.Verb, verbMin, verbMax) {
 		errs = append(errs, &errorVerbSize)
 	}
@@ -43,7 +39,7 @@ func CreateEvent(datastore core.ApplicationUser, accountID, applicationID int64,
 		errs = append(errs, &errorVerbType)
 	}
 
-	if event.ID != 0 {
+	if event.ID != "" {
 		errs = append(errs, &errorEventIDIsAlreadySet)
 	}
 

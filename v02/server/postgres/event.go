@@ -28,15 +28,16 @@ type (
 func (evt *event) Read(ctx *context.Context) (err errors.Error) {
 	var (
 		event   = &entity.Event{}
-		eventID int64
-		er      error
+		eventID string
 	)
 
-	if eventID, er = strconv.ParseInt(ctx.Vars["eventID"], 10, 64); er != nil {
-		return errors.NewBadRequestError("read event failed (1)\n"+er.Error(), er.Error())
-	}
+	eventID = ctx.Vars["eventID"]
 
-	if event, err = evt.storage.Read(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(int64), eventID); err != nil {
+	if event, err = evt.storage.Read(
+		ctx.Bag["accountID"].(int64),
+		ctx.Bag["applicationID"].(int64),
+		ctx.Bag["applicationUserID"].(string),
+		eventID); err != nil {
 		return
 	}
 
@@ -46,15 +47,17 @@ func (evt *event) Read(ctx *context.Context) (err errors.Error) {
 
 func (evt *event) Update(ctx *context.Context) (err errors.Error) {
 	var (
-		eventID int64
+		eventID string
 		er      error
 	)
 
-	if eventID, er = strconv.ParseInt(ctx.Vars["eventID"], 10, 64); er != nil {
-		return errors.NewBadRequestError("failed to update the event (1)\n"+er.Error(), er.Error())
-	}
+	eventID = ctx.Vars["eventID"]
 
-	existingEvent, err := evt.storage.Read(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(int64), eventID)
+	existingEvent, err := evt.storage.Read(
+		ctx.Bag["accountID"].(int64),
+		ctx.Bag["applicationID"].(int64),
+		ctx.Bag["applicationUserID"].(string),
+		eventID)
 	if err != nil {
 		return
 	}
@@ -65,7 +68,7 @@ func (evt *event) Update(ctx *context.Context) (err errors.Error) {
 	}
 
 	event.ID = eventID
-	event.UserID = ctx.Bag["applicationUserID"].(int64)
+	event.UserID = ctx.Bag["applicationUserID"].(string)
 
 	if err = validator.UpdateEvent(existingEvent, &event); err != nil {
 		return
@@ -108,7 +111,7 @@ func (evt *event) List(ctx *context.Context) (err errors.Error) {
 	if events, err = evt.storage.List(
 		ctx.Bag["accountID"].(int64),
 		ctx.Bag["applicationID"].(int64),
-		ctx.Bag["applicationUserID"].(int64)); err != nil {
+		ctx.Bag["applicationUserID"].(string)); err != nil {
 		return
 	}
 
@@ -122,7 +125,7 @@ func (evt *event) ConnectionEventsList(ctx *context.Context) (err errors.Error) 
 	if events, err = evt.storage.ConnectionList(
 		ctx.Bag["accountID"].(int64),
 		ctx.Bag["applicationID"].(int64),
-		ctx.Bag["applicationUserID"].(int64)); err != nil {
+		ctx.Bag["applicationUserID"].(string)); err != nil {
 		return
 	}
 
@@ -140,7 +143,7 @@ func (evt *event) Create(ctx *context.Context) (err errors.Error) {
 		return errors.NewBadRequestError("failed to create the event (1)\n"+er.Error(), er.Error())
 	}
 
-	event.UserID = ctx.Bag["applicationUserID"].(int64)
+	event.UserID = ctx.Bag["applicationUserID"].(string)
 
 	if err = validator.CreateEvent(
 		evt.appUser,

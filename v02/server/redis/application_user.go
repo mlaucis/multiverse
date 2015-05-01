@@ -37,7 +37,7 @@ func (appUser *applicationUser) Update(ctx *context.Context) (err errors.Error) 
 		return errors.NewBadRequestError("failed to update the user (1)\n"+er.Error(), er.Error())
 	}
 
-	user.ID = ctx.Bag["applicationUserID"].(int64)
+	user.ID = ctx.Bag["applicationUserID"].(string)
 
 	if err = validator.UpdateUser(
 		appUser.storage,
@@ -172,7 +172,7 @@ func (appUser *applicationUser) Login(ctx *context.Context) (err errors.Error) {
 	}
 
 	server.WriteResponse(ctx, struct {
-		UserID int64  `json:"id"`
+		UserID string `json:"id"`
 		Token  string `json:"session_token"`
 	}{
 		UserID: user.ID,
@@ -244,7 +244,7 @@ func (appUser *applicationUser) Logout(ctx *context.Context) (err errors.Error) 
 
 func (appUser *applicationUser) PopulateContext(ctx *context.Context) (err errors.Error) {
 	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
-	ctx.Bag["applicationUser"], err = appUser.storage.Read(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(int64))
+	ctx.Bag["applicationUser"], err = appUser.storage.Read(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(string))
 	return
 }
 

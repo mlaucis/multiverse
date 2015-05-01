@@ -7,13 +7,13 @@ package postgres
 import (
 	"database/sql"
 	"encoding/json"
-
 	"fmt"
 	"strings"
 
 	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/entity"
+	storageHelper "github.com/tapglue/backend/v02/storage/helper"
 	"github.com/tapglue/backend/v02/storage/postgres"
 )
 
@@ -26,23 +26,23 @@ type (
 )
 
 const (
-	createEventQuery                = `INSERT INTO app_%d_%d.events(json_data) VALUES($1, $2) RETURNING id`
-	selectEventByIDQuery            = `SELECT json_data FROM app_%d_%d.events WHERE id = $1 AND json_data->>'user_id' = $2`
-	updateEventByIDQuery            = `UPDATE app_%d_%d.events SET json_data = $1 WHERE id = $2 AND json_data->>'user_id' = $3`
-	listEventsByUserIDQuery         = `SELECT id, json_data FROM app_%d_%d.events WHERE json_data->>'user_id' = $1`
-	listEventsByUserFollowerIDQuery = `SELECT id, json_data FROM app_%d_%d.events WHERE %s ORDER BY json_data->>'created_at' DESC LIMIT 200`
+	createEventQuery                = `INSERT INTO app_%d_%d.events(json_data) VALUES($1)`
+	selectEventByIDQuery            = `SELECT json_data FROM app_%d_%d.events WHERE json_data->>'id' = $1 AND json_data->>'user_id' = $2`
+	updateEventByIDQuery            = `UPDATE app_%d_%d.events SET json_data = $1 WHERE json_data->>'id' = $2 AND json_data->>'user_id' = $3`
+	listEventsByUserIDQuery         = `SELECT json_data FROM app_%d_%d.events WHERE json_data->>'user_id' = $1`
+	listEventsByUserFollowerIDQuery = `SELECT json_data FROM app_%d_%d.events WHERE %s ORDER BY json_data->>'created_at' DESC LIMIT 200`
 )
 
 func (e *event) Create(accountID, applicationID int64, event *entity.Event, retrieve bool) (*entity.Event, errors.Error) {
+	event.ID = storageHelper.GenerateUUIDV5(storageHelper.OIDUUIDNamespace, storageHelper.GenerateRandomString(20))
+
 	eventJSON, err := json.Marshal(event)
 	if err != nil {
 		return nil, errors.NewInternalError("error whiel saving the event", err.Error())
 	}
 
-	var eventID int64
-	err = e.mainPg.
-		QueryRow(appSchema(createEventQuery, accountID, applicationID), string(eventJSON)).
-		Scan(&eventID)
+	_, err = e.mainPg.
+		Exec(appSchema(createEventQuery, accountID, applicationID), string(eventJSON))
 	if err != nil {
 		return nil, errors.NewInternalError("error while saving the event", err.Error())
 	}
@@ -50,10 +50,10 @@ func (e *event) Create(accountID, applicationID int64, event *entity.Event, retr
 	if !retrieve {
 		return nil, nil
 	}
-	return e.Read(accountID, applicationID, event.UserID, eventID)
+	return e.Read(accountID, applicationID, event.UserID, event.ID)
 }
 
-func (e *event) Read(accountID, applicationID, userID, eventID int64) (*entity.Event, errors.Error) {
+func (e *event) Read(accountID, applicationID int64, userID, eventID string) (*entity.Event, errors.Error) {
 	var JSONData string
 	err := e.pg.SlaveDatastore(-1).
 		QueryRow(appSchema(selectEventByIDQuery, accountID, applicationID), eventID, userID).
@@ -99,7 +99,7 @@ func (e *event) Delete(accountID, applicationID int64, event *entity.Event) erro
 	return err
 }
 
-func (e *event) List(accountID, applicationID, userID int64) (events []*entity.Event, er errors.Error) {
+func (e *event) List(accountID, applicationID int64, userID string) (events []*entity.Event, er errors.Error) {
 	events = []*entity.Event{}
 
 	rows, err := e.pg.SlaveDatastore(-1).
@@ -109,11 +109,8 @@ func (e *event) List(accountID, applicationID, userID int64) (events []*entity.E
 	}
 	defer rows.Close()
 	for rows.Next() {
-		var (
-			ID       int64
-			JSONData string
-		)
-		err := rows.Scan(&ID, &JSONData)
+		var JSONData string
+		err := rows.Scan(&JSONData)
 		if err != nil {
 			return []*entity.Event{}, errors.NewInternalError("failed to read the events", err.Error())
 		}
@@ -122,7 +119,6 @@ func (e *event) List(accountID, applicationID, userID int64) (events []*entity.E
 		if err != nil {
 			return []*entity.Event{}, errors.NewInternalError("failed to read the events", err.Error())
 		}
-		event.ID = ID
 
 		events = append(events, event)
 	}
@@ -130,7 +126,7 @@ func (e *event) List(accountID, applicationID, userID int64) (events []*entity.E
 	return events, nil
 }
 
-func (e *event) ConnectionList(accountID, applicationID, userID int64) (events []*entity.Event, er errors.Error) {
+func (e *event) ConnectionList(accountID, applicationID int64, userID string) (events []*entity.Event, er errors.Error) {
 	events = []*entity.Event{}
 
 	connections, er := e.c.List(accountID, applicationID, userID)
@@ -154,11 +150,8 @@ func (e *event) ConnectionList(accountID, applicationID, userID int64) (events [
 	}
 	defer rows.Close()
 	for rows.Next() {
-		var (
-			ID       int64
-			JSONData string
-		)
-		err := rows.Scan(&ID, &JSONData)
+		var JSONData string
+		err := rows.Scan(&JSONData)
 		if err != nil {
 			return []*entity.Event{}, errors.NewInternalError("failed to read the events", err.Error())
 		}
@@ -167,7 +160,6 @@ func (e *event) ConnectionList(accountID, applicationID, userID int64) (events [
 		if err != nil {
 			return []*entity.Event{}, errors.NewInternalError("failed to read the events", err.Error())
 		}
-		event.ID = ID
 
 		events = append(events, event)
 	}
@@ -179,7 +171,7 @@ func (e *event) WriteToConnectionsLists(accountID, applicationID int64, event *e
 	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
-func (e *event) DeleteFromConnectionsLists(accountID, applicationID, userID int64, key string) (err errors.Error) {
+func (e *event) DeleteFromConnectionsLists(accountID, applicationID int64, userID, key string) (err errors.Error) {
 	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 

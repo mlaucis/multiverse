@@ -24,7 +24,7 @@ func (appu *applicationUser) Create(accountID, applicationID int64, user *entity
 	return nil, errors.NewNotFoundError("not found", "invalid handler specified")
 }
 
-func (appu *applicationUser) Read(accountID, applicationID, userID int64) (user *entity.ApplicationUser, err errors.Error) {
+func (appu *applicationUser) Read(accountID, applicationID int64, userID string) (user *entity.ApplicationUser, err errors.Error) {
 	return nil, errors.NewNotFoundError("not found", "invalid handler specified")
 }
 
@@ -88,7 +88,7 @@ func (appu *applicationUser) ExistsByUsername(accountID, applicationID int64, us
 	return false, errors.NewNotFoundError("not found", "invalid handler specified")
 }
 
-func (appu *applicationUser) ExistsByID(accountID, applicationID, userID int64) (bool, errors.Error) {
+func (appu *applicationUser) ExistsByID(accountID, applicationID int64, userID string) (bool, errors.Error) {
 	return false, errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 

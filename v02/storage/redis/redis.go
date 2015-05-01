@@ -10,6 +10,8 @@ import (
 
 	storageHelper "github.com/tapglue/backend/v02/storage/helper"
 
+	"errors"
+
 	red "gopkg.in/redis.v2"
 )
 
@@ -26,10 +28,10 @@ type (
 		GenerateApplicationID(accountID int64) (int64, error)
 
 		// GenerateApplicationUserID generates the user id in the specified app
-		GenerateApplicationUserID(applicationID int64) (int64, error)
+		GenerateApplicationUserID(applicationID int64) (string, error)
 
 		// GenerateApplicationEventID generates the event id in the specified app
-		GenerateApplicationEventID(applicationID int64) (int64, error)
+		GenerateApplicationEventID(applicationID int64) (string, error)
 
 		// Datastore returns the client datastore
 		Datastore() *red.Client
@@ -52,12 +54,14 @@ func (c *cli) GenerateApplicationID(accountID int64) (int64, error) {
 	return c.datastore.Incr(fmt.Sprintf(storageHelper.IDAccountApp, accountID)).Result()
 }
 
-func (c *cli) GenerateApplicationUserID(applicationID int64) (int64, error) {
-	return c.datastore.Incr(fmt.Sprintf(storageHelper.IDApplicationUser, applicationID)).Result()
+func (c *cli) GenerateApplicationUserID(applicationID int64) (string, error) {
+	return "", errors.New("needs a new implementation")
+	//return c.datastore.Incr(fmt.Sprintf(storageHelper.IDApplicationUser, applicationID)).Result()
 }
 
-func (c *cli) GenerateApplicationEventID(applicationID int64) (int64, error) {
-	return c.datastore.Incr(fmt.Sprintf(storageHelper.IDApplicationEvent, applicationID)).Result()
+func (c *cli) GenerateApplicationEventID(applicationID int64) (string, error) {
+	return "", errors.New("needs a new implementation")
+	//return c.datastore.Incr(fmt.Sprintf(storageHelper.IDApplicationEvent, applicationID)).Result()
 }
 
 func (c *cli) Datastore() *red.Client {

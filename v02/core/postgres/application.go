@@ -38,12 +38,10 @@ var (
 		`CREATE SCHEMA app_%d_%d`,
 		`CREATE TABLE app_%d_%d.users
 	(
-		id SERIAL PRIMARY KEY NOT NULL,
 		json_data JSONB NOT NULL
 	)`,
 		`CREATE TABLE app_%d_%d.events
 	(
-		id SERIAL PRIMARY KEY NOT NULL,
 		json_data JSONB NOT NULL
 	)`,
 		`CREATE TABLE app_%d_%d.connections
@@ -52,7 +50,7 @@ var (
 	)`,
 		`CREATE TABLE app_%d_%d.sessions
 	(
-		user_id INT NOT NULL,
+		user_id CHAR(36) NOT NULL,
 		session_id CHAR(40) NOT NULL,
 		created_at TIMESTAMP DEFAULT now() NOT NULL
 	)`,

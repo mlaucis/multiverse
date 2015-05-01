@@ -38,7 +38,7 @@ func (appUser *applicationUser) Update(ctx *context.Context) (err errors.Error) 
 		return errors.NewBadRequestError("failed to update the user (1)\n"+er.Error(), er.Error())
 	}
 
-	user.ID = ctx.Bag["applicationUserID"].(int64)
+	user.ID = ctx.Bag["applicationUserID"].(string)
 
 	if err = validator.UpdateUser(
 		appUser.storage,
@@ -154,7 +154,7 @@ func (appUser *applicationUser) Login(ctx *context.Context) (err errors.Error) {
 	}
 
 	server.WriteResponse(ctx, struct {
-		UserID int64  `json:"id"`
+		UserID string `json:"id"`
 		Token  string `json:"session_token"`
 	}{
 		UserID: user.ID,
