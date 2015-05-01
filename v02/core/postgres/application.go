@@ -25,12 +25,12 @@ type (
 )
 
 const (
-	createApplicationEntryQuery           = `INSERT INTO applications (account_id, json_data) VALUES($1, $2) RETURNING id`
-	selectApplicationEntryByIDQuery       = `SELECT json_data, enabled FROM applications WHERE id = $1 AND account_id = $2`
-	selectApplicationEntryByKeyQuery      = `SELECT id, account_id, json_data, enabled FROM applications WHERE json_data->>'token' = $1`
-	updateApplicationEntryByIDQuery       = `UPDATE applications SET json_data = $1 WHERE id = $2 AND account_id = $3`
-	deleteApplicationEntryByIDQuery       = `UPDATE applications SET enabled = 0 WHERE id = $1 AND account_id = $2`
-	listApplicationsEntryByAccountIDQuery = `SELECT id, json_data, enabled FROM applications where account_id = $1`
+	createApplicationEntryQuery           = `INSERT INTO tg.applications (account_id, json_data) VALUES($1, $2) RETURNING id`
+	selectApplicationEntryByIDQuery       = `SELECT json_data, enabled FROM tg.applications WHERE id = $1 AND account_id = $2`
+	selectApplicationEntryByKeyQuery      = `SELECT id, account_id, json_data, enabled FROM tg.applications WHERE json_data->>'token' = $1`
+	updateApplicationEntryByIDQuery       = `UPDATE tg.applications SET json_data = $1 WHERE id = $2 AND account_id = $3`
+	deleteApplicationEntryByIDQuery       = `UPDATE tg.applications SET enabled = 0 WHERE id = $1 AND account_id = $2`
+	listApplicationsEntryByAccountIDQuery = `SELECT id, json_data, enabled FROM tg.applications where account_id = $1`
 )
 
 var (

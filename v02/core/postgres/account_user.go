@@ -26,18 +26,18 @@ type (
 )
 
 const (
-	createAccountUserQuery           = `INSERT INTO account_users(account_id, json_data) VALUES($1, $2) RETURNING id`
-	selectAccountUserByIDQuery       = `SELECT json_data FROM account_users WHERE id = $1 AND account_id = $2`
-	updateAccountUserByIDQuery       = `UPDATE account_users SET json_data = $1 WHERE id = $2 AND account_id = $3`
-	deleteAccountUserByIDQuery       = `UPDATE account_users SET enabled = 0 WHERE id = $1`
-	listAccountUsersByAccountIDQuery = `SELECT id, json_data FROM account_users WHERE account_id = $1`
-	selectAccountUserByEmailQuery    = `SELECT id, json_data FROM account_users WHERE json_data->>'email' = $1`
-	selectAccountUserByUsernameQuery = `SELECT id, json_data FROM account_users WHERE json_data->>'user_name' = $1`
-	createAccountUserSessionQuery    = `INSERT INTO account_user_sessions(account_id, account_user_id, session_id) VALUES($1, $2, $3)`
-	selectAccountUserSessionQuery    = `SELECT session_id FROM account_user_sessions WHERE account_id = $1 AND account_user_id = $2`
-	selectAccountUserBySessionQuery  = `SELECT account_id, account_user_id FROM account_user_sessions WHERE session_id = $1`
-	updateAccountUserSessionQuery    = `UPDATE account_user_sessions SET session_id = $1 WHERE account_id = $2 AND account_user_id = $3 AND session_id = $4`
-	destroyAccountUserSessionQuery   = `DELETE FROM account_user_sessions WHERE account_id = $1 AND account_user_id = $2 AND session_id = $3`
+	createAccountUserQuery           = `INSERT INTO tg.account_users(account_id, json_data) VALUES($1, $2) RETURNING id`
+	selectAccountUserByIDQuery       = `SELECT json_data FROM tg.account_users WHERE id = $1 AND account_id = $2`
+	updateAccountUserByIDQuery       = `UPDATE tg.account_users SET json_data = $1 WHERE id = $2 AND account_id = $3`
+	deleteAccountUserByIDQuery       = `UPDATE tg.account_users SET enabled = 0 WHERE id = $1`
+	listAccountUsersByAccountIDQuery = `SELECT id, json_data FROM tg.account_users WHERE account_id = $1`
+	selectAccountUserByEmailQuery    = `SELECT id, json_data FROM tg.account_users WHERE json_data->>'email' = $1`
+	selectAccountUserByUsernameQuery = `SELECT id, json_data FROM tg.account_users WHERE json_data->>'user_name' = $1`
+	createAccountUserSessionQuery    = `INSERT INTO tg.account_user_sessions(account_id, account_user_id, session_id) VALUES($1, $2, $3)`
+	selectAccountUserSessionQuery    = `SELECT session_id FROM tg.account_user_sessions WHERE account_id = $1 AND account_user_id = $2`
+	selectAccountUserBySessionQuery  = `SELECT account_id, account_user_id FROM tg.account_user_sessions WHERE session_id = $1`
+	updateAccountUserSessionQuery    = `UPDATE tg.account_user_sessions SET session_id = $1 WHERE account_id = $2 AND account_user_id = $3 AND session_id = $4`
+	destroyAccountUserSessionQuery   = `DELETE FROM tg.account_user_sessions WHERE account_id = $1 AND account_user_id = $2 AND session_id = $3`
 )
 
 func (au *accountUser) Create(accountUser *entity.AccountUser, retrieve bool) (*entity.AccountUser, errors.Error) {

@@ -26,11 +26,11 @@ type (
 )
 
 const (
-	createAccountQuery      = `INSERT INTO accounts(json_data) VALUES ($1) RETURNING id`
-	selectAccountByIDQuery  = `SELECT json_data FROM accounts WHERE id = $1`
-	selectAccountByKeyQuery = `SELECT id, json_data FROM accounts WHERE json_data->>'token' = $1`
-	updateAccountByIDQuery  = `UPDATE accounts SET json_data = $1 WHERE id = $2`
-	deleteAccountByIDQuery  = `DELETE FROM accounts WHERE id = $1`
+	createAccountQuery      = `INSERT INTO tg.accounts(json_data) VALUES ($1) RETURNING id`
+	selectAccountByIDQuery  = `SELECT json_data FROM tg.accounts WHERE id = $1`
+	selectAccountByKeyQuery = `SELECT id, json_data FROM tg.accounts WHERE json_data->>'token' = $1`
+	updateAccountByIDQuery  = `UPDATE tg.accounts SET json_data = $1 WHERE id = $2`
+	deleteAccountByIDQuery  = `DELETE FROM tg.accounts WHERE id = $1`
 )
 
 func (a *account) Create(account *entity.Account, retrieve bool) (*entity.Account, errors.Error) {
