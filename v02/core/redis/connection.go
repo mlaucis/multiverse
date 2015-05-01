@@ -25,7 +25,7 @@ type (
 	}
 )
 
-func (c *connection) Create(connection *entity.Connection, retrieve bool) (con *entity.Connection, err errors.Error) {
+func (c *connection) Create(accountID, applicationID int64, connection *entity.Connection, retrieve bool) (con *entity.Connection, err errors.Error) {
 	// We confirm the connection in the past forcefully so that we can update it at the confirmation time
 	connection.ConfirmedAt = time.Date(0, time.January, 1, 0, 0, 0, 0, time.UTC)
 	connection.Enabled = false
@@ -37,7 +37,7 @@ func (c *connection) Create(connection *entity.Connection, retrieve bool) (con *
 		return nil, errors.NewInternalError("failed to write the user connection (1)", er.Error())
 	}
 
-	key := storageHelper.Connection(connection.AccountID, connection.ApplicationID, connection.UserFromID, connection.UserToID)
+	key := storageHelper.Connection(accountID, applicationID, connection.UserFromID, connection.UserToID)
 	exist, er := c.redis.SetNX(key, string(val)).Result()
 	if er != nil {
 		return nil, errors.NewInternalError("failed to write the user connection (2)", er.Error())
@@ -71,7 +71,7 @@ func (c *connection) Read(accountID, applicationID, userFromID, userToID int64) 
 	return nil, errors.NewInternalError("failed to read the connection (3)", er.Error())
 }
 
-func (c *connection) Update(existingConnection, updatedConnection entity.Connection, retrieve bool) (con *entity.Connection, err errors.Error) {
+func (c *connection) Update(accountID, applicationID int64, existingConnection, updatedConnection entity.Connection, retrieve bool) (con *entity.Connection, err errors.Error) {
 	updatedConnection.UpdatedAt = time.Now()
 	var er error
 
@@ -80,7 +80,7 @@ func (c *connection) Update(existingConnection, updatedConnection entity.Connect
 		return nil, errors.NewInternalError("failed to update the connection (1)", er.Error())
 	}
 
-	key := storageHelper.Connection(updatedConnection.AccountID, updatedConnection.ApplicationID, updatedConnection.UserFromID, updatedConnection.UserToID)
+	key := storageHelper.Connection(accountID, applicationID, updatedConnection.UserFromID, updatedConnection.UserToID)
 	exist, er := c.redis.Exists(key).Result()
 	if !exist {
 		return nil, errors.NewNotFoundError("failed to update teh connection (2)", "connection not found")
@@ -94,17 +94,17 @@ func (c *connection) Update(existingConnection, updatedConnection entity.Connect
 	}
 
 	if !updatedConnection.Enabled {
-		listKey := storageHelper.Connections(updatedConnection.AccountID, updatedConnection.ApplicationID, updatedConnection.UserFromID)
+		listKey := storageHelper.Connections(accountID, applicationID, updatedConnection.UserFromID)
 		if er = c.redis.LRem(listKey, 0, key).Err(); er != nil {
 			return nil, errors.NewInternalError("failed to update the connection (5)", er.Error())
 		}
-		userListKey := storageHelper.ConnectionUsers(updatedConnection.AccountID, updatedConnection.ApplicationID, updatedConnection.UserFromID)
-		userKey := storageHelper.User(updatedConnection.AccountID, updatedConnection.ApplicationID, updatedConnection.UserToID)
+		userListKey := storageHelper.ConnectionUsers(accountID, applicationID, updatedConnection.UserFromID)
+		userKey := storageHelper.User(accountID, applicationID, updatedConnection.UserToID)
 		if er = c.redis.LRem(userListKey, 0, userKey).Err(); er != nil {
 			return nil, errors.NewInternalError("failed to update the connection (6)", er.Error())
 		}
-		followerListKey := storageHelper.FollowedByUsers(updatedConnection.AccountID, updatedConnection.ApplicationID, updatedConnection.UserToID)
-		followerKey := storageHelper.User(updatedConnection.AccountID, updatedConnection.ApplicationID, updatedConnection.UserFromID)
+		followerListKey := storageHelper.FollowedByUsers(accountID, applicationID, updatedConnection.UserToID)
+		followerKey := storageHelper.User(accountID, applicationID, updatedConnection.UserFromID)
 		if er = c.redis.LRem(followerListKey, 0, followerKey).Err(); er != nil {
 			return nil, errors.NewInternalError("failed to update the connection (7)", er.Error())
 		}
@@ -114,11 +114,11 @@ func (c *connection) Update(existingConnection, updatedConnection entity.Connect
 		return &updatedConnection, nil
 	}
 
-	return c.Read(updatedConnection.AccountID, updatedConnection.ApplicationID, updatedConnection.UserFromID, updatedConnection.UserToID)
+	return c.Read(accountID, applicationID, updatedConnection.UserFromID, updatedConnection.UserToID)
 }
 
-func (c *connection) Delete(connection *entity.Connection) (err errors.Error) {
-	key := storageHelper.Connection(connection.AccountID, connection.ApplicationID, connection.UserFromID, connection.UserToID)
+func (c *connection) Delete(accountID, applicationID int64, connection *entity.Connection) (err errors.Error) {
+	key := storageHelper.Connection(accountID, applicationID, connection.UserFromID, connection.UserToID)
 	result, er := c.redis.Del(key).Result()
 	if er != nil {
 		return errors.NewInternalError("failed to delete the connection (1)", er.Error())
@@ -128,22 +128,22 @@ func (c *connection) Delete(connection *entity.Connection) (err errors.Error) {
 		return errors.NewNotFoundError("failed to delete the connection (2)", "connection not found")
 	}
 
-	listKey := storageHelper.Connections(connection.AccountID, connection.ApplicationID, connection.UserFromID)
+	listKey := storageHelper.Connections(accountID, applicationID, connection.UserFromID)
 	if er = c.redis.LRem(listKey, 0, key).Err(); er != nil {
 		return errors.NewInternalError("failed to delete the connection (3)", er.Error())
 	}
-	userListKey := storageHelper.ConnectionUsers(connection.AccountID, connection.ApplicationID, connection.UserFromID)
-	userKey := storageHelper.User(connection.AccountID, connection.ApplicationID, connection.UserToID)
+	userListKey := storageHelper.ConnectionUsers(accountID, applicationID, connection.UserFromID)
+	userKey := storageHelper.User(accountID, applicationID, connection.UserToID)
 	if er = c.redis.LRem(userListKey, 0, userKey).Err(); er != nil {
 		return errors.NewInternalError("failed to delete the connection (4)", er.Error())
 	}
-	followerListKey := storageHelper.FollowedByUsers(connection.AccountID, connection.ApplicationID, connection.UserToID)
-	followerKey := storageHelper.User(connection.AccountID, connection.ApplicationID, connection.UserFromID)
+	followerListKey := storageHelper.FollowedByUsers(accountID, applicationID, connection.UserToID)
+	followerKey := storageHelper.User(accountID, applicationID, connection.UserFromID)
 	if er = c.redis.LRem(followerListKey, 0, followerKey).Err(); er != nil {
 		return errors.NewInternalError("failed to delete the connection (5)", er.Error())
 	}
 
-	if err := c.DeleteEventsFromLists(connection.AccountID, connection.ApplicationID, connection.UserFromID, connection.UserToID); err != nil {
+	if err := c.DeleteEventsFromLists(accountID, applicationID, connection.UserFromID, connection.UserToID); err != nil {
 		return errors.NewInternalError("failed to delete the connection (6)", err.Error())
 	}
 
@@ -178,7 +178,7 @@ func (c *connection) FollowedBy(accountID, applicationID, userID int64) (users [
 	return c.fetchAndDecodeMultipleUsers(result)
 }
 
-func (c *connection) Confirm(connection *entity.Connection, retrieve bool) (con *entity.Connection, err errors.Error) {
+func (c *connection) Confirm(accountID, applicationID int64, connection *entity.Connection, retrieve bool) (con *entity.Connection, err errors.Error) {
 	// We confirm the connection in the past forcefully so that we can update it at the confirmation time
 	connection.Enabled = true
 	connection.ConfirmedAt = time.Now()
@@ -189,7 +189,7 @@ func (c *connection) Confirm(connection *entity.Connection, retrieve bool) (con 
 		return nil, errors.NewInternalError("failed to confirm the connection (1)", er.Error())
 	}
 
-	key := storageHelper.Connection(connection.AccountID, connection.ApplicationID, connection.UserFromID, connection.UserToID)
+	key := storageHelper.Connection(accountID, applicationID, connection.UserFromID, connection.UserToID)
 
 	cmd := red.NewStringCmd("SET", key, string(val), "XX")
 	c.redis.Process(cmd)
@@ -198,24 +198,24 @@ func (c *connection) Confirm(connection *entity.Connection, retrieve bool) (con 
 		return nil, errors.NewInternalError("failed to confirm the connection (2)", er.Error())
 	}
 
-	listKey := storageHelper.Connections(connection.AccountID, connection.ApplicationID, connection.UserFromID)
+	listKey := storageHelper.Connections(accountID, applicationID, connection.UserFromID)
 	if er = c.redis.LPush(listKey, key).Err(); er != nil {
 		return nil, errors.NewInternalError("failed to confirm the connection (3)", er.Error())
 	}
 
-	userListKey := storageHelper.ConnectionUsers(connection.AccountID, connection.ApplicationID, connection.UserFromID)
-	userKey := storageHelper.User(connection.AccountID, connection.ApplicationID, connection.UserToID)
+	userListKey := storageHelper.ConnectionUsers(accountID, applicationID, connection.UserFromID)
+	userKey := storageHelper.User(accountID, applicationID, connection.UserToID)
 	if er = c.redis.LPush(userListKey, userKey).Err(); er != nil {
 		return nil, errors.NewInternalError("failed to confirm the connection (4)", er.Error())
 	}
 
-	followerListKey := storageHelper.FollowedByUsers(connection.AccountID, connection.ApplicationID, connection.UserToID)
-	followerKey := storageHelper.User(connection.AccountID, connection.ApplicationID, connection.UserFromID)
+	followerListKey := storageHelper.FollowedByUsers(accountID, applicationID, connection.UserToID)
+	followerKey := storageHelper.User(accountID, applicationID, connection.UserFromID)
 	if er = c.redis.LPush(followerListKey, followerKey).Err(); er != nil {
 		return nil, errors.NewInternalError("failed to confirm the connection (5)", er.Error())
 	}
 
-	if err = c.WriteEventsToList(connection); err != nil {
+	if err = c.WriteEventsToList(accountID, applicationID, connection); err != nil {
 		return nil, err
 	}
 
@@ -226,10 +226,10 @@ func (c *connection) Confirm(connection *entity.Connection, retrieve bool) (con 
 	return connection, nil
 }
 
-func (c *connection) WriteEventsToList(connection *entity.Connection) (err errors.Error) {
-	connectionEventsKey := storageHelper.ConnectionEvents(connection.AccountID, connection.ApplicationID, connection.UserFromID)
+func (c *connection) WriteEventsToList(accountID, applicationID int64, connection *entity.Connection) (err errors.Error) {
+	connectionEventsKey := storageHelper.ConnectionEvents(accountID, applicationID, connection.UserFromID)
 
-	eventsKey := storageHelper.Events(connection.AccountID, connection.ApplicationID, connection.UserToID)
+	eventsKey := storageHelper.Events(accountID, applicationID, connection.UserToID)
 
 	events, er := c.redis.ZRevRangeWithScores(eventsKey, "0", "-1").Result()
 	if er != nil {
@@ -278,14 +278,14 @@ func (c *connection) DeleteEventsFromLists(accountID, applicationID, userFromID,
 	return nil
 }
 
-func (c *connection) SocialConnect(user *entity.ApplicationUser, platform string, socialFriendsIDs []string, connectionType string) ([]*entity.ApplicationUser, errors.Error) {
+func (c *connection) SocialConnect(accountID, applicationID int64, user *entity.ApplicationUser, platform string, socialFriendsIDs []string, connectionType string) ([]*entity.ApplicationUser, errors.Error) {
 	result := []*entity.ApplicationUser{}
 
 	encodedSocialFriendsIDs := []string{}
 	for idx := range socialFriendsIDs {
 		encodedSocialFriendsIDs = append(encodedSocialFriendsIDs, storageHelper.SocialConnection(
-			user.AccountID,
-			user.ApplicationID,
+			accountID,
+			applicationID,
 			platform,
 			utils.Base64Encode(socialFriendsIDs[idx])))
 	}
@@ -301,15 +301,15 @@ func (c *connection) SocialConnect(user *entity.ApplicationUser, platform string
 
 	// TODO FIX THIS
 	//return c.AutoConnectSocialFriends(user, ourStoredUsersIDs)
-	return c.AutoConnectSocialFriends(user, connectionType, nil)
+	return c.AutoConnectSocialFriends(accountID, applicationID, user, connectionType, nil)
 }
 
-func (c *connection) AutoConnectSocialFriends(user *entity.ApplicationUser, connectionType string, ourStoredUsersIDs []*entity.ApplicationUser) (users []*entity.ApplicationUser, err errors.Error) {
+func (c *connection) AutoConnectSocialFriends(accountID, applicationID int64, user *entity.ApplicationUser, connectionType string, ourStoredUsersIDs []*entity.ApplicationUser) (users []*entity.ApplicationUser, err errors.Error) {
 	ourUserKeys := []string{}
 	for idx := range ourStoredUsersIDs {
 		userID := ourStoredUsersIDs[idx].ID
 
-		key := storageHelper.Connection(user.AccountID, user.ApplicationID, user.ID, userID)
+		key := storageHelper.Connection(accountID, applicationID, user.ID, userID)
 		if exists, err := c.redis.Exists(key).Result(); exists || err != nil {
 			// We don't want to update existing connections as we don't know if the user disabled them willingly or not
 			// TODO Figure out if this is the right thing to do
@@ -317,42 +317,38 @@ func (c *connection) AutoConnectSocialFriends(user *entity.ApplicationUser, conn
 		}
 
 		connection := &entity.Connection{
-			AccountID:     user.AccountID,
-			ApplicationID: user.ApplicationID,
-			UserFromID:    user.ID,
-			UserToID:      userID,
+			UserFromID: user.ID,
+			UserToID:   userID,
 		}
 
-		_, er := c.Create(connection, false)
+		_, er := c.Create(accountID, applicationID, connection, false)
 		if er != nil {
 			continue
 		}
 
-		_, er = c.Confirm(connection, false)
+		_, er = c.Confirm(accountID, applicationID, connection, false)
 		if er != nil {
 			continue
 		}
 
 		connection = &entity.Connection{
-			AccountID:     user.AccountID,
-			ApplicationID: user.ApplicationID,
-			UserFromID:    userID,
-			UserToID:      user.ID,
+			UserFromID: userID,
+			UserToID:   user.ID,
 		}
 
-		_, er = c.Create(connection, false)
+		_, er = c.Create(accountID, applicationID, connection, false)
 		if er != nil {
 			continue
 		}
 
-		_, er = c.Confirm(connection, false)
+		_, er = c.Confirm(accountID, applicationID, connection, false)
 		if er != nil {
 			continue
 		}
 
 		ourUserKeys = append(
 			ourUserKeys,
-			storageHelper.User(user.AccountID, user.ApplicationID, userID),
+			storageHelper.User(accountID, applicationID, userID),
 		)
 	}
 

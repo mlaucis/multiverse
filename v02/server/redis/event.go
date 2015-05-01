@@ -67,15 +67,18 @@ func (evt *event) Update(ctx *context.Context) (err errors.Error) {
 	}
 
 	event.ID = eventID
-	event.AccountID = ctx.Bag["accountID"].(int64)
-	event.ApplicationID = ctx.Bag["applicationID"].(int64)
 	event.UserID = ctx.Bag["applicationUserID"].(int64)
 
 	if err = validator.UpdateEvent(existingEvent, &event); err != nil {
 		return
 	}
 
-	updatedEvent, err := evt.storage.Update(*existingEvent, event, true)
+	updatedEvent, err := evt.storage.Update(
+		ctx.Bag["accountID"].(int64),
+		ctx.Bag["applicationID"].(int64),
+		*existingEvent,
+		event,
+		true)
 	if err != nil {
 		return
 	}
@@ -91,7 +94,10 @@ func (evt *event) Delete(ctx *context.Context) (err errors.Error) {
 		return errors.NewBadRequestError("failed to delete the event (1)\n"+er.Error(), er.Error())
 	}
 
-	if err = evt.storage.Delete(event); err != nil {
+	if err = evt.storage.Delete(
+		ctx.Bag["accountID"].(int64),
+		ctx.Bag["applicationID"].(int64),
+		event); err != nil {
 		return
 	}
 
@@ -103,7 +109,10 @@ func (evt *event) List(ctx *context.Context) (err errors.Error) {
 	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	var events []*entity.Event
 
-	if events, err = evt.storage.List(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(int64)); err != nil {
+	if events, err = evt.storage.List(
+		ctx.Bag["accountID"].(int64),
+		ctx.Bag["applicationID"].(int64),
+		ctx.Bag["applicationUserID"].(int64)); err != nil {
 		return
 	}
 
@@ -115,7 +124,10 @@ func (evt *event) ConnectionEventsList(ctx *context.Context) (err errors.Error) 
 	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	var events = []*entity.Event{}
 
-	if events, err = evt.storage.ConnectionList(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(int64)); err != nil {
+	if events, err = evt.storage.ConnectionList(
+		ctx.Bag["accountID"].(int64),
+		ctx.Bag["applicationID"].(int64),
+		ctx.Bag["applicationUserID"].(int64)); err != nil {
 		return
 	}
 
@@ -134,15 +146,21 @@ func (evt *event) Create(ctx *context.Context) (err errors.Error) {
 		return errors.NewBadRequestError("failed to create the event (1)\n"+er.Error(), er.Error())
 	}
 
-	event.AccountID = ctx.Bag["accountID"].(int64)
-	event.ApplicationID = ctx.Bag["applicationID"].(int64)
 	event.UserID = ctx.Bag["applicationUserID"].(int64)
 
-	if err = validator.CreateEvent(evt.appUser, event); err != nil {
+	if err = validator.CreateEvent(
+		evt.appUser,
+		ctx.Bag["accountID"].(int64),
+		ctx.Bag["applicationID"].(int64),
+		event); err != nil {
 		return
 	}
 
-	if event, err = evt.storage.Create(event, true); err != nil {
+	if event, err = evt.storage.Create(
+		ctx.Bag["accountID"].(int64),
+		ctx.Bag["applicationID"].(int64),
+		event,
+		true); err != nil {
 		return
 	}
 

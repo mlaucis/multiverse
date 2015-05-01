@@ -37,14 +37,22 @@ func (appUser *applicationUser) Update(ctx *context.Context) (err errors.Error) 
 	}
 
 	user.ID = ctx.Bag["applicationUserID"].(int64)
-	user.AccountID = ctx.Bag["accountID"].(int64)
-	user.ApplicationID = ctx.Bag["applicationID"].(int64)
 
-	if err = validator.UpdateUser(appUser.storage, ctx.Bag["applicationUser"].(*entity.ApplicationUser), &user); err != nil {
+	if err = validator.UpdateUser(
+		appUser.storage,
+		ctx.Bag["accountID"].(int64),
+		ctx.Bag["applicationID"].(int64),
+		ctx.Bag["applicationUser"].(*entity.ApplicationUser),
+		&user); err != nil {
 		return
 	}
 
-	updatedUser, err := appUser.storage.Update(*(ctx.Bag["applicationUser"].(*entity.ApplicationUser)), user, true)
+	updatedUser, err := appUser.storage.Update(
+		ctx.Bag["accountID"].(int64),
+		ctx.Bag["applicationID"].(int64),
+		*(ctx.Bag["applicationUser"].(*entity.ApplicationUser)),
+		user,
+		true)
 	if err != nil {
 		return
 	}
@@ -56,7 +64,10 @@ func (appUser *applicationUser) Update(ctx *context.Context) (err errors.Error) 
 }
 
 func (appUser *applicationUser) Delete(ctx *context.Context) (err errors.Error) {
-	if err = appUser.storage.Delete(ctx.Bag["applicationUser"].(*entity.ApplicationUser)); err != nil {
+	if err = appUser.storage.Delete(
+		ctx.Bag["accountID"].(int64),
+		ctx.Bag["applicationID"].(int64),
+		ctx.Bag["applicationUser"].(*entity.ApplicationUser)); err != nil {
 		return
 	}
 
@@ -74,14 +85,11 @@ func (appUser *applicationUser) Create(ctx *context.Context) (err errors.Error) 
 		return errors.NewBadRequestError("failed to create the application user (1)\n"+er.Error(), er.Error())
 	}
 
-	user.AccountID = ctx.Bag["accountID"].(int64)
-	user.ApplicationID = ctx.Bag["applicationID"].(int64)
-
-	if err = validator.CreateUser(appUser.storage, user); err != nil {
+	if err = validator.CreateUser(appUser.storage, ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), user); err != nil {
 		return
 	}
 
-	if user, err = appUser.storage.Create(user, true); err != nil {
+	if user, err = appUser.storage.Create(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), user, true); err != nil {
 		return
 	}
 
@@ -133,12 +141,12 @@ func (appUser *applicationUser) Login(ctx *context.Context) (err errors.Error) {
 		return
 	}
 
-	if sessionToken, err = appUser.storage.CreateSession(user); err != nil {
+	if sessionToken, err = appUser.storage.CreateSession(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), user); err != nil {
 		return
 	}
 
 	user.LastLogin = time.Now()
-	_, err = appUser.storage.Update(*user, *user, false)
+	_, err = appUser.storage.Update(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), *user, *user, false)
 	if err != nil {
 		return
 	}
@@ -170,7 +178,10 @@ func (appUser *applicationUser) RefreshSession(ctx *context.Context) (err errors
 		return errors.NewBadRequestError("failed to refresh the session token (2)\nsession token mismatch", "session token mismatch")
 	}
 
-	if sessionToken, err = appUser.storage.RefreshSession(ctx.SessionToken, ctx.Bag["applicationUser"].(*entity.ApplicationUser)); err != nil {
+	if sessionToken, err = appUser.storage.RefreshSession(
+		ctx.Bag["accountID"].(int64),
+		ctx.Bag["applicationID"].(int64),
+		ctx.SessionToken, ctx.Bag["applicationUser"].(*entity.ApplicationUser)); err != nil {
 		return
 	}
 
@@ -181,7 +192,11 @@ func (appUser *applicationUser) RefreshSession(ctx *context.Context) (err errors
 }
 
 func (appUser *applicationUser) Logout(ctx *context.Context) (err errors.Error) {
-	if err = appUser.storage.DestroySession(ctx.SessionToken, ctx.Bag["applicationUser"].(*entity.ApplicationUser)); err != nil {
+	if err = appUser.storage.DestroySession(
+		ctx.Bag["accountID"].(int64),
+		ctx.Bag["applicationID"].(int64),
+		ctx.SessionToken,
+		ctx.Bag["applicationUser"].(*entity.ApplicationUser)); err != nil {
 		return
 	}
 

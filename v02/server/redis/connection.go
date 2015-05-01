@@ -49,9 +49,6 @@ func (conn *connection) Update(ctx *context.Context) (err errors.Error) {
 		return errors.NewBadRequestError("failed to update the connection (4)\n"+er.Error(), er.Error())
 	}
 
-	connection.AccountID = ctx.Bag["accountID"].(int64)
-	connection.ApplicationID = ctx.Bag["applicationID"].(int64)
-
 	if connection.UserFromID != ctx.Bag["applicationUserID"].(int64) {
 		return errors.NewBadRequestError("failed to update the connection (5)\nuser_from mismatch", "user_from mismatch")
 	}
@@ -60,11 +57,21 @@ func (conn *connection) Update(ctx *context.Context) (err errors.Error) {
 		return errors.NewBadRequestError("failed to update the connection (6)\nuser_to mismatch", "user_to mismatch")
 	}
 
-	if err = validator.UpdateConnection(conn.appUser, existingConnection, &connection); err != nil {
+	if err = validator.UpdateConnection(
+		conn.appUser,
+		ctx.Bag["accountID"].(int64),
+		ctx.Bag["applicationID"].(int64),
+		existingConnection,
+		&connection); err != nil {
 		return
 	}
 
-	updatedConnection, err := conn.storage.Update(*existingConnection, connection, false)
+	updatedConnection, err := conn.storage.Update(
+		ctx.Bag["accountID"].(int64),
+		ctx.Bag["applicationID"].(int64),
+		*existingConnection,
+		connection,
+		false)
 	if err != nil {
 		return
 	}
@@ -80,7 +87,10 @@ func (conn *connection) Delete(ctx *context.Context) (err errors.Error) {
 		return errors.NewBadRequestError(er.Error(), er.Error())
 	}
 
-	if err = conn.storage.Delete(connection); err != nil {
+	if err = conn.storage.Delete(
+		ctx.Bag["accountID"].(int64),
+		ctx.Bag["applicationID"].(int64),
+		connection); err != nil {
 		return
 	}
 
@@ -102,24 +112,34 @@ func (conn *connection) Create(ctx *context.Context) (err errors.Error) {
 
 	receivedEnabled := connection.Enabled
 
-	connection.AccountID = ctx.Bag["accountID"].(int64)
-	connection.ApplicationID = ctx.Bag["applicationID"].(int64)
 	connection.UserFromID = ctx.Bag["applicationUserID"].(int64)
 
 	if connection.UserFromID == connection.UserToID {
 		return errors.NewBadRequestError("failed to create connection (2)\nuser is connecting with itself", "self-connecting user")
 	}
 
-	if err = validator.CreateConnection(conn.appUser, connection); err != nil {
+	if err = validator.CreateConnection(
+		conn.appUser,
+		ctx.Bag["accountID"].(int64),
+		ctx.Bag["applicationID"].(int64),
+		connection); err != nil {
 		return
 	}
 
-	if connection, err = conn.storage.Create(connection, false); err != nil {
+	if connection, err = conn.storage.Create(
+		ctx.Bag["accountID"].(int64),
+		ctx.Bag["applicationID"].(int64),
+		connection,
+		false); err != nil {
 		return
 	}
 
 	if receivedEnabled {
-		if connection, err = conn.storage.Confirm(connection, true); err != nil {
+		if connection, err = conn.storage.Confirm(
+			ctx.Bag["accountID"].(int64),
+			ctx.Bag["applicationID"].(int64),
+			connection,
+			true); err != nil {
 			return
 		}
 	}
@@ -132,7 +152,10 @@ func (conn *connection) List(ctx *context.Context) (err errors.Error) {
 	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	var users []*entity.ApplicationUser
 
-	if users, err = conn.storage.List(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(int64)); err != nil {
+	if users, err = conn.storage.List(
+		ctx.Bag["accountID"].(int64),
+		ctx.Bag["applicationID"].(int64),
+		ctx.Bag["applicationUserID"].(int64)); err != nil {
 		return
 	}
 
@@ -168,15 +191,21 @@ func (conn *connection) Confirm(ctx *context.Context) (err errors.Error) {
 		return errors.NewBadRequestError("failed to confirm the connection (1)\n"+er.Error(), er.Error())
 	}
 
-	connection.AccountID = ctx.Bag["accountID"].(int64)
-	connection.ApplicationID = ctx.Bag["applicationID"].(int64)
 	connection.UserFromID = ctx.Bag["applicationUserID"].(int64)
 
-	if err = validator.ConfirmConnection(conn.appUser, connection); err != nil {
+	if err = validator.ConfirmConnection(
+		conn.appUser,
+		ctx.Bag["accountID"].(int64),
+		ctx.Bag["applicationID"].(int64),
+		connection); err != nil {
 		return
 	}
 
-	if connection, err = conn.storage.Confirm(connection, false); err != nil {
+	if connection, err = conn.storage.Confirm(
+		ctx.Bag["accountID"].(int64),
+		ctx.Bag["applicationID"].(int64),
+		connection,
+		false); err != nil {
 		return
 	}
 
@@ -207,7 +236,13 @@ func (conn *connection) CreateSocial(ctx *context.Context) (err errors.Error) {
 		return errors.NewBadRequestError("social connecting failed (3)\nplatform mismatch", "platform mismatch")
 	}
 
-	users, err := conn.storage.SocialConnect(ctx.Bag["applicationUser"].(*entity.ApplicationUser), platformName, socialConnections.ConnectionsIDs, socialConnections.ConnectionType)
+	users, err := conn.storage.SocialConnect(
+		ctx.Bag["accountID"].(int64),
+		ctx.Bag["applicationID"].(int64),
+		ctx.Bag["applicationUser"].(*entity.ApplicationUser),
+		platformName,
+		socialConnections.ConnectionsIDs,
+		socialConnections.ConnectionType)
 	if err != nil {
 		return
 	}

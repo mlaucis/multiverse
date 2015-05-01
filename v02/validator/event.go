@@ -28,12 +28,8 @@ var (
 )
 
 // CreateEvent validates an event on create
-func CreateEvent(datastore core.ApplicationUser, event *entity.Event) errors.Error {
+func CreateEvent(datastore core.ApplicationUser, accountID, applicationID int64, event *entity.Event) errors.Error {
 	errs := []*error{}
-
-	if event.ApplicationID == 0 {
-		errs = append(errs, &errorApplicationIDZero)
-	}
 
 	if event.UserID == 0 {
 		errs = append(errs, &errorUserIDZero)
@@ -51,7 +47,7 @@ func CreateEvent(datastore core.ApplicationUser, event *entity.Event) errors.Err
 		errs = append(errs, &errorEventIDIsAlreadySet)
 	}
 
-	if exists, err := datastore.ExistsByID(event.AccountID, event.ApplicationID, event.UserID); !exists || err != nil {
+	if exists, err := datastore.ExistsByID(accountID, applicationID, event.UserID); !exists || err != nil {
 		if err != nil {
 			er := err.Raw()
 			errs = append(errs, &er)

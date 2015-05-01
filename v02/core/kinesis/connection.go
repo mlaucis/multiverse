@@ -23,13 +23,13 @@ type (
 	}
 )
 
-func (c *connection) Create(conn *entity.Connection, retrieve bool) (con *entity.Connection, err errors.Error) {
+func (c *connection) Create(accountID, applicationID int64, conn *entity.Connection, retrieve bool) (con *entity.Connection, err errors.Error) {
 	data, er := json.Marshal(conn)
 	if er != nil {
 		return nil, errors.NewInternalError("error while creating the connection (1)", er.Error())
 	}
 
-	partitionKey := fmt.Sprintf("partitionKey-%d-%d", conn.AccountID, conn.ApplicationID)
+	partitionKey := fmt.Sprintf("partitionKey-%d-%d", accountID, applicationID)
 	_, err = c.storage.PackAndPutRecord(kinesis.StreamConnectionCreate, partitionKey, data)
 
 	return nil, err
@@ -39,25 +39,25 @@ func (c *connection) Read(accountID, applicationID, userFromID, userToID int64) 
 	return connection, errors.NewInternalError("no suitable implementation found", "no suitable implementation found")
 }
 
-func (c *connection) Update(existingConnection, updatedConnection entity.Connection, retrieve bool) (con *entity.Connection, err errors.Error) {
+func (c *connection) Update(accountID, applicationID int64, existingConnection, updatedConnection entity.Connection, retrieve bool) (con *entity.Connection, err errors.Error) {
 	data, er := json.Marshal(updatedConnection)
 	if er != nil {
 		return nil, errors.NewInternalError("error while updating the connection (1)", er.Error())
 	}
 
-	partitionKey := fmt.Sprintf("partitionKey-%d-%d", updatedConnection.AccountID, updatedConnection.ApplicationID)
+	partitionKey := fmt.Sprintf("partitionKey-%d-%d", accountID, applicationID)
 	_, err = c.storage.PackAndPutRecord(kinesis.StreamConnectionUpdate, partitionKey, data)
 
 	return nil, err
 }
 
-func (c *connection) Delete(connection *entity.Connection) (err errors.Error) {
+func (c *connection) Delete(accountID, applicationID int64, connection *entity.Connection) (err errors.Error) {
 	data, er := json.Marshal(connection)
 	if er != nil {
 		return errors.NewInternalError("error while deleting the connection (1)", er.Error())
 	}
 
-	partitionKey := fmt.Sprintf("partitionKey-%d-%d", connection.AccountID, connection.ApplicationID)
+	partitionKey := fmt.Sprintf("partitionKey-%d-%d", accountID, applicationID)
 	_, err = c.storage.PackAndPutRecord(kinesis.StreamConnectionDelete, partitionKey, data)
 
 	return err
@@ -71,19 +71,19 @@ func (c *connection) FollowedBy(accountID, applicationID, userID int64) (users [
 	return users, errors.NewInternalError("no suitable implementation found", "no suitable implementation found")
 }
 
-func (c *connection) Confirm(connection *entity.Connection, retrieve bool) (con *entity.Connection, err errors.Error) {
+func (c *connection) Confirm(accountID, applicationID int64, connection *entity.Connection, retrieve bool) (con *entity.Connection, err errors.Error) {
 	data, er := json.Marshal(connection)
 	if er != nil {
 		return nil, errors.NewInternalError("error while confirming the connection (1)", er.Error())
 	}
 
-	partitionKey := fmt.Sprintf("partitionKey-%d-%d", connection.AccountID, connection.ApplicationID)
+	partitionKey := fmt.Sprintf("partitionKey-%d-%d", accountID, applicationID)
 	_, err = c.storage.PackAndPutRecord(kinesis.StreamConnectionConfirm, partitionKey, data)
 
 	return nil, err
 }
 
-func (c *connection) WriteEventsToList(connection *entity.Connection) (err errors.Error) {
+func (c *connection) WriteEventsToList(accountID, applicationID int64, connection *entity.Connection) (err errors.Error) {
 	return errors.NewInternalError("no suitable implementation found", "no suitable implementation found")
 }
 
@@ -91,7 +91,7 @@ func (c *connection) DeleteEventsFromLists(accountID, applicationID, userFromID,
 	return errors.NewInternalError("no suitable implementation found", "no suitable implementation found")
 }
 
-func (c *connection) SocialConnect(user *entity.ApplicationUser, platform string, socialFriendsIDs []string, connectionType string) (users []*entity.ApplicationUser, err errors.Error) {
+func (c *connection) SocialConnect(accountID, applicationID int64, user *entity.ApplicationUser, platform string, socialFriendsIDs []string, connectionType string) (users []*entity.ApplicationUser, err errors.Error) {
 	data, er := json.Marshal(struct {
 		User             *entity.ApplicationUser `json:"user"`
 		Platform         string                  `json:"platform"`
@@ -105,13 +105,13 @@ func (c *connection) SocialConnect(user *entity.ApplicationUser, platform string
 		return nil, errors.NewInternalError("error while confirming the connection (1)", er.Error())
 	}
 
-	partitionKey := fmt.Sprintf("partitionKey-%d-%d", user.AccountID, user.ApplicationID)
+	partitionKey := fmt.Sprintf("partitionKey-%d-%d", accountID, applicationID)
 	_, err = c.storage.PackAndPutRecord(kinesis.StreamConnectionSocialConnect, partitionKey, data)
 
 	return nil, err
 }
 
-func (c *connection) AutoConnectSocialFriends(user *entity.ApplicationUser, connectionType string, ourStoredUsersIDs []*entity.ApplicationUser) (users []*entity.ApplicationUser, err errors.Error) {
+func (c *connection) AutoConnectSocialFriends(accountID, applicationID int64, user *entity.ApplicationUser, connectionType string, ourStoredUsersIDs []*entity.ApplicationUser) (users []*entity.ApplicationUser, err errors.Error) {
 	data, er := json.Marshal(struct {
 		User              *entity.ApplicationUser   `json:"user"`
 		OurStoredUsersIDs []*entity.ApplicationUser `json:"our_stored_users_ids"`
@@ -123,7 +123,7 @@ func (c *connection) AutoConnectSocialFriends(user *entity.ApplicationUser, conn
 		return nil, errors.NewInternalError("error while creating the connections via social platform (1)", er.Error())
 	}
 
-	partitionKey := fmt.Sprintf("partitionKey-%d-%d", user.AccountID, user.ApplicationID)
+	partitionKey := fmt.Sprintf("partitionKey-%d-%d", accountID, applicationID)
 	_, err = c.storage.PackAndPutRecord(kinesis.StreamConnectionAutoConnect, partitionKey, data)
 
 	return nil, err

@@ -41,7 +41,7 @@ var (
 )
 
 // CreateUser validates a user on create
-func CreateUser(datastore core.ApplicationUser, user *entity.ApplicationUser) errors.Error {
+func CreateUser(datastore core.ApplicationUser, accountID, applicationID int64, user *entity.ApplicationUser) errors.Error {
 	errs := []*error{}
 
 	if !StringLengthBetween(user.FirstName, userNameMin, userNameMax) {
@@ -68,10 +68,6 @@ func CreateUser(datastore core.ApplicationUser, user *entity.ApplicationUser) er
 		errs = append(errs, &errorUserUsernameType)
 	}
 
-	if user.ApplicationID == 0 {
-		errs = append(errs, &errorApplicationIDZero)
-	}
-
 	if user.Email == "" || !IsValidEmail(user.Email) {
 		errs = append(errs, &errorUserEmailInvalid)
 	}
@@ -86,7 +82,7 @@ func CreateUser(datastore core.ApplicationUser, user *entity.ApplicationUser) er
 		}
 	}
 
-	if isDuplicate, err := DuplicateApplicationUserEmail(datastore, user.AccountID, user.ApplicationID, user.Email); isDuplicate || err != nil {
+	if isDuplicate, err := DuplicateApplicationUserEmail(datastore, accountID, applicationID, user.Email); isDuplicate || err != nil {
 		if isDuplicate {
 			rawErr := errorUserEmailAlreadyExists.Raw()
 			errs = append(errs, &rawErr)
@@ -96,7 +92,7 @@ func CreateUser(datastore core.ApplicationUser, user *entity.ApplicationUser) er
 		}
 	}
 
-	if isDuplicate, err := DuplicateApplicationUserUsername(datastore, user.AccountID, user.ApplicationID, user.Username); isDuplicate || err != nil {
+	if isDuplicate, err := DuplicateApplicationUserUsername(datastore, accountID, applicationID, user.Username); isDuplicate || err != nil {
 		if isDuplicate {
 			rawErr := errorUserUsernameAlreadyExists.Raw()
 			errs = append(errs, &rawErr)
@@ -110,7 +106,7 @@ func CreateUser(datastore core.ApplicationUser, user *entity.ApplicationUser) er
 }
 
 // UpdateUser validates a user on update
-func UpdateUser(datastore core.ApplicationUser, existingApplicationUser, updatedApplicationUser *entity.ApplicationUser) errors.Error {
+func UpdateUser(datastore core.ApplicationUser, accountID, applicationID int64, existingApplicationUser, updatedApplicationUser *entity.ApplicationUser) errors.Error {
 	errs := []*error{}
 
 	if !StringLengthBetween(updatedApplicationUser.FirstName, userNameMin, userNameMax) {
@@ -152,7 +148,7 @@ func UpdateUser(datastore core.ApplicationUser, existingApplicationUser, updated
 	}
 
 	if existingApplicationUser.Email != updatedApplicationUser.Email {
-		isDuplicate, err := DuplicateApplicationUserEmail(datastore, updatedApplicationUser.AccountID, updatedApplicationUser.ApplicationID, updatedApplicationUser.Email)
+		isDuplicate, err := DuplicateApplicationUserEmail(datastore, accountID, applicationID, updatedApplicationUser.Email)
 		if isDuplicate || err != nil {
 			if isDuplicate {
 				errs = append(errs, &errorEmailAddressInUse)
@@ -164,7 +160,7 @@ func UpdateUser(datastore core.ApplicationUser, existingApplicationUser, updated
 	}
 
 	if existingApplicationUser.Username != updatedApplicationUser.Username {
-		isDuplicate, err := DuplicateApplicationUserUsername(datastore, updatedApplicationUser.AccountID, updatedApplicationUser.ApplicationID, updatedApplicationUser.Username)
+		isDuplicate, err := DuplicateApplicationUserUsername(datastore, accountID, applicationID, updatedApplicationUser.Username)
 		if isDuplicate || err != nil {
 			if isDuplicate {
 				errs = append(errs, &errorUsernameInUse)

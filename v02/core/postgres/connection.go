@@ -35,12 +35,12 @@ const (
 	listUsersBySocialIDQuery  = `SELECT json_data, enabled FROM app_%d_%d.users WHERE %s`
 )
 
-func (c *connection) Create(connection *entity.Connection, retrieve bool) (*entity.Connection, errors.Error) {
+func (c *connection) Create(accountID, applicationID int64, connection *entity.Connection, retrieve bool) (*entity.Connection, errors.Error) {
 	connectionJSON, err := json.Marshal(connection)
 	if err != nil {
 		return nil, errors.NewInternalError("error while saving the connection", err.Error())
 	}
-	_, err = c.mainPg.Exec(appSchema(createConnectionQuery, connection.AccountID, connection.ApplicationID), string(connectionJSON), connection.Enabled)
+	_, err = c.mainPg.Exec(appSchema(createConnectionQuery, accountID, applicationID), string(connectionJSON), connection.Enabled)
 	if err != nil {
 		return nil, errors.NewInternalError("error while saving the connection", err.Error())
 	}
@@ -48,7 +48,7 @@ func (c *connection) Create(connection *entity.Connection, retrieve bool) (*enti
 	if !retrieve {
 		return nil, nil
 	}
-	return c.Read(connection.AccountID, connection.ApplicationID, connection.UserFromID, connection.UserToID)
+	return c.Read(accountID, applicationID, connection.UserFromID, connection.UserToID)
 }
 
 func (c *connection) Read(accountID, applicationID, userFromID, userToID int64) (*entity.Connection, errors.Error) {
@@ -73,13 +73,13 @@ func (c *connection) Read(accountID, applicationID, userFromID, userToID int64) 
 	return connection, nil
 }
 
-func (c *connection) Update(existingConnection, updatedConnection entity.Connection, retrieve bool) (*entity.Connection, errors.Error) {
+func (c *connection) Update(accountID, applicationID int64, existingConnection, updatedConnection entity.Connection, retrieve bool) (*entity.Connection, errors.Error) {
 	connectionJSON, err := json.Marshal(updatedConnection)
 	if err != nil {
 		return nil, errors.NewInternalError("error while updating the connection", err.Error())
 	}
 
-	_, err = c.mainPg.Exec(appSchema(updateConnectionQuery, existingConnection.AccountID, existingConnection.ApplicationID), string(connectionJSON), existingConnection.UserFromID, existingConnection.UserToID)
+	_, err = c.mainPg.Exec(appSchema(updateConnectionQuery, accountID, applicationID), string(connectionJSON), existingConnection.UserFromID, existingConnection.UserToID)
 	if err != nil {
 		return nil, errors.NewInternalError("error while updating the connection", err.Error())
 	}
@@ -88,11 +88,11 @@ func (c *connection) Update(existingConnection, updatedConnection entity.Connect
 		return nil, nil
 	}
 
-	return c.Read(existingConnection.AccountID, existingConnection.ApplicationID, existingConnection.UserFromID, existingConnection.UserToID)
+	return c.Read(accountID, applicationID, existingConnection.UserFromID, existingConnection.UserToID)
 }
 
-func (c *connection) Delete(connection *entity.Connection) errors.Error {
-	_, err := c.mainPg.Exec(appSchema(deleteConnectionQuery, connection.AccountID, connection.ApplicationID), connection.UserFromID, connection.UserToID)
+func (c *connection) Delete(accountID, applicationID int64, connection *entity.Connection) errors.Error {
+	_, err := c.mainPg.Exec(appSchema(deleteConnectionQuery, accountID, applicationID), connection.UserFromID, connection.UserToID)
 	if err != nil {
 		return errors.NewInternalError("error while deleting the connection", err.Error())
 	}
@@ -168,15 +168,15 @@ func (c *connection) FollowedBy(accountID, applicationID, userID int64) ([]*enti
 	return users, nil
 }
 
-func (c *connection) Confirm(connection *entity.Connection, retrieve bool) (*entity.Connection, errors.Error) {
+func (c *connection) Confirm(accountID, applicationID int64, connection *entity.Connection, retrieve bool) (*entity.Connection, errors.Error) {
 	connection.Enabled = true
 	connection.ConfirmedAt = time.Now()
 	connection.UpdatedAt = connection.ConfirmedAt
 
-	return c.Update(*connection, *connection, retrieve)
+	return c.Update(accountID, applicationID, *connection, *connection, retrieve)
 }
 
-func (c *connection) WriteEventsToList(connection *entity.Connection) (err errors.Error) {
+func (c *connection) WriteEventsToList(accountID, applicationID int64, connection *entity.Connection) (err errors.Error) {
 	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
@@ -184,7 +184,7 @@ func (c *connection) DeleteEventsFromLists(accountID, applicationID, userFromID,
 	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
-func (c *connection) SocialConnect(user *entity.ApplicationUser, platform string, socialFriendsIDs []string, connectionType string) ([]*entity.ApplicationUser, errors.Error) {
+func (c *connection) SocialConnect(accountID, applicationID int64, user *entity.ApplicationUser, platform string, socialFriendsIDs []string, connectionType string) ([]*entity.ApplicationUser, errors.Error) {
 	users := []*entity.ApplicationUser{}
 
 	var conditions []string
@@ -193,7 +193,7 @@ func (c *connection) SocialConnect(user *entity.ApplicationUser, platform string
 	}
 
 	dbUsers, err := c.pg.SlaveDatastore(-1).
-		Query(fmt.Sprintf(listUsersBySocialIDQuery, user.AccountID, user.ApplicationID, strings.Join(conditions, " OR ")))
+		Query(fmt.Sprintf(listUsersBySocialIDQuery, accountID, applicationID, strings.Join(conditions, " OR ")))
 	if err != nil {
 		return users, errors.NewInternalError("error while connecting the users", err.Error())
 	}
@@ -215,27 +215,25 @@ func (c *connection) SocialConnect(user *entity.ApplicationUser, platform string
 		users = append(users, user)
 	}
 
-	return c.AutoConnectSocialFriends(user, connectionType, users)
+	return c.AutoConnectSocialFriends(accountID, applicationID, user, connectionType, users)
 }
 
-func (c *connection) AutoConnectSocialFriends(user *entity.ApplicationUser, connectionType string, ourStoredUsersIDs []*entity.ApplicationUser) ([]*entity.ApplicationUser, errors.Error) {
+func (c *connection) AutoConnectSocialFriends(accountID, applicationID int64, user *entity.ApplicationUser, connectionType string, ourStoredUsersIDs []*entity.ApplicationUser) ([]*entity.ApplicationUser, errors.Error) {
 	if len(ourStoredUsersIDs) == 0 {
 		return ourStoredUsersIDs, nil
 	}
 
 	for idx := range ourStoredUsersIDs {
 		connection := &entity.Connection{
-			AccountID:     user.AccountID,
-			ApplicationID: user.ApplicationID,
-			UserFromID:    user.ID,
-			UserToID:      ourStoredUsersIDs[idx].ID,
+			UserFromID: user.ID,
+			UserToID:   ourStoredUsersIDs[idx].ID,
 		}
 
-		if _, err := c.Create(connection, false); err != nil {
+		if _, err := c.Create(accountID, applicationID, connection, false); err != nil {
 			return nil, err
 		}
 
-		if _, err := c.Confirm(connection, false); err != nil {
+		if _, err := c.Confirm(accountID, applicationID, connection, false); err != nil {
 			return nil, err
 		}
 
@@ -244,17 +242,15 @@ func (c *connection) AutoConnectSocialFriends(user *entity.ApplicationUser, conn
 		}
 
 		connection = &entity.Connection{
-			AccountID:     user.AccountID,
-			ApplicationID: user.ApplicationID,
-			UserFromID:    ourStoredUsersIDs[idx].ID,
-			UserToID:      user.ID,
+			UserFromID: ourStoredUsersIDs[idx].ID,
+			UserToID:   user.ID,
 		}
 
-		if _, err := c.Create(connection, false); err != nil {
+		if _, err := c.Create(accountID, applicationID, connection, false); err != nil {
 			return nil, err
 		}
 
-		if _, err := c.Confirm(connection, false); err != nil {
+		if _, err := c.Confirm(accountID, applicationID, connection, false); err != nil {
 			return nil, err
 		}
 	}
@@ -265,8 +261,11 @@ func (c *connection) AutoConnectSocialFriends(user *entity.ApplicationUser, conn
 // NewConnection returns a new connection handler with PostgreSQL as storage driver
 func NewConnection(pgsql postgres.Client) core.Connection {
 	return &connection{
-		pg:      pgsql,
-		mainPg:  pgsql.MainDatastore(),
-		appUser: NewApplicationUser(pgsql),
+		pg:     pgsql,
+		mainPg: pgsql.MainDatastore(),
+		appUser: &applicationUser{
+			pg:     pgsql,
+			mainPg: pgsql.MainDatastore(),
+		},
 	}
 }

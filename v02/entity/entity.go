@@ -99,8 +99,6 @@ type (
 	// ApplicationUser structure
 	ApplicationUser struct {
 		ID                   int64               `json:"id"`
-		AccountID            int64               `json:"account_id"`
-		ApplicationID        int64               `json:"application_id"`
 		CustomID             string              `json:"custom_id,omitempty"`
 		SessionToken         string              `json:"-"`
 		SocialIDs            map[string]string   `json:"social_ids,omitempty"`
@@ -115,11 +113,10 @@ type (
 
 	// Connection structure holds the connections of the users
 	Connection struct {
-		AccountID     int64     `json:"account_id"`
-		ApplicationID int64     `json:"application_id"`
-		UserFromID    int64     `json:"user_from_id"`
-		UserToID      int64     `json:"user_to_id"`
-		ConfirmedAt   time.Time `json:"confirmed_at,omitempty"`
+		UserFromID  int64     `json:"user_from_id"`
+		UserToID    int64     `json:"user_to_id"`
+		Type        string    `json:"type"`
+		ConfirmedAt time.Time `json:"confirmed_at,omitempty"`
 		Common
 	}
 
@@ -155,8 +152,6 @@ type (
 	// Event structure
 	Event struct {
 		ID                 int64          `json:"id"`
-		AccountID          int64          `json:"account_id"`
-		ApplicationID      int64          `json:"application_id"`
 		UserID             int64          `json:"user_id"`
 		Verb               string         `json:"verb"`
 		Language           string         `json:"language,omitempty"`

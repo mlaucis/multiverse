@@ -19,13 +19,13 @@ type (
 	}
 )
 
-func (e *event) Create(event *entity.Event, retrieve bool) (evn *entity.Event, err errors.Error) {
+func (e *event) Create(accountID, applicationID int64, event *entity.Event, retrieve bool) (evn *entity.Event, err errors.Error) {
 	data, er := json.Marshal(event)
 	if er != nil {
 		return nil, errors.NewInternalError("error while creating the event (1)", er.Error())
 	}
 
-	partitionKey := fmt.Sprintf("partitionKey-%d-%d", event.AccountID, event.ApplicationID)
+	partitionKey := fmt.Sprintf("partitionKey-%d-%d", accountID, applicationID)
 	_, err = e.storage.PackAndPutRecord(kinesis.StreamEventCreate, partitionKey, data)
 
 	return nil, err
@@ -35,25 +35,25 @@ func (e *event) Read(accountID, applicationID, userID, eventID int64) (event *en
 	return nil, errors.NewNotFoundError("not found", "invalid handler specified")
 }
 
-func (e *event) Update(existingEvent, updatedEvent entity.Event, retrieve bool) (evn *entity.Event, err errors.Error) {
+func (e *event) Update(accountID, applicationID int64, existingEvent, updatedEvent entity.Event, retrieve bool) (evn *entity.Event, err errors.Error) {
 	data, er := json.Marshal(updatedEvent)
 	if er != nil {
 		return nil, errors.NewInternalError("error while updating the event (1)", er.Error())
 	}
 
-	partitionKey := fmt.Sprintf("partitionKey-%d-%d", updatedEvent.AccountID, updatedEvent.ApplicationID)
+	partitionKey := fmt.Sprintf("partitionKey-%d-%d", accountID, applicationID)
 	_, err = e.storage.PackAndPutRecord(kinesis.StreamEventUpdate, partitionKey, data)
 
 	return nil, err
 }
 
-func (e *event) Delete(event *entity.Event) (err errors.Error) {
+func (e *event) Delete(accountID, applicationID int64, event *entity.Event) (err errors.Error) {
 	data, er := json.Marshal(event)
 	if er != nil {
 		return errors.NewInternalError("error while deleting the event (1)", er.Error())
 	}
 
-	partitionKey := fmt.Sprintf("partitionKey-%d-%d", event.AccountID, event.ApplicationID)
+	partitionKey := fmt.Sprintf("partitionKey-%d-%d", accountID, applicationID)
 	_, err = e.storage.PackAndPutRecord(kinesis.StreamEventDelete, partitionKey, data)
 
 	return err
@@ -67,7 +67,7 @@ func (e *event) ConnectionList(accountID, applicationID, userID int64) (events [
 	return nil, errors.NewNotFoundError("not found", "invalid handler specified")
 }
 
-func (e *event) WriteToConnectionsLists(event *entity.Event, key string) (err errors.Error) {
+func (e *event) WriteToConnectionsLists(accountID, applicationID int64, event *entity.Event, key string) (err errors.Error) {
 	return errors.NewNotFoundError("not found", "invalid handler specified")
 }
 

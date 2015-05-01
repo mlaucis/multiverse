@@ -34,7 +34,7 @@ const (
 	listEventsByUserFollowerIDQuery = `SELECT id, json_data, enabled FROM app_%d_%d.events WHERE %s ORDER BY json_data->>'created_at' DESC LIMIT 200`
 )
 
-func (e *event) Create(event *entity.Event, retrieve bool) (*entity.Event, errors.Error) {
+func (e *event) Create(accountID, applicationID int64, event *entity.Event, retrieve bool) (*entity.Event, errors.Error) {
 	eventJSON, err := json.Marshal(event)
 	if err != nil {
 		return nil, errors.NewInternalError("error whiel saving the event", err.Error())
@@ -42,7 +42,7 @@ func (e *event) Create(event *entity.Event, retrieve bool) (*entity.Event, error
 
 	var eventID int64
 	err = e.mainPg.
-		QueryRow(appSchema(createEventQuery, event.AccountID, event.ApplicationID), string(eventJSON), event.Enabled).
+		QueryRow(appSchema(createEventQuery, accountID, applicationID), string(eventJSON), event.Enabled).
 		Scan(&eventID)
 	if err != nil {
 		return nil, errors.NewInternalError("error while saving the event", err.Error())
@@ -51,7 +51,7 @@ func (e *event) Create(event *entity.Event, retrieve bool) (*entity.Event, error
 	if !retrieve {
 		return nil, nil
 	}
-	return e.Read(event.AccountID, event.ApplicationID, event.UserID, eventID)
+	return e.Read(accountID, applicationID, event.UserID, eventID)
 }
 
 func (e *event) Read(accountID, applicationID, userID, eventID int64) (*entity.Event, errors.Error) {
@@ -77,13 +77,15 @@ func (e *event) Read(accountID, applicationID, userID, eventID int64) (*entity.E
 	return event, nil
 }
 
-func (e *event) Update(existingEvent, updatedEvent entity.Event, retrieve bool) (*entity.Event, errors.Error) {
+func (e *event) Update(accountID, applicationID int64, existingEvent, updatedEvent entity.Event, retrieve bool) (*entity.Event, errors.Error) {
 	eventJSON, err := json.Marshal(updatedEvent)
 	if err != nil {
 		return nil, errors.NewInternalError("failed to update the event", err.Error())
 	}
 
-	_, err = e.mainPg.Exec(appSchema(updateEventByIDQuery, existingEvent.AccountID, existingEvent.ApplicationID), string(eventJSON), updatedEvent.Enabled, existingEvent.ID, existingEvent.UserID)
+	_, err = e.mainPg.Exec(
+		appSchema(updateEventByIDQuery, accountID, applicationID),
+		string(eventJSON), updatedEvent.Enabled, existingEvent.ID, existingEvent.UserID)
 	if err != nil {
 		return nil, errors.NewInternalError("failed to update the event", err.Error())
 	}
@@ -92,11 +94,11 @@ func (e *event) Update(existingEvent, updatedEvent entity.Event, retrieve bool) 
 		return nil, nil
 	}
 
-	return e.Read(existingEvent.AccountID, existingEvent.ApplicationID, existingEvent.UserID, existingEvent.ID)
+	return e.Read(accountID, applicationID, existingEvent.UserID, existingEvent.ID)
 }
 
-func (e *event) Delete(event *entity.Event) errors.Error {
-	_, err := e.mainPg.Exec(deleteEventByIDQuery, event.AccountID, event.ApplicationID, event.ID, event.UserID)
+func (e *event) Delete(accountID, applicationID int64, event *entity.Event) errors.Error {
+	_, err := e.mainPg.Exec(deleteEventByIDQuery, accountID, applicationID, event.ID, event.UserID)
 	if err != nil {
 		return errors.NewInternalError("error while deleting the event", err.Error())
 	}
@@ -183,7 +185,7 @@ func (e *event) ConnectionList(accountID, applicationID, userID int64) (events [
 	return events, nil
 }
 
-func (e *event) WriteToConnectionsLists(event *entity.Event, key string) (err errors.Error) {
+func (e *event) WriteToConnectionsLists(accountID, applicationID int64, event *entity.Event, key string) (err errors.Error) {
 	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 

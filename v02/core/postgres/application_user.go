@@ -39,7 +39,7 @@ const (
 	destroyApplicationUserSessionQuery       = `DELETE FROM app_%d_%d.sessions WHERE user_id = $1 AND session_id = $2`
 )
 
-func (au *applicationUser) Create(user *entity.ApplicationUser, retrieve bool) (*entity.ApplicationUser, errors.Error) {
+func (au *applicationUser) Create(accountID, applicationID int64, user *entity.ApplicationUser, retrieve bool) (*entity.ApplicationUser, errors.Error) {
 	connectionType := user.SocialConnectionType
 	user.SocialConnectionType = ""
 	user.Activated = true
@@ -51,7 +51,7 @@ func (au *applicationUser) Create(user *entity.ApplicationUser, retrieve bool) (
 
 	var applicationUserID int64
 	err = au.mainPg.
-		QueryRow(appSchema(createApplicationUserQuery, user.AccountID, user.ApplicationID), string(applicationUserJSON)).
+		QueryRow(appSchema(createApplicationUserQuery, accountID, applicationID), string(applicationUserJSON)).
 		Scan(&applicationUserID)
 	if err != nil {
 		return nil, errors.NewInternalError("error while creating the application user", err.Error())
@@ -59,7 +59,7 @@ func (au *applicationUser) Create(user *entity.ApplicationUser, retrieve bool) (
 	user.ID = applicationUserID
 
 	for platform := range user.SocialIDs {
-		_, err := au.conn.SocialConnect(user, platform, user.SocialConnectionsIDs[platform], connectionType)
+		_, err := au.conn.SocialConnect(accountID, applicationID, user, platform, user.SocialConnectionsIDs[platform], connectionType)
 		if err != nil {
 			return nil, err
 		}
@@ -68,7 +68,7 @@ func (au *applicationUser) Create(user *entity.ApplicationUser, retrieve bool) (
 	if !retrieve {
 		return nil, nil
 	}
-	return au.Read(user.AccountID, user.ApplicationID, applicationUserID)
+	return au.Read(accountID, applicationID, applicationUserID)
 }
 
 func (au *applicationUser) Read(accountID, applicationID, userID int64) (*entity.ApplicationUser, errors.Error) {
@@ -94,7 +94,7 @@ func (au *applicationUser) Read(accountID, applicationID, userID int64) (*entity
 	return applicationUser, nil
 }
 
-func (au *applicationUser) Update(existingUser, updatedUser entity.ApplicationUser, retrieve bool) (*entity.ApplicationUser, errors.Error) {
+func (au *applicationUser) Update(accountID, applicationID int64, existingUser, updatedUser entity.ApplicationUser, retrieve bool) (*entity.ApplicationUser, errors.Error) {
 	updatedUser.SocialConnectionType = ""
 	if updatedUser.Password == "" {
 		updatedUser.Password = existingUser.Password
@@ -108,7 +108,7 @@ func (au *applicationUser) Update(existingUser, updatedUser entity.ApplicationUs
 	}
 
 	_, err = au.pg.SlaveDatastore(-1).
-		Exec(appSchema(updateApplicationUserByIDQuery, existingUser.AccountID, existingUser.ApplicationID), string(userJSON), existingUser.ID)
+		Exec(appSchema(updateApplicationUserByIDQuery, accountID, applicationID), string(userJSON), existingUser.ID)
 	if err != nil {
 		return nil, errors.NewInternalError("error while updating the application user", err.Error())
 	}
@@ -117,11 +117,11 @@ func (au *applicationUser) Update(existingUser, updatedUser entity.ApplicationUs
 		return nil, nil
 	}
 
-	return au.Read(existingUser.AccountID, existingUser.ApplicationID, existingUser.ID)
+	return au.Read(accountID, applicationID, existingUser.ID)
 }
 
-func (au *applicationUser) Delete(applicationUser *entity.ApplicationUser) errors.Error {
-	_, err := au.mainPg.Exec(appSchema(deleteApplicationUserByIDQuery, applicationUser.AccountID, applicationUser.ApplicationID), applicationUser.ID)
+func (au *applicationUser) Delete(accountID, applicationID int64, applicationUser *entity.ApplicationUser) errors.Error {
+	_, err := au.mainPg.Exec(appSchema(deleteApplicationUserByIDQuery, accountID, applicationID), applicationUser.ID)
 	if err != nil {
 		return errors.NewInternalError("error while deleting the application user", err.Error())
 	}
@@ -161,9 +161,9 @@ func (au *applicationUser) List(accountID, applicationID int64) (users []*entity
 	return users, nil
 }
 
-func (au *applicationUser) CreateSession(user *entity.ApplicationUser) (string, errors.Error) {
+func (au *applicationUser) CreateSession(accountID, applicationID int64, user *entity.ApplicationUser) (string, errors.Error) {
 	sessionToken := storageHelper.GenerateApplicationSessionID(user)
-	_, err := au.mainPg.Exec(appSchema(createApplicationUserSessionQuery, user.AccountID, user.ApplicationID), user.ID, sessionToken)
+	_, err := au.mainPg.Exec(appSchema(createApplicationUserSessionQuery, accountID, applicationID), user.ID, sessionToken)
 	if err != nil {
 		return "", errors.NewInternalError("error while creating application user session", err.Error())
 	}
@@ -171,9 +171,9 @@ func (au *applicationUser) CreateSession(user *entity.ApplicationUser) (string, 
 	return sessionToken, nil
 }
 
-func (au *applicationUser) RefreshSession(sessionToken string, user *entity.ApplicationUser) (string, errors.Error) {
+func (au *applicationUser) RefreshSession(accountID, applicationID int64, sessionToken string, user *entity.ApplicationUser) (string, errors.Error) {
 	updatedSessionToken := storageHelper.GenerateApplicationSessionID(user)
-	_, err := au.mainPg.Exec(appSchema(updateApplicationUserSessionQuery, user.AccountID, user.ApplicationID), sessionToken, user.ID, updatedSessionToken)
+	_, err := au.mainPg.Exec(appSchema(updateApplicationUserSessionQuery, accountID, applicationID), sessionToken, user.ID, updatedSessionToken)
 	if err != nil {
 		return "", errors.NewInternalError("error while updating application user session", err.Error())
 	}
@@ -181,9 +181,9 @@ func (au *applicationUser) RefreshSession(sessionToken string, user *entity.Appl
 	return updatedSessionToken, nil
 }
 
-func (au *applicationUser) GetSession(user *entity.ApplicationUser) (string, errors.Error) {
+func (au *applicationUser) GetSession(accountID, applicationID int64, user *entity.ApplicationUser) (string, errors.Error) {
 	rows, err := au.pg.SlaveDatastore(-1).
-		Query(appSchema(selectApplicationUserSessionQuery, user.AccountID, user.ApplicationID), user.ID)
+		Query(appSchema(selectApplicationUserSessionQuery, accountID, applicationID), user.ID)
 	if err != nil {
 		return "", errors.NewInternalError("error while reading session from the database", err.Error())
 	}
@@ -203,8 +203,8 @@ func (au *applicationUser) GetSession(user *entity.ApplicationUser) (string, err
 	return sessions[rand.Intn(len(sessions))], nil
 }
 
-func (au *applicationUser) DestroySession(sessionToken string, user *entity.ApplicationUser) errors.Error {
-	_, err := au.mainPg.Exec(appSchema(destroyApplicationUserSessionQuery, user.AccountID, user.ApplicationID), user.ID, sessionToken)
+func (au *applicationUser) DestroySession(accountID, applicationID int64, sessionToken string, user *entity.ApplicationUser) errors.Error {
+	_, err := au.mainPg.Exec(appSchema(destroyApplicationUserSessionQuery, accountID, applicationID), user.ID, sessionToken)
 	if err != nil {
 		return errors.NewInternalError("error while deleting session", err.Error())
 	}
@@ -331,6 +331,9 @@ func NewApplicationUser(pgsql postgres.Client) core.ApplicationUser {
 	return &applicationUser{
 		pg:     pgsql,
 		mainPg: pgsql.MainDatastore(),
-		conn:   NewConnection(pgsql),
+		conn: &connection{
+			pg:     pgsql,
+			mainPg: pgsql.MainDatastore(),
+		},
 	}
 }

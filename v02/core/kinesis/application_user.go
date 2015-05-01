@@ -20,7 +20,7 @@ type (
 	}
 )
 
-func (appu *applicationUser) Create(user *entity.ApplicationUser, retrieve bool) (usr *entity.ApplicationUser, err errors.Error) {
+func (appu *applicationUser) Create(accountID, applicationID int64, user *entity.ApplicationUser, retrieve bool) (usr *entity.ApplicationUser, err errors.Error) {
 	return nil, errors.NewNotFoundError("not found", "invalid handler specified")
 }
 
@@ -28,25 +28,25 @@ func (appu *applicationUser) Read(accountID, applicationID, userID int64) (user 
 	return nil, errors.NewNotFoundError("not found", "invalid handler specified")
 }
 
-func (appu *applicationUser) Update(existingUser, updatedUser entity.ApplicationUser, retrieve bool) (usr *entity.ApplicationUser, err errors.Error) {
+func (appu *applicationUser) Update(accountID, applicationID int64, existingUser, updatedUser entity.ApplicationUser, retrieve bool) (usr *entity.ApplicationUser, err errors.Error) {
 	data, er := json.Marshal(updatedUser)
 	if er != nil {
 		return nil, errors.NewInternalError("error while updating the user (1)", er.Error())
 	}
 
-	partitionKey := fmt.Sprintf("application-user-update-%d-%d-%d", updatedUser.AccountID, updatedUser.ApplicationID, updatedUser.ID)
+	partitionKey := fmt.Sprintf("application-user-update-%d-%d-%d", accountID, applicationID, updatedUser.ID)
 	_, err = appu.storage.PackAndPutRecord(kinesis.StreamApplicationUserUpdate, partitionKey, data)
 
 	return nil, err
 }
 
-func (appu *applicationUser) Delete(applicationUser *entity.ApplicationUser) (err errors.Error) {
+func (appu *applicationUser) Delete(accountID, applicationID int64, applicationUser *entity.ApplicationUser) (err errors.Error) {
 	data, er := json.Marshal(applicationUser)
 	if er != nil {
 		return errors.NewInternalError("error while deleting the user (1)", er.Error())
 	}
 
-	partitionKey := fmt.Sprintf("application-user-delete-%d-%d-%d", applicationUser.AccountID, applicationUser.ApplicationID, applicationUser.ID)
+	partitionKey := fmt.Sprintf("application-user-delete-%d-%d-%d", accountID, applicationID, applicationUser.ID)
 	_, err = appu.storage.PackAndPutRecord(kinesis.StreamApplicationUserDelete, partitionKey, data)
 
 	return err
@@ -56,19 +56,19 @@ func (appu *applicationUser) List(accountID, applicationID int64) (users []*enti
 	return nil, errors.NewNotFoundError("not found", "invalid handler specified")
 }
 
-func (appu *applicationUser) CreateSession(user *entity.ApplicationUser) (string, errors.Error) {
+func (appu *applicationUser) CreateSession(accountID, applicationID int64, user *entity.ApplicationUser) (string, errors.Error) {
 	return "", errors.NewNotFoundError("not found", "invalid handler specified")
 }
 
-func (appu *applicationUser) RefreshSession(sessionToken string, user *entity.ApplicationUser) (string, errors.Error) {
+func (appu *applicationUser) RefreshSession(accountID, applicationID int64, sessionToken string, user *entity.ApplicationUser) (string, errors.Error) {
 	return "", errors.NewNotFoundError("not found", "invalid handler specified")
 }
 
-func (appu *applicationUser) GetSession(user *entity.ApplicationUser) (string, errors.Error) {
+func (appu *applicationUser) GetSession(accountID, applicationID int64, user *entity.ApplicationUser) (string, errors.Error) {
 	return "", errors.NewNotFoundError("not found", "invalid handler specified")
 }
 
-func (appu *applicationUser) DestroySession(sessionToken string, user *entity.ApplicationUser) errors.Error {
+func (appu *applicationUser) DestroySession(accountID, applicationID int64, sessionToken string, user *entity.ApplicationUser) errors.Error {
 	return errors.NewNotFoundError("not found", "invalid handler specified")
 }
 
