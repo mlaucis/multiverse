@@ -26,12 +26,11 @@ type (
 )
 
 const (
-	createEventQuery                = `INSERT INTO app_%d_%d.events(json_data, enabled) VALUES($1, $2) RETURNING id`
-	selectEventByIDQuery            = `SELECT json_data, enabled FROM app_%d_%d.events WHERE id = $1 AND json_data->>'user_id' = $2`
-	updateEventByIDQuery            = `UPDATE app_%d_%d.events SET json_data = $1, enabled = $2 WHERE id = $3 AND json_data->>'user_id' = $4`
-	deleteEventByIDQuery            = `UPDATE app_%d_%d.events SET enabled = FALSE WHERE id = $1 AND json_data->>'user_id' = $1`
-	listEventsByUserIDQuery         = `SELECT id, json_data, enabled FROM app_%d_%d.events WHERE json_data->>'user_id' = $1`
-	listEventsByUserFollowerIDQuery = `SELECT id, json_data, enabled FROM app_%d_%d.events WHERE %s ORDER BY json_data->>'created_at' DESC LIMIT 200`
+	createEventQuery                = `INSERT INTO app_%d_%d.events(json_data) VALUES($1, $2) RETURNING id`
+	selectEventByIDQuery            = `SELECT json_data FROM app_%d_%d.events WHERE id = $1 AND json_data->>'user_id' = $2`
+	updateEventByIDQuery            = `UPDATE app_%d_%d.events SET json_data = $1 WHERE id = $2 AND json_data->>'user_id' = $3`
+	listEventsByUserIDQuery         = `SELECT id, json_data FROM app_%d_%d.events WHERE json_data->>'user_id' = $1`
+	listEventsByUserFollowerIDQuery = `SELECT id, json_data FROM app_%d_%d.events WHERE %s ORDER BY json_data->>'created_at' DESC LIMIT 200`
 )
 
 func (e *event) Create(accountID, applicationID int64, event *entity.Event, retrieve bool) (*entity.Event, errors.Error) {
@@ -42,7 +41,7 @@ func (e *event) Create(accountID, applicationID int64, event *entity.Event, retr
 
 	var eventID int64
 	err = e.mainPg.
-		QueryRow(appSchema(createEventQuery, accountID, applicationID), string(eventJSON), event.Enabled).
+		QueryRow(appSchema(createEventQuery, accountID, applicationID), string(eventJSON)).
 		Scan(&eventID)
 	if err != nil {
 		return nil, errors.NewInternalError("error while saving the event", err.Error())
@@ -55,13 +54,10 @@ func (e *event) Create(accountID, applicationID int64, event *entity.Event, retr
 }
 
 func (e *event) Read(accountID, applicationID, userID, eventID int64) (*entity.Event, errors.Error) {
-	var (
-		JSONData string
-		Enabled  bool
-	)
+	var JSONData string
 	err := e.pg.SlaveDatastore(-1).
 		QueryRow(appSchema(selectEventByIDQuery, accountID, applicationID), eventID, userID).
-		Scan(&JSONData, &Enabled)
+		Scan(&JSONData)
 	if err != nil {
 		return nil, errors.NewInternalError("error while reading the event", err.Error())
 	}
@@ -72,7 +68,6 @@ func (e *event) Read(accountID, applicationID, userID, eventID int64) (*entity.E
 		return nil, errors.NewInternalError("error while reading the account user", err.Error())
 	}
 	event.ID = eventID
-	event.Enabled = Enabled
 
 	return event, nil
 }
@@ -85,7 +80,7 @@ func (e *event) Update(accountID, applicationID int64, existingEvent, updatedEve
 
 	_, err = e.mainPg.Exec(
 		appSchema(updateEventByIDQuery, accountID, applicationID),
-		string(eventJSON), updatedEvent.Enabled, existingEvent.ID, existingEvent.UserID)
+		string(eventJSON), existingEvent.ID, existingEvent.UserID)
 	if err != nil {
 		return nil, errors.NewInternalError("failed to update the event", err.Error())
 	}
@@ -98,11 +93,10 @@ func (e *event) Update(accountID, applicationID int64, existingEvent, updatedEve
 }
 
 func (e *event) Delete(accountID, applicationID int64, event *entity.Event) errors.Error {
-	_, err := e.mainPg.Exec(deleteEventByIDQuery, accountID, applicationID, event.ID, event.UserID)
-	if err != nil {
-		return errors.NewInternalError("error while deleting the event", err.Error())
-	}
-	return nil
+	event.Enabled = false
+	_, err := e.Update(accountID, applicationID, *event, *event, false)
+
+	return err
 }
 
 func (e *event) List(accountID, applicationID, userID int64) (events []*entity.Event, er errors.Error) {
@@ -118,9 +112,8 @@ func (e *event) List(accountID, applicationID, userID int64) (events []*entity.E
 		var (
 			ID       int64
 			JSONData string
-			Enabled  bool
 		)
-		err := rows.Scan(&ID, &JSONData, &Enabled)
+		err := rows.Scan(&ID, &JSONData)
 		if err != nil {
 			return []*entity.Event{}, errors.NewInternalError("failed to read the events", err.Error())
 		}
@@ -130,7 +123,6 @@ func (e *event) List(accountID, applicationID, userID int64) (events []*entity.E
 			return []*entity.Event{}, errors.NewInternalError("failed to read the events", err.Error())
 		}
 		event.ID = ID
-		event.Enabled = Enabled
 
 		events = append(events, event)
 	}
@@ -165,9 +157,8 @@ func (e *event) ConnectionList(accountID, applicationID, userID int64) (events [
 		var (
 			ID       int64
 			JSONData string
-			Enabled  bool
 		)
-		err := rows.Scan(&ID, &JSONData, &Enabled)
+		err := rows.Scan(&ID, &JSONData)
 		if err != nil {
 			return []*entity.Event{}, errors.NewInternalError("failed to read the events", err.Error())
 		}
@@ -177,7 +168,6 @@ func (e *event) ConnectionList(accountID, applicationID, userID int64) (events [
 			return []*entity.Event{}, errors.NewInternalError("failed to read the events", err.Error())
 		}
 		event.ID = ID
-		event.Enabled = Enabled
 
 		events = append(events, event)
 	}

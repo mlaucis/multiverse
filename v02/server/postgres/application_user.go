@@ -25,7 +25,9 @@ type (
 )
 
 func (appUser *applicationUser) Read(ctx *context.Context) (err errors.Error) {
-	server.WriteResponse(ctx, ctx.Bag["applicationUser"].(*entity.ApplicationUser), http.StatusOK, 10)
+	user := ctx.Bag["applicationUser"].(*entity.ApplicationUser)
+	user.Password = ""
+	server.WriteResponse(ctx, user, http.StatusOK, 10)
 	return
 }
 

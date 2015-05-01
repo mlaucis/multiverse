@@ -26,12 +26,11 @@ type (
 
 const (
 	createApplicationUserQuery               = `INSERT INTO app_%d_%d.users(json_data) VALUES($1) RETURNING id`
-	selectApplicationUserByIDQuery           = `SELECT json_data, enabled FROM app_%d_%d.users WHERE id = $1`
+	selectApplicationUserByIDQuery           = `SELECT json_data FROM app_%d_%d.users WHERE id = $1`
 	updateApplicationUserByIDQuery           = `UPDATE app_%d_%d.users SET json_data = $1 WHERE id = $2`
-	deleteApplicationUserByIDQuery           = `UPDATE app_%d_%d.users SET enabled = FALSE WHERE id = $1`
 	listApplicationUsersByApplicationIDQuery = `SELECT id, json_data FROM app_%d_%d.users`
-	selectApplicationUserByEmailQuery        = `SELECT id, json_data, enabled FROM app_%d_%d.users WHERE json_data->>'email' = $1`
-	selectApplicationUserByUsernameQuery     = `SELECT id, json_data, enabled FROM app_%d_%d.users WHERE json_data->>'user_name' = $1`
+	selectApplicationUserByEmailQuery        = `SELECT id, json_data FROM app_%d_%d.users WHERE json_data->>'email' = $1`
+	selectApplicationUserByUsernameQuery     = `SELECT id, json_data FROM app_%d_%d.users WHERE json_data->>'user_name' = $1`
 	createApplicationUserSessionQuery        = `INSERT INTO app_%d_%d.sessions(user_id, session_id) VALUES($1, $2)`
 	selectApplicationUserSessionQuery        = `SELECT session_id FROM app_%d_%d.sessions WHERE user_id = $1`
 	selectApplicationUserBySessionQuery      = `SELECT user_id FROM app_%d_%d.sessions WHERE session_id = $1`
@@ -42,7 +41,7 @@ const (
 func (au *applicationUser) Create(accountID, applicationID int64, user *entity.ApplicationUser, retrieve bool) (*entity.ApplicationUser, errors.Error) {
 	connectionType := user.SocialConnectionType
 	user.SocialConnectionType = ""
-	user.Activated = true
+	user.Enabled = true
 	user.Password = storageHelper.EncryptPassword(user.Password)
 	applicationUserJSON, err := json.Marshal(user)
 	if err != nil {
@@ -72,13 +71,10 @@ func (au *applicationUser) Create(accountID, applicationID int64, user *entity.A
 }
 
 func (au *applicationUser) Read(accountID, applicationID, userID int64) (*entity.ApplicationUser, errors.Error) {
-	var (
-		JSONData string
-		Enabled  bool
-	)
+	var JSONData string
 	err := au.pg.SlaveDatastore(-1).
 		QueryRow(appSchema(selectApplicationUserByIDQuery, accountID, applicationID), userID).
-		Scan(&JSONData, &Enabled)
+		Scan(&JSONData)
 	if err != nil {
 		return nil, errors.NewInternalError("error while reading the application user", err.Error())
 	}
@@ -89,7 +85,6 @@ func (au *applicationUser) Read(accountID, applicationID, userID int64) (*entity
 		return nil, errors.NewInternalError("error while reading the application user", err.Error())
 	}
 	applicationUser.ID = userID
-	applicationUser.Enabled = Enabled
 
 	return applicationUser, nil
 }
@@ -121,11 +116,10 @@ func (au *applicationUser) Update(accountID, applicationID int64, existingUser, 
 }
 
 func (au *applicationUser) Delete(accountID, applicationID int64, applicationUser *entity.ApplicationUser) errors.Error {
-	_, err := au.mainPg.Exec(appSchema(deleteApplicationUserByIDQuery, accountID, applicationID), applicationUser.ID)
-	if err != nil {
-		return errors.NewInternalError("error while deleting the application user", err.Error())
-	}
-	return nil
+	applicationUser.Enabled = false
+	_, err := au.Update(accountID, applicationID, *applicationUser, *applicationUser, false)
+
+	return err
 }
 
 func (au *applicationUser) List(accountID, applicationID int64) (users []*entity.ApplicationUser, er errors.Error) {
@@ -141,9 +135,8 @@ func (au *applicationUser) List(accountID, applicationID int64) (users []*entity
 		var (
 			ID       int64
 			JSONData string
-			Enabled  bool
 		)
-		err := rows.Scan(&ID, &JSONData, &Enabled)
+		err := rows.Scan(&ID, &JSONData)
 		if err != nil {
 			return []*entity.ApplicationUser{}, errors.NewInternalError("error while retrieving list of application users", err.Error())
 		}
@@ -153,7 +146,6 @@ func (au *applicationUser) List(accountID, applicationID int64) (users []*entity
 			return []*entity.ApplicationUser{}, errors.NewInternalError("error while retrieving list of application users", err.Error())
 		}
 		user.ID = ID
-		user.Enabled = Enabled
 
 		users = append(users, user)
 	}
@@ -216,11 +208,10 @@ func (au *applicationUser) FindByEmail(accountID, applicationID int64, email str
 	var (
 		ID       int64
 		JSONData string
-		Enabled  bool
 	)
 	err := au.pg.SlaveDatastore(-1).
 		QueryRow(appSchema(selectApplicationUserByEmailQuery, accountID, applicationID), email).
-		Scan(&ID, &JSONData, &Enabled)
+		Scan(&ID, &JSONData)
 	if err != nil {
 		return nil, errors.NewInternalError("error while reading the application user", err.Error())
 	}
@@ -230,7 +221,6 @@ func (au *applicationUser) FindByEmail(accountID, applicationID int64, email str
 		return nil, errors.NewInternalError("error while reading the application user", err.Error())
 	}
 	user.ID = ID
-	user.Enabled = Enabled
 
 	return user, nil
 }
@@ -239,11 +229,10 @@ func (au *applicationUser) ExistsByEmail(accountID, applicationID int64, email s
 	var (
 		ID       int64
 		JSONData string
-		Enabled  bool
 	)
 	err := au.pg.SlaveDatastore(-1).
 		QueryRow(appSchema(selectApplicationUserByEmailQuery, accountID, applicationID), email).
-		Scan(&ID, &JSONData, &Enabled)
+		Scan(&ID, &JSONData)
 	if err == sql.ErrNoRows {
 		return false, nil
 	}
@@ -258,11 +247,10 @@ func (au *applicationUser) FindByUsername(accountID, applicationID int64, userna
 	var (
 		ID       int64
 		JSONData string
-		Enabled  bool
 	)
 	err := au.pg.SlaveDatastore(-1).
 		QueryRow(appSchema(selectApplicationUserByUsernameQuery, accountID, applicationID), username).
-		Scan(&ID, &JSONData, &Enabled)
+		Scan(&ID, &JSONData)
 	if err != nil {
 		return nil, errors.NewInternalError("error while reading the application user", err.Error())
 	}
@@ -272,7 +260,6 @@ func (au *applicationUser) FindByUsername(accountID, applicationID int64, userna
 		return nil, errors.NewInternalError("error while reading the application user", err.Error())
 	}
 	user.ID = ID
-	user.Enabled = Enabled
 
 	return user, nil
 }
@@ -281,11 +268,10 @@ func (au *applicationUser) ExistsByUsername(accountID, applicationID int64, user
 	var (
 		ID       int64
 		JSONData string
-		Enabled  bool
 	)
 	err := au.pg.SlaveDatastore(-1).
 		QueryRow(appSchema(selectApplicationUserByUsernameQuery, accountID, applicationID), username).
-		Scan(&ID, &JSONData, &Enabled)
+		Scan(&ID, &JSONData)
 	if err == sql.ErrNoRows {
 		return false, nil
 	}
@@ -297,13 +283,10 @@ func (au *applicationUser) ExistsByUsername(accountID, applicationID int64, user
 }
 
 func (au *applicationUser) ExistsByID(accountID, applicationID, userID int64) (bool, errors.Error) {
-	var (
-		JSONData string
-		Enabled  bool
-	)
+	var JSONData string
 	err := au.pg.SlaveDatastore(-1).
 		QueryRow(appSchema(selectApplicationUserByIDQuery, accountID, applicationID), userID).
-		Scan(&JSONData, &Enabled)
+		Scan(&JSONData)
 	if err == sql.ErrNoRows {
 		return false, nil
 	}

@@ -39,19 +39,16 @@ var (
 		`CREATE TABLE app_%d_%d.users
 	(
 		id SERIAL PRIMARY KEY NOT NULL,
-		json_data JSONB NOT NULL,
-		enabled BOOL DEFAULT TRUE NOT NULL
+		json_data JSONB NOT NULL
 	)`,
 		`CREATE TABLE app_%d_%d.events
 	(
 		id SERIAL PRIMARY KEY NOT NULL,
-		json_data JSONB NOT NULL,
-		enabled BOOL DEFAULT TRUE NOT NULL
+		json_data JSONB NOT NULL
 	)`,
 		`CREATE TABLE app_%d_%d.connections
 	(
-		json_data JSONB NOT NULL,
-		enabled BOOL DEFAULT TRUE NOT NULL
+		json_data JSONB NOT NULL
 	)`,
 		`CREATE TABLE app_%d_%d.sessions
 	(
