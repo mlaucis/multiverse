@@ -49,7 +49,7 @@ func humans(w http.ResponseWriter, r *http.Request) {
 	WriteCommonHeaders(10*24*3600, w, r)
 	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	w.Write([]byte(`/* TEAM */
-Founder: Normal Wiese, Onur Akpolat
+Founders: Normal Wiese, Onur Akpolat
 Lead developer: Florin Patan
 http://tapglue.com
 Location: Berlin, Germany.
@@ -58,7 +58,7 @@ Location: Berlin, Germany.
 Last update: 2015/03/15
 Standards: HTML5
 Components: None
-Software: Go, Redis`))
+Software: Go, AWS Kinesis, PostgreSQL, REDIS, Docker`))
 }
 
 // robots handles requests to robots.txt
