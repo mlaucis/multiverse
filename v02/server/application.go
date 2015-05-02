@@ -29,5 +29,8 @@ type (
 
 		// PopulateContext adds the application to the context
 		PopulateContext(ctx *context.Context) errors.Error
+
+		// PopulateContextFromID adds the application to the context
+		PopulateContextFromID(ctx *context.Context) errors.Error
 	}
 )

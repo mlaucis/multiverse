@@ -152,12 +152,14 @@ func (accUser *accountUser) Login(ctx *context.Context) (err errors.Error) {
 
 	server.WriteResponse(ctx, struct {
 		ID           int64  `json:"id"`
+		AccountID    int64  `json:"account_id"`
 		AccountToken string `json:"account_token"`
 		Token        string `json:"token"`
 		FirstName    string `json:"first_name"`
 		LastName     string `json:"last_name"`
 	}{
 		ID:           user.ID,
+		AccountID:    user.AccountID,
 		FirstName:    user.FirstName,
 		LastName:     user.LastName,
 		AccountToken: account.AuthToken,

@@ -115,7 +115,7 @@ func WriteCommonHeaders(cacheTime uint, ctx *context.Context) {
 func WriteCorsHeaders(ctx *context.Context) {
 	ctx.W.Header().Set("Access-Control-Allow-Origin", "*")
 	ctx.W.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-	ctx.W.Header().Set("Access-Control-Allow-Headers", "User-Agent, Content-Type, Content-Length, Accept-Encoding, x-tapglue-id, x-tapglue-date, x-tapglue-session, x-tapglue-payload-hash, x-tapglue-signature")
+	ctx.W.Header().Set("Access-Control-Allow-Headers", "User-Agent, Content-Type, Content-Length, Accept-Encoding, Authorization")
 	ctx.W.Header().Set("Access-Control-Allow-Credentials", "true")
 }
 

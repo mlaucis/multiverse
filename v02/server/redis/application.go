@@ -111,6 +111,10 @@ func (app *application) PopulateContext(ctx *context.Context) (err errors.Error)
 	return
 }
 
+func (app *application) PopulateContextFromID(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
+}
+
 // NewApplication returns a new application route handler
 func NewApplication(storage core.Application) server.Application {
 	return &application{

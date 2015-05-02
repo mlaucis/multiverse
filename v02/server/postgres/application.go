@@ -10,6 +10,8 @@ import (
 
 	"fmt"
 
+	"strconv"
+
 	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/v02/core"
@@ -108,6 +110,20 @@ func (app *application) PopulateContext(ctx *context.Context) (err errors.Error)
 		return errors.NewBadRequestError("error while reading application credentials", fmt.Sprintf("got %s:%s", user, pass))
 	}
 	ctx.Bag["application"], err = app.storage.FindByKey(user)
+	if err == nil {
+		ctx.Bag["accountID"] = ctx.Bag["application"].(*entity.Application).AccountID
+		ctx.Bag["applicationID"] = ctx.Bag["application"].(*entity.Application).ID
+	}
+	return
+}
+
+func (app *application) PopulateContextFromID(ctx *context.Context) (err errors.Error) {
+	applicationID, er := strconv.ParseInt(ctx.Vars["applicationID"], 10, 64)
+	if er != nil {
+		return errors.NewBadRequestError("failed to provide a valid application id", err.Error())
+	}
+
+	ctx.Bag["application"], err = app.storage.Read(ctx.Bag["accountID"].(int64), applicationID)
 	if err == nil {
 		ctx.Bag["accountID"] = ctx.Bag["application"].(*entity.Application).AccountID
 		ctx.Bag["applicationID"] = ctx.Bag["application"].(*entity.Application).ID
