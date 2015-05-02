@@ -1,7 +1,7 @@
 CREATE SCHEMA tg;
 
 CREATE TABLE tg.accounts (
-  id INT PRIMARY KEY NOT NULL,
+  id SERIAL PRIMARY KEY NOT NULL,
   json_data JSONB NOT NULL
 );
 
