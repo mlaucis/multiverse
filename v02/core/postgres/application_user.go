@@ -8,6 +8,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"math/rand"
+	"time"
 
 	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/v02/core"
@@ -45,6 +46,8 @@ func (au *applicationUser) Create(accountID, applicationID int64, user *entity.A
 	user.SocialConnectionType = ""
 	user.Enabled = true
 	user.Password = storageHelper.EncryptPassword(user.Password)
+	user.CreatedAt = time.Now()
+	user.UpdatedAt = user.CreatedAt
 
 	applicationUserJSON, err := json.Marshal(user)
 	if err != nil {
@@ -95,6 +98,7 @@ func (au *applicationUser) Update(accountID, applicationID int64, existingUser, 
 	} else if updatedUser.Password != existingUser.Password {
 		updatedUser.Password = storageHelper.EncryptPassword(updatedUser.Password)
 	}
+	updatedUser.UpdatedAt = time.Now()
 
 	userJSON, err := json.Marshal(updatedUser)
 	if err != nil {

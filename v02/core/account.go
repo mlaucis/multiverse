@@ -29,5 +29,8 @@ type (
 
 		// FindByKey will load an account by the account key, if it exists
 		FindByKey(authKey string) (*entity.Account, errors.Error)
+
+		// ReadByPublicID returns the account matching the public ID
+		ReadByPublicID(id string) (*entity.Account, errors.Error)
 	}
 )

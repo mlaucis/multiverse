@@ -35,6 +35,8 @@ const (
 )
 
 func (c *connection) Create(accountID, applicationID int64, connection *entity.Connection, retrieve bool) (*entity.Connection, errors.Error) {
+	connection.CreatedAt = time.Now()
+	connection.UpdatedAt = connection.UpdatedAt
 	connectionJSON, err := json.Marshal(connection)
 	if err != nil {
 		return nil, errors.NewInternalError("error while saving the connection", err.Error())
@@ -69,6 +71,7 @@ func (c *connection) Read(accountID, applicationID int64, userFromID, userToID s
 }
 
 func (c *connection) Update(accountID, applicationID int64, existingConnection, updatedConnection entity.Connection, retrieve bool) (*entity.Connection, errors.Error) {
+	updatedConnection.UpdatedAt = time.Now()
 	connectionJSON, err := json.Marshal(updatedConnection)
 	if err != nil {
 		return nil, errors.NewInternalError("error while updating the connection", err.Error())

@@ -57,7 +57,8 @@ type (
 
 	// Account structure
 	Account struct {
-		ID           int64          `json:"id"`
+		ID           int64          `json:"-"`
+		PublicID     string         `json:"id"`
 		Name         string         `json:"name"`
 		Description  string         `json:"description"`
 		AuthToken    string         `json:"token"`
@@ -76,23 +77,27 @@ type (
 
 	// AccountUser structure
 	AccountUser struct {
-		ID           int64        `json:"id"`
-		AccountID    int64        `json:"account_id"`
-		Role         *AccountRole `json:"account_role,omitempty"`
-		SessionToken string       `json:"-"`
+		ID              int64        `json:"-"`
+		AccountID       int64        `json:"-"`
+		PublicID        string       `json:"id"`
+		PublicAccountID string       `json:"account_id"`
+		Role            *AccountRole `json:"account_role,omitempty"`
+		SessionToken    string       `json:"-"`
 		UserCommon
 		Common
 	}
 
 	// Application structure
 	Application struct {
-		ID          int64              `json:"id"`
-		AccountID   int64              `json:"account_id"`
-		AuthToken   string             `json:"token"`
-		Name        string             `json:"name"`
-		Description string             `json:"description"`
-		URL         string             `json:"url"`
-		Users       []*ApplicationUser `json:"-"`
+		ID              int64              `json:"-"`
+		AccountID       int64              `json:"-"`
+		PublicID        string             `json:"id"`
+		PublicAccountID string             `json:"account_id"`
+		AuthToken       string             `json:"token"`
+		Name            string             `json:"name"`
+		Description     string             `json:"description"`
+		URL             string             `json:"url"`
+		Users           []*ApplicationUser `json:"-"`
 		Common
 	}
 

@@ -15,6 +15,7 @@ import (
 	"github.com/tapglue/backend/v02/entity"
 	storageHelper "github.com/tapglue/backend/v02/storage/helper"
 	"github.com/tapglue/backend/v02/storage/postgres"
+	"time"
 )
 
 type (
@@ -35,6 +36,8 @@ const (
 
 func (e *event) Create(accountID, applicationID int64, event *entity.Event, retrieve bool) (*entity.Event, errors.Error) {
 	event.ID = storageHelper.GenerateUUIDV5(storageHelper.OIDUUIDNamespace, storageHelper.GenerateRandomString(20))
+	event.CreatedAt = time.Now()
+	event.UpdatedAt = event.CreatedAt
 
 	eventJSON, err := json.Marshal(event)
 	if err != nil {
@@ -73,6 +76,7 @@ func (e *event) Read(accountID, applicationID int64, userID, eventID string) (*e
 }
 
 func (e *event) Update(accountID, applicationID int64, existingEvent, updatedEvent entity.Event, retrieve bool) (*entity.Event, errors.Error) {
+	updatedEvent.UpdatedAt = time.Now()
 	eventJSON, err := json.Marshal(updatedEvent)
 	if err != nil {
 		return nil, errors.NewInternalError("failed to update the event", err.Error())

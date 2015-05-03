@@ -69,6 +69,7 @@ func (accUser *accountUser) Create(ctx *context.Context) (err errors.Error) {
 	}
 
 	accountUser.AccountID = ctx.Bag["accountID"].(int64)
+	accountUser.PublicAccountID = ctx.Bag["account"].(*entity.Account).PublicID
 
 	if err = validator.CreateAccountUser(accUser.storage, accountUser); err != nil {
 		return
@@ -151,15 +152,15 @@ func (accUser *accountUser) Login(ctx *context.Context) (err errors.Error) {
 	_, err = accUser.storage.Update(*user, *user, false)
 
 	server.WriteResponse(ctx, struct {
-		ID           int64  `json:"id"`
-		AccountID    int64  `json:"account_id"`
+		ID           string `json:"id"`
+		AccountID    string `json:"account_id"`
 		AccountToken string `json:"account_token"`
 		Token        string `json:"token"`
 		FirstName    string `json:"first_name"`
 		LastName     string `json:"last_name"`
 	}{
-		ID:           user.ID,
-		AccountID:    user.AccountID,
+		ID:           user.PublicID,
+		AccountID:    user.PublicAccountID,
 		FirstName:    user.FirstName,
 		LastName:     user.LastName,
 		AccountToken: account.AuthToken,

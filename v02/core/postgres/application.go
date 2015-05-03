@@ -123,6 +123,7 @@ func (app *application) Update(existingApplication, updatedApplication entity.Ap
 	if updatedApplication.AuthToken == "" {
 		updatedApplication.AuthToken = existingApplication.AuthToken
 	}
+	updatedApplication.UpdatedAt = time.Now()
 
 	applicationJSON, err := json.Marshal(updatedApplication)
 	if err != nil {

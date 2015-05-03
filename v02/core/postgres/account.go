@@ -29,11 +29,13 @@ const (
 	createAccountQuery      = `INSERT INTO tg.accounts(json_data) VALUES ($1) RETURNING id`
 	selectAccountByIDQuery  = `SELECT json_data FROM tg.accounts WHERE id = $1`
 	selectAccountByKeyQuery = `SELECT id, json_data FROM tg.accounts WHERE json_data->>'token' = $1`
+	selectAccountByPublicIDQuery = `SELECT id, json_data FROM tg.accounts WHERE json_data->>'id' = $1`
 	updateAccountByIDQuery  = `UPDATE tg.accounts SET json_data = $1 WHERE id = $2`
 	deleteAccountByIDQuery  = `DELETE FROM tg.accounts WHERE id = $1`
 )
 
 func (a *account) Create(account *entity.Account, retrieve bool) (*entity.Account, errors.Error) {
+	account.PublicID = storageHelper.GenerateUUIDV5(storageHelper.OIDUUIDNamespace, storageHelper.GenerateRandomString(20))
 	account.Enabled = true
 	account.CreatedAt = time.Now()
 	account.UpdatedAt = account.CreatedAt
@@ -127,6 +129,27 @@ func (a *account) FindByKey(authKey string) (*entity.Account, errors.Error) {
 	err := a.pg.SlaveDatastore(-1).
 		QueryRow(selectAccountByKeyQuery, authKey).
 		Scan(&ID, &JSONData)
+	if err != nil {
+		return nil, errors.NewInternalError("error while loading the account", err.Error())
+	}
+	account := &entity.Account{}
+	err = json.Unmarshal([]byte(JSONData), account)
+	if err != nil {
+		return nil, errors.NewInternalError("error while loading the account", err.Error())
+	}
+	account.ID = ID
+
+	return account, nil
+}
+
+func (a *account) ReadByPublicID(id string) (*entity.Account, errors.Error) {
+	var (
+		ID       int64
+		JSONData string
+	)
+	err := a.pg.SlaveDatastore(-1).
+	QueryRow(selectAccountByPublicIDQuery, id).
+	Scan(&ID, &JSONData)
 	if err != nil {
 		return nil, errors.NewInternalError("error while loading the account", err.Error())
 	}

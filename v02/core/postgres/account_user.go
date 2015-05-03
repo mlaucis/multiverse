@@ -41,9 +41,10 @@ const (
 )
 
 func (au *accountUser) Create(accountUser *entity.AccountUser, retrieve bool) (*entity.AccountUser, errors.Error) {
+	accountUser.PublicID = storageHelper.GenerateUUIDV5(storageHelper.OIDUUIDNamespace, storageHelper.GenerateRandomString(20))
 	accountUser.Password = storageHelper.EncryptPassword(accountUser.Password)
 	accountUser.Enabled = true
-	accountUser.CreatedAt, _ = time.Parse(time.RFC3339, "0000-01-01T00:00:00Z")
+	accountUser.CreatedAt = time.Now()
 	accountUser.UpdatedAt = accountUser.CreatedAt
 	accountUser.LastLogin = accountUser.CreatedAt
 
@@ -92,7 +93,7 @@ func (au *accountUser) Update(existingAccountUser, updatedAccountUser entity.Acc
 	} else if updatedAccountUser.Password != existingAccountUser.Password {
 		updatedAccountUser.Password = storageHelper.EncryptPassword(updatedAccountUser.Password)
 	}
-	updatedAccountUser.UpdatedAt, _ = time.Parse(time.RFC3339, "0000-01-01T00:00:00Z")
+	updatedAccountUser.UpdatedAt = time.Now()
 
 	accountUserJSON, err := json.Marshal(updatedAccountUser)
 	if err != nil {
@@ -263,10 +264,11 @@ func (au *accountUser) FindByUsername(username string) (*entity.Account, *entity
 	}
 	accountUser.ID = ID
 
-	account, er := au.a.Read(accountUser.AccountID)
+	account, er := au.a.ReadByPublicID(accountUser.PublicAccountID)
 	if er != nil {
 		return nil, nil, er
 	}
+	accountUser.AccountID = account.ID
 
 	return account, accountUser, nil
 }
