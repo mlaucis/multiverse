@@ -72,6 +72,7 @@ func (app *application) Create(ctx *context.Context) (err errors.Error) {
 	}
 
 	application.AccountID = ctx.Bag["accountID"].(int64)
+	application.PublicAccountID = ctx.Bag["account"].(*entity.Account).PublicID
 
 	if err = validator.CreateApplication(application); err != nil {
 		return

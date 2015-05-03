@@ -10,12 +10,13 @@ import (
 	"fmt"
 	"strings"
 
+	"time"
+
 	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/entity"
 	storageHelper "github.com/tapglue/backend/v02/storage/helper"
 	"github.com/tapglue/backend/v02/storage/postgres"
-	"time"
 )
 
 type (

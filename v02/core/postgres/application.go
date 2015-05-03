@@ -62,10 +62,14 @@ var (
 )
 
 func (app *application) Create(application *entity.Application, retrieve bool) (*entity.Application, errors.Error) {
+	application.PublicID = storageHelper.GenerateUUIDV5(storageHelper.OIDUUIDNamespace, storageHelper.GenerateRandomString(20))
 	application.Enabled = true
 	application.CreatedAt = time.Now()
 	application.UpdatedAt = application.CreatedAt
 	application.AuthToken = storageHelper.GenerateApplicationSecretKey(application)
+
+	fmt.Printf("%#v\n", application)
+
 	applicationJSON, err := json.Marshal(application)
 	if err != nil {
 		return nil, errors.NewInternalError("error while creating the application", err.Error())

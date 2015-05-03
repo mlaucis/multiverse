@@ -212,6 +212,9 @@ func (au *accountUser) FindByEmail(email string) (*entity.Account, *entity.Accou
 		QueryRow(selectAccountUserByEmailQuery, email).
 		Scan(&ID, &JSONData)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil, nil
+		}
 		return nil, nil, errors.NewInternalError("error while reading the account user", err.Error())
 	}
 	accountUser := &entity.AccountUser{}
@@ -221,10 +224,11 @@ func (au *accountUser) FindByEmail(email string) (*entity.Account, *entity.Accou
 	}
 	accountUser.ID = ID
 
-	account, er := au.a.Read(accountUser.AccountID)
+	account, er := au.a.ReadByPublicID(accountUser.PublicAccountID)
 	if er != nil {
 		return nil, nil, er
 	}
+	accountUser.AccountID = account.ID
 
 	return account, accountUser, nil
 }
@@ -255,6 +259,9 @@ func (au *accountUser) FindByUsername(username string) (*entity.Account, *entity
 		QueryRow(selectAccountUserByUsernameQuery, username).
 		Scan(&ID, &JSONData)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil, nil
+		}
 		return nil, nil, errors.NewInternalError("error while reading the account user", err.Error())
 	}
 	accountUser := &entity.AccountUser{}

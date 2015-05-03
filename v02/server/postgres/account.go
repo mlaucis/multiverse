@@ -87,9 +87,13 @@ func (acc *account) PopulateContext(ctx *context.Context) (err errors.Error) {
 	if !ok {
 		return errors.NewBadRequestError("error while reading account credentials", fmt.Sprintf("got %s:%s", user, pass))
 	}
-	ctx.Bag["account"], err = acc.storage.FindByKey(user)
+	account, err := acc.storage.FindByKey(user)
+	if account == nil {
+		return errors.NewNotFoundError("account not found", "account not found")
+	}
 	if err == nil {
-		ctx.Bag["accountID"] = ctx.Bag["account"].(*entity.Account).ID
+		ctx.Bag["account"] = account
+		ctx.Bag["accountID"] = account.ID
 	}
 	return
 }

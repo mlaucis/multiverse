@@ -26,12 +26,12 @@ type (
 )
 
 const (
-	createAccountQuery      = `INSERT INTO tg.accounts(json_data) VALUES ($1) RETURNING id`
-	selectAccountByIDQuery  = `SELECT json_data FROM tg.accounts WHERE id = $1`
-	selectAccountByKeyQuery = `SELECT id, json_data FROM tg.accounts WHERE json_data->>'token' = $1`
+	createAccountQuery           = `INSERT INTO tg.accounts(json_data) VALUES ($1) RETURNING id`
+	selectAccountByIDQuery       = `SELECT json_data FROM tg.accounts WHERE id = $1`
+	selectAccountByKeyQuery      = `SELECT id, json_data FROM tg.accounts WHERE json_data->>'token' = $1`
 	selectAccountByPublicIDQuery = `SELECT id, json_data FROM tg.accounts WHERE json_data->>'id' = $1`
-	updateAccountByIDQuery  = `UPDATE tg.accounts SET json_data = $1 WHERE id = $2`
-	deleteAccountByIDQuery  = `DELETE FROM tg.accounts WHERE id = $1`
+	updateAccountByIDQuery       = `UPDATE tg.accounts SET json_data = $1 WHERE id = $2`
+	deleteAccountByIDQuery       = `DELETE FROM tg.accounts WHERE id = $1`
 )
 
 func (a *account) Create(account *entity.Account, retrieve bool) (*entity.Account, errors.Error) {
@@ -67,6 +67,9 @@ func (a *account) Read(accountID int64) (*entity.Account, errors.Error) {
 		QueryRow(selectAccountByIDQuery, accountID).
 		Scan(&JSONData)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
 		return nil, errors.NewInternalError("error while reading the account", err.Error())
 	}
 
@@ -130,6 +133,9 @@ func (a *account) FindByKey(authKey string) (*entity.Account, errors.Error) {
 		QueryRow(selectAccountByKeyQuery, authKey).
 		Scan(&ID, &JSONData)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
 		return nil, errors.NewInternalError("error while loading the account", err.Error())
 	}
 	account := &entity.Account{}
@@ -148,8 +154,8 @@ func (a *account) ReadByPublicID(id string) (*entity.Account, errors.Error) {
 		JSONData string
 	)
 	err := a.pg.SlaveDatastore(-1).
-	QueryRow(selectAccountByPublicIDQuery, id).
-	Scan(&ID, &JSONData)
+		QueryRow(selectAccountByPublicIDQuery, id).
+		Scan(&ID, &JSONData)
 	if err != nil {
 		return nil, errors.NewInternalError("error while loading the account", err.Error())
 	}

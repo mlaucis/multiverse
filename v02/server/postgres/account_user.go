@@ -140,6 +140,10 @@ func (accUser *accountUser) Login(ctx *context.Context) (err errors.Error) {
 		}
 	}
 
+	if account == nil || user == nil {
+		return errors.NewNotFoundError("account user not found", "either account or account user are nil")
+	}
+
 	if err = validator.AccountUserCredentialsValid(loginPayload.Password, user); err != nil {
 		return
 	}
@@ -210,9 +214,13 @@ func (accUser *accountUser) PopulateContext(ctx *context.Context) (err errors.Er
 	if !ok {
 		return errors.NewBadRequestError("error while reading account user credentials", fmt.Sprintf("got %s:%s", user, pass))
 	}
-	ctx.Bag["accountUser"], err = accUser.storage.FindBySession(pass)
+	accountUser, err := accUser.storage.FindBySession(pass)
+	if accountUser == nil {
+		return errors.NewNotFoundError("account user not found", "account user not found")
+	}
 	if err == nil {
-		ctx.Bag["accountUserID"] = ctx.Bag["accountUser"].(*entity.AccountUser).ID
+		ctx.Bag["accountUser"] = accountUser
+		ctx.Bag["accountUserID"] = accountUser.ID
 	}
 	return
 }
