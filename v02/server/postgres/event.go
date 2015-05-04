@@ -133,14 +133,19 @@ func (evt *event) CurrentUserUpdate(ctx *context.Context) (err errors.Error) {
 }
 
 func (evt *event) Delete(ctx *context.Context) (err errors.Error) {
-	event := &entity.Event{}
-	if er := json.Unmarshal(ctx.Body, event); er != nil {
-		return errors.NewBadRequestError("failed to delete the event (1)\n"+er.Error(), er.Error())
+	accountID := ctx.Bag["accountID"].(int64)
+	applicationID := ctx.Bag["applicationID"].(int64)
+	userID := ctx.Bag["applicationUserID"].(string)
+	eventID := ctx.Vars["eventID"]
+
+	event, err := evt.storage.Read(accountID, applicationID, userID, eventID)
+	if err != nil {
+		return
 	}
 
 	if err = evt.storage.Delete(
-		ctx.Bag["accountID"].(int64),
-		ctx.Bag["applicationID"].(int64),
+		accountID,
+		applicationID,
 		event); err != nil {
 		return
 	}

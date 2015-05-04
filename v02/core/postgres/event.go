@@ -29,14 +29,15 @@ type (
 
 const (
 	createEventQuery                = `INSERT INTO app_%d_%d.events(json_data) VALUES($1)`
-	selectEventByIDQuery            = `SELECT json_data FROM app_%d_%d.events WHERE json_data->>'id' = $1 AND json_data->>'user_id' = $2`
+	selectEventByIDQuery            = `SELECT json_data FROM app_%d_%d.events WHERE json_data->>'id' = $1 AND json_data->>'user_id' = $2 AND json_data->>'enabled' = 'true'`
 	updateEventByIDQuery            = `UPDATE app_%d_%d.events SET json_data = $1 WHERE json_data->>'id' = $2 AND json_data->>'user_id' = $3`
-	listEventsByUserIDQuery         = `SELECT json_data FROM app_%d_%d.events WHERE json_data->>'user_id' = $1`
-	listEventsByUserFollowerIDQuery = `SELECT json_data FROM app_%d_%d.events WHERE %s ORDER BY json_data->>'created_at' DESC LIMIT 200`
+	listEventsByUserIDQuery         = `SELECT json_data FROM app_%d_%d.events WHERE json_data->>'user_id' = $1 AND json_data->>'enabled' = 'true'`
+	listEventsByUserFollowerIDQuery = `SELECT json_data FROM app_%d_%d.events WHERE (%s) AND json_data->>'enabled' = 'true' ORDER BY json_data->>'created_at' DESC LIMIT 200`
 )
 
 func (e *event) Create(accountID, applicationID int64, event *entity.Event, retrieve bool) (*entity.Event, errors.Error) {
 	event.ID = storageHelper.GenerateUUIDV5(storageHelper.OIDUUIDNamespace, storageHelper.GenerateRandomString(20))
+	event.Enabled = true
 	event.CreatedAt = time.Now()
 	event.UpdatedAt = event.CreatedAt
 
@@ -145,11 +146,11 @@ func (e *event) ConnectionList(accountID, applicationID int64, userID string) (e
 
 	condition := []string{}
 	for idx := range connections {
-		condition = append(condition, fmt.Sprintf(`json_data @> '{"user_id": %d}'`, connections[idx].ID))
+		condition = append(condition, fmt.Sprintf(`json_data @> '{"user_id": %q}'`, connections[idx].ID))
 	}
 
 	rows, err := e.pg.SlaveDatastore(-1).
-		Query(fmt.Sprintf(listEventsByUserFollowerIDQuery, accountID, applicationID, strings.Join(condition, " AND ")))
+		Query(fmt.Sprintf(listEventsByUserFollowerIDQuery, accountID, applicationID, strings.Join(condition, " OR ")))
 	if err != nil {
 		return events, errors.NewInternalError("failed to read the events", err.Error())
 	}

@@ -224,7 +224,7 @@ func (app *application) FindByKey(applicationKey string) (*entity.Application, e
 		return nil, errors.NewInternalError("error while loading the application", err.Error())
 	}
 	application.ID = ID
-	application.AccountID = ID
+	application.AccountID = accountID
 	application.Enabled = Enabled
 
 	return application, nil
