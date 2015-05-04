@@ -32,5 +32,8 @@ type (
 
 		// FindByKey will load an application by the application key, if it exists
 		FindByKey(applicationKey string) (*entity.Application, errors.Error)
+
+		// FindByPublicID finds an application by it's public ID
+		FindByPublicID(publicID string) (*entity.Application, errors.Error)
 	}
 )

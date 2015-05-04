@@ -56,7 +56,9 @@ var (
 					URL: "http://images.tapglue.com/1/demouser/profile.jpg",
 				},
 			},
-			Metadata: "{\"customData\":\"customValue\"}",
+			Metadata: map[string]string{
+				"customData": "customValue",
+			},
 		},
 	}
 	CorrectConnection = entity.Connection{
@@ -73,7 +75,9 @@ var (
 			},
 		},
 		Common: entity.Common{
-			Metadata: "{\"more\":\"data\"}",
+			Metadata: map[string]string{
+				"more": "data",
+			},
 		},
 	}
 )

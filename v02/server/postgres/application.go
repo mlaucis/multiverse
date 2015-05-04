@@ -6,11 +6,8 @@ package postgres
 
 import (
 	"encoding/json"
-	"net/http"
-
 	"fmt"
-
-	"strconv"
+	"net/http"
 
 	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/errors"
@@ -119,13 +116,14 @@ func (app *application) PopulateContext(ctx *context.Context) (err errors.Error)
 }
 
 func (app *application) PopulateContextFromID(ctx *context.Context) (err errors.Error) {
-	applicationID, er := strconv.ParseInt(ctx.Vars["applicationID"], 10, 64)
-	if er != nil {
-		return errors.NewBadRequestError("failed to provide a valid application id", err.Error())
-	}
+	applicationID := ctx.Vars["applicationID"]
 
-	ctx.Bag["application"], err = app.storage.Read(ctx.Bag["accountID"].(int64), applicationID)
+	ctx.Bag["application"], err = app.storage.FindByPublicID(applicationID)
 	if err == nil {
+		if ctx.Bag["application"].(*entity.Application) == nil {
+			return errors.NewNotFoundError("application not found", "application not found")
+		}
+
 		ctx.Bag["accountID"] = ctx.Bag["application"].(*entity.Application).AccountID
 		ctx.Bag["applicationID"] = ctx.Bag["application"].(*entity.Application).ID
 	}

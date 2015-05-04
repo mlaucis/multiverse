@@ -25,12 +25,13 @@ type (
 )
 
 const (
-	createApplicationEntryQuery           = `INSERT INTO tg.applications (account_id, json_data) VALUES($1, $2) RETURNING id`
-	selectApplicationEntryByIDQuery       = `SELECT json_data, enabled FROM tg.applications WHERE id = $1 AND account_id = $2 and enabled = 1`
-	selectApplicationEntryByKeyQuery      = `SELECT id, account_id, json_data, enabled FROM tg.applications WHERE json_data->>'token' = $1`
-	updateApplicationEntryByIDQuery       = `UPDATE tg.applications SET json_data = $1 WHERE id = $2 AND account_id = $3`
-	deleteApplicationEntryByIDQuery       = `UPDATE tg.applications SET enabled = 0 WHERE id = $1 AND account_id = $2`
-	listApplicationsEntryByAccountIDQuery = `SELECT id, json_data, enabled FROM tg.applications where account_id = $1 and enabled = 1`
+	createApplicationEntryQuery            = `INSERT INTO tg.applications (account_id, json_data) VALUES($1, $2) RETURNING id`
+	selectApplicationEntryByIDQuery        = `SELECT json_data, enabled FROM tg.applications WHERE id = $1 AND account_id = $2 and enabled = 1`
+	selectApplicationEntryByPublicIDsQuery = `SELECT id, account_id, json_data, enabled FROM tg.applications WHERE json_data->>'id' = $1`
+	selectApplicationEntryByKeyQuery       = `SELECT id, account_id, json_data, enabled FROM tg.applications WHERE json_data->>'token' = $1`
+	updateApplicationEntryByIDQuery        = `UPDATE tg.applications SET json_data = $1 WHERE id = $2 AND account_id = $3`
+	deleteApplicationEntryByIDQuery        = `UPDATE tg.applications SET enabled = 0 WHERE id = $1 AND account_id = $2`
+	listApplicationsEntryByAccountIDQuery  = `SELECT id, json_data, enabled FROM tg.applications where account_id = $1 and enabled = 1`
 )
 
 var (
@@ -214,6 +215,30 @@ func (app *application) FindByKey(applicationKey string) (*entity.Application, e
 	)
 	err := app.pg.SlaveDatastore(-1).
 		QueryRow(selectApplicationEntryByKeyQuery, applicationKey).
+		Scan(&ID, &accountID, &JSONData, &Enabled)
+	if err != nil {
+		return nil, errors.NewInternalError("error while loading the application", err.Error())
+	}
+	application := &entity.Application{}
+	err = json.Unmarshal([]byte(JSONData), application)
+	if err != nil {
+		return nil, errors.NewInternalError("error while loading the application", err.Error())
+	}
+	application.ID = ID
+	application.AccountID = accountID
+	application.Enabled = Enabled
+
+	return application, nil
+}
+
+func (app *application) FindByPublicID(publicID string) (*entity.Application, errors.Error) {
+	var (
+		ID, accountID int64
+		JSONData      string
+		Enabled       bool
+	)
+	err := app.pg.SlaveDatastore(-1).
+		QueryRow(selectApplicationEntryByPublicIDsQuery, publicID).
 		Scan(&ID, &accountID, &JSONData, &Enabled)
 	if err != nil {
 		return nil, errors.NewInternalError("error while loading the application", err.Error())

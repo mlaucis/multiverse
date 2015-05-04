@@ -185,6 +185,10 @@ func (app *application) FindByKey(applicationKey string) (*entity.Application, e
 	return nil, errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
+func (app *application) FindByPublicID(publicID string) (*entity.Application, errors.Error) {
+	return nil, errors.NewInternalError("not implemented yet", "not implemented yet")
+}
+
 // NewApplication creates a new Application
 func NewApplication(storageClient redis.Client) core.Application {
 	return &application{
