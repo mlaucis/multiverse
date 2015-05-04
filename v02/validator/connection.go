@@ -57,8 +57,11 @@ func CreateConnection(datastore core.ApplicationUser, accountID, applicationID i
 		er := err.Raw()
 		errs = append(errs, &er)
 	}
-	if !userTo.Activated {
-		err := fmt.Errorf("user %s is not activated", userTo.Username)
+	if userTo == nil {
+		err := fmt.Errorf("user %s not found", connection.UserToID)
+		errs = append(errs, &err)
+	} else if !userTo.Activated {
+		err := fmt.Errorf("user %s is not activated", connection.UserToID)
 		errs = append(errs, &err)
 	}
 
@@ -74,7 +77,7 @@ func ConfirmConnection(datastore core.ApplicationUser, accountID, applicationID 
 			er := err.Raw()
 			errs = append(errs, &er)
 		} else {
-			err := fmt.Errorf("user %d does not exists", connection.UserFromID)
+			err := fmt.Errorf("user %s does not exists", connection.UserFromID)
 			errs = append(errs, &err)
 		}
 	}

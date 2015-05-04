@@ -146,7 +146,7 @@ func (conn *connection) Create(ctx *context.Context) (err errors.Error) {
 func (conn *connection) List(ctx *context.Context) (err errors.Error) {
 	accountID := ctx.Bag["accountID"].(int64)
 	applicationID := ctx.Bag["applicationID"].(int64)
-	userID := ctx.Bag["applicationUserID"].(string)
+	userID := ctx.Vars["applicationUserID"]
 
 	exists, err := conn.appUser.ExistsByID(accountID, applicationID, userID)
 	if err != nil {
@@ -167,7 +167,12 @@ func (conn *connection) List(ctx *context.Context) (err errors.Error) {
 		users[idx].Password = ""
 	}
 
-	server.WriteResponse(ctx, users, http.StatusOK, 10)
+	status := http.StatusOK
+	if len(users) == 0 {
+		status = http.StatusNoContent
+	}
+
+	server.WriteResponse(ctx, users, status, 10)
 	return
 }
 
@@ -185,14 +190,19 @@ func (conn *connection) CurrentUserList(ctx *context.Context) (err errors.Error)
 		users[idx].Password = ""
 	}
 
-	server.WriteResponse(ctx, users, http.StatusOK, 10)
+	status := http.StatusOK
+	if len(users) == 0 {
+		status = http.StatusNoContent
+	}
+
+	server.WriteResponse(ctx, users, status, 10)
 	return
 }
 
 func (conn *connection) FollowedByList(ctx *context.Context) (err errors.Error) {
 	accountID := ctx.Bag["accountID"].(int64)
 	applicationID := ctx.Bag["applicationID"].(int64)
-	userID := ctx.Bag["applicationUserID"].(string)
+	userID := ctx.Vars["applicationUserID"]
 
 	exists, err := conn.appUser.ExistsByID(accountID, applicationID, userID)
 	if err != nil {
@@ -212,7 +222,12 @@ func (conn *connection) FollowedByList(ctx *context.Context) (err errors.Error) 
 		users[idx].Password = ""
 	}
 
-	server.WriteResponse(ctx, users, http.StatusOK, 10)
+	status := http.StatusOK
+	if len(users) == 0 {
+		status = http.StatusNoContent
+	}
+
+	server.WriteResponse(ctx, users, status, 10)
 	return
 }
 
@@ -226,7 +241,12 @@ func (conn *connection) CurrentUserFollowedByList(ctx *context.Context) (err err
 		users[idx].Password = ""
 	}
 
-	server.WriteResponse(ctx, users, http.StatusOK, 10)
+	status := http.StatusOK
+	if len(users) == 0 {
+		status = http.StatusNoContent
+	}
+
+	server.WriteResponse(ctx, users, status, 10)
 	return
 }
 
@@ -331,7 +351,12 @@ func (conn *connection) Friends(ctx *context.Context) (err errors.Error) {
 		users[idx].Password = ""
 	}
 
-	server.WriteResponse(ctx, users, http.StatusOK, 10)
+	status := http.StatusOK
+	if len(users) == 0 {
+		status = http.StatusNoContent
+	}
+
+	server.WriteResponse(ctx, users, status, 10)
 	return
 }
 
@@ -345,7 +370,12 @@ func (conn *connection) CurrentUserFriends(ctx *context.Context) (err errors.Err
 		users[idx].Password = ""
 	}
 
-	server.WriteResponse(ctx, users, http.StatusOK, 10)
+	status := http.StatusOK
+	if len(users) == 0 {
+		status = http.StatusNoContent
+	}
+
+	server.WriteResponse(ctx, users, status, 10)
 	return
 }
 

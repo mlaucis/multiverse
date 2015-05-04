@@ -169,7 +169,12 @@ func (evt *event) List(ctx *context.Context) (err errors.Error) {
 		return
 	}
 
-	server.WriteResponse(ctx, events, http.StatusOK, 10)
+	status := http.StatusOK
+	if len(events) == 0 {
+		status = http.StatusNoContent
+	}
+
+	server.WriteResponse(ctx, events, status, 10)
 	return
 }
 
@@ -183,7 +188,12 @@ func (evt *event) CurrentUserList(ctx *context.Context) (err errors.Error) {
 		return
 	}
 
-	server.WriteResponse(ctx, events, http.StatusOK, 10)
+	status := http.StatusOK
+	if len(events) == 0 {
+		status = http.StatusNoContent
+	}
+
+	server.WriteResponse(ctx, events, status, 10)
 	return
 }
 
@@ -197,7 +207,12 @@ func (evt *event) Feed(ctx *context.Context) (err errors.Error) {
 		return
 	}
 
-	server.WriteResponse(ctx, events, http.StatusOK, 10)
+	status := http.StatusOK
+	if len(events) == 0 {
+		status = http.StatusNoContent
+	}
+
+	server.WriteResponse(ctx, events, status, 10)
 	return
 }
 

@@ -27,16 +27,16 @@ type (
 
 const (
 	createApplicationUserQuery               = `INSERT INTO app_%d_%d.users(json_data) VALUES($1)`
-	selectApplicationUserByIDQuery           = `SELECT json_data FROM app_%d_%d.users WHERE json_data->>'id' = $1`
+	selectApplicationUserByIDQuery           = `SELECT json_data FROM app_%d_%d.users WHERE json_data->>'id' = $1 AND json_data->>'enabled' = 'true'`
 	updateApplicationUserByIDQuery           = `UPDATE app_%d_%d.users SET json_data = $1 WHERE json_data->>'id' = $2`
-	listApplicationUsersByApplicationIDQuery = `SELECT json_data FROM app_%d_%d.users`
-	selectApplicationUserByEmailQuery        = `SELECT json_data FROM app_%d_%d.users WHERE json_data->>'email' = $1`
-	selectApplicationUserByUsernameQuery     = `SELECT json_data FROM app_%d_%d.users WHERE json_data->>'user_name' = $1`
+	listApplicationUsersByApplicationIDQuery = `SELECT json_data FROM app_%d_%d.users WHERE json_data->>'enabled' = 'true'`
+	selectApplicationUserByEmailQuery        = `SELECT json_data FROM app_%d_%d.users WHERE json_data->>'email' = $1 AND json_data->>'enabled' = 'true'`
+	selectApplicationUserByUsernameQuery     = `SELECT json_data FROM app_%d_%d.users WHERE json_data->>'user_name' = $1 AND json_data->>'enabled' = 'true'`
 	createApplicationUserSessionQuery        = `INSERT INTO app_%d_%d.sessions(user_id, session_id) VALUES($1, $2)`
-	selectApplicationUserSessionQuery        = `SELECT session_id FROM app_%d_%d.sessions WHERE user_id = $1`
-	selectApplicationUserBySessionQuery      = `SELECT user_id FROM app_%d_%d.sessions WHERE session_id = $1`
+	selectApplicationUserSessionQuery        = `SELECT session_id FROM app_%d_%d.sessions WHERE user_id = $1 AND enabled = TRUE`
+	selectApplicationUserBySessionQuery      = `SELECT user_id FROM app_%d_%d.sessions WHERE session_id = $1 AND enabled = TRUE`
 	updateApplicationUserSessionQuery        = `UPDATE app_%d_%d.sessions SET session_id = $1 WHERE user_id = $2 AND session_id = $3`
-	destroyApplicationUserSessionQuery       = `DELETE FROM app_%d_%d.sessions WHERE user_id = $1 AND session_id = $2`
+	destroyApplicationUserSessionQuery       = `UPDATE app_%d_%d.sessions SET enabled = FALSE WHERE user_id = $1 AND session_id = $2`
 )
 
 func (au *applicationUser) Create(accountID, applicationID int64, user *entity.ApplicationUser, retrieve bool) (*entity.ApplicationUser, errors.Error) {
@@ -44,6 +44,7 @@ func (au *applicationUser) Create(accountID, applicationID int64, user *entity.A
 
 	user.ID = storageHelper.GenerateUUIDV5(storageHelper.OIDUUIDNamespace, storageHelper.GenerateRandomString(20))
 	user.SocialConnectionType = ""
+	user.Activated = true
 	user.Enabled = true
 	user.Password = storageHelper.EncryptPassword(user.Password)
 	user.CreatedAt = time.Now()

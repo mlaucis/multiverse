@@ -26,18 +26,18 @@ type (
 )
 
 const (
-	createConnectionQuery     = `INSERT INTO app_%d_%d.connections(json_data) VALUES ($1)`
-	selectConnectionQuery     = `SELECT json_data FROM app_%d_%d.connections WHERE json_data->>'user_from_id' = $1 AND json_data->>'user_to_id' = $2`
-	updateConnectionQuery     = `UPDATE app_%d_%d.connections SET json_data = $1 WHERE json_data->>'user_from_id' = $2 AND json_data->>'user_to_id' = $3`
-	listConnectionQuery       = `SELECT json_data FROM app_%d_%d.connections WHERE json_data->>'user_from_id' = $1 AND json_data->>'type' = 'follower'`
-	followedByConnectionQuery = `SELECT json_data FROM app_%d_%d.connections WHERE json_data->>'user_to_id' = $1 AND json_data->>'type' = 'follower'`
-	friendConnectionsQuery    = `SELECT json_data FROM app_%d_%d.connections WHERE json_data->>'user_to_id' = $1 AND json_data->>'type' = 'friend'`
-	listUsersBySocialIDQuery  = `SELECT json_data FROM app_%d_%d.users WHERE %s`
+	createConnectionQuery    = `INSERT INTO app_%d_%d.connections(json_data) VALUES ($1)`
+	selectConnectionQuery    = `SELECT json_data FROM app_%d_%d.connections WHERE json_data->>'user_from_id' = $1 AND json_data->>'user_to_id' = $2`
+	updateConnectionQuery    = `UPDATE app_%d_%d.connections SET json_data = $1 WHERE json_data->>'user_from_id' = $2 AND json_data->>'user_to_id' = $3`
+	followsQuery             = `SELECT json_data FROM app_%d_%d.connections WHERE json_data->>'user_from_id' = $1 AND json_data->>'type' = 'follow' and json_data->>'enabled' = 'true'`
+	followersQuery           = `SELECT json_data FROM app_%d_%d.connections WHERE json_data->>'user_to_id' = $1 AND json_data->>'type' = 'follow' and json_data->>'enabled' = 'true'`
+	friendConnectionsQuery   = `SELECT json_data FROM app_%d_%d.connections WHERE json_data->>'user_to_id' = $1 AND json_data->>'type' = 'friend' and json_data->>'enabled' = 'true'`
+	listUsersBySocialIDQuery = `SELECT json_data FROM app_%d_%d.users WHERE %s`
 )
 
 func (c *connection) Create(accountID, applicationID int64, connection *entity.Connection, retrieve bool) (*entity.Connection, errors.Error) {
 	connection.CreatedAt = time.Now()
-	connection.UpdatedAt = connection.UpdatedAt
+	connection.UpdatedAt = connection.CreatedAt
 	connectionJSON, err := json.Marshal(connection)
 	if err != nil {
 		return nil, errors.NewInternalError("error while saving the connection", err.Error())
@@ -101,7 +101,7 @@ func (c *connection) List(accountID, applicationID int64, userID string) (users 
 	users = []*entity.ApplicationUser{}
 
 	rows, err := c.pg.SlaveDatastore(-1).
-		Query(appSchema(listConnectionQuery, accountID, applicationID), userID)
+		Query(appSchema(followsQuery, accountID, applicationID), userID)
 	if err != nil {
 		return users, errors.NewInternalError("error while retrieving list of application users", err.Error())
 	}
@@ -132,7 +132,7 @@ func (c *connection) FollowedBy(accountID, applicationID int64, userID string) (
 	users := []*entity.ApplicationUser{}
 
 	rows, err := c.pg.SlaveDatastore(-1).
-		Query(appSchema(followedByConnectionQuery, accountID, applicationID), userID)
+		Query(appSchema(followersQuery, accountID, applicationID), userID)
 	if err != nil {
 		return users, errors.NewInternalError("error while retrieving list of account users", err.Error())
 	}

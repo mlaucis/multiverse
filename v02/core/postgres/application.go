@@ -52,7 +52,8 @@ var (
 	(
 		user_id CHAR(36) NOT NULL,
 		session_id CHAR(40) NOT NULL,
-		created_at TIMESTAMP DEFAULT now() NOT NULL
+		created_at TIMESTAMP DEFAULT now() NOT NULL,
+		enabled BOOL DEFAULT TRUE NOT NULL
 	)`,
 
 		`CREATE INDEX on app_%d_%d.users USING GIN (json_data jsonb_path_ops)`,

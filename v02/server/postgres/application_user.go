@@ -224,6 +224,7 @@ func (appUser *applicationUser) PopulateContext(ctx *context.Context) (err error
 	ctx.Bag["applicationUser"], err = appUser.storage.FindBySession(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), pass)
 	if err == nil {
 		ctx.Bag["applicationUserID"] = ctx.Bag["applicationUser"].(*entity.ApplicationUser).ID
+		ctx.SessionToken = pass
 	}
 	return
 }
