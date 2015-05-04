@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"runtime"
 	"strconv"
 	"strings"
 	"testing"
@@ -19,15 +18,8 @@ import (
 	"github.com/tapglue/backend/logger"
 	. "github.com/tapglue/backend/utils"
 	"github.com/tapglue/backend/v02/core"
-	coreRedis "github.com/tapglue/backend/v02/core/redis"
 	"github.com/tapglue/backend/v02/entity"
 	"github.com/tapglue/backend/v02/server"
-	"github.com/tapglue/backend/v02/storage"
-	"github.com/tapglue/backend/v02/storage/kinesis"
-	"github.com/tapglue/backend/v02/storage/redis"
-	"github.com/tapglue/backend/v02/validator"
-	"github.com/tapglue/backend/v02/validator/keys"
-	"github.com/tapglue/backend/v02/validator/tokens"
 
 	"github.com/gorilla/mux"
 	. "gopkg.in/check.v1"
@@ -43,7 +35,6 @@ const apiVersion = "0.2"
 var (
 	_                  = Suite(&ServerSuite{})
 	conf               *config.Config
-	storageClient      *storage.Client
 	doLogTest          = flag.Bool("lt", false, "Set flag in order to get logs output from the tests")
 	doCurlLogs         = flag.Bool("ct", false, "Set flag in order to get logs output from the tests as curl requests, sets -lt=true")
 	doLogResponseTimes = flag.Bool("rt", false, "Set flag in order to get logs with response times only")
@@ -57,49 +48,6 @@ var (
 	coreConn    core.Connection
 	coreEvt     core.Event
 )
-
-// Setup once when the suite starts running
-func (s *ServerSuite) SetUpTest(c *C) {
-	flag.Parse()
-
-	if *doCurlLogs {
-		*doLogTest = true
-	}
-
-	runtime.GOMAXPROCS(runtime.NumCPU())
-	conf = config.NewConf("")
-	redis.Init(conf.Redis.Hosts[0], conf.Redis.Password, conf.Redis.DB, conf.Redis.PoolSize)
-	redis.Client().FlushDb()
-	kinesisClient := kinesis.New("test", "test", "test")
-	storageClient = storage.Init(redis.Client(), kinesisClient)
-	core.Init(storageClient)
-	errors.Init(true)
-
-	coreAcc = coreRedis.NewAccount(storageClient, redis.Client())
-	coreAccUser = coreRedis.NewAccountUser(storageClient, redis.Client())
-	coreApp = coreRedis.NewApplication(storageClient, redis.Client())
-	coreAppUser = coreRedis.NewApplicationUser(storageClient, redis.Client())
-	coreConn = coreRedis.NewConnection(storageClient, redis.Client())
-	coreEvt = coreRedis.NewEvent(storageClient, redis.Client())
-
-	server.InitCores(coreAcc, coreAccUser, coreApp, coreAppUser, coreConn, coreEvt)
-	validator.Init(storageClient, coreAcc, coreAccUser, coreApp, coreAppUser)
-
-	if *doLogResponseTimes {
-		go logger.TGLogResponseTimes(mainLogChan)
-		go logger.TGLogResponseTimes(errorLogChan)
-	} else if *doLogTest {
-		if *doCurlLogs {
-			go logger.TGCurlLog(mainLogChan)
-		} else {
-			go logger.TGLog(mainLogChan)
-		}
-		go logger.TGLog(errorLogChan)
-	} else {
-		go logger.TGSilentLog(mainLogChan)
-		go logger.TGSilentLog(errorLogChan)
-	}
-}
 
 // Test POST common without CLHeader
 func (s *ServerSuite) TestValidatePostCommon_NoCLHeader(c *C) {
@@ -324,7 +272,7 @@ func getComposedRouteString(routeName string, params ...interface{}) string {
 }
 
 // runRequest takes a route, path, payload and token, performs a request and return a response recorder
-func runRequest(routeName, routePath, payload, secretKey, sessionToken string, numKeyParts int) (int, string, errors.Error) {
+func runRequest(routeName, routePath, payload string, singFunc func(*http.Request)) (int, string, errors.Error) {
 	var (
 		requestRoute *server.Route
 		routePattern string
@@ -353,23 +301,7 @@ func runRequest(routeName, routePath, payload, secretKey, sessionToken string, n
 		panic(err)
 	}
 
-	if sessionToken != "" {
-		req.Header.Set("x-tapglue-session", sessionToken)
-	}
-
 	createCommonRequestHeaders(req)
-	if secretKey != "" {
-		var err error
-		if numKeyParts == 3 {
-			err = tokens.SignRequest(secretKey, requestRoute.Scope, apiVersion, numKeyParts, req)
-		} else {
-			err = keys.SignRequest(secretKey, requestRoute.Scope, apiVersion, numKeyParts, req)
-		}
-
-		if err != nil {
-			panic(err)
-		}
-	}
 
 	w := httptest.NewRecorder()
 	m := mux.NewRouter()
@@ -392,8 +324,8 @@ func getAccountUserSessionToken(user *entity.AccountUser) string {
 }
 
 // createApplicationUserSessionToken creates an application user session and returns the token
-func createApplicationUserSessionToken(user *entity.ApplicationUser) string {
-	sessionToken, err := coreAppUser.CreateSession(user)
+func createApplicationUserSessionToken(accountID, applicationID int64, user *entity.ApplicationUser) string {
+	sessionToken, err := coreAppUser.CreateSession(accountID, applicationID, user)
 	if err != nil {
 		panic(err)
 	}
