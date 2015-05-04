@@ -29,7 +29,13 @@ func (appUser *applicationUser) Read(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (appUser *applicationUser) Update(ctx *context.Context) (err errors.Error) {
+func (appUser *applicationUser) ReadCurrent(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
+	server.WriteResponse(ctx, ctx.Bag["applicationUser"].(*entity.ApplicationUser), http.StatusOK, 10)
+	return
+}
+
+func (appUser *applicationUser) UpdateCurrent(ctx *context.Context) (err errors.Error) {
 	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	user := *(ctx.Bag["applicationUser"].(*entity.ApplicationUser))
 	var er error
@@ -64,7 +70,7 @@ func (appUser *applicationUser) Update(ctx *context.Context) (err errors.Error) 
 	return
 }
 
-func (appUser *applicationUser) Delete(ctx *context.Context) (err errors.Error) {
+func (appUser *applicationUser) DeleteCurrent(ctx *context.Context) (err errors.Error) {
 	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	if err = appUser.storage.Delete(
 		ctx.Bag["accountID"].(int64),

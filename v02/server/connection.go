@@ -21,11 +21,23 @@ type (
 		// Create handles requests to create a user connection
 		Create(*context.Context) errors.Error
 
-		// List handles requests to list a users connections
+		// List handles requests to get a users connections
 		List(*context.Context) errors.Error
 
-		// FollowedByList handles requests to list a users list of users who follow him
+		// List handles requests to get the current users connections
+		CurrentUserList(*context.Context) errors.Error
+
+		// FollowedByList handles requests to get a users list of users who follow him
 		FollowedByList(*context.Context) errors.Error
+
+		// CurrentUserFollowedByList handles requests to get the current user list of users who follow him
+		CurrentUserFollowedByList(*context.Context) errors.Error
+
+		// Friends handles requests to get a user list of friends
+		Friends(*context.Context) errors.Error
+
+		// CurrentUserFriends handles requests to get the current user list of friends
+		CurrentUserFriends(*context.Context) errors.Error
 
 		// Confirm handles requests to confirm a user connection
 		Confirm(*context.Context) errors.Error

@@ -90,6 +90,10 @@ func (evt *event) Update(ctx *context.Context) (err errors.Error) {
 	return
 }
 
+func (evt *event) CurrentUserUpdate(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
+}
+
 func (evt *event) Delete(ctx *context.Context) (err errors.Error) {
 	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	event := &entity.Event{}
@@ -123,7 +127,11 @@ func (evt *event) List(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (evt *event) ConnectionEventsList(ctx *context.Context) (err errors.Error) {
+func (evt *event) CurrentUserList(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
+}
+
+func (evt *event) Feed(ctx *context.Context) (err errors.Error) {
 	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	var events = []*entity.Event{}
 
@@ -169,6 +177,10 @@ func (evt *event) Create(ctx *context.Context) (err errors.Error) {
 
 	server.WriteResponse(ctx, event, http.StatusCreated, 0)
 	return
+}
+
+func (evt *event) CurrentUserCreate(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
 func (evt *event) SearchGeo(ctx *context.Context) (err errors.Error) {

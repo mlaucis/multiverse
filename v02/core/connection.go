@@ -30,6 +30,9 @@ type (
 		// FollowedBy returns all connections from a certain user
 		FollowedBy(accountID, applicationID int64, userID string) (users []*entity.ApplicationUser, err errors.Error)
 
+		// FollowedBy returns all friends from a certain user
+		Friends(accountID, applicationID int64, userID string) (users []*entity.ApplicationUser, err errors.Error)
+
 		// Confirm confirms a user connection and returns the connection or an error
 		Confirm(accountID, applicationID int64, connection *entity.Connection, retrieve bool) (con *entity.Connection, err errors.Error)
 

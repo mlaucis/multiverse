@@ -15,11 +15,14 @@ type (
 		// Read handles requests to retrieve a single user
 		Read(*context.Context) errors.Error
 
-		// Update handles requests to update a user
-		Update(*context.Context) errors.Error
+		// ReadCurrent handles erquests to retrieve the current usr
+		ReadCurrent(*context.Context) errors.Error
 
-		// Delete handles requests to delete a single user
-		Delete(*context.Context) errors.Error
+		// UpdateCurrent handles requests to update the current user
+		UpdateCurrent(*context.Context) errors.Error
+
+		// DeleteCurrent handles requests to delete the current user
+		DeleteCurrent(*context.Context) errors.Error
 
 		// Create handles requests to create a user
 		Create(*context.Context) errors.Error

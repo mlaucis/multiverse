@@ -21,11 +21,15 @@ func (appUser *applicationUser) Read(ctx *context.Context) (err errors.Error) {
 	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
-func (appUser *applicationUser) Update(ctx *context.Context) (err errors.Error) {
+func (appUser *applicationUser) ReadCurrent(ctx *context.Context) (err errors.Error) {
 	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
-func (appUser *applicationUser) Delete(ctx *context.Context) (err errors.Error) {
+func (appUser *applicationUser) UpdateCurrent(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
+}
+
+func (appUser *applicationUser) DeleteCurrent(ctx *context.Context) (err errors.Error) {
 	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 

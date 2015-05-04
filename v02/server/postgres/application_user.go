@@ -25,13 +25,23 @@ type (
 )
 
 func (appUser *applicationUser) Read(ctx *context.Context) (err errors.Error) {
+	user, err := appUser.storage.Read(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Vars["applicationUserID"])
+	if err != nil {
+		return err
+	}
+	user.Password = ""
+	server.WriteResponse(ctx, user, http.StatusOK, 10)
+	return
+}
+
+func (appUser *applicationUser) ReadCurrent(ctx *context.Context) (err errors.Error) {
 	user := ctx.Bag["applicationUser"].(*entity.ApplicationUser)
 	user.Password = ""
 	server.WriteResponse(ctx, user, http.StatusOK, 10)
 	return
 }
 
-func (appUser *applicationUser) Update(ctx *context.Context) (err errors.Error) {
+func (appUser *applicationUser) UpdateCurrent(ctx *context.Context) (err errors.Error) {
 	user := *(ctx.Bag["applicationUser"].(*entity.ApplicationUser))
 	var er error
 	if er = json.Unmarshal(ctx.Body, &user); er != nil {
@@ -65,7 +75,7 @@ func (appUser *applicationUser) Update(ctx *context.Context) (err errors.Error) 
 	return
 }
 
-func (appUser *applicationUser) Delete(ctx *context.Context) (err errors.Error) {
+func (appUser *applicationUser) DeleteCurrent(ctx *context.Context) (err errors.Error) {
 	if err = appUser.storage.Delete(
 		ctx.Bag["accountID"].(int64),
 		ctx.Bag["applicationID"].(int64),

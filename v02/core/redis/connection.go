@@ -178,6 +178,10 @@ func (c *connection) FollowedBy(accountID, applicationID int64, userID string) (
 	return c.fetchAndDecodeMultipleUsers(result)
 }
 
+func (c *connection) Friends(accountID, applicationID int64, userID string) (users []*entity.ApplicationUser, err errors.Error) {
+	return []*entity.ApplicationUser{}, errors.NewInternalError("not implemented yet", "not implemented yet")
+}
+
 func (c *connection) Confirm(accountID, applicationID int64, connection *entity.Connection, retrieve bool) (con *entity.Connection, err errors.Error) {
 	// We confirm the connection in the past forcefully so that we can update it at the confirmation time
 	connection.Enabled = true

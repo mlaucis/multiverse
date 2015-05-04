@@ -144,6 +144,34 @@ func (conn *connection) Create(ctx *context.Context) (err errors.Error) {
 }
 
 func (conn *connection) List(ctx *context.Context) (err errors.Error) {
+	accountID := ctx.Bag["accountID"].(int64)
+	applicationID := ctx.Bag["applicationID"].(int64)
+	userID := ctx.Bag["applicationUserID"].(string)
+
+	exists, err := conn.appUser.ExistsByID(accountID, applicationID, userID)
+	if err != nil {
+		return
+	}
+
+	if !exists {
+		return errors.NewNotFoundError("user not found", "user not found")
+	}
+
+	var users []*entity.ApplicationUser
+	users, err = conn.storage.List(accountID, applicationID, userID)
+	if err != nil {
+		return
+	}
+
+	for idx := range users {
+		users[idx].Password = ""
+	}
+
+	server.WriteResponse(ctx, users, http.StatusOK, 10)
+	return
+}
+
+func (conn *connection) CurrentUserList(ctx *context.Context) (err errors.Error) {
 	var users []*entity.ApplicationUser
 
 	if users, err = conn.storage.List(
@@ -162,8 +190,34 @@ func (conn *connection) List(ctx *context.Context) (err errors.Error) {
 }
 
 func (conn *connection) FollowedByList(ctx *context.Context) (err errors.Error) {
-	var users []*entity.ApplicationUser
+	accountID := ctx.Bag["accountID"].(int64)
+	applicationID := ctx.Bag["applicationID"].(int64)
+	userID := ctx.Bag["applicationUserID"].(string)
 
+	exists, err := conn.appUser.ExistsByID(accountID, applicationID, userID)
+	if err != nil {
+		return
+	}
+
+	if !exists {
+		return errors.NewNotFoundError("user not found", "user not found")
+	}
+
+	var users []*entity.ApplicationUser
+	if users, err = conn.storage.FollowedBy(accountID, applicationID, userID); err != nil {
+		return
+	}
+
+	for idx := range users {
+		users[idx].Password = ""
+	}
+
+	server.WriteResponse(ctx, users, http.StatusOK, 10)
+	return
+}
+
+func (conn *connection) CurrentUserFollowedByList(ctx *context.Context) (err errors.Error) {
+	var users []*entity.ApplicationUser
 	if users, err = conn.storage.FollowedBy(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(string)); err != nil {
 		return
 	}
@@ -251,6 +305,47 @@ func (conn *connection) CreateSocial(ctx *context.Context) (err errors.Error) {
 	}
 
 	server.WriteResponse(ctx, users, http.StatusCreated, 10)
+	return
+}
+
+func (conn *connection) Friends(ctx *context.Context) (err errors.Error) {
+	accountID := ctx.Bag["accountID"].(int64)
+	applicationID := ctx.Bag["applicationID"].(int64)
+	userID := ctx.Bag["applicationUserID"].(string)
+
+	exists, err := conn.appUser.ExistsByID(accountID, applicationID, userID)
+	if err != nil {
+		return
+	}
+
+	if !exists {
+		return errors.NewNotFoundError("user not found", "user not found")
+	}
+
+	var users []*entity.ApplicationUser
+	if users, err = conn.storage.Friends(accountID, applicationID, userID); err != nil {
+		return
+	}
+
+	for idx := range users {
+		users[idx].Password = ""
+	}
+
+	server.WriteResponse(ctx, users, http.StatusOK, 10)
+	return
+}
+
+func (conn *connection) CurrentUserFriends(ctx *context.Context) (err errors.Error) {
+	var users []*entity.ApplicationUser
+	if users, err = conn.storage.Friends(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(string)); err != nil {
+		return
+	}
+
+	for idx := range users {
+		users[idx].Password = ""
+	}
+
+	server.WriteResponse(ctx, users, http.StatusOK, 10)
 	return
 }
 

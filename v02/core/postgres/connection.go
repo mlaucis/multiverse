@@ -29,8 +29,9 @@ const (
 	createConnectionQuery     = `INSERT INTO app_%d_%d.connections(json_data) VALUES ($1)`
 	selectConnectionQuery     = `SELECT json_data FROM app_%d_%d.connections WHERE json_data->>'user_from_id' = $1 AND json_data->>'user_to_id' = $2`
 	updateConnectionQuery     = `UPDATE app_%d_%d.connections SET json_data = $1 WHERE json_data->>'user_from_id' = $2 AND json_data->>'user_to_id' = $3`
-	listConnectionQuery       = `SELECT json_data FROM app_%d_%d.connections WHERE json_data->>'user_from_id' = $1`
-	followedByConnectionQuery = `SELECT json_data FROM app_%d_%d.connections WHERE json_data->>'user_to_id' = $1`
+	listConnectionQuery       = `SELECT json_data FROM app_%d_%d.connections WHERE json_data->>'user_from_id' = $1 AND json_data->>'type' = 'follower'`
+	followedByConnectionQuery = `SELECT json_data FROM app_%d_%d.connections WHERE json_data->>'user_to_id' = $1 AND json_data->>'type' = 'follower'`
+	friendConnectionsQuery    = `SELECT json_data FROM app_%d_%d.connections WHERE json_data->>'user_to_id' = $1 AND json_data->>'type' = 'friend'`
 	listUsersBySocialIDQuery  = `SELECT json_data FROM app_%d_%d.users WHERE %s`
 )
 
@@ -102,7 +103,7 @@ func (c *connection) List(accountID, applicationID int64, userID string) (users 
 	rows, err := c.pg.SlaveDatastore(-1).
 		Query(appSchema(listConnectionQuery, accountID, applicationID), userID)
 	if err != nil {
-		return users, errors.NewInternalError("error while retrieving list of account users", err.Error())
+		return users, errors.NewInternalError("error while retrieving list of application users", err.Error())
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -146,6 +147,37 @@ func (c *connection) FollowedBy(accountID, applicationID int64, userID string) (
 		err = json.Unmarshal([]byte(JSONData), conn)
 		if err != nil {
 			return []*entity.ApplicationUser{}, errors.NewInternalError("error while retrieving list of followers", err.Error())
+		}
+		user, er := c.appUser.Read(accountID, applicationID, conn.UserToID)
+		if er != nil {
+			return []*entity.ApplicationUser{}, er
+		}
+
+		users = append(users, user)
+	}
+
+	return users, nil
+}
+
+func (c *connection) Friends(accountID, applicationID int64, userID string) ([]*entity.ApplicationUser, errors.Error) {
+	users := []*entity.ApplicationUser{}
+
+	rows, err := c.pg.SlaveDatastore(-1).
+		Query(appSchema(friendConnectionsQuery, accountID, applicationID), userID)
+	if err != nil {
+		return users, errors.NewInternalError("error while retrieving list of application users", err.Error())
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var JSONData string
+		err := rows.Scan(&JSONData)
+		if err != nil {
+			return []*entity.ApplicationUser{}, errors.NewInternalError("error while retrieving list of friends", err.Error())
+		}
+		conn := &entity.Connection{}
+		err = json.Unmarshal([]byte(JSONData), conn)
+		if err != nil {
+			return []*entity.ApplicationUser{}, errors.NewInternalError("error while retrieving list of friends", err.Error())
 		}
 		user, er := c.appUser.Read(accountID, applicationID, conn.UserToID)
 		if er != nil {

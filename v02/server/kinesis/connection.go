@@ -34,7 +34,15 @@ func (conn *connection) List(ctx *context.Context) (err errors.Error) {
 	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
+func (conn *connection) CurrentUserList(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
+}
+
 func (conn *connection) FollowedByList(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
+}
+
+func (conn *connection) CurrentUserFollowedByList(ctx *context.Context) (err errors.Error) {
 	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
@@ -43,6 +51,14 @@ func (conn *connection) Confirm(ctx *context.Context) (err errors.Error) {
 }
 
 func (conn *connection) CreateSocial(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
+}
+
+func (conn *connection) Friends(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
+}
+
+func (conn *connection) CurrentUserFriends(ctx *context.Context) (err errors.Error) {
 	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 

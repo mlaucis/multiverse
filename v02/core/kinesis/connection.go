@@ -71,6 +71,10 @@ func (c *connection) FollowedBy(accountID, applicationID int64, userID string) (
 	return users, errors.NewInternalError("no suitable implementation found", "no suitable implementation found")
 }
 
+func (c *connection) Friends(accountID, applicationID int64, userID string) (users []*entity.ApplicationUser, err errors.Error) {
+	return []*entity.ApplicationUser{}, errors.NewInternalError("not implemented yet", "not implemented yet")
+}
+
 func (c *connection) Confirm(accountID, applicationID int64, connection *entity.Connection, retrieve bool) (con *entity.Connection, err errors.Error) {
 	data, er := json.Marshal(connection)
 	if er != nil {

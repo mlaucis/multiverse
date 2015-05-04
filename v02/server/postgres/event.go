@@ -46,6 +46,50 @@ func (evt *event) Read(ctx *context.Context) (err errors.Error) {
 }
 
 func (evt *event) Update(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
+	var (
+		eventID string
+		er      error
+	)
+
+	eventID = ctx.Vars["eventID"]
+
+	existingEvent, err := evt.storage.Read(
+		ctx.Bag["accountID"].(int64),
+		ctx.Bag["applicationID"].(int64),
+		ctx.Bag["applicationUserID"].(string),
+		eventID)
+	if err != nil {
+		return
+	}
+
+	event := *existingEvent
+	if er = json.Unmarshal(ctx.Body, &event); er != nil {
+		return errors.NewBadRequestError("failed to update the event (2)\n"+er.Error(), er.Error())
+	}
+
+	event.ID = eventID
+	event.UserID = ctx.Bag["applicationUserID"].(string)
+
+	if err = validator.UpdateEvent(existingEvent, &event); err != nil {
+		return
+	}
+
+	updatedEvent, err := evt.storage.Update(
+		ctx.Bag["accountID"].(int64),
+		ctx.Bag["applicationID"].(int64),
+		*existingEvent,
+		event,
+		true)
+	if err != nil {
+		return
+	}
+
+	server.WriteResponse(ctx, updatedEvent, http.StatusCreated, 0)
+	return
+}
+
+func (evt *event) CurrentUserUpdate(ctx *context.Context) (err errors.Error) {
 	var (
 		eventID string
 		er      error
@@ -106,6 +150,30 @@ func (evt *event) Delete(ctx *context.Context) (err errors.Error) {
 }
 
 func (evt *event) List(ctx *context.Context) (err errors.Error) {
+	accountID := ctx.Bag["accountID"].(int64)
+	applicationID := ctx.Bag["applicationID"].(int64)
+	userID := ctx.Bag["applicationUserID"].(string)
+
+	exists, err := evt.appUser.ExistsByID(accountID, applicationID, userID)
+	if err != nil {
+		return
+	}
+
+	if !exists {
+		return errors.NewNotFoundError("user not found", "user not found")
+	}
+
+	var events []*entity.Event
+
+	if events, err = evt.storage.List(accountID, applicationID, userID); err != nil {
+		return
+	}
+
+	server.WriteResponse(ctx, events, http.StatusOK, 10)
+	return
+}
+
+func (evt *event) CurrentUserList(ctx *context.Context) (err errors.Error) {
 	var events []*entity.Event
 
 	if events, err = evt.storage.List(
@@ -119,7 +187,7 @@ func (evt *event) List(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (evt *event) ConnectionEventsList(ctx *context.Context) (err errors.Error) {
+func (evt *event) Feed(ctx *context.Context) (err errors.Error) {
 	var events = []*entity.Event{}
 
 	if events, err = evt.storage.ConnectionList(
@@ -134,6 +202,39 @@ func (evt *event) ConnectionEventsList(ctx *context.Context) (err errors.Error) 
 }
 
 func (evt *event) Create(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
+	var (
+		event = &entity.Event{}
+		er    error
+	)
+
+	if er = json.Unmarshal(ctx.Body, event); er != nil {
+		return errors.NewBadRequestError("failed to create the event (1)\n"+er.Error(), er.Error())
+	}
+
+	event.UserID = ctx.Bag["applicationUserID"].(string)
+
+	if err = validator.CreateEvent(
+		evt.appUser,
+		ctx.Bag["accountID"].(int64),
+		ctx.Bag["applicationID"].(int64),
+		event); err != nil {
+		return
+	}
+
+	if event, err = evt.storage.Create(
+		ctx.Bag["accountID"].(int64),
+		ctx.Bag["applicationID"].(int64),
+		event,
+		true); err != nil {
+		return
+	}
+
+	server.WriteResponse(ctx, event, http.StatusCreated, 0)
+	return
+}
+
+func (evt *event) CurrentUserCreate(ctx *context.Context) (err errors.Error) {
 	var (
 		event = &entity.Event{}
 		er    error

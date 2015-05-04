@@ -168,6 +168,10 @@ func (conn *connection) List(ctx *context.Context) (err errors.Error) {
 	return
 }
 
+func (conn *connection) CurrentUserList(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
+}
+
 func (conn *connection) FollowedByList(ctx *context.Context) (err errors.Error) {
 	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	var users []*entity.ApplicationUser
@@ -182,6 +186,10 @@ func (conn *connection) FollowedByList(ctx *context.Context) (err errors.Error) 
 
 	server.WriteResponse(ctx, users, http.StatusOK, 10)
 	return
+}
+
+func (conn *connection) CurrentUserFollowedByList(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
 func (conn *connection) Confirm(ctx *context.Context) (err errors.Error) {
@@ -254,6 +262,14 @@ func (conn *connection) CreateSocial(ctx *context.Context) (err errors.Error) {
 
 	server.WriteResponse(ctx, users, http.StatusCreated, 10)
 	return
+}
+
+func (conn *connection) Friends(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
+}
+
+func (conn *connection) CurrentUserFriends(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
 // NewConnection returns a new connection handler
