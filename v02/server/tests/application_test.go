@@ -27,7 +27,7 @@ func (s *ServerSuite) TestCreateApplication_WrongKey(c *C) {
 
 	routeName := "createApplication"
 	route := getComposedRoute(routeName, account.ID)
-	code, body, err := runRequest(routeName, route, payload, account.AuthToken, getAccountUserSessionToken(accountUser), 2)
+	code, body, err := runRequest(routeName, route, payload, signAccountRequest(account, accountUser, true, true))
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusBadRequest)
@@ -46,7 +46,7 @@ func (s *ServerSuite) TestCreateApplication_WrongValue(c *C) {
 
 	routeName := "createApplication"
 	route := getComposedRoute(routeName, account.ID)
-	code, body, err := runRequest(routeName, route, payload, account.AuthToken, getAccountUserSessionToken(accountUser), 2)
+	code, body, err := runRequest(routeName, route, payload, signAccountRequest(account, accountUser, true, true))
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusBadRequest)
@@ -73,7 +73,7 @@ func (s *ServerSuite) TestCreateApplication_OK(c *C) {
 
 	routeName := "createApplication"
 	route := getComposedRoute(routeName, account.ID)
-	code, body, err := runRequest(routeName, route, payload, account.AuthToken, getAccountUserSessionToken(accountUser), 2)
+	code, body, err := runRequest(routeName, route, payload, signAccountRequest(account, accountUser, true, true))
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusCreated)
@@ -112,7 +112,7 @@ func (s *ServerSuite) TestUpdateApplication_OK(c *C) {
 
 	routeName := "updateApplication"
 	route := getComposedRoute(routeName, application.AccountID, application.ID)
-	code, body, err := runRequest(routeName, route, payload, account.AuthToken, getAccountUserSessionToken(accountUser), 2)
+	code, body, err := runRequest(routeName, route, payload, signAccountRequest(account, accountUser, true, true))
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusCreated)
@@ -149,7 +149,7 @@ func (s *ServerSuite) TestUpdateApplication_WrongID(c *C) {
 
 	routeName := "updateApplication"
 	route := getComposedRoute(routeName, application.AccountID, application.ID+1)
-	code, _, er := runRequest(routeName, route, payload, account.AuthToken, getAccountUserSessionToken(accountUser), 2)
+	code, _, er := runRequest(routeName, route, payload, signAccountRequest(account, accountUser, true, true))
 	c.Assert(er, IsNil)
 	c.Assert(code, Equals, http.StatusInternalServerError)
 }
@@ -174,7 +174,7 @@ func (s *ServerSuite) TestUpdateApplication_WrongValue(c *C) {
 
 	routeName := "updateApplication"
 	route := getComposedRoute(routeName, application.AccountID, application.ID)
-	code, body, err := runRequest(routeName, route, payload, account.AuthToken, getAccountUserSessionToken(accountUser), 2)
+	code, body, err := runRequest(routeName, route, payload, signAccountRequest(account, accountUser, true, true))
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusBadRequest)
@@ -206,7 +206,7 @@ func (s *ServerSuite) TestUpdateApplication_WrongToken(c *C) {
 
 	routeName := "updateApplication"
 	route := getComposedRoute(routeName, correctApplication.AccountID, correctApplication.ID)
-	code, body, err := runRequest(routeName, route, payload, account.AuthToken, sessionToken, 2)
+	code, body, err := runRequest(routeName, route, payload, signAccountRequest(account, accountUser, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusBadRequest)
 	c.Assert(body, Equals, "400 failed to check session token (11)\nsession token mismatch")
@@ -225,7 +225,7 @@ func (s *ServerSuite) TestDeleteApplication_OK(c *C) {
 
 	routeName := "deleteApplication"
 	route := getComposedRoute(routeName, correctApplication.AccountID, correctApplication.ID)
-	code, _, err := runRequest(routeName, route, "", account.AuthToken, getAccountUserSessionToken(accountUser), 2)
+	code, _, err := runRequest(routeName, route, "", signAccountRequest(account, accountUser, true, true))
 
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusNoContent)
@@ -233,18 +233,18 @@ func (s *ServerSuite) TestDeleteApplication_OK(c *C) {
 
 // Test a correct deleteApplication request with a wrong id
 func (s *ServerSuite) TestDeleteApplication_WrongID(c *C) {
-	correctAccount, err := AddCorrectAccount(true)
+	account, err := AddCorrectAccount(true)
 	c.Assert(err, IsNil)
 
-	correctAccountUser, err := AddCorrectAccountUser(correctAccount.ID, true)
+	accountUser, err := AddCorrectAccountUser(account.ID, true)
 	c.Assert(err, IsNil)
 
-	correctApplication, err := AddCorrectApplication(correctAccount.ID, true)
+	application, err := AddCorrectApplication(account.ID, true)
 	c.Assert(err, IsNil)
 
 	routeName := "deleteApplication"
-	route := getComposedRoute(routeName, correctApplication.AccountID, correctApplication.ID+1)
-	code, _, err := runRequest(routeName, route, "", correctAccount.AuthToken, getAccountUserSessionToken(correctAccountUser), 2)
+	route := getComposedRoute(routeName, application.AccountID, application.ID+1)
+	code, _, err := runRequest(routeName, route, "", signAccountRequest(account, accountUser, true, true))
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusInternalServerError)
@@ -268,7 +268,7 @@ func (s *ServerSuite) TestDeleteApplication_WrongToken(c *C) {
 
 	routeName := "deleteApplication"
 	route := getComposedRoute(routeName, application.AccountID, application.ID)
-	code, body, err := runRequest(routeName, route, "", account.AuthToken, sessionToken, 2)
+	code, body, err := runRequest(routeName, route, "", signAccountRequest(account, accountUser, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusBadRequest)
 	c.Assert(body, Equals, "400 failed to check session token (11)\nsession token mismatch")
@@ -287,7 +287,7 @@ func (s *ServerSuite) TestGetApplication_OK(c *C) {
 
 	routeName := "getApplication"
 	route := getComposedRoute(routeName, application.AccountID, application.ID)
-	code, body, err := runRequest(routeName, route, "", account.AuthToken, getAccountUserSessionToken(accountUser), 2)
+	code, body, err := runRequest(routeName, route, "", signAccountRequest(account, accountUser, true, true))
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusOK)
@@ -316,7 +316,7 @@ func (s *ServerSuite) TestGetApplication_WrongID(c *C) {
 
 	routeName := "getApplication"
 	route := getComposedRoute(routeName, application.AccountID, application.ID+1)
-	code, _, err := runRequest(routeName, route, "", account.AuthToken, getAccountUserSessionToken(accountUser), 2)
+	code, _, err := runRequest(routeName, route, "", signAccountRequest(account, accountUser, true, true))
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusInternalServerError)
@@ -340,7 +340,7 @@ func (s *ServerSuite) TestGetApplication_WrongToken(c *C) {
 
 	routeName := "getApplication"
 	route := getComposedRoute(routeName, application.AccountID, application.ID)
-	code, body, err := runRequest(routeName, route, "", account.AuthToken, sessionToken, 2)
+	code, body, err := runRequest(routeName, route, "", signAccountRequest(account, accountUser, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusBadRequest)
 	c.Assert(body, Equals, "400 failed to check session token (11)\nsession token mismatch")
@@ -354,7 +354,7 @@ func (s *ServerSuite) TestGetApplicationListWorks(c *C) {
 
 	routeName := "getApplications"
 	route := getComposedRoute(routeName, application.AccountID)
-	code, body, err := runRequest(routeName, route, "", account.AuthToken, accountUser.SessionToken, 2)
+	code, body, err := runRequest(routeName, route, "", signAccountRequest(account, accountUser, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusOK)
 	c.Assert(body, Not(Equals), "")
@@ -393,7 +393,7 @@ func (s *ServerSuite) TestApplicationMalformedPayloadsFails(c *C) {
 	}
 
 	for idx := range scenarios {
-		code, body, err := runRequest(scenarios[idx].RouteName, scenarios[idx].Route, scenarios[idx].Payload, account.AuthToken, accountUser.SessionToken, 2)
+		code, body, err := runRequest(scenarios[idx].RouteName, scenarios[idx].Route, scenarios[idx].Payload, signAccountRequest(account, accountUser, true, true))
 		c.Logf("pass: %d", idx)
 		c.Assert(err, IsNil)
 		c.Assert(code, Equals, scenarios[idx].StatusCode)

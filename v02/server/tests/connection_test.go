@@ -26,14 +26,14 @@ func (s *ServerSuite) TestCreateConnection_WrongKey(c *C) {
 	application, err := AddCorrectApplication(account.ID, true)
 	c.Assert(err, IsNil)
 
-	correctUser, err := AddCorrectUser(account.ID, application.ID, true)
+	user, err := AddCorrectUser(account.ID, application.ID, true)
 	c.Assert(err, IsNil)
 
 	payload := "{usrfromidea:''}"
 
 	routeName := "createConnection"
-	route := getComposedRoute(routeName, account.ID, application.ID, correctUser.ID)
-	code, body, err := runRequest(routeName, route, payload, application.AuthToken, createApplicationUserSessionToken(correctUser), 3)
+	route := getComposedRoute(routeName, account.ID, application.ID, user.ID)
+	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, user, true, true))
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusBadRequest)
@@ -48,14 +48,14 @@ func (s *ServerSuite) TestCreateConnection_WrongValue(c *C) {
 	application, err := AddCorrectApplication(account.ID, true)
 	c.Assert(err, IsNil)
 
-	correctUser, err := AddCorrectUser(account.ID, application.ID, true)
+	user, err := AddCorrectUser(account.ID, application.ID, true)
 	c.Assert(err, IsNil)
 
 	payload := `{"user_from_id":"","user_to_id":""}`
 
 	routeName := "createConnection"
-	route := getComposedRoute(routeName, account.ID, application.ID, correctUser.ID)
-	code, body, err := runRequest(routeName, route, payload, application.AuthToken, createApplicationUserSessionToken(correctUser), 3)
+	route := getComposedRoute(routeName, account.ID, application.ID, user.ID)
+	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, user, true, true))
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusBadRequest)
@@ -77,7 +77,7 @@ func (s *ServerSuite) TestCreateConnection_OK(c *C) {
 
 	routeName := "createConnection"
 	route := getComposedRoute(routeName, application.AccountID, application.ID, userFrom.ID)
-	code, body, err := runRequest(routeName, route, payload, application.AuthToken, createApplicationUserSessionToken(userFrom), 3)
+	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusCreated)
@@ -86,8 +86,6 @@ func (s *ServerSuite) TestCreateConnection_OK(c *C) {
 	connection := &entity.Connection{}
 	er := json.Unmarshal([]byte(body), connection)
 	c.Assert(er, IsNil)
-	c.Assert(connection.AccountID, Equals, application.AccountID)
-	c.Assert(connection.ApplicationID, Equals, application.ID)
 	c.Assert(connection.UserFromID, Equals, userFrom.ID)
 	c.Assert(connection.UserToID, Equals, userTo.ID)
 	c.Assert(connection.Enabled, Equals, true)
@@ -109,7 +107,7 @@ func (s *ServerSuite) TestCreateConnectionAfterLogin(c *C) {
 
 	routeName := "loginUser"
 	route := getComposedRoute(routeName, account.ID, application.ID)
-	code, body, err := runRequest(routeName, route, payload, application.AuthToken, "", 3)
+	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
@@ -129,7 +127,7 @@ func (s *ServerSuite) TestCreateConnectionAfterLogin(c *C) {
 
 	routeName = "createConnection"
 	route = getComposedRoute(routeName, account.ID, application.ID, userFrom.ID)
-	code, body, err = runRequest(routeName, route, payload, application.AuthToken, userFrom.SessionToken, 3)
+	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
@@ -138,8 +136,6 @@ func (s *ServerSuite) TestCreateConnectionAfterLogin(c *C) {
 	er = json.Unmarshal([]byte(body), connection)
 	c.Assert(er, IsNil)
 
-	c.Assert(connection.AccountID, Equals, account.ID)
-	c.Assert(connection.ApplicationID, Equals, application.ID)
 	c.Assert(connection.UserFromID, Equals, userFrom.ID)
 	c.Assert(connection.UserToID, Equals, userTo.ID)
 	c.Assert(connection.Enabled, Equals, true)
@@ -161,7 +157,7 @@ func (s *ServerSuite) TestCreateConnectionAfterLoginRefreshNewToken(c *C) {
 
 	routeName := "loginUser"
 	route := getComposedRoute(routeName, account.ID, application.ID)
-	code, body, err := runRequest(routeName, route, payload, application.AuthToken, "", 3)
+	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
@@ -181,7 +177,7 @@ func (s *ServerSuite) TestCreateConnectionAfterLoginRefreshNewToken(c *C) {
 
 	routeName = "refreshUserSession"
 	route = getComposedRoute(routeName, account.ID, application.ID, userFrom.ID)
-	code, body, err = runRequest(routeName, route, payload, application.AuthToken, userFrom.SessionToken, 3)
+	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
@@ -197,7 +193,7 @@ func (s *ServerSuite) TestCreateConnectionAfterLoginRefreshNewToken(c *C) {
 
 	routeName = "createConnection"
 	route = getComposedRoute(routeName, account.ID, application.ID, userFrom.ID)
-	code, body, err = runRequest(routeName, route, payload, application.AuthToken, userFrom.SessionToken, 3)
+	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
@@ -206,8 +202,6 @@ func (s *ServerSuite) TestCreateConnectionAfterLoginRefreshNewToken(c *C) {
 	er = json.Unmarshal([]byte(body), connection)
 	c.Assert(er, IsNil)
 
-	c.Assert(connection.AccountID, Equals, account.ID)
-	c.Assert(connection.ApplicationID, Equals, application.ID)
 	c.Assert(connection.UserFromID, Equals, userFrom.ID)
 	c.Assert(connection.UserToID, Equals, userTo.ID)
 	c.Assert(connection.Enabled, Equals, true)
@@ -229,7 +223,7 @@ func (s *ServerSuite) TestCreateConnectionAfterLoginRefreshOldToken(c *C) {
 
 	routeName := "loginUser"
 	route := getComposedRoute(routeName, account.ID, application.ID)
-	code, body, err := runRequest(routeName, route, payload, application.AuthToken, "", 3)
+	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
@@ -249,7 +243,7 @@ func (s *ServerSuite) TestCreateConnectionAfterLoginRefreshOldToken(c *C) {
 
 	routeName = "refreshUserSession"
 	route = getComposedRoute(routeName, account.ID, application.ID, userFrom.ID)
-	code, body, err = runRequest(routeName, route, payload, application.AuthToken, userFrom.SessionToken, 3)
+	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
@@ -263,7 +257,7 @@ func (s *ServerSuite) TestCreateConnectionAfterLoginRefreshOldToken(c *C) {
 
 	routeName = "createConnection"
 	route = getComposedRoute(routeName, account.ID, application.ID, userFrom.ID)
-	code, body, err = runRequest(routeName, route, payload, application.AuthToken, userFrom.SessionToken, 3)
+	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusBadRequest)
 	c.Assert(body, Equals, "400 failed to check session token (12)\nsession mismatch")
@@ -285,7 +279,7 @@ func (s *ServerSuite) TestCreateConnectionAfterLoginLogout(c *C) {
 
 	routeName := "loginUser"
 	route := getComposedRoute(routeName, account.ID, application.ID)
-	code, body, err := runRequest(routeName, route, payload, application.AuthToken, "", 3)
+	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
@@ -305,7 +299,7 @@ func (s *ServerSuite) TestCreateConnectionAfterLoginLogout(c *C) {
 
 	routeName = "logoutUser"
 	route = getComposedRoute(routeName, account.ID, application.ID, userFrom.ID)
-	code, body, err = runRequest(routeName, route, payload, application.AuthToken, userFrom.SessionToken, 3)
+	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusOK)
 	c.Assert(body, Equals, "\"logged out\"\n")
@@ -314,7 +308,7 @@ func (s *ServerSuite) TestCreateConnectionAfterLoginLogout(c *C) {
 
 	routeName = "createConnection"
 	route = getComposedRoute(routeName, account.ID, application.ID, userFrom.ID)
-	code, body, err = runRequest(routeName, route, payload, application.AuthToken, userFrom.SessionToken, 3)
+	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusBadRequest)
@@ -337,7 +331,7 @@ func (s *ServerSuite) TestCreateConnectionAfterLoginLogoutLogin(c *C) {
 
 	routeName := "loginUser"
 	route := getComposedRoute(routeName, account.ID, application.ID)
-	code, body, err := runRequest(routeName, route, payload, application.AuthToken, "", 3)
+	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
 
 	sessionToken := struct {
@@ -355,12 +349,12 @@ func (s *ServerSuite) TestCreateConnectionAfterLoginLogoutLogin(c *C) {
 
 	routeName = "logoutUser"
 	route = getComposedRoute(routeName, account.ID, application.ID, userFrom.ID)
-	code, body, err = runRequest(routeName, route, payloadLogout, application.AuthToken, userFrom.SessionToken, 3)
+	code, body, err = runRequest(routeName, route, payloadLogout, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
 
 	routeName = "loginUser"
 	route = getComposedRoute(routeName, account.ID, application.ID)
-	code, body, err = runRequest(routeName, route, payload, application.AuthToken, "", 3)
+	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
 
 	er = json.Unmarshal([]byte(body), &sessionToken)
@@ -374,7 +368,7 @@ func (s *ServerSuite) TestCreateConnectionAfterLoginLogoutLogin(c *C) {
 
 	routeName = "createConnection"
 	route = getComposedRoute(routeName, account.ID, application.ID, userFrom.ID)
-	code, body, err = runRequest(routeName, route, payload, application.AuthToken, userFrom.SessionToken, 3)
+	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
 
 	connection := &entity.Connection{}
@@ -400,7 +394,7 @@ func (s *ServerSuite) TestCreateConnectionAfterLoginRefreshLogout(c *C) {
 
 	routeName := "loginUser"
 	route := getComposedRoute(routeName, account.ID, application.ID)
-	code, body, err := runRequest(routeName, route, payload, application.AuthToken, "", 3)
+	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
@@ -420,7 +414,7 @@ func (s *ServerSuite) TestCreateConnectionAfterLoginRefreshLogout(c *C) {
 
 	routeName = "refreshUserSession"
 	route = getComposedRoute(routeName, account.ID, application.ID, userFrom.ID)
-	code, body, err = runRequest(routeName, route, payload, application.AuthToken, userFrom.SessionToken, 3)
+	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
@@ -435,7 +429,7 @@ func (s *ServerSuite) TestCreateConnectionAfterLoginRefreshLogout(c *C) {
 
 	routeName = "logoutUser"
 	route = getComposedRoute(routeName, account.ID, application.ID, userFrom.ID)
-	code, body, err = runRequest(routeName, route, payload, application.AuthToken, userFrom.SessionToken, 3)
+	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusOK)
 	c.Assert(body, Equals, "\"logged out\"\n")
@@ -444,7 +438,7 @@ func (s *ServerSuite) TestCreateConnectionAfterLoginRefreshLogout(c *C) {
 
 	routeName = "createConnection"
 	route = getComposedRoute(routeName, account.ID, application.ID, userFrom.ID)
-	code, body, err = runRequest(routeName, route, payload, application.AuthToken, userFrom.SessionToken, 3)
+	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusBadRequest)
@@ -463,7 +457,7 @@ func (s *ServerSuite) TestCreateConnectionAndCheckLists(c *C) {
 
 	routeName := "createConnection"
 	route := getComposedRoute(routeName, account.ID, application.ID, userFrom.ID)
-	code, body, err := runRequest(routeName, route, payload, application.AuthToken, userFrom.SessionToken, 3)
+	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
@@ -472,8 +466,6 @@ func (s *ServerSuite) TestCreateConnectionAndCheckLists(c *C) {
 	er := json.Unmarshal([]byte(body), connection)
 	c.Assert(er, IsNil)
 
-	c.Assert(connection.AccountID, Equals, account.ID)
-	c.Assert(connection.ApplicationID, Equals, application.ID)
 	c.Assert(connection.UserFromID, Equals, userFrom.ID)
 	c.Assert(connection.UserToID, Equals, userTo.ID)
 	c.Assert(connection.Enabled, Equals, true)
@@ -481,7 +473,7 @@ func (s *ServerSuite) TestCreateConnectionAndCheckLists(c *C) {
 	// Check connetions list
 	routeName = "getConnectionList"
 	route = getComposedRoute(routeName, account.ID, application.ID, userFrom.ID)
-	code, body, err = runRequest(routeName, route, "", application.AuthToken, userFrom.SessionToken, 3)
+	code, body, err = runRequest(routeName, route, "", signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusOK)
 	c.Assert(body, Not(Equals), "")
@@ -496,7 +488,7 @@ func (s *ServerSuite) TestCreateConnectionAndCheckLists(c *C) {
 	// Check followedBy list
 	routeName = "getFollowerList"
 	route = getComposedRoute(routeName, account.ID, application.ID, userTo.ID)
-	code, body, err = runRequest(routeName, route, "", application.AuthToken, userTo.SessionToken, 3)
+	code, body, err = runRequest(routeName, route, "", signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusOK)
 	c.Assert(body, Not(Equals), "")
@@ -511,7 +503,7 @@ func (s *ServerSuite) TestCreateConnectionAndCheckLists(c *C) {
 	// Check activity feed events
 	routeName = "getConnectionEventList"
 	route = getComposedRoute(routeName, account.ID, application.ID, userFrom.ID)
-	code, body, err = runRequest(routeName, route, "", application.AuthToken, userFrom.SessionToken, 3)
+	code, body, err = runRequest(routeName, route, "", signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusOK)
 	c.Assert(body, Not(Equals), "")
@@ -537,7 +529,7 @@ func (s *ServerSuite) TestCreateConnectionUsersAlreadyConnected(c *C) {
 
 	routeName := "createConnection"
 	route := getComposedRoute(routeName, account.ID, application.ID, userFrom.ID)
-	code, body, err := runRequest(routeName, route, payload, application.AuthToken, userFrom.SessionToken, 3)
+	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusInternalServerError)
@@ -557,7 +549,7 @@ func (s *ServerSuite) TestCreateConnectionUsersFromDifferentApps(c *C) {
 
 	routeName := "createConnection"
 	route := getComposedRoute(routeName, account.ID, application2.ID, app1UserFrom.ID)
-	code, body, err := runRequest(routeName, route, payload, application2.AuthToken, app1UserFrom.SessionToken, 3)
+	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application1, app1UserFrom, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusBadRequest)
 	c.Assert(body, Equals, "400 failed to check session token (7)")
@@ -575,7 +567,7 @@ func (s *ServerSuite) TestCreateConnectionUsersNotActivated(c *C) {
 
 	routeName := "updateUser"
 	route := getComposedRoute(routeName, application.AccountID, application.ID, userTo.ID)
-	code, body, err := runRequest(routeName, route, payload, application.AuthToken, userTo.SessionToken, 3)
+	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
@@ -584,7 +576,7 @@ func (s *ServerSuite) TestCreateConnectionUsersNotActivated(c *C) {
 
 	routeName = "createConnection"
 	route = getComposedRoute(routeName, account.ID, application.ID, userFrom.ID)
-	code, body, err = runRequest(routeName, route, payload, application.AuthToken, userFrom.SessionToken, 3)
+	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusBadRequest)
 	c.Assert(body, Not(Equals), "")
@@ -634,7 +626,7 @@ func (s *ServerSuite) TestUpdateConnection_OK(c *C) {
 
 	routeName := "updateConnection"
 	route := getComposedRoute(routeName, account.ID, application.ID, userFrom.ID, userTo.ID)
-	code, body, err := runRequest(routeName, route, payload, application.AuthToken, createApplicationUserSessionToken(userFrom), 3)
+	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusCreated)
@@ -644,8 +636,6 @@ func (s *ServerSuite) TestUpdateConnection_OK(c *C) {
 	connection := &entity.Connection{}
 	er := json.Unmarshal([]byte(body), connection)
 	c.Assert(er, IsNil)
-	c.Assert(connection.AccountID, Equals, account.ID)
-	c.Assert(connection.ApplicationID, Equals, application.ID)
 	c.Assert(connection.UserFromID, Equals, userFrom.ID)
 	c.Assert(connection.UserToID, Equals, userTo.ID)
 	c.Assert(connection.Enabled, Equals, false)
@@ -676,7 +666,7 @@ func (s *ServerSuite) TestUpdateConnection_NotCrossUpdate(c *C) {
 
 	routeName := "updateConnection"
 	route := getComposedRoute(routeName, account.ID, application.ID, userFrom.ID, userTo.ID)
-	code, body, err := runRequest(routeName, route, payload, application.AuthToken, createApplicationUserSessionToken(userTo), 3)
+	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusBadRequest)
@@ -703,13 +693,13 @@ func (s *ServerSuite) TestUpdateConnection_WrongID(c *C) {
 
 	payload := fmt.Sprintf(
 		`{"user_from_id":%d, "user_to_id":%d, "enabled":false}`,
-		correctConnection.UserFromID+1,
+		correctConnection.UserFromID+"1",
 		correctConnection.UserToID,
 	)
 
 	routeName := "updateConnection"
 	route := getComposedRoute(routeName, account.ID, application.ID, userFrom.ID, userTo.ID)
-	code, _, err := runRequest(routeName, route, payload, application.AuthToken, createApplicationUserSessionToken(userFrom), 3)
+	code, _, err := runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusInternalServerError)
@@ -740,7 +730,7 @@ func (s *ServerSuite) TestUpdateConnection_WrongValue(c *C) {
 
 	routeName := "updateConnection"
 	route := getComposedRoute(routeName, account.ID, application.ID, userFrom.ID, userTo.ID)
-	code, body, err := runRequest(routeName, route, payload, application.AuthToken, createApplicationUserSessionToken(userFrom), 3)
+	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusBadRequest)
@@ -810,7 +800,7 @@ func (s *ServerSuite) TestDeleteConnection_OK(c *C) {
 
 	routeName := "deleteConnection"
 	route := getComposedRoute(routeName, account.ID, application.ID, userFrom.ID, userTo.ID)
-	code, _, err := runRequest(routeName, route, "", application.AuthToken, userFrom.SessionToken, 3)
+	code, _, err := runRequest(routeName, route, "", signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
 
 	c.Assert(err, IsNil)
@@ -835,8 +825,8 @@ func (s *ServerSuite) TestDeleteConnection_WrongID(c *C) {
 	c.Assert(err, IsNil)
 
 	routeName := "deleteConnection"
-	route := getComposedRoute(routeName, account.ID, application.ID, userFrom.ID+1, userTo.ID)
-	code, body, err := runRequest(routeName, route, "", application.AuthToken, createApplicationUserSessionToken(userFrom), 3)
+	route := getComposedRoute(routeName, account.ID, application.ID, userFrom.ID+"1", userTo.ID)
+	code, body, err := runRequest(routeName, route, "", signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
 
 	c.Assert(err, IsNil)
@@ -968,7 +958,7 @@ func (s *ServerSuite) TestConfirmConnection(c *C) {
 	payload := fmt.Sprintf(`{"user_from_id":%d, "user_to_id":%d, "enabled": false}`, user1.ID, user2.ID)
 	routeName := "createConnection"
 	route := getComposedRoute(routeName, application.AccountID, application.ID, user1.ID)
-	code, body, err := runRequest(routeName, route, payload, application.AuthToken, user1.SessionToken, 3)
+	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, user1, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
@@ -976,8 +966,6 @@ func (s *ServerSuite) TestConfirmConnection(c *C) {
 	connection := &entity.Connection{}
 	er := json.Unmarshal([]byte(body), connection)
 	c.Assert(er, IsNil)
-	c.Assert(connection.AccountID, Equals, application.AccountID)
-	c.Assert(connection.ApplicationID, Equals, application.ID)
 	c.Assert(connection.UserFromID, Equals, user1.ID)
 	c.Assert(connection.UserToID, Equals, user2.ID)
 	c.Assert(connection.Enabled, Equals, false)
@@ -985,7 +973,7 @@ func (s *ServerSuite) TestConfirmConnection(c *C) {
 	payload = fmt.Sprintf(`{"user_from_id":%d, "user_to_id":%d, "enabled": true}`, user1.ID, user2.ID)
 	routeName = "confirmConnection"
 	route = getComposedRoute(routeName, application.AccountID, application.ID, user1.ID)
-	code, body, err = runRequest(routeName, route, payload, application.AuthToken, user1.SessionToken, 3)
+	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, user1, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
@@ -993,8 +981,6 @@ func (s *ServerSuite) TestConfirmConnection(c *C) {
 	connection = &entity.Connection{}
 	er = json.Unmarshal([]byte(body), connection)
 	c.Assert(er, IsNil)
-	c.Assert(connection.AccountID, Equals, application.AccountID)
-	c.Assert(connection.ApplicationID, Equals, application.ID)
 	c.Assert(connection.UserFromID, Equals, user1.ID)
 	c.Assert(connection.UserToID, Equals, user2.ID)
 	c.Assert(connection.Enabled, Equals, true)
@@ -1013,52 +999,42 @@ func (s *ServerSuite) TestCreateSocialConnection(c *C) {
 	c.Assert(err, IsNil)
 
 	userFrom := CorrectUser()
-	userFrom.AccountID = account.ID
-	userFrom.ApplicationID = application.ID
 	userFrom.Username = "social1"
 	userFrom.Email = "social-connection@user1.com"
 	userFrom.SocialIDs = map[string]string{"facebook": "fb-id-1"}
-	userFrom, err = coreAppUser.Create(userFrom, true)
+	userFrom, err = coreAppUser.Create(account.ID, application.ID, userFrom, true)
 	c.Assert(err, IsNil)
 
 	user2 := CorrectUser()
-	user2.AccountID = account.ID
-	user2.ApplicationID = application.ID
 	user2.Username = "social2"
 	user2.Email = "social-connection@user2.com"
 	user2.SocialIDs = map[string]string{"facebook": "fb-id-2"}
-	user2, err = coreAppUser.Create(user2, true)
+	user2, err = coreAppUser.Create(account.ID, application.ID, user2, true)
 	c.Assert(err, IsNil)
 
 	user3 := CorrectUser()
-	user3.AccountID = account.ID
-	user3.ApplicationID = application.ID
 	user3.Username = "social3"
 	user3.Email = "social-connection@user3.com"
 	user3.SocialIDs = map[string]string{"facebook": "fb-id-3"}
-	user3, err = coreAppUser.Create(user3, true)
+	user3, err = coreAppUser.Create(account.ID, application.ID, user3, true)
 	c.Assert(err, IsNil)
 
 	user4 := CorrectUser()
-	user4.AccountID = account.ID
-	user4.ApplicationID = application.ID
 	user4.Username = "social4"
 	user4.Email = "social-connection@user4.com"
 	user4.SocialIDs = map[string]string{"facebook": "fb-id-4"}
-	user4, err = coreAppUser.Create(user4, true)
+	user4, err = coreAppUser.Create(account.ID, application.ID, user4, true)
 	c.Assert(err, IsNil)
 
 	user5 := CorrectUser()
-	user5.AccountID = account.ID
-	user5.ApplicationID = application.ID
 	user5.Username = "social5"
 	user5.Email = "social-connection@user5.com"
 	user5.SocialIDs = map[string]string{"facebook": "fb-id-5"}
-	user5, err = coreAppUser.Create(user5, true)
+	user5, err = coreAppUser.Create(account.ID, application.ID, user5, true)
 	c.Assert(err, IsNil)
 
 	payload, er := json.Marshal(struct {
-		UserFromID     int64    `json:"user_from_id"`
+		UserFromID     string   `json:"user_from_id"`
 		SocialPlatform string   `json:"social_platform"`
 		ConnectionsIDs []string `json:"connection_ids"`
 	}{
@@ -1073,7 +1049,7 @@ func (s *ServerSuite) TestCreateSocialConnection(c *C) {
 
 	routeName := "createSocialConnections"
 	route := getComposedRoute(routeName, account.ID, application.ID, userFrom.ID, "facebook")
-	code, body, err := runRequest(routeName, route, string(payload), application.AuthToken, createApplicationUserSessionToken(userFrom), 3)
+	code, body, err := runRequest(routeName, route, string(payload), signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
@@ -1210,7 +1186,7 @@ func (s *ServerSuite) TestConnectionMalformedPayloadFails(c *C) {
 	}
 
 	for idx := range iterations {
-		code, body, err := runRequest(iterations[idx].RouteName, iterations[idx].Route, iterations[idx].Payload, application.AuthToken, user1.SessionToken, 3)
+		code, body, err := runRequest(iterations[idx].RouteName, iterations[idx].Route, iterations[idx].Payload, signApplicationRequest(application, user1, true, true))
 		c.Logf("pass %d", idx)
 		c.Assert(err, IsNil)
 		c.Assert(code, Equals, iterations[idx].Code)

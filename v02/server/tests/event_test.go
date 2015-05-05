@@ -35,7 +35,7 @@ func (s *ServerSuite) TestCreateEvent_WrongKey(c *C) {
 
 	routeName := "createEvent"
 	route := getComposedRoute(routeName, account.ID, application.ID, user.ID)
-	code, body, err := runRequest(routeName, route, payload)
+	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, user, true, true))
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusBadRequest)
@@ -57,7 +57,7 @@ func (s *ServerSuite) TestCreateEvent_WrongValue(c *C) {
 
 	routeName := "createEvent"
 	route := getComposedRoute(routeName, account.ID, application.ID, user.ID)
-	code, body, err := runRequest(routeName, route, payload, application.AuthToken, createApplicationUserSessionToken(user), 3)
+	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, user, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusBadRequest)
 	c.Assert(body, Not(Equals), "")
@@ -85,7 +85,7 @@ func (s *ServerSuite) TestCreateEvent_OK(c *C) {
 
 	routeName := "createEvent"
 	route := getComposedRoute(routeName, account.ID, application.ID, user.ID)
-	code, body, err := runRequest(routeName, route, payload, application.AuthToken, createApplicationUserSessionToken(user), 3)
+	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, user, true, true))
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusCreated)
@@ -95,8 +95,6 @@ func (s *ServerSuite) TestCreateEvent_OK(c *C) {
 	receivedEvent := &entity.Event{}
 	er := json.Unmarshal([]byte(body), receivedEvent)
 	c.Assert(er, IsNil)
-	c.Assert(receivedEvent.AccountID, Equals, account.ID)
-	c.Assert(receivedEvent.ApplicationID, Equals, application.ID)
 	c.Assert(receivedEvent.UserID, Equals, user.ID)
 	c.Assert(receivedEvent.Enabled, Equals, true)
 	c.Assert(receivedEvent.Verb, Equals, event.Verb)
@@ -125,7 +123,7 @@ func (s *ServerSuite) TestUpdateEvent_OK(c *C) {
 
 	routeName := "updateEvent"
 	route := getComposedRoute(routeName, account.ID, application.ID, user.ID, event.ID)
-	code, body, err := runRequest(routeName, route, payload, application.AuthToken, createApplicationUserSessionToken(user), 3)
+	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, user, true, true))
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusCreated)
@@ -135,8 +133,6 @@ func (s *ServerSuite) TestUpdateEvent_OK(c *C) {
 	receivedEvent := &entity.Event{}
 	er := json.Unmarshal([]byte(body), receivedEvent)
 	c.Assert(er, IsNil)
-	c.Assert(receivedEvent.AccountID, Equals, account.ID)
-	c.Assert(receivedEvent.ApplicationID, Equals, application.ID)
 	c.Assert(receivedEvent.UserID, Equals, user.ID)
 	c.Assert(receivedEvent.Enabled, Equals, false)
 }
@@ -162,8 +158,8 @@ func (s *ServerSuite) TestUpdateEvent_WrongID(c *C) {
 	)
 
 	routeName := "updateEvent"
-	route := getComposedRoute(routeName, account.ID, application.ID, user.ID, correctEvent.ID+1)
-	code, _, err := runRequest(routeName, route, payload, application.AuthToken, createApplicationUserSessionToken(user), 3)
+	route := getComposedRoute(routeName, account.ID, application.ID, user.ID, correctEvent.ID+"1")
+	code, _, err := runRequest(routeName, route, payload, signApplicationRequest(application, user, true, true))
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusInternalServerError)
@@ -180,8 +176,8 @@ func (s *ServerSuite) TestUpdateEventMalformedIDFails(c *C) {
 	)
 
 	routeName := "updateEvent"
-	route := getComposedRouteString(routeName, fmt.Sprintf("%d", user.AccountID), fmt.Sprintf("%d", user.ApplicationID), fmt.Sprintf("%d", user.ID), "90876543211234567890")
-	code, body, err := runRequest(routeName, route, payload, accounts[0].Applications[0].AuthToken, user.SessionToken, 3)
+	route := getComposedRouteString(routeName, accounts[0].ID, accounts[0].Applications[0].ID, user.ID, "90876543211234567890")
+	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(accounts[0].Applications[0], user, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusBadRequest)
 	c.Assert(body, Equals, "400 failed to update the event (1)\nstrconv.ParseInt: parsing \"90876543211234567890\": value out of range")
@@ -198,8 +194,8 @@ func (s *ServerSuite) TestUpdateEventMalformedPayloadFails(c *C) {
 	)
 
 	routeName := "updateEvent"
-	route := getComposedRoute(routeName, user.AccountID, user.ApplicationID, user.ID, user.Events[0].ID)
-	code, body, err := runRequest(routeName, route, payload, accounts[0].Applications[0].AuthToken, user.SessionToken, 3)
+	route := getComposedRoute(routeName, accounts[0].ID, accounts[0].Applications[0].ID, user.ID, user.Events[0].ID)
+	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(accounts[0].Applications[0], user, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusBadRequest)
 	c.Assert(body, Equals, "400 failed to update the event (2)\nunexpected end of JSON input")
@@ -226,7 +222,7 @@ func (s *ServerSuite) TestUpdateEvent_WrongValue(c *C) {
 
 	routeName := "updateEvent"
 	route := getComposedRoute(routeName, account.ID, application.ID, user.ID, event.ID)
-	code, body, err := runRequest(routeName, route, payload, application.AuthToken, createApplicationUserSessionToken(user), 3)
+	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, user, true, true))
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusBadRequest)
@@ -249,7 +245,7 @@ func (s *ServerSuite) TestDeleteEvent_OK(c *C) {
 
 	routeName := "deleteEvent"
 	route := getComposedRoute(routeName, account.ID, application.ID, user.ID, event.ID)
-	code, _, err := runRequest(routeName, route, "", application.AuthToken, createApplicationUserSessionToken(user), 3)
+	code, _, err := runRequest(routeName, route, "", signApplicationRequest(application, user, true, true))
 	c.Assert(err, IsNil)
 
 	c.Assert(err, IsNil)
@@ -271,8 +267,8 @@ func (s *ServerSuite) TestDeleteEvent_WrongID(c *C) {
 	c.Assert(err, IsNil)
 
 	routeName := "deleteEvent"
-	route := getComposedRoute(routeName, account.ID, application.ID, user.ID, event.ID+1)
-	code, _, err := runRequest(routeName, route, "", application.AuthToken, createApplicationUserSessionToken(user), 3)
+	route := getComposedRoute(routeName, account.ID, application.ID, user.ID, event.ID+"1")
+	code, _, err := runRequest(routeName, route, "", signApplicationRequest(application, user, true, true))
 	c.Assert(err, IsNil)
 
 	c.Assert(err, IsNil)
@@ -284,8 +280,8 @@ func (s *ServerSuite) TestDeleteEventMalformedIDFails(c *C) {
 	user := accounts[0].Applications[0].Users[0]
 
 	routeName := "deleteEvent"
-	route := getComposedRouteString(routeName, fmt.Sprintf("%d", user.AccountID), fmt.Sprintf("%d", user.ApplicationID), fmt.Sprintf("%d", user.ID), "90876543211234567890")
-	code, body, err := runRequest(routeName, route, "", accounts[0].Applications[0].AuthToken, user.SessionToken, 3)
+	route := getComposedRouteString(routeName, accounts[0].ID, accounts[0].Applications[0].ID, user.ID, "90876543211234567890")
+	code, body, err := runRequest(routeName, route, "", signApplicationRequest(accounts[0].Applications[0], user, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusBadRequest)
 	c.Assert(body, Equals, "400 failed to delete the event (1)\nstrconv.ParseInt: parsing \"90876543211234567890\": value out of range")
@@ -307,7 +303,7 @@ func (s *ServerSuite) TestGetEvent_OK(c *C) {
 
 	routeName := "getEvent"
 	route := getComposedRoute(routeName, account.ID, application.ID, user.ID, event.ID)
-	code, body, err := runRequest(routeName, route, "", application.AuthToken, createApplicationUserSessionToken(user), 3)
+	code, body, err := runRequest(routeName, route, "", signApplicationRequest(application, user, true, true))
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusOK)
@@ -317,8 +313,6 @@ func (s *ServerSuite) TestGetEvent_OK(c *C) {
 	receivedEvent := &entity.Event{}
 	er := json.Unmarshal([]byte(body), receivedEvent)
 	c.Assert(er, IsNil)
-	c.Assert(receivedEvent.AccountID, Equals, account.ID)
-	c.Assert(receivedEvent.ApplicationID, Equals, application.ID)
 	c.Assert(receivedEvent.UserID, Equals, user.ID)
 	c.Assert(receivedEvent.Enabled, Equals, true)
 }
@@ -330,8 +324,8 @@ func (s *ServerSuite) TestGetEventList_OK(c *C) {
 	user := application.Users[0]
 
 	routeName := "getEventList"
-	route := getComposedRoute(routeName, user.AccountID, application.ID, user.ID)
-	code, body, err := runRequest(routeName, route, "", application.AuthToken, user.SessionToken, 3)
+	route := getComposedRoute(routeName, accounts[0].ID, application.ID, user.ID)
+	code, body, err := runRequest(routeName, route, "", signApplicationRequest(application, user, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusOK)
 	c.Assert(body, Not(Equals), "")
@@ -360,8 +354,8 @@ func (s *ServerSuite) TestGetEventWrongIDFails(c *C) {
 	c.Assert(err, IsNil)
 
 	routeName := "getEvent"
-	route := getComposedRoute(routeName, account.ID, application.ID, user.ID, event.ID+1)
-	code, _, err := runRequest(routeName, route, "", application.AuthToken, createApplicationUserSessionToken(user), 3)
+	route := getComposedRoute(routeName, account.ID, application.ID, user.ID, event.ID+"1")
+	code, _, err := runRequest(routeName, route, "", signApplicationRequest(application, user, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusInternalServerError)
 }
@@ -371,8 +365,8 @@ func (s *ServerSuite) TestGetEventMalformedIDFails(c *C) {
 	user := accounts[0].Applications[0].Users[0]
 
 	routeName := "getEvent"
-	route := getComposedRouteString(routeName, fmt.Sprintf("%d", user.AccountID), fmt.Sprintf("%d", user.ApplicationID), fmt.Sprintf("%d", user.ID), "90876543211234567890")
-	code, body, err := runRequest(routeName, route, "", accounts[0].Applications[0].AuthToken, user.SessionToken, 3)
+	route := getComposedRouteString(routeName, accounts[0].ID, accounts[0].Applications[0].ID, user.ID, "90876543211234567890")
+	code, body, err := runRequest(routeName, route, "", signApplicationRequest(accounts[0].Applications[0], user, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusBadRequest)
 	c.Assert(body, Equals, "400 read event failed (1)\nstrconv.ParseInt: parsing \"90876543211234567890\": value out of range")
@@ -385,7 +379,7 @@ func (s *ServerSuite) TestGeoLocationSearch(c *C) {
 
 	routeName := "getGeoEventList"
 	route := getComposedRoute(routeName, application.AccountID, application.ID, user.Events[0].Latitude, user.Events[0].Longitude, 25000.0)
-	code, body, err := runRequest(routeName, route, "", application.AuthToken, user.SessionToken, 3)
+	code, body, err := runRequest(routeName, route, "", signApplicationRequest(application, user, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusOK)
 	c.Assert(body, Not(Equals), "")
@@ -446,8 +440,8 @@ func (s *ServerSuite) TestGeoLocationInvalidSearchDataFails(c *C) {
 	}
 
 	for idx := range scenarios {
-		route := getComposedRouteString(routeName, fmt.Sprintf("%d", application.AccountID), fmt.Sprintf("%d", application.ID), scenarios[idx].Latitude, scenarios[idx].Longitude, scenarios[idx].Radius)
-		code, body, err := runRequest(routeName, route, "", application.AuthToken, user.SessionToken, 3)
+		route := getComposedRouteString(routeName, accounts[0].ID, application.ID, scenarios[idx].Latitude, scenarios[idx].Longitude, scenarios[idx].Radius)
+		code, body, err := runRequest(routeName, route, "", signApplicationRequest(application, user, true, true))
 		c.Logf("pass: %d", idx)
 		c.Assert(err, IsNil)
 		c.Assert(code, Equals, scenarios[idx].StatusCode)
@@ -463,7 +457,7 @@ func (s *ServerSuite) TestGetLocation(c *C) {
 
 	routeName := "getLocationEventList"
 	route := getComposedRoute(routeName, application.AccountID, application.ID, user1.Events[0].Location)
-	code, body, err := runRequest(routeName, route, "", application.AuthToken, user1.SessionToken, 3)
+	code, body, err := runRequest(routeName, route, "", signApplicationRequest(application, user1, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusOK)
 	c.Assert(body, Not(Equals), "")
@@ -484,7 +478,7 @@ func (s *ServerSuite) TestGetObjectEvents(c *C) {
 
 	routeName := "getObjectEventList"
 	route := getComposedRoute(routeName, application.AccountID, application.ID, user1.Events[0].Object.ID)
-	code, body, err := runRequest(routeName, route, "", application.AuthToken, user1.SessionToken, 3)
+	code, body, err := runRequest(routeName, route, "", signApplicationRequest(application, user1, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusOK)
 	c.Assert(body, Not(Equals), "")
@@ -539,7 +533,7 @@ func BenchmarkCreateEvent1_Write(b *testing.B) {
 			panic(err)
 		}
 	}
-	req.Header.Set("x-tapglue-session", createApplicationUserSessionToken(user))
+	req.Header.Set("x-tapglue-session", createApplicationUserSessionToken(account.ID, application.ID, user))
 
 	w := httptest.NewRecorder()
 	m := mux.NewRouter()
@@ -592,7 +586,7 @@ func BenchmarkCreateEvent2_Read(b *testing.B) {
 			panic(err)
 		}
 	}
-	req.Header.Set("x-tapglue-session", createApplicationUserSessionToken(user))
+	req.Header.Set("x-tapglue-session", createApplicationUserSessionToken(account.ID, application.ID, user))
 
 	w := httptest.NewRecorder()
 	m := mux.NewRouter()

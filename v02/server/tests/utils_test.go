@@ -51,9 +51,7 @@ func AddCorrectApplication(accountID int64, fetchApplication bool) (*entity.Appl
 func AddCorrectUser(accountID, applicationID int64, fetchUser bool) (usr *entity.ApplicationUser, err errors.Error) {
 	userWithIDs := fixtures.CorrectUser
 	userWithIDs.Password = "password"
-	userWithIDs.AccountID = accountID
-	userWithIDs.ApplicationID = applicationID
-	user, err := coreAppUser.Create(&userWithIDs, fetchUser)
+	user, err := coreAppUser.Create(accountID, applicationID, &userWithIDs, fetchUser)
 	if err != nil {
 		return nil, err
 	}
@@ -67,9 +65,7 @@ func AddCorrectUser2(accountID, applicationID int64, fetchUser bool) (usr *entit
 	userWithIDs.Username = "demouser2"
 	userWithIDs.Password = "password"
 	userWithIDs.Email = "user2@tapglue.com"
-	userWithIDs.AccountID = accountID
-	userWithIDs.ApplicationID = applicationID
-	user, err := coreAppUser.Create(&userWithIDs, fetchUser)
+	user, err := coreAppUser.Create(accountID, applicationID, &userWithIDs, fetchUser)
 	if err != nil {
 		return nil, err
 	}
@@ -78,13 +74,11 @@ func AddCorrectUser2(accountID, applicationID int64, fetchUser bool) (usr *entit
 }
 
 // AddCorrectConnection creates a correct user connection
-func AddCorrectConnection(accountID, applicationID, userFromID, userToID int64, fetchConnection bool) (con *entity.Connection, err errors.Error) {
+func AddCorrectConnection(accountID, applicationID int64, userFromID, userToID string, fetchConnection bool) (con *entity.Connection, err errors.Error) {
 	connectionWithIDs := fixtures.CorrectConnection
-	connectionWithIDs.AccountID = accountID
-	connectionWithIDs.ApplicationID = applicationID
 	connectionWithIDs.UserFromID = userFromID
 	connectionWithIDs.UserToID = userToID
-	connection, err := coreConn.Create(&connectionWithIDs, fetchConnection)
+	connection, err := coreConn.Create(accountID, applicationID, &connectionWithIDs, fetchConnection)
 	if err != nil {
 		return nil, err
 	}
@@ -93,12 +87,10 @@ func AddCorrectConnection(accountID, applicationID, userFromID, userToID int64, 
 }
 
 // AddCorrectEvent creates a correct event
-func AddCorrectEvent(accountID, applicationID, userID int64, fetchEvent bool) (evn *entity.Event, err errors.Error) {
+func AddCorrectEvent(accountID, applicationID int64, userID string, fetchEvent bool) (evn *entity.Event, err errors.Error) {
 	eventWithIDs := fixtures.CorrectEvent
-	eventWithIDs.AccountID = accountID
-	eventWithIDs.ApplicationID = applicationID
 	eventWithIDs.UserID = userID
-	event, err := coreEvt.Create(&eventWithIDs, fetchEvent)
+	event, err := coreEvt.Create(accountID, applicationID, &eventWithIDs, fetchEvent)
 	if err != nil {
 		return nil, err
 	}
@@ -146,18 +138,16 @@ func CorrectUser() *entity.ApplicationUser {
 // CorrectUserWithDefaults returns a new user entity with prepoulated defaults
 func CorrectUserWithDefaults(accountID, applicationID, userNumber int64) *entity.ApplicationUser {
 	user := CorrectUser()
-	user.AccountID = accountID
-	user.ApplicationID = applicationID
-	user.Username = fmt.Sprintf("acc-%d-app-%d-user-%d", user.AccountID, user.ApplicationID, userNumber)
-	user.Email = fmt.Sprintf("acc-%d-app-%d-user-%d@tapglue-test.com", user.AccountID, user.ApplicationID, userNumber)
-	user.Password = fmt.Sprintf("acc-%d-app-%d-user-%d", user.AccountID, user.ApplicationID, userNumber)
-	user.FirstName = fmt.Sprintf("acc-%d-app-%d-user-%d-first-name", user.AccountID, user.ApplicationID, userNumber)
-	user.LastName = fmt.Sprintf("acc-%d-app-%d-user-%d-last-name", user.AccountID, user.ApplicationID, userNumber)
+	user.Username = fmt.Sprintf("acc-%d-app-%d-user-%d", accountID, applicationID, userNumber)
+	user.Email = fmt.Sprintf("acc-%d-app-%d-user-%d@tapglue-test.com", accountID, applicationID, userNumber)
+	user.Password = fmt.Sprintf("acc-%d-app-%d-user-%d", accountID, applicationID, userNumber)
+	user.FirstName = fmt.Sprintf("acc-%d-app-%d-user-%d-first-name", accountID, applicationID, userNumber)
+	user.LastName = fmt.Sprintf("acc-%d-app-%d-user-%d-last-name", accountID, applicationID, userNumber)
 	user.SocialIDs = map[string]string{
-		"facebook": fmt.Sprintf("acc-%d-app-%d-user-%d-fb", user.AccountID, user.ApplicationID, userNumber),
-		"twitter":  fmt.Sprintf("acc-%d-app-%d-user-%d-tw", user.AccountID, user.ApplicationID, userNumber),
-		"gplus":    fmt.Sprintf("acc-%d-app-%d-user-%d-gpl", user.AccountID, user.ApplicationID, userNumber),
-		"abook":    fmt.Sprintf("acc-%d-app-%d-user-%d-abk", user.AccountID, user.ApplicationID, userNumber),
+		"facebook": fmt.Sprintf("acc-%d-app-%d-user-%d-fb", accountID, applicationID, userNumber),
+		"twitter":  fmt.Sprintf("acc-%d-app-%d-user-%d-tw", accountID, applicationID, userNumber),
+		"gplus":    fmt.Sprintf("acc-%d-app-%d-user-%d-gpl", accountID, applicationID, userNumber),
+		"abook":    fmt.Sprintf("acc-%d-app-%d-user-%d-abk", accountID, applicationID, userNumber),
 	}
 
 	return user
@@ -235,29 +225,27 @@ func AddCorrectApplications(account *entity.Account, numberOfApplicationsPerAcco
 }
 
 // HookUp create a connection between two users provided
-func HookUp(accountID, applicationID, userFromID, userToID int64) {
+func HookUp(accountID, applicationID int64, userFromID, userToID string) {
 	connection := &entity.Connection{
-		AccountID:     accountID,
-		ApplicationID: applicationID,
-		UserFromID:    userFromID,
-		UserToID:      userToID,
+		UserFromID: userFromID,
+		UserToID:   userToID,
 	}
-	coreConn.Create(connection, false)
-	coreConn.Confirm(connection, false)
+	coreConn.Create(accountID, applicationID, connection, false)
+	coreConn.Confirm(accountID, applicationID, connection, false)
 }
 
 // HookUpUsers creates connection between all users that you provide
 // bidi:true will provide bidirectional connections
-func HookUpUsers(users []*entity.ApplicationUser, bidi bool) {
+func HookUpUsers(accountID, applicationID int64, users []*entity.ApplicationUser, bidi bool) {
 	if len(users) < 2 {
 		return
 	}
 
 	for i := 1; i < len(users)-1; i++ {
 		for j := i + 1; j < len(users); j++ {
-			HookUp(users[0].AccountID, users[0].ApplicationID, users[i].ID, users[j].ID)
+			HookUp(accountID, applicationID, users[i].ID, users[j].ID)
 			if bidi {
-				HookUp(users[0].AccountID, users[0].ApplicationID, users[j].ID, users[i].ID)
+				HookUp(accountID, applicationID, users[j].ID, users[i].ID)
 			}
 		}
 	}
@@ -271,80 +259,74 @@ func HookUpUsers(users []*entity.ApplicationUser, bidi bool) {
 // 3->4
 // 5->6
 // 7->8
-func HookUpUsersCustom(users []*entity.ApplicationUser) {
+func HookUpUsersCustom(accountID, applicationID int64, users []*entity.ApplicationUser) {
 	if len(users) < 2 {
 		return
 	}
 
 	if len(users) >= 2 {
-		HookUp(users[0].AccountID, users[0].ApplicationID, users[0].ID, users[1].ID)
-		HookUp(users[0].AccountID, users[0].ApplicationID, users[1].ID, users[0].ID)
+		HookUp(accountID, applicationID, users[0].ID, users[1].ID)
+		HookUp(accountID, applicationID, users[1].ID, users[0].ID)
 	}
 
 	if len(users) >= 3 {
-		HookUp(users[0].AccountID, users[0].ApplicationID, users[0].ID, users[2].ID)
-		HookUp(users[0].AccountID, users[0].ApplicationID, users[1].ID, users[2].ID)
+		HookUp(accountID, applicationID, users[0].ID, users[2].ID)
+		HookUp(accountID, applicationID, users[1].ID, users[2].ID)
 	}
 
 	if len(users) >= 4 {
-		HookUp(users[0].AccountID, users[0].ApplicationID, users[0].ID, users[3].ID)
-		HookUp(users[0].AccountID, users[0].ApplicationID, users[2].ID, users[3].ID)
+		HookUp(accountID, applicationID, users[0].ID, users[3].ID)
+		HookUp(accountID, applicationID, users[2].ID, users[3].ID)
 	}
 
 	if len(users) >= 5 {
 		connection := &entity.Connection{
-			AccountID:     users[0].AccountID,
-			ApplicationID: users[0].ApplicationID,
-			UserFromID:    users[0].ID,
-			UserToID:      users[4].ID,
+			UserFromID: users[0].ID,
+			UserToID:   users[4].ID,
 		}
-		coreConn.Create(connection, false)
+		coreConn.Create(accountID, applicationID, connection, false)
 	}
 
 	if len(users) >= 6 {
 		connection := &entity.Connection{
-			AccountID:     users[0].AccountID,
-			ApplicationID: users[0].ApplicationID,
-			UserFromID:    users[4].ID,
-			UserToID:      users[5].ID,
+			UserFromID: users[4].ID,
+			UserToID:   users[5].ID,
 		}
-		coreConn.Create(connection, false)
+		coreConn.Create(accountID, applicationID, connection, false)
 	}
 
 	if len(users) >= 8 {
 		connection := &entity.Connection{
-			AccountID:     users[0].AccountID,
-			ApplicationID: users[0].ApplicationID,
-			UserFromID:    users[6].ID,
-			UserToID:      users[7].ID,
+			UserFromID: users[6].ID,
+			UserToID:   users[7].ID,
 		}
-		coreConn.Create(connection, false)
+		coreConn.Create(accountID, applicationID, connection, false)
 	}
 }
 
-func LoginUsers(users []*entity.ApplicationUser) {
+func LoginUsers(accountID, applicationID int64, users []*entity.ApplicationUser) {
 	for idx := range users {
-		sessionToken, err := coreAppUser.CreateSession(users[idx])
+		sessionToken, err := coreAppUser.CreateSession(accountID, applicationID, users[idx])
 		if err != nil {
 			panic(err)
 		}
 		users[idx].SessionToken = sessionToken
 		users[idx].LastLogin = time.Now()
-		_, err = coreAppUser.Update(*users[idx], *users[idx], false)
+		_, err = coreAppUser.Update(accountID, applicationID, *users[idx], *users[idx], false)
 		if err != nil {
 			panic(err)
 		}
 	}
 }
 
-func AddCorrectApplicationUsers(application *entity.Application, numberOfUsersPerApplication int, hookUpUsers bool) []*entity.ApplicationUser {
+func AddCorrectApplicationUsers(accountID int64, application *entity.Application, numberOfUsersPerApplication int, hookUpUsers bool) []*entity.ApplicationUser {
 	var err errors.Error
 	result := make([]*entity.ApplicationUser, numberOfUsersPerApplication)
 	for i := 0; i < numberOfUsersPerApplication; i++ {
-		user := CorrectUserWithDefaults(application.AccountID, application.ID, int64(i+1))
+		user := CorrectUserWithDefaults(accountID, application.ID, int64(i+1))
 		password := user.Password
 		user.Activated = true
-		result[i], err = coreAppUser.Create(user, true)
+		result[i], err = coreAppUser.Create(accountID, application.ID, user, true)
 		result[i].OriginalPassword = password
 		if err != nil {
 			panic(err)
@@ -352,7 +334,7 @@ func AddCorrectApplicationUsers(application *entity.Application, numberOfUsersPe
 	}
 
 	if hookUpUsers {
-		HookUpUsersCustom(result)
+		HookUpUsersCustom(accountID, application.ID, result)
 	}
 
 	return result
@@ -360,7 +342,7 @@ func AddCorrectApplicationUsers(application *entity.Application, numberOfUsersPe
 
 // AddCorrectUserEvents adds correct events to a user
 // If numberOfEventsPerUser < 4 then events are common, else they are user specific (thus unique)
-func AddCorrectUserEvents(user *entity.ApplicationUser, numberOfEventsPerUser int) []*entity.Event {
+func AddCorrectUserEvents(accountID, applicationID int64, user *entity.ApplicationUser, numberOfEventsPerUser int) []*entity.Event {
 	var err errors.Error
 	locations := []struct {
 		Lat   float64
@@ -378,8 +360,6 @@ func AddCorrectUserEvents(user *entity.ApplicationUser, numberOfEventsPerUser in
 	result := make([]*entity.Event, numberOfEventsPerUser)
 	for i := 0; i < numberOfEventsPerUser; i++ {
 		event := CorrectEvent()
-		event.AccountID = user.AccountID
-		event.ApplicationID = user.ApplicationID
 		event.UserID = user.ID
 		if i < 4 {
 			event.Location = fmt.Sprintf("location-all-%d", i+1)
@@ -394,12 +374,12 @@ func AddCorrectUserEvents(user *entity.ApplicationUser, numberOfEventsPerUser in
 		} else {
 			event.Location = fmt.Sprintf("location-%d", i+1)
 			event.Target = &entity.Object{
-				ID:          fmt.Sprintf("acc-%d-app-%d-usr-%d-target-%d", user.AccountID, user.ApplicationID, user.ID, i+1),
-				DisplayName: map[string]string{"all": fmt.Sprintf("acc-%d-app-%d-usr-%d-target-%d-lall", user.AccountID, user.ApplicationID, user.ID, i+1)},
+				ID:          fmt.Sprintf("acc-%d-app-%d-usr-%d-target-%d", accountID, applicationID, user.ID, i+1),
+				DisplayName: map[string]string{"all": fmt.Sprintf("acc-%d-app-%d-usr-%d-target-%d-lall", accountID, applicationID, user.ID, i+1)},
 			}
 			event.Object = &entity.Object{
-				ID:          fmt.Sprintf("acc-%d-app-%d-usr-%d-object-%d", user.AccountID, user.ApplicationID, user.ID, i+1),
-				DisplayName: map[string]string{"all": fmt.Sprintf("acc-%d-app-%d-usr-%d-object-%d-lall", user.AccountID, user.ApplicationID, user.ID, i+1)},
+				ID:          fmt.Sprintf("acc-%d-app-%d-usr-%d-object-%d", accountID, applicationID, user.ID, i+1),
+				DisplayName: map[string]string{"all": fmt.Sprintf("acc-%d-app-%d-usr-%d-object-%d-lall", accountID, applicationID, user.ID, i+1)},
 			}
 		}
 		if i < 6 {
@@ -407,7 +387,7 @@ func AddCorrectUserEvents(user *entity.ApplicationUser, numberOfEventsPerUser in
 			event.Longitude = locations[i].Lon
 			event.Location = locations[i].Label
 		}
-		result[i], err = coreEvt.Create(event, true)
+		result[i], err = coreEvt.Create(accountID, applicationID, event, true)
 		if err != nil {
 			panic(err)
 		}
@@ -428,13 +408,13 @@ func CorrectDeploy(numberOfAccounts, numberOfAccountUsersPerAccount, numberOfApp
 		accounts[i].Applications = AddCorrectApplications(accounts[i], numberOfApplicationsPerAccount)
 
 		for j := 0; j < numberOfApplicationsPerAccount; j++ {
-			accounts[i].Applications[j].Users = AddCorrectApplicationUsers(accounts[i].Applications[j], numberOfUsersPerApplication, hookUpUsers)
+			accounts[i].Applications[j].Users = AddCorrectApplicationUsers(accounts[i].ID, accounts[i].Applications[j], numberOfUsersPerApplication, hookUpUsers)
 			if loginUsers {
-				LoginUsers(accounts[i].Applications[j].Users)
+				LoginUsers(accounts[i].ID, accounts[i].Applications[j].ID, accounts[i].Applications[j].Users)
 			}
 
 			for k := 0; k < numberOfUsersPerApplication; k++ {
-				accounts[i].Applications[j].Users[k].Events = AddCorrectUserEvents(accounts[i].Applications[j].Users[k], numberOfEventsPerUser)
+				accounts[i].Applications[j].Users[k].Events = AddCorrectUserEvents(accounts[i].ID, accounts[i].Applications[j].ID, accounts[i].Applications[j].Users[k], numberOfEventsPerUser)
 			}
 		}
 	}

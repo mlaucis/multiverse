@@ -334,3 +334,19 @@ func createApplicationUserSessionToken(accountID, applicationID int64, user *ent
 
 	return sessionToken
 }
+
+func nilSigner(*http.Request) {
+
+}
+
+func signAccountRequest(account *entity.Account, accountUser *entity.AccountUser, goodAccountToken, goodAccountUserToken bool) func(*http.Request) {
+	return func(r *http.Request) {
+
+	}
+}
+
+func signApplicationRequest(application *entity.Application, applicationUser *entity.ApplicationUser, goodAccountToken, goodAccountUserToken bool) func(*http.Request) {
+	return func(r *http.Request) {
+
+	}
+}
