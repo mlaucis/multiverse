@@ -195,27 +195,27 @@ func UpdateAccountUser(datastore core.AccountUser, existingAccountUser, updatedA
 func AccountUserCredentialsValid(password string, user *entity.AccountUser) errors.Error {
 	pass, err := utils.Base64Decode(user.Password)
 	if err != nil {
-		return errors.NewInternalError("failed to validate account user credentials (1)", err.Error())
+		return errors.NewBadRequestError("failed to validate account user credentials (1)", err.Error())
 	}
 	passwordParts := strings.SplitN(string(pass), ":", 3)
 	if len(passwordParts) != 3 {
-		return errors.NewInternalError("failed to validate account user credentials (2)", "invalid password parts")
+		return errors.NewBadRequestError("failed to validate account user credentials (2)", "invalid password parts")
 	}
 
 	salt, err := utils.Base64Decode(passwordParts[0])
 	if err != nil {
-		return errors.NewInternalError("failed to validate account user credentials (3)", err.Error())
+		return errors.NewBadRequestError("failed to validate account user credentials (3)", err.Error())
 	}
 
 	timestamp, err := utils.Base64Decode(passwordParts[1])
 	if err != nil {
-		return errors.NewInternalError("failed to validate account user credentials (4)", err.Error())
+		return errors.NewBadRequestError("failed to validate account user credentials (4)", err.Error())
 	}
 
 	encryptedPassword := storageHelper.GenerateEncryptedPassword(password, string(salt), string(timestamp))
 
 	if encryptedPassword != passwordParts[2] {
-		return errors.NewInternalError("failed to validate account user credentials (5)", "different passwords")
+		return errors.NewBadRequestError("failed to validate account user credentials (5)", "different passwords")
 	}
 
 	return nil
