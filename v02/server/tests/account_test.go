@@ -20,7 +20,7 @@ func (s *ServerSuite) TestCreateAccount_WrongKey(c *C) {
 
 	routeName := "createAccount"
 	route := getComposedRoute(routeName)
-	code, body, err := runRequest(routeName, route, payload, "", "", 0)
+	code, body, err := runRequest(routeName, route, payload)
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusBadRequest)
 	c.Assert(body, Not(Equals), "")

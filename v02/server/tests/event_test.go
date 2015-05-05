@@ -12,9 +12,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/tapglue/backend/v01/validator/keys"
 	"github.com/tapglue/backend/v02/entity"
 	"github.com/tapglue/backend/v02/server"
-	"github.com/tapglue/backend/v02/validator/keys"
 
 	"github.com/gorilla/mux"
 	. "gopkg.in/check.v1"
@@ -35,7 +35,7 @@ func (s *ServerSuite) TestCreateEvent_WrongKey(c *C) {
 
 	routeName := "createEvent"
 	route := getComposedRoute(routeName, account.ID, application.ID, user.ID)
-	code, body, err := runRequest(routeName, route, payload, application.AuthToken, createApplicationUserSessionToken(user), 3)
+	code, body, err := runRequest(routeName, route, payload)
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusBadRequest)

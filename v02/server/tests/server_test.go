@@ -272,7 +272,7 @@ func getComposedRouteString(routeName string, params ...interface{}) string {
 }
 
 // runRequest takes a route, path, payload and token, performs a request and return a response recorder
-func runRequest(routeName, routePath, payload string, singFunc func(*http.Request)) (int, string, errors.Error) {
+func runRequest(routeName, routePath, payload string, signFunc func(*http.Request)) (int, string, errors.Error) {
 	var (
 		requestRoute *server.Route
 		routePattern string
@@ -302,6 +302,8 @@ func runRequest(routeName, routePath, payload string, singFunc func(*http.Reques
 	}
 
 	createCommonRequestHeaders(req)
+
+	signFunc(req)
 
 	w := httptest.NewRecorder()
 	m := mux.NewRouter()
