@@ -36,6 +36,7 @@ func (app *application) Update(ctx *context.Context) (err errors.Error) {
 
 	application.ID = ctx.Bag["applicationID"].(int64)
 	application.AccountID = ctx.Bag["accountID"].(int64)
+	application.PublicID = ctx.Bag["account"].(*entity.Account).PublicID
 
 	if err = validator.UpdateApplication(ctx.Bag["application"].(*entity.Application), &application); err != nil {
 		return

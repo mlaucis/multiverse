@@ -212,6 +212,10 @@ func (c *connection) DeleteEventsFromLists(accountID, applicationID int64, userF
 func (c *connection) SocialConnect(accountID, applicationID int64, user *entity.ApplicationUser, platform string, socialFriendsIDs []string, connectionType string) ([]*entity.ApplicationUser, errors.Error) {
 	users := []*entity.ApplicationUser{}
 
+	if len(socialFriendsIDs) == 0 {
+		return users, nil
+	}
+
 	var conditions []string
 	for idx := range socialFriendsIDs {
 		conditions = append(conditions, fmt.Sprintf(`json_data @> '{"social_ids": {%q: %q}}'`, platform, socialFriendsIDs[idx]))

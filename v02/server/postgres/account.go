@@ -35,8 +35,13 @@ func (acc *account) Read(ctx *context.Context) (err errors.Error) {
 
 func (acc *account) Update(ctx *context.Context) (err errors.Error) {
 	account := *(ctx.Bag["account"].(*entity.Account))
+
+	if account.PublicID != ctx.Vars["accountID"] {
+		return errors.New(errors.ConflictError, "failed to update the account (2)\naccount ID mismatch", "account ID mismatch", false)
+	}
+
 	if er := json.Unmarshal(ctx.Body, &account); er != nil {
-		return errors.NewBadRequestError("failed to update the account (1)\n"+er.Error(), "malformed json received")
+		return errors.NewBadRequestError("failed to update the account (2)\n"+er.Error(), "malformed json received")
 	}
 
 	account.ID = ctx.Bag["accountID"].(int64)

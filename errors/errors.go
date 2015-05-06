@@ -39,6 +39,7 @@ const (
 	BadRequestError   errorType = http.StatusBadRequest
 	UnauthorizedError errorType = http.StatusUnauthorized
 	NotFoundError     errorType = http.StatusNotFound
+	ConflictError     errorType = http.StatusConflict
 )
 
 var dbgMode = false

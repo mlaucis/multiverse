@@ -31,6 +31,11 @@ func (accUser *accountUser) Read(ctx *context.Context) (err errors.Error) {
 
 func (accUser *accountUser) Update(ctx *context.Context) (err errors.Error) {
 	accountUser := *(ctx.Bag["accountUser"].(*entity.AccountUser))
+
+	if accountUser.PublicID != ctx.Vars["accountUserID"] {
+		return errors.New(errors.ConflictError, "account user mismatch", "account user mismatch", false)
+	}
+
 	if er := json.Unmarshal(ctx.Body, &accountUser); er != nil {
 		return errors.NewBadRequestError("failed to update the account user (1)\n"+er.Error(), er.Error())
 	}
