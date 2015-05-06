@@ -66,6 +66,10 @@ func composeConnection(database string, config *config.PostgresDB) *sql.DB {
 		errors.Fatal(err)
 	}
 
+	if err := db.Ping(); err != nil {
+		errors.Fatal(err)
+	}
+
 	return db
 }
 

@@ -187,6 +187,7 @@ func (au *accountUser) GetSession(user *entity.AccountUser) (string, errors.Erro
 	if err != nil {
 		return "", errors.NewInternalError("error while reading session from the database", err.Error())
 	}
+	defer rows.Close()
 	sessions := []string{}
 	for rows.Next() {
 		session := ""
