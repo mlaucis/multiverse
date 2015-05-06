@@ -80,6 +80,9 @@ func (au *applicationUser) Read(accountID, applicationID int64, userID string) (
 		QueryRow(appSchema(selectApplicationUserByIDQuery, accountID, applicationID), userID).
 		Scan(&JSONData)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.NewNotFoundError("application user not found", "application user not found")
+		}
 		return nil, errors.NewInternalError("error while reading the application user", err.Error())
 	}
 
@@ -213,6 +216,9 @@ func (au *applicationUser) FindByEmail(accountID, applicationID int64, email str
 		QueryRow(appSchema(selectApplicationUserByEmailQuery, accountID, applicationID), email).
 		Scan(&JSONData)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.NewNotFoundError("application user not found", "application user not found")
+		}
 		return nil, errors.NewInternalError("error while reading the application user", err.Error())
 	}
 	user := &entity.ApplicationUser{}
@@ -248,6 +254,9 @@ func (au *applicationUser) FindByUsername(accountID, applicationID int64, userna
 		QueryRow(appSchema(selectApplicationUserByUsernameQuery, accountID, applicationID), username).
 		Scan(&JSONData)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.NewNotFoundError("application user not found", "application user not found")
+		}
 		return nil, errors.NewInternalError("error while reading the application user", err.Error())
 	}
 	user := &entity.ApplicationUser{}
@@ -298,7 +307,7 @@ func (au *applicationUser) FindBySession(accountID, applicationID int64, session
 		QueryRow(appSchema(selectApplicationUserBySessionQuery, accountID, applicationID), sessionKey).
 		Scan(&userID)
 	if err != nil {
-		return nil, errors.NewInternalError("error while loading the application user", err.Error())
+		return nil, errors.NewNotFoundError("application user not found", err.Error())
 	}
 
 	return au.Read(accountID, applicationID, userID)

@@ -73,6 +73,9 @@ func (au *accountUser) Read(accountID, accountUserID int64) (accountUser *entity
 		QueryRow(selectAccountUserByIDQuery, accountUserID, accountID).
 		Scan(&JSONData)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.NewNotFoundError("account user not found", "account user not found")
+		}
 		return nil, errors.NewInternalError("error while reading the account user", err.Error())
 	}
 

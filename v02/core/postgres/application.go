@@ -111,6 +111,9 @@ func (app *application) Read(accountID, applicationID int64) (*entity.Applicatio
 		QueryRow(selectApplicationEntryByIDQuery, applicationID, accountID).
 		Scan(&JSONData, &enabled)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.NewNotFoundError("application not found", "application not found")
+		}
 		return nil, errors.NewInternalError("error while reading application", err.Error())
 	}
 
@@ -217,6 +220,9 @@ func (app *application) FindByKey(applicationKey string) (*entity.Application, e
 		QueryRow(selectApplicationEntryByKeyQuery, applicationKey).
 		Scan(&ID, &accountID, &JSONData, &Enabled)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.NewNotFoundError("application not found", "application not found")
+		}
 		return nil, errors.NewInternalError("error while loading the application", err.Error())
 	}
 	application := &entity.Application{}
@@ -241,6 +247,9 @@ func (app *application) FindByPublicID(publicID string) (*entity.Application, er
 		QueryRow(selectApplicationEntryByPublicIDsQuery, publicID).
 		Scan(&ID, &accountID, &JSONData, &Enabled)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.NewNotFoundError("application not found", "application not found")
+		}
 		return nil, errors.NewInternalError("error while loading the application", err.Error())
 	}
 	application := &entity.Application{}

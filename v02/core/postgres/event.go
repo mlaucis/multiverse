@@ -64,6 +64,9 @@ func (e *event) Read(accountID, applicationID int64, userID, eventID string) (*e
 		QueryRow(appSchema(selectEventByIDQuery, accountID, applicationID), eventID, userID).
 		Scan(&JSONData)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.NewNotFoundError("event not found", "event not found")
+		}
 		return nil, errors.NewInternalError("error while reading the event", err.Error())
 	}
 

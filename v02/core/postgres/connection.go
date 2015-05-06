@@ -59,6 +59,9 @@ func (c *connection) Read(accountID, applicationID int64, userFromID, userToID s
 		QueryRow(appSchema(selectConnectionQuery, accountID, applicationID), userFromID, userToID).
 		Scan(&JSONData)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.NewNotFoundError("connection not found", "connection not found")
+		}
 		return nil, errors.NewInternalError("error while reading the connection", err.Error())
 	}
 
