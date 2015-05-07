@@ -58,7 +58,12 @@ func (accUser *accountUser) Update(ctx *context.Context) (err errors.Error) {
 }
 
 func (accUser *accountUser) Delete(ctx *context.Context) (err errors.Error) {
-	if err = accUser.storage.Delete(ctx.Bag["accountUser"].(*entity.AccountUser)); err != nil {
+	accountUser, err := accUser.storage.FindByPublicID(ctx.Bag["accountID"].(int64), ctx.Vars["accountUserID"])
+	if err != nil {
+		return
+	}
+
+	if err = accUser.storage.Delete(accountUser); err != nil {
 		return
 	}
 

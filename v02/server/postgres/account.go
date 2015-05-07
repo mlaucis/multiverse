@@ -25,8 +25,11 @@ type (
 
 func (acc *account) Read(ctx *context.Context) (err errors.Error) {
 	if ctx.Bag["account"] == nil {
-		server.ErrorHappened(ctx, errors.NewInternalError("request is missing account context", "context missing"))
-		return
+		return errors.NewInternalError("request is missing account context", "context missing")
+	}
+
+	if ctx.Bag["account"].(*entity.Account).PublicID != ctx.Vars["accountID"] {
+		return errors.NewBadRequestError("account mismatch", "account mismatch")
 	}
 
 	server.WriteResponse(ctx, ctx.Bag["account"].(*entity.Account), http.StatusOK, 10)
@@ -60,6 +63,10 @@ func (acc *account) Update(ctx *context.Context) (err errors.Error) {
 }
 
 func (acc *account) Delete(ctx *context.Context) (err errors.Error) {
+	if ctx.Bag["account"].(*entity.Account).PublicID != ctx.Vars["accountID"] {
+		return errors.NewBadRequestError("account mismatch", "account mismatch")
+	}
+
 	if err = acc.storage.Delete(ctx.Bag["account"].(*entity.Account)); err != nil {
 		return err
 	}

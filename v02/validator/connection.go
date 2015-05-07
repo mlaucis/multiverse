@@ -29,7 +29,7 @@ func CreateConnection(datastore core.ApplicationUser, accountID, applicationID i
 			er := err.Raw()
 			errs = append(errs, &er)
 		} else {
-			err := fmt.Errorf("user %d does not exists", connection.UserFromID)
+			err := fmt.Errorf("user %s does not exists", connection.UserFromID)
 			errs = append(errs, &err)
 		}
 	}
@@ -48,7 +48,7 @@ func CreateConnection(datastore core.ApplicationUser, accountID, applicationID i
 			er := err.Raw()
 			errs = append(errs, &er)
 		} else {
-			err := fmt.Errorf("user %d does not exists", connection.UserFromID)
+			err := fmt.Errorf("user %s does not exists", connection.UserFromID)
 			errs = append(errs, &err)
 		}
 	}
@@ -87,7 +87,7 @@ func ConfirmConnection(datastore core.ApplicationUser, accountID, applicationID 
 			er := err.Raw()
 			errs = append(errs, &er)
 		} else {
-			err := fmt.Errorf("user %d does not exists", connection.UserFromID)
+			err := fmt.Errorf("user %s does not exists", connection.UserFromID)
 			errs = append(errs, &err)
 		}
 	}
@@ -104,7 +104,7 @@ func UpdateConnection(datastore core.ApplicationUser, accountID, applicationID i
 			er := err.Raw()
 			errs = append(errs, &er)
 		} else {
-			err := fmt.Errorf("user %d does not exists", updatedConnection.UserFromID)
+			err := fmt.Errorf("user %s does not exists", updatedConnection.UserFromID)
 			errs = append(errs, &err)
 		}
 	}

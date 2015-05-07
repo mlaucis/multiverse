@@ -6,6 +6,7 @@ package postgres
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/tapglue/backend/context"
@@ -56,6 +57,10 @@ func (conn *connection) Update(ctx *context.Context) (err errors.Error) {
 		return errors.NewBadRequestError("failed to update the connection (6)\nuser_to mismatch", "user_to mismatch")
 	}
 
+	if connection.Type != "friend" && connection.Type != "follow" {
+		return errors.NewBadRequestError(fmt.Sprintf("unexpected connection type %q", connection.Type), "unexpected connection type")
+	}
+
 	if err = validator.UpdateConnection(
 		conn.appUser,
 		ctx.Bag["accountID"].(int64),
@@ -82,11 +87,16 @@ func (conn *connection) Update(ctx *context.Context) (err errors.Error) {
 func (conn *connection) Delete(ctx *context.Context) (err errors.Error) {
 	connection := &entity.Connection{
 		UserFromID: ctx.Bag["applicationUserID"].(string),
+		UserToID:   ctx.Vars["applicationUserToID"],
 	}
 
-	connection.UserToID = ctx.Vars["applicationUserToID"]
+	_, err = conn.storage.Read(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), connection.UserFromID, connection.UserToID)
+	if err != nil {
+		return
+	}
 
-	if err = conn.storage.Delete(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), connection); err != nil {
+	err = conn.storage.Delete(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), connection)
+	if err != nil {
 		return
 	}
 
@@ -103,6 +113,10 @@ func (conn *connection) Create(ctx *context.Context) (err errors.Error) {
 
 	if er = json.Unmarshal(ctx.Body, connection); er != nil {
 		return errors.NewBadRequestError("failed to create the connection(1)\n"+er.Error(), er.Error())
+	}
+
+	if connection.Type != "friend" && connection.Type != "follow" {
+		return errors.NewBadRequestError(fmt.Sprintf("unexpected connection type %q", connection.Type), "unexpected connection type")
 	}
 
 	receivedEnabled := connection.Enabled
@@ -233,7 +247,11 @@ func (conn *connection) FollowedByList(ctx *context.Context) (err errors.Error) 
 
 func (conn *connection) CurrentUserFollowedByList(ctx *context.Context) (err errors.Error) {
 	var users []*entity.ApplicationUser
-	if users, err = conn.storage.FollowedBy(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(string)); err != nil {
+	users, err = conn.storage.FollowedBy(
+		ctx.Bag["accountID"].(int64),
+		ctx.Bag["applicationID"].(int64),
+		ctx.Bag["applicationUserID"].(string))
+	if err != nil {
 		return
 	}
 

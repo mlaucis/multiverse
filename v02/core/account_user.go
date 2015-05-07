@@ -56,5 +56,8 @@ type (
 
 		// FindBySession will load an account by the session key, if it exists
 		FindBySession(sessionKey string) (*entity.AccountUser, errors.Error)
+
+		// FindByPublicID will load an account by the public ID it exposes to the world
+		FindByPublicID(accountID int64, publicID string) (*entity.AccountUser, errors.Error)
 	}
 )

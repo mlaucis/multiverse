@@ -35,7 +35,19 @@ const (
 	listUsersBySocialIDQuery = `SELECT json_data FROM app_%d_%d.users WHERE %s`
 )
 
+var (
+	ConnectionNotFound = errors.NewNotFoundError("connection not found", "connection not found")
+)
+
 func (c *connection) Create(accountID, applicationID int64, connection *entity.Connection, retrieve bool) (*entity.Connection, errors.Error) {
+	exists, er := c.Read(accountID, applicationID, connection.UserFromID, connection.UserToID)
+	if er != nil && er != ConnectionNotFound {
+		return nil, er
+	}
+	if exists != nil {
+		return nil, errors.NewBadRequestError("connection already exists", "connection already exists")
+	}
+
 	connection.CreatedAt = time.Now()
 	connection.UpdatedAt = connection.CreatedAt
 	connectionJSON, err := json.Marshal(connection)
@@ -60,7 +72,7 @@ func (c *connection) Read(accountID, applicationID int64, userFromID, userToID s
 		Scan(&JSONData)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, errors.NewNotFoundError("connection not found", "connection not found")
+			return nil, ConnectionNotFound
 		}
 		return nil, errors.NewInternalError("error while reading the connection", err.Error())
 	}
@@ -81,7 +93,9 @@ func (c *connection) Update(accountID, applicationID int64, existingConnection, 
 		return nil, errors.NewInternalError("error while updating the connection", err.Error())
 	}
 
-	_, err = c.mainPg.Exec(appSchema(updateConnectionQuery, accountID, applicationID), string(connectionJSON), existingConnection.UserFromID, existingConnection.UserToID)
+	_, err = c.mainPg.Exec(
+		appSchema(updateConnectionQuery, accountID, applicationID),
+		string(connectionJSON), existingConnection.UserFromID, existingConnection.UserToID)
 	if err != nil {
 		return nil, errors.NewInternalError("error while updating the connection", err.Error())
 	}
@@ -151,7 +165,7 @@ func (c *connection) FollowedBy(accountID, applicationID int64, userID string) (
 		if err != nil {
 			return []*entity.ApplicationUser{}, errors.NewInternalError("error while retrieving list of followers", err.Error())
 		}
-		user, er := c.appUser.Read(accountID, applicationID, conn.UserToID)
+		user, er := c.appUser.Read(accountID, applicationID, conn.UserFromID)
 		if er != nil {
 			return []*entity.ApplicationUser{}, er
 		}

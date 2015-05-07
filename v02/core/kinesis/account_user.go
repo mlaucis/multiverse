@@ -104,6 +104,10 @@ func (au *accountUser) FindBySession(sessionKey string) (*entity.AccountUser, er
 	return nil, errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
+func (au *accountUser) FindByPublicID(accountID int64, publicID string) (*entity.AccountUser, errors.Error) {
+	return nil, errors.NewInternalError("not implemented yet", "not implemented yet")
+}
+
 // NewAccountUser creates a new AccountUser
 func NewAccountUser(storageClient kinesis.Client) core.AccountUser {
 	return &accountUser{

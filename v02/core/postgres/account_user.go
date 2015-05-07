@@ -30,12 +30,13 @@ const (
 	selectAccountUserByIDQuery       = `SELECT json_data FROM tg.account_users WHERE id = $1 AND account_id = $2`
 	updateAccountUserByIDQuery       = `UPDATE tg.account_users SET json_data = $1 WHERE id = $2 AND account_id = $3`
 	deleteAccountUserByIDQuery       = `UPDATE tg.account_users SET enabled = 0 WHERE id = $1`
-	listAccountUsersByAccountIDQuery = `SELECT id, json_data FROM tg.account_users WHERE account_id = $1`
+	listAccountUsersByAccountIDQuery = `SELECT id, json_data FROM tg.account_users WHERE account_id = $1 ORDER BY json_data->>'created_at' DESC`
 	selectAccountUserByEmailQuery    = `SELECT id, json_data FROM tg.account_users WHERE json_data->>'email' = $1`
 	selectAccountUserByUsernameQuery = `SELECT id, json_data FROM tg.account_users WHERE json_data->>'user_name' = $1`
 	createAccountUserSessionQuery    = `INSERT INTO tg.account_user_sessions(account_id, account_user_id, session_id) VALUES($1, $2, $3)`
 	selectAccountUserSessionQuery    = `SELECT session_id FROM tg.account_user_sessions WHERE account_id = $1 AND account_user_id = $2`
 	selectAccountUserBySessionQuery  = `SELECT account_id, account_user_id FROM tg.account_user_sessions WHERE session_id = $1`
+	selectAccountUserByPublicIDQuery = `SELECT id, json_data FROM tg.account_users WHERE account_id = $1 AND json_data->>'id' = $2`
 	updateAccountUserSessionQuery    = `UPDATE tg.account_user_sessions SET session_id = $1 WHERE account_id = $2 AND account_user_id = $3 AND session_id = $4`
 	destroyAccountUserSessionQuery   = `DELETE FROM tg.account_user_sessions WHERE account_id = $1 AND account_user_id = $2 AND session_id = $3`
 )
@@ -117,11 +118,14 @@ func (au *accountUser) Update(existingAccountUser, updatedAccountUser entity.Acc
 }
 
 func (au *accountUser) Delete(accountUser *entity.AccountUser) errors.Error {
-	_, err := au.mainPg.Exec(deleteAccountUserByIDQuery, accountUser.ID)
+	user, err := au.Read(accountUser.AccountID, accountUser.ID)
 	if err != nil {
-		return errors.NewInternalError("error while deleting the account user", err.Error())
+		return err
 	}
-	return nil
+	user.Enabled = false
+
+	_, err = au.Update(*user, *user, false)
+	return err
 }
 
 func (au *accountUser) List(accountID int64) (accountUsers []*entity.AccountUser, er errors.Error) {
@@ -328,10 +332,39 @@ func (au *accountUser) FindBySession(sessionKey string) (*entity.AccountUser, er
 		return nil, nil
 	}
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.NewNotFoundError("account user not found", "account user not found")
+		}
 		return nil, errors.NewInternalError("error while loading the account user", err.Error())
 	}
 
 	return au.Read(accountID, accountUserID)
+}
+
+func (au *accountUser) FindByPublicID(accountID int64, publicID string) (*entity.AccountUser, errors.Error) {
+	var (
+		accountUserID int64
+		JSONData      string
+	)
+
+	err := au.pg.SlaveDatastore(-1).
+		QueryRow(selectAccountUserByPublicIDQuery, accountID, publicID).
+		Scan(&accountUserID, &JSONData)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.NewNotFoundError("account user not found", "account user not found")
+		}
+		return nil, errors.NewInternalError("error while loading the account user", err.Error())
+	}
+
+	accountUser := &entity.AccountUser{}
+	if err := json.Unmarshal([]byte(JSONData), accountUser); err != nil {
+		return nil, errors.NewInternalError("error while loading the account user", err.Error())
+	}
+	accountUser.ID = accountUserID
+	accountUser.AccountID = accountID
+
+	return accountUser, nil
 }
 
 // NewAccountUser returns a new account user handler with PostgreSQL as storage driver

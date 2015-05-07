@@ -31,7 +31,7 @@ const (
 	createEventQuery                = `INSERT INTO app_%d_%d.events(json_data) VALUES($1)`
 	selectEventByIDQuery            = `SELECT json_data FROM app_%d_%d.events WHERE json_data->>'id' = $1 AND json_data->>'user_id' = $2 AND json_data->>'enabled' = 'true'`
 	updateEventByIDQuery            = `UPDATE app_%d_%d.events SET json_data = $1 WHERE json_data->>'id' = $2 AND json_data->>'user_id' = $3`
-	listEventsByUserIDQuery         = `SELECT json_data FROM app_%d_%d.events WHERE json_data->>'user_id' = $1 AND json_data->>'enabled' = 'true'`
+	listEventsByUserIDQuery         = `SELECT json_data FROM app_%d_%d.events WHERE json_data->>'user_id' = $1 AND json_data->>'enabled' = 'true' ORDER BY json_data->>'created_at' DESC LIMIT 200`
 	listEventsByUserFollowerIDQuery = `SELECT json_data FROM app_%d_%d.events WHERE (%s) AND json_data->>'enabled' = 'true' ORDER BY json_data->>'created_at' DESC LIMIT 200`
 )
 
