@@ -307,7 +307,10 @@ func (au *applicationUser) FindBySession(accountID, applicationID int64, session
 		QueryRow(appSchema(selectApplicationUserBySessionQuery, accountID, applicationID), sessionKey).
 		Scan(&userID)
 	if err != nil {
-		return nil, errors.NewNotFoundError("application user not found", err.Error())
+		if err == sql.ErrNoRows {
+			return nil, errors.NewNotFoundError("application user not found", err.Error())
+		}
+		return nil, errors.NewNotFoundError("error whie reading the application user", err.Error())
 	}
 
 	return au.Read(accountID, applicationID, userID)

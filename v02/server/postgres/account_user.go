@@ -226,6 +226,7 @@ func (accUser *accountUser) PopulateContext(ctx *context.Context) (err errors.Er
 	if err == nil {
 		ctx.Bag["accountUser"] = accountUser
 		ctx.Bag["accountUserID"] = accountUser.ID
+		ctx.SessionToken = pass
 	}
 	return
 }

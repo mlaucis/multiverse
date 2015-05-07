@@ -64,9 +64,12 @@ func (appUser *applicationUser) UpdateCurrent(ctx *context.Context) (err errors.
 		ctx.Bag["applicationID"].(int64),
 		*(ctx.Bag["applicationUser"].(*entity.ApplicationUser)),
 		user,
-		true)
+		false)
 	if err != nil {
 		return
+	}
+	if updatedUser == nil {
+		updatedUser = &user
 	}
 
 	updatedUser.Password = ""
@@ -179,10 +182,9 @@ func (appUser *applicationUser) RefreshSession(ctx *context.Context) (err errors
 			Token string `json:"session_token"`
 		}
 		sessionToken string
-		er           error
 	)
 
-	if er = json.Unmarshal(ctx.Body, &tokenPayload); er != nil {
+	if er := json.Unmarshal(ctx.Body, &tokenPayload); er != nil {
 		return errors.NewBadRequestError("failed to refresh the session token (1)\n"+er.Error(), er.Error())
 	}
 

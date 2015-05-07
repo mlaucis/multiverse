@@ -157,6 +157,9 @@ func (a *account) ReadByPublicID(id string) (*entity.Account, errors.Error) {
 		QueryRow(selectAccountByPublicIDQuery, id).
 		Scan(&ID, &JSONData)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.NewNotFoundError("account not found", "account not found")
+		}
 		return nil, errors.NewInternalError("error while loading the account", err.Error())
 	}
 	account := &entity.Account{}
