@@ -49,6 +49,10 @@ func (appUser *applicationUser) Logout(ctx *context.Context) (err errors.Error) 
 	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
+func (appUser *applicationUser) Search(*context.Context) errors.Error {
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
+}
+
 func (appUser *applicationUser) PopulateContext(ctx *context.Context) (err errors.Error) {
 	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }

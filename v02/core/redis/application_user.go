@@ -446,6 +446,10 @@ func (appu *applicationUser) FindBySession(accountID, applicationID int64, sessi
 	return nil, errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
+func (appu *applicationUser) Search(accountID, applicationID int64, searchTerm string) ([]*entity.ApplicationUser, errors.Error) {
+	return []*entity.ApplicationUser{}, errors.NewInternalError("not implemented yet", "not implemented yet")
+}
+
 // NewApplicationUser creates a new Event
 func NewApplicationUser(storageClient redis.Client) core.ApplicationUser {
 	return &applicationUser{

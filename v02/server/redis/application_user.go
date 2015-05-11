@@ -248,6 +248,10 @@ func (appUser *applicationUser) Logout(ctx *context.Context) (err errors.Error) 
 	return
 }
 
+func (appUser *applicationUser) Search(*context.Context) errors.Error {
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
+}
+
 func (appUser *applicationUser) PopulateContext(ctx *context.Context) (err errors.Error) {
 	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	ctx.Bag["applicationUser"], err = appUser.storage.Read(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(string))

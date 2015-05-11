@@ -27,7 +27,7 @@ type (
 
 const (
 	createConnectionQuery    = `INSERT INTO app_%d_%d.connections(json_data) VALUES ($1)`
-	selectConnectionQuery    = `SELECT json_data FROM app_%d_%d.connections WHERE json_data->>'user_from_id' = $1 AND json_data->>'user_to_id' = $2`
+	selectConnectionQuery    = `SELECT json_data FROM app_%d_%d.connections WHERE json_data->>'user_from_id' = $1 AND json_data->>'user_to_id' = $2  LIMIT 1`
 	updateConnectionQuery    = `UPDATE app_%d_%d.connections SET json_data = $1 WHERE json_data->>'user_from_id' = $2 AND json_data->>'user_to_id' = $3`
 	followsQuery             = `SELECT json_data FROM app_%d_%d.connections WHERE json_data->>'user_from_id' = $1 AND json_data->>'type' = 'follow' and json_data->>'enabled' = 'true'`
 	followersQuery           = `SELECT json_data FROM app_%d_%d.connections WHERE json_data->>'user_to_id' = $1 AND json_data->>'type' = 'follow' and json_data->>'enabled' = 'true'`

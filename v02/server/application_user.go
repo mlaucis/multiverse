@@ -36,6 +36,9 @@ type (
 		// Logout handles the requests to logout the user from the system
 		Logout(*context.Context) errors.Error
 
+		// Search handles the requests to search for an application user
+		Search(*context.Context) errors.Error
+
 		// PopulateContext adds the applicationUser to the context
 		PopulateContext(*context.Context) errors.Error
 	}

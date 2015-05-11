@@ -56,5 +56,8 @@ type (
 
 		// FindBySession will load an application user by the session key, if it exists
 		FindBySession(accountID, applicationID int64, sessionKey string) (*entity.ApplicationUser, errors.Error)
+
+		// Search finds the users matching the search term
+		Search(accountID, applicationID int64, searchTerm string) (user []*entity.ApplicationUser, err errors.Error)
 	}
 )

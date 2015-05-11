@@ -73,7 +73,7 @@ func (ctx *Context) LogMessage(message string, stackDepth int) {
 	ctx.MainLog <- msg
 }
 
-// LogError provides the ability to log and error
+// LogError provides the ability to log an error
 func (ctx *Context) LogError(err interface{}) {
 	var msg *logger.LogMsg
 	if tgError, ok := err.(errors.Error); ok {
@@ -97,15 +97,10 @@ func (ctx *Context) newLogMessage(stackDepth int) *logger.LogMsg {
 		location = fmt.Sprintf("%s:%d", filename, line)
 	}
 
-	requestPath := ctx.R.RequestURI
-	if requestPath == "" {
-		requestPath = ctx.R.URL.Path
-	}
-
 	return &logger.LogMsg{
 		RemoteAddr: ctx.R.RemoteAddr,
 		Method:     ctx.R.Method,
-		RequestURI: requestPath,
+		RequestURI: ctx.R.URL.Path + "?" + ctx.R.URL.RawQuery,
 		Headers:    ctx.R.Header,
 		Payload:    string(ctx.Body),
 		Name:       ctx.RouteName,

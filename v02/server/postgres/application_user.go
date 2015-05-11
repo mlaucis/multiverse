@@ -218,6 +218,35 @@ func (appUser *applicationUser) Logout(ctx *context.Context) (err errors.Error) 
 	return
 }
 
+func (appUser *applicationUser) Search(ctx *context.Context) (err errors.Error) {
+	query := ctx.R.URL.Query().Get("q")
+	if query == "" {
+		server.WriteResponse(ctx, []*entity.ApplicationUser{}, http.StatusNoContent, 10)
+		return
+	}
+
+	if len(query) < 3 {
+		return errors.NewBadRequestError("type at least 3 characters to search", "less than 3 chars for search")
+	}
+
+	users, err := appUser.storage.Search(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), query)
+	if err != nil {
+		return
+	}
+
+	if len(users) == 0 {
+		server.WriteResponse(ctx, users, http.StatusNoContent, 10)
+		return
+	}
+
+	for idx := range users {
+		users[idx].Password = ""
+	}
+
+	server.WriteResponse(ctx, users, http.StatusOK, 10)
+	return
+}
+
 func (appUser *applicationUser) PopulateContext(ctx *context.Context) (err errors.Error) {
 	user, pass, ok := ctx.BasicAuth()
 	if !ok {

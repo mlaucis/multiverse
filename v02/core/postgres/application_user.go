@@ -27,16 +27,17 @@ type (
 
 const (
 	createApplicationUserQuery               = `INSERT INTO app_%d_%d.users(json_data) VALUES($1)`
-	selectApplicationUserByIDQuery           = `SELECT json_data FROM app_%d_%d.users WHERE json_data->>'id' = $1 AND json_data->>'enabled' = 'true'`
+	selectApplicationUserByIDQuery           = `SELECT json_data FROM app_%d_%d.users WHERE json_data->>'id' = $1 AND json_data->>'enabled' = 'true' LIMIT 1`
 	updateApplicationUserByIDQuery           = `UPDATE app_%d_%d.users SET json_data = $1 WHERE json_data->>'id' = $2`
-	listApplicationUsersByApplicationIDQuery = `SELECT json_data FROM app_%d_%d.users WHERE json_data->>'enabled' = 'true'`
-	selectApplicationUserByEmailQuery        = `SELECT json_data FROM app_%d_%d.users WHERE json_data->>'email' = $1 AND json_data->>'enabled' = 'true'`
-	selectApplicationUserByUsernameQuery     = `SELECT json_data FROM app_%d_%d.users WHERE json_data->>'user_name' = $1 AND json_data->>'enabled' = 'true'`
+	listApplicationUsersByApplicationIDQuery = `SELECT json_data FROM app_%d_%d.users WHERE json_data->>'enabled' = 'true' LIMIT 1`
+	selectApplicationUserByEmailQuery        = `SELECT json_data FROM app_%d_%d.users WHERE json_data->>'email' = $1 AND json_data->>'enabled' = 'true' LIMIT 1`
+	selectApplicationUserByUsernameQuery     = `SELECT json_data FROM app_%d_%d.users WHERE json_data->>'user_name' = $1 AND json_data->>'enabled' = 'true' LIMIT 1`
 	createApplicationUserSessionQuery        = `INSERT INTO app_%d_%d.sessions(user_id, session_id) VALUES($1, $2)`
-	selectApplicationUserSessionQuery        = `SELECT session_id FROM app_%d_%d.sessions WHERE user_id = $1 AND enabled = TRUE`
-	selectApplicationUserBySessionQuery      = `SELECT user_id FROM app_%d_%d.sessions WHERE session_id = $1 AND enabled = TRUE`
+	selectApplicationUserSessionQuery        = `SELECT session_id FROM app_%d_%d.sessions WHERE user_id = $1 AND enabled = TRUE LIMIT 1`
+	selectApplicationUserBySessionQuery      = `SELECT user_id FROM app_%d_%d.sessions WHERE session_id = $1 AND enabled = TRUE LIMIT 1`
 	updateApplicationUserSessionQuery        = `UPDATE app_%d_%d.sessions SET session_id = $1 WHERE user_id = $2 AND session_id = $3`
 	destroyApplicationUserSessionQuery       = `UPDATE app_%d_%d.sessions SET enabled = FALSE WHERE user_id = $1 AND session_id = $2`
+	searchApplicationUsersQuery              = `SELECT json_data FROM app_%d_%d.users WHERE (json_data->>'user_name' ILIKE $1) OR (json_data->>'email' ILIKE $1) OR (json_data->>'first_name' ILIKE $1) OR (json_data->>'last_name' ILIKE $1) LIMIT 50`
 )
 
 func (au *applicationUser) Create(accountID, applicationID int64, user *entity.ApplicationUser, retrieve bool) (*entity.ApplicationUser, errors.Error) {
@@ -314,6 +315,35 @@ func (au *applicationUser) FindBySession(accountID, applicationID int64, session
 	}
 
 	return au.Read(accountID, applicationID, userID)
+}
+
+func (au *applicationUser) Search(accountID, applicationID int64, searchTerm string) ([]*entity.ApplicationUser, errors.Error) {
+	users := []*entity.ApplicationUser{}
+
+	rows, err := au.pg.SlaveDatastore(-1).
+		Query(appSchema(searchApplicationUsersQuery, accountID, applicationID), "%"+searchTerm+"%")
+	if err != nil {
+		return users, errors.NewInternalError("error while retrieving list of application users", err.Error())
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var (
+			JSONData string
+		)
+		err := rows.Scan(&JSONData)
+		if err != nil {
+			return []*entity.ApplicationUser{}, errors.NewInternalError("error while retrieving list of application users", err.Error())
+		}
+		user := &entity.ApplicationUser{}
+		err = json.Unmarshal([]byte(JSONData), user)
+		if err != nil {
+			return []*entity.ApplicationUser{}, errors.NewInternalError("error while retrieving list of application users", err.Error())
+		}
+
+		users = append(users, user)
+	}
+
+	return users, nil
 }
 
 // NewApplicationUser returns a new application user handler with PostgreSQL as storage driver
