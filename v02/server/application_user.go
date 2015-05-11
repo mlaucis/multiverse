@@ -27,6 +27,9 @@ type (
 		// Create handles requests to create a user
 		Create(*context.Context) errors.Error
 
+		// CreateAndLogin handles requests to create a user and then logs it in
+		CreateAndLogin(*context.Context) errors.Error
+
 		// Login handles the requests to login the user in the system
 		Login(*context.Context) errors.Error
 

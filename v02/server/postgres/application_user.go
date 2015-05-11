@@ -114,6 +114,44 @@ func (appUser *applicationUser) Create(ctx *context.Context) (err errors.Error) 
 	return
 }
 
+func (appUser *applicationUser) CreateAndLogin(ctx *context.Context) (err errors.Error) {
+	var (
+		user = &entity.ApplicationUser{}
+		er   error
+	)
+
+	if er = json.Unmarshal(ctx.Body, user); er != nil {
+		return errors.NewBadRequestError("failed to create the application user (1)\n"+er.Error(), er.Error())
+	}
+
+	if err = validator.CreateUser(appUser.storage, ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), user); err != nil {
+		return
+	}
+
+	user.LastLogin = time.Now()
+	if user, err = appUser.storage.Create(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), user, true); err != nil {
+		return
+	}
+
+	sessionToken := ""
+	if sessionToken, err = appUser.storage.CreateSession(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), user); err != nil {
+		return
+	}
+
+	user.Password = ""
+
+	result := struct {
+		entity.ApplicationUser
+		SessionToken string `json:"session_token"`
+	}{
+		ApplicationUser: *user,
+		SessionToken:    sessionToken,
+	}
+
+	server.WriteResponse(ctx, result, http.StatusCreated, 0)
+	return
+}
+
 func (appUser *applicationUser) Login(ctx *context.Context) (err errors.Error) {
 	var (
 		loginPayload = &entity.LoginPayload{}
