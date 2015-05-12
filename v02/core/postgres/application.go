@@ -71,8 +71,6 @@ func (app *application) Create(application *entity.Application, retrieve bool) (
 	application.UpdatedAt = application.CreatedAt
 	application.AuthToken = storageHelper.GenerateApplicationSecretKey(application)
 
-	fmt.Printf("%#v\n", application)
-
 	applicationJSON, err := json.Marshal(application)
 	if err != nil {
 		return nil, errors.NewInternalError("error while creating the application", err.Error())
