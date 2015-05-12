@@ -97,10 +97,15 @@ func (ctx *Context) newLogMessage(stackDepth int) *logger.LogMsg {
 		location = fmt.Sprintf("%s:%d", filename, line)
 	}
 
+	queryString := ""
+	if ctx.R.URL.RawQuery != "" {
+		queryString = "?" + ctx.R.URL.RawQuery
+	}
+
 	return &logger.LogMsg{
 		RemoteAddr: ctx.R.RemoteAddr,
 		Method:     ctx.R.Method,
-		RequestURI: ctx.R.URL.Path + "?" + ctx.R.URL.RawQuery,
+		RequestURI: ctx.R.URL.Path + queryString,
 		Headers:    ctx.R.Header,
 		Payload:    string(ctx.Body),
 		Name:       ctx.RouteName,
