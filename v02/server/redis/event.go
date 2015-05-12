@@ -135,10 +135,10 @@ func (evt *event) Feed(ctx *context.Context) (err errors.Error) {
 	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	var events = []*entity.Event{}
 
-	if events, err = evt.storage.ConnectionList(
+	if _, events, err = evt.storage.UserFeed(
 		ctx.Bag["accountID"].(int64),
 		ctx.Bag["applicationID"].(int64),
-		ctx.Bag["applicationUserID"].(string)); err != nil {
+		ctx.Bag["applicationUser"].(*entity.ApplicationUser)); err != nil {
 		return
 	}
 
@@ -251,6 +251,14 @@ func (evt *event) SearchLocation(ctx *context.Context) (err errors.Error) {
 
 	server.WriteResponse(ctx, events, http.StatusOK, 10)
 	return
+}
+
+func (evt *event) UnreadFeed(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
+}
+
+func (evt *event) UnreadFeedCount(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
 type byIDDesc []*entity.Event

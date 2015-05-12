@@ -85,12 +85,10 @@ func (conn *connection) Update(ctx *context.Context) (err errors.Error) {
 }
 
 func (conn *connection) Delete(ctx *context.Context) (err errors.Error) {
-	connection := &entity.Connection{
-		UserFromID: ctx.Bag["applicationUserID"].(string),
-		UserToID:   ctx.Vars["applicationUserToID"],
-	}
+	userFromID := ctx.Bag["applicationUserID"].(string)
+	userToID := ctx.Vars["applicationUserToID"]
 
-	_, err = conn.storage.Read(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), connection.UserFromID, connection.UserToID)
+	connection, err := conn.storage.Read(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), userFromID, userToID)
 	if err != nil {
 		return
 	}
@@ -277,6 +275,16 @@ func (conn *connection) Confirm(ctx *context.Context) (err errors.Error) {
 
 	connection.UserFromID = ctx.Bag["applicationUserID"].(string)
 
+	connection, err = conn.storage.Read(
+		ctx.Bag["accountID"].(int64),
+		ctx.Bag["applicationID"].(int64),
+		connection.UserFromID,
+		connection.UserToID,
+	)
+	if err != nil {
+		return err
+	}
+
 	if err = validator.ConfirmConnection(
 		conn.appUser,
 		ctx.Bag["accountID"].(int64),
@@ -307,6 +315,10 @@ func (conn *connection) CreateSocial(ctx *context.Context) (err errors.Error) {
 
 	if er := json.Unmarshal(ctx.Body, &request); er != nil {
 		return errors.NewBadRequestError("social connecting failed (2)\n"+er.Error(), er.Error())
+	}
+
+	if request.ConnectionType == "" || (request.ConnectionType != "friend" && request.ConnectionType != "follow") {
+		return errors.NewBadRequestError("you must specify the connection type", "connection type unspecified")
 	}
 
 	user := ctx.Bag["applicationUser"].(*entity.ApplicationUser)

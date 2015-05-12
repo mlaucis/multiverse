@@ -112,6 +112,7 @@ type (
 		DeviceIDs            []string            `json:"device_ids,omitempty"`
 		Events               []*Event            `json:"events,omitempty"`
 		Connections          []*ApplicationUser  `json:"connections,omitempty"`
+		LastRead             time.Time           `json:"-"`
 		UserCommon
 		Common
 	}

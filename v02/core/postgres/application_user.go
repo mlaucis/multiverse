@@ -27,11 +27,11 @@ type (
 
 const (
 	createApplicationUserQuery               = `INSERT INTO app_%d_%d.users(json_data) VALUES($1)`
-	selectApplicationUserByIDQuery           = `SELECT json_data FROM app_%d_%d.users WHERE json_data->>'id' = $1 AND json_data->>'enabled' = 'true' LIMIT 1`
+	selectApplicationUserByIDQuery           = `SELECT json_data, last_read FROM app_%d_%d.users WHERE json_data->>'id' = $1 AND json_data->>'enabled' = 'true' LIMIT 1`
 	updateApplicationUserByIDQuery           = `UPDATE app_%d_%d.users SET json_data = $1 WHERE json_data->>'id' = $2`
 	listApplicationUsersByApplicationIDQuery = `SELECT json_data FROM app_%d_%d.users WHERE json_data->>'enabled' = 'true' LIMIT 1`
-	selectApplicationUserByEmailQuery        = `SELECT json_data FROM app_%d_%d.users WHERE json_data->>'email' = $1 AND json_data->>'enabled' = 'true' LIMIT 1`
-	selectApplicationUserByUsernameQuery     = `SELECT json_data FROM app_%d_%d.users WHERE json_data->>'user_name' = $1 AND json_data->>'enabled' = 'true' LIMIT 1`
+	selectApplicationUserByEmailQuery        = `SELECT json_data, last_read FROM app_%d_%d.users WHERE json_data->>'email' = $1 AND json_data->>'enabled' = 'true' LIMIT 1`
+	selectApplicationUserByUsernameQuery     = `SELECT json_data, last_read FROM app_%d_%d.users WHERE json_data->>'user_name' = $1 AND json_data->>'enabled' = 'true' LIMIT 1`
 	createApplicationUserSessionQuery        = `INSERT INTO app_%d_%d.sessions(user_id, session_id) VALUES($1, $2)`
 	selectApplicationUserSessionQuery        = `SELECT session_id FROM app_%d_%d.sessions WHERE user_id = $1 AND enabled = TRUE LIMIT 1`
 	selectApplicationUserBySessionQuery      = `SELECT user_id FROM app_%d_%d.sessions WHERE session_id = $1 AND enabled = TRUE LIMIT 1`
@@ -76,10 +76,13 @@ func (au *applicationUser) Create(accountID, applicationID int64, user *entity.A
 }
 
 func (au *applicationUser) Read(accountID, applicationID int64, userID string) (*entity.ApplicationUser, errors.Error) {
-	var JSONData string
+	var (
+		JSONData string
+		lastRead time.Time
+	)
 	err := au.pg.SlaveDatastore(-1).
 		QueryRow(appSchema(selectApplicationUserByIDQuery, accountID, applicationID), userID).
-		Scan(&JSONData)
+		Scan(&JSONData, &lastRead)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, errors.NewNotFoundError("application user not found", "application user not found")
@@ -92,6 +95,7 @@ func (au *applicationUser) Read(accountID, applicationID int64, userID string) (
 	if err != nil {
 		return nil, errors.NewInternalError("error while reading the application user", err.Error())
 	}
+	applicationUser.LastRead = lastRead
 
 	return applicationUser, nil
 }
@@ -212,10 +216,13 @@ func (au *applicationUser) DestroySession(accountID, applicationID int64, sessio
 }
 
 func (au *applicationUser) FindByEmail(accountID, applicationID int64, email string) (*entity.ApplicationUser, errors.Error) {
-	var JSONData string
+	var (
+		JSONData string
+		lastRead time.Time
+	)
 	err := au.pg.SlaveDatastore(-1).
 		QueryRow(appSchema(selectApplicationUserByEmailQuery, accountID, applicationID), email).
-		Scan(&JSONData)
+		Scan(&JSONData, &lastRead)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, errors.NewNotFoundError("application user not found", "application user not found")
@@ -227,18 +234,19 @@ func (au *applicationUser) FindByEmail(accountID, applicationID int64, email str
 	if err != nil {
 		return nil, errors.NewInternalError("error while reading the application user", err.Error())
 	}
+	user.LastRead = lastRead
 
 	return user, nil
 }
 
 func (au *applicationUser) ExistsByEmail(accountID, applicationID int64, email string) (bool, errors.Error) {
 	var (
-		ID       int64
 		JSONData string
+		lastRead time.Time
 	)
 	err := au.pg.SlaveDatastore(-1).
 		QueryRow(appSchema(selectApplicationUserByEmailQuery, accountID, applicationID), email).
-		Scan(&ID, &JSONData)
+		Scan(&JSONData, &lastRead)
 	if err == sql.ErrNoRows {
 		return false, nil
 	}
@@ -250,10 +258,13 @@ func (au *applicationUser) ExistsByEmail(accountID, applicationID int64, email s
 }
 
 func (au *applicationUser) FindByUsername(accountID, applicationID int64, username string) (*entity.ApplicationUser, errors.Error) {
-	var JSONData string
+	var (
+		JSONData string
+		lastRead time.Time
+	)
 	err := au.pg.SlaveDatastore(-1).
 		QueryRow(appSchema(selectApplicationUserByUsernameQuery, accountID, applicationID), username).
-		Scan(&JSONData)
+		Scan(&JSONData, &lastRead)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, errors.NewNotFoundError("application user not found", "application user not found")
@@ -265,18 +276,19 @@ func (au *applicationUser) FindByUsername(accountID, applicationID int64, userna
 	if err != nil {
 		return nil, errors.NewInternalError("error while reading the application user", err.Error())
 	}
+	user.LastRead = lastRead
 
 	return user, nil
 }
 
 func (au *applicationUser) ExistsByUsername(accountID, applicationID int64, username string) (bool, errors.Error) {
 	var (
-		ID       int64
 		JSONData string
+		lastRead time.Time
 	)
 	err := au.pg.SlaveDatastore(-1).
 		QueryRow(appSchema(selectApplicationUserByUsernameQuery, accountID, applicationID), username).
-		Scan(&ID, &JSONData)
+		Scan(&JSONData, &lastRead)
 	if err == sql.ErrNoRows {
 		return false, nil
 	}
@@ -288,10 +300,13 @@ func (au *applicationUser) ExistsByUsername(accountID, applicationID int64, user
 }
 
 func (au *applicationUser) ExistsByID(accountID, applicationID int64, userID string) (bool, errors.Error) {
-	var JSONData string
+	var (
+		JSONData string
+		lastRead time.Time
+	)
 	err := au.pg.SlaveDatastore(-1).
 		QueryRow(appSchema(selectApplicationUserByIDQuery, accountID, applicationID), userID).
-		Scan(&JSONData)
+		Scan(&JSONData, &lastRead)
 	if err == sql.ErrNoRows {
 		return false, nil
 	}

@@ -39,7 +39,8 @@ var (
 		`CREATE SCHEMA app_%d_%d`,
 		`CREATE TABLE app_%d_%d.users
 	(
-		json_data JSONB NOT NULL
+		json_data JSONB NOT NULL,
+		last_read TIMESTAMP DEFAULT '2015-05-01 01:23:45' NOT NULL
 	)`,
 		`CREATE TABLE app_%d_%d.events
 	(

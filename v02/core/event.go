@@ -28,7 +28,13 @@ type (
 		List(accountID, applicationID int64, userID string) (events []*entity.Event, err errors.Error)
 
 		// ConnectionList returns all events from connections
-		ConnectionList(accountID, applicationID int64, userID string) (events []*entity.Event, err errors.Error)
+		UserFeed(accountID, applicationID int64, user *entity.ApplicationUser) (count int, events []*entity.Event, err errors.Error)
+
+		// UnreadFeed returns only the events that would form a feed but have not been retrieved yet
+		UnreadFeed(accountID, applicationID int64, user *entity.ApplicationUser) (count int, events []*entity.Event, err errors.Error)
+
+		// UnreadFeedCount returns the number of events since the last time either UserFeed() or UnreadFeed() was executed
+		UnreadFeedCount(accountID, applicationID int64, user *entity.ApplicationUser) (count int, err errors.Error)
 
 		// WriteEventToConnectionsLists takes an event and writes it to the user connections list
 		WriteToConnectionsLists(accountID, applicationID int64, event *entity.Event, key string) errors.Error

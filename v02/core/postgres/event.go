@@ -28,11 +28,14 @@ type (
 )
 
 const (
-	createEventQuery                = `INSERT INTO app_%d_%d.events(json_data) VALUES($1)`
-	selectEventByIDQuery            = `SELECT json_data FROM app_%d_%d.events WHERE json_data->>'id' = $1 AND json_data->>'user_id' = $2 AND json_data->>'enabled' = 'true'  LIMIT 1`
-	updateEventByIDQuery            = `UPDATE app_%d_%d.events SET json_data = $1 WHERE json_data->>'id' = $2 AND json_data->>'user_id' = $3`
-	listEventsByUserIDQuery         = `SELECT json_data FROM app_%d_%d.events WHERE json_data->>'user_id' = $1 AND json_data->>'enabled' = 'true' ORDER BY json_data->>'created_at' DESC LIMIT 200`
-	listEventsByUserFollowerIDQuery = `SELECT json_data FROM app_%d_%d.events WHERE (%s) AND json_data->>'enabled' = 'true' ORDER BY json_data->>'created_at' DESC LIMIT 200`
+	createEventQuery                       = `INSERT INTO app_%d_%d.events(json_data) VALUES($1)`
+	selectEventByIDQuery                   = `SELECT json_data FROM app_%d_%d.events WHERE json_data->>'id' = $1 AND json_data->>'user_id' = $2 AND json_data->>'enabled' = 'true'  LIMIT 1`
+	updateEventByIDQuery                   = `UPDATE app_%d_%d.events SET json_data = $1 WHERE json_data->>'id' = $2 AND json_data->>'user_id' = $3`
+	listEventsByUserIDQuery                = `SELECT json_data FROM app_%d_%d.events WHERE json_data->>'user_id' = $1 AND json_data->>'enabled' = 'true' ORDER BY json_data->>'created_at' DESC LIMIT 200`
+	listEventsByUserFollowerIDQuery        = `SELECT json_data FROM app_%d_%d.events WHERE (%s) AND json_data->>'enabled' = 'true' ORDER BY json_data->>'created_at' DESC LIMIT 200`
+	listUnreadEventsByUserFollowerIDQuery  = `SELECT json_data FROM app_%d_%d.events WHERE (%s) AND json_data->>'created_at' > $1 AND json_data->>'enabled' = 'true' ORDER BY json_data->>'created_at' DESC LIMIT 200`
+	countUnreadEventsByUserFollowerIDQuery = `SELECT count(*) FROM (SELECT json_data FROM app_%d_%d.events WHERE (%s) AND json_data->>'created_at' > $1 AND json_data->>'enabled' = 'true' ORDER BY json_data->>'created_at' DESC LIMIT 200) AS events`
+	updateApplicationUserLastReadQuery     = `UPDATE app_%d_%d.users SET last_read = now() WHERE json_data->>'id' = $1 AND json_data->>'enabled' = 'true'`
 )
 
 func (e *event) Create(accountID, applicationID int64, event *entity.Event, retrieve bool) (*entity.Event, errors.Error) {
@@ -135,16 +138,14 @@ func (e *event) List(accountID, applicationID int64, userID string) (events []*e
 	return events, nil
 }
 
-func (e *event) ConnectionList(accountID, applicationID int64, userID string) (events []*entity.Event, er errors.Error) {
-	events = []*entity.Event{}
-
-	connections, er := e.c.List(accountID, applicationID, userID)
+func (e *event) UserFeed(accountID, applicationID int64, user *entity.ApplicationUser) (count int, events []*entity.Event, er errors.Error) {
+	connections, er := e.c.FriendsAndFollowing(accountID, applicationID, user.ID)
 	if er != nil {
-		return events, er
+		return 0, []*entity.Event{}, er
 	}
 
 	if len(connections) == 0 {
-		return events, nil
+		return 0, []*entity.Event{}, nil
 	}
 
 	condition := []string{}
@@ -155,25 +156,102 @@ func (e *event) ConnectionList(accountID, applicationID int64, userID string) (e
 	rows, err := e.pg.SlaveDatastore(-1).
 		Query(fmt.Sprintf(listEventsByUserFollowerIDQuery, accountID, applicationID, strings.Join(condition, " OR ")))
 	if err != nil {
-		return events, errors.NewInternalError("failed to read the events", err.Error())
+		return 0, []*entity.Event{}, errors.NewInternalError("failed to read the events", err.Error())
 	}
 	defer rows.Close()
+
+	unread := 0
+
 	for rows.Next() {
 		var JSONData string
 		err := rows.Scan(&JSONData)
 		if err != nil {
-			return []*entity.Event{}, errors.NewInternalError("failed to read the events", err.Error())
+			return 0, []*entity.Event{}, errors.NewInternalError("failed to read the events", err.Error())
 		}
 		event := &entity.Event{}
 		err = json.Unmarshal([]byte(JSONData), event)
 		if err != nil {
-			return []*entity.Event{}, errors.NewInternalError("failed to read the events", err.Error())
+			return 0, []*entity.Event{}, errors.NewInternalError("failed to read the events", err.Error())
+		}
+
+		if event.CreatedAt.Sub(user.LastRead) > 0 {
+			unread++
 		}
 
 		events = append(events, event)
 	}
 
-	return events, nil
+	go e.updateApplicationUserLastRead(accountID, applicationID, user)
+
+	return unread, events, nil
+}
+
+func (e *event) UnreadFeed(accountID, applicationID int64, user *entity.ApplicationUser) (count int, events []*entity.Event, er errors.Error) {
+	connections, er := e.c.FriendsAndFollowing(accountID, applicationID, user.ID)
+	if er != nil {
+		return 0, []*entity.Event{}, er
+	}
+
+	if len(connections) == 0 {
+		return 0, []*entity.Event{}, nil
+	}
+
+	condition := []string{}
+	for idx := range connections {
+		condition = append(condition, fmt.Sprintf(`json_data @> '{"user_id": %q}'`, connections[idx].ID))
+	}
+
+	rows, err := e.pg.SlaveDatastore(-1).
+		Query(fmt.Sprintf(listUnreadEventsByUserFollowerIDQuery, accountID, applicationID, strings.Join(condition, " OR ")), user.LastRead)
+	if err != nil {
+		return 0, []*entity.Event{}, errors.NewInternalError("failed to read the events", err.Error())
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var JSONData string
+		err := rows.Scan(&JSONData)
+		if err != nil {
+			return 0, []*entity.Event{}, errors.NewInternalError("failed to read the events", err.Error())
+		}
+		event := &entity.Event{}
+		err = json.Unmarshal([]byte(JSONData), event)
+		if err != nil {
+			return 0, []*entity.Event{}, errors.NewInternalError("failed to read the events", err.Error())
+		}
+
+		events = append(events, event)
+	}
+
+	go e.updateApplicationUserLastRead(accountID, applicationID, user)
+
+	return len(events), events, nil
+}
+
+func (e *event) UnreadFeedCount(accountID, applicationID int64, user *entity.ApplicationUser) (count int, err errors.Error) {
+	connections, err := e.c.FriendsAndFollowing(accountID, applicationID, user.ID)
+	if err != nil {
+		return 0, err
+	}
+
+	if len(connections) == 0 {
+		return 0, nil
+	}
+
+	condition := []string{}
+	for idx := range connections {
+		condition = append(condition, fmt.Sprintf(`json_data @> '{"user_id": %q}'`, connections[idx].ID))
+	}
+
+	unread := 0
+	er := e.pg.SlaveDatastore(-1).
+		QueryRow(fmt.Sprintf(countUnreadEventsByUserFollowerIDQuery, accountID, applicationID, strings.Join(condition, " OR ")), user.LastRead).
+		Scan(&unread)
+	if er != nil {
+		return 0, errors.NewInternalError("failed to read the events", er.Error())
+	}
+
+	return unread, nil
 }
 
 func (e *event) WriteToConnectionsLists(accountID, applicationID int64, event *entity.Event, key string) (err errors.Error) {
@@ -194,6 +272,15 @@ func (e *event) ObjectSearch(accountID, applicationID int64, objectKey string) (
 
 func (e *event) LocationSearch(accountID, applicationID int64, locationKey string) ([]*entity.Event, errors.Error) {
 	return []*entity.Event{}, errors.NewInternalError("not implemented yet", "not implemented yet")
+}
+
+func (e *event) updateApplicationUserLastRead(accountID, applicationID int64, user *entity.ApplicationUser) errors.Error {
+	_, err := e.mainPg.Exec(appSchema(updateApplicationUserLastReadQuery, accountID, applicationID), user.ID)
+	if err != nil {
+		return errors.NewInternalError("failed to update application", err.Error())
+	}
+
+	return nil
 }
 
 // NewEventWithConnection returns a new event handler with PostgreSQL as storage driver

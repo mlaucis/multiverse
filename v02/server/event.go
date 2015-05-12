@@ -47,5 +47,11 @@ type (
 
 		// SearchLocation handles requests to retrieve a users connections events
 		SearchLocation(*context.Context) errors.Error
+
+		// UnreadFeed will return only the events in the feed that not read yet by the user and flag them as read
+		UnreadFeed(*context.Context) errors.Error
+
+		// UnreadFeedCount will return the count of the events in the feed that not read yet by the user
+		UnreadFeedCount(*context.Context) errors.Error
 	}
 )

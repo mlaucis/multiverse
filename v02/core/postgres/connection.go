@@ -26,17 +26,19 @@ type (
 )
 
 const (
-	createConnectionQuery    = `INSERT INTO app_%d_%d.connections(json_data) VALUES ($1)`
-	selectConnectionQuery    = `SELECT json_data FROM app_%d_%d.connections WHERE json_data->>'user_from_id' = $1 AND json_data->>'user_to_id' = $2  LIMIT 1`
-	updateConnectionQuery    = `UPDATE app_%d_%d.connections SET json_data = $1 WHERE json_data->>'user_from_id' = $2 AND json_data->>'user_to_id' = $3`
-	followsQuery             = `SELECT json_data FROM app_%d_%d.connections WHERE json_data->>'user_from_id' = $1 AND json_data->>'type' = 'follow' and json_data->>'enabled' = 'true'`
-	followersQuery           = `SELECT json_data FROM app_%d_%d.connections WHERE json_data->>'user_to_id' = $1 AND json_data->>'type' = 'follow' and json_data->>'enabled' = 'true'`
-	friendConnectionsQuery   = `SELECT json_data FROM app_%d_%d.connections WHERE json_data->>'user_to_id' = $1 AND json_data->>'type' = 'friend' and json_data->>'enabled' = 'true'`
-	listUsersBySocialIDQuery = `SELECT json_data FROM app_%d_%d.users WHERE %s`
+	createConnectionQuery              = `INSERT INTO app_%d_%d.connections(json_data) VALUES ($1)`
+	selectConnectionQuery              = `SELECT json_data FROM app_%d_%d.connections WHERE json_data->>'user_from_id' = $1 AND json_data->>'user_to_id' = $2  LIMIT 1`
+	updateConnectionQuery              = `UPDATE app_%d_%d.connections SET json_data = $1 WHERE json_data->>'user_from_id' = $2 AND json_data->>'user_to_id' = $3`
+	followsQuery                       = `SELECT json_data FROM app_%d_%d.connections WHERE json_data->>'user_from_id' = $1 AND json_data->>'type' = 'follow' and json_data->>'enabled' = 'true'`
+	followersQuery                     = `SELECT json_data FROM app_%d_%d.connections WHERE json_data->>'user_to_id' = $1 AND json_data->>'type' = 'follow' AND json_data->>'enabled' = 'true'`
+	friendConnectionsQuery             = `SELECT json_data FROM app_%d_%d.connections WHERE json_data->>'user_to_id' = $1 AND json_data->>'type' = 'friend' AND json_data->>'enabled' = 'true'`
+	friendAndFollowingConnectionsQuery = `SELECT json_data FROM app_%d_%d.connections WHERE json_data->>'user_from_id' = $1 AND json_data->>'enabled' = 'true'`
+	listUsersBySocialIDQuery           = `SELECT json_data FROM app_%d_%d.users WHERE %s`
 )
 
 var (
-	ConnectionNotFound = errors.NewNotFoundError("connection not found", "connection not found")
+	ConnectionNotFound      = errors.NewNotFoundError("connection not found", "connection not found")
+	ConnectionAlreadyExists = errors.NewBadRequestError("connection already exists", "connection already exists")
 )
 
 func (c *connection) Create(accountID, applicationID int64, connection *entity.Connection, retrieve bool) (*entity.Connection, errors.Error) {
@@ -45,7 +47,7 @@ func (c *connection) Create(accountID, applicationID int64, connection *entity.C
 		return nil, er
 	}
 	if exists != nil {
-		return nil, errors.NewBadRequestError("connection already exists", "connection already exists")
+		return nil, ConnectionAlreadyExists
 	}
 
 	connection.CreatedAt = time.Now()
@@ -57,6 +59,20 @@ func (c *connection) Create(accountID, applicationID int64, connection *entity.C
 	_, err = c.mainPg.Exec(appSchema(createConnectionQuery, accountID, applicationID), string(connectionJSON))
 	if err != nil {
 		return nil, errors.NewInternalError("error while saving the connection", err.Error())
+	}
+
+	if connection.Type == "friend" {
+		connection.UserFromID, connection.UserToID = connection.UserToID, connection.UserFromID
+		connectionJSON, err = json.Marshal(connection)
+		if err != nil {
+			return nil, errors.NewInternalError("error while saving the connection", err.Error())
+		}
+		_, err = c.mainPg.Exec(appSchema(createConnectionQuery, accountID, applicationID), string(connectionJSON))
+		if err != nil {
+			return nil, errors.NewInternalError("error while saving the connection", err.Error())
+		}
+		// Switch back so we have the original IDs in place
+		connection.UserFromID, connection.UserToID = connection.UserToID, connection.UserFromID
 	}
 
 	if !retrieve {
@@ -110,6 +126,14 @@ func (c *connection) Update(accountID, applicationID int64, existingConnection, 
 func (c *connection) Delete(accountID, applicationID int64, connection *entity.Connection) errors.Error {
 	connection.Enabled = false
 	_, err := c.Update(accountID, applicationID, *connection, *connection, false)
+	if err != nil {
+		return err
+	}
+
+	if connection.Type == "friend" {
+		connection.UserFromID, connection.UserToID = connection.UserToID, connection.UserFromID
+		_, err = c.Update(accountID, applicationID, *connection, *connection, false)
+	}
 
 	return err
 }
@@ -207,12 +231,54 @@ func (c *connection) Friends(accountID, applicationID int64, userID string) ([]*
 	return users, nil
 }
 
+func (c *connection) FriendsAndFollowing(accountID, applicationID int64, userID string) ([]*entity.ApplicationUser, errors.Error) {
+	users := []*entity.ApplicationUser{}
+
+	rows, err := c.pg.SlaveDatastore(-1).
+		Query(appSchema(friendAndFollowingConnectionsQuery, accountID, applicationID), userID)
+	if err != nil {
+		return users, errors.NewInternalError("error while retrieving list of application users", err.Error())
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var JSONData string
+		err := rows.Scan(&JSONData)
+		if err != nil {
+			return []*entity.ApplicationUser{}, errors.NewInternalError("error while retrieving list of friends", err.Error())
+		}
+		conn := &entity.Connection{}
+		err = json.Unmarshal([]byte(JSONData), conn)
+		if err != nil {
+			return []*entity.ApplicationUser{}, errors.NewInternalError("error while retrieving list of friends", err.Error())
+		}
+		user, er := c.appUser.Read(accountID, applicationID, conn.UserToID)
+		if er != nil {
+			return []*entity.ApplicationUser{}, er
+		}
+
+		users = append(users, user)
+	}
+
+	return users, nil
+}
+
 func (c *connection) Confirm(accountID, applicationID int64, connection *entity.Connection, retrieve bool) (*entity.Connection, errors.Error) {
 	connection.Enabled = true
 	connection.ConfirmedAt = time.Now()
 	connection.UpdatedAt = connection.ConfirmedAt
 
-	return c.Update(accountID, applicationID, *connection, *connection, retrieve)
+	conn, err := c.Update(accountID, applicationID, *connection, *connection, retrieve)
+	if err != nil {
+		return conn, err
+	}
+
+	if connection.Type == "friend" {
+		con := *connection
+		con.UserFromID, con.UserToID = connection.UserToID, connection.UserFromID
+		_, err = c.Update(accountID, applicationID, con, con, retrieve)
+	}
+
+	return conn, err
 }
 
 func (c *connection) WriteEventsToList(accountID, applicationID int64, connection *entity.Connection) (err errors.Error) {
@@ -267,6 +333,7 @@ func (c *connection) AutoConnectSocialFriends(accountID, applicationID int64, us
 		connection := &entity.Connection{
 			UserFromID: user.ID,
 			UserToID:   ourStoredUsersIDs[idx].ID,
+			Type:       connectionType,
 		}
 
 		if _, err := c.Create(accountID, applicationID, connection, false); err != nil {
@@ -284,10 +351,13 @@ func (c *connection) AutoConnectSocialFriends(accountID, applicationID int64, us
 		connection = &entity.Connection{
 			UserFromID: ourStoredUsersIDs[idx].ID,
 			UserToID:   user.ID,
+			Type:       connectionType,
 		}
 
 		if _, err := c.Create(accountID, applicationID, connection, false); err != nil {
-			return nil, err
+			if err != ConnectionAlreadyExists {
+				return nil, err
+			}
 		}
 
 		if _, err := c.Confirm(accountID, applicationID, connection, false); err != nil {

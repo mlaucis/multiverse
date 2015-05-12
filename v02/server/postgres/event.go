@@ -203,21 +203,24 @@ func (evt *event) CurrentUserList(ctx *context.Context) (err errors.Error) {
 }
 
 func (evt *event) Feed(ctx *context.Context) (err errors.Error) {
-	var events = []*entity.Event{}
+	response := struct {
+		Count  int             `json:"unread_events_count"`
+		Events []*entity.Event `json:"events"`
+	}{}
 
-	if events, err = evt.storage.ConnectionList(
+	if response.Count, response.Events, err = evt.storage.UserFeed(
 		ctx.Bag["accountID"].(int64),
 		ctx.Bag["applicationID"].(int64),
-		ctx.Bag["applicationUserID"].(string)); err != nil {
+		ctx.Bag["applicationUser"].(*entity.ApplicationUser)); err != nil {
 		return
 	}
 
 	status := http.StatusOK
-	if len(events) == 0 {
+	if response.Count == 0 {
 		status = http.StatusNoContent
 	}
 
-	server.WriteResponse(ctx, events, status, 10)
+	server.WriteResponse(ctx, response, status, 10)
 	return
 }
 
@@ -350,6 +353,49 @@ func (evt *event) SearchLocation(ctx *context.Context) (err errors.Error) {
 	sort.Sort(byIDDesc(events))
 
 	server.WriteResponse(ctx, events, http.StatusOK, 10)
+	return
+}
+
+func (evt *event) UnreadFeed(ctx *context.Context) (err errors.Error) {
+	response := struct {
+		Count  int             `json:"unread_events_count"`
+		Events []*entity.Event `json:"events"`
+	}{}
+
+	if response.Count, response.Events, err = evt.storage.UnreadFeed(
+		ctx.Bag["accountID"].(int64),
+		ctx.Bag["applicationID"].(int64),
+		ctx.Bag["applicationUser"].(*entity.ApplicationUser)); err != nil {
+		return
+	}
+
+	status := http.StatusOK
+	if response.Count == 0 {
+		status = http.StatusNoContent
+	}
+
+	server.WriteResponse(ctx, response, status, 10)
+	return
+}
+
+func (evt *event) UnreadFeedCount(ctx *context.Context) (err errors.Error) {
+	count := struct {
+		Count int `json:"unread_events_count"`
+	}{}
+
+	if count.Count, err = evt.storage.UnreadFeedCount(
+		ctx.Bag["accountID"].(int64),
+		ctx.Bag["applicationID"].(int64),
+		ctx.Bag["applicationUser"].(*entity.ApplicationUser)); err != nil {
+		return
+	}
+
+	status := http.StatusOK
+	if count.Count == 0 {
+		status = http.StatusNoContent
+	}
+
+	server.WriteResponse(ctx, count, status, 10)
 	return
 }
 

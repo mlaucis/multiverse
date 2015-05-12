@@ -221,28 +221,37 @@ func (e *event) List(accountID, applicationID int64, userID string) (events []*e
 		return nil, errors.NewInternalError("failed to read the event list (2)", er.Error())
 	}
 
-	return e.toEvents(resultList)
+	_, events, err = e.toEvents(resultList)
+	return events, err
 }
 
-func (e *event) ConnectionList(accountID, applicationID int64, userID string) (events []*entity.Event, err errors.Error) {
-	key := storageHelper.ConnectionEvents(accountID, applicationID, userID)
+func (e *event) UserFeed(accountID, applicationID int64, user *entity.ApplicationUser) (count int, events []*entity.Event, err errors.Error) {
+	key := storageHelper.ConnectionEvents(accountID, applicationID, user.ID)
 
 	result, er := e.redis.ZRevRange(key, "0", "-1").Result()
 	if er != nil {
-		return nil, errors.NewInternalError("failed to read the connections events (1)", er.Error())
+		return 0, []*entity.Event{}, errors.NewInternalError("failed to read the connections events (1)", er.Error())
 	}
 
 	// TODO maybe this shouldn't be an error but rather return that there are no events from connections
 	if len(result) == 0 {
-		return []*entity.Event{}, nil
+		return 0, []*entity.Event{}, nil
 	}
 
 	resultList, er := e.redis.MGet(result...).Result()
 	if er != nil {
-		return nil, errors.NewInternalError("failed to read the connections events (2)", er.Error())
+		return 0, []*entity.Event{}, errors.NewInternalError("failed to read the connections events (2)", er.Error())
 	}
 
 	return e.toEvents(resultList)
+}
+
+func (e *event) UnreadFeed(accountID, applicationID int64, user *entity.ApplicationUser) (count int, events []*entity.Event, err errors.Error) {
+	return 0, nil, errors.NewNotFoundError("not found", "invalid handler specified")
+}
+
+func (e *event) UnreadFeedCount(accountID, applicationID int64, user *entity.ApplicationUser) (count int, err errors.Error) {
+	return 0, errors.NewNotFoundError("not found", "invalid handler specified")
 }
 
 func (e *event) WriteToConnectionsLists(accountID, applicationID int64, event *entity.Event, key string) (err errors.Error) {
@@ -295,7 +304,8 @@ func (e *event) GeoSearch(accountID, applicationID int64, latitude, longitude, r
 		return nil, errors.NewInternalError("failed to search for events by geo (2)", er.Error())
 	}
 
-	return e.toEvents(resultList)
+	_, events, err = e.toEvents(resultList)
+	return events, err
 }
 
 func (e *event) ObjectSearch(accountID, applicationID int64, objectKey string) ([]*entity.Event, errors.Error) {
@@ -312,9 +322,9 @@ func (e *event) LocationSearch(accountID, applicationID int64, locationKey strin
 
 // fetchEventsFromKeys returns all the events matching a certain search key from the specified bucket
 func (e *event) fetchEventsFromKeys(accountID, applicationID int64, bucketName string) ([]*entity.Event, errors.Error) {
-	_, keys, er := e.redis.SScan(bucketName, 0, "", 300).Result()
-	if er != nil {
-		return nil, errors.NewInternalError("failed to read the events (1)", er.Error())
+	_, keys, err := e.redis.SScan(bucketName, 0, "", 300).Result()
+	if err != nil {
+		return nil, errors.NewInternalError("failed to read the events (1)", err.Error())
 	}
 
 	if len(keys) == 0 {
@@ -323,14 +333,15 @@ func (e *event) fetchEventsFromKeys(accountID, applicationID int64, bucketName s
 
 	resultList, err := e.redis.MGet(keys...).Result()
 	if err != nil {
-		return nil, errors.NewInternalError("failed to read the events (2)", er.Error())
+		return nil, errors.NewInternalError("failed to read the events (2)", err.Error())
 	}
 
-	return e.toEvents(resultList)
+	_, events, er := e.toEvents(resultList)
+	return events, er
 }
 
 // toEvents converts the events from json format to go structs
-func (e *event) toEvents(resultList []interface{}) ([]*entity.Event, errors.Error) {
+func (e *event) toEvents(resultList []interface{}) (int, []*entity.Event, errors.Error) {
 	events := []*entity.Event{}
 	for _, result := range resultList {
 		if result == nil {
@@ -338,13 +349,13 @@ func (e *event) toEvents(resultList []interface{}) ([]*entity.Event, errors.Erro
 		}
 		event := &entity.Event{}
 		if er := json.Unmarshal([]byte(result.(string)), event); er != nil {
-			return []*entity.Event{}, errors.NewInternalError("failed to read the event from list (1)", er.Error())
+			return 0, []*entity.Event{}, errors.NewInternalError("failed to read the event from list (1)", er.Error())
 		}
 		events = append(events, event)
 		event = &entity.Event{}
 	}
 
-	return events, nil
+	return len(events), events, nil
 }
 
 func (e *event) addEventGeo(accountID, applicationID int64, key string, updatedEvent *entity.Event) errors.Error {

@@ -66,6 +66,14 @@ func (evt *event) SearchLocation(ctx *context.Context) (err errors.Error) {
 	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
+func (evt *event) UnreadFeed(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
+}
+
+func (evt *event) UnreadFeedCount(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("not implemented yet", "not implemented yet")
+}
+
 // NewEvent returns a new event handler
 func NewEvent(storage core.Event) server.Event {
 	return &event{
