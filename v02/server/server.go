@@ -51,12 +51,6 @@ func WriteResponse(ctx *context.Context, response interface{}, code int, cacheTi
 	WriteCommonHeaders(cacheTime, ctx)
 	WriteCorsHeaders(ctx)
 	ctx.W.Header().Set("Content-Type", "application/json; charset=UTF-8")
-
-	//Check if we have a session enable and if so write it back
-	if ctx.SessionToken != "" {
-		ctx.W.Header().Set("x-tapglue-session", ctx.SessionToken)
-	}
-
 	ctx.StatusCode = code
 
 	// Write response
@@ -109,6 +103,13 @@ func WriteCommonHeaders(cacheTime uint, ctx *context.Context) {
 		ctx.W.Header().Set("Pragma", "no-cache")
 		ctx.W.Header().Set("Expires", "0")
 	}
+
+	if !ctx.Bag["rateLimit.enabled"].(bool) {
+		return
+	}
+	ctx.W.Header().Set("X-RateLimit-Limit", strconv.FormatInt(1000, 10))
+	ctx.W.Header().Set("X-RateLimit-Remaining", strconv.FormatInt(ctx.Bag["rateLimit.limit"].(int64), 10))
+	ctx.W.Header().Set("X-RateLimit-Reset", strconv.FormatInt(ctx.Bag["rateLimit.refreshTime"].(time.Time).Unix(), 10))
 }
 
 // WriteCorsHeaders will write the needed CORS headers
