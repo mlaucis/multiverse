@@ -27,9 +27,9 @@ type (
 
 const (
 	createAccountQuery           = `INSERT INTO tg.accounts(json_data) VALUES ($1) RETURNING id`
-	selectAccountByIDQuery       = `SELECT json_data FROM tg.accounts WHERE id = $1`
-	selectAccountByKeyQuery      = `SELECT id, json_data FROM tg.accounts WHERE json_data->>'token' = $1`
-	selectAccountByPublicIDQuery = `SELECT id, json_data FROM tg.accounts WHERE json_data->>'id' = $1`
+	selectAccountByIDQuery       = `SELECT json_data FROM tg.accounts WHERE id = $1 LIMIT 1`
+	selectAccountByKeyQuery      = `SELECT id, json_data FROM tg.accounts WHERE json_data @> json_build_object('token', $1::text)::jsonb LIMIT 1`
+	selectAccountByPublicIDQuery = `SELECT id, json_data FROM tg.accounts WHERE json_data @> json_build_object('id', $1::text)::jsonb LIMIT 1`
 	updateAccountByIDQuery       = `UPDATE tg.accounts SET json_data = $1 WHERE id = $2`
 	deleteAccountByIDQuery       = `DELETE FROM tg.accounts WHERE id = $1`
 )

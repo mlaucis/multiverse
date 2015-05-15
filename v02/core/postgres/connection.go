@@ -27,12 +27,12 @@ type (
 
 const (
 	createConnectionQuery              = `INSERT INTO app_%d_%d.connections(json_data) VALUES ($1)`
-	selectConnectionQuery              = `SELECT json_data FROM app_%d_%d.connections WHERE json_data->>'user_from_id' = $1 AND json_data->>'user_to_id' = $2  LIMIT 1`
-	updateConnectionQuery              = `UPDATE app_%d_%d.connections SET json_data = $1 WHERE json_data->>'user_from_id' = $2 AND json_data->>'user_to_id' = $3`
-	followsQuery                       = `SELECT json_data FROM app_%d_%d.connections WHERE json_data->>'user_from_id' = $1 AND json_data->>'type' = 'follow' and json_data->>'enabled' = 'true'`
-	followersQuery                     = `SELECT json_data FROM app_%d_%d.connections WHERE json_data->>'user_to_id' = $1 AND json_data->>'type' = 'follow' AND json_data->>'enabled' = 'true'`
-	friendConnectionsQuery             = `SELECT json_data FROM app_%d_%d.connections WHERE json_data->>'user_to_id' = $1 AND json_data->>'type' = 'friend' AND json_data->>'enabled' = 'true'`
-	friendAndFollowingConnectionsQuery = `SELECT json_data FROM app_%d_%d.connections WHERE json_data->>'user_from_id' = $1 AND json_data->>'enabled' = 'true'`
+	selectConnectionQuery              = `SELECT json_data FROM app_%d_%d.connections WHERE json_data @> json_build_object('user_from_id', $1::text, 'user_to_id', $2::text)::jsonb LIMIT 1`
+	updateConnectionQuery              = `UPDATE app_%d_%d.connections SET json_data = $1 WHERE json_data @> json_build_object('user_from_id', $2::text, 'user_to_id', $3::text)::jsonb`
+	followsQuery                       = `SELECT json_data FROM app_%d_%d.connections WHERE json_data @> json_build_object('user_from_id', $1::text, 'type', 'follow', 'enabled', true)::jsonb`
+	followersQuery                     = `SELECT json_data FROM app_%d_%d.connections WHERE json_data @> json_build_object('user_to_id', $1::text, 'type', 'follow', 'enabled', true)::jsonb`
+	friendConnectionsQuery             = `SELECT json_data FROM app_%d_%d.connections WHERE json_data @> json_build_object('user_to_id', $1::text, 'type', 'friend', 'enabled', true)::jsonb`
+	friendAndFollowingConnectionsQuery = `SELECT json_data FROM app_%d_%d.connections WHERE json_data @> json_build_object('user_from_id', $1::text, 'enabled', true)::jsonb`
 	listUsersBySocialIDQuery           = `SELECT json_data FROM app_%d_%d.users WHERE %s`
 )
 

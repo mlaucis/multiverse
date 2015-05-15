@@ -27,16 +27,16 @@ type (
 
 const (
 	createAccountUserQuery           = `INSERT INTO tg.account_users(account_id, json_data) VALUES($1, $2) RETURNING id`
-	selectAccountUserByIDQuery       = `SELECT json_data FROM tg.account_users WHERE id = $1 AND account_id = $2`
+	selectAccountUserByIDQuery       = `SELECT json_data FROM tg.account_users WHERE id = $1 AND account_id = $2 LIMIT 1`
 	updateAccountUserByIDQuery       = `UPDATE tg.account_users SET json_data = $1 WHERE id = $2 AND account_id = $3`
 	deleteAccountUserByIDQuery       = `UPDATE tg.account_users SET enabled = 0 WHERE id = $1`
 	listAccountUsersByAccountIDQuery = `SELECT id, json_data FROM tg.account_users WHERE account_id = $1 ORDER BY json_data->>'created_at' DESC`
-	selectAccountUserByEmailQuery    = `SELECT id, json_data FROM tg.account_users WHERE json_data->>'email' = $1`
-	selectAccountUserByUsernameQuery = `SELECT id, json_data FROM tg.account_users WHERE json_data->>'user_name' = $1`
+	selectAccountUserByEmailQuery    = `SELECT id, json_data FROM tg.account_users WHERE json_data @> json_build_object('email', $1::text)::jsonb LIMIT 1`
+	selectAccountUserByUsernameQuery = `SELECT id, json_data FROM tg.account_users WHERE json_data @> json_build_object('user_name', $1::text)::jsonb LIMIT 1`
 	createAccountUserSessionQuery    = `INSERT INTO tg.account_user_sessions(account_id, account_user_id, session_id) VALUES($1, $2, $3)`
-	selectAccountUserSessionQuery    = `SELECT session_id FROM tg.account_user_sessions WHERE account_id = $1 AND account_user_id = $2`
-	selectAccountUserBySessionQuery  = `SELECT account_id, account_user_id FROM tg.account_user_sessions WHERE session_id = $1`
-	selectAccountUserByPublicIDQuery = `SELECT id, json_data FROM tg.account_users WHERE account_id = $1 AND json_data->>'id' = $2`
+	selectAccountUserSessionQuery    = `SELECT session_id FROM tg.account_user_sessions WHERE account_id = $1 AND account_user_id = $2 LIMIT 1`
+	selectAccountUserBySessionQuery  = `SELECT account_id, account_user_id FROM tg.account_user_sessions WHERE session_id = $1 LIMIT 1`
+	selectAccountUserByPublicIDQuery = `SELECT id, json_data FROM tg.account_users WHERE account_id = $1 AND json_data @> json_build_object('id', $2::text)::jsonb LIMIT 1`
 	updateAccountUserSessionQuery    = `UPDATE tg.account_user_sessions SET session_id = $1 WHERE account_id = $2 AND account_user_id = $3 AND session_id = $4`
 	destroyAccountUserSessionQuery   = `DELETE FROM tg.account_user_sessions WHERE account_id = $1 AND account_user_id = $2 AND session_id = $3`
 )

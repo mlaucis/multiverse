@@ -27,8 +27,8 @@ type (
 const (
 	createApplicationEntryQuery            = `INSERT INTO tg.applications (account_id, json_data) VALUES($1, $2) RETURNING id`
 	selectApplicationEntryByIDQuery        = `SELECT json_data, enabled FROM tg.applications WHERE id = $1 AND account_id = $2 and enabled = 1`
-	selectApplicationEntryByPublicIDsQuery = `SELECT id, account_id, json_data, enabled FROM tg.applications WHERE json_data->>'id' = $1`
-	selectApplicationEntryByKeyQuery       = `SELECT id, account_id, json_data, enabled FROM tg.applications WHERE json_data->>'token' = $1`
+	selectApplicationEntryByPublicIDsQuery = `SELECT id, account_id, json_data, enabled FROM tg.applications WHERE json_data @> json_build_object('id', $1::text)::jsonb LIMIT 1`
+	selectApplicationEntryByKeyQuery       = `SELECT id, account_id, json_data, enabled FROM tg.applications WHERE json_data @> json_build_object('token', $1::text)::jsonb LIMIT 1`
 	updateApplicationEntryByIDQuery        = `UPDATE tg.applications SET json_data = $1 WHERE id = $2 AND account_id = $3`
 	deleteApplicationEntryByIDQuery        = `UPDATE tg.applications SET enabled = 0 WHERE id = $1 AND account_id = $2`
 	listApplicationsEntryByAccountIDQuery  = `SELECT id, json_data, enabled FROM tg.applications where account_id = $1 and enabled = 1`
@@ -58,9 +58,9 @@ var (
 		enabled BOOL DEFAULT TRUE NOT NULL
 	)`,
 
-		`CREATE INDEX on app_%d_%d.users USING GIN (json_data jsonb_path_ops)`,
-		`CREATE INDEX on app_%d_%d.events USING GIN (json_data jsonb_path_ops)`,
-		`CREATE INDEX on app_%d_%d.connections USING GIN (json_data jsonb_path_ops)`,
+		`CREATE INDEX ON app_%d_%d.users USING GIN (json_data jsonb_path_ops)`,
+		`CREATE INDEX ON app_%d_%d.events USING GIN (json_data jsonb_path_ops)`,
+		`CREATE INDEX ON app_%d_%d.connections USING GIN (json_data jsonb_path_ops)`,
 	}
 )
 

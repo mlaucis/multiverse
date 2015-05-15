@@ -29,13 +29,13 @@ type (
 
 const (
 	createEventQuery                       = `INSERT INTO app_%d_%d.events(json_data) VALUES($1)`
-	selectEventByIDQuery                   = `SELECT json_data FROM app_%d_%d.events WHERE json_data->>'id' = $1 AND json_data->>'user_id' = $2 AND json_data->>'enabled' = 'true'  LIMIT 1`
-	updateEventByIDQuery                   = `UPDATE app_%d_%d.events SET json_data = $1 WHERE json_data->>'id' = $2 AND json_data->>'user_id' = $3`
-	listEventsByUserIDQuery                = `SELECT json_data FROM app_%d_%d.events WHERE json_data->>'user_id' = $1 AND json_data->>'enabled' = 'true' ORDER BY json_data->>'created_at' DESC LIMIT 200`
-	listEventsByUserFollowerIDQuery        = `SELECT json_data FROM app_%d_%d.events WHERE (%s) AND json_data->>'enabled' = 'true' ORDER BY json_data->>'created_at' DESC LIMIT 200`
-	listUnreadEventsByUserFollowerIDQuery  = `SELECT json_data FROM app_%d_%d.events WHERE (%s) AND json_data->>'created_at' > $1 AND json_data->>'enabled' = 'true' ORDER BY json_data->>'created_at' DESC LIMIT 200`
-	countUnreadEventsByUserFollowerIDQuery = `SELECT count(*) FROM (SELECT json_data FROM app_%d_%d.events WHERE (%s) AND json_data->>'created_at' > $1 AND json_data->>'enabled' = 'true' ORDER BY json_data->>'created_at' DESC LIMIT 200) AS events`
-	updateApplicationUserLastReadQuery     = `UPDATE app_%d_%d.users SET last_read = now() WHERE json_data->>'id' = $1 AND json_data->>'enabled' = 'true'`
+	selectEventByIDQuery                   = `SELECT json_data FROM app_%d_%d.events WHERE json_data @> json_build_object('id', $1::text, 'user_id', $2::text, 'enabled', true)::jsonb  LIMIT 1`
+	updateEventByIDQuery                   = `UPDATE app_%d_%d.events SET json_data = $1 WHERE json_data @> json_build_object('id', $2::text, 'user_id', $3::text)::jsonb`
+	listEventsByUserIDQuery                = `SELECT json_data FROM app_%d_%d.events WHERE json_data @> json_build_object('user_id', $1::text, 'enabled', true)::jsonb ORDER BY json_data->>'created_at' DESC LIMIT 200`
+	listEventsByUserFollowerIDQuery        = `SELECT json_data FROM app_%d_%d.events WHERE (%s) AND json_data @> '{"enabled": true}' ORDER BY json_data->>'created_at' DESC LIMIT 200`
+	listUnreadEventsByUserFollowerIDQuery  = `SELECT json_data FROM app_%d_%d.events WHERE (%s) AND json_data->>'created_at' > $1 AND json_data @> '{"enabled": true}' ORDER BY json_data->>'created_at' DESC LIMIT 200`
+	countUnreadEventsByUserFollowerIDQuery = `SELECT count(*) FROM (SELECT json_data FROM app_%d_%d.events WHERE (%s) AND json_data->>'created_at' > $1 AND json_data @> '{"enabled": true}' ORDER BY json_data->>'created_at' DESC LIMIT 200) AS events`
+	updateApplicationUserLastReadQuery     = `UPDATE app_%d_%d.users SET last_read = now() WHERE json_data @> json_build_object('id', $1::text, 'enabled', true)::jsonb`
 )
 
 func (e *event) Create(accountID, applicationID int64, event *entity.Event, retrieve bool) (*entity.Event, errors.Error) {

@@ -114,3 +114,18 @@ goimports -w ./.. && golint ./... && go vet ./...
 ## Deployment
 
 TBD
+
+
+## Security test
+
+Tool https://github.com/sqlmapproject/sqlmap
+
+```bash
+python sqlmap.py -u "http://127.0.0.1:8083/0.2/user/db9617bf-275e-521a-88c3-b6ef69d3af05*/events" \
+-z "ignore-401,flu,bat" --banner -f \
+--headers="Authorization: Basic ZTdhYWZjNDgxMWU4N2UyOTA3NjliNTdmOGNjYWI4NTA6U0RZcmJrUnVLR2w5ZUY5alZIazhNeXQ2Vm5jPQ=="
+```
+
+Bad keywords:
+
+- google wfuzz: https://wfuzz.googlecode.com/svn/trunk/wordlist/Injections/SQL.txt

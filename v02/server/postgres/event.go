@@ -157,7 +157,7 @@ func (evt *event) Delete(ctx *context.Context) (err errors.Error) {
 func (evt *event) List(ctx *context.Context) (err errors.Error) {
 	accountID := ctx.Bag["accountID"].(int64)
 	applicationID := ctx.Bag["applicationID"].(int64)
-	userID := ctx.Bag["applicationUserID"].(string)
+	userID := ctx.Vars["applicationUserID"]
 
 	exists, err := evt.appUser.ExistsByID(accountID, applicationID, userID)
 	if err != nil {
