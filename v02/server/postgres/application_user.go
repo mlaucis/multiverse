@@ -184,13 +184,21 @@ func (appUser *applicationUser) Login(ctx *context.Context) (err errors.Error) {
 		return
 	}
 
-	server.WriteResponse(ctx, struct {
+	response := struct {
+		entity.ApplicationUser
 		UserID string `json:"id"`
 		Token  string `json:"session_token"`
 	}{
 		UserID: user.ID,
 		Token:  sessionToken,
-	}, http.StatusCreated, 0)
+	}
+
+	if ctx.R.URL.Query().Get("withUserDetails") == "true" {
+		user.Password = ""
+		response.ApplicationUser = *user
+	}
+
+	server.WriteResponse(ctx, response, http.StatusCreated, 0)
 	return
 }
 
