@@ -41,8 +41,8 @@ const (
 func (e *event) Create(accountID, applicationID int64, event *entity.Event, retrieve bool) (*entity.Event, errors.Error) {
 	event.ID = storageHelper.GenerateUUIDV5(storageHelper.OIDUUIDNamespace, storageHelper.GenerateRandomString(20))
 	event.Enabled = true
-	event.CreatedAt = time.Now()
-	event.UpdatedAt = event.CreatedAt
+	timeNow := time.Now()
+	event.CreatedAt, event.UpdatedAt = &timeNow, &timeNow
 
 	eventJSON, err := json.Marshal(event)
 	if err != nil {
@@ -84,7 +84,8 @@ func (e *event) Read(accountID, applicationID int64, userID, eventID string) (*e
 }
 
 func (e *event) Update(accountID, applicationID int64, existingEvent, updatedEvent entity.Event, retrieve bool) (*entity.Event, errors.Error) {
-	updatedEvent.UpdatedAt = time.Now()
+	timeNow := time.Now()
+	updatedEvent.UpdatedAt = &timeNow
 	eventJSON, err := json.Marshal(updatedEvent)
 	if err != nil {
 		return nil, errors.NewInternalError("failed to update the event", err.Error())
@@ -174,7 +175,7 @@ func (e *event) UserFeed(accountID, applicationID int64, user *entity.Applicatio
 			return 0, []*entity.Event{}, errors.NewInternalError("failed to read the events", err.Error())
 		}
 
-		if event.CreatedAt.Sub(user.LastRead) > 0 {
+		if event.CreatedAt.Sub(*user.LastRead) > 0 {
 			unread++
 		}
 

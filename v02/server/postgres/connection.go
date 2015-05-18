@@ -177,6 +177,7 @@ func (conn *connection) List(ctx *context.Context) (err errors.Error) {
 
 	for idx := range users {
 		users[idx].Password = ""
+		users[idx].CreatedAt, users[idx].UpdatedAt, users[idx].LastLogin, users[idx].LastRead = nil, nil, nil, nil
 	}
 
 	status := http.StatusOK
@@ -200,6 +201,7 @@ func (conn *connection) CurrentUserList(ctx *context.Context) (err errors.Error)
 
 	for idx := range users {
 		users[idx].Password = ""
+		users[idx].CreatedAt, users[idx].UpdatedAt, users[idx].LastLogin, users[idx].LastRead = nil, nil, nil, nil
 	}
 
 	status := http.StatusOK
@@ -232,6 +234,7 @@ func (conn *connection) FollowedByList(ctx *context.Context) (err errors.Error) 
 
 	for idx := range users {
 		users[idx].Password = ""
+		users[idx].CreatedAt, users[idx].UpdatedAt, users[idx].LastLogin, users[idx].LastRead = nil, nil, nil, nil
 	}
 
 	status := http.StatusOK
@@ -255,6 +258,7 @@ func (conn *connection) CurrentUserFollowedByList(ctx *context.Context) (err err
 
 	for idx := range users {
 		users[idx].Password = ""
+		users[idx].CreatedAt, users[idx].UpdatedAt, users[idx].LastLogin, users[idx].LastRead = nil, nil, nil, nil
 	}
 
 	status := http.StatusOK
@@ -379,6 +383,7 @@ func (conn *connection) Friends(ctx *context.Context) (err errors.Error) {
 
 	for idx := range users {
 		users[idx].Password = ""
+		users[idx].CreatedAt, users[idx].UpdatedAt, users[idx].LastLogin, users[idx].LastRead = nil, nil, nil, nil
 	}
 
 	status := http.StatusOK
@@ -398,6 +403,7 @@ func (conn *connection) CurrentUserFriends(ctx *context.Context) (err errors.Err
 
 	for idx := range users {
 		users[idx].Password = ""
+		users[idx].CreatedAt, users[idx].UpdatedAt, users[idx].LastLogin, users[idx].LastRead = nil, nil, nil, nil
 	}
 
 	status := http.StatusOK

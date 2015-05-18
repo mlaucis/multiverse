@@ -67,8 +67,8 @@ var (
 func (app *application) Create(application *entity.Application, retrieve bool) (*entity.Application, errors.Error) {
 	application.PublicID = storageHelper.GenerateUUIDV5(storageHelper.OIDUUIDNamespace, storageHelper.GenerateRandomString(20))
 	application.Enabled = true
-	application.CreatedAt = time.Now()
-	application.UpdatedAt = application.CreatedAt
+	timeNow := time.Now()
+	application.CreatedAt, application.UpdatedAt = &timeNow, &timeNow
 	application.AuthToken = storageHelper.GenerateApplicationSecretKey(application)
 
 	applicationJSON, err := json.Marshal(application)
@@ -131,7 +131,8 @@ func (app *application) Update(existingApplication, updatedApplication entity.Ap
 	if updatedApplication.AuthToken == "" {
 		updatedApplication.AuthToken = existingApplication.AuthToken
 	}
-	updatedApplication.UpdatedAt = time.Now()
+	timeNow := time.Now()
+	updatedApplication.UpdatedAt = &timeNow
 
 	applicationJSON, err := json.Marshal(updatedApplication)
 	if err != nil {

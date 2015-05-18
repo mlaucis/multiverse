@@ -45,9 +45,8 @@ func (au *accountUser) Create(accountUser *entity.AccountUser, retrieve bool) (*
 	accountUser.PublicID = storageHelper.GenerateUUIDV5(storageHelper.OIDUUIDNamespace, storageHelper.GenerateRandomString(20))
 	accountUser.Password = storageHelper.EncryptPassword(accountUser.Password)
 	accountUser.Enabled = true
-	accountUser.CreatedAt = time.Now()
-	accountUser.UpdatedAt = accountUser.CreatedAt
-	accountUser.LastLogin = accountUser.CreatedAt
+	timeNow := time.Now()
+	accountUser.CreatedAt, accountUser.UpdatedAt, accountUser.LastLogin = &timeNow, &timeNow, &timeNow
 
 	accountUserJSON, err := json.Marshal(accountUser)
 	if err != nil {
@@ -97,7 +96,8 @@ func (au *accountUser) Update(existingAccountUser, updatedAccountUser entity.Acc
 	} else if updatedAccountUser.Password != existingAccountUser.Password {
 		updatedAccountUser.Password = storageHelper.EncryptPassword(updatedAccountUser.Password)
 	}
-	updatedAccountUser.UpdatedAt = time.Now()
+	timeNow := time.Now()
+	updatedAccountUser.UpdatedAt = &timeNow
 
 	accountUserJSON, err := json.Marshal(updatedAccountUser)
 	if err != nil {

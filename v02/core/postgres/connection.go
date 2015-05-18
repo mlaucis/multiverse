@@ -53,8 +53,8 @@ func (c *connection) Create(accountID, applicationID int64, connection *entity.C
 		return nil, ConnectionAlreadyExists
 	}
 
-	connection.CreatedAt = time.Now()
-	connection.UpdatedAt = connection.CreatedAt
+	timeNow := time.Now()
+	connection.CreatedAt, connection.UpdatedAt = &timeNow, &timeNow
 	connectionJSON, err := json.Marshal(connection)
 	if err != nil {
 		return nil, errors.NewInternalError("error while saving the connection", err.Error())
@@ -106,7 +106,8 @@ func (c *connection) Read(accountID, applicationID int64, userFromID, userToID s
 }
 
 func (c *connection) Update(accountID, applicationID int64, existingConnection, updatedConnection entity.Connection, retrieve bool) (*entity.Connection, errors.Error) {
-	updatedConnection.UpdatedAt = time.Now()
+	timeNow := time.Now()
+	updatedConnection.UpdatedAt = &timeNow
 	connectionJSON, err := json.Marshal(updatedConnection)
 	if err != nil {
 		return nil, errors.NewInternalError("error while updating the connection", err.Error())
@@ -267,8 +268,8 @@ func (c *connection) FriendsAndFollowing(accountID, applicationID int64, userID 
 
 func (c *connection) Confirm(accountID, applicationID int64, connection *entity.Connection, retrieve bool) (*entity.Connection, errors.Error) {
 	connection.Enabled = true
-	connection.ConfirmedAt = time.Now()
-	connection.UpdatedAt = connection.ConfirmedAt
+	timeNow := time.Now()
+	connection.ConfirmedAt, connection.UpdatedAt = &timeNow, &timeNow
 
 	conn, err := c.Update(accountID, applicationID, *connection, *connection, retrieve)
 	if err != nil {

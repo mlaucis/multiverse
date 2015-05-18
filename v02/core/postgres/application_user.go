@@ -48,8 +48,8 @@ func (au *applicationUser) Create(accountID, applicationID int64, user *entity.A
 	user.Activated = true
 	user.Enabled = true
 	user.Password = storageHelper.EncryptPassword(user.Password)
-	user.CreatedAt = time.Now()
-	user.UpdatedAt = user.CreatedAt
+	timeNow := time.Now()
+	user.CreatedAt, user.UpdatedAt = &timeNow, &timeNow
 
 	applicationUserJSON, err := json.Marshal(user)
 	if err != nil {
@@ -95,7 +95,7 @@ func (au *applicationUser) Read(accountID, applicationID int64, userID string) (
 	if err != nil {
 		return nil, errors.NewInternalError("error while reading the application user", err.Error())
 	}
-	applicationUser.LastRead = lastRead
+	applicationUser.LastRead = &lastRead
 
 	return applicationUser, nil
 }
@@ -107,7 +107,8 @@ func (au *applicationUser) Update(accountID, applicationID int64, existingUser, 
 	} else if updatedUser.Password != existingUser.Password {
 		updatedUser.Password = storageHelper.EncryptPassword(updatedUser.Password)
 	}
-	updatedUser.UpdatedAt = time.Now()
+	timeNow := time.Now()
+	updatedUser.UpdatedAt = &timeNow
 
 	userJSON, err := json.Marshal(updatedUser)
 	if err != nil {
@@ -234,7 +235,7 @@ func (au *applicationUser) FindByEmail(accountID, applicationID int64, email str
 	if err != nil {
 		return nil, errors.NewInternalError("error while reading the application user", err.Error())
 	}
-	user.LastRead = lastRead
+	user.LastRead = &lastRead
 
 	return user, nil
 }
@@ -276,7 +277,7 @@ func (au *applicationUser) FindByUsername(accountID, applicationID int64, userna
 	if err != nil {
 		return nil, errors.NewInternalError("error while reading the application user", err.Error())
 	}
-	user.LastRead = lastRead
+	user.LastRead = &lastRead
 
 	return user, nil
 }

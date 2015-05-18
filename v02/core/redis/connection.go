@@ -27,10 +27,11 @@ type (
 
 func (c *connection) Create(accountID, applicationID int64, connection *entity.Connection, retrieve bool) (con *entity.Connection, err errors.Error) {
 	// We confirm the connection in the past forcefully so that we can update it at the confirmation time
-	connection.ConfirmedAt = time.Date(0, time.January, 1, 0, 0, 0, 0, time.UTC)
+	jesusTime := time.Date(0, time.January, 1, 0, 0, 0, 0, time.UTC)
+	connection.ConfirmedAt = &jesusTime
 	connection.Enabled = false
-	connection.CreatedAt = time.Now()
-	connection.UpdatedAt = connection.CreatedAt
+	timeNow := time.Now()
+	connection.CreatedAt, connection.UpdatedAt = &timeNow, &timeNow
 
 	val, er := json.Marshal(connection)
 	if er != nil {
@@ -72,7 +73,8 @@ func (c *connection) Read(accountID, applicationID int64, userFromID, userToID s
 }
 
 func (c *connection) Update(accountID, applicationID int64, existingConnection, updatedConnection entity.Connection, retrieve bool) (con *entity.Connection, err errors.Error) {
-	updatedConnection.UpdatedAt = time.Now()
+	timeNow := time.Now()
+	updatedConnection.UpdatedAt = &timeNow
 	var er error
 
 	val, er := json.Marshal(updatedConnection)
@@ -189,8 +191,8 @@ func (c *connection) FriendsAndFollowing(accountID, applicationID int64, userID 
 func (c *connection) Confirm(accountID, applicationID int64, connection *entity.Connection, retrieve bool) (con *entity.Connection, err errors.Error) {
 	// We confirm the connection in the past forcefully so that we can update it at the confirmation time
 	connection.Enabled = true
-	connection.ConfirmedAt = time.Now()
-	connection.UpdatedAt = connection.ConfirmedAt
+	timeNow := time.Now()
+	connection.ConfirmedAt, connection.UpdatedAt = &timeNow, &timeNow
 
 	val, er := json.Marshal(connection)
 	if er != nil {

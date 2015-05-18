@@ -23,8 +23,8 @@ type (
 
 func (e *event) Create(accountID, applicationID int64, event *entity.Event, retrieve bool) (evn *entity.Event, err errors.Error) {
 	event.Enabled = true
-	event.CreatedAt = time.Now()
-	event.UpdatedAt = event.CreatedAt
+	timeNow := time.Now()
+	event.CreatedAt, event.UpdatedAt = &timeNow, &timeNow
 	var er error
 
 	if event.ID, er = e.storage.GenerateApplicationEventID(applicationID); er != nil {
@@ -100,7 +100,8 @@ func (e *event) Read(accountID, applicationID int64, userID, eventID string) (ev
 }
 
 func (e *event) Update(accountID, applicationID int64, existingEvent, updatedEvent entity.Event, retrieve bool) (evn *entity.Event, err errors.Error) {
-	updatedEvent.UpdatedAt = time.Now()
+	timeNow := time.Now()
+	updatedEvent.UpdatedAt = &timeNow
 
 	val, er := json.Marshal(updatedEvent)
 	if er != nil {

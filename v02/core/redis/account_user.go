@@ -31,9 +31,8 @@ func (au *accountUser) Create(accountUser *entity.AccountUser, retrieve bool) (*
 	}
 
 	accountUser.Enabled = true
-	accountUser.CreatedAt = time.Now()
-	accountUser.UpdatedAt = accountUser.CreatedAt
-	accountUser.LastLogin, err = time.Parse(time.RFC3339, "0000-01-01T00:00:00Z")
+	timeNow := time.Now()
+	accountUser.CreatedAt, accountUser.UpdatedAt, accountUser.LastLogin = &timeNow, &timeNow, &timeNow
 	if err != nil {
 		return nil, errors.NewInternalError("failed to create the account user (2)", err.Error())
 	}
@@ -104,7 +103,8 @@ func (au *accountUser) Read(accountID, accountUserID int64) (accountUser *entity
 }
 
 func (au *accountUser) Update(existingAccountUser, updatedAccountUser entity.AccountUser, retrieve bool) (*entity.AccountUser, errors.Error) {
-	updatedAccountUser.UpdatedAt = time.Now()
+	timeNow := time.Now()
+	updatedAccountUser.UpdatedAt = &timeNow
 
 	if updatedAccountUser.Password == "" {
 		updatedAccountUser.Password = existingAccountUser.Password

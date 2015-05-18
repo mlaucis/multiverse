@@ -37,8 +37,8 @@ const (
 func (a *account) Create(account *entity.Account, retrieve bool) (*entity.Account, errors.Error) {
 	account.PublicID = storageHelper.GenerateUUIDV5(storageHelper.OIDUUIDNamespace, storageHelper.GenerateRandomString(20))
 	account.Enabled = true
-	account.CreatedAt = time.Now()
-	account.UpdatedAt = account.CreatedAt
+	timeNow := time.Now()
+	account.CreatedAt, account.UpdatedAt = &timeNow, &timeNow
 	account.AuthToken = storageHelper.GenerateAccountSecretKey(account)
 
 	accountJSON, err := json.Marshal(account)
@@ -87,7 +87,8 @@ func (a *account) Update(existingAccount, updatedAccount entity.Account, retriev
 	if updatedAccount.AuthToken == "" {
 		updatedAccount.AuthToken = existingAccount.AuthToken
 	}
-	updatedAccount.UpdatedAt, _ = time.Parse(time.RFC3339, "0000-01-01T00:00:00Z")
+	timeNow := time.Now()
+	updatedAccount.UpdatedAt = &timeNow
 	accountJSON, err := json.Marshal(updatedAccount)
 	if err != nil {
 		return nil, errors.NewInternalError("error while updating the account", err.Error())

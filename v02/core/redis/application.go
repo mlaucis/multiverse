@@ -29,8 +29,8 @@ func (app *application) Create(application *entity.Application, retrieve bool) (
 	}
 
 	application.Enabled = true
-	application.CreatedAt = time.Now()
-	application.UpdatedAt = application.CreatedAt
+	timeNow := time.Now()
+	application.CreatedAt, application.UpdatedAt = &timeNow, &timeNow
 	application.AuthToken = storageHelper.GenerateApplicationSecretKey(application)
 
 	val, er := json.Marshal(application)
@@ -84,7 +84,8 @@ func (app *application) Read(accountID, applicationID int64) (*entity.Applicatio
 }
 
 func (app *application) Update(existingApplication, updatedApplication entity.Application, retrieve bool) (*entity.Application, errors.Error) {
-	updatedApplication.UpdatedAt = time.Now()
+	timeNow := time.Now()
+	updatedApplication.UpdatedAt = &timeNow
 
 	val, er := json.Marshal(updatedApplication)
 	if er != nil {

@@ -30,6 +30,7 @@ func (appUser *applicationUser) Read(ctx *context.Context) (err errors.Error) {
 		return err
 	}
 	user.Password = ""
+	user.CreatedAt, user.UpdatedAt, user.LastLogin, user.LastRead = nil, nil, nil, nil
 	server.WriteResponse(ctx, user, http.StatusOK, 10)
 	return
 }
@@ -106,7 +107,8 @@ func (appUser *applicationUser) Create(ctx *context.Context) (err errors.Error) 
 	}
 
 	if withLogin {
-		user.LastLogin = time.Now()
+		timeNow := time.Now()
+		user.LastLogin = &timeNow
 	}
 	if user, err = appUser.storage.Create(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), user, true); err != nil {
 		return
@@ -178,7 +180,8 @@ func (appUser *applicationUser) Login(ctx *context.Context) (err errors.Error) {
 		return
 	}
 
-	user.LastLogin = time.Now()
+	timeNow := time.Now()
+	user.LastLogin = &timeNow
 	_, err = appUser.storage.Update(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), *user, *user, false)
 	if err != nil {
 		return
@@ -267,6 +270,7 @@ func (appUser *applicationUser) Search(ctx *context.Context) (err errors.Error) 
 
 	for idx := range users {
 		users[idx].Password = ""
+		users[idx].CreatedAt, users[idx].UpdatedAt, users[idx].LastLogin, users[idx].LastRead = nil, nil, nil, nil
 	}
 
 	server.WriteResponse(ctx, users, http.StatusOK, 10)

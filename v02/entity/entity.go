@@ -14,22 +14,22 @@ type (
 	Common struct {
 		Metadata  map[string]string `json:"metadata,omitempty"`
 		Image     []*Image          `json:"image,omitempty"`
-		CreatedAt time.Time         `json:"created_at"`
-		UpdatedAt time.Time         `json:"updated_at"`
+		CreatedAt *time.Time        `json:"created_at"`
+		UpdatedAt *time.Time        `json:"updated_at"`
 		Enabled   bool              `json:"enabled"`
 	}
 
 	// UserCommon holds common used fields for users
 	UserCommon struct {
-		Username         string    `json:"user_name"`
-		OriginalPassword string    `json:"-"`
-		Password         string    `json:"password,omitempty"`
-		FirstName        string    `json:"first_name,omitempty"`
-		LastName         string    `json:"last_name,omitempty"`
-		Email            string    `json:"email,omitempty"`
-		URL              string    `json:"url,omitempty"`
-		LastLogin        time.Time `json:"last_login,omitempty"`
-		Activated        bool      `json:"activated,omitempty"`
+		Username         string     `json:"user_name"`
+		OriginalPassword string     `json:"-"`
+		Password         string     `json:"password,omitempty"`
+		FirstName        string     `json:"first_name,omitempty"`
+		LastName         string     `json:"last_name,omitempty"`
+		Email            string     `json:"email,omitempty"`
+		URL              string     `json:"url,omitempty"`
+		LastLogin        *time.Time `json:"last_login,omitempty"`
+		Activated        bool       `json:"activated,omitempty"`
 	}
 
 	// Image structure
@@ -112,17 +112,17 @@ type (
 		DeviceIDs            []string            `json:"device_ids,omitempty"`
 		Events               []*Event            `json:"events,omitempty"`
 		Connections          []*ApplicationUser  `json:"connections,omitempty"`
-		LastRead             time.Time           `json:"-"`
+		LastRead             *time.Time          `json:"-"`
 		UserCommon
 		Common
 	}
 
 	// Connection structure holds the connections of the users
 	Connection struct {
-		UserFromID  string    `json:"user_from_id"`
-		UserToID    string    `json:"user_to_id"`
-		Type        string    `json:"type"`
-		ConfirmedAt time.Time `json:"confirmed_at,omitempty"`
+		UserFromID  string     `json:"user_from_id"`
+		UserToID    string     `json:"user_to_id"`
+		Type        string     `json:"type"`
+		ConfirmedAt *time.Time `json:"confirmed_at,omitempty"`
 		Common
 	}
 

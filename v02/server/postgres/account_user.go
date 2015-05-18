@@ -162,7 +162,8 @@ func (accUser *accountUser) Login(ctx *context.Context) (err errors.Error) {
 		return
 	}
 
-	user.LastLogin = time.Now()
+	timeNow := time.Now()
+	user.LastLogin = &timeNow
 	_, err = accUser.storage.Update(*user, *user, false)
 
 	server.WriteResponse(ctx, struct {

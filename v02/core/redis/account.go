@@ -31,8 +31,8 @@ func (a *account) Create(account *entity.Account, retrieve bool) (acc *entity.Ac
 
 	account.AuthToken = storageHelper.GenerateAccountSecretKey(account)
 	account.Enabled = true
-	account.CreatedAt = time.Now()
-	account.UpdatedAt = account.CreatedAt
+	timeNow := time.Now()
+	account.CreatedAt, account.UpdatedAt = &timeNow, &timeNow
 
 	val, er := json.Marshal(account)
 	if er != nil {
@@ -78,7 +78,8 @@ func (a *account) Read(accountID int64) (account *entity.Account, err errors.Err
 }
 
 func (a *account) Update(existingAccount, updatedAccount entity.Account, retrieve bool) (acc *entity.Account, err errors.Error) {
-	updatedAccount.UpdatedAt = time.Now()
+	timeNow := time.Now()
+	updatedAccount.UpdatedAt = &timeNow
 
 	val, er := json.Marshal(updatedAccount)
 	if er != nil {

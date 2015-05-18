@@ -166,7 +166,8 @@ func (appUser *applicationUser) Login(ctx *context.Context) (err errors.Error) {
 		return
 	}
 
-	user.LastLogin = time.Now()
+	timeNow := time.Now()
+	user.LastLogin = &timeNow
 	_, err = appUser.storage.Update(
 		ctx.Bag["accountID"].(int64),
 		ctx.Bag["applicationID"].(int64),

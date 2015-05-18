@@ -28,15 +28,11 @@ func (appu *applicationUser) Create(accountID, applicationID int64, user *entity
 	// and if they chose it, then we need to provide an endpoint to activate a user or not
 	//user.Activated = true
 
-	var er error
 	user.Enabled = true
-	user.CreatedAt = time.Now()
-	user.UpdatedAt = user.CreatedAt
-	user.LastLogin, er = time.Parse(time.RFC3339, "0000-01-01T00:00:00Z")
-	if er != nil {
-		return nil, errors.NewInternalError("failed to write the application user (1)", er.Error())
-	}
+	timeNow := time.Now()
+	user.CreatedAt, user.UpdatedAt, user.LastLogin = &timeNow, &timeNow, &timeNow
 
+	var er error
 	if user.ID, er = appu.storage.GenerateApplicationUserID(applicationID); er != nil {
 		return nil, errors.NewInternalError("failed to write the application user (2)", er.Error())
 	}
