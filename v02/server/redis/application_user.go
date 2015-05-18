@@ -116,10 +116,6 @@ func (appUser *applicationUser) Create(ctx *context.Context) (err errors.Error) 
 	return
 }
 
-func (appUser *applicationUser) CreateAndLogin(*context.Context) errors.Error {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
-}
-
 func (appUser *applicationUser) Login(ctx *context.Context) (err errors.Error) {
 	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	var (

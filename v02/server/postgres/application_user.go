@@ -92,8 +92,9 @@ func (appUser *applicationUser) DeleteCurrent(ctx *context.Context) (err errors.
 
 func (appUser *applicationUser) Create(ctx *context.Context) (err errors.Error) {
 	var (
-		user = &entity.ApplicationUser{}
-		er   error
+		user      = &entity.ApplicationUser{}
+		er        error
+		withLogin = ctx.R.URL.Query().Get("withLogin") == "true"
 	)
 
 	if er = json.Unmarshal(ctx.Body, user); er != nil {
@@ -104,45 +105,24 @@ func (appUser *applicationUser) Create(ctx *context.Context) (err errors.Error) 
 		return
 	}
 
-	if user, err = appUser.storage.Create(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), user, true); err != nil {
-		return
+	if withLogin {
+		user.LastLogin = time.Now()
 	}
-
-	user.Password = ""
-
-	server.WriteResponse(ctx, user, http.StatusCreated, 0)
-	return
-}
-
-func (appUser *applicationUser) CreateAndLogin(ctx *context.Context) (err errors.Error) {
-	var (
-		user = &entity.ApplicationUser{}
-		er   error
-	)
-
-	if er = json.Unmarshal(ctx.Body, user); er != nil {
-		return errors.NewBadRequestError("failed to create the application user (1)\n"+er.Error(), er.Error())
-	}
-
-	if err = validator.CreateUser(appUser.storage, ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), user); err != nil {
-		return
-	}
-
-	user.LastLogin = time.Now()
 	if user, err = appUser.storage.Create(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), user, true); err != nil {
 		return
 	}
 
 	sessionToken := ""
-	if sessionToken, err = appUser.storage.CreateSession(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), user); err != nil {
-		return
+	if withLogin {
+		if sessionToken, err = appUser.storage.CreateSession(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), user); err != nil {
+			return
+		}
 	}
 
 	user.Password = ""
-
 	result := struct {
 		entity.ApplicationUser
-		SessionToken string `json:"session_token"`
+		SessionToken string `json:"session_token,omitempty"`
 	}{
 		ApplicationUser: *user,
 		SessionToken:    sessionToken,
