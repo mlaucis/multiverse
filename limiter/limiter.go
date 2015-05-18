@@ -8,6 +8,7 @@ package limiter
 import "time"
 
 type (
+	// Limitee is the limit that we want to apply
 	Limitee struct {
 		// Hash returns a consistent hash for which the limit applies
 		Hash string

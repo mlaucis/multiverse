@@ -99,6 +99,7 @@ func (rateLimiter *rateLimiter) expiresIn(limitee *limiter.Limitee) (int64, time
 	return 0, time.Now().Add(time.Duration(expiry.(int64)) * time.Second), nil
 }
 
+// NewLimiter creates a new Limiter implementation using Redis
 func NewLimiter(conn red.Conn, bucketName string) limiter.Limiter {
 	return &rateLimiter{
 		bucket: bucketName,

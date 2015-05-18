@@ -216,7 +216,7 @@ func (evt *event) Feed(ctx *context.Context) (err errors.Error) {
 	}
 
 	status := http.StatusOK
-	if response.Count == 0 {
+	if len(response.Events) == 0 {
 		status = http.StatusNoContent
 	}
 

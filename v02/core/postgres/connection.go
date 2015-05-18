@@ -37,7 +37,10 @@ const (
 )
 
 var (
-	ConnectionNotFound      = errors.NewNotFoundError("connection not found", "connection not found")
+	// ConnectionNotFound is returned when a connection between users is not found
+	ConnectionNotFound = errors.NewNotFoundError("connection not found", "connection not found")
+
+	// ConnectionAlreadyExists is returned when a connection between users already exists
 	ConnectionAlreadyExists = errors.NewBadRequestError("connection already exists", "connection already exists")
 )
 
