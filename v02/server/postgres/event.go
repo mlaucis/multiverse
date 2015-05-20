@@ -204,8 +204,9 @@ func (evt *event) CurrentUserList(ctx *context.Context) (err errors.Error) {
 
 func (evt *event) Feed(ctx *context.Context) (err errors.Error) {
 	response := struct {
-		Count  int             `json:"unread_events_count"`
-		Events []*entity.Event `json:"events"`
+		Count  int                       `json:"unread_events_count"`
+		Events []*entity.Event           `json:"events"`
+		Users  map[string]*entity.ApplicationUser `json:"users"`
 	}{}
 
 	if response.Count, response.Events, err = evt.storage.UserFeed(
@@ -218,6 +219,23 @@ func (evt *event) Feed(ctx *context.Context) (err errors.Error) {
 	status := http.StatusOK
 	if len(response.Events) == 0 {
 		status = http.StatusNoContent
+	} else {
+		response.Users = map[string]*entity.ApplicationUser{}
+		for idx := range response.Events {
+			if _, ok := response.Users[response.Events[idx].UserID]; !ok {
+				user, err := evt.appUser.Read(
+					ctx.Bag["accountID"].(int64),
+					ctx.Bag["applicationID"].(int64),
+					response.Events[idx].UserID,
+				)
+				if err != nil {
+					return err
+				}
+				user.Password = ""
+				user.CreatedAt, user.UpdatedAt, user.LastLogin, user.LastRead = nil, nil, nil, nil
+				response.Users[response.Events[idx].UserID] = user
+			}
+		}
 	}
 
 	server.WriteResponse(ctx, response, status, 10)
@@ -358,8 +376,9 @@ func (evt *event) SearchLocation(ctx *context.Context) (err errors.Error) {
 
 func (evt *event) UnreadFeed(ctx *context.Context) (err errors.Error) {
 	response := struct {
-		Count  int             `json:"unread_events_count"`
-		Events []*entity.Event `json:"events"`
+		Count  int                       `json:"unread_events_count"`
+		Events []*entity.Event           `json:"events"`
+		Users  map[string]*entity.ApplicationUser `json:"users"`
 	}{}
 
 	if response.Count, response.Events, err = evt.storage.UnreadFeed(
@@ -372,6 +391,23 @@ func (evt *event) UnreadFeed(ctx *context.Context) (err errors.Error) {
 	status := http.StatusOK
 	if response.Count == 0 {
 		status = http.StatusNoContent
+	} else {
+		response.Users = map[string]*entity.ApplicationUser{}
+		for idx := range response.Events {
+			if _, ok := response.Users[response.Events[idx].UserID]; !ok {
+				user, err := evt.appUser.Read(
+					ctx.Bag["accountID"].(int64),
+					ctx.Bag["applicationID"].(int64),
+					response.Events[idx].UserID,
+				)
+				if err != nil {
+					return err
+				}
+				user.Password = ""
+				user.CreatedAt, user.UpdatedAt, user.LastLogin, user.LastRead = nil, nil, nil, nil
+				response.Users[response.Events[idx].UserID] = user
+			}
+		}
 	}
 
 	server.WriteResponse(ctx, response, status, 10)
