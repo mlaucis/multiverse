@@ -44,7 +44,8 @@ var (
 	)`,
 		`CREATE TABLE app_%d_%d.events
 	(
-		json_data JSONB NOT NULL
+		json_data JSONB NOT NULL,
+		geo GEOMETRY(POINT, 4326)
 	)`,
 		`CREATE TABLE app_%d_%d.connections
 	(
@@ -59,8 +60,9 @@ var (
 	)`,
 
 		`CREATE INDEX ON app_%d_%d.users USING GIN (json_data jsonb_path_ops)`,
-		`CREATE INDEX ON app_%d_%d.events USING GIN (json_data jsonb_path_ops)`,
 		`CREATE INDEX ON app_%d_%d.connections USING GIN (json_data jsonb_path_ops)`,
+		`CREATE INDEX ON app_%d_%d.events USING GIN (json_data jsonb_path_ops)`,
+		`CREATE INDEX ON app_%d_%d.events USING GIST (geo)`,
 	}
 )
 

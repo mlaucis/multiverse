@@ -292,7 +292,7 @@ func (e *event) DeleteFromConnectionsLists(accountID, applicationID int64, userI
 	return nil
 }
 
-func (e *event) GeoSearch(accountID, applicationID int64, latitude, longitude, radius float64) (events []*entity.Event, err errors.Error) {
+func (e *event) GeoSearch(accountID, applicationID int64, latitude, longitude, radius float64, nearest int64) (events []*entity.Event, err errors.Error) {
 	geoEventKey := storageHelper.EventGeoKey(accountID, applicationID)
 
 	eventKeys, er := georedis.SearchByRadius(e.redis, geoEventKey, latitude, longitude, radius, 52)

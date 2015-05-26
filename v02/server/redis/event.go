@@ -183,6 +183,10 @@ func (evt *event) CurrentUserCreate(ctx *context.Context) (err errors.Error) {
 	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
+func (evt *event) Search(ctx *context.Context) (err errors.Error) {
+	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
+}
+
 func (evt *event) SearchGeo(ctx *context.Context) (err errors.Error) {
 	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
 	var (
@@ -203,11 +207,11 @@ func (evt *event) SearchGeo(ctx *context.Context) (err errors.Error) {
 		return errors.NewBadRequestError("failed to read the event by geo (3)\n"+er.Error(), er.Error())
 	}
 
-	if radius < 1 {
+	if radius < 2 {
 		return errors.NewBadRequestError("failed to read the event by geo (4)\nLocation radius can't be smaller than 2 meters", "radius smaller than 2")
 	}
 
-	if events, err = evt.storage.GeoSearch(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), latitude, longitude, radius); err != nil {
+	if events, err = evt.storage.GeoSearch(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), latitude, longitude, radius, 0); err != nil {
 		return
 	}
 

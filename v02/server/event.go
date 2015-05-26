@@ -39,14 +39,8 @@ type (
 		// CurrentUserCreate handles requests to create an event for the current user
 		CurrentUserCreate(*context.Context) errors.Error
 
-		// SearchGeo handles requests to retrieve a users connections events
-		SearchGeo(*context.Context) errors.Error
-
-		// SearchObject handles requests to retrieve events in a certain location / radius
-		SearchObject(*context.Context) errors.Error
-
-		// SearchLocation handles requests to retrieve a users connections events
-		SearchLocation(*context.Context) errors.Error
+		// Search handles requests to retrieve events that match a certain query
+		Search(*context.Context) errors.Error
 
 		// UnreadFeed will return only the events in the feed that not read yet by the user and flag them as read
 		UnreadFeed(*context.Context) errors.Error

@@ -248,7 +248,7 @@ func (appUser *applicationUser) Logout(ctx *context.Context) (err errors.Error) 
 }
 
 func (appUser *applicationUser) Search(ctx *context.Context) (err errors.Error) {
-	query := ctx.R.URL.Query().Get("q")
+	query := ctx.Query.Get("q")
 	if query == "" {
 		server.WriteResponse(ctx, []*entity.ApplicationUser{}, http.StatusNoContent, 10)
 		return

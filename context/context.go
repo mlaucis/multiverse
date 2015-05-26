@@ -8,6 +8,7 @@ package context
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"runtime"
 	"time"
 
@@ -22,6 +23,7 @@ type (
 		SessionToken string
 		StatusCode   int
 		Vars         map[string]string
+		Query        url.Values
 		Body         []byte
 		MainLog      chan *logger.LogMsg
 		ErrorLog     chan *logger.LogMsg

@@ -7,7 +7,6 @@ package postgres
 import (
 	"encoding/json"
 	"net/http"
-	"sort"
 	"strconv"
 
 	"github.com/tapglue/backend/context"
@@ -204,8 +203,8 @@ func (evt *event) CurrentUserList(ctx *context.Context) (err errors.Error) {
 
 func (evt *event) Feed(ctx *context.Context) (err errors.Error) {
 	response := struct {
-		Count  int                       `json:"unread_events_count"`
-		Events []*entity.Event           `json:"events"`
+		Count  int                                `json:"unread_events_count"`
+		Events []*entity.Event                    `json:"events"`
 		Users  map[string]*entity.ApplicationUser `json:"users"`
 	}{}
 
@@ -307,68 +306,70 @@ func (evt *event) CurrentUserCreate(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (evt *event) SearchGeo(ctx *context.Context) (err errors.Error) {
+func (evt *event) Search(ctx *context.Context) (err errors.Error) {
 	var (
 		events                      = []*entity.Event{}
 		latitude, longitude, radius float64
+		nearest                     int64
 		er                          error
 	)
 
-	if latitude, er = strconv.ParseFloat(ctx.Vars["latitude"], 64); er != nil {
-		return errors.NewBadRequestError("failed to read the event by geo (1)\n"+er.Error(), er.Error())
+	if l := ctx.Query.Get("lat"); l != "" {
+		if latitude, er = strconv.ParseFloat(l, 64); er != nil {
+			return errors.NewBadRequestError("failed to read the event by geo (1)\n"+er.Error(), er.Error())
+		}
 	}
 
-	if longitude, er = strconv.ParseFloat(ctx.Vars["longitude"], 64); er != nil {
-		return errors.NewBadRequestError("failed to read the event by geo (2)\n"+er.Error(), er.Error())
+	if l := ctx.Query.Get("lon"); l != "" {
+		if longitude, er = strconv.ParseFloat(l, 64); er != nil {
+			return errors.NewBadRequestError("failed to read the event by geo (2)\nyou must supply a latitude", er.Error())
+		}
 	}
 
-	if radius, er = strconv.ParseFloat(ctx.Vars["radius"], 64); er != nil {
-		return errors.NewBadRequestError("failed to read the event by geo (3)\n"+er.Error(), er.Error())
+	if rad := ctx.Query.Get("rad"); rad != "" {
+		if radius, er = strconv.ParseFloat(rad, 64); er != nil {
+			return errors.NewBadRequestError("failed to read the event by geo (3)\n"+er.Error(), er.Error())
+		}
 	}
 
-	if radius < 1 {
-		return errors.NewBadRequestError("failed to read the event by geo (4)\nLocation radius can't be smaller than 2 meters", "radius smaller than 2")
+	if near := ctx.Query.Get("nearest"); near != "" {
+		if nearest, er = strconv.ParseInt(near, 10, 64); er != nil {
+			return errors.NewBadRequestError("failed to read the event by geo (4)\n"+er.Error(), er.Error())
+		}
+
+		if nearest < 1 || nearest > 200 {
+			return errors.NewBadRequestError("failed to read the events by geo(4)\nnear events limits not within accepted bounds", "nearest not within bounds")
+		}
 	}
 
-	if events, err = evt.storage.GeoSearch(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), latitude, longitude, radius); err != nil {
+	if ctx.Query.Get("lat") != "" && ctx.Query.Get("lon") != "" {
+		if radius == 0 && nearest == 0 {
+			return errors.NewBadRequestError("failed to read the event by geo(5) \nyou must specify either a radius or a how many nearest events you want", "invalid radius and nearest")
+		}
+
+		if radius < 2 && nearest == 0 {
+			return errors.NewBadRequestError("failed to read the event by geo (6)\nLocation radius can't be smaller than 2 meters", "radius smaller than 2")
+		}
+
+		if radius == 0 && nearest > 200 {
+			return errors.NewBadRequestError("failed to read the event by geo (7)\ncan't have more than 200 nearest events", "nearest is bigger than 200")
+		}
+
+		events, err = evt.storage.GeoSearch(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), latitude, longitude, radius, nearest)
+	} else if location := ctx.Query.Get("location"); location != "" {
+		if events, err = evt.storage.LocationSearch(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), location); err != nil {
+			return
+		}
+	} else if objectKey := ctx.Query.Get("object"); objectKey != "" {
+		if events, err = evt.storage.ObjectSearch(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), objectKey); err != nil {
+			return
+		}
+	} else {
+		err = errors.NewBadRequestError("failed to search for events\nno known search terms supplied", "failed to search for events\nno known search terms supplied")
+	}
+	if err != nil {
 		return
 	}
-
-	server.WriteResponse(ctx, events, http.StatusOK, 10)
-	return
-}
-
-func (evt *event) SearchObject(ctx *context.Context) (err errors.Error) {
-	var (
-		events    = []*entity.Event{}
-		objectKey string
-	)
-
-	objectKey = ctx.Vars["objectKey"]
-
-	if events, err = evt.storage.ObjectSearch(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), objectKey); err != nil {
-		return
-	}
-
-	sort.Sort(byIDDesc(events))
-
-	server.WriteResponse(ctx, events, http.StatusOK, 10)
-	return
-}
-
-func (evt *event) SearchLocation(ctx *context.Context) (err errors.Error) {
-	var (
-		events   = []*entity.Event{}
-		location string
-	)
-
-	location = ctx.Vars["location"]
-
-	if events, err = evt.storage.LocationSearch(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), location); err != nil {
-		return
-	}
-
-	sort.Sort(byIDDesc(events))
 
 	server.WriteResponse(ctx, events, http.StatusOK, 10)
 	return
@@ -376,8 +377,8 @@ func (evt *event) SearchLocation(ctx *context.Context) (err errors.Error) {
 
 func (evt *event) UnreadFeed(ctx *context.Context) (err errors.Error) {
 	response := struct {
-		Count  int                       `json:"unread_events_count"`
-		Events []*entity.Event           `json:"events"`
+		Count  int                                `json:"unread_events_count"`
+		Events []*entity.Event                    `json:"events"`
 		Users  map[string]*entity.ApplicationUser `json:"users"`
 	}{}
 
@@ -434,12 +435,6 @@ func (evt *event) UnreadFeedCount(ctx *context.Context) (err errors.Error) {
 	server.WriteResponse(ctx, count, status, 10)
 	return
 }
-
-type byIDDesc []*entity.Event
-
-func (a byIDDesc) Len() int           { return len(a) }
-func (a byIDDesc) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a byIDDesc) Less(i, j int) bool { return a[i].ID > a[j].ID }
 
 // NewEventWithApplicationUser returns a new event handler
 func NewEventWithApplicationUser(storage core.Event, appUser core.ApplicationUser) server.Event {

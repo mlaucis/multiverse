@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
-
 	"time"
 
 	"github.com/tapglue/backend/errors"
@@ -28,14 +27,17 @@ type (
 )
 
 const (
-	createEventQuery                       = `INSERT INTO app_%d_%d.events(json_data) VALUES($1)`
+	createEventQuery                       = `INSERT INTO app_%d_%d.events(json_data, geo) VALUES($1, ST_SetSRID(ST_MakePoint($2, $3), 4326))`
 	selectEventByIDQuery                   = `SELECT json_data FROM app_%d_%d.events WHERE json_data @> json_build_object('id', $1::text, 'user_id', $2::text, 'enabled', true)::jsonb  LIMIT 1`
-	updateEventByIDQuery                   = `UPDATE app_%d_%d.events SET json_data = $1 WHERE json_data @> json_build_object('id', $2::text, 'user_id', $3::text)::jsonb`
+	updateEventByIDQuery                   = `UPDATE app_%d_%d.events SET json_data = $1, geo = ST_GeomFromText('POINT(' || $2 || ' ' || $3 || ')', 4326) WHERE json_data @> json_build_object('id', $4::text, 'user_id', $5::text)::jsonb`
 	listEventsByUserIDQuery                = `SELECT json_data FROM app_%d_%d.events WHERE json_data @> json_build_object('user_id', $1::text, 'enabled', true)::jsonb ORDER BY json_data->>'created_at' DESC LIMIT 200`
 	listEventsByUserFollowerIDQuery        = `SELECT json_data FROM app_%d_%d.events WHERE (%s) AND json_data @> '{"enabled": true}' ORDER BY json_data->>'created_at' DESC LIMIT 200`
 	listUnreadEventsByUserFollowerIDQuery  = `SELECT json_data FROM app_%d_%d.events WHERE (%s) AND json_data->>'created_at' > $1 AND json_data @> '{"enabled": true}' ORDER BY json_data->>'created_at' DESC LIMIT 200`
 	countUnreadEventsByUserFollowerIDQuery = `SELECT count(*) FROM (SELECT json_data FROM app_%d_%d.events WHERE (%s) AND json_data->>'created_at' > $1 AND json_data @> '{"enabled": true}' ORDER BY json_data->>'created_at' DESC LIMIT 200) AS events`
 	updateApplicationUserLastReadQuery     = `UPDATE app_%d_%d.users SET last_read = now() WHERE json_data @> json_build_object('id', $1::text, 'enabled', true)::jsonb`
+	listEventsByLocationQuery              = `SELECT json_data FROM app_%d_%d.events WHERE json_data @> json_build_object('location', $1::text, 'enabled', true)::jsonb ORDER BY json_data->>'created_at' DESC LIMIT 200`
+	listEventsByLatLonRadQuery             = `SELECT json_data FROM app_%d_%d.events WHERE ST_DWithin(geo, ST_SetSRID(ST_MakePoint($1, $2), 4326), $3, true) AND json_data @> '{"enabled": true}' ORDER BY json_data->>'created_at' DESC LIMIT 200`
+	listEventsByLatLonNearQuery            = `SELECT json_data FROM app_%d_%d.events WHERE json_data @> '{"enabled": true}' ORDER BY ST_Distance_Sphere(geo, ST_SetSRID(ST_MakePoint($1, $2), 4326)), json_data->>'created_at' DESC LIMIT $3`
 )
 
 func (e *event) Create(accountID, applicationID int64, event *entity.Event, retrieve bool) (*entity.Event, errors.Error) {
@@ -46,11 +48,11 @@ func (e *event) Create(accountID, applicationID int64, event *entity.Event, retr
 
 	eventJSON, err := json.Marshal(event)
 	if err != nil {
-		return nil, errors.NewInternalError("error whiel saving the event", err.Error())
+		return nil, errors.NewInternalError("error while saving the event", err.Error())
 	}
 
 	_, err = e.mainPg.
-		Exec(appSchema(createEventQuery, accountID, applicationID), string(eventJSON))
+		Exec(appSchema(createEventQuery, accountID, applicationID), string(eventJSON), event.Latitude, event.Longitude)
 	if err != nil {
 		return nil, errors.NewInternalError("error while saving the event", err.Error())
 	}
@@ -93,7 +95,7 @@ func (e *event) Update(accountID, applicationID int64, existingEvent, updatedEve
 
 	_, err = e.mainPg.Exec(
 		appSchema(updateEventByIDQuery, accountID, applicationID),
-		string(eventJSON), existingEvent.ID, existingEvent.UserID)
+		string(eventJSON), updatedEvent.Latitude, updatedEvent.Longitude, existingEvent.ID, existingEvent.UserID)
 	if err != nil {
 		return nil, errors.NewInternalError("failed to update the event", err.Error())
 	}
@@ -120,23 +122,7 @@ func (e *event) List(accountID, applicationID int64, userID string) (events []*e
 	if err != nil {
 		return events, errors.NewInternalError("failed to read the events", err.Error())
 	}
-	defer rows.Close()
-	for rows.Next() {
-		var JSONData string
-		err := rows.Scan(&JSONData)
-		if err != nil {
-			return []*entity.Event{}, errors.NewInternalError("failed to read the events", err.Error())
-		}
-		event := &entity.Event{}
-		err = json.Unmarshal([]byte(JSONData), event)
-		if err != nil {
-			return []*entity.Event{}, errors.NewInternalError("failed to read the events", err.Error())
-		}
-
-		events = append(events, event)
-	}
-
-	return events, nil
+	return e.rowsToSlice(rows)
 }
 
 func (e *event) UserFeed(accountID, applicationID int64, user *entity.ApplicationUser) (count int, events []*entity.Event, er errors.Error) {
@@ -207,21 +193,9 @@ func (e *event) UnreadFeed(accountID, applicationID int64, user *entity.Applicat
 	if err != nil {
 		return 0, []*entity.Event{}, errors.NewInternalError("failed to read the events", err.Error())
 	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var JSONData string
-		err := rows.Scan(&JSONData)
-		if err != nil {
-			return 0, []*entity.Event{}, errors.NewInternalError("failed to read the events", err.Error())
-		}
-		event := &entity.Event{}
-		err = json.Unmarshal([]byte(JSONData), event)
-		if err != nil {
-			return 0, []*entity.Event{}, errors.NewInternalError("failed to read the events", err.Error())
-		}
-
-		events = append(events, event)
+	events, err = e.rowsToSlice(rows)
+	if err != nil {
+		return
 	}
 
 	go e.updateApplicationUserLastRead(accountID, applicationID, user)
@@ -263,8 +237,26 @@ func (e *event) DeleteFromConnectionsLists(accountID, applicationID int64, userI
 	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
-func (e *event) GeoSearch(accountID, applicationID int64, latitude, longitude, radius float64) (events []*entity.Event, err errors.Error) {
-	return []*entity.Event{}, errors.NewInternalError("not implemented yet", "not implemented yet")
+func (e *event) GeoSearch(accountID, applicationID int64, latitude, longitude, radius float64, nearest int64) ([]*entity.Event, errors.Error) {
+	var (
+		query string
+		param float64
+	)
+
+	if nearest == 0 {
+		query = listEventsByLatLonRadQuery
+		param = radius
+	} else {
+		query = listEventsByLatLonNearQuery
+		param = float64(nearest)
+	}
+
+	rows, err := e.pg.SlaveDatastore(-1).
+		Query(appSchema(query, accountID, applicationID), latitude, longitude, param)
+	if err != nil {
+		return []*entity.Event{}, errors.NewInternalError("failed to read the events", err.Error())
+	}
+	return e.rowsToSlice(rows)
 }
 
 func (e *event) ObjectSearch(accountID, applicationID int64, objectKey string) ([]*entity.Event, errors.Error) {
@@ -272,7 +264,12 @@ func (e *event) ObjectSearch(accountID, applicationID int64, objectKey string) (
 }
 
 func (e *event) LocationSearch(accountID, applicationID int64, locationKey string) ([]*entity.Event, errors.Error) {
-	return []*entity.Event{}, errors.NewInternalError("not implemented yet", "not implemented yet")
+	rows, err := e.pg.SlaveDatastore(-1).
+		Query(appSchema(listEventsByLocationQuery, accountID, applicationID), locationKey)
+	if err != nil {
+		return []*entity.Event{}, errors.NewInternalError("failed to read the events", err.Error())
+	}
+	return e.rowsToSlice(rows)
 }
 
 func (e *event) updateApplicationUserLastRead(accountID, applicationID int64, user *entity.ApplicationUser) errors.Error {
@@ -282,6 +279,25 @@ func (e *event) updateApplicationUserLastRead(accountID, applicationID int64, us
 	}
 
 	return nil
+}
+
+func (e *event) rowsToSlice(rows *sql.Rows) (events []*entity.Event, err errors.Error) {
+	defer rows.Close()
+	for rows.Next() {
+		var JSONData string
+		err := rows.Scan(&JSONData)
+		if err != nil {
+			return []*entity.Event{}, errors.NewInternalError("failed to read the events", err.Error())
+		}
+		event := &entity.Event{}
+		err = json.Unmarshal([]byte(JSONData), event)
+		if err != nil {
+			return []*entity.Event{}, errors.NewInternalError("failed to read the events", err.Error())
+		}
+
+		events = append(events, event)
+	}
+	return
 }
 
 // NewEventWithConnection returns a new event handler with PostgreSQL as storage driver
