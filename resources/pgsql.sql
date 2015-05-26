@@ -5,10 +5,8 @@ CREATE EXTENSION postgis_topology;
 CREATE EXTENSION fuzzystrmatch;
 CREATE EXTENSION postgis_tiger_geocoder;
 
-ALTER SCHEMA topology
-OWNER TO rds_superuser;
-ALTER SCHEMA tiger
-OWNER TO rds_superuser;
+ALTER SCHEMA topology OWNER TO rds_superuser;
+ALTER SCHEMA tiger OWNER TO rds_superuser;
 
 CREATE FUNCTION exec(TEXT)
   RETURNS TEXT LANGUAGE plpgsql VOLATILE AS $f$ BEGIN EXECUTE $1;
