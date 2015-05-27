@@ -366,13 +366,20 @@ func (evt *event) Search(ctx *context.Context) (err errors.Error) {
 			return errors.NewBadRequestError("failed to read the event by geo (7)\ncan't have more than 200 nearest events", "nearest is bigger than 200")
 		}
 
-		events, err = evt.storage.GeoSearch(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), latitude, longitude, radius, nearest)
+		events, err = evt.storage.GeoSearch(
+			ctx.Bag["accountID"].(int64),
+			ctx.Bag["applicationID"].(int64),
+			ctx.Bag["applicationUserID"].(string),
+			latitude,
+			longitude,
+			radius,
+			nearest)
 	} else if location := ctx.Query.Get("location"); location != "" {
-		if events, err = evt.storage.LocationSearch(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), location); err != nil {
+		if events, err = evt.storage.LocationSearch(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(string), location); err != nil {
 			return
 		}
 	} else if objectKey := ctx.Query.Get("object"); objectKey != "" {
-		if events, err = evt.storage.ObjectSearch(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), objectKey); err != nil {
+		if events, err = evt.storage.ObjectSearch(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(string), objectKey); err != nil {
 			return
 		}
 	} else {

@@ -292,7 +292,7 @@ func (e *event) DeleteFromConnectionsLists(accountID, applicationID int64, userI
 	return nil
 }
 
-func (e *event) GeoSearch(accountID, applicationID int64, latitude, longitude, radius float64, nearest int64) (events []*entity.Event, err errors.Error) {
+func (e *event) GeoSearch(accountID, applicationID int64, currentUserID string, latitude, longitude, radius float64, nearest int64) (events []*entity.Event, err errors.Error) {
 	geoEventKey := storageHelper.EventGeoKey(accountID, applicationID)
 
 	eventKeys, er := georedis.SearchByRadius(e.redis, geoEventKey, latitude, longitude, radius, 52)
@@ -309,13 +309,13 @@ func (e *event) GeoSearch(accountID, applicationID int64, latitude, longitude, r
 	return events, err
 }
 
-func (e *event) ObjectSearch(accountID, applicationID int64, objectKey string) ([]*entity.Event, errors.Error) {
+func (e *event) ObjectSearch(accountID, applicationID int64, currentUserID, objectKey string) ([]*entity.Event, errors.Error) {
 	objectEventKey := storageHelper.EventObjectKey(accountID, applicationID, objectKey)
 
 	return e.fetchEventsFromKeys(accountID, applicationID, objectEventKey)
 }
 
-func (e *event) LocationSearch(accountID, applicationID int64, locationKey string) ([]*entity.Event, errors.Error) {
+func (e *event) LocationSearch(accountID, applicationID int64, currentUserID, locationKey string) ([]*entity.Event, errors.Error) {
 	locationEventKey := storageHelper.EventLocationKey(accountID, applicationID, locationKey)
 
 	return e.fetchEventsFromKeys(accountID, applicationID, locationEventKey)

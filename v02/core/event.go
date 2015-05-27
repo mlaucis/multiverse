@@ -43,12 +43,12 @@ type (
 		DeleteFromConnectionsLists(accountID, applicationID int64, userID string, key string) (err errors.Error)
 
 		// GeoSearch retrieves all the events from an application within a radius of the provided coordinates
-		GeoSearch(accountID, applicationID int64, latitude, longitude, radius float64, nearest int64) (events []*entity.Event, err errors.Error)
+		GeoSearch(accountID, applicationID int64, currentUserID string, latitude, longitude, radius float64, nearest int64) (events []*entity.Event, err errors.Error)
 
 		// ObjectSearch returns all the events for a specific object
-		ObjectSearch(accountID, applicationID int64, objectKey string) ([]*entity.Event, errors.Error)
+		ObjectSearch(accountID, applicationID int64, currentUserID, objectKey string) ([]*entity.Event, errors.Error)
 
 		// LocationSearch returns all the events for a specific object
-		LocationSearch(accountID, applicationID int64, locationKey string) ([]*entity.Event, errors.Error)
+		LocationSearch(accountID, applicationID int64, currentUserID, locationKey string) ([]*entity.Event, errors.Error)
 	}
 )

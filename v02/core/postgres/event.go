@@ -86,20 +86,20 @@ const (
 	listEventsByLocationQuery = `SELECT json_data
 		FROM app_%d_%d.events
 		WHERE json_data @> json_build_object('location', $1::text, 'enabled', true)::jsonb
-			AND (json_data @> '{"visibility": 20}' OR json_data @> '{"visibility": 30}' OR json_data @> json_build_object('user_id', $1::text))
+			AND (json_data @> '{"visibility": 20}' OR json_data @> '{"visibility": 30}' OR json_data @> json_build_object('user_id', $2::text)::jsonb)
 		ORDER BY json_data->>'created_at' DESC LIMIT 200`
 
 	listEventsByLatLonRadQuery = `SELECT json_data
 		FROM app_%d_%d.events
 		WHERE ST_DWithin(geo, ST_SetSRID(ST_MakePoint($1, $2), 4326), $3, true)
 			AND json_data @> '{"enabled": true}'
-			AND (json_data @> '{"visibility": 20}' OR json_data @> '{"visibility": 30}' OR json_data @> json_build_object('user_id', $1::text))
+			AND (json_data @> '{"visibility": 20}' OR json_data @> '{"visibility": 30}' OR json_data @> json_build_object('user_id', $4::text)::jsonb)
 		ORDER BY json_data->>'created_at' DESC LIMIT 200`
 
 	listEventsByLatLonNearQuery = `SELECT json_data
 		FROM app_%d_%d.events
 		WHERE json_data @> '{"enabled": true}'
-			AND (json_data @> '{"visibility": 20}' OR json_data @> '{"visibility": 30}' OR json_data @> json_build_object('user_id', $1::text))
+			AND (json_data @> '{"visibility": 20}' OR json_data @> '{"visibility": 30}' OR json_data @> json_build_object('user_id', $1::text)::jsonb)
 		ORDER BY ST_Distance_Sphere(geo, ST_SetSRID(ST_MakePoint($2, $3), 4326)), json_data->>'created_at' DESC LIMIT $4`
 )
 
@@ -313,35 +313,33 @@ func (e *event) DeleteFromConnectionsLists(accountID, applicationID int64, userI
 	return errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
-func (e *event) GeoSearch(accountID, applicationID int64, latitude, longitude, radius float64, nearest int64) ([]*entity.Event, errors.Error) {
+func (e *event) GeoSearch(accountID, applicationID int64, currentUserID string, latitude, longitude, radius float64, nearest int64) ([]*entity.Event, errors.Error) {
 	var (
-		query string
-		param float64
+		rows  *sql.Rows
+		err   error
 	)
 
 	if nearest == 0 {
-		query = listEventsByLatLonRadQuery
-		param = radius
+		rows, err = e.pg.SlaveDatastore(-1).
+			Query(appSchema(listEventsByLatLonRadQuery, accountID, applicationID), latitude, longitude, radius, currentUserID)
 	} else {
-		query = listEventsByLatLonNearQuery
-		param = float64(nearest)
+		rows, err = e.pg.SlaveDatastore(-1).
+			Query(appSchema(listEventsByLatLonNearQuery, accountID, applicationID), currentUserID, latitude, longitude, nearest)
 	}
 
-	rows, err := e.pg.SlaveDatastore(-1).
-		Query(appSchema(query, accountID, applicationID), latitude, longitude, param)
 	if err != nil {
 		return []*entity.Event{}, errors.NewInternalError("failed to read the events", err.Error())
 	}
 	return e.rowsToSlice(rows)
 }
 
-func (e *event) ObjectSearch(accountID, applicationID int64, objectKey string) ([]*entity.Event, errors.Error) {
+func (e *event) ObjectSearch(accountID, applicationID int64, currentUserID string, objectKey string) ([]*entity.Event, errors.Error) {
 	return []*entity.Event{}, errors.NewInternalError("not implemented yet", "not implemented yet")
 }
 
-func (e *event) LocationSearch(accountID, applicationID int64, locationKey string) ([]*entity.Event, errors.Error) {
+func (e *event) LocationSearch(accountID, applicationID int64, currentUserID string, locationKey string) ([]*entity.Event, errors.Error) {
 	rows, err := e.pg.SlaveDatastore(-1).
-		Query(appSchema(listEventsByLocationQuery, accountID, applicationID), locationKey)
+		Query(appSchema(listEventsByLocationQuery, accountID, applicationID), locationKey, currentUserID)
 	if err != nil {
 		return []*entity.Event{}, errors.NewInternalError("failed to read the events", err.Error())
 	}

@@ -83,15 +83,15 @@ func (e *event) DeleteFromConnectionsLists(accountID, applicationID int64, userI
 	return errors.NewNotFoundError("not found", "invalid handler specified")
 }
 
-func (e *event) GeoSearch(accountID, applicationID int64, latitude, longitude, radius float64, nearest int64) (events []*entity.Event, err errors.Error) {
+func (e *event) GeoSearch(accountID, applicationID int64, currentUserID string, latitude, longitude, radius float64, nearest int64) (events []*entity.Event, err errors.Error) {
 	return nil, errors.NewNotFoundError("not found", "invalid handler specified")
 }
 
-func (e *event) ObjectSearch(accountID, applicationID int64, objectKey string) ([]*entity.Event, errors.Error) {
+func (e *event) ObjectSearch(accountID, applicationID int64, currentUserID, objectKey string) ([]*entity.Event, errors.Error) {
 	return nil, errors.NewNotFoundError("not found", "invalid handler specified")
 }
 
-func (e *event) LocationSearch(accountID, applicationID int64, locationKey string) ([]*entity.Event, errors.Error) {
+func (e *event) LocationSearch(accountID, applicationID int64, currentUserID, locationKey string) ([]*entity.Event, errors.Error) {
 	return nil, errors.NewNotFoundError("not found", "invalid handler specified")
 }
 
