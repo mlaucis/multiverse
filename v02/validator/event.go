@@ -21,10 +21,9 @@ var (
 	errorVerbSize = fmt.Errorf("verb must be between %d and %d characters", verbMin, verbMax)
 	errorVerbType = fmt.Errorf("verb is not a valid alphanumeric sequence")
 
-	errorUserIDZero = fmt.Errorf("user id can't be 0")
-	errorUserIDType = fmt.Errorf("user id is not a valid integer")
-
-	errorEventIDIsAlreadySet = fmt.Errorf("event id is already set")
+	errorEventIDIsAlreadySet   = fmt.Errorf("event id is already set")
+	errorEventMissingVisiblity = fmt.Errorf("event visibility is missing")
+	errorEventInvalidVisiblity = fmt.Errorf("event visibility is invalid")
 )
 
 // CreateEvent validates an event on create
@@ -43,13 +42,22 @@ func CreateEvent(datastore core.ApplicationUser, accountID, applicationID int64,
 		errs = append(errs, &errorEventIDIsAlreadySet)
 	}
 
-	if exists, err := datastore.ExistsByID(accountID, applicationID, event.UserID); !exists || err != nil {
-		if err != nil {
-			er := err.Raw()
-			errs = append(errs, &er)
-		} else {
-			err := fmt.Errorf("user %d does not exists", event.UserID)
-			errs = append(errs, &err)
+	if event.Visibility == 0 {
+		errs = append(errs, &errorEventMissingVisiblity)
+	} else if event.Visibility != 10 && event.Visibility != 20 && event.Visibility != 30 {
+		errs = append(errs, &errorEventInvalidVisiblity)
+	}
+
+	if len(errs) == 0 {
+		// Run expensive check only if there are no existing errors
+		if exists, err := datastore.ExistsByID(accountID, applicationID, event.UserID); !exists || err != nil {
+			if err != nil {
+				er := err.Raw()
+				errs = append(errs, &er)
+			} else {
+				err := fmt.Errorf("user %d does not exists", event.UserID)
+				errs = append(errs, &err)
+			}
 		}
 	}
 
@@ -57,15 +65,21 @@ func CreateEvent(datastore core.ApplicationUser, accountID, applicationID int64,
 }
 
 // UpdateEvent validates an event on update
-func UpdateEvent(existingEvent, updatedEvent *entity.Event) errors.Error {
+func UpdateEvent(existingEvent, event *entity.Event) errors.Error {
 	errs := []*error{}
 
-	if !StringLengthBetween(updatedEvent.Verb, verbMin, verbMax) {
+	if !StringLengthBetween(event.Verb, verbMin, verbMax) {
 		errs = append(errs, &errorVerbSize)
 	}
 
-	if !alphaNumExtraCharFirst.MatchString(updatedEvent.Verb) {
+	if !alphaNumExtraCharFirst.MatchString(event.Verb) {
 		errs = append(errs, &errorVerbType)
+	}
+
+	if event.Visibility == 0 {
+		errs = append(errs, &errorEventMissingVisiblity)
+	} else if event.Visibility != entity.EventPrivate && event.Visibility != entity.EventConnections && event.Visibility != entity.EventPublic {
+		errs = append(errs, &errorEventInvalidVisiblity)
 	}
 
 	// TODO define more rules for updating an event

@@ -38,6 +38,7 @@ func (evt *event) Read(ctx *context.Context) (err errors.Error) {
 		ctx.Bag["accountID"].(int64),
 		ctx.Bag["applicationID"].(int64),
 		ctx.Bag["applicationUserID"].(string),
+		ctx.Bag["applicationUserID"].(string),
 		eventID); err != nil {
 		return
 	}
@@ -59,6 +60,7 @@ func (evt *event) Update(ctx *context.Context) (err errors.Error) {
 		ctx.Bag["accountID"].(int64),
 		ctx.Bag["applicationID"].(int64),
 		ctx.Bag["applicationUserID"].(string),
+		ctx.Bag["applicationUserID"].(string),
 		eventID)
 	if err != nil {
 		return
@@ -79,6 +81,7 @@ func (evt *event) Update(ctx *context.Context) (err errors.Error) {
 	updatedEvent, err := evt.storage.Update(
 		ctx.Bag["accountID"].(int64),
 		ctx.Bag["applicationID"].(int64),
+		ctx.Bag["applicationUserID"].(string),
 		*existingEvent,
 		event,
 		true)
@@ -104,6 +107,7 @@ func (evt *event) Delete(ctx *context.Context) (err errors.Error) {
 	if err = evt.storage.Delete(
 		ctx.Bag["accountID"].(int64),
 		ctx.Bag["applicationID"].(int64),
+		ctx.Bag["applicationUserID"].(string),
 		event); err != nil {
 		return
 	}
@@ -119,6 +123,7 @@ func (evt *event) List(ctx *context.Context) (err errors.Error) {
 	if events, err = evt.storage.List(
 		ctx.Bag["accountID"].(int64),
 		ctx.Bag["applicationID"].(int64),
+		ctx.Bag["applicationUserID"].(string),
 		ctx.Bag["applicationUserID"].(string)); err != nil {
 		return
 	}
@@ -170,6 +175,7 @@ func (evt *event) Create(ctx *context.Context) (err errors.Error) {
 	if event, err = evt.storage.Create(
 		ctx.Bag["accountID"].(int64),
 		ctx.Bag["applicationID"].(int64),
+		ctx.Bag["applicationUserID"].(string),
 		event,
 		true); err != nil {
 		return

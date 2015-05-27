@@ -166,6 +166,7 @@ type (
 		Latitude           float64        `json:"latitude,omitempty"`
 		Longitude          float64        `json:"longitude,omitempty"`
 		DistanceFromTarget float64        `json:"-"`
+		Visibility         uint8          `json:"visibility"`
 		Object             *Object        `json:"object"`
 		Target             *Object        `json:"target,omitempty"`
 		Instrument         *Object        `json:"instrument,omitempty"`
@@ -182,6 +183,17 @@ type (
 
 	// SortableEventsByDistance provides the struct needed for sorting the elements by distance from target
 	SortableEventsByDistance []*Event
+)
+
+const (
+	// EventPrivate flags that the event is private
+	EventPrivate = 10
+
+	// EventConnections flags that the event is shared with the connetions of the user
+	EventConnections = 20
+
+	// EventPublic flags that the event is public
+	EventPublic = 30
 )
 
 func (e SortableEventsByDistance) Len() int      { return len(e) }

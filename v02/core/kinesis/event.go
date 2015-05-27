@@ -19,7 +19,7 @@ type (
 	}
 )
 
-func (e *event) Create(accountID, applicationID int64, event *entity.Event, retrieve bool) (evn *entity.Event, err errors.Error) {
+func (e *event) Create(accountID, applicationID int64, currentUserID string, event *entity.Event, retrieve bool) (evn *entity.Event, err errors.Error) {
 	data, er := json.Marshal(event)
 	if er != nil {
 		return nil, errors.NewInternalError("error while creating the event (1)", er.Error())
@@ -31,11 +31,11 @@ func (e *event) Create(accountID, applicationID int64, event *entity.Event, retr
 	return nil, err
 }
 
-func (e *event) Read(accountID, applicationID int64, userID, eventID string) (event *entity.Event, err errors.Error) {
+func (e *event) Read(accountID, applicationID int64, userID, currentUserID, eventID string) (event *entity.Event, err errors.Error) {
 	return nil, errors.NewNotFoundError("not found", "invalid handler specified")
 }
 
-func (e *event) Update(accountID, applicationID int64, existingEvent, updatedEvent entity.Event, retrieve bool) (evn *entity.Event, err errors.Error) {
+func (e *event) Update(accountID, applicationID int64, currentUserID string, existingEvent, updatedEvent entity.Event, retrieve bool) (evn *entity.Event, err errors.Error) {
 	data, er := json.Marshal(updatedEvent)
 	if er != nil {
 		return nil, errors.NewInternalError("error while updating the event (1)", er.Error())
@@ -47,7 +47,7 @@ func (e *event) Update(accountID, applicationID int64, existingEvent, updatedEve
 	return nil, err
 }
 
-func (e *event) Delete(accountID, applicationID int64, event *entity.Event) (err errors.Error) {
+func (e *event) Delete(accountID, applicationID int64, currentUserID string, event *entity.Event) (err errors.Error) {
 	data, er := json.Marshal(event)
 	if er != nil {
 		return errors.NewInternalError("error while deleting the event (1)", er.Error())
@@ -59,7 +59,7 @@ func (e *event) Delete(accountID, applicationID int64, event *entity.Event) (err
 	return err
 }
 
-func (e *event) List(accountID, applicationID int64, userID string) (events []*entity.Event, err errors.Error) {
+func (e *event) List(accountID, applicationID int64, userID, currentUserID string) (events []*entity.Event, err errors.Error) {
 	return nil, errors.NewNotFoundError("not found", "invalid handler specified")
 }
 
