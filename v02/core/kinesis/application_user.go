@@ -1,13 +1,13 @@
 package redis
 
 import (
+	"encoding/json"
+	"fmt"
+
 	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/entity"
 	"github.com/tapglue/backend/v02/storage/kinesis"
-
-	"encoding/json"
-	"fmt"
 
 	ksis "github.com/sendgridlabs/go-kinesis"
 )

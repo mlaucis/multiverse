@@ -21,7 +21,7 @@ type (
 	}
 )
 
-func (e *event) Create(accountID, applicationID int64, event *entity.Event, retrieve bool) (evn *entity.Event, err errors.Error) {
+func (e *event) Create(accountID, applicationID int64, currentUserID string, event *entity.Event, retrieve bool) (evn *entity.Event, err errors.Error) {
 	event.Enabled = true
 	timeNow := time.Now()
 	event.CreatedAt, event.UpdatedAt = &timeNow, &timeNow
@@ -81,10 +81,10 @@ func (e *event) Create(accountID, applicationID int64, event *entity.Event, retr
 		return event, nil
 	}
 
-	return e.Read(accountID, applicationID, event.UserID, event.ID)
+	return e.Read(accountID, applicationID, event.UserID, currentUserID, event.ID)
 }
 
-func (e *event) Read(accountID, applicationID int64, userID, eventID string) (event *entity.Event, err errors.Error) {
+func (e *event) Read(accountID, applicationID int64, userID, currentUserID, eventID string) (event *entity.Event, err errors.Error) {
 	key := storageHelper.Event(accountID, applicationID, userID, eventID)
 
 	result, er := e.redis.Get(key).Result()
@@ -99,7 +99,7 @@ func (e *event) Read(accountID, applicationID int64, userID, eventID string) (ev
 	return
 }
 
-func (e *event) Update(accountID, applicationID int64, existingEvent, updatedEvent entity.Event, retrieve bool) (evn *entity.Event, err errors.Error) {
+func (e *event) Update(accountID, applicationID int64, currentUserID string, existingEvent, updatedEvent entity.Event, retrieve bool) (evn *entity.Event, err errors.Error) {
 	timeNow := time.Now()
 	updatedEvent.UpdatedAt = &timeNow
 
@@ -175,10 +175,10 @@ func (e *event) Update(accountID, applicationID int64, existingEvent, updatedEve
 		return &updatedEvent, nil
 	}
 
-	return e.Read(accountID, applicationID, updatedEvent.UserID, updatedEvent.ID)
+	return e.Read(accountID, applicationID, updatedEvent.UserID, currentUserID, updatedEvent.ID)
 }
 
-func (e *event) Delete(accountID, applicationID int64, event *entity.Event) (err errors.Error) {
+func (e *event) Delete(accountID, applicationID int64, currentUserID string, event *entity.Event) (err errors.Error) {
 	key := storageHelper.Event(accountID, applicationID, event.UserID, event.ID)
 	result, er := e.redis.Del(key).Result()
 	if er != nil {
@@ -205,7 +205,7 @@ func (e *event) Delete(accountID, applicationID int64, event *entity.Event) (err
 	return nil
 }
 
-func (e *event) List(accountID, applicationID int64, userID string) (events []*entity.Event, err errors.Error) {
+func (e *event) List(accountID, applicationID int64, userID, currentUserID string) (events []*entity.Event, err errors.Error) {
 	key := storageHelper.Events(accountID, applicationID, userID)
 
 	result, er := e.redis.ZRevRange(key, "0", "-1").Result()
@@ -292,7 +292,7 @@ func (e *event) DeleteFromConnectionsLists(accountID, applicationID int64, userI
 	return nil
 }
 
-func (e *event) GeoSearch(accountID, applicationID int64, latitude, longitude, radius float64, nearest int64) (events []*entity.Event, err errors.Error) {
+func (e *event) GeoSearch(accountID, applicationID int64, currentUserID string, latitude, longitude, radius float64, nearest int64) (events []*entity.Event, err errors.Error) {
 	geoEventKey := storageHelper.EventGeoKey(accountID, applicationID)
 
 	eventKeys, er := georedis.SearchByRadius(e.redis, geoEventKey, latitude, longitude, radius, 52)
@@ -309,13 +309,13 @@ func (e *event) GeoSearch(accountID, applicationID int64, latitude, longitude, r
 	return events, err
 }
 
-func (e *event) ObjectSearch(accountID, applicationID int64, objectKey string) ([]*entity.Event, errors.Error) {
+func (e *event) ObjectSearch(accountID, applicationID int64, currentUserID, objectKey string) ([]*entity.Event, errors.Error) {
 	objectEventKey := storageHelper.EventObjectKey(accountID, applicationID, objectKey)
 
 	return e.fetchEventsFromKeys(accountID, applicationID, objectEventKey)
 }
 
-func (e *event) LocationSearch(accountID, applicationID int64, locationKey string) ([]*entity.Event, errors.Error) {
+func (e *event) LocationSearch(accountID, applicationID int64, currentUserID, locationKey string) ([]*entity.Event, errors.Error) {
 	locationEventKey := storageHelper.EventLocationKey(accountID, applicationID, locationKey)
 
 	return e.fetchEventsFromKeys(accountID, applicationID, locationEventKey)
