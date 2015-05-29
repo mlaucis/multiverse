@@ -6,9 +6,7 @@ package postgres
 
 import (
 	"database/sql"
-
 	"encoding/json"
-
 	"time"
 
 	"github.com/tapglue/backend/errors"

@@ -86,20 +86,32 @@ const (
 	listEventsByLocationQuery = `SELECT json_data
 		FROM app_%d_%d.events
 		WHERE json_data @> json_build_object('location', $1::text, 'enabled', true)::jsonb
-			AND (json_data @> '{"visibility": 20}' OR json_data @> '{"visibility": 30}' OR json_data @> json_build_object('user_id', $2::text)::jsonb)
+			AND (
+				json_data @> '{"visibility": 30}' OR
+				%s
+				json_data @> json_build_object('user_id', $2::text)::jsonb
+			)
 		ORDER BY json_data->>'created_at' DESC LIMIT 200`
 
 	listEventsByLatLonRadQuery = `SELECT json_data
 		FROM app_%d_%d.events
 		WHERE ST_DWithin(geo, ST_SetSRID(ST_MakePoint($1, $2), 4326), $3, true)
 			AND json_data @> '{"enabled": true}'
-			AND (json_data @> '{"visibility": 20}' OR json_data @> '{"visibility": 30}' OR json_data @> json_build_object('user_id', $4::text)::jsonb)
+			AND (
+				json_data @> '{"visibility": 30}' OR
+				%s
+				json_data @> json_build_object('user_id', $4::text)::jsonb
+			)
 		ORDER BY json_data->>'created_at' DESC LIMIT 200`
 
 	listEventsByLatLonNearQuery = `SELECT json_data
 		FROM app_%d_%d.events
 		WHERE json_data @> '{"enabled": true}'
-			AND (json_data @> '{"visibility": 20}' OR json_data @> '{"visibility": 30}' OR json_data @> json_build_object('user_id', $1::text)::jsonb)
+			AND (
+				json_data @> '{"visibility": 30}' OR
+				%s
+				json_data @> json_build_object('user_id', $1::text)::jsonb
+			)
 		ORDER BY ST_Distance_Sphere(geo, ST_SetSRID(ST_MakePoint($2, $3), 4326)), json_data->>'created_at' DESC LIMIT $4`
 )
 
@@ -202,22 +214,17 @@ func (e *event) List(accountID, applicationID int64, userID, currentUserID strin
 }
 
 func (e *event) UserFeed(accountID, applicationID int64, user *entity.ApplicationUser) (count int, events []*entity.Event, er errors.Error) {
-	connections, er := e.c.FriendsAndFollowing(accountID, applicationID, user.ID)
+	condition, er := e.composeConnectionCondition(accountID, applicationID, user.ID, " OR ")
 	if er != nil {
 		return 0, []*entity.Event{}, er
 	}
 
-	if len(connections) == 0 {
+	if condition == "" {
 		return 0, []*entity.Event{}, nil
 	}
 
-	condition := []string{}
-	for idx := range connections {
-		condition = append(condition, fmt.Sprintf(`json_data @> '{"user_id": %q}'`, connections[idx].ID))
-	}
-
 	rows, err := e.pg.SlaveDatastore(-1).
-		Query(fmt.Sprintf(listEventsByUserFollowerIDQuery, accountID, applicationID, strings.Join(condition, " OR ")))
+		Query(fmt.Sprintf(listEventsByUserFollowerIDQuery, accountID, applicationID, condition))
 	if err != nil {
 		return 0, []*entity.Event{}, errors.NewInternalError("failed to read the events", err.Error())
 	}
@@ -250,22 +257,17 @@ func (e *event) UserFeed(accountID, applicationID int64, user *entity.Applicatio
 }
 
 func (e *event) UnreadFeed(accountID, applicationID int64, user *entity.ApplicationUser) (count int, events []*entity.Event, er errors.Error) {
-	connections, er := e.c.FriendsAndFollowing(accountID, applicationID, user.ID)
+	condition, er := e.composeConnectionCondition(accountID, applicationID, user.ID, " OR ")
 	if er != nil {
 		return 0, []*entity.Event{}, er
 	}
 
-	if len(connections) == 0 {
+	if condition == "" {
 		return 0, []*entity.Event{}, nil
 	}
 
-	condition := []string{}
-	for idx := range connections {
-		condition = append(condition, fmt.Sprintf(`json_data @> '{"user_id": %q}'`, connections[idx].ID))
-	}
-
 	rows, err := e.pg.SlaveDatastore(-1).
-		Query(fmt.Sprintf(listUnreadEventsByUserFollowerIDQuery, accountID, applicationID, strings.Join(condition, " OR ")), user.LastRead)
+		Query(fmt.Sprintf(listUnreadEventsByUserFollowerIDQuery, accountID, applicationID, condition), user.LastRead)
 	if err != nil {
 		return 0, []*entity.Event{}, errors.NewInternalError("failed to read the events", err.Error())
 	}
@@ -280,23 +282,18 @@ func (e *event) UnreadFeed(accountID, applicationID int64, user *entity.Applicat
 }
 
 func (e *event) UnreadFeedCount(accountID, applicationID int64, user *entity.ApplicationUser) (count int, err errors.Error) {
-	connections, err := e.c.FriendsAndFollowing(accountID, applicationID, user.ID)
+	condition, err := e.composeConnectionCondition(accountID, applicationID, user.ID, " OR ")
 	if err != nil {
 		return 0, err
 	}
 
-	if len(connections) == 0 {
+	if condition == "" {
 		return 0, nil
-	}
-
-	condition := []string{}
-	for idx := range connections {
-		condition = append(condition, fmt.Sprintf(`json_data @> '{"user_id": %q}'`, connections[idx].ID))
 	}
 
 	unread := 0
 	er := e.pg.SlaveDatastore(-1).
-		QueryRow(fmt.Sprintf(countUnreadEventsByUserFollowerIDQuery, accountID, applicationID, strings.Join(condition, " OR ")), user.LastRead).
+		QueryRow(fmt.Sprintf(countUnreadEventsByUserFollowerIDQuery, accountID, applicationID, condition), user.LastRead).
 		Scan(&unread)
 	if er != nil {
 		return 0, errors.NewInternalError("failed to read the events", er.Error())
@@ -315,16 +312,25 @@ func (e *event) DeleteFromConnectionsLists(accountID, applicationID int64, userI
 
 func (e *event) GeoSearch(accountID, applicationID int64, currentUserID string, latitude, longitude, radius float64, nearest int64) ([]*entity.Event, errors.Error) {
 	var (
-		rows  *sql.Rows
-		err   error
+		rows *sql.Rows
+		err  error
 	)
+
+	condition, er := e.composeConnectionCondition(accountID, applicationID, currentUserID, " OR ")
+	if er != nil {
+		return []*entity.Event{}, er
+	}
+
+	if condition != "" {
+		condition = `(json_data @> '{"visibility": 20}' AND (` + condition + `)) OR`
+	}
 
 	if nearest == 0 {
 		rows, err = e.pg.SlaveDatastore(-1).
-			Query(appSchema(listEventsByLatLonRadQuery, accountID, applicationID), latitude, longitude, radius, currentUserID)
+			Query(appSchemaWithParams(listEventsByLatLonRadQuery, accountID, applicationID, condition), latitude, longitude, radius, currentUserID)
 	} else {
 		rows, err = e.pg.SlaveDatastore(-1).
-			Query(appSchema(listEventsByLatLonNearQuery, accountID, applicationID), currentUserID, latitude, longitude, nearest)
+			Query(appSchemaWithParams(listEventsByLatLonNearQuery, accountID, applicationID, condition), currentUserID, latitude, longitude, nearest)
 	}
 
 	if err != nil {
@@ -338,8 +344,17 @@ func (e *event) ObjectSearch(accountID, applicationID int64, currentUserID strin
 }
 
 func (e *event) LocationSearch(accountID, applicationID int64, currentUserID string, locationKey string) ([]*entity.Event, errors.Error) {
+	condition, er := e.composeConnectionCondition(accountID, applicationID, currentUserID, " OR ")
+	if er != nil {
+		return []*entity.Event{}, er
+	}
+
+	if condition != "" {
+		condition = `(json_data @> '{"visibility": 20}' AND (` + condition + `)) OR`
+	}
+
 	rows, err := e.pg.SlaveDatastore(-1).
-		Query(appSchema(listEventsByLocationQuery, accountID, applicationID), locationKey, currentUserID)
+		Query(appSchemaWithParams(listEventsByLocationQuery, accountID, applicationID, condition), locationKey, currentUserID)
 	if err != nil {
 		return []*entity.Event{}, errors.NewInternalError("failed to read the events", err.Error())
 	}
@@ -372,6 +387,24 @@ func (e *event) rowsToSlice(rows *sql.Rows) (events []*entity.Event, err errors.
 		events = append(events, event)
 	}
 	return
+}
+
+func (e *event) composeConnectionCondition(accountID, applicationID int64, userID, joinOperator string) (string, errors.Error) {
+	connections, er := e.c.FriendsAndFollowing(accountID, applicationID, userID)
+	if er != nil {
+		return "", er
+	}
+
+	if len(connections) == 0 {
+		return "", nil
+	}
+
+	condition := []string{}
+	for idx := range connections {
+		condition = append(condition, fmt.Sprintf(`json_data @> '{"user_id": %q}'`, connections[idx].ID))
+	}
+
+	return strings.Join(condition, joinOperator), nil
 }
 
 // NewEventWithConnection returns a new event handler with PostgreSQL as storage driver
