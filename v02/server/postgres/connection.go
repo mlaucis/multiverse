@@ -356,6 +356,7 @@ func (conn *connection) CreateSocial(ctx *context.Context) (err errors.Error) {
 
 	for idx := range users {
 		users[idx].Password = ""
+		users[idx].CreatedAt, users[idx].UpdatedAt, users[idx].LastLogin, users[idx].LastRead = nil, nil, nil, nil
 	}
 
 	server.WriteResponse(ctx, users, http.StatusCreated, 10)
