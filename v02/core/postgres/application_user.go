@@ -37,6 +37,7 @@ const (
 	selectApplicationUserBySessionQuery      = `SELECT user_id FROM app_%d_%d.sessions WHERE session_id = $1 AND enabled = TRUE LIMIT 1`
 	updateApplicationUserSessionQuery        = `UPDATE app_%d_%d.sessions SET session_id = $1 WHERE user_id = $2 AND session_id = $3`
 	destroyApplicationUserSessionQuery       = `UPDATE app_%d_%d.sessions SET enabled = FALSE WHERE user_id = $1 AND session_id = $2`
+	destroyAllApplicationUserSessionQuery    = `UPDATE app_%d_%d.sessions SET enabled = FALSE WHERE user_id = $1`
 	searchApplicationUsersQuery              = `SELECT json_data FROM app_%d_%d.users WHERE (json_data->>'user_name' ILIKE $1) OR (json_data->>'email' ILIKE $1) OR (json_data->>'first_name' ILIKE $1) OR (json_data->>'last_name' ILIKE $1) LIMIT 50`
 )
 
@@ -131,6 +132,8 @@ func (au *applicationUser) Update(accountID, applicationID int64, existingUser, 
 func (au *applicationUser) Delete(accountID, applicationID int64, applicationUser *entity.ApplicationUser) errors.Error {
 	applicationUser.Enabled = false
 	_, err := au.Update(accountID, applicationID, *applicationUser, *applicationUser, false)
+
+	go au.destroyAllUserSession(accountID, applicationID, applicationUser)
 
 	return err
 }
@@ -360,6 +363,15 @@ func (au *applicationUser) Search(accountID, applicationID int64, searchTerm str
 	}
 
 	return users, nil
+}
+
+func (au *applicationUser) destroyAllUserSession(accountID, applicationID int64, user *entity.ApplicationUser) errors.Error {
+	_, err := au.mainPg.Exec(appSchema(destroyAllApplicationUserSessionQuery, accountID, applicationID), user.ID)
+	if err != nil {
+		return errors.NewInternalError("error while deleting all session", err.Error())
+	}
+
+	return nil
 }
 
 // NewApplicationUser returns a new application user handler with PostgreSQL as storage driver
