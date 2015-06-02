@@ -150,26 +150,29 @@ func (appUser *applicationUser) Login(ctx *context.Context) (err errors.Error) {
 		return
 	}
 
+	if loginPayload.EmailName != "" {
+		loginPayload.Email = loginPayload.EmailName
+		loginPayload.Username = loginPayload.EmailName
+	}
+
 	if loginPayload.Email != "" {
 		user, err = appUser.storage.FindByEmail(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), loginPayload.Email)
-		if err != nil {
+		// TODO This is horrible and I should change it when we have constant errors
+		if err != nil && err.Error() != "application user not found" {
 			return
 		}
 	}
 
-	if loginPayload.Username != "" {
+	if loginPayload.Username != "" && user == nil {
 		user, err = appUser.storage.FindByUsername(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), loginPayload.Username)
-		if err != nil {
+		// TODO This is horrible and I should change it when we have constant errors
+		if err != nil && err.Error() != "application user not found" {
 			return
 		}
 	}
 
-	if user == nil {
-		return errors.NewInternalError("failed to login the application user (2)\n", "user is nil")
-	}
-
-	if !user.Enabled {
-		return errors.NewNotFoundError("failed to login the user (3)\nuser is disabled", "user is disabled")
+	if user == nil || !user.Enabled {
+		return errors.NewNotFoundError("application user not found", "user not found")
 	}
 
 	if err = validator.ApplicationUserCredentialsValid(loginPayload.Password, user); err != nil {

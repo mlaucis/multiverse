@@ -176,9 +176,10 @@ type (
 
 	// LoginPayload defines how the login payload should look like
 	LoginPayload struct {
-		Email    string `json:"email,omitempty"`
-		Username string `json:"user_name,omitempty"`
-		Password string `json:"password"`
+		Email     string `json:"email,omitempty"`
+		Username  string `json:"user_name,omitempty"`
+		EmailName string `json:"username,omitempty"`
+		Password  string `json:"password"`
 	}
 
 	// SortableEventsByDistance provides the struct needed for sorting the elements by distance from target

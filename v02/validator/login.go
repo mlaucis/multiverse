@@ -18,10 +18,12 @@ var (
 // IsValidLoginPayload checks if the login payload is valid
 func IsValidLoginPayload(loginPayload *entity.LoginPayload) errors.Error {
 	if loginPayload.Email != "" && loginPayload.Username != "" {
-		return errGotBothUsernameAndEmail
+		if (loginPayload.EmailName == "") {
+			return errGotBothUsernameAndEmail
+		}
 	}
 
-	if loginPayload.Email == "" && loginPayload.Username == "" {
+	if loginPayload.Email == "" && loginPayload.Username == "" && loginPayload.EmailName == "" {
 		return errGotNoUsernameOrEmail
 	}
 
