@@ -65,7 +65,7 @@ var (
 		},
 	}
 	correctEvent = &entity.Event{
-		Verb:     "like",
+		Type:     "like",
 		Language: "en",
 		Object: &entity.Object{
 			DisplayName: map[string]string{

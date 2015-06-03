@@ -79,7 +79,7 @@ func (s *ServerSuite) TestCreateEvent_OK(c *C) {
 
 	payload := fmt.Sprintf(
 		`{"verb":"%s", "language":"%s"}`,
-		event.Verb,
+		event.Type,
 		event.Language,
 	)
 
@@ -97,7 +97,7 @@ func (s *ServerSuite) TestCreateEvent_OK(c *C) {
 	c.Assert(er, IsNil)
 	c.Assert(receivedEvent.UserID, Equals, user.ID)
 	c.Assert(receivedEvent.Enabled, Equals, true)
-	c.Assert(receivedEvent.Verb, Equals, event.Verb)
+	c.Assert(receivedEvent.Type, Equals, event.Type)
 	c.Assert(receivedEvent.Language, Equals, event.Language)
 }
 
@@ -117,7 +117,7 @@ func (s *ServerSuite) TestUpdateEvent_OK(c *C) {
 
 	payload := fmt.Sprintf(
 		`{"verb":"%s", "language":"%s", "enabled":false}`,
-		event.Verb,
+		event.Type,
 		event.Language,
 	)
 
@@ -153,7 +153,7 @@ func (s *ServerSuite) TestUpdateEvent_WrongID(c *C) {
 
 	payload := fmt.Sprintf(
 		`{"verb":"%s", "language":"%s", "enabled":false}`,
-		correctEvent.Verb,
+		correctEvent.Type,
 		correctEvent.Language,
 	)
 
@@ -171,7 +171,7 @@ func (s *ServerSuite) TestUpdateEventMalformedIDFails(c *C) {
 
 	payload := fmt.Sprintf(
 		`{"verb":"%s", "language":"%s", "enabled":false}`,
-		user.Events[0].Verb,
+		user.Events[0].Type,
 		user.Events[0].Language,
 	)
 
@@ -189,7 +189,7 @@ func (s *ServerSuite) TestUpdateEventMalformedPayloadFails(c *C) {
 
 	payload := fmt.Sprintf(
 		`{"verb":"%s", "language":"%s", "enabled":false`,
-		user.Events[0].Verb,
+		user.Events[0].Type,
 		user.Events[0].Language,
 	)
 
@@ -508,7 +508,7 @@ func BenchmarkCreateEvent1_Write(b *testing.B) {
 
 	payload := fmt.Sprintf(
 		`{"verb":"%s", "language":"%s"}`,
-		event.Verb,
+		event.Type,
 		event.Language,
 	)
 

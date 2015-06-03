@@ -159,7 +159,7 @@ type (
 	Event struct {
 		ID                 string         `json:"id"`
 		UserID             string         `json:"user_id"`
-		Verb               string         `json:"verb"`
+		Type               string         `json:"type"`
 		Language           string         `json:"language,omitempty"`
 		Priority           string         `json:"priority,omitempty"`
 		Location           string         `json:"location,omitempty"`

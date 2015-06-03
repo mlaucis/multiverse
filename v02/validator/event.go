@@ -30,11 +30,11 @@ var (
 func CreateEvent(datastore core.ApplicationUser, accountID, applicationID int64, event *entity.Event) errors.Error {
 	errs := []*error{}
 
-	if !StringLengthBetween(event.Verb, verbMin, verbMax) {
+	if !StringLengthBetween(event.Type, verbMin, verbMax) {
 		errs = append(errs, &errorVerbSize)
 	}
 
-	if !alphaNumExtraCharFirst.MatchString(event.Verb) {
+	if !alphaNumExtraCharFirst.MatchString(event.Type) {
 		errs = append(errs, &errorVerbType)
 	}
 
@@ -68,11 +68,11 @@ func CreateEvent(datastore core.ApplicationUser, accountID, applicationID int64,
 func UpdateEvent(existingEvent, event *entity.Event) errors.Error {
 	errs := []*error{}
 
-	if !StringLengthBetween(event.Verb, verbMin, verbMax) {
+	if !StringLengthBetween(event.Type, verbMin, verbMax) {
 		errs = append(errs, &errorVerbSize)
 	}
 
-	if !alphaNumExtraCharFirst.MatchString(event.Verb) {
+	if !alphaNumExtraCharFirst.MatchString(event.Type) {
 		errs = append(errs, &errorVerbType)
 	}
 
