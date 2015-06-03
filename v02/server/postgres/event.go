@@ -181,12 +181,20 @@ func (evt *event) List(ctx *context.Context) (err errors.Error) {
 		return
 	}
 
+	response := struct {
+		Events      []*entity.Event `json:"events"`
+		EventsCount int             `json:"events_count"`
+	}{
+		Events:      events,
+		EventsCount: len(events),
+	}
+
 	status := http.StatusOK
-	if len(events) == 0 {
+	if response.EventsCount == 0 {
 		status = http.StatusNoContent
 	}
 
-	server.WriteResponse(ctx, events, status, 10)
+	server.WriteResponse(ctx, response, status, 10)
 	return
 }
 
@@ -201,31 +209,43 @@ func (evt *event) CurrentUserList(ctx *context.Context) (err errors.Error) {
 		return
 	}
 
+	response := struct {
+		Events      []*entity.Event `json:"events"`
+		EventsCount int             `json:"events_count"`
+	}{
+		Events:      events,
+		EventsCount: len(events),
+	}
+
 	status := http.StatusOK
-	if len(events) == 0 {
+	if response.EventsCount == 0 {
 		status = http.StatusNoContent
 	}
 
-	server.WriteResponse(ctx, events, status, 10)
+	server.WriteResponse(ctx, response, status, 10)
 	return
 }
 
 func (evt *event) Feed(ctx *context.Context) (err errors.Error) {
 	response := struct {
-		Count  int                                `json:"unread_events_count"`
-		Events []*entity.Event                    `json:"events"`
-		Users  map[string]*entity.ApplicationUser `json:"users"`
+		Events      []*entity.Event                    `json:"events"`
+		Users       map[string]*entity.ApplicationUser `json:"users"`
+		UnreadCount int                                `json:"unread_events_count"`
+		EventsCount int                                `json:"events_count"`
+		UsersCount  int                                `json:"users_count"`
 	}{}
 
-	if response.Count, response.Events, err = evt.storage.UserFeed(
+	if response.UnreadCount, response.Events, err = evt.storage.UserFeed(
 		ctx.Bag["accountID"].(int64),
 		ctx.Bag["applicationID"].(int64),
 		ctx.Bag["applicationUser"].(*entity.ApplicationUser)); err != nil {
 		return
 	}
 
+	response.EventsCount = len(response.Events)
+
 	status := http.StatusOK
-	if len(response.Events) == 0 {
+	if response.EventsCount == 0 {
 		status = http.StatusNoContent
 	} else {
 		response.Users = map[string]*entity.ApplicationUser{}
@@ -244,6 +264,7 @@ func (evt *event) Feed(ctx *context.Context) (err errors.Error) {
 				response.Users[response.Events[idx].UserID] = user
 			}
 		}
+		response.UsersCount = len(response.Users)
 	}
 
 	server.WriteResponse(ctx, response, status, 10)
@@ -395,26 +416,43 @@ func (evt *event) Search(ctx *context.Context) (err errors.Error) {
 		return
 	}
 
-	server.WriteResponse(ctx, events, http.StatusOK, 10)
+	response := struct {
+		Events      []*entity.Event `json:"events"`
+		EventsCount int             `json:"events_count"`
+	}{
+		Events:      events,
+		EventsCount: len(events),
+	}
+
+	status := http.StatusOK
+	if response.EventsCount == 0 {
+		status = http.StatusNoContent
+	}
+
+	server.WriteResponse(ctx, response, status, 10)
 	return
 }
 
 func (evt *event) UnreadFeed(ctx *context.Context) (err errors.Error) {
 	response := struct {
-		Count  int                                `json:"unread_events_count"`
-		Events []*entity.Event                    `json:"events"`
-		Users  map[string]*entity.ApplicationUser `json:"users"`
+		Events      []*entity.Event                    `json:"events"`
+		Users       map[string]*entity.ApplicationUser `json:"users"`
+		UnreadCount int                                `json:"unread_events_count"`
+		EventsCount int                                `json:"events_count"`
+		UsersCount  int                                `json:"users_count"`
 	}{}
 
-	if response.Count, response.Events, err = evt.storage.UnreadFeed(
+	if response.UnreadCount, response.Events, err = evt.storage.UnreadFeed(
 		ctx.Bag["accountID"].(int64),
 		ctx.Bag["applicationID"].(int64),
 		ctx.Bag["applicationUser"].(*entity.ApplicationUser)); err != nil {
 		return
 	}
 
+	response.EventsCount = len(response.Events)
+
 	status := http.StatusOK
-	if response.Count == 0 {
+	if response.UnreadCount == 0 {
 		status = http.StatusNoContent
 	} else {
 		response.Users = map[string]*entity.ApplicationUser{}
@@ -433,6 +471,8 @@ func (evt *event) UnreadFeed(ctx *context.Context) (err errors.Error) {
 				response.Users[response.Events[idx].UserID] = user
 			}
 		}
+
+		response.UsersCount = len(response.Users)
 	}
 
 	server.WriteResponse(ctx, response, status, 10)

@@ -266,17 +266,25 @@ func (appUser *applicationUser) Search(ctx *context.Context) (err errors.Error) 
 		return
 	}
 
-	if len(users) == 0 {
-		server.WriteResponse(ctx, users, http.StatusNoContent, 10)
-		return
-	}
-
 	for idx := range users {
 		users[idx].Password = ""
 		users[idx].CreatedAt, users[idx].UpdatedAt, users[idx].LastLogin, users[idx].LastRead = nil, nil, nil, nil
 	}
 
-	server.WriteResponse(ctx, users, http.StatusOK, 10)
+	response := struct {
+		Users      []*entity.ApplicationUser `json:"users"`
+		UsersCount int                       `json:"users_count"`
+	}{
+		Users:      users,
+		UsersCount: len(users),
+	}
+
+	if response.UsersCount == 0 {
+		server.WriteResponse(ctx, response, http.StatusNoContent, 10)
+		return
+	}
+
+	server.WriteResponse(ctx, response, http.StatusOK, 10)
 	return
 }
 

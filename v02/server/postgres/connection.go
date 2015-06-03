@@ -180,12 +180,20 @@ func (conn *connection) List(ctx *context.Context) (err errors.Error) {
 		users[idx].CreatedAt, users[idx].UpdatedAt, users[idx].LastLogin, users[idx].LastRead = nil, nil, nil, nil
 	}
 
+	response := struct {
+		Users      []*entity.ApplicationUser `json:"users"`
+		UsersCount int                       `json:"users_count"`
+	}{
+		Users:      users,
+		UsersCount: len(users),
+	}
+
 	status := http.StatusOK
-	if len(users) == 0 {
+	if response.UsersCount == 0 {
 		status = http.StatusNoContent
 	}
 
-	server.WriteResponse(ctx, users, status, 10)
+	server.WriteResponse(ctx, response, status, 10)
 	return
 }
 
@@ -204,12 +212,20 @@ func (conn *connection) CurrentUserList(ctx *context.Context) (err errors.Error)
 		users[idx].CreatedAt, users[idx].UpdatedAt, users[idx].LastLogin, users[idx].LastRead = nil, nil, nil, nil
 	}
 
+	response := struct {
+		Users      []*entity.ApplicationUser `json:"users"`
+		UsersCount int                       `json:"users_count"`
+	}{
+		Users:      users,
+		UsersCount: len(users),
+	}
+
 	status := http.StatusOK
-	if len(users) == 0 {
+	if response.UsersCount == 0 {
 		status = http.StatusNoContent
 	}
 
-	server.WriteResponse(ctx, users, status, 10)
+	server.WriteResponse(ctx, response, status, 10)
 	return
 }
 
@@ -237,12 +253,20 @@ func (conn *connection) FollowedByList(ctx *context.Context) (err errors.Error) 
 		users[idx].CreatedAt, users[idx].UpdatedAt, users[idx].LastLogin, users[idx].LastRead = nil, nil, nil, nil
 	}
 
+	response := struct {
+		Users      []*entity.ApplicationUser `json:"users"`
+		UsersCount int                       `json:"users_count"`
+	}{
+		Users:      users,
+		UsersCount: len(users),
+	}
+
 	status := http.StatusOK
-	if len(users) == 0 {
+	if response.UsersCount == 0 {
 		status = http.StatusNoContent
 	}
 
-	server.WriteResponse(ctx, users, status, 10)
+	server.WriteResponse(ctx, response, status, 10)
 	return
 }
 
@@ -261,12 +285,20 @@ func (conn *connection) CurrentUserFollowedByList(ctx *context.Context) (err err
 		users[idx].CreatedAt, users[idx].UpdatedAt, users[idx].LastLogin, users[idx].LastRead = nil, nil, nil, nil
 	}
 
+	response := struct {
+		Users      []*entity.ApplicationUser `json:"users"`
+		UsersCount int                       `json:"users_count"`
+	}{
+		Users:      users,
+		UsersCount: len(users),
+	}
+
 	status := http.StatusOK
-	if len(users) == 0 {
+	if response.UsersCount == 0 {
 		status = http.StatusNoContent
 	}
 
-	server.WriteResponse(ctx, users, status, 10)
+	server.WriteResponse(ctx, response, status, 10)
 	return
 }
 
@@ -359,7 +391,15 @@ func (conn *connection) CreateSocial(ctx *context.Context) (err errors.Error) {
 		users[idx].CreatedAt, users[idx].UpdatedAt, users[idx].LastLogin, users[idx].LastRead = nil, nil, nil, nil
 	}
 
-	server.WriteResponse(ctx, users, http.StatusCreated, 10)
+	response := struct {
+		Users      []*entity.ApplicationUser `json:"users"`
+		UsersCount int                       `json:"users_count"`
+	}{
+		Users:      users,
+		UsersCount: len(users),
+	}
+
+	server.WriteResponse(ctx, response, http.StatusCreated, 10)
 	return
 }
 
@@ -387,8 +427,16 @@ func (conn *connection) Friends(ctx *context.Context) (err errors.Error) {
 		users[idx].CreatedAt, users[idx].UpdatedAt, users[idx].LastLogin, users[idx].LastRead = nil, nil, nil, nil
 	}
 
+	response := struct {
+		Users      []*entity.ApplicationUser `json:"users"`
+		UsersCount int                       `json:"users_count"`
+	}{
+		Users:      users,
+		UsersCount: len(users),
+	}
+
 	status := http.StatusOK
-	if len(users) == 0 {
+	if response.UsersCount == 0 {
 		status = http.StatusNoContent
 	}
 
@@ -407,8 +455,16 @@ func (conn *connection) CurrentUserFriends(ctx *context.Context) (err errors.Err
 		users[idx].CreatedAt, users[idx].UpdatedAt, users[idx].LastLogin, users[idx].LastRead = nil, nil, nil, nil
 	}
 
+	response := struct {
+		Users      []*entity.ApplicationUser `json:"users"`
+		UsersCount int                       `json:"users_count"`
+	}{
+		Users:      users,
+		UsersCount: len(users),
+	}
+
 	status := http.StatusOK
-	if len(users) == 0 {
+	if response.UsersCount == 0 {
 		status = http.StatusNoContent
 	}
 
