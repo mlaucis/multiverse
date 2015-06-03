@@ -491,12 +491,7 @@ func (evt *event) UnreadFeedCount(ctx *context.Context) (err errors.Error) {
 		return
 	}
 
-	status := http.StatusOK
-	if count.Count == 0 {
-		status = http.StatusNoContent
-	}
-
-	server.WriteResponse(ctx, count, status, 10)
+	server.WriteResponse(ctx, count, http.StatusOK, 10)
 	return
 }
 
