@@ -166,7 +166,7 @@ type (
 		Latitude           float64        `json:"latitude,omitempty"`
 		Longitude          float64        `json:"longitude,omitempty"`
 		DistanceFromTarget float64        `json:"-"`
-		Visibility         uint8          `json:"visibility"`
+		Visibility         uint8          `json:"visibility,omitempty"`
 		Object             *Object        `json:"object"`
 		Target             *Object        `json:"target,omitempty"`
 		Instrument         *Object        `json:"instrument,omitempty"`

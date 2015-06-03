@@ -262,6 +262,9 @@ func (evt *event) Create(ctx *context.Context) (err errors.Error) {
 	}
 
 	event.UserID = ctx.Bag["applicationUserID"].(string)
+	if event.Visibility == 0 {
+		event.Visibility = entity.EventPublic
+	}
 
 	if err = validator.CreateEvent(
 		evt.appUser,
@@ -295,6 +298,9 @@ func (evt *event) CurrentUserCreate(ctx *context.Context) (err errors.Error) {
 	}
 
 	event.UserID = ctx.Bag["applicationUserID"].(string)
+	if event.Visibility == 0 {
+		event.Visibility = entity.EventPublic
+	}
 
 	if err = validator.CreateEvent(
 		evt.appUser,

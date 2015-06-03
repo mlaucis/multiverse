@@ -46,7 +46,7 @@ func packErrors(errs []*error) errors.Error {
 		er += (*e).Error() + "\n"
 	}
 
-	return errors.NewBadRequestError(er[:len(er)-1], "")
+	return errors.NewBadRequestError(er[:len(er)-1], er[:len(er)-1])
 }
 
 // IsValidURL checks is an url is valid
