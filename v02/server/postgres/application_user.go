@@ -30,6 +30,7 @@ func (appUser *applicationUser) Read(ctx *context.Context) (err errors.Error) {
 		return err
 	}
 	user.Password = ""
+	user.Enabled = false
 	user.CreatedAt, user.UpdatedAt, user.LastLogin, user.LastRead = nil, nil, nil, nil
 	server.WriteResponse(ctx, user, http.StatusOK, 10)
 	return
@@ -38,6 +39,7 @@ func (appUser *applicationUser) Read(ctx *context.Context) (err errors.Error) {
 func (appUser *applicationUser) ReadCurrent(ctx *context.Context) (err errors.Error) {
 	user := ctx.Bag["applicationUser"].(*entity.ApplicationUser)
 	user.Password = ""
+	user.Enabled = false
 	server.WriteResponse(ctx, user, http.StatusOK, 10)
 	return
 }
@@ -74,6 +76,7 @@ func (appUser *applicationUser) UpdateCurrent(ctx *context.Context) (err errors.
 	}
 
 	updatedUser.Password = ""
+	updatedUser.Enabled = false
 
 	server.WriteResponse(ctx, updatedUser, http.StatusCreated, 0)
 	return
@@ -122,6 +125,8 @@ func (appUser *applicationUser) Create(ctx *context.Context) (err errors.Error) 
 	}
 
 	user.Password = ""
+	user.Enabled = false
+
 	result := struct {
 		entity.ApplicationUser
 		SessionToken string `json:"session_token,omitempty"`
@@ -201,6 +206,7 @@ func (appUser *applicationUser) Login(ctx *context.Context) (err errors.Error) {
 
 	if ctx.R.URL.Query().Get("withUserDetails") == "true" {
 		user.Password = ""
+		user.Enabled = false
 		response.ApplicationUser = *user
 	}
 
@@ -268,6 +274,7 @@ func (appUser *applicationUser) Search(ctx *context.Context) (err errors.Error) 
 
 	for idx := range users {
 		users[idx].Password = ""
+		users[idx].Enabled = false
 		users[idx].CreatedAt, users[idx].UpdatedAt, users[idx].LastLogin, users[idx].LastRead = nil, nil, nil, nil
 	}
 

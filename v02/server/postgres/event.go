@@ -260,6 +260,7 @@ func (evt *event) Feed(ctx *context.Context) (err errors.Error) {
 					return err
 				}
 				user.Password = ""
+				user.Enabled = false
 				user.CreatedAt, user.UpdatedAt, user.LastLogin, user.LastRead = nil, nil, nil, nil
 				response.Users[response.Events[idx].UserID] = user
 			}
@@ -467,6 +468,7 @@ func (evt *event) UnreadFeed(ctx *context.Context) (err errors.Error) {
 					return err
 				}
 				user.Password = ""
+				user.Enabled = false
 				user.CreatedAt, user.UpdatedAt, user.LastLogin, user.LastRead = nil, nil, nil, nil
 				response.Users[response.Events[idx].UserID] = user
 			}
