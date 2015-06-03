@@ -445,8 +445,8 @@ func (conn *connection) Friends(ctx *context.Context) (err errors.Error) {
 }
 
 func (conn *connection) CurrentUserFriends(ctx *context.Context) (err errors.Error) {
-	var users []*entity.ApplicationUser
-	if users, err = conn.storage.Friends(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(string)); err != nil {
+	users, err := conn.storage.Friends(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(string))
+	if err != nil {
 		return
 	}
 
@@ -468,7 +468,7 @@ func (conn *connection) CurrentUserFriends(ctx *context.Context) (err errors.Err
 		status = http.StatusNoContent
 	}
 
-	server.WriteResponse(ctx, users, status, 10)
+	server.WriteResponse(ctx, response, status, 10)
 	return
 }
 
