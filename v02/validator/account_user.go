@@ -88,8 +88,8 @@ func CreateAccountUser(datastore core.AccountUser, accountUser *entity.AccountUs
 		errs = append(errs, &errorAccountUserURLInvalid)
 	}
 
-	if len(accountUser.Image) > 0 {
-		if !checkImages(accountUser.Image) {
+	if len(accountUser.Images) > 0 {
+		if !checkImages(accountUser.Images) {
 			errs = append(errs, &errorInvalidImageURL)
 		}
 	}
@@ -160,8 +160,8 @@ func UpdateAccountUser(datastore core.AccountUser, existingAccountUser, updatedA
 		errs = append(errs, &errorAccountUserURLInvalid)
 	}
 
-	if len(updatedAccountUser.Image) > 0 {
-		if !checkImages(updatedAccountUser.Image) {
+	if len(updatedAccountUser.Images) > 0 {
+		if !checkImages(updatedAccountUser.Images) {
 			errs = append(errs, &errorInvalidImageURL)
 		}
 	}

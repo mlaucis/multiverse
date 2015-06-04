@@ -37,6 +37,7 @@ var (
 	errorEmailAddressInUse         = fmt.Errorf("email address already in use")
 	errorUsernameInUse             = fmt.Errorf("username already in use")
 
+	// ErrorPayloadTooBig is our error for when the request payload is too big
 	ErrorPayloadTooBig = errors.New(http.StatusRequestEntityTooLarge, "payload too big", "fat payload detected", false)
 )
 
@@ -68,7 +69,7 @@ func IsValidURL(checkURL string, absolute bool) bool {
 	return true
 }
 
-func checkImages(images []*entity.Image) bool {
+func checkImages(images map[string]*entity.Image) bool {
 	for idx := range images {
 		if u, err := url.Parse(images[idx].URL); err != nil || !u.IsAbs() {
 			return false

@@ -12,11 +12,11 @@ import (
 type (
 	// Common holds common used fields
 	Common struct {
-		Metadata  interface{} `json:"metadata,omitempty"`
-		Image     []*Image    `json:"image,omitempty"`
-		CreatedAt *time.Time  `json:"created_at,omitempty"`
-		UpdatedAt *time.Time  `json:"updated_at,omitempty"`
-		Enabled   bool        `json:"enabled,omitempty"`
+		Metadata  interface{}       `json:"metadata,omitempty"`
+		Images    map[string]*Image `json:"images,omitempty"`
+		CreatedAt *time.Time        `json:"created_at,omitempty"`
+		UpdatedAt *time.Time        `json:"updated_at,omitempty"`
+		Enabled   bool              `json:"enabled,omitempty"`
 	}
 
 	// UserCommon holds common used fields for users
@@ -36,23 +36,23 @@ type (
 	Image struct {
 		URL    string `json:"url"`
 		Type   string `json:"type,omitempty"` // image/jpeg image/png
-		Width  string `json:"width,omitempty"`
-		Heigth string `json:"height,omitempty"`
+		Width  int    `json:"width,omitempty"`
+		Heigth int    `json:"height,omitempty"`
 	}
 
 	// Object structure
 	Object struct {
-		ID          string            `json:"id"`
-		Type        string            `json:"type"`
-		URL         string            `json:"url,omitempty"`
-		DisplayName map[string]string `json:"display_name"` // ["en"=>"article", "de"=>"artikel"]
+		ID           string            `json:"id"`
+		Type         string            `json:"type"`
+		URL          string            `json:"url,omitempty"`
+		DisplayNames map[string]string `json:"display_names"` // ["en"=>"article", "de"=>"artikel"]
 	}
 
 	// Participant structure
 	Participant struct {
-		ID    string   `json:"id"`
-		URL   string   `json:"url,omitempty"`
-		Image []*Image `json:"image,omitempty"`
+		ID     string            `json:"id"`
+		URL    string            `json:"url,omitempty"`
+		Images map[string]*Image `json:"images,omitempty"`
 	}
 
 	// Account structure
@@ -67,22 +67,13 @@ type (
 		Common
 	}
 
-	// AccountRole structure
-	AccountRole struct {
-		ID          int64  `json:"id"`
-		Permission  string `json:"permission"`
-		Description string `json:"description"`
-		Common
-	}
-
 	// AccountUser structure
 	AccountUser struct {
-		ID              int64        `json:"-"`
-		AccountID       int64        `json:"-"`
-		PublicID        string       `json:"id"`
-		PublicAccountID string       `json:"account_id"`
-		Role            *AccountRole `json:"account_role,omitempty"`
-		SessionToken    string       `json:"-"`
+		ID              int64  `json:"-"`
+		AccountID       int64  `json:"-"`
+		PublicID        string `json:"id"`
+		PublicAccountID string `json:"account_id"`
+		SessionToken    string `json:"-"`
 		UserCommon
 		Common
 	}
@@ -185,6 +176,7 @@ type (
 	// SortableEventsByDistance provides the struct needed for sorting the elements by distance from target
 	SortableEventsByDistance []*Event
 
+	// EventsResponse represents the common structure for responses which contains events
 	EventsResponse struct {
 		Events      []*Event                    `json:"events"`
 		Users       map[string]*ApplicationUser `json:"users"`
@@ -192,6 +184,7 @@ type (
 		UsersCount  int                         `json:"users_count"`
 	}
 
+	// EventsResponseWithUnread represents the common structure for responses which contains events and have an unread count
 	EventsResponseWithUnread struct {
 		EventsResponse
 		UnreadCount int `json:"unread_events_count"`

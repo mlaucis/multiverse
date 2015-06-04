@@ -364,22 +364,22 @@ func AddCorrectUserEvents(accountID, applicationID int64, user *entity.Applicati
 		if i < 4 {
 			event.Location = fmt.Sprintf("location-all-%d", i+1)
 			event.Target = &entity.Object{
-				ID:          fmt.Sprintf("target-%d", i+1),
-				DisplayName: map[string]string{"all": fmt.Sprintf("target-%d-all", i+1)},
+				ID:           fmt.Sprintf("target-%d", i+1),
+				DisplayNames: map[string]string{"all": fmt.Sprintf("target-%d-all", i+1)},
 			}
 			event.Object = &entity.Object{
-				ID:          fmt.Sprintf("object-%d", i+1),
-				DisplayName: map[string]string{"all": fmt.Sprintf("object-%d-all", i+1)},
+				ID:           fmt.Sprintf("object-%d", i+1),
+				DisplayNames: map[string]string{"all": fmt.Sprintf("object-%d-all", i+1)},
 			}
 		} else {
 			event.Location = fmt.Sprintf("location-%d", i+1)
 			event.Target = &entity.Object{
-				ID:          fmt.Sprintf("acc-%d-app-%d-usr-%d-target-%d", accountID, applicationID, user.ID, i+1),
-				DisplayName: map[string]string{"all": fmt.Sprintf("acc-%d-app-%d-usr-%d-target-%d-lall", accountID, applicationID, user.ID, i+1)},
+				ID:           fmt.Sprintf("acc-%d-app-%d-usr-%d-target-%d", accountID, applicationID, user.ID, i+1),
+				DisplayNames: map[string]string{"all": fmt.Sprintf("acc-%d-app-%d-usr-%d-target-%d-lall", accountID, applicationID, user.ID, i+1)},
 			}
 			event.Object = &entity.Object{
-				ID:          fmt.Sprintf("acc-%d-app-%d-usr-%d-object-%d", accountID, applicationID, user.ID, i+1),
-				DisplayName: map[string]string{"all": fmt.Sprintf("acc-%d-app-%d-usr-%d-object-%d-lall", accountID, applicationID, user.ID, i+1)},
+				ID:           fmt.Sprintf("acc-%d-app-%d-usr-%d-object-%d", accountID, applicationID, user.ID, i+1),
+				DisplayNames: map[string]string{"all": fmt.Sprintf("acc-%d-app-%d-usr-%d-object-%d-lall", accountID, applicationID, user.ID, i+1)},
 			}
 		}
 		if i < 6 {

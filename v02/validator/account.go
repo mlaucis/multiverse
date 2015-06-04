@@ -59,8 +59,8 @@ func CreateAccount(account *entity.Account) errors.Error {
 		errs = append(errs, &errorAccountTokenAlreadySet)
 	}
 
-	if len(account.Image) > 0 {
-		if !checkImages(account.Image) {
+	if len(account.Images) > 0 {
+		if !checkImages(account.Images) {
 			errs = append(errs, &errorInvalidImageURL)
 		}
 	}
@@ -92,8 +92,8 @@ func UpdateAccount(existingAccount, updatedAccount *entity.Account) errors.Error
 		errs = append(errs, &errorAccountDescriptionType)
 	}
 
-	if len(updatedAccount.Image) > 0 {
-		if !checkImages(updatedAccount.Image) {
+	if len(updatedAccount.Images) > 0 {
+		if !checkImages(updatedAccount.Images) {
 			errs = append(errs, &errorInvalidImageURL)
 		}
 	}

@@ -88,8 +88,8 @@ func CreateUser(datastore core.ApplicationUser, accountID, applicationID int64, 
 		errs = append(errs, &errorUserURLInvalid)
 	}
 
-	if len(user.Image) > 0 {
-		if !checkImages(user.Image) {
+	if len(user.Images) > 0 {
+		if !checkImages(user.Images) {
 			errs = append(errs, &errorInvalidImageURL)
 		}
 	}
@@ -157,8 +157,8 @@ func UpdateUser(datastore core.ApplicationUser, accountID, applicationID int64, 
 		errs = append(errs, &errorUserURLInvalid)
 	}
 
-	if len(updatedApplicationUser.Image) > 0 {
-		if !checkImages(updatedApplicationUser.Image) {
+	if len(updatedApplicationUser.Images) > 0 {
+		if !checkImages(updatedApplicationUser.Images) {
 			errs = append(errs, &errorInvalidImageURL)
 		}
 	}

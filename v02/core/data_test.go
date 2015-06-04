@@ -51,7 +51,7 @@ var (
 			URL:       "http://link.to/userToken123",
 		},
 		Common: entity.Common{
-			Image: []*entity.Image{
+			Images: []*entity.Image{
 				{
 					URL: "http://link.to/userthumbnail.jpg",
 				},
@@ -68,7 +68,7 @@ var (
 		Type:     "like",
 		Language: "en",
 		Object: &entity.Object{
-			DisplayName: map[string]string{
+			DisplayNames: map[string]string{
 				"en": "Event performed",
 			},
 		},

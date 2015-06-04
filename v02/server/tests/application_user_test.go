@@ -488,11 +488,11 @@ func (s *ServerSuite) TestLoginChangePasswordLoginWorks(c *C) {
 	// WE need these to make DeepEquals work
 	updatedUser.SessionToken = user.SessionToken
 	updatedUser.OriginalPassword = user.OriginalPassword
-	updatedUser.Image = nil
+	updatedUser.Images = nil
 	updatedUser.LastLogin = user.LastLogin
 	user.Password = ""
 	user.Events = nil
-	user.Image = nil
+	user.Images = nil
 	user.Activated = true
 	c.Assert(updatedUser, DeepEquals, user)
 
@@ -709,11 +709,11 @@ func (s *ServerSuite) TestLoginChangeUsernameLogoutLoginWorks(c *C) {
 	// WE need these to make DeepEquals work
 	updatedUser.SessionToken = user.SessionToken
 	updatedUser.OriginalPassword = user.OriginalPassword
-	updatedUser.Image = nil
+	updatedUser.Images = nil
 	updatedUser.LastLogin = user.LastLogin
 	user.Password = ""
 	user.Events = nil
-	user.Image = nil
+	user.Images = nil
 	user.Username = "newUserName"
 	c.Assert(updatedUser, DeepEquals, user)
 
@@ -791,11 +791,11 @@ func (s *ServerSuite) TestLoginChangeEmailLogoutLoginWorks(c *C) {
 	// WE need these to make DeepEquals work
 	updatedUser.SessionToken = user.SessionToken
 	updatedUser.OriginalPassword = user.OriginalPassword
-	updatedUser.Image = nil
+	updatedUser.Images = nil
 	updatedUser.LastLogin = user.LastLogin
 	user.Password = ""
 	user.Events = nil
-	user.Image = nil
+	user.Images = nil
 	user.Email = "newUserEmail@tapglue.com"
 	user.Activated = true
 	c.Assert(updatedUser, DeepEquals, user)
@@ -878,11 +878,11 @@ func (s *ServerSuite) TestLoginDisableLoginFails(c *C) {
 	// WE need these to make DeepEquals work
 	updatedUser.SessionToken = user.SessionToken
 	updatedUser.OriginalPassword = user.OriginalPassword
-	updatedUser.Image = nil
+	updatedUser.Images = nil
 	updatedUser.LastLogin = user.LastLogin
 	user.Password = ""
 	user.Events = nil
-	user.Image = nil
+	user.Images = nil
 	user.Enabled = false
 	user.Activated = true
 	c.Assert(updatedUser, DeepEquals, user)
@@ -1062,11 +1062,11 @@ func (s *ServerSuite) TestLoginChangePasswordRefreshWorks(c *C) {
 	// WE need these to make DeepEquals work
 	updatedUser.SessionToken = user.SessionToken
 	updatedUser.OriginalPassword = user.OriginalPassword
-	updatedUser.Image = nil
+	updatedUser.Images = nil
 	updatedUser.LastLogin = user.LastLogin
 	user.Password = ""
 	user.Events = nil
-	user.Image = nil
+	user.Images = nil
 	user.Activated = true
 	c.Assert(updatedUser, DeepEquals, user)
 
@@ -1135,11 +1135,11 @@ func (s *ServerSuite) TestLoginChangeUsernameRefreshWorks(c *C) {
 	// WE need these to make DeepEquals work
 	updatedUser.SessionToken = user.SessionToken
 	updatedUser.OriginalPassword = user.OriginalPassword
-	updatedUser.Image = nil
+	updatedUser.Images = nil
 	updatedUser.LastLogin = user.LastLogin
 	user.Password = ""
 	user.Events = nil
-	user.Image = nil
+	user.Images = nil
 	user.Username = "newUserName"
 	user.Activated = true
 	c.Assert(updatedUser, DeepEquals, user)
@@ -1208,11 +1208,11 @@ func (s *ServerSuite) TestLoginChangeEmailRefreshWorks(c *C) {
 	// WE need these to make DeepEquals work
 	updatedUser.SessionToken = user.SessionToken
 	updatedUser.OriginalPassword = user.OriginalPassword
-	updatedUser.Image = nil
+	updatedUser.Images = nil
 	updatedUser.LastLogin = user.LastLogin
 	user.Password = ""
 	user.Events = nil
-	user.Image = nil
+	user.Images = nil
 	user.Email = "newUserEmail@tapglue.com"
 	user.Activated = true
 	c.Assert(updatedUser, DeepEquals, user)
@@ -1360,11 +1360,11 @@ func (s *ServerSuite) TestLoginChangeUsernameGetEventWorks(c *C) {
 	// WE need these to make DeepEquals work
 	updatedUser.SessionToken = user.SessionToken
 	updatedUser.OriginalPassword = user.OriginalPassword
-	updatedUser.Image = nil
+	updatedUser.Images = nil
 	updatedUser.LastLogin = user.LastLogin
 	updatedUser.Events = user.Events
 	user.Password = ""
-	user.Image = nil
+	user.Images = nil
 	user.Username = "newUserName"
 	user.Activated = true
 	c.Assert(updatedUser, DeepEquals, user)
@@ -1521,7 +1521,7 @@ func (s *ServerSuite) TestCreateUserAutoBindSocialAccounts(c *C) {
 	user2.UpdatedAt = receivedUser.UpdatedAt
 	user2.LastLogin = receivedUser.LastLogin
 	user2.ID = receivedUser.ID
-	receivedUser.Image, user2.Image = nil, nil
+	receivedUser.Images, user2.Images = nil, nil
 	c.Assert(receivedUser, DeepEquals, user2)
 
 	// Check connetions list

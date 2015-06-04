@@ -50,12 +50,12 @@ func (c *connection) Create(accountID, applicationID int64, connection *entity.C
 		return nil, er
 	}
 	if exists != nil {
-		if exists.Enabled {
-			return nil, ConnectionAlreadyExists
-		} else {
+		if !exists.Enabled {
 			exists.Enabled = true
 			return c.Update(accountID, applicationID, *exists, *exists, true)
 		}
+
+		return nil, ConnectionAlreadyExists
 	}
 
 	timeNow := time.Now()
