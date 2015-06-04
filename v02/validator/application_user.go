@@ -194,27 +194,30 @@ func UpdateUser(datastore core.ApplicationUser, accountID, applicationID int64, 
 func ApplicationUserCredentialsValid(password string, user *entity.ApplicationUser) errors.Error {
 	pass, err := utils.Base64Decode(user.Password)
 	if err != nil {
-		return errors.NewInternalError("failed to check the account user credentials (1)", err.Error())
+		return errors.NewInternalError("failed to check the user credentials (1)", err.Error())
 	}
 	passwordParts := strings.SplitN(string(pass), ":", 3)
 	if len(passwordParts) != 3 {
-		return errors.NewInternalError("failed to check the account user credentials (2)", "invalid password parts")
+		return errors.NewInternalError("failed to check the user credentials (2)", "invalid password parts")
 	}
 
 	salt, err := utils.Base64Decode(passwordParts[0])
 	if err != nil {
-		return errors.NewInternalError("failed to check the account user credentials (3)", err.Error())
+		return errors.NewInternalError("failed to check the user credentials (3)", err.Error())
 	}
 
 	timestamp, err := utils.Base64Decode(passwordParts[1])
 	if err != nil {
-		return errors.NewInternalError("failed to check the account user credentials (4)", err.Error())
+		return errors.NewInternalError("failed to check the user credentials (4)", err.Error())
 	}
 
-	encryptedPassword := storageHelper.GenerateEncryptedPassword(password, string(salt), string(timestamp))
+	encryptedPassword, err := storageHelper.GenerateStrongEncryptedPassword(password, string(salt), string(timestamp))
+	if err != nil {
+		return errors.NewInternalError("failed to check the application user credentials (5)", err.Error())
+	}
 
 	if encryptedPassword != passwordParts[2] {
-		return errors.NewInternalError("failed to check the account user credentials (5)\ninvalid user credentials", "password mismatch")
+		return errors.NewInternalError("failed to check the application user credentials (6)\ninvalid user credentials", "password mismatch")
 	}
 
 	return nil

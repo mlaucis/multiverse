@@ -38,7 +38,10 @@ func (appu *applicationUser) Create(accountID, applicationID int64, user *entity
 	}
 
 	// Encrypt password
-	user.Password = storageHelper.EncryptPassword(user.Password)
+	user.Password, er = storageHelper.StrongEncryptPassword(user.Password)
+	if er != nil {
+		return nil, errors.NewInternalError("failed to write the application user(2.5)", er.Error())
+	}
 
 	val, er := json.Marshal(user)
 	if er != nil {
@@ -161,7 +164,11 @@ func (appu *applicationUser) Update(accountID, applicationID int64, existingUser
 		updatedUser.Password = existingUser.Password
 	} else if updatedUser.Password != existingUser.Password {
 		// Encrypt password - we should do this only if the password changes
-		updatedUser.Password = storageHelper.EncryptPassword(updatedUser.Password)
+		var er error
+		updatedUser.Password, er = storageHelper.StrongEncryptPassword(updatedUser.Password)
+		if er != nil {
+			return nil, errors.NewInternalError("failed to write the application user(2.5)", er.Error())
+		}
 	}
 
 	val, er := json.Marshal(updatedUser)

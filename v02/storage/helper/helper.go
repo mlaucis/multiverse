@@ -15,6 +15,7 @@ import (
 	"github.com/tapglue/backend/v02/entity"
 
 	"github.com/satori/go.uuid"
+	"golang.org/x/crypto/scrypt"
 )
 
 // Defining keys
@@ -157,6 +158,26 @@ func EncryptPassword(password string) string {
 	encryptedPassword := GenerateEncryptedPassword(password, salt, timestamp)
 
 	return utils.Base64Encode(fmt.Sprintf("%s:%s:%s", utils.Base64Encode(salt), utils.Base64Encode(timestamp), encryptedPassword))
+}
+
+func GenerateStrongEncryptedPassword(password, salt, time string) (string, error) {
+	pwd, err := scrypt.Key([]byte(password), []byte(salt+":"+time), 32768, 16, 2, 64)
+	if err != nil {
+		return "", err
+	}
+
+	return utils.Base64Encode(string(pwd)), nil
+}
+
+func StrongEncryptPassword(password string) (string, error) {
+	salt := GenerateRandomString(32)
+	timestamp := time.Now().Format(time.RFC3339)
+	encryptedPassword, err := GenerateStrongEncryptedPassword(password, salt, timestamp)
+	if err != nil {
+		return "", err
+	}
+
+	return utils.Base64Encode(utils.Base64Encode(salt) + ":" + utils.Base64Encode(timestamp) + ":" + encryptedPassword), nil
 }
 
 // Account returns the key for a specified account

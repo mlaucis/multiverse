@@ -50,7 +50,13 @@ func (au *applicationUser) Create(accountID, applicationID int64, user *entity.A
 	user.SocialConnectionType = ""
 	user.Activated = true
 	user.Enabled = true
-	user.Password = storageHelper.EncryptPassword(user.Password)
+
+	var err error
+	user.Password, err = storageHelper.StrongEncryptPassword(user.Password)
+	if err != nil {
+		return nil, errors.NewInternalError("failed to write the application user(2.5)", err.Error())
+	}
+
 	timeNow := time.Now()
 	user.CreatedAt, user.UpdatedAt = &timeNow, &timeNow
 
@@ -142,7 +148,11 @@ func (au *applicationUser) Update(accountID, applicationID int64, existingUser, 
 	if updatedUser.Password == "" {
 		updatedUser.Password = existingUser.Password
 	} else if updatedUser.Password != existingUser.Password {
-		updatedUser.Password = storageHelper.EncryptPassword(updatedUser.Password)
+		var err error
+		updatedUser.Password, err = storageHelper.StrongEncryptPassword(updatedUser.Password)
+		if err != nil {
+			return nil, errors.NewInternalError("failed to write the application user(2.5)", err.Error())
+		}
 	}
 	timeNow := time.Now()
 	updatedUser.UpdatedAt = &timeNow
