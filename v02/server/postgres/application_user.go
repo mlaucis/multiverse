@@ -140,6 +140,7 @@ func (appUser *applicationUser) Create(ctx *context.Context) (err errors.Error) 
 		SessionToken:    sessionToken,
 	}
 
+	ctx.W.Header().Set("Location", "https://api.tapglue.com/0.2/users/"+user.ID)
 	server.WriteResponse(ctx, result, http.StatusCreated, 0)
 	return
 }
@@ -215,6 +216,7 @@ func (appUser *applicationUser) Login(ctx *context.Context) (err errors.Error) {
 		response.ApplicationUser = *user
 	}
 
+	ctx.W.Header().Set("Location", "https://api.tapglue.com/0.2/users/"+user.ID)
 	server.WriteResponse(ctx, response, http.StatusCreated, 0)
 	return
 }

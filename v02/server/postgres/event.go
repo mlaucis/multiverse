@@ -310,6 +310,7 @@ func (evt *event) Create(ctx *context.Context) (err errors.Error) {
 		return
 	}
 
+	ctx.W.Header().Set("Location", "https://api.tapglue.com/0.2/user/events/"+event.ID)
 	server.WriteResponse(ctx, event, http.StatusCreated, 0)
 	return
 }
@@ -346,6 +347,7 @@ func (evt *event) CurrentUserCreate(ctx *context.Context) (err errors.Error) {
 		return
 	}
 
+	ctx.W.Header().Set("Location", "https://api.tapglue.com/0.2/user/events/"+event.ID)
 	server.WriteResponse(ctx, event, http.StatusCreated, 0)
 	return
 }
