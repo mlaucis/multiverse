@@ -63,6 +63,10 @@ func (acc *account) Update(ctx *context.Context) (err errors.Error) {
 }
 
 func (acc *account) Delete(ctx *context.Context) (err errors.Error) {
+	if ctx.R.Header.Get("X-Jarvis-Auth") != "ZTBmZjI3MGE2M2YzYzAzOWI1MjhiYTNi" {
+		return errors.NewNotFoundError("not found", "request does not contain a correct Jarvis auth")
+	}
+
 	if ctx.Bag["account"].(*entity.Account).PublicID != ctx.Vars["accountID"] {
 		return errors.NewBadRequestError("account mismatch", "account mismatch")
 	}
@@ -76,6 +80,10 @@ func (acc *account) Delete(ctx *context.Context) (err errors.Error) {
 }
 
 func (acc *account) Create(ctx *context.Context) (err errors.Error) {
+	if ctx.R.Header.Get("X-Jarvis-Auth") != "ZTBmZjI3MGE2M2YzYzAzOWI1MjhiYTNi" {
+		return errors.NewNotFoundError("not found", "request does not contain a correct Jarvis auth")
+	}
+
 	var account = &entity.Account{}
 
 	if er := json.Unmarshal(ctx.Body, account); er != nil {

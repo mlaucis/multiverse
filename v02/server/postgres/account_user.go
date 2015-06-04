@@ -58,6 +58,10 @@ func (accUser *accountUser) Update(ctx *context.Context) (err errors.Error) {
 }
 
 func (accUser *accountUser) Delete(ctx *context.Context) (err errors.Error) {
+	if ctx.R.Header.Get("X-Jarvis-Auth") != "ZTBmZjI3MGE2M2YzYzAzOWI1MjhiYTNi" {
+		return errors.NewNotFoundError("not found", "request does not contain a correct Jarvis auth")
+	}
+
 	accountUserID := ctx.Vars["accountUserID"]
 	if !validator.IsValidUUID5(accountUserID) {
 		return invalidUserIDError
@@ -76,6 +80,10 @@ func (accUser *accountUser) Delete(ctx *context.Context) (err errors.Error) {
 }
 
 func (accUser *accountUser) Create(ctx *context.Context) (err errors.Error) {
+	if ctx.R.Header.Get("X-Jarvis-Auth") != "ZTBmZjI3MGE2M2YzYzAzOWI1MjhiYTNi" {
+		return errors.NewNotFoundError("not found", "request does not contain a correct Jarvis auth")
+	}
+
 	var accountUser = &entity.AccountUser{}
 
 	if err := json.Unmarshal(ctx.Body, accountUser); err != nil {
