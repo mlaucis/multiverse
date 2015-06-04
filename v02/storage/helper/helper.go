@@ -8,7 +8,9 @@ package helper
 import (
 	"crypto/md5"
 	"fmt"
+	"log"
 	"math/rand"
+	"os"
 	"time"
 
 	"github.com/tapglue/backend/utils"
@@ -69,7 +71,18 @@ var (
 
 	// OIDUUIDNamespace refers to the Object ID UUID Namespace http://tools.ietf.org/html/rfc4122.html#section-4.3
 	OIDUUIDNamespace = uuid.NamespaceOID.String()
+
+	saltLength, strongPasswordN, strongPasswordR, strongPasswordP, strongPasswordKeyLen = 32, 32768, 16, 2, 64
 )
+
+func init() {
+	if os.Getenv("CI") == "true" {
+		log.Println("WARNING: LAUNCHING WITH INSECURE PASSWORD ALGORITHM!!!")
+		log.Println("WARNING: LAUNCHING WITH INSECURE PASSWORD ALGORITHM!!!")
+		log.Println("WARNING: LAUNCHING WITH INSECURE PASSWORD ALGORITHM!!!")
+		saltLength, strongPasswordN, strongPasswordR, strongPasswordP, strongPasswordKeyLen = 4, 1024, 2, 1, 4
+	}
+}
 
 // GenerateUUIDV5 will generate a new
 func GenerateUUIDV5(namespace, payload string) string {
@@ -153,7 +166,7 @@ func GenerateEncryptedPassword(password, salt, time string) string {
 
 // EncryptPassword will encrypt a string with the password encryption algorithm
 func EncryptPassword(password string) string {
-	salt := GenerateRandomString(32)
+	salt := GenerateRandomString(saltLength)
 	timestamp := time.Now().Format(time.RFC3339)
 	encryptedPassword := GenerateEncryptedPassword(password, salt, timestamp)
 
@@ -161,7 +174,7 @@ func EncryptPassword(password string) string {
 }
 
 func GenerateStrongEncryptedPassword(password, salt, time string) (string, error) {
-	pwd, err := scrypt.Key([]byte(password), []byte(salt+":"+time), 32768, 16, 2, 64)
+	pwd, err := scrypt.Key([]byte(password), []byte(salt+":"+time), strongPasswordN, strongPasswordR, strongPasswordP, strongPasswordKeyLen)
 	if err != nil {
 		return "", err
 	}
@@ -170,7 +183,7 @@ func GenerateStrongEncryptedPassword(password, salt, time string) (string, error
 }
 
 func StrongEncryptPassword(password string) (string, error) {
-	salt := GenerateRandomString(32)
+	salt := GenerateRandomString(saltLength)
 	timestamp := time.Now().Format(time.RFC3339)
 	encryptedPassword, err := GenerateStrongEncryptedPassword(password, salt, timestamp)
 	if err != nil {
