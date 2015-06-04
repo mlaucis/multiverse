@@ -9,10 +9,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gorilla/mux"
 	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/logger"
+	"github.com/tapglue/backend/v02/validator"
+
+	"github.com/gorilla/mux"
 )
 
 type (
@@ -185,6 +187,10 @@ func ValidatePutCommon(ctx *context.Context) (err errors.Error) {
 
 	if reqCL != ctx.R.ContentLength {
 		return errors.NewBadRequestError("Content-Length header size mismatch", "content-length header size mismatch")
+	} else {
+		if reqCL > 2048 {
+			return validator.ErrorPayloadTooBig
+		}
 	}
 
 	if ctx.R.Body == nil {
@@ -232,6 +238,10 @@ func ValidatePostCommon(ctx *context.Context) (err errors.Error) {
 
 	if reqCL != ctx.R.ContentLength {
 		return errors.NewBadRequestError("Content-Length header size mismatch", "content-length header size mismatch")
+	} else {
+		if reqCL > 2048 {
+			return validator.ErrorPayloadTooBig
+		}
 	}
 
 	if ctx.R.Body == nil {

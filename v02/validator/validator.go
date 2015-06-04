@@ -7,6 +7,7 @@ package validator
 
 import (
 	"fmt"
+	"net/http"
 	"net/mail"
 	"net/url"
 	"regexp"
@@ -35,6 +36,8 @@ var (
 	errorUserUsernameAlreadyExists = errors.NewBadRequestError("user already exists (2)", "user already exists (2)")
 	errorEmailAddressInUse         = fmt.Errorf("email address already in use")
 	errorUsernameInUse             = fmt.Errorf("username already in use")
+
+	ErrorPayloadTooBig = errors.New(http.StatusRequestEntityTooLarge, "payload too big", "fat payload detected", false)
 )
 
 // packErrors prints errors happened during validation
