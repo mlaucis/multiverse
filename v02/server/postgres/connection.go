@@ -31,6 +31,9 @@ func (conn *connection) Update(ctx *context.Context) (err errors.Error) {
 	)
 
 	userToID = ctx.Vars["userToId"]
+	if !validator.IsValidUUID5(userToID) {
+		return invalidUserIDError
+	}
 
 	existingConnection, err := conn.storage.Read(
 		ctx.Bag["accountID"].(int64),
@@ -87,6 +90,9 @@ func (conn *connection) Update(ctx *context.Context) (err errors.Error) {
 func (conn *connection) Delete(ctx *context.Context) (err errors.Error) {
 	userFromID := ctx.Bag["applicationUserID"].(string)
 	userToID := ctx.Vars["applicationUserToID"]
+	if !validator.IsValidUUID5(userToID) {
+		return invalidUserIDError
+	}
 
 	connection, err := conn.storage.Read(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), userFromID, userToID)
 	if err != nil {
@@ -159,6 +165,9 @@ func (conn *connection) List(ctx *context.Context) (err errors.Error) {
 	accountID := ctx.Bag["accountID"].(int64)
 	applicationID := ctx.Bag["applicationID"].(int64)
 	userID := ctx.Vars["applicationUserID"]
+	if !validator.IsValidUUID5(userID) {
+		return invalidUserIDError
+	}
 
 	exists, err := conn.appUser.ExistsByID(accountID, applicationID, userID)
 	if err != nil {
@@ -241,6 +250,9 @@ func (conn *connection) FollowedByList(ctx *context.Context) (err errors.Error) 
 	accountID := ctx.Bag["accountID"].(int64)
 	applicationID := ctx.Bag["applicationID"].(int64)
 	userID := ctx.Vars["applicationUserID"]
+	if !validator.IsValidUUID5(userID) {
+		return invalidUserIDError
+	}
 
 	exists, err := conn.appUser.ExistsByID(accountID, applicationID, userID)
 	if err != nil {

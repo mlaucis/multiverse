@@ -25,7 +25,12 @@ type (
 )
 
 func (appUser *applicationUser) Read(ctx *context.Context) (err errors.Error) {
-	user, err := appUser.storage.Read(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Vars["applicationUserID"])
+	userID := ctx.Vars["applicationUserID"]
+	if !validator.IsValidUUID5(userID) {
+		return invalidUserIDError
+	}
+
+	user, err := appUser.storage.Read(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), userID)
 	if err != nil {
 		return err
 	}

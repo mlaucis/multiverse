@@ -31,7 +31,14 @@ func (evt *event) Read(ctx *context.Context) (err errors.Error) {
 	)
 
 	eventID = ctx.Vars["eventID"]
+	if !validator.IsValidUUID5(eventID) {
+		return invalidEventIDError
+	}
+
 	userID = ctx.Vars["applicationUserID"]
+	if !validator.IsValidUUID5(userID) {
+		return invalidUserIDError
+	}
 
 	if event, err = evt.storage.Read(
 		ctx.Bag["accountID"].(int64),
@@ -54,7 +61,14 @@ func (evt *event) Update(ctx *context.Context) (err errors.Error) {
 	)
 
 	eventID = ctx.Vars["eventID"]
+	if !validator.IsValidUUID5(eventID) {
+		return invalidEventIDError
+	}
+
 	userID = ctx.Vars["applicationUserID"]
+	if !validator.IsValidUUID5(userID) {
+		return invalidUserIDError
+	}
 
 	existingEvent, err := evt.storage.Read(
 		ctx.Bag["accountID"].(int64),
@@ -100,6 +114,9 @@ func (evt *event) CurrentUserUpdate(ctx *context.Context) (err errors.Error) {
 	)
 
 	eventID = ctx.Vars["eventID"]
+	if !validator.IsValidUUID5(eventID) {
+		return invalidEventIDError
+	}
 
 	existingEvent, err := evt.storage.Read(
 		ctx.Bag["accountID"].(int64),
@@ -143,6 +160,9 @@ func (evt *event) Delete(ctx *context.Context) (err errors.Error) {
 	applicationID := ctx.Bag["applicationID"].(int64)
 	userID := ctx.Bag["applicationUserID"].(string)
 	eventID := ctx.Vars["eventID"]
+	if !validator.IsValidUUID5(eventID) {
+		return invalidEventIDError
+	}
 
 	event, err := evt.storage.Read(accountID, applicationID, userID, userID, eventID)
 	if err != nil {
@@ -165,6 +185,9 @@ func (evt *event) List(ctx *context.Context) (err errors.Error) {
 	accountID := ctx.Bag["accountID"].(int64)
 	applicationID := ctx.Bag["applicationID"].(int64)
 	userID := ctx.Vars["applicationUserID"]
+	if !validator.IsValidUUID5(userID) {
+		return invalidUserIDError
+	}
 
 	exists, err := evt.appUser.ExistsByID(accountID, applicationID, userID)
 	if err != nil {

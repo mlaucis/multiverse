@@ -118,6 +118,9 @@ func (app *application) PopulateContext(ctx *context.Context) (err errors.Error)
 
 func (app *application) PopulateContextFromID(ctx *context.Context) (err errors.Error) {
 	applicationID := ctx.Vars["applicationID"]
+	if !validator.IsValidUUID5(applicationID) {
+		return invalidAppIDError
+	}
 
 	ctx.Bag["application"], err = app.storage.FindByPublicID(applicationID)
 	if err == nil {

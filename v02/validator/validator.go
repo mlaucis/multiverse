@@ -13,6 +13,8 @@ import (
 
 	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/v02/entity"
+
+	"github.com/satori/go.uuid"
 )
 
 var (
@@ -92,4 +94,11 @@ func StringLengthBetween(value string, minLength, maxLength int) bool {
 	}
 
 	return true
+}
+
+// IsValidUUID5 checks if the string is a valid UUID or not
+func IsValidUUID5(str string) bool {
+	uid, err := uuid.FromString(str)
+
+	return err == nil && uid.Version() == 5
 }

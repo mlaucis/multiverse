@@ -58,7 +58,11 @@ func (accUser *accountUser) Update(ctx *context.Context) (err errors.Error) {
 }
 
 func (accUser *accountUser) Delete(ctx *context.Context) (err errors.Error) {
-	accountUser, err := accUser.storage.FindByPublicID(ctx.Bag["accountID"].(int64), ctx.Vars["accountUserID"])
+	accountUserID := ctx.Vars["accountUserID"]
+	if !validator.IsValidUUID5(accountUserID) {
+		return invalidUserIDError
+	}
+	accountUser, err := accUser.storage.FindByPublicID(ctx.Bag["accountID"].(int64), accountUserID)
 	if err != nil {
 		return
 	}
