@@ -8,6 +8,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"math/rand"
+	"strings"
 	"time"
 
 	"github.com/tapglue/backend/errors"
@@ -30,6 +31,7 @@ const (
 	selectApplicationUserByIDQuery           = `SELECT json_data, last_read FROM app_%d_%d.users WHERE json_data @> json_build_object('id', $1::text, 'enabled', true)::jsonb LIMIT 1`
 	updateApplicationUserByIDQuery           = `UPDATE app_%d_%d.users SET json_data = $1 WHERE json_data @> json_build_object('id', $2::text)::jsonb`
 	listApplicationUsersByApplicationIDQuery = `SELECT json_data FROM app_%d_%d.users WHERE json_data @> '{"enabled": true}' LIMIT 1`
+	listApplicationUsersByUserIDsQuery       = `SELECT json_data FROM app_%d_%d.users WHERE json_data->>'id' = ANY(%s) AND json_data @> '{"enabled": true}'`
 	selectApplicationUserByEmailQuery        = `SELECT json_data, last_read FROM app_%d_%d.users WHERE json_data @> json_build_object('email', $1::text, 'enabled', true)::jsonb LIMIT 1`
 	selectApplicationUserByUsernameQuery     = `SELECT json_data, last_read FROM app_%d_%d.users WHERE json_data @> json_build_object('user_name', $1::text, 'enabled', true)::jsonb LIMIT 1`
 	createApplicationUserSessionQuery        = `INSERT INTO app_%d_%d.sessions(user_id, session_id) VALUES($1, $2)`
@@ -99,6 +101,40 @@ func (au *applicationUser) Read(accountID, applicationID int64, userID string) (
 	applicationUser.LastRead = &lastRead
 
 	return applicationUser, nil
+}
+
+func (au *applicationUser) ReadMultiple(accountID, applicationID int64, userIDs []string) (users []*entity.ApplicationUser, err errors.Error) {
+	users = []*entity.ApplicationUser{}
+	if len(userIDs) == 0 {
+		return
+	}
+
+	condition := `VALUES ('` + strings.Join(userIDs, "'),('") + `')`
+
+	rows, er := au.pg.SlaveDatastore(-1).
+		Query(appSchemaWithParams(listApplicationUsersByUserIDsQuery, accountID, applicationID, condition))
+	if er != nil {
+		return users, errors.NewInternalError("error while retrieving list of application users", er.Error())
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var (
+			JSONData string
+		)
+		err := rows.Scan(&JSONData)
+		if err != nil {
+			return []*entity.ApplicationUser{}, errors.NewInternalError("error while retrieving list of application users", err.Error())
+		}
+		user := &entity.ApplicationUser{}
+		err = json.Unmarshal([]byte(JSONData), user)
+		if err != nil {
+			return []*entity.ApplicationUser{}, errors.NewInternalError("error while retrieving list of application users", err.Error())
+		}
+
+		users = append(users, user)
+	}
+
+	return users, nil
 }
 
 func (au *applicationUser) Update(accountID, applicationID int64, existingUser, updatedUser entity.ApplicationUser, retrieve bool) (*entity.ApplicationUser, errors.Error) {

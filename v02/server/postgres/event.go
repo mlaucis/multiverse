@@ -227,13 +227,7 @@ func (evt *event) CurrentUserList(ctx *context.Context) (err errors.Error) {
 }
 
 func (evt *event) Feed(ctx *context.Context) (err errors.Error) {
-	response := struct {
-		Events      []*entity.Event                    `json:"events"`
-		Users       map[string]*entity.ApplicationUser `json:"users"`
-		UnreadCount int                                `json:"unread_events_count"`
-		EventsCount int                                `json:"events_count"`
-		UsersCount  int                                `json:"users_count"`
-	}{}
+	response := entity.EventsResponseWithUnread{}
 
 	if response.UnreadCount, response.Events, err = evt.storage.UserFeed(
 		ctx.Bag["accountID"].(int64),
@@ -248,26 +242,11 @@ func (evt *event) Feed(ctx *context.Context) (err errors.Error) {
 	if response.EventsCount == 0 {
 		status = http.StatusNoContent
 	} else {
-		response.Users = map[string]*entity.ApplicationUser{}
-		for idx := range response.Events {
-			if _, ok := response.Users[response.Events[idx].UserID]; !ok {
-				user, err := evt.appUser.Read(
-					ctx.Bag["accountID"].(int64),
-					ctx.Bag["applicationID"].(int64),
-					response.Events[idx].UserID,
-				)
-				if err != nil {
-					return err
-				}
-				user.Password = ""
-				user.Enabled = false
-				user.SocialIDs = map[string]string{}
-				user.Activated = false
-				user.Email = ""
-				user.CreatedAt, user.UpdatedAt, user.LastLogin, user.LastRead = nil, nil, nil, nil
-				response.Users[response.Events[idx].UserID] = user
-			}
+		response.Users, err = evt.usersFromEvents(ctx, response.Events)
+		if err != nil {
+			return
 		}
+
 		response.UsersCount = len(response.Users)
 	}
 
@@ -420,12 +399,18 @@ func (evt *event) Search(ctx *context.Context) (err errors.Error) {
 		return
 	}
 
-	response := struct {
-		Events      []*entity.Event `json:"events"`
-		EventsCount int             `json:"events_count"`
-	}{
+	response := entity.EventsResponse{
 		Events:      events,
 		EventsCount: len(events),
+	}
+
+	if response.EventsCount != 0 {
+		response.Users, err = evt.usersFromEvents(ctx, response.Events)
+		if err != nil {
+			return
+		}
+
+		response.UsersCount = len(response.Users)
 	}
 
 	status := http.StatusOK
@@ -438,13 +423,7 @@ func (evt *event) Search(ctx *context.Context) (err errors.Error) {
 }
 
 func (evt *event) UnreadFeed(ctx *context.Context) (err errors.Error) {
-	response := struct {
-		Events      []*entity.Event                    `json:"events"`
-		Users       map[string]*entity.ApplicationUser `json:"users"`
-		UnreadCount int                                `json:"unread_events_count"`
-		EventsCount int                                `json:"events_count"`
-		UsersCount  int                                `json:"users_count"`
-	}{}
+	response := entity.EventsResponseWithUnread{}
 
 	if response.UnreadCount, response.Events, err = evt.storage.UnreadFeed(
 		ctx.Bag["accountID"].(int64),
@@ -459,25 +438,9 @@ func (evt *event) UnreadFeed(ctx *context.Context) (err errors.Error) {
 	if response.UnreadCount == 0 {
 		status = http.StatusNoContent
 	} else {
-		response.Users = map[string]*entity.ApplicationUser{}
-		for idx := range response.Events {
-			if _, ok := response.Users[response.Events[idx].UserID]; !ok {
-				user, err := evt.appUser.Read(
-					ctx.Bag["accountID"].(int64),
-					ctx.Bag["applicationID"].(int64),
-					response.Events[idx].UserID,
-				)
-				if err != nil {
-					return err
-				}
-				user.Password = ""
-				user.Enabled = false
-				user.SocialIDs = map[string]string{}
-				user.Activated = false
-				user.Email = ""
-				user.CreatedAt, user.UpdatedAt, user.LastLogin, user.LastRead = nil, nil, nil, nil
-				response.Users[response.Events[idx].UserID] = user
-			}
+		response.Users, err = evt.usersFromEvents(ctx, response.Events)
+		if err != nil {
+			return
 		}
 
 		response.UsersCount = len(response.Users)
@@ -500,6 +463,32 @@ func (evt *event) UnreadFeedCount(ctx *context.Context) (err errors.Error) {
 	}
 
 	server.WriteResponse(ctx, count, http.StatusOK, 10)
+	return
+}
+
+func (evt *event) usersFromEvents(ctx *context.Context, events []*entity.Event) (users map[string]*entity.ApplicationUser, err errors.Error) {
+	users = map[string]*entity.ApplicationUser{}
+	eventUsers := map[string]bool{}
+	for idx := range events {
+		eventUsers[events[idx].UserID] = true
+	}
+
+	usrs := []string{}
+	for idx := range eventUsers {
+		usrs = append(usrs, idx)
+	}
+
+	urs, err := evt.appUser.ReadMultiple(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), usrs)
+	if err != nil {
+		return
+	}
+
+	for idx := range urs {
+		users[urs[idx].ID] = urs[idx]
+	}
+
+	sanitizeApplicationUsersMap(users)
+
 	return
 }
 

@@ -28,6 +28,10 @@ func (appu *applicationUser) Read(accountID, applicationID int64, userID string)
 	return nil, errors.NewNotFoundError("not found", "invalid handler specified")
 }
 
+func (appu *applicationUser) ReadMultiple(accountID, applicationID int64, userIDs []string) (users []*entity.ApplicationUser, err errors.Error) {
+	return nil, errors.NewInternalError("not implemented yet", "not implemented yet")
+}
+
 func (appu *applicationUser) Update(accountID, applicationID int64, existingUser, updatedUser entity.ApplicationUser, retrieve bool) (usr *entity.ApplicationUser, err errors.Error) {
 	data, er := json.Marshal(updatedUser)
 	if er != nil {

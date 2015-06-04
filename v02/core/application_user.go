@@ -18,6 +18,9 @@ type (
 		// Read returns the user matching the ID or an error
 		Read(accountID, applicationID int64, userID string) (user *entity.ApplicationUser, err errors.Error)
 
+		// ReadMultiple returns all users matching the desired IDs
+		ReadMultiple(accountID, applicationID int64, userIDs []string) (users []*entity.ApplicationUser, err errors.Error)
+
 		// Update updates a user in the database and returns the updates user or an error
 		Update(accountID, applicationID int64, existingUser, updatedUser entity.ApplicationUser, retrieve bool) (usr *entity.ApplicationUser, err errors.Error)
 

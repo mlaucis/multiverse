@@ -184,6 +184,18 @@ type (
 
 	// SortableEventsByDistance provides the struct needed for sorting the elements by distance from target
 	SortableEventsByDistance []*Event
+
+	EventsResponse struct {
+		Events      []*Event                    `json:"events"`
+		Users       map[string]*ApplicationUser `json:"users"`
+		EventsCount int                         `json:"events_count"`
+		UsersCount  int                         `json:"users_count"`
+	}
+
+	EventsResponseWithUnread struct {
+		EventsResponse
+		UnreadCount int `json:"unread_events_count"`
+	}
 )
 
 const (

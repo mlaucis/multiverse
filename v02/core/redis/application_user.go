@@ -151,6 +151,10 @@ func (appu *applicationUser) Read(accountID, applicationID int64, userID string)
 	return
 }
 
+func (appu *applicationUser) ReadMultiple(accountID, applicationID int64, userIDs []string) (users []*entity.ApplicationUser, err errors.Error) {
+	return nil, errors.NewInternalError("not implemented yet", "not implemented yet")
+}
+
 func (appu *applicationUser) Update(accountID, applicationID int64, existingUser, updatedUser entity.ApplicationUser, retrieve bool) (usr *entity.ApplicationUser, err errors.Error) {
 
 	if updatedUser.Password == "" {
