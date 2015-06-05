@@ -34,9 +34,13 @@ func (appUser *applicationUser) Read(ctx *context.Context) (err errors.Error) {
 	if err != nil {
 		return err
 	}
+
+	computeApplicationUserLastModified(ctx, user)
+
 	user.Password = ""
 	user.Enabled = false
 	user.CreatedAt, user.UpdatedAt, user.LastLogin, user.LastRead = nil, nil, nil, nil
+
 	server.WriteResponse(ctx, user, http.StatusOK, 10)
 	return
 }
@@ -45,6 +49,9 @@ func (appUser *applicationUser) ReadCurrent(ctx *context.Context) (err errors.Er
 	user := ctx.Bag["applicationUser"].(*entity.ApplicationUser)
 	user.Password = ""
 	user.Enabled = false
+
+	computeApplicationUserLastModified(ctx, user)
+
 	server.WriteResponse(ctx, user, http.StatusOK, 10)
 	return
 }

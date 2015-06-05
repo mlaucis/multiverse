@@ -173,6 +173,7 @@ func EncryptPassword(password string) string {
 	return utils.Base64Encode(fmt.Sprintf("%s:%s:%s", utils.Base64Encode(salt), utils.Base64Encode(timestamp), encryptedPassword))
 }
 
+// GenerateStrongEncryptedPassword generates a super secure password
 func GenerateStrongEncryptedPassword(password, salt, time string) (string, error) {
 	pwd, err := scrypt.Key([]byte(password), []byte(salt+":"+time), strongPasswordN, strongPasswordR, strongPasswordP, strongPasswordKeyLen)
 	if err != nil {
@@ -182,6 +183,7 @@ func GenerateStrongEncryptedPassword(password, salt, time string) (string, error
 	return utils.Base64Encode(string(pwd)), nil
 }
 
+// StrongEncryptPassword packs the super secure password in a database format
 func StrongEncryptPassword(password string) (string, error) {
 	salt := GenerateRandomString(saltLength)
 	timestamp := time.Now().Format(time.RFC3339)

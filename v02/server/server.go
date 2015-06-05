@@ -1,9 +1,12 @@
 package server
 
 import (
+	"bytes"
 	"compress/gzip"
+	"crypto/md5"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -49,46 +52,87 @@ func (r *Route) ComposePattern(version string) string {
 
 // WriteResponse handles the http responses and returns the data
 func WriteResponse(ctx *context.Context, response interface{}, code int, cacheTime uint) {
+	ctx.StatusCode = code
+
 	// Set the response headers
 	WriteCommonHeaders(cacheTime, ctx)
 	WriteCorsHeaders(ctx)
-	ctx.W.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	ctx.StatusCode = code
+
+	// TODO here it would be nice if we would consider the requested format when the stuff happens and deliver
+	// either JSON or XML or FlatBuffers or whatever
+	output := new(bytes.Buffer)
+	json.NewEncoder(output).Encode(response)
+
+	// We should only check these for valid responses, I think. Future me blame past me for this decision
+	if ctx.R.Method == "GET" && ctx.StatusCode < 300 {
+		// We implememt the etag check first, aka the hard check, because we don't know if something else was changed
+		// in the response, not just what we calculate the etag for.
+		// Example situation: we compute the etag for getFeed as being the highest LastUpdated date but maybe
+		// a user was updated meanwhile which would mean that the feed might be the same, event wise, but the user wise
+		// it will be different so the app should retrieve the feed and process it as maybe the display name of the user
+		// was changed or something else (thumbnail or whatever)
+
+		h := md5.New()
+		io.TeeReader(output, h)
+		etag := h.Sum(nil)
+		ctx.W.Header().Set("ETag", fmt.Sprintf("%x", etag))
+
+		if requestEtag := ctx.R.Header.Get("If-None-Match"); requestEtag != "" {
+			if requestEtag == string(etag) {
+				ctx.StatusCode = 304
+				ctx.W.WriteHeader(ctx.StatusCode)
+				return
+			}
+		}
+
+		if ifModifiedSince := ctx.R.Header.Get("If-Modified-Since"); ifModifiedSince != "" {
+			if myLastModified, ok := ctx.Bag["Last-Modified"]; ok {
+				ctx.W.Header().Set("Last-Modified", myLastModified.(string))
+				if myLastModified.(string) == ifModifiedSince {
+					ctx.StatusCode = 304
+					ctx.W.WriteHeader(ctx.StatusCode)
+					return
+				}
+			}
+		}
+	}
 
 	// Write response
 	if !strings.Contains(ctx.R.Header.Get("Accept-Encoding"), "gzip") {
 		// No gzip support
 		ctx.W.WriteHeader(code)
-		json.NewEncoder(ctx.W).Encode(response)
+		io.Copy(ctx.W, output)
 		return
 	}
 
 	ctx.W.Header().Set("Content-Encoding", "gzip")
 	ctx.W.WriteHeader(code)
 	gz := gzip.NewWriter(ctx.W)
-	json.NewEncoder(gz).Encode(response)
+	io.Copy(gz, output)
 	gz.Close()
 }
 
 // ErrorHappened handles the error message
 func ErrorHappened(ctx *context.Context, err errors.Error) {
+	ctx.StatusCode = int(err.Type())
+
 	WriteCommonHeaders(0, ctx)
-	ctx.W.Header().Set("Content-Type", "text/plain; charset=UTF-8")
+	WriteCorsHeaders(ctx)
+
 	// Write response
 	if !strings.Contains(ctx.R.Header.Get("Accept-Encoding"), "gzip") {
 		// No gzip support
-		ctx.W.WriteHeader(int(err.Type()))
+		ctx.W.WriteHeader(ctx.StatusCode)
 		fmt.Fprintf(ctx.W, "%d %s", err.Type(), err.Error())
 	} else {
 		ctx.W.Header().Set("Content-Encoding", "gzip")
-		ctx.W.WriteHeader(int(err.Type()))
+		ctx.W.WriteHeader(ctx.StatusCode)
 		gz := gzip.NewWriter(ctx.W)
 		fmt.Fprintf(gz, "%d %s", int(err.Type()), err.Error())
 		gz.Close()
 	}
 
-	ctx.StatusCode = int(err.Type())
-	ctx.LogError(err)
+	go ctx.LogError(err)
 }
 
 // WriteCommonHeaders will add the corresponding cache headers based on the time supplied (in seconds)
@@ -96,14 +140,24 @@ func WriteCommonHeaders(cacheTime uint, ctx *context.Context) {
 	ctx.W.Header().Set("Strict-Transport-Security", "max-age=63072000")
 	ctx.W.Header().Set("X-Content-Type-Options", "nosniff")
 	ctx.W.Header().Set("X-Frame-Options", "DENY")
+	ctx.W.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 	if cacheTime > 0 {
-		ctx.W.Header().Set("Cache-Control", fmt.Sprintf(`"max-age=%d, public"`, cacheTime))
+		ctx.W.Header().Set("Cache-Control", fmt.Sprintf(`max-age=%d, public`, cacheTime))
 		ctx.W.Header().Set("Expires", time.Now().Add(time.Duration(cacheTime)*time.Second).Format(http.TimeFormat))
 	} else {
 		ctx.W.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 		ctx.W.Header().Set("Pragma", "no-cache")
 		ctx.W.Header().Set("Expires", "0")
+	}
+
+	if ctx.R.Method == "GET" && ctx.StatusCode < 300 {
+		if myLastModified, ok := ctx.Bag["Last-Modified"]; ok {
+			ctx.W.Header().Set("Last-Modified", myLastModified.(string))
+		} else {
+			// This will spam the server logs for issues with missing issues but then again, it should be there...
+			go ctx.LogError(errors.NewInternalError("something went wrong", "missing Last-Modified from bag for route "+ctx.RouteName+" response"))
+		}
 	}
 
 	if !ctx.Bag["rateLimit.enabled"].(bool) {
@@ -126,7 +180,6 @@ func WriteCorsHeaders(ctx *context.Context) {
 func CorsHandler(ctx *context.Context) (err errors.Error) {
 	WriteCommonHeaders(100, ctx)
 	WriteCorsHeaders(ctx)
-	ctx.W.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	return
 }
 
@@ -239,6 +292,7 @@ func ValidatePostCommon(ctx *context.Context) (err errors.Error) {
 	if reqCL != ctx.R.ContentLength {
 		return errors.NewBadRequestError("Content-Length header size mismatch", "content-length header size mismatch")
 	} else {
+		// TODO better handling here for limits, maybe make them customizable
 		if reqCL > 2048 {
 			return validator.ErrorPayloadTooBig
 		}
@@ -296,7 +350,7 @@ func CustomHandler(routeName, version string, route *Route, mainLog, errorLog ch
 			}
 		}
 
-		ctx.LogRequest(ctx.StatusCode, -1)
+		go ctx.LogRequest(ctx.StatusCode, -1)
 	}
 }
 

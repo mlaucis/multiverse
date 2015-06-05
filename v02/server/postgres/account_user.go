@@ -25,6 +25,8 @@ type (
 )
 
 func (accUser *accountUser) Read(ctx *context.Context) (err errors.Error) {
+	// TODO This one read only the current account user maybe we want to have something to read any account user?
+	computeAccountUserLastModified(ctx, ctx.Bag["accountUser"].(*entity.AccountUser))
 	server.WriteResponse(ctx, ctx.Bag["accountUser"].(*entity.AccountUser), http.StatusOK, 10)
 	return
 }
@@ -126,6 +128,8 @@ func (accUser *accountUser) List(ctx *context.Context) (err errors.Error) {
 	}{
 		AccountUsers: accountUsers,
 	}
+
+	computeAccountUsersLastModified(ctx, response.AccountUsers)
 
 	server.WriteResponse(ctx, response, http.StatusOK, 10)
 	return

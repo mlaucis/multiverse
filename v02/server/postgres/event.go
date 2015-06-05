@@ -49,6 +49,8 @@ func (evt *event) Read(ctx *context.Context) (err errors.Error) {
 		return
 	}
 
+	computeEventLastModified(ctx, event)
+
 	server.WriteResponse(ctx, event, http.StatusOK, 10)
 	return
 }
@@ -213,6 +215,8 @@ func (evt *event) List(ctx *context.Context) (err errors.Error) {
 	}
 
 	status := http.StatusOK
+	computeEventsLastModified(ctx, response.Events)
+
 	if response.EventsCount == 0 {
 		status = http.StatusNoContent
 	}
@@ -241,6 +245,8 @@ func (evt *event) CurrentUserList(ctx *context.Context) (err errors.Error) {
 	}
 
 	status := http.StatusOK
+	computeEventsLastModified(ctx, response.Events)
+
 	if response.EventsCount == 0 {
 		status = http.StatusNoContent
 	}
@@ -262,6 +268,8 @@ func (evt *event) Feed(ctx *context.Context) (err errors.Error) {
 	response.EventsCount = len(response.Events)
 
 	status := http.StatusOK
+	computeEventsLastModified(ctx, response.Events)
+
 	if response.EventsCount == 0 {
 		status = http.StatusNoContent
 	} else {
@@ -439,6 +447,8 @@ func (evt *event) Search(ctx *context.Context) (err errors.Error) {
 	}
 
 	status := http.StatusOK
+	computeEventsLastModified(ctx, response.Events)
+
 	if response.EventsCount == 0 {
 		status = http.StatusNoContent
 	}
@@ -460,6 +470,8 @@ func (evt *event) UnreadFeed(ctx *context.Context) (err errors.Error) {
 	response.EventsCount = len(response.Events)
 
 	status := http.StatusOK
+	computeEventsLastModified(ctx, response.Events)
+
 	if response.UnreadCount == 0 {
 		status = http.StatusNoContent
 	} else {
@@ -486,6 +498,9 @@ func (evt *event) UnreadFeedCount(ctx *context.Context) (err errors.Error) {
 		ctx.Bag["applicationUser"].(*entity.ApplicationUser)); err != nil {
 		return
 	}
+
+	// TODO Maybe not the best idea?
+	computeLastModifiedNow(ctx)
 
 	server.WriteResponse(ctx, count, http.StatusOK, 10)
 	return

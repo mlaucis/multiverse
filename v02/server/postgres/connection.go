@@ -184,6 +184,8 @@ func (conn *connection) List(ctx *context.Context) (err errors.Error) {
 		return
 	}
 
+	computeApplicationUsersLastModified(ctx, users)
+
 	for idx := range users {
 		users[idx].Password = ""
 		users[idx].Enabled = false
@@ -202,6 +204,7 @@ func (conn *connection) List(ctx *context.Context) (err errors.Error) {
 	}
 
 	status := http.StatusOK
+
 	if response.UsersCount == 0 {
 		status = http.StatusNoContent
 	}
@@ -268,6 +271,8 @@ func (conn *connection) FollowedByList(ctx *context.Context) (err errors.Error) 
 		return
 	}
 
+	computeApplicationUsersLastModified(ctx, users)
+
 	for idx := range users {
 		users[idx].Password = ""
 		users[idx].Enabled = false
@@ -322,6 +327,8 @@ func (conn *connection) CurrentUserFollowedByList(ctx *context.Context) (err err
 	}
 
 	status := http.StatusOK
+	computeApplicationUsersLastModified(ctx, response.Users)
+
 	if response.UsersCount == 0 {
 		status = http.StatusNoContent
 	}
@@ -472,6 +479,8 @@ func (conn *connection) Friends(ctx *context.Context) (err errors.Error) {
 	}
 
 	status := http.StatusOK
+	computeApplicationUsersLastModified(ctx, response.Users)
+
 	if response.UsersCount == 0 {
 		status = http.StatusNoContent
 	}
@@ -504,6 +513,8 @@ func (conn *connection) CurrentUserFriends(ctx *context.Context) (err errors.Err
 	}
 
 	status := http.StatusOK
+	computeApplicationUsersLastModified(ctx, response.Users)
+
 	if response.UsersCount == 0 {
 		status = http.StatusNoContent
 	}

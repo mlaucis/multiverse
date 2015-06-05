@@ -48,6 +48,10 @@ func TGLog(msg chan *LogMsg) {
 		select {
 		case m := <-msg:
 			{
+				if m == nil {
+					continue
+				}
+
 				log.Printf(
 					logFormat,
 					m.Message,
@@ -73,6 +77,10 @@ func TGLogResponseTimes(msg chan *LogMsg) {
 		select {
 		case m := <-msg:
 			{
+				if m == nil {
+					continue
+				}
+
 				log.Printf(
 					logResponseTimeFormat,
 					m.End.Sub(m.Start),
@@ -91,6 +99,10 @@ func JSONLog(msg chan *LogMsg) {
 		select {
 		case m := <-msg:
 			{
+				if m == nil {
+					continue
+				}
+
 				m.Duration = m.End.Sub(m.Start).String()
 				m.Headers = getSanitizedHeaders(m.Headers)
 				if m.StatusCode < 300 {

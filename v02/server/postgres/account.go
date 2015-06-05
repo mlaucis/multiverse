@@ -32,6 +32,8 @@ func (acc *account) Read(ctx *context.Context) (err errors.Error) {
 		return errors.NewBadRequestError("account mismatch", "account mismatch")
 	}
 
+	computeAccountLastModified(ctx, ctx.Bag["account"].(*entity.Account))
+
 	server.WriteResponse(ctx, ctx.Bag["account"].(*entity.Account), http.StatusOK, 10)
 	return
 }
