@@ -72,7 +72,7 @@ var (
 	// OIDUUIDNamespace refers to the Object ID UUID Namespace http://tools.ietf.org/html/rfc4122.html#section-4.3
 	OIDUUIDNamespace = uuid.NamespaceOID.String()
 
-	saltLength, strongPasswordN, strongPasswordR, strongPasswordP, strongPasswordKeyLen = 32, 32768, 16, 2, 64
+	saltLength, strongPasswordN, strongPasswordR, strongPasswordP, strongPasswordKeyLen = 256, 32768, 8, 1, 256
 )
 
 func init() {
