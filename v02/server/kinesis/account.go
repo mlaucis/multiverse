@@ -17,24 +17,24 @@ type (
 	}
 )
 
-func (acc *account) Read(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (acc *account) Read(ctx *context.Context) (err []errors.Error) {
+	return notImplementedYet
 }
 
-func (acc *account) Update(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (acc *account) Update(ctx *context.Context) (err []errors.Error) {
+	return notImplementedYet
 }
 
-func (acc *account) Delete(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (acc *account) Delete(ctx *context.Context) (err []errors.Error) {
+	return notImplementedYet
 }
 
-func (acc *account) Create(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (acc *account) Create(ctx *context.Context) (err []errors.Error) {
+	return notImplementedYet
 }
 
-func (acc *account) PopulateContext(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (acc *account) PopulateContext(ctx *context.Context) (err []errors.Error) {
+	return notImplementedYet
 }
 
 // NewAccount returns a new account handler tweaked specifically for Kinesis

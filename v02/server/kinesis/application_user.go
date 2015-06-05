@@ -17,44 +17,44 @@ type (
 	}
 )
 
-func (appUser *applicationUser) Read(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (appUser *applicationUser) Read(ctx *context.Context) (err []errors.Error) {
+	return notImplementedYet
 }
 
-func (appUser *applicationUser) ReadCurrent(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (appUser *applicationUser) ReadCurrent(ctx *context.Context) (err []errors.Error) {
+	return notImplementedYet
 }
 
-func (appUser *applicationUser) UpdateCurrent(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (appUser *applicationUser) UpdateCurrent(ctx *context.Context) (err []errors.Error) {
+	return notImplementedYet
 }
 
-func (appUser *applicationUser) DeleteCurrent(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (appUser *applicationUser) DeleteCurrent(ctx *context.Context) (err []errors.Error) {
+	return notImplementedYet
 }
 
-func (appUser *applicationUser) Create(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (appUser *applicationUser) Create(ctx *context.Context) (err []errors.Error) {
+	return notImplementedYet
 }
 
-func (appUser *applicationUser) Login(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (appUser *applicationUser) Login(ctx *context.Context) (err []errors.Error) {
+	return notImplementedYet
 }
 
-func (appUser *applicationUser) RefreshSession(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (appUser *applicationUser) RefreshSession(ctx *context.Context) (err []errors.Error) {
+	return notImplementedYet
 }
 
-func (appUser *applicationUser) Logout(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (appUser *applicationUser) Logout(ctx *context.Context) (err []errors.Error) {
+	return notImplementedYet
 }
 
-func (appUser *applicationUser) Search(*context.Context) errors.Error {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (appUser *applicationUser) Search(*context.Context) (err []errors.Error) {
+	return notImplementedYet
 }
 
-func (appUser *applicationUser) PopulateContext(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (appUser *applicationUser) PopulateContext(ctx *context.Context) (err []errors.Error) {
+	return notImplementedYet
 }
 
 // NewApplicationUser returns a new application user routes handler

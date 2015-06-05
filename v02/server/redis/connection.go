@@ -24,8 +24,8 @@ type (
 	}
 )
 
-func (conn *connection) Update(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
+func (conn *connection) Update(ctx *context.Context) (err []errors.Error) {
+	return deprecatedStorageError
 	var (
 		userToID string
 		er       error
@@ -42,20 +42,20 @@ func (conn *connection) Update(ctx *context.Context) (err errors.Error) {
 		return
 	}
 	if existingConnection == nil {
-		return errors.NewNotFoundError("failed to update the connection (3)\nusers are not connected", "users are not connected")
+		return []errors.Error{errors.NewNotFoundError("failed to update the connection (3)\nusers are not connected", "users are not connected")}
 	}
 
 	connection := *existingConnection
 	if er = json.Unmarshal(ctx.Body, &connection); er != nil {
-		return errors.NewBadRequestError("failed to update the connection (4)\n"+er.Error(), er.Error())
+		return []errors.Error{errors.NewBadRequestError("failed to update the connection (4)\n"+er.Error(), er.Error())}
 	}
 
 	if connection.UserFromID != ctx.Bag["applicationUserID"].(string) {
-		return errors.NewBadRequestError("failed to update the connection (5)\nuser_from mismatch", "user_from mismatch")
+		return []errors.Error{errors.NewBadRequestError("failed to update the connection (5)\nuser_from mismatch", "user_from mismatch")}
 	}
 
 	if connection.UserToID != userToID {
-		return errors.NewBadRequestError("failed to update the connection (6)\nuser_to mismatch", "user_to mismatch")
+		return []errors.Error{errors.NewBadRequestError("failed to update the connection (6)\nuser_to mismatch", "user_to mismatch")}
 	}
 
 	if err = validator.UpdateConnection(
@@ -81,11 +81,11 @@ func (conn *connection) Update(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (conn *connection) Delete(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
+func (conn *connection) Delete(ctx *context.Context) (err []errors.Error) {
+	return deprecatedStorageError
 	connection := &entity.Connection{}
 	if er := json.Unmarshal(ctx.Body, connection); er != nil {
-		return errors.NewBadRequestError(er.Error(), er.Error())
+		return []errors.Error{errors.NewBadRequestError(er.Error(), er.Error())}
 	}
 
 	if err = conn.storage.Delete(
@@ -99,8 +99,8 @@ func (conn *connection) Delete(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (conn *connection) Create(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
+func (conn *connection) Create(ctx *context.Context) (err []errors.Error) {
+	return deprecatedStorageError
 	var (
 		connection = &entity.Connection{}
 		er         error
@@ -108,7 +108,7 @@ func (conn *connection) Create(ctx *context.Context) (err errors.Error) {
 	connection.Enabled = true
 
 	if er = json.Unmarshal(ctx.Body, connection); er != nil {
-		return errors.NewBadRequestError("failed to create the connection(1)\n"+er.Error(), er.Error())
+		return []errors.Error{errors.NewBadRequestError("failed to create the connection(1)\n"+er.Error(), er.Error())}
 	}
 
 	receivedEnabled := connection.Enabled
@@ -116,7 +116,7 @@ func (conn *connection) Create(ctx *context.Context) (err errors.Error) {
 	connection.UserFromID = ctx.Bag["applicationUserID"].(string)
 
 	if connection.UserFromID == connection.UserToID {
-		return errors.NewBadRequestError("failed to create connection (2)\nuser is connecting with itself", "self-connecting user")
+		return []errors.Error{errors.NewBadRequestError("failed to create connection (2)\nuser is connecting with itself", "self-connecting user")}
 	}
 
 	if err = validator.CreateConnection(
@@ -149,8 +149,8 @@ func (conn *connection) Create(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (conn *connection) List(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
+func (conn *connection) List(ctx *context.Context) (err []errors.Error) {
+	return deprecatedStorageError
 	var users []*entity.ApplicationUser
 
 	if users, err = conn.storage.List(
@@ -168,12 +168,12 @@ func (conn *connection) List(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (conn *connection) CurrentUserList(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (conn *connection) CurrentUserList(ctx *context.Context) (err []errors.Error) {
+	return []errors.Error{errors.NewInternalError("not implemented yet", "not implemented yet")}
 }
 
-func (conn *connection) FollowedByList(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
+func (conn *connection) FollowedByList(ctx *context.Context) (err []errors.Error) {
+	return deprecatedStorageError
 	var users []*entity.ApplicationUser
 
 	if users, err = conn.storage.FollowedBy(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(string)); err != nil {
@@ -188,16 +188,16 @@ func (conn *connection) FollowedByList(ctx *context.Context) (err errors.Error) 
 	return
 }
 
-func (conn *connection) CurrentUserFollowedByList(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (conn *connection) CurrentUserFollowedByList(ctx *context.Context) (err []errors.Error) {
+	return []errors.Error{errors.NewInternalError("not implemented yet", "not implemented yet")}
 }
 
-func (conn *connection) Confirm(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
+func (conn *connection) Confirm(ctx *context.Context) (err []errors.Error) {
+	return deprecatedStorageError
 	var connection = &entity.Connection{}
 
 	if er := json.Unmarshal(ctx.Body, connection); er != nil {
-		return errors.NewBadRequestError("failed to confirm the connection (1)\n"+er.Error(), er.Error())
+		return []errors.Error{errors.NewBadRequestError("failed to confirm the connection (1)\n"+er.Error(), er.Error())}
 	}
 
 	connection.UserFromID = ctx.Bag["applicationUserID"].(string)
@@ -222,8 +222,8 @@ func (conn *connection) Confirm(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (conn *connection) CreateSocial(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
+func (conn *connection) CreateSocial(ctx *context.Context) (err []errors.Error) {
+	return deprecatedStorageError
 	platformName := strings.ToLower(ctx.Vars["platformName"])
 
 	socialConnections := struct {
@@ -234,15 +234,15 @@ func (conn *connection) CreateSocial(ctx *context.Context) (err errors.Error) {
 	}{}
 
 	if er := json.Unmarshal(ctx.Body, &socialConnections); er != nil {
-		return errors.NewBadRequestError("social connecting failed (2)\n"+er.Error(), er.Error())
+		return []errors.Error{errors.NewBadRequestError("social connecting failed (2)\n"+er.Error(), er.Error())}
 	}
 
 	if ctx.Bag["applicationUserID"].(string) != socialConnections.UserFromID {
-		return errors.NewBadRequestError("social connecting failed (3)\nuser mismatch", "user mismatch")
+		return []errors.Error{errors.NewBadRequestError("social connecting failed (3)\nuser mismatch", "user mismatch")}
 	}
 
 	if platformName != strings.ToLower(socialConnections.SocialPlatform) {
-		return errors.NewBadRequestError("social connecting failed (3)\nplatform mismatch", "platform mismatch")
+		return []errors.Error{errors.NewBadRequestError("social connecting failed (3)\nplatform mismatch", "platform mismatch")}
 	}
 
 	users, err := conn.storage.SocialConnect(
@@ -264,12 +264,12 @@ func (conn *connection) CreateSocial(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (conn *connection) Friends(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (conn *connection) Friends(ctx *context.Context) (err []errors.Error) {
+	return []errors.Error{errors.NewInternalError("not implemented yet", "not implemented yet")}
 }
 
-func (conn *connection) CurrentUserFriends(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (conn *connection) CurrentUserFriends(ctx *context.Context) (err []errors.Error) {
+	return []errors.Error{errors.NewInternalError("not implemented yet", "not implemented yet")}
 }
 
 // NewConnection returns a new connection handler

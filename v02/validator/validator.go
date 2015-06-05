@@ -29,20 +29,20 @@ var (
 	numInt   = regexp.MustCompile("^(?:[-+]?(?:0|[1-9][0-9]*))$")
 	numFloat = regexp.MustCompile("^(?:[-+]?(?:[0-9]+))?(?:\\.[0-9]*)?(?:[eE][\\+\\-]?(?:[0-9]+))?$")
 
-	errorInvalidImageURL           = fmt.Errorf("image url is not valid")
-	errorAccountDoesNotExists      = fmt.Errorf("account does not exists")
-	errorApplicationDoesNotExists  = fmt.Errorf("application does not exists")
+	errorInvalidImageURL           = errors.NewBadRequestError(fmt.Sprintf("image url is not valid"), "")
+	errorAccountDoesNotExists      = errors.NewBadRequestError(fmt.Sprintf("account does not exists"), "")
+	errorApplicationDoesNotExists  = errors.NewBadRequestError(fmt.Sprintf("application does not exists"), "")
 	errorUserEmailAlreadyExists    = errors.NewBadRequestError("user already exists (1)", "user already exists (1)")
 	errorUserUsernameAlreadyExists = errors.NewBadRequestError("user already exists (2)", "user already exists (2)")
-	errorEmailAddressInUse         = fmt.Errorf("email address already in use")
-	errorUsernameInUse             = fmt.Errorf("username already in use")
+	errorEmailAddressInUse         = errors.NewBadRequestError(fmt.Sprintf("email address already in use"), "")
+	errorUsernameInUse             = errors.NewBadRequestError(fmt.Sprintf("username already in use"), "")
 
 	// ErrorPayloadTooBig is our error for when the request payload is too big
 	ErrorPayloadTooBig = errors.New(http.StatusRequestEntityTooLarge, "payload too big", "fat payload detected", false)
 )
 
 // packErrors prints errors happened during validation
-func packErrors(errs []*error) errors.Error {
+/*func packErrors(errs []*error) errors.Error {
 	if len(errs) == 0 {
 		return nil
 	}
@@ -53,7 +53,7 @@ func packErrors(errs []*error) errors.Error {
 	}
 
 	return errors.NewBadRequestError(er[:len(er)-1], er[:len(er)-1])
-}
+}*/
 
 // IsValidURL checks is an url is valid
 func IsValidURL(checkURL string, absolute bool) bool {
@@ -100,7 +100,7 @@ func StringLengthBetween(value string, minLength, maxLength int) bool {
 	return true
 }
 
-// IsValidUUID5 checks if the string is a valid UUID or not
+// IsValidUUID5 checks if the serrors.NewBadRequestError(fmt.Sprintfvalid UUID or not
 func IsValidUUID5(str string) bool {
 	uid, err := uuid.FromString(str)
 

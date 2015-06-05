@@ -22,17 +22,17 @@ type (
 	}
 )
 
-func (acc *account) Read(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
+func (acc *account) Read(ctx *context.Context) (err []errors.Error) {
+	return deprecatedStorageError
 	server.WriteResponse(ctx, ctx.Bag["account"].(*entity.Account), http.StatusOK, 10)
 	return
 }
 
-func (acc *account) Update(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
+func (acc *account) Update(ctx *context.Context) (err []errors.Error) {
+	return deprecatedStorageError
 	account := *(ctx.Bag["account"].(*entity.Account))
 	if er := json.Unmarshal(ctx.Body, &account); er != nil {
-		return errors.NewBadRequestError("failed to update the account (1)\n"+er.Error(), "malformed json received")
+		return []errors.Error{errors.NewBadRequestError("failed to update the account (1)\n"+er.Error(), "malformed json received")}
 	}
 
 	account.ID = ctx.Bag["accountID"].(int64)
@@ -50,8 +50,8 @@ func (acc *account) Update(ctx *context.Context) (err errors.Error) {
 	return nil
 }
 
-func (acc *account) Delete(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
+func (acc *account) Delete(ctx *context.Context) (err []errors.Error) {
+	return deprecatedStorageError
 	if err = acc.storage.Delete(ctx.Bag["account"].(*entity.Account)); err != nil {
 		return err
 	}
@@ -60,12 +60,12 @@ func (acc *account) Delete(ctx *context.Context) (err errors.Error) {
 	return nil
 }
 
-func (acc *account) Create(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
+func (acc *account) Create(ctx *context.Context) (err []errors.Error) {
+	return deprecatedStorageError
 	var account = &entity.Account{}
 
 	if er := json.Unmarshal(ctx.Body, account); er != nil {
-		return errors.NewBadRequestError("failed to create the account (1)\n"+er.Error(), er.Error())
+		return []errors.Error{errors.NewBadRequestError("failed to create the account (1)\n"+er.Error(), er.Error())}
 	}
 
 	if err = validator.CreateAccount(account); err != nil {
@@ -80,8 +80,8 @@ func (acc *account) Create(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (acc *account) PopulateContext(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
+func (acc *account) PopulateContext(ctx *context.Context) (err []errors.Error) {
+	return deprecatedStorageError
 	ctx.Bag["account"], err = acc.storage.Read(ctx.Bag["accountID"].(int64))
 	return
 }

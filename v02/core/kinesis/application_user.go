@@ -1,4 +1,4 @@
-package redis
+package kinesis
 
 import (
 	"encoding/json"
@@ -20,88 +20,88 @@ type (
 	}
 )
 
-func (appu *applicationUser) Create(accountID, applicationID int64, user *entity.ApplicationUser, retrieve bool) (usr *entity.ApplicationUser, err errors.Error) {
-	return nil, errors.NewNotFoundError("not found", "invalid handler specified")
+func (appu *applicationUser) Create(accountID, applicationID int64, user *entity.ApplicationUser, retrieve bool) (usr *entity.ApplicationUser, err []errors.Error) {
+	return nil, invalidHandlerError
 }
 
-func (appu *applicationUser) Read(accountID, applicationID int64, userID string) (user *entity.ApplicationUser, err errors.Error) {
-	return nil, errors.NewNotFoundError("not found", "invalid handler specified")
+func (appu *applicationUser) Read(accountID, applicationID int64, userID string) (user *entity.ApplicationUser, err []errors.Error) {
+	return nil, invalidHandlerError
 }
 
-func (appu *applicationUser) ReadMultiple(accountID, applicationID int64, userIDs []string) (users []*entity.ApplicationUser, err errors.Error) {
-	return nil, errors.NewInternalError("not implemented yet", "not implemented yet")
+func (appu *applicationUser) ReadMultiple(accountID, applicationID int64, userIDs []string) (users []*entity.ApplicationUser, err []errors.Error) {
+	return nil, invalidHandlerError
 }
 
-func (appu *applicationUser) Update(accountID, applicationID int64, existingUser, updatedUser entity.ApplicationUser, retrieve bool) (usr *entity.ApplicationUser, err errors.Error) {
+func (appu *applicationUser) Update(accountID, applicationID int64, existingUser, updatedUser entity.ApplicationUser, retrieve bool) (*entity.ApplicationUser, []errors.Error) {
 	data, er := json.Marshal(updatedUser)
 	if er != nil {
-		return nil, errors.NewInternalError("error while updating the user (1)", er.Error())
+		return nil, []errors.Error{errors.NewInternalError("error while updating the user (1)", er.Error())}
 	}
 
 	partitionKey := fmt.Sprintf("application-user-update-%d-%d-%d", accountID, applicationID, updatedUser.ID)
-	_, err = appu.storage.PackAndPutRecord(kinesis.StreamApplicationUserUpdate, partitionKey, data)
+	_, err := appu.storage.PackAndPutRecord(kinesis.StreamApplicationUserUpdate, partitionKey, data)
 
-	return nil, err
+	return nil, []errors.Error{err}
 }
 
-func (appu *applicationUser) Delete(accountID, applicationID int64, applicationUser *entity.ApplicationUser) (err errors.Error) {
+func (appu *applicationUser) Delete(accountID, applicationID int64, applicationUser *entity.ApplicationUser) []errors.Error {
 	data, er := json.Marshal(applicationUser)
 	if er != nil {
-		return errors.NewInternalError("error while deleting the user (1)", er.Error())
+		return []errors.Error{errors.NewInternalError("error while deleting the user (1)", er.Error())}
 	}
 
 	partitionKey := fmt.Sprintf("application-user-delete-%d-%d-%d", accountID, applicationID, applicationUser.ID)
-	_, err = appu.storage.PackAndPutRecord(kinesis.StreamApplicationUserDelete, partitionKey, data)
+	_, err := appu.storage.PackAndPutRecord(kinesis.StreamApplicationUserDelete, partitionKey, data)
 
-	return err
+	return []errors.Error{err}
 }
 
-func (appu *applicationUser) List(accountID, applicationID int64) (users []*entity.ApplicationUser, err errors.Error) {
-	return nil, errors.NewNotFoundError("not found", "invalid handler specified")
+func (appu *applicationUser) List(accountID, applicationID int64) (users []*entity.ApplicationUser, err []errors.Error) {
+	return nil, invalidHandlerError
 }
 
-func (appu *applicationUser) CreateSession(accountID, applicationID int64, user *entity.ApplicationUser) (string, errors.Error) {
-	return "", errors.NewNotFoundError("not found", "invalid handler specified")
+func (appu *applicationUser) CreateSession(accountID, applicationID int64, user *entity.ApplicationUser) (string, []errors.Error) {
+	return "", invalidHandlerError
 }
 
-func (appu *applicationUser) RefreshSession(accountID, applicationID int64, sessionToken string, user *entity.ApplicationUser) (string, errors.Error) {
-	return "", errors.NewNotFoundError("not found", "invalid handler specified")
+func (appu *applicationUser) RefreshSession(accountID, applicationID int64, sessionToken string, user *entity.ApplicationUser) (string, []errors.Error) {
+	return "", invalidHandlerError
 }
 
-func (appu *applicationUser) GetSession(accountID, applicationID int64, user *entity.ApplicationUser) (string, errors.Error) {
-	return "", errors.NewNotFoundError("not found", "invalid handler specified")
+func (appu *applicationUser) GetSession(accountID, applicationID int64, user *entity.ApplicationUser) (string, []errors.Error) {
+	return "", invalidHandlerError
 }
 
-func (appu *applicationUser) DestroySession(accountID, applicationID int64, sessionToken string, user *entity.ApplicationUser) errors.Error {
-	return errors.NewNotFoundError("not found", "invalid handler specified")
+func (appu *applicationUser) DestroySession(accountID, applicationID int64, sessionToken string, user *entity.ApplicationUser) []errors.Error {
+	return invalidHandlerError
 }
 
-func (appu *applicationUser) FindByEmail(accountID, applicationID int64, email string) (*entity.ApplicationUser, errors.Error) {
-	return nil, errors.NewNotFoundError("not found", "invalid handler specified")
+func (appu *applicationUser) FindByEmail(accountID, applicationID int64, email string) (*entity.ApplicationUser, []errors.Error) {
+	return nil, invalidHandlerError
 }
 
-func (appu *applicationUser) ExistsByEmail(accountID, applicationID int64, email string) (bool, errors.Error) {
-	return false, errors.NewNotFoundError("not found", "invalid handler specified")
+func (appu *applicationUser) ExistsByEmail(accountID, applicationID int64, email string) (bool, []errors.Error) {
+	return false, invalidHandlerError
 }
 
-func (appu *applicationUser) FindByUsername(accountID, applicationID int64, username string) (*entity.ApplicationUser, errors.Error) {
-	return nil, errors.NewNotFoundError("not found", "invalid handler specified")
+func (appu *applicationUser) FindByUsername(accountID, applicationID int64, username string) (*entity.ApplicationUser, []errors.Error) {
+	return nil, invalidHandlerError
 }
 
-func (appu *applicationUser) ExistsByUsername(accountID, applicationID int64, username string) (bool, errors.Error) {
-	return false, errors.NewNotFoundError("not found", "invalid handler specified")
+func (appu *applicationUser) ExistsByUsername(accountID, applicationID int64, username string) (bool, []errors.Error) {
+	return false, invalidHandlerError
 }
 
-func (appu *applicationUser) ExistsByID(accountID, applicationID int64, userID string) (bool, errors.Error) {
-	return false, errors.NewInternalError("not implemented yet", "not implemented yet")
+func (appu *applicationUser) ExistsByID(accountID, applicationID int64, userID string) (bool, []errors.Error) {
+	return false, invalidHandlerError
 }
 
-func (appu *applicationUser) FindBySession(accountID, applicationID int64, sessionKey string) (*entity.ApplicationUser, errors.Error) {
-	return nil, errors.NewInternalError("not implemented yet", "not implemented yet")
+func (appu *applicationUser) FindBySession(accountID, applicationID int64, sessionKey string) (*entity.ApplicationUser, []errors.Error) {
+	return nil, invalidHandlerError
 }
 
-func (appu *applicationUser) Search(accountID, applicationID int64, searchTerm string) ([]*entity.ApplicationUser, errors.Error) {
-	return []*entity.ApplicationUser{}, errors.NewInternalError("not implemented yet", "not implemented yet")
+func (appu *applicationUser) Search(accountID, applicationID int64, searchTerm string) ([]*entity.ApplicationUser, []errors.Error) {
+	return nil, invalidHandlerError
 }
 
 // NewApplicationUser creates a new Event

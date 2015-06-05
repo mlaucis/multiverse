@@ -22,6 +22,7 @@ type (
 		Raw() error
 		ErrorWithLocation() string
 		InternalErrorWithLocation() string
+		SetCurrentLocation() Error
 	}
 
 	myError struct {
@@ -88,6 +89,10 @@ func Fatal(message error) {
 }
 
 func newError(errorType errorType, message, internalMessage string, stackDepth int) Error {
+	if internalMessage == "" {
+		internalMessage = message
+	}
+
 	err := &myError{message: message, internalMessage: internalMessage, errType: errorType}
 	if stackDepth == -1 && !dbgMode {
 		return err
@@ -136,6 +141,13 @@ func (err *myError) InternalErrorWithLocation() string {
 		return fmt.Sprintf("%q in %s", err.internalMessage, err.location)
 	}
 	return err.internalMessage
+}
+
+// SetCurrentLocation will update the error location to point to the invokation line rather that the creation line
+func (err *myError) SetCurrentLocation() Error {
+	_, filename, line, _ := runtime.Caller(1)
+	err.location = fmt.Sprintf("%s:%d", filename, line)
+	return err
 }
 
 // ExtraData is usefull if you want to attach more data to the error while producing the error.

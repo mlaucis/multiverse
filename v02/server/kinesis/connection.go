@@ -18,48 +18,48 @@ type (
 	}
 )
 
-func (conn *connection) Update(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (conn *connection) Update(ctx *context.Context) (err []errors.Error) {
+	return notImplementedYet
 }
 
-func (conn *connection) Delete(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (conn *connection) Delete(ctx *context.Context) (err []errors.Error) {
+	return notImplementedYet
 }
 
-func (conn *connection) Create(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (conn *connection) Create(ctx *context.Context) (err []errors.Error) {
+	return notImplementedYet
 }
 
-func (conn *connection) List(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (conn *connection) List(ctx *context.Context) (err []errors.Error) {
+	return notImplementedYet
 }
 
-func (conn *connection) CurrentUserList(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (conn *connection) CurrentUserList(ctx *context.Context) (err []errors.Error) {
+	return notImplementedYet
 }
 
-func (conn *connection) FollowedByList(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (conn *connection) FollowedByList(ctx *context.Context) (err []errors.Error) {
+	return notImplementedYet
 }
 
-func (conn *connection) CurrentUserFollowedByList(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (conn *connection) CurrentUserFollowedByList(ctx *context.Context) (err []errors.Error) {
+	return notImplementedYet
 }
 
-func (conn *connection) Confirm(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (conn *connection) Confirm(ctx *context.Context) (err []errors.Error) {
+	return notImplementedYet
 }
 
-func (conn *connection) CreateSocial(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (conn *connection) CreateSocial(ctx *context.Context) (err []errors.Error) {
+	return notImplementedYet
 }
 
-func (conn *connection) Friends(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (conn *connection) Friends(ctx *context.Context) (err []errors.Error) {
+	return notImplementedYet
 }
 
-func (conn *connection) CurrentUserFriends(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (conn *connection) CurrentUserFriends(ctx *context.Context) (err []errors.Error) {
+	return notImplementedYet
 }
 
 // NewConnection returns a new connection handler

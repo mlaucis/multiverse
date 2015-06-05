@@ -23,17 +23,17 @@ type (
 	}
 )
 
-func (app *application) Read(ctx *context.Context) (err errors.Error) {
+func (app *application) Read(ctx *context.Context) (err []errors.Error) {
 	// TODO This one read only the current application maybe we want to have something to read any application?
 	computeApplicationLastModified(ctx, ctx.Bag["application"].(*entity.Application))
 	server.WriteResponse(ctx, ctx.Bag["application"].(*entity.Application), http.StatusOK, 10)
 	return
 }
 
-func (app *application) Update(ctx *context.Context) (err errors.Error) {
+func (app *application) Update(ctx *context.Context) (err []errors.Error) {
 	application := *(ctx.Bag["application"].(*entity.Application))
 	if er := json.Unmarshal(ctx.Body, &application); er != nil {
-		return errors.NewBadRequestError("failed to update the application (1)\n"+er.Error(), er.Error())
+		return []errors.Error{errors.NewBadRequestError("failed to update the application (1)\n"+er.Error(), er.Error())}
 	}
 
 	application.ID = ctx.Bag["applicationID"].(int64)
@@ -53,7 +53,7 @@ func (app *application) Update(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (app *application) Delete(ctx *context.Context) (err errors.Error) {
+func (app *application) Delete(ctx *context.Context) (err []errors.Error) {
 	if err = app.storage.Delete(ctx.Bag["application"].(*entity.Application)); err != nil {
 		return
 	}
@@ -62,13 +62,13 @@ func (app *application) Delete(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (app *application) Create(ctx *context.Context) (err errors.Error) {
+func (app *application) Create(ctx *context.Context) (err []errors.Error) {
 	var (
 		application = &entity.Application{}
 	)
 
 	if er := json.Unmarshal(ctx.Body, application); er != nil {
-		return errors.NewBadRequestError("failed to create the application (1)\n"+er.Error(), er.Error())
+		return []errors.Error{errors.NewBadRequestError("failed to create the application (1)\n"+er.Error(), er.Error())}
 	}
 
 	application.AccountID = ctx.Bag["accountID"].(int64)
@@ -86,7 +86,7 @@ func (app *application) Create(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (app *application) List(ctx *context.Context) (err errors.Error) {
+func (app *application) List(ctx *context.Context) (err []errors.Error) {
 	var (
 		applications []*entity.Application
 	)
@@ -107,10 +107,10 @@ func (app *application) List(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (app *application) PopulateContext(ctx *context.Context) (err errors.Error) {
+func (app *application) PopulateContext(ctx *context.Context) (err []errors.Error) {
 	user, pass, ok := ctx.BasicAuth()
 	if !ok {
-		return errors.NewBadRequestError("error while reading application credentials", fmt.Sprintf("got %s:%s", user, pass))
+		return []errors.Error{errors.NewBadRequestError("error while reading application credentials", fmt.Sprintf("got %s:%s", user, pass))}
 	}
 	ctx.Bag["application"], err = app.storage.FindByKey(user)
 	if err == nil {
@@ -120,16 +120,16 @@ func (app *application) PopulateContext(ctx *context.Context) (err errors.Error)
 	return
 }
 
-func (app *application) PopulateContextFromID(ctx *context.Context) (err errors.Error) {
+func (app *application) PopulateContextFromID(ctx *context.Context) (err []errors.Error) {
 	applicationID := ctx.Vars["applicationID"]
 	if !validator.IsValidUUID5(applicationID) {
-		return invalidAppIDError
+		return []errors.Error{invalidAppIDError}
 	}
 
 	ctx.Bag["application"], err = app.storage.FindByPublicID(applicationID)
 	if err == nil {
 		if ctx.Bag["application"].(*entity.Application) == nil {
-			return errors.NewNotFoundError("application not found", "application not found")
+			return []errors.Error{errors.NewNotFoundError("application not found", "application not found")}
 		}
 
 		ctx.Bag["accountID"] = ctx.Bag["application"].(*entity.Application).AccountID

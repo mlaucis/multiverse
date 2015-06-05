@@ -1,4 +1,4 @@
-package redis
+package kinesis
 
 import (
 	"encoding/json"
@@ -19,60 +19,60 @@ type (
 	}
 )
 
-func (app *application) Create(application *entity.Application, retrieve bool) (*entity.Application, errors.Error) {
+func (app *application) Create(application *entity.Application, retrieve bool) (*entity.Application, []errors.Error) {
 	data, er := json.Marshal(application)
 	if er != nil {
-		return nil, errors.NewInternalError("error while creating the application (1)", er.Error())
+		return nil, []errors.Error{errors.NewInternalError("error while creating the application (1)", er.Error())}
 	}
 
 	partitionKey := fmt.Sprintf("application-create-%d", application.AccountID)
 	_, err := app.storage.PackAndPutRecord(kinesis.StreamApplicationCreate, partitionKey, data)
 
-	return nil, err
+	return nil, []errors.Error{err}
 }
 
-func (app *application) Read(accountID, applicationID int64) (*entity.Application, errors.Error) {
-	return nil, errors.NewNotFoundError("not found", "invalid handler specified")
+func (app *application) Read(accountID, applicationID int64) (*entity.Application, []errors.Error) {
+	return nil, invalidHandlerError
 }
 
-func (app *application) Update(existingApplication, updatedApplication entity.Application, retrieve bool) (*entity.Application, errors.Error) {
+func (app *application) Update(existingApplication, updatedApplication entity.Application, retrieve bool) (*entity.Application, []errors.Error) {
 	data, er := json.Marshal(updatedApplication)
 	if er != nil {
-		return nil, errors.NewInternalError("error while updating the application (1)", er.Error())
+		return nil, []errors.Error{errors.NewInternalError("error while updating the application (1)", er.Error())}
 	}
 
 	partitionKey := fmt.Sprintf("application-update-%d-%d", updatedApplication.AccountID, updatedApplication.ID)
 	_, err := app.storage.PackAndPutRecord(kinesis.StreamApplicationUpdate, partitionKey, data)
 
-	return nil, err
+	return nil, []errors.Error{err}
 }
 
-func (app *application) Delete(application *entity.Application) errors.Error {
+func (app *application) Delete(application *entity.Application) []errors.Error {
 	data, er := json.Marshal(application)
 	if er != nil {
-		return errors.NewInternalError("error while deleting the application (1)", er.Error())
+		return []errors.Error{errors.NewInternalError("error while deleting the application (1)", er.Error())}
 	}
 
 	partitionKey := fmt.Sprintf("application-delete-%d-%d", application.AccountID, application.ID)
 	_, err := app.storage.PackAndPutRecord(kinesis.StreamApplicationDelete, partitionKey, data)
 
-	return err
+	return []errors.Error{err}
 }
 
-func (app *application) List(accountID int64) ([]*entity.Application, errors.Error) {
-	return nil, errors.NewNotFoundError("not found", "invalid handler specified")
+func (app *application) List(accountID int64) ([]*entity.Application, []errors.Error) {
+	return nil, invalidHandlerError
 }
 
-func (app *application) Exists(accountID, applicationID int64) (bool, errors.Error) {
-	return false, errors.NewInternalError("not implemented yet", "not implemented yet")
+func (app *application) Exists(accountID, applicationID int64) (bool, []errors.Error) {
+	return false, invalidHandlerError
 }
 
-func (app *application) FindByKey(applicationKey string) (*entity.Application, errors.Error) {
-	return nil, errors.NewInternalError("not implemented yet", "not implemented yet")
+func (app *application) FindByKey(applicationKey string) (*entity.Application, []errors.Error) {
+	return nil, invalidHandlerError
 }
 
-func (app *application) FindByPublicID(publicID string) (*entity.Application, errors.Error) {
-	return nil, errors.NewInternalError("not implemented yet", "not implemented yet")
+func (app *application) FindByPublicID(publicID string) (*entity.Application, []errors.Error) {
+	return nil, invalidHandlerError
 }
 
 // NewApplication creates a new Application

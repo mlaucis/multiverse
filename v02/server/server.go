@@ -22,7 +22,7 @@ import (
 
 type (
 	// RouteFunc defines the pattern for a route handling function
-	RouteFunc func(*context.Context) errors.Error
+	RouteFunc func(*context.Context) []errors.Error
 
 	// Route holds the route pattern
 	Route struct {
@@ -113,8 +113,8 @@ func WriteResponse(ctx *context.Context, response interface{}, code int, cacheTi
 }
 
 // ErrorHappened handles the error message
-func ErrorHappened(ctx *context.Context, err errors.Error) {
-	ctx.StatusCode = int(err.Type())
+func ErrorHappened(ctx *context.Context, err []errors.Error) {
+	ctx.StatusCode = int(err[0].Type())
 
 	WriteCommonHeaders(0, ctx)
 	WriteCorsHeaders(ctx)
@@ -123,12 +123,12 @@ func ErrorHappened(ctx *context.Context, err errors.Error) {
 	if !strings.Contains(ctx.R.Header.Get("Accept-Encoding"), "gzip") {
 		// No gzip support
 		ctx.W.WriteHeader(ctx.StatusCode)
-		fmt.Fprintf(ctx.W, "%d %s", err.Type(), err.Error())
+		fmt.Fprintf(ctx.W, "%d %s", err[0].Type(), err[0].Error())
 	} else {
 		ctx.W.Header().Set("Content-Encoding", "gzip")
 		ctx.W.WriteHeader(ctx.StatusCode)
 		gz := gzip.NewWriter(ctx.W)
-		fmt.Fprintf(gz, "%d %s", int(err.Type()), err.Error())
+		fmt.Fprintf(gz, "%d %s", int(err[0].Type()), err[0].Error())
 		gz.Close()
 	}
 
@@ -177,14 +177,14 @@ func WriteCorsHeaders(ctx *context.Context) {
 }
 
 // CorsHandler will handle the CORS requests
-func CorsHandler(ctx *context.Context) (err errors.Error) {
+func CorsHandler(ctx *context.Context) (err []errors.Error) {
 	WriteCommonHeaders(100, ctx)
 	WriteCorsHeaders(ctx)
 	return
 }
 
 // VersionHandler handlers the requests for the version status
-func VersionHandler(ctx *context.Context) errors.Error {
+func VersionHandler(ctx *context.Context) []errors.Error {
 	response := struct {
 		Version string `json:"version"`
 		Status  string `json:"status"`
@@ -203,103 +203,104 @@ func GetRoute(routeName string) *Route {
 }
 
 // ValidateGetCommon runs a series of predefined, common, tests for GET requests
-func ValidateGetCommon(ctx *context.Context) (err errors.Error) {
+func ValidateGetCommon(ctx *context.Context) (err []errors.Error) {
 	if ctx.R.Header.Get("User-Agent") != "" {
 		return
 	}
-	return errors.NewBadRequestError("User-Agent header must be set (1)", "missing ua header")
+	return []errors.Error{badUserAgentError.SetCurrentLocation()}
 }
 
 // ValidatePutCommon runs a series of predefinied, common, tests for PUT requests
-func ValidatePutCommon(ctx *context.Context) (err errors.Error) {
+func ValidatePutCommon(ctx *context.Context) (err []errors.Error) {
 	if ctx.SkipSecurity {
 		return
 	}
 
 	if ctx.R.Header.Get("User-Agent") == "" {
-		return errors.NewBadRequestError("User-Agent header must be set (1)", "missing ua header")
+		err = append(err, badUserAgentError.SetCurrentLocation())
 	}
 
 	if ctx.R.Header.Get("Content-Length") == "" {
-		return errors.NewBadRequestError("Content-Length header missing", "missing content-length header")
+		err = append(err, contentLengthMissingError.SetCurrentLocation())
 	}
 
 	if ctx.R.Header.Get("Content-Type") == "" {
-		return errors.NewBadRequestError("Content-Type header empty", "missing content-type header")
+		err = append(err, contentTypeMissingError.SetCurrentLocation())
 	}
 
 	if ctx.R.Header.Get("Content-Type") != "application/json" &&
 		ctx.R.Header.Get("Content-Type") != "application/json; charset=UTF-8" {
-		return errors.NewBadRequestError("Content-Type header is empty", "content-type header mismatch")
+		err = append(err, contentTypeMismatchError.SetCurrentLocation())
 	}
 
 	reqCL, er := strconv.ParseInt(ctx.R.Header.Get("Content-Length"), 10, 64)
 	if er != nil {
-		return errors.NewBadRequestError("Content-Length header is invalid", "content-length header is not an int")
+		err = append(err, contentLengthInvalidError.SetCurrentLocation())
 	}
 
 	if reqCL != ctx.R.ContentLength {
-		return errors.NewBadRequestError("Content-Length header size mismatch", "content-length header size mismatch")
+		err = append(err, contentLengthSizeMismatchError.SetCurrentLocation())
 	} else {
+		// TODO better handling here for limits, maybe make them customizable
 		if reqCL > 2048 {
-			return validator.ErrorPayloadTooBig
+			err = append(err, validator.ErrorPayloadTooBig.SetCurrentLocation())
 		}
 	}
 
 	if ctx.R.Body == nil {
-		return errors.NewBadRequestError("Empty request body", "empty request body")
+		err = append(err, requestBodyEmpty.SetCurrentLocation())
 	}
 	return
 }
 
 // ValidateDeleteCommon runs a series of predefinied, common, tests for DELETE requests
-func ValidateDeleteCommon(ctx *context.Context) (err errors.Error) {
-	if ctx.R.Header.Get("User-Agent") != "" {
-		return
+func ValidateDeleteCommon(ctx *context.Context) (err []errors.Error) {
+	if ctx.R.Header.Get("User-Agent") == "" {
+		err = append(err, badUserAgentError.SetCurrentLocation())
 	}
 
-	return errors.NewBadRequestError("User-Agent header must be set (1)", "missing ua header")
+	return
 }
 
 // ValidatePostCommon runs a series of predefined, common, tests for the POST requests
-func ValidatePostCommon(ctx *context.Context) (err errors.Error) {
+func ValidatePostCommon(ctx *context.Context) (err []errors.Error) {
 	if ctx.SkipSecurity {
 		return
 	}
 
 	if ctx.R.Header.Get("User-Agent") == "" {
-		return errors.NewBadRequestError("User-Agent header must be set (1)", "missing ua header")
+		err = append(err, badUserAgentError.SetCurrentLocation())
 	}
 
 	if ctx.R.Header.Get("Content-Length") == "" {
-		return errors.NewBadRequestError("Content-Length header missing", "missing content-length header")
+		err = append(err, contentLengthMissingError.SetCurrentLocation())
 	}
 
 	if ctx.R.Header.Get("Content-Type") == "" {
-		return errors.NewBadRequestError("Content-Type header empty", "missing content-type header")
+		err = append(err, contentTypeMissingError.SetCurrentLocation())
 	}
 
 	if ctx.R.Header.Get("Content-Type") != "application/json" &&
 		ctx.R.Header.Get("Content-Type") != "application/json; charset=UTF-8" {
-		return errors.NewBadRequestError("Content-Type header is empty", "content-type header mismatch")
+		err = append(err, contentTypeMismatchError.SetCurrentLocation())
 	}
 
 	reqCL, er := strconv.ParseInt(ctx.R.Header.Get("Content-Length"), 10, 64)
 	if er != nil {
-		return errors.NewBadRequestError("Content-Length header is invalid", "content-length header is not an int")
+		err = append(err, contentLengthInvalidError.SetCurrentLocation())
 	}
 
 	if reqCL != ctx.R.ContentLength {
-		return errors.NewBadRequestError("Content-Length header size mismatch", "content-length header size mismatch")
+		err = append(err, contentLengthSizeMismatchError.SetCurrentLocation())
 	} else {
 		// TODO better handling here for limits, maybe make them customizable
 		if reqCL > 2048 {
-			return validator.ErrorPayloadTooBig
+			err = append(err, validator.ErrorPayloadTooBig.SetCurrentLocation())
 		}
 	}
 
 	if ctx.R.Body == nil {
-		return errors.NewBadRequestError("Empty request body", "empty request body")
+		err = append(err, requestBodyEmpty.SetCurrentLocation())
 	}
 	return
 }
@@ -327,7 +328,7 @@ func CustomHandler(routeName, version string, route *Route, mainLog, errorLog ch
 	}
 
 	route.Handlers = append(extraHandlers, route.Handlers...)
-	route.Filters = append([]context.Filter{func(ctx *context.Context) errors.Error {
+	route.Filters = append([]context.Filter{func(ctx *context.Context) []errors.Error {
 		ctx.Vars = mux.Vars(ctx.R)
 		return nil
 	}}, route.Filters...)
