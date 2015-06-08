@@ -125,31 +125,41 @@ func CreateUser(datastore core.ApplicationUser, accountID, applicationID int64, 
 func UpdateUser(datastore core.ApplicationUser, accountID, applicationID int64, existingApplicationUser, updatedApplicationUser *entity.ApplicationUser) errors.Error {
 	errs := []*error{}
 
-	if !StringLengthBetween(updatedApplicationUser.FirstName, userNameMin, userNameMax) {
-		errs = append(errs, &errorUserFirstNameSize)
+	if updatedApplicationUser.FirstName != "" {
+		if !StringLengthBetween(updatedApplicationUser.FirstName, userNameMin, userNameMax) {
+			errs = append(errs, &errorUserFirstNameSize)
+		}
+
+		if !alphaNumExtraCharFirst.MatchString(updatedApplicationUser.FirstName) {
+			errs = append(errs, &errorUserFirstNameType)
+		}
 	}
 
-	if !StringLengthBetween(updatedApplicationUser.LastName, userNameMin, userNameMax) {
-		errs = append(errs, &errorUserLastNameSize)
+	if updatedApplicationUser.LastName != "" {
+		if !StringLengthBetween(updatedApplicationUser.LastName, userNameMin, userNameMax) {
+			errs = append(errs, &errorUserLastNameSize)
+		}
+
+		if !alphaNumExtraCharFirst.MatchString(updatedApplicationUser.LastName) {
+			errs = append(errs, &errorUserLastNameType)
+		}
 	}
 
-	if !StringLengthBetween(updatedApplicationUser.Username, userNameMin, userNameMax) {
-		errs = append(errs, &errorUserUsernameSize)
+	if updatedApplicationUser.Username != "" {
+		if !StringLengthBetween(updatedApplicationUser.Username, userNameMin, userNameMax) {
+			errs = append(errs, &errorUserUsernameSize)
+		}
+
+		if !alphaNumExtraCharFirst.MatchString(updatedApplicationUser.Username) {
+			errs = append(errs, &errorUserUsernameType)
+		}
 	}
 
-	if !alphaNumExtraCharFirst.MatchString(updatedApplicationUser.FirstName) {
-		errs = append(errs, &errorUserFirstNameType)
+	if updatedApplicationUser.Username == "" && updatedApplicationUser.Email == "" {
+		errs = append(errs, &errorUsernameAndEmailAreEmpty)
 	}
 
-	if !alphaNumExtraCharFirst.MatchString(updatedApplicationUser.LastName) {
-		errs = append(errs, &errorUserLastNameType)
-	}
-
-	if !alphaNumExtraCharFirst.MatchString(updatedApplicationUser.Username) {
-		errs = append(errs, &errorUserUsernameType)
-	}
-
-	if updatedApplicationUser.Email == "" || !IsValidEmail(updatedApplicationUser.Email) {
+	if updatedApplicationUser.Email != "" && !IsValidEmail(updatedApplicationUser.Email) {
 		errs = append(errs, &errorUserEmailInvalid)
 	}
 
@@ -163,7 +173,7 @@ func UpdateUser(datastore core.ApplicationUser, accountID, applicationID int64, 
 		}
 	}
 
-	if existingApplicationUser.Email != updatedApplicationUser.Email {
+	if updatedApplicationUser.Email != "" && existingApplicationUser.Email != updatedApplicationUser.Email {
 		isDuplicate, err := DuplicateApplicationUserEmail(datastore, accountID, applicationID, updatedApplicationUser.Email)
 		if isDuplicate || err != nil {
 			if isDuplicate {
@@ -175,7 +185,7 @@ func UpdateUser(datastore core.ApplicationUser, accountID, applicationID int64, 
 		}
 	}
 
-	if existingApplicationUser.Username != updatedApplicationUser.Username {
+	if updatedApplicationUser.Username != "" && existingApplicationUser.Username != updatedApplicationUser.Username {
 		isDuplicate, err := DuplicateApplicationUserUsername(datastore, accountID, applicationID, updatedApplicationUser.Username)
 		if isDuplicate || err != nil {
 			if isDuplicate {
