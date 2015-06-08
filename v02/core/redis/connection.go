@@ -25,7 +25,7 @@ type (
 	}
 )
 
-func (c *connection) Create(accountID, applicationID int64, connection *entity.Connection, retrieve bool) (con *entity.Connection, err errors.Error) {
+func (c *connection) Create(accountID, applicationID int64, connection *entity.Connection, retrieve bool) (con *entity.Connection, err []errors.Error) {
 	// We confirm the connection in the past forcefully so that we can update it at the confirmation time
 	jesusTime := time.Date(0, time.January, 1, 0, 0, 0, 0, time.UTC)
 	connection.ConfirmedAt = &jesusTime
@@ -35,22 +35,22 @@ func (c *connection) Create(accountID, applicationID int64, connection *entity.C
 
 	val, er := json.Marshal(connection)
 	if er != nil {
-		return nil, errors.NewInternalError("failed to write the user connection (1)", er.Error())
+		return nil, []errors.Error{errors.NewInternalError("failed to write the user connection (1)", er.Error())}
 	}
 
 	key := storageHelper.Connection(accountID, applicationID, connection.UserFromID, connection.UserToID)
 	exist, er := c.redis.SetNX(key, string(val)).Result()
 	if er != nil {
-		return nil, errors.NewInternalError("failed to write the user connection (2)", er.Error())
+		return nil, []errors.Error{errors.NewInternalError("failed to write the user connection (2)", er.Error())}
 	}
 	if !exist {
-		return nil, errors.NewInternalError("failed to write the user connection (3)", "connection does not exist")
+		return nil, []errors.Error{errors.NewInternalError("failed to write the user connection (3)", "connection does not exist")}
 	}
 
 	return connection, nil
 }
 
-func (c *connection) Read(accountID, applicationID int64, userFromID, userToID string) (connection *entity.Connection, err errors.Error) {
+func (c *connection) Read(accountID, applicationID int64, userFromID, userToID string) (connection *entity.Connection, err []errors.Error) {
 	key := storageHelper.Connection(accountID, applicationID, userFromID, userToID)
 
 	result, er := c.redis.Get(key).Result()
@@ -58,7 +58,7 @@ func (c *connection) Read(accountID, applicationID int64, userFromID, userToID s
 		if er.Error() == "redis: nil" {
 			return nil, nil
 		}
-		return nil, errors.NewInternalError("failed to read the connection (1)", er.Error())
+		return nil, []errors.Error{errors.NewInternalError("failed to read the connection (1)", er.Error())}
 	}
 	if result == "" {
 		return nil, nil
@@ -69,46 +69,46 @@ func (c *connection) Read(accountID, applicationID int64, userFromID, userToID s
 	if er == nil {
 		return
 	}
-	return nil, errors.NewInternalError("failed to read the connection (3)", er.Error())
+	return nil, []errors.Error{errors.NewInternalError("failed to read the connection (3)", er.Error())}
 }
 
-func (c *connection) Update(accountID, applicationID int64, existingConnection, updatedConnection entity.Connection, retrieve bool) (con *entity.Connection, err errors.Error) {
+func (c *connection) Update(accountID, applicationID int64, existingConnection, updatedConnection entity.Connection, retrieve bool) (con *entity.Connection, err []errors.Error) {
 	timeNow := time.Now()
 	updatedConnection.UpdatedAt = &timeNow
 	var er error
 
 	val, er := json.Marshal(updatedConnection)
 	if err != nil {
-		return nil, errors.NewInternalError("failed to update the connection (1)", er.Error())
+		return nil, []errors.Error{errors.NewInternalError("failed to update the connection (1)", er.Error())}
 	}
 
 	key := storageHelper.Connection(accountID, applicationID, updatedConnection.UserFromID, updatedConnection.UserToID)
 	exist, er := c.redis.Exists(key).Result()
 	if !exist {
-		return nil, errors.NewNotFoundError("failed to update teh connection (2)", "connection not found")
+		return nil, []errors.Error{errors.NewNotFoundError("failed to update teh connection (2)", "connection not found")}
 	}
 	if er != nil {
-		return nil, errors.NewInternalError("failed to update the connection (3)", er.Error())
+		return nil, []errors.Error{errors.NewInternalError("failed to update the connection (3)", er.Error())}
 	}
 
 	if er = c.redis.Set(key, string(val)).Err(); er != nil {
-		return nil, errors.NewInternalError("failed to update the connection (4)", er.Error())
+		return nil, []errors.Error{errors.NewInternalError("failed to update the connection (4)", er.Error())}
 	}
 
 	if !updatedConnection.Enabled {
 		listKey := storageHelper.Connections(accountID, applicationID, updatedConnection.UserFromID)
 		if er = c.redis.LRem(listKey, 0, key).Err(); er != nil {
-			return nil, errors.NewInternalError("failed to update the connection (5)", er.Error())
+			return nil, []errors.Error{errors.NewInternalError("failed to update the connection (5)", er.Error())}
 		}
 		userListKey := storageHelper.ConnectionUsers(accountID, applicationID, updatedConnection.UserFromID)
 		userKey := storageHelper.User(accountID, applicationID, updatedConnection.UserToID)
 		if er = c.redis.LRem(userListKey, 0, userKey).Err(); er != nil {
-			return nil, errors.NewInternalError("failed to update the connection (6)", er.Error())
+			return nil, []errors.Error{errors.NewInternalError("failed to update the connection (6)", er.Error())}
 		}
 		followerListKey := storageHelper.FollowedByUsers(accountID, applicationID, updatedConnection.UserToID)
 		followerKey := storageHelper.User(accountID, applicationID, updatedConnection.UserFromID)
 		if er = c.redis.LRem(followerListKey, 0, followerKey).Err(); er != nil {
-			return nil, errors.NewInternalError("failed to update the connection (7)", er.Error())
+			return nil, []errors.Error{errors.NewInternalError("failed to update the connection (7)", er.Error())}
 		}
 	}
 
@@ -119,44 +119,44 @@ func (c *connection) Update(accountID, applicationID int64, existingConnection, 
 	return c.Read(accountID, applicationID, updatedConnection.UserFromID, updatedConnection.UserToID)
 }
 
-func (c *connection) Delete(accountID, applicationID int64, connection *entity.Connection) (err errors.Error) {
+func (c *connection) Delete(accountID, applicationID int64, connection *entity.Connection) (err []errors.Error) {
 	key := storageHelper.Connection(accountID, applicationID, connection.UserFromID, connection.UserToID)
 	result, er := c.redis.Del(key).Result()
 	if er != nil {
-		return errors.NewInternalError("failed to delete the connection (1)", er.Error())
+		return []errors.Error{errors.NewInternalError("failed to delete the connection (1)", er.Error())}
 	}
 
 	if result != 1 {
-		return errors.NewNotFoundError("failed to delete the connection (2)", "connection not found")
+		return []errors.Error{errors.NewNotFoundError("failed to delete the connection (2)", "connection not found")}
 	}
 
 	listKey := storageHelper.Connections(accountID, applicationID, connection.UserFromID)
 	if er = c.redis.LRem(listKey, 0, key).Err(); er != nil {
-		return errors.NewInternalError("failed to delete the connection (3)", er.Error())
+		return []errors.Error{errors.NewInternalError("failed to delete the connection (3)", er.Error())}
 	}
 	userListKey := storageHelper.ConnectionUsers(accountID, applicationID, connection.UserFromID)
 	userKey := storageHelper.User(accountID, applicationID, connection.UserToID)
 	if er = c.redis.LRem(userListKey, 0, userKey).Err(); er != nil {
-		return errors.NewInternalError("failed to delete the connection (4)", er.Error())
+		return []errors.Error{errors.NewInternalError("failed to delete the connection (4)", er.Error())}
 	}
 	followerListKey := storageHelper.FollowedByUsers(accountID, applicationID, connection.UserToID)
 	followerKey := storageHelper.User(accountID, applicationID, connection.UserFromID)
 	if er = c.redis.LRem(followerListKey, 0, followerKey).Err(); er != nil {
-		return errors.NewInternalError("failed to delete the connection (5)", er.Error())
+		return []errors.Error{errors.NewInternalError("failed to delete the connection (5)", er.Error())}
 	}
 
 	if err := c.DeleteEventsFromLists(accountID, applicationID, connection.UserFromID, connection.UserToID); err != nil {
-		return errors.NewInternalError("failed to delete the connection (6)", err.Error())
+		return err
 	}
 
 	return nil
 }
 
-func (c *connection) List(accountID, applicationID int64, userID string) (users []*entity.ApplicationUser, err errors.Error) {
+func (c *connection) List(accountID, applicationID int64, userID string) (users []*entity.ApplicationUser, err []errors.Error) {
 	key := storageHelper.ConnectionUsers(accountID, applicationID, userID)
 	result, er := c.redis.LRange(key, 0, -1).Result()
 	if er != nil {
-		return nil, errors.NewInternalError("failed to read the connection list (1)", er.Error())
+		return nil, []errors.Error{errors.NewInternalError("failed to read the connection list (1)", er.Error())}
 	}
 
 	if len(result) == 0 {
@@ -166,11 +166,11 @@ func (c *connection) List(accountID, applicationID int64, userID string) (users 
 	return c.fetchAndDecodeMultipleUsers(result)
 }
 
-func (c *connection) FollowedBy(accountID, applicationID int64, userID string) (users []*entity.ApplicationUser, err errors.Error) {
+func (c *connection) FollowedBy(accountID, applicationID int64, userID string) (users []*entity.ApplicationUser, err []errors.Error) {
 	key := storageHelper.FollowedByUsers(accountID, applicationID, userID)
 	result, er := c.redis.LRange(key, 0, -1).Result()
 	if er != nil {
-		return nil, errors.NewInternalError("failed to read the followers list (1)", er.Error())
+		return nil, []errors.Error{errors.NewInternalError("failed to read the followers list (1)", er.Error())}
 	}
 
 	if len(result) == 0 {
@@ -180,15 +180,15 @@ func (c *connection) FollowedBy(accountID, applicationID int64, userID string) (
 	return c.fetchAndDecodeMultipleUsers(result)
 }
 
-func (c *connection) Friends(accountID, applicationID int64, userID string) (users []*entity.ApplicationUser, err errors.Error) {
-	return []*entity.ApplicationUser{}, errors.NewInternalError("not implemented yet", "not implemented yet")
+func (c *connection) Friends(accountID, applicationID int64, userID string) (users []*entity.ApplicationUser, err []errors.Error) {
+	return nil, []errors.Error{errors.NewInternalError("not implemented yet", "not implemented yet")}
 }
 
-func (c *connection) FriendsAndFollowing(accountID, applicationID int64, userID string) ([]*entity.ApplicationUser, errors.Error) {
-	return []*entity.ApplicationUser{}, errors.NewInternalError("not implemented yet", "not implemented yet")
+func (c *connection) FriendsAndFollowing(accountID, applicationID int64, userID string) ([]*entity.ApplicationUser, []errors.Error) {
+	return nil, []errors.Error{errors.NewInternalError("not implemented yet", "not implemented yet")}
 }
 
-func (c *connection) Confirm(accountID, applicationID int64, connection *entity.Connection, retrieve bool) (con *entity.Connection, err errors.Error) {
+func (c *connection) Confirm(accountID, applicationID int64, connection *entity.Connection, retrieve bool) (con *entity.Connection, err []errors.Error) {
 	// We confirm the connection in the past forcefully so that we can update it at the confirmation time
 	connection.Enabled = true
 	timeNow := time.Now()
@@ -196,7 +196,7 @@ func (c *connection) Confirm(accountID, applicationID int64, connection *entity.
 
 	val, er := json.Marshal(connection)
 	if er != nil {
-		return nil, errors.NewInternalError("failed to confirm the connection (1)", er.Error())
+		return nil, []errors.Error{errors.NewInternalError("failed to confirm the connection (1)", er.Error())}
 	}
 
 	key := storageHelper.Connection(accountID, applicationID, connection.UserFromID, connection.UserToID)
@@ -205,24 +205,24 @@ func (c *connection) Confirm(accountID, applicationID int64, connection *entity.
 	c.redis.Process(cmd)
 	er = cmd.Err()
 	if er != nil {
-		return nil, errors.NewInternalError("failed to confirm the connection (2)", er.Error())
+		return nil, []errors.Error{errors.NewInternalError("failed to confirm the connection (2)", er.Error())}
 	}
 
 	listKey := storageHelper.Connections(accountID, applicationID, connection.UserFromID)
 	if er = c.redis.LPush(listKey, key).Err(); er != nil {
-		return nil, errors.NewInternalError("failed to confirm the connection (3)", er.Error())
+		return nil, []errors.Error{errors.NewInternalError("failed to confirm the connection (3)", er.Error())}
 	}
 
 	userListKey := storageHelper.ConnectionUsers(accountID, applicationID, connection.UserFromID)
 	userKey := storageHelper.User(accountID, applicationID, connection.UserToID)
 	if er = c.redis.LPush(userListKey, userKey).Err(); er != nil {
-		return nil, errors.NewInternalError("failed to confirm the connection (4)", er.Error())
+		return nil, []errors.Error{errors.NewInternalError("failed to confirm the connection (4)", er.Error())}
 	}
 
 	followerListKey := storageHelper.FollowedByUsers(accountID, applicationID, connection.UserToID)
 	followerKey := storageHelper.User(accountID, applicationID, connection.UserFromID)
 	if er = c.redis.LPush(followerListKey, followerKey).Err(); er != nil {
-		return nil, errors.NewInternalError("failed to confirm the connection (5)", er.Error())
+		return nil, []errors.Error{errors.NewInternalError("failed to confirm the connection (5)", er.Error())}
 	}
 
 	if err = c.WriteEventsToList(accountID, applicationID, connection); err != nil {
@@ -236,14 +236,14 @@ func (c *connection) Confirm(accountID, applicationID int64, connection *entity.
 	return connection, nil
 }
 
-func (c *connection) WriteEventsToList(accountID, applicationID int64, connection *entity.Connection) (err errors.Error) {
+func (c *connection) WriteEventsToList(accountID, applicationID int64, connection *entity.Connection) (err []errors.Error) {
 	connectionEventsKey := storageHelper.ConnectionEvents(accountID, applicationID, connection.UserFromID)
 
 	eventsKey := storageHelper.Events(accountID, applicationID, connection.UserToID)
 
 	events, er := c.redis.ZRevRangeWithScores(eventsKey, "0", "-1").Result()
 	if er != nil {
-		return errors.NewInternalError("failed to write the event to the list", er.Error())
+		return []errors.Error{errors.NewInternalError("failed to write the event to the list", er.Error())}
 	}
 
 	if len(events) >= 1 {
@@ -255,21 +255,21 @@ func (c *connection) WriteEventsToList(accountID, applicationID int64, connectio
 		}
 
 		if er = c.redis.ZAdd(connectionEventsKey, vals...).Err(); er != nil {
-			return errors.NewInternalError("failed to write the event to the list", er.Error())
+			return []errors.Error{errors.NewInternalError("failed to write the event to the list", er.Error())}
 		}
 	}
 
 	return
 }
 
-func (c *connection) DeleteEventsFromLists(accountID, applicationID int64, userFromID, userToID string) (err errors.Error) {
+func (c *connection) DeleteEventsFromLists(accountID, applicationID int64, userFromID, userToID string) (err []errors.Error) {
 	connectionEventsKey := storageHelper.ConnectionEvents(accountID, applicationID, userFromID)
 
 	eventsKey := storageHelper.Events(accountID, applicationID, userToID)
 
 	events, er := c.redis.ZRevRangeWithScores(eventsKey, "0", "-1").Result()
 	if er != nil {
-		return errors.NewInternalError("failed to delete the event from connections (1)", er.Error())
+		return []errors.Error{errors.NewInternalError("failed to delete the event from connections (1)", er.Error())}
 	}
 
 	if len(events) >= 1 {
@@ -281,14 +281,14 @@ func (c *connection) DeleteEventsFromLists(accountID, applicationID int64, userF
 		}
 
 		if er = c.redis.ZRem(connectionEventsKey, members...).Err(); er != nil {
-			return errors.NewInternalError("failed to delete the event from the connections (2)", er.Error())
+			return []errors.Error{errors.NewInternalError("failed to delete the event from the connections (2)", er.Error())}
 		}
 	}
 
 	return nil
 }
 
-func (c *connection) SocialConnect(accountID, applicationID int64, user *entity.ApplicationUser, platform string, socialFriendsIDs []string, connectionType string) ([]*entity.ApplicationUser, errors.Error) {
+func (c *connection) SocialConnect(accountID, applicationID int64, user *entity.ApplicationUser, platform string, socialFriendsIDs []string, connectionType string) ([]*entity.ApplicationUser, []errors.Error) {
 	result := []*entity.ApplicationUser{}
 
 	encodedSocialFriendsIDs := []string{}
@@ -302,7 +302,7 @@ func (c *connection) SocialConnect(accountID, applicationID int64, user *entity.
 
 	ourStoredUsersIDs, er := c.redis.MGet(encodedSocialFriendsIDs...).Result()
 	if er != nil {
-		return result, errors.NewInternalError("social connection failed (1)", er.Error())
+		return result, []errors.Error{errors.NewInternalError("social connection failed (1)", er.Error())}
 	}
 
 	if len(ourStoredUsersIDs) == 0 {
@@ -314,7 +314,7 @@ func (c *connection) SocialConnect(accountID, applicationID int64, user *entity.
 	return c.AutoConnectSocialFriends(accountID, applicationID, user, connectionType, nil)
 }
 
-func (c *connection) AutoConnectSocialFriends(accountID, applicationID int64, user *entity.ApplicationUser, connectionType string, ourStoredUsersIDs []*entity.ApplicationUser) (users []*entity.ApplicationUser, err errors.Error) {
+func (c *connection) AutoConnectSocialFriends(accountID, applicationID int64, user *entity.ApplicationUser, connectionType string, ourStoredUsersIDs []*entity.ApplicationUser) (users []*entity.ApplicationUser, err []errors.Error) {
 	ourUserKeys := []string{}
 	for idx := range ourStoredUsersIDs {
 		userID := ourStoredUsersIDs[idx].ID
@@ -365,20 +365,20 @@ func (c *connection) AutoConnectSocialFriends(accountID, applicationID int64, us
 	return c.fetchAndDecodeMultipleUsers(ourUserKeys)
 }
 
-func (c *connection) fetchAndDecodeMultipleUsers(keys []string) (users []*entity.ApplicationUser, err errors.Error) {
+func (c *connection) fetchAndDecodeMultipleUsers(keys []string) (users []*entity.ApplicationUser, err []errors.Error) {
 	if len(keys) == 0 {
 		return []*entity.ApplicationUser{}, nil
 	}
 
 	resultList, er := c.redis.MGet(keys...).Result()
 	if er != nil {
-		return nil, errors.NewInternalError("failed to perform operation on user list (1)", er.Error())
+		return nil, []errors.Error{errors.NewInternalError("failed to perform operation on user list (1)", er.Error())}
 	}
 
 	user := &entity.ApplicationUser{}
 	for _, result := range resultList {
 		if er = json.Unmarshal([]byte(result.(string)), user); er != nil {
-			return nil, errors.NewInternalError("failed to perform operation on user list (2)", er.Error())
+			return nil, []errors.Error{errors.NewInternalError("failed to perform operation on user list (2)", er.Error())}
 		}
 		users = append(users, user)
 		user = &entity.ApplicationUser{}

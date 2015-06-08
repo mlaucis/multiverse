@@ -20,83 +20,79 @@ const (
 )
 
 var (
-	errorAccountNameSize = fmt.Errorf("account name must be between %d and %d characters", accountNameMin, accountNameMax)
-	errorAccountNameType = fmt.Errorf("account name is not a valid alphanumeric sequence")
+	errorAccountNameSize = errors.NewBadRequestError(fmt.Sprintf("account name must be between %d and %d characters", accountNameMin, accountNameMax), "")
+	errorAccountNameType = errors.NewBadRequestError(fmt.Sprintf("account name is not a valid alphanumeric sequence"), "")
 
-	errorAccountDescriptionSize = fmt.Errorf("account description must be between %d and %d characters", accountDescriptionMin, accountDescriptionMax)
-	errorAccountDescriptionType = fmt.Errorf("account description is not a valid alphanumeric sequence")
+	errorAccountDescriptionSize = errors.NewBadRequestError(fmt.Sprintf("account description must be between %d and %d characters", accountDescriptionMin, accountDescriptionMax), "")
+	errorAccountDescriptionType = errors.NewBadRequestError(fmt.Sprintf("account description is not a valid alphanumeric sequence"), "")
 
-	errorAccountIDIsAlreadySet  = fmt.Errorf("account id is already set")
-	errorAccountSetNotEnabled   = fmt.Errorf("account cannot be set as disabled")
-	errorAccountTokenAlreadySet = fmt.Errorf("account token is already set")
+	errorAccountIDIsAlreadySet  = errors.NewBadRequestError(fmt.Sprintf("account id is already set"), "")
+	errorAccountSetNotEnabled   = errors.NewBadRequestError(fmt.Sprintf("account cannot be set as disabled"), "")
+	errorAccountTokenAlreadySet = errors.NewBadRequestError(fmt.Sprintf("account token is already set"), "")
 )
 
 // CreateAccount validates an account on create
-func CreateAccount(account *entity.Account) errors.Error {
-	errs := []*error{}
-
+func CreateAccount(account *entity.Account) (errs []errors.Error) {
 	if !StringLengthBetween(account.Name, accountNameMin, accountNameMax) {
-		errs = append(errs, &errorAccountNameSize)
+		errs = append(errs, errorAccountNameSize)
 	}
 
 	if !StringLengthBetween(account.Description, accountDescriptionMin, accountDescriptionMax) {
-		errs = append(errs, &errorAccountDescriptionSize)
+		errs = append(errs, errorAccountDescriptionSize)
 	}
 
 	if !alphaNumExtraCharFirst.MatchString(account.Name) {
-		errs = append(errs, &errorAccountNameType)
+		errs = append(errs, errorAccountNameType)
 	}
 
 	if !alphaNumExtraCharFirst.MatchString(account.Description) {
-		errs = append(errs, &errorAccountDescriptionType)
+		errs = append(errs, errorAccountDescriptionType)
 	}
 
 	if account.ID != 0 {
-		errs = append(errs, &errorAccountIDIsAlreadySet)
+		errs = append(errs, errorAccountIDIsAlreadySet)
 	}
 
 	if account.AuthToken != "" {
-		errs = append(errs, &errorAccountTokenAlreadySet)
+		errs = append(errs, errorAccountTokenAlreadySet)
 	}
 
 	if len(account.Images) > 0 {
 		if !checkImages(account.Images) {
-			errs = append(errs, &errorInvalidImageURL)
+			errs = append(errs, errorInvalidImageURL)
 		}
 	}
 
-	return packErrors(errs)
+	return
 }
 
 // UpdateAccount validates an account on update
-func UpdateAccount(existingAccount, updatedAccount *entity.Account) errors.Error {
-	errs := []*error{}
-
+func UpdateAccount(existingAccount, updatedAccount *entity.Account) (errs []errors.Error) {
 	if updatedAccount.ID == 0 {
-		errs = append(errs, &errorAccountIDZero)
+		errs = append(errs, errorAccountIDZero)
 	}
 
 	if !StringLengthBetween(updatedAccount.Name, accountNameMin, accountNameMax) {
-		errs = append(errs, &errorAccountNameSize)
+		errs = append(errs, errorAccountNameSize)
 	}
 
 	if !StringLengthBetween(updatedAccount.Description, accountDescriptionMin, accountDescriptionMax) {
-		errs = append(errs, &errorAccountDescriptionSize)
+		errs = append(errs, errorAccountDescriptionSize)
 	}
 
 	if !alphaNumExtraCharFirst.MatchString(updatedAccount.Name) {
-		errs = append(errs, &errorAccountNameType)
+		errs = append(errs, errorAccountNameType)
 	}
 
 	if !alphaNumExtraCharFirst.MatchString(updatedAccount.Description) {
-		errs = append(errs, &errorAccountDescriptionType)
+		errs = append(errs, errorAccountDescriptionType)
 	}
 
 	if len(updatedAccount.Images) > 0 {
 		if !checkImages(updatedAccount.Images) {
-			errs = append(errs, &errorInvalidImageURL)
+			errs = append(errs, errorInvalidImageURL)
 		}
 	}
 
-	return packErrors(errs)
+	return
 }

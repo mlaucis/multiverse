@@ -1,4 +1,4 @@
-package redis
+package kinesis
 
 import (
 	"encoding/json"
@@ -19,48 +19,48 @@ type (
 	}
 )
 
-func (a *account) Create(account *entity.Account, retrieve bool) (acc *entity.Account, err errors.Error) {
-	return nil, errors.NewNotFoundError("not found", "invalid handler specified")
+func (a *account) Create(account *entity.Account, retrieve bool) (acc *entity.Account, err []errors.Error) {
+	return nil, invalidHandlerError
 }
 
-func (a *account) Read(accountID int64) (account *entity.Account, err errors.Error) {
-	return nil, errors.NewNotFoundError("not found", "invalid handler specified")
+func (a *account) Read(accountID int64) (account *entity.Account, err []errors.Error) {
+	return nil, invalidHandlerError
 }
 
-func (a *account) Update(existingAccount, updatedAccount entity.Account, retrieve bool) (acc *entity.Account, err errors.Error) {
+func (a *account) Update(existingAccount, updatedAccount entity.Account, retrieve bool) (*entity.Account, []errors.Error) {
 	data, er := json.Marshal(updatedAccount)
 	if er != nil {
-		return nil, errors.NewInternalError("error while updating the account (1)", er.Error())
+		return nil, []errors.Error{errors.NewInternalError("error while updating the account (1)", er.Error())}
 	}
 
 	partitionKey := fmt.Sprintf("account-%d-update", updatedAccount.ID)
-	_, err = a.storage.PackAndPutRecord(kinesis.StreamAccountUpdate, partitionKey, data)
+	_, err := a.storage.PackAndPutRecord(kinesis.StreamAccountUpdate, partitionKey, data)
 
-	return nil, err
+	return nil, []errors.Error{err}
 }
 
-func (a *account) Delete(account *entity.Account) (err errors.Error) {
+func (a *account) Delete(account *entity.Account) []errors.Error {
 	data, er := json.Marshal(account)
 	if er != nil {
-		return errors.NewInternalError("error while deleting the account (1)", er.Error())
+		return []errors.Error{errors.NewInternalError("error while deleting the account (1)", er.Error())}
 	}
 
 	partitionKey := fmt.Sprintf("partition-%d-delete", account.ID)
-	_, err = a.storage.PackAndPutRecord(kinesis.StreamAccountDelete, partitionKey, data)
+	_, err := a.storage.PackAndPutRecord(kinesis.StreamAccountDelete, partitionKey, data)
 
-	return err
+	return []errors.Error{err}
 }
 
-func (a *account) Exists(accountID int64) (bool, errors.Error) {
-	return false, errors.NewInternalError("not implemented yet", "not implemented yet")
+func (a *account) Exists(accountID int64) (bool, []errors.Error) {
+	return false, invalidHandlerError
 }
 
-func (a *account) FindByKey(authKey string) (*entity.Account, errors.Error) {
-	return nil, errors.NewInternalError("not implemented yet", "not implemented yet")
+func (a *account) FindByKey(authKey string) (*entity.Account, []errors.Error) {
+	return nil, invalidHandlerError
 }
 
-func (a *account) ReadByPublicID(id string) (*entity.Account, errors.Error) {
-	return nil, errors.NewInternalError("not implemented yet", "not implemented yet")
+func (a *account) ReadByPublicID(id string) (*entity.Account, []errors.Error) {
+	return nil, invalidHandlerError
 }
 
 // NewAccount creates a new Account

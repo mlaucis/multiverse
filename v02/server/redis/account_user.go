@@ -23,17 +23,17 @@ type (
 	}
 )
 
-func (accUser *accountUser) Read(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
+func (accUser *accountUser) Read(ctx *context.Context) (err []errors.Error) {
+	return deprecatedStorageError
 	server.WriteResponse(ctx, ctx.Bag["accountUser"].(*entity.AccountUser), http.StatusOK, 10)
 	return
 }
 
-func (accUser *accountUser) Update(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
+func (accUser *accountUser) Update(ctx *context.Context) (err []errors.Error) {
+	return deprecatedStorageError
 	accountUser := *(ctx.Bag["accountUser"].(*entity.AccountUser))
 	if er := json.Unmarshal(ctx.Body, &accountUser); er != nil {
-		return errors.NewBadRequestError("failed to update the account user (1)\n"+er.Error(), er.Error())
+		return []errors.Error{errors.NewBadRequestError("failed to update the account user (1)\n"+er.Error(), er.Error())}
 	}
 
 	accountUser.ID = ctx.Bag["accountUserID"].(int64)
@@ -53,8 +53,8 @@ func (accUser *accountUser) Update(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (accUser *accountUser) Delete(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
+func (accUser *accountUser) Delete(ctx *context.Context) (err []errors.Error) {
+	return deprecatedStorageError
 	if err = accUser.storage.Delete(ctx.Bag["accountUser"].(*entity.AccountUser)); err != nil {
 		return
 	}
@@ -63,12 +63,12 @@ func (accUser *accountUser) Delete(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (accUser *accountUser) Create(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
+func (accUser *accountUser) Create(ctx *context.Context) (err []errors.Error) {
+	return deprecatedStorageError
 	var accountUser = &entity.AccountUser{}
 
 	if err := json.Unmarshal(ctx.Body, accountUser); err != nil {
-		return errors.NewBadRequestError("failed to create the account user (1)"+err.Error(), err.Error())
+		return []errors.Error{errors.NewBadRequestError("failed to create the account user (1)"+err.Error(), err.Error())}
 	}
 
 	accountUser.AccountID = ctx.Bag["accountID"].(int64)
@@ -87,8 +87,8 @@ func (accUser *accountUser) Create(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (accUser *accountUser) List(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
+func (accUser *accountUser) List(ctx *context.Context) (err []errors.Error) {
+	return deprecatedStorageError
 	var (
 		accountUsers []*entity.AccountUser
 	)
@@ -112,8 +112,8 @@ func (accUser *accountUser) List(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (accUser *accountUser) Login(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
+func (accUser *accountUser) Login(ctx *context.Context) (err []errors.Error) {
+	return deprecatedStorageError
 	var (
 		loginPayload = &entity.LoginPayload{}
 		account      *entity.Account
@@ -123,7 +123,7 @@ func (accUser *accountUser) Login(ctx *context.Context) (err errors.Error) {
 	)
 
 	if er = json.Unmarshal(ctx.Body, loginPayload); er != nil {
-		return errors.NewBadRequestError("failed to login the user (1)\n"+er.Error(), er.Error())
+		return []errors.Error{errors.NewBadRequestError("failed to login the user (1)\n"+er.Error(), er.Error())}
 	}
 
 	if err = validator.IsValidLoginPayload(loginPayload); err != nil {
@@ -172,8 +172,8 @@ func (accUser *accountUser) Login(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (accUser *accountUser) RefreshSession(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
+func (accUser *accountUser) RefreshSession(ctx *context.Context) (err []errors.Error) {
+	return deprecatedStorageError
 	var (
 		tokenPayload struct {
 			Token string `json:"token"`
@@ -182,11 +182,11 @@ func (accUser *accountUser) RefreshSession(ctx *context.Context) (err errors.Err
 	)
 
 	if er := json.Unmarshal(ctx.Body, &tokenPayload); er != nil {
-		return errors.NewBadRequestError("failed to refresh session token (1)\n"+er.Error(), er.Error())
+		return []errors.Error{errors.NewBadRequestError("failed to refresh session token (1)\n"+er.Error(), er.Error())}
 	}
 
 	if ctx.SessionToken != tokenPayload.Token {
-		return errors.NewBadRequestError("failed to refresh session token (2) \nsession token mismatch", "session token mismatch")
+		return []errors.Error{errors.NewBadRequestError("failed to refresh session token (2) \nsession token mismatch", "session token mismatch")}
 	}
 
 	if sessionToken, err = accUser.storage.RefreshSession(ctx.SessionToken, ctx.Bag["accountUser"].(*entity.AccountUser)); err != nil {
@@ -199,18 +199,18 @@ func (accUser *accountUser) RefreshSession(ctx *context.Context) (err errors.Err
 	return
 }
 
-func (accUser *accountUser) Logout(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
+func (accUser *accountUser) Logout(ctx *context.Context) (err []errors.Error) {
+	return deprecatedStorageError
 	var logoutPayload struct {
 		Token string `json:"token"`
 	}
 
 	if er := json.Unmarshal(ctx.Body, &logoutPayload); er != nil {
-		return errors.NewBadRequestError("failed to logout the user (1)\n"+er.Error(), er.Error())
+		return []errors.Error{errors.NewBadRequestError("failed to logout the user (1)\n"+er.Error(), er.Error())}
 	}
 
 	if ctx.SessionToken != logoutPayload.Token {
-		return errors.NewBadRequestError("failed to logout the user (2) \nsession token mismatch", "session token mismatch")
+		return []errors.Error{errors.NewBadRequestError("failed to logout the user (2) \nsession token mismatch", "session token mismatch")}
 	}
 
 	if err = accUser.storage.DestroySession(logoutPayload.Token, ctx.Bag["accountUser"].(*entity.AccountUser)); err != nil {
@@ -222,8 +222,8 @@ func (accUser *accountUser) Logout(ctx *context.Context) (err errors.Error) {
 }
 
 // PopulateContext adds the accountUser to the context
-func (accUser *accountUser) PopulateContext(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
+func (accUser *accountUser) PopulateContext(ctx *context.Context) (err []errors.Error) {
+	return deprecatedStorageError
 	ctx.Bag["accountUser"], err = accUser.storage.Read(ctx.Bag["accountID"].(int64), ctx.Bag["accountUserID"].(int64))
 	return
 }

@@ -66,7 +66,7 @@ var (
 	}
 )
 
-func (app *application) Create(application *entity.Application, retrieve bool) (*entity.Application, errors.Error) {
+func (app *application) Create(application *entity.Application, retrieve bool) (*entity.Application, []errors.Error) {
 	application.PublicID = storageHelper.GenerateUUIDV5(storageHelper.OIDUUIDNamespace, storageHelper.GenerateRandomString(20))
 	application.Enabled = true
 	timeNow := time.Now()
@@ -75,7 +75,7 @@ func (app *application) Create(application *entity.Application, retrieve bool) (
 
 	applicationJSON, err := json.Marshal(application)
 	if err != nil {
-		return nil, errors.NewInternalError("error while creating the application", err.Error())
+		return nil, []errors.Error{errors.NewInternalError("error while creating the application", err.Error())}
 	}
 
 	var applicationID int64
@@ -83,7 +83,7 @@ func (app *application) Create(application *entity.Application, retrieve bool) (
 		QueryRow(createApplicationEntryQuery, application.AccountID, applicationJSON).
 		Scan(&applicationID)
 	if err != nil {
-		return nil, errors.NewInternalError("error while creating the application", err.Error())
+		return nil, []errors.Error{errors.NewInternalError("error while creating the application", err.Error())}
 	}
 	application.ID = applicationID
 
@@ -92,7 +92,7 @@ func (app *application) Create(application *entity.Application, retrieve bool) (
 		if err != nil {
 			// TODO rollback the creation from the field if we fail to create all the stuff here
 			// TODO learn transactions :)
-			return nil, errors.NewInternalError("error while creating the application", err.Error())
+			return nil, []errors.Error{errors.NewInternalError("error while creating the application", err.Error())}
 		}
 	}
 
@@ -103,7 +103,7 @@ func (app *application) Create(application *entity.Application, retrieve bool) (
 	return app.Read(application.AccountID, applicationID)
 }
 
-func (app *application) Read(accountID, applicationID int64) (*entity.Application, errors.Error) {
+func (app *application) Read(accountID, applicationID int64) (*entity.Application, []errors.Error) {
 	var (
 		JSONData string
 		enabled  bool
@@ -113,15 +113,15 @@ func (app *application) Read(accountID, applicationID int64) (*entity.Applicatio
 		Scan(&JSONData, &enabled)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, errors.NewNotFoundError("application not found", "application not found")
+			return nil, []errors.Error{errors.NewNotFoundError("application not found", "application not found")}
 		}
-		return nil, errors.NewInternalError("error while reading application", err.Error())
+		return nil, []errors.Error{errors.NewInternalError("error while reading application", err.Error())}
 	}
 
 	application := &entity.Application{}
 	err = json.Unmarshal([]byte(JSONData), application)
 	if err != nil {
-		return nil, errors.NewInternalError("error while reading application", err.Error())
+		return nil, []errors.Error{errors.NewInternalError("error while reading application", err.Error())}
 	}
 	application.ID = applicationID
 	application.Enabled = enabled
@@ -129,7 +129,7 @@ func (app *application) Read(accountID, applicationID int64) (*entity.Applicatio
 	return application, nil
 }
 
-func (app *application) Update(existingApplication, updatedApplication entity.Application, retrieve bool) (*entity.Application, errors.Error) {
+func (app *application) Update(existingApplication, updatedApplication entity.Application, retrieve bool) (*entity.Application, []errors.Error) {
 	if updatedApplication.AuthToken == "" {
 		updatedApplication.AuthToken = existingApplication.AuthToken
 	}
@@ -138,12 +138,12 @@ func (app *application) Update(existingApplication, updatedApplication entity.Ap
 
 	applicationJSON, err := json.Marshal(updatedApplication)
 	if err != nil {
-		return nil, errors.NewInternalError("failed to update application", err.Error())
+		return nil, []errors.Error{errors.NewInternalError("failed to update application", err.Error())}
 	}
 
 	_, err = app.mainPg.Exec(updateApplicationEntryByIDQuery, applicationJSON, existingApplication.ID, existingApplication.AccountID)
 	if err != nil {
-		return nil, errors.NewInternalError("failed to update application", err.Error())
+		return nil, []errors.Error{errors.NewInternalError("failed to update application", err.Error())}
 	}
 
 	if !retrieve {
@@ -152,15 +152,15 @@ func (app *application) Update(existingApplication, updatedApplication entity.Ap
 	return app.Read(existingApplication.AccountID, existingApplication.ID)
 }
 
-func (app *application) Delete(application *entity.Application) errors.Error {
+func (app *application) Delete(application *entity.Application) []errors.Error {
 	_, err := app.mainPg.Exec(deleteApplicationEntryByIDQuery, application.ID, application.AccountID)
 	if err != nil {
-		return errors.NewInternalError("error while deleting the application", err.Error())
+		return []errors.Error{errors.NewInternalError("error while deleting the application", err.Error())}
 	}
 	return nil
 }
 
-func (app *application) List(accountID int64) ([]*entity.Application, errors.Error) {
+func (app *application) List(accountID int64) ([]*entity.Application, []errors.Error) {
 	applications := []*entity.Application{}
 
 	rows, err := app.pg.SlaveDatastore(-1).Query(listApplicationsEntryByAccountIDQuery, accountID)
@@ -168,7 +168,7 @@ func (app *application) List(accountID int64) ([]*entity.Application, errors.Err
 		if err == sql.ErrNoRows {
 			return applications, nil
 		}
-		return applications, errors.NewInternalError("failed to read the applications", err.Error())
+		return applications, []errors.Error{errors.NewInternalError("failed to read the applications", err.Error())}
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -179,12 +179,12 @@ func (app *application) List(accountID int64) ([]*entity.Application, errors.Err
 		)
 		err := rows.Scan(&ID, &JSONData, &Enabled)
 		if err != nil {
-			return []*entity.Application{}, errors.NewInternalError("failed to read the applications", err.Error())
+			return nil, []errors.Error{errors.NewInternalError("failed to read the applications", err.Error())}
 		}
 		application := &entity.Application{}
 		err = json.Unmarshal([]byte(JSONData), application)
 		if err != nil {
-			return []*entity.Application{}, errors.NewInternalError("failed to read the applications", err.Error())
+			return nil, []errors.Error{errors.NewInternalError("failed to read the applications", err.Error())}
 		}
 		application.ID = ID
 		application.Enabled = Enabled
@@ -195,7 +195,7 @@ func (app *application) List(accountID int64) ([]*entity.Application, errors.Err
 	return applications, nil
 }
 
-func (app *application) Exists(accountID, applicationID int64) (bool, errors.Error) {
+func (app *application) Exists(accountID, applicationID int64) (bool, []errors.Error) {
 	var (
 		ID       int
 		JSONData string
@@ -207,12 +207,12 @@ func (app *application) Exists(accountID, applicationID int64) (bool, errors.Err
 		return false, nil
 	}
 	if err != nil {
-		return false, errors.NewInternalError("error while reading application", err.Error())
+		return false, []errors.Error{errors.NewInternalError("error while reading application", err.Error())}
 	}
 	return true, nil
 }
 
-func (app *application) FindByKey(applicationKey string) (*entity.Application, errors.Error) {
+func (app *application) FindByKey(applicationKey string) (*entity.Application, []errors.Error) {
 	var (
 		ID, accountID int64
 		JSONData      string
@@ -223,14 +223,14 @@ func (app *application) FindByKey(applicationKey string) (*entity.Application, e
 		Scan(&ID, &accountID, &JSONData, &Enabled)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, errors.NewNotFoundError("application not found", "application not found")
+			return nil, []errors.Error{errors.NewNotFoundError("application not found", "application not found")}
 		}
-		return nil, errors.NewInternalError("error while loading the application", err.Error())
+		return nil, []errors.Error{errors.NewInternalError("error while loading the application", err.Error())}
 	}
 	application := &entity.Application{}
 	err = json.Unmarshal([]byte(JSONData), application)
 	if err != nil {
-		return nil, errors.NewInternalError("error while loading the application", err.Error())
+		return nil, []errors.Error{errors.NewInternalError("error while loading the application", err.Error())}
 	}
 	application.ID = ID
 	application.AccountID = accountID
@@ -239,7 +239,7 @@ func (app *application) FindByKey(applicationKey string) (*entity.Application, e
 	return application, nil
 }
 
-func (app *application) FindByPublicID(publicID string) (*entity.Application, errors.Error) {
+func (app *application) FindByPublicID(publicID string) (*entity.Application, []errors.Error) {
 	var (
 		ID, accountID int64
 		JSONData      string
@@ -250,14 +250,14 @@ func (app *application) FindByPublicID(publicID string) (*entity.Application, er
 		Scan(&ID, &accountID, &JSONData, &Enabled)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, errors.NewNotFoundError("application not found", "application not found")
+			return nil, []errors.Error{errors.NewNotFoundError("application not found", "application not found")}
 		}
-		return nil, errors.NewInternalError("error while loading the application", err.Error())
+		return nil, []errors.Error{errors.NewInternalError("error while loading the application", err.Error())}
 	}
 	application := &entity.Application{}
 	err = json.Unmarshal([]byte(JSONData), application)
 	if err != nil {
-		return nil, errors.NewInternalError("error while loading the application", err.Error())
+		return nil, []errors.Error{errors.NewInternalError("error while loading the application", err.Error())}
 	}
 	application.ID = ID
 	application.AccountID = accountID

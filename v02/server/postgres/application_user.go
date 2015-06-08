@@ -24,10 +24,10 @@ type (
 	}
 )
 
-func (appUser *applicationUser) Read(ctx *context.Context) (err errors.Error) {
+func (appUser *applicationUser) Read(ctx *context.Context) (err []errors.Error) {
 	userID := ctx.Vars["applicationUserID"]
 	if !validator.IsValidUUID5(userID) {
-		return invalidUserIDError
+		return []errors.Error{invalidUserIDError}
 	}
 
 	user, err := appUser.storage.Read(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), userID)
@@ -45,7 +45,7 @@ func (appUser *applicationUser) Read(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (appUser *applicationUser) ReadCurrent(ctx *context.Context) (err errors.Error) {
+func (appUser *applicationUser) ReadCurrent(ctx *context.Context) (err []errors.Error) {
 	user := ctx.Bag["applicationUser"].(*entity.ApplicationUser)
 	user.Password = ""
 	user.Enabled = false
@@ -56,11 +56,11 @@ func (appUser *applicationUser) ReadCurrent(ctx *context.Context) (err errors.Er
 	return
 }
 
-func (appUser *applicationUser) UpdateCurrent(ctx *context.Context) (err errors.Error) {
+func (appUser *applicationUser) UpdateCurrent(ctx *context.Context) (err []errors.Error) {
 	user := *(ctx.Bag["applicationUser"].(*entity.ApplicationUser))
 	var er error
 	if er = json.Unmarshal(ctx.Body, &user); er != nil {
-		return errors.NewBadRequestError("failed to update the user (1)\n"+er.Error(), er.Error())
+		return []errors.Error{errors.NewBadRequestError("failed to update the user (1)\n"+er.Error(), er.Error())}
 	}
 
 	user.ID = ctx.Bag["applicationUserID"].(string)
@@ -94,7 +94,7 @@ func (appUser *applicationUser) UpdateCurrent(ctx *context.Context) (err errors.
 	return
 }
 
-func (appUser *applicationUser) DeleteCurrent(ctx *context.Context) (err errors.Error) {
+func (appUser *applicationUser) DeleteCurrent(ctx *context.Context) (err []errors.Error) {
 	if err = appUser.storage.Delete(
 		ctx.Bag["accountID"].(int64),
 		ctx.Bag["applicationID"].(int64),
@@ -106,7 +106,7 @@ func (appUser *applicationUser) DeleteCurrent(ctx *context.Context) (err errors.
 	return
 }
 
-func (appUser *applicationUser) Create(ctx *context.Context) (err errors.Error) {
+func (appUser *applicationUser) Create(ctx *context.Context) (err []errors.Error) {
 	var (
 		user      = &entity.ApplicationUser{}
 		er        error
@@ -114,7 +114,7 @@ func (appUser *applicationUser) Create(ctx *context.Context) (err errors.Error) 
 	)
 
 	if er = json.Unmarshal(ctx.Body, user); er != nil {
-		return errors.NewBadRequestError("failed to create the application user (1)\n"+er.Error(), er.Error())
+		return []errors.Error{errors.NewBadRequestError("failed to create the application user (1)\n"+er.Error(), er.Error())}
 	}
 
 	if err = validator.CreateUser(appUser.storage, ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), user); err != nil {
@@ -152,7 +152,7 @@ func (appUser *applicationUser) Create(ctx *context.Context) (err errors.Error) 
 	return
 }
 
-func (appUser *applicationUser) Login(ctx *context.Context) (err errors.Error) {
+func (appUser *applicationUser) Login(ctx *context.Context) (err []errors.Error) {
 	var (
 		loginPayload = &entity.LoginPayload{}
 		user         *entity.ApplicationUser
@@ -161,7 +161,7 @@ func (appUser *applicationUser) Login(ctx *context.Context) (err errors.Error) {
 	)
 
 	if er = json.Unmarshal(ctx.Body, loginPayload); er != nil {
-		return errors.NewBadRequestError("failed to login the user (1)\n"+er.Error(), er.Error())
+		return []errors.Error{errors.NewBadRequestError("failed to login the user (1)\n"+er.Error(), er.Error())}
 	}
 
 	if err = validator.IsValidLoginPayload(loginPayload); err != nil {
@@ -176,7 +176,7 @@ func (appUser *applicationUser) Login(ctx *context.Context) (err errors.Error) {
 	if loginPayload.Email != "" {
 		user, err = appUser.storage.FindByEmail(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), loginPayload.Email)
 		// TODO This is horrible and I should change it when we have constant errors
-		if err != nil && err.Error() != "application user not found" {
+		if err != nil && err[0].Error() != "application user not found" {
 			return
 		}
 	}
@@ -184,13 +184,13 @@ func (appUser *applicationUser) Login(ctx *context.Context) (err errors.Error) {
 	if loginPayload.Username != "" && user == nil {
 		user, err = appUser.storage.FindByUsername(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), loginPayload.Username)
 		// TODO This is horrible and I should change it when we have constant errors
-		if err != nil && err.Error() != "application user not found" {
+		if err != nil && err[0].Error() != "application user not found" {
 			return
 		}
 	}
 
 	if user == nil || !user.Enabled {
-		return errors.NewNotFoundError("application user not found", "user not found")
+		return []errors.Error{errors.NewNotFoundError("application user not found", "user not found")}
 	}
 
 	if err = validator.ApplicationUserCredentialsValid(loginPayload.Password, user); err != nil {
@@ -228,7 +228,7 @@ func (appUser *applicationUser) Login(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (appUser *applicationUser) RefreshSession(ctx *context.Context) (err errors.Error) {
+func (appUser *applicationUser) RefreshSession(ctx *context.Context) (err []errors.Error) {
 	var (
 		tokenPayload struct {
 			Token string `json:"session_token"`
@@ -237,11 +237,11 @@ func (appUser *applicationUser) RefreshSession(ctx *context.Context) (err errors
 	)
 
 	if er := json.Unmarshal(ctx.Body, &tokenPayload); er != nil {
-		return errors.NewBadRequestError("failed to refresh the session token (1)\n"+er.Error(), er.Error())
+		return []errors.Error{errors.NewBadRequestError("failed to refresh the session token (1)\n"+er.Error(), er.Error())}
 	}
 
 	if tokenPayload.Token != ctx.SessionToken {
-		return errors.NewBadRequestError("failed to refresh the session token (2)\nsession token mismatch", "session token mismatch")
+		return []errors.Error{errors.NewBadRequestError("failed to refresh the session token (2)\nsession token mismatch", "session token mismatch")}
 	}
 
 	if sessionToken, err = appUser.storage.RefreshSession(
@@ -257,7 +257,7 @@ func (appUser *applicationUser) RefreshSession(ctx *context.Context) (err errors
 	return
 }
 
-func (appUser *applicationUser) Logout(ctx *context.Context) (err errors.Error) {
+func (appUser *applicationUser) Logout(ctx *context.Context) (err []errors.Error) {
 	if err = appUser.storage.DestroySession(
 		ctx.Bag["accountID"].(int64),
 		ctx.Bag["applicationID"].(int64),
@@ -270,7 +270,7 @@ func (appUser *applicationUser) Logout(ctx *context.Context) (err errors.Error) 
 	return
 }
 
-func (appUser *applicationUser) Search(ctx *context.Context) (err errors.Error) {
+func (appUser *applicationUser) Search(ctx *context.Context) (err []errors.Error) {
 	query := ctx.Query.Get("q")
 	if query == "" {
 		server.WriteResponse(ctx, []*entity.ApplicationUser{}, http.StatusNoContent, 10)
@@ -278,7 +278,7 @@ func (appUser *applicationUser) Search(ctx *context.Context) (err errors.Error) 
 	}
 
 	if len(query) < 3 {
-		return errors.NewBadRequestError("type at least 3 characters to search", "less than 3 chars for search")
+		return []errors.Error{errors.NewBadRequestError("type at least 3 characters to search", "less than 3 chars for search")}
 	}
 
 	users, err := appUser.storage.Search(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), query)
@@ -309,10 +309,10 @@ func (appUser *applicationUser) Search(ctx *context.Context) (err errors.Error) 
 	return
 }
 
-func (appUser *applicationUser) PopulateContext(ctx *context.Context) (err errors.Error) {
+func (appUser *applicationUser) PopulateContext(ctx *context.Context) (err []errors.Error) {
 	user, pass, ok := ctx.BasicAuth()
 	if !ok {
-		return errors.NewBadRequestError("error while reading user credentials", fmt.Sprintf("got %s:%s", user, pass))
+		return []errors.Error{errors.NewBadRequestError("error while reading user credentials", fmt.Sprintf("got %s:%s", user, pass))}
 	}
 	ctx.Bag["applicationUser"], err = appUser.storage.FindBySession(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), pass)
 	if err == nil {

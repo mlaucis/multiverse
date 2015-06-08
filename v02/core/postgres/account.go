@@ -32,7 +32,7 @@ const (
 	deleteAccountByIDQuery       = `DELETE FROM tg.accounts WHERE id = $1`
 )
 
-func (a *account) Create(account *entity.Account, retrieve bool) (*entity.Account, errors.Error) {
+func (a *account) Create(account *entity.Account, retrieve bool) (*entity.Account, []errors.Error) {
 	account.PublicID = storageHelper.GenerateUUIDV5(storageHelper.OIDUUIDNamespace, storageHelper.GenerateRandomString(20))
 	account.Enabled = true
 	timeNow := time.Now()
@@ -41,7 +41,7 @@ func (a *account) Create(account *entity.Account, retrieve bool) (*entity.Accoun
 
 	accountJSON, err := json.Marshal(account)
 	if err != nil {
-		return nil, errors.NewInternalError("error while creating the account", err.Error())
+		return nil, []errors.Error{errors.NewInternalError("error while creating the account", err.Error())}
 	}
 
 	var createdAccountID int64
@@ -49,7 +49,7 @@ func (a *account) Create(account *entity.Account, retrieve bool) (*entity.Accoun
 		QueryRow(createAccountQuery, string(accountJSON)).
 		Scan(&createdAccountID)
 	if err != nil {
-		return nil, errors.NewInternalError("error while creating the account", err.Error())
+		return nil, []errors.Error{errors.NewInternalError("error while creating the account", err.Error())}
 	}
 
 	if !retrieve {
@@ -59,7 +59,7 @@ func (a *account) Create(account *entity.Account, retrieve bool) (*entity.Accoun
 	return a.Read(createdAccountID)
 }
 
-func (a *account) Read(accountID int64) (*entity.Account, errors.Error) {
+func (a *account) Read(accountID int64) (*entity.Account, []errors.Error) {
 	var JSONData string
 	err := a.pg.SlaveDatastore(-1).
 		QueryRow(selectAccountByIDQuery, accountID).
@@ -68,20 +68,20 @@ func (a *account) Read(accountID int64) (*entity.Account, errors.Error) {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
-		return nil, errors.NewInternalError("error while reading the account", err.Error())
+		return nil, []errors.Error{errors.NewInternalError("error while reading the account", err.Error())}
 	}
 
 	acc := &entity.Account{}
 	err = json.Unmarshal([]byte(JSONData), acc)
 	if err != nil {
-		return nil, errors.NewInternalError("error while reading the account", err.Error())
+		return nil, []errors.Error{errors.NewInternalError("error while reading the account", err.Error())}
 	}
 	acc.ID = accountID
 
 	return acc, nil
 }
 
-func (a *account) Update(existingAccount, updatedAccount entity.Account, retrieve bool) (*entity.Account, errors.Error) {
+func (a *account) Update(existingAccount, updatedAccount entity.Account, retrieve bool) (*entity.Account, []errors.Error) {
 	if updatedAccount.AuthToken == "" {
 		updatedAccount.AuthToken = existingAccount.AuthToken
 	}
@@ -89,12 +89,12 @@ func (a *account) Update(existingAccount, updatedAccount entity.Account, retriev
 	updatedAccount.UpdatedAt = &timeNow
 	accountJSON, err := json.Marshal(updatedAccount)
 	if err != nil {
-		return nil, errors.NewInternalError("error while updating the account", err.Error())
+		return nil, []errors.Error{errors.NewInternalError("error while updating the account", err.Error())}
 	}
 
 	_, err = a.mainPg.Exec(updateAccountByIDQuery, string(accountJSON), existingAccount.ID)
 	if err != nil {
-		return nil, errors.NewInternalError("error while updating the account", err.Error())
+		return nil, []errors.Error{errors.NewInternalError("error while updating the account", err.Error())}
 	}
 
 	if !retrieve {
@@ -104,26 +104,26 @@ func (a *account) Update(existingAccount, updatedAccount entity.Account, retriev
 	return a.Read(existingAccount.ID)
 }
 
-func (a *account) Delete(account *entity.Account) errors.Error {
+func (a *account) Delete(account *entity.Account) []errors.Error {
 	_, err := a.mainPg.Exec(deleteAccountByIDQuery, account.ID)
 	if err != nil {
-		return errors.NewInternalError("error while deleting the account", err.Error())
+		return []errors.Error{errors.NewInternalError("error while deleting the account", err.Error())}
 	}
 	return nil
 }
 
-func (a *account) Exists(accountID int64) (bool, errors.Error) {
+func (a *account) Exists(accountID int64) (bool, []errors.Error) {
 	var JSONData string
 	err := a.pg.SlaveDatastore(-1).
 		QueryRow(selectAccountByIDQuery, accountID).
 		Scan(&JSONData)
 	if err != nil {
-		return false, errors.NewInternalError("error while reading the account", err.Error())
+		return false, []errors.Error{errors.NewInternalError("error while reading the account", err.Error())}
 	}
 	return true, nil
 }
 
-func (a *account) FindByKey(authKey string) (*entity.Account, errors.Error) {
+func (a *account) FindByKey(authKey string) (*entity.Account, []errors.Error) {
 	var (
 		ID       int64
 		JSONData string
@@ -135,19 +135,19 @@ func (a *account) FindByKey(authKey string) (*entity.Account, errors.Error) {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
-		return nil, errors.NewInternalError("error while loading the account", err.Error())
+		return nil, []errors.Error{errors.NewInternalError("error while loading the account", err.Error())}
 	}
 	account := &entity.Account{}
 	err = json.Unmarshal([]byte(JSONData), account)
 	if err != nil {
-		return nil, errors.NewInternalError("error while loading the account", err.Error())
+		return nil, []errors.Error{errors.NewInternalError("error while loading the account", err.Error())}
 	}
 	account.ID = ID
 
 	return account, nil
 }
 
-func (a *account) ReadByPublicID(id string) (*entity.Account, errors.Error) {
+func (a *account) ReadByPublicID(id string) (*entity.Account, []errors.Error) {
 	var (
 		ID       int64
 		JSONData string
@@ -157,14 +157,14 @@ func (a *account) ReadByPublicID(id string) (*entity.Account, errors.Error) {
 		Scan(&ID, &JSONData)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, errors.NewNotFoundError("account not found", "account not found")
+			return nil, []errors.Error{errors.NewNotFoundError("account not found", "account not found")}
 		}
-		return nil, errors.NewInternalError("error while loading the account", err.Error())
+		return nil, []errors.Error{errors.NewInternalError("error while loading the account", err.Error())}
 	}
 	account := &entity.Account{}
 	err = json.Unmarshal([]byte(JSONData), account)
 	if err != nil {
-		return nil, errors.NewInternalError("error while loading the account", err.Error())
+		return nil, []errors.Error{errors.NewInternalError("error while loading the account", err.Error())}
 	}
 	account.ID = ID
 
