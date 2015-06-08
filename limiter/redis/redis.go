@@ -21,8 +21,8 @@ import (
 
 type (
 	rateLimiter struct {
-		bucket string
-		conn   red.Conn
+		bucket   string
+		connPool *red.Pool
 	}
 )
 
@@ -33,13 +33,16 @@ var (
 func (rateLimiter *rateLimiter) Request(limitee *limiter.Limitee) (int64, time.Time, error) {
 	hash := rateLimiter.bucket + limitee.Hash
 
-	remaining, err := rateLimiter.conn.Do("GET", hash)
+	conn := rateLimiter.connPool.Get()
+	defer conn.Close()
+
+	remaining, err := conn.Do("GET", hash)
 	if err != nil {
 		return 0, errTime, err
 	}
 
 	if remaining == nil {
-		return rateLimiter.create(limitee)
+		return rateLimiter.create(conn, limitee)
 	}
 
 	left, err := strconv.ParseInt(string(remaining.([]uint8)), 10, 64)
@@ -48,24 +51,24 @@ func (rateLimiter *rateLimiter) Request(limitee *limiter.Limitee) (int64, time.T
 	}
 
 	if left > 0 {
-		return rateLimiter.decrement(limitee, left)
+		return rateLimiter.decrement(conn, limitee, left)
 	}
 
 	if left <= 0 {
-		return rateLimiter.expiresIn(limitee)
+		return rateLimiter.expiresIn(conn, limitee)
 	}
 
 	return 0, errTime, errors.New("something went wrong")
 }
 
-func (rateLimiter *rateLimiter) decrement(limitee *limiter.Limitee, value int64) (int64, time.Time, error) {
+func (rateLimiter *rateLimiter) decrement(conn red.Conn, limitee *limiter.Limitee, value int64) (int64, time.Time, error) {
 	hash := rateLimiter.bucket + limitee.Hash
-	expiry, err := rateLimiter.conn.Do("TTL", hash)
+	expiry, err := conn.Do("TTL", hash)
 	if err != nil {
 		return 0, errTime, err
 	}
 
-	_, err = rateLimiter.conn.Do("DECR", hash)
+	_, err = conn.Do("DECR", hash)
 	if err != nil {
 		return 0, errTime, err
 	}
@@ -73,25 +76,25 @@ func (rateLimiter *rateLimiter) decrement(limitee *limiter.Limitee, value int64)
 	return value - 1, time.Now().Add(time.Duration(expiry.(int64)) * time.Second), nil
 }
 
-func (rateLimiter *rateLimiter) create(limitee *limiter.Limitee) (int64, time.Time, error) {
+func (rateLimiter *rateLimiter) create(conn red.Conn, limitee *limiter.Limitee) (int64, time.Time, error) {
 	hash := rateLimiter.bucket + limitee.Hash
 	limit := limitee.Limit
-	response, err := rateLimiter.conn.Do("SET", hash, limit, "EX", limitee.WindowSize, "NX")
+	response, err := conn.Do("SET", hash, limit, "EX", limitee.WindowSize, "NX")
 	if err != nil {
 		return 0, errTime, err
 	}
 
 	// Check if this was set by someone else meanwhile
 	if response == nil {
-		return rateLimiter.decrement(limitee, limitee.Limit)
+		return rateLimiter.decrement(conn, limitee, limitee.Limit)
 	}
 
 	return limit - 1, time.Now().Add(time.Duration(limitee.WindowSize) * time.Second), nil
 }
 
-func (rateLimiter *rateLimiter) expiresIn(limitee *limiter.Limitee) (int64, time.Time, error) {
+func (rateLimiter *rateLimiter) expiresIn(conn red.Conn, limitee *limiter.Limitee) (int64, time.Time, error) {
 	hash := rateLimiter.bucket + limitee.Hash
-	expiry, err := rateLimiter.conn.Do("TTL", hash)
+	expiry, err := conn.Do("TTL", hash)
 	if err != nil {
 		return 0, errTime, err
 	}
@@ -100,9 +103,9 @@ func (rateLimiter *rateLimiter) expiresIn(limitee *limiter.Limitee) (int64, time
 }
 
 // NewLimiter creates a new Limiter implementation using Redis
-func NewLimiter(conn red.Conn, bucketName string) limiter.Limiter {
+func NewLimiter(connPool *red.Pool, bucketName string) limiter.Limiter {
 	return &rateLimiter{
-		bucket: bucketName,
-		conn:   conn,
+		bucket:   bucketName,
+		connPool: connPool,
 	}
 }
