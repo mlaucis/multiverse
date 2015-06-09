@@ -37,6 +37,10 @@ type (
 
 const version = "0.2"
 
+var (
+	currentRevision, currentHostname string
+)
+
 // RoutePattern returns the route pattern for a certain version
 func (r *Route) RoutePattern(version string) string {
 	if version == "" {
@@ -141,6 +145,9 @@ func WriteCommonHeaders(cacheTime uint, ctx *context.Context) {
 	ctx.W.Header().Set("X-Content-Type-Options", "nosniff")
 	ctx.W.Header().Set("X-Frame-Options", "DENY")
 	ctx.W.Header().Set("Content-Type", "application/json; charset=UTF-8")
+
+	ctx.W.Header().Set("X-Tapglue-Hash", currentRevision)
+	ctx.W.Header().Set("X-Tapglue-Server", currentHostname)
 
 	if cacheTime > 0 {
 		ctx.W.Header().Set("Cache-Control", fmt.Sprintf(`max-age=%d, public`, cacheTime))
@@ -356,12 +363,7 @@ func CustomHandler(routeName, version string, route *Route, mainLog, errorLog ch
 }
 
 // Init takes care of initializing the router with the requests needed
-func Init(router *mux.Router, mainLogChan, errorLogChan chan *logger.LogMsg, environment string, debugMode, skipSecurityChecks bool) {
-	for routeName, route := range Routes {
-		router.
-			Methods(route.Method, "OPTIONS").
-			Path(route.RoutePattern(version)).
-			Name(routeName).
-			HandlerFunc(CustomHandler(routeName, version, route, mainLogChan, errorLogChan, environment, debugMode, skipSecurityChecks))
-	}
+func Init(revision, hostname string) {
+	currentRevision = revision
+	currentHostname = hostname
 }
