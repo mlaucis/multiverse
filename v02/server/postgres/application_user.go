@@ -286,6 +286,8 @@ func (appUser *applicationUser) Search(ctx *context.Context) (err errors.Error) 
 		return
 	}
 
+	computeApplicationUsersLastModified(ctx, users)
+
 	for idx := range users {
 		users[idx].Password = ""
 		users[idx].Enabled = false

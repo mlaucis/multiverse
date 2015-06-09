@@ -40,7 +40,7 @@ const (
 	updateApplicationUserSessionQuery        = `UPDATE app_%d_%d.sessions SET session_id = $1 WHERE user_id = $2 AND session_id = $3`
 	destroyApplicationUserSessionQuery       = `UPDATE app_%d_%d.sessions SET enabled = FALSE WHERE user_id = $1 AND session_id = $2`
 	destroyAllApplicationUserSessionQuery    = `UPDATE app_%d_%d.sessions SET enabled = FALSE WHERE user_id = $1`
-	searchApplicationUsersQuery              = `SELECT json_data FROM app_%d_%d.users WHERE (json_data->>'user_name' ILIKE $1) OR (json_data->>'email' ILIKE $1) OR (json_data->>'first_name' ILIKE $1) OR (json_data->>'last_name' ILIKE $1) LIMIT 50`
+	searchApplicationUsersQuery              = `SELECT json_data FROM app_%d_%d.users WHERE ((json_data->>'user_name' ILIKE $1) OR (json_data->>'email' ILIKE $1) OR (json_data->>'first_name' ILIKE $1) OR (json_data->>'last_name' ILIKE $1)) AND json_data @> '{"enabled": true}' LIMIT 50`
 )
 
 func (au *applicationUser) Create(accountID, applicationID int64, user *entity.ApplicationUser, retrieve bool) (*entity.ApplicationUser, errors.Error) {
