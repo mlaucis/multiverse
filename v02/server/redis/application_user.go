@@ -23,24 +23,24 @@ type (
 	}
 )
 
-func (appUser *applicationUser) Read(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
+func (appUser *applicationUser) Read(ctx *context.Context) (err []errors.Error) {
+	return deprecatedStorageError
 	server.WriteResponse(ctx, ctx.Bag["applicationUser"].(*entity.ApplicationUser), http.StatusOK, 10)
 	return
 }
 
-func (appUser *applicationUser) ReadCurrent(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
+func (appUser *applicationUser) ReadCurrent(ctx *context.Context) (err []errors.Error) {
+	return deprecatedStorageError
 	server.WriteResponse(ctx, ctx.Bag["applicationUser"].(*entity.ApplicationUser), http.StatusOK, 10)
 	return
 }
 
-func (appUser *applicationUser) UpdateCurrent(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
+func (appUser *applicationUser) UpdateCurrent(ctx *context.Context) (err []errors.Error) {
+	return deprecatedStorageError
 	user := *(ctx.Bag["applicationUser"].(*entity.ApplicationUser))
 	var er error
 	if er = json.Unmarshal(ctx.Body, &user); er != nil {
-		return errors.NewBadRequestError("failed to update the user (1)\n"+er.Error(), er.Error())
+		return []errors.Error{errors.NewBadRequestError("failed to update the user (1)\n"+er.Error(), er.Error())}
 	}
 
 	user.ID = ctx.Bag["applicationUserID"].(string)
@@ -70,8 +70,8 @@ func (appUser *applicationUser) UpdateCurrent(ctx *context.Context) (err errors.
 	return
 }
 
-func (appUser *applicationUser) DeleteCurrent(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
+func (appUser *applicationUser) DeleteCurrent(ctx *context.Context) (err []errors.Error) {
+	return deprecatedStorageError
 	if err = appUser.storage.Delete(
 		ctx.Bag["accountID"].(int64),
 		ctx.Bag["applicationID"].(int64),
@@ -83,15 +83,15 @@ func (appUser *applicationUser) DeleteCurrent(ctx *context.Context) (err errors.
 	return
 }
 
-func (appUser *applicationUser) Create(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
+func (appUser *applicationUser) Create(ctx *context.Context) (err []errors.Error) {
+	return deprecatedStorageError
 	var (
 		user = &entity.ApplicationUser{}
 		er   error
 	)
 
 	if er = json.Unmarshal(ctx.Body, user); er != nil {
-		return errors.NewBadRequestError("failed to create the application user (1)\n"+er.Error(), er.Error())
+		return []errors.Error{errors.NewBadRequestError("failed to create the application user (1)\n"+er.Error(), er.Error())}
 	}
 
 	if err = validator.CreateUser(
@@ -116,8 +116,8 @@ func (appUser *applicationUser) Create(ctx *context.Context) (err errors.Error) 
 	return
 }
 
-func (appUser *applicationUser) Login(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
+func (appUser *applicationUser) Login(ctx *context.Context) (err []errors.Error) {
+	return deprecatedStorageError
 	var (
 		loginPayload = &entity.LoginPayload{}
 		user         *entity.ApplicationUser
@@ -126,7 +126,7 @@ func (appUser *applicationUser) Login(ctx *context.Context) (err errors.Error) {
 	)
 
 	if er = json.Unmarshal(ctx.Body, loginPayload); er != nil {
-		return errors.NewBadRequestError("failed to login the user (1)\n"+er.Error(), er.Error())
+		return []errors.Error{errors.NewBadRequestError("failed to login the user (1)\n"+er.Error(), er.Error())}
 	}
 
 	if err = validator.IsValidLoginPayload(loginPayload); err != nil {
@@ -148,11 +148,11 @@ func (appUser *applicationUser) Login(ctx *context.Context) (err errors.Error) {
 	}
 
 	if user == nil {
-		return errors.NewInternalError("failed to login the application user (2)\n", "user is nil")
+		return []errors.Error{errors.NewInternalError("failed to login the application user (2)\n", "user is nil")}
 	}
 
 	if !user.Enabled {
-		return errors.NewNotFoundError("failed to login the user (3)\nuser is disabled", "user is disabled")
+		return []errors.Error{errors.NewNotFoundError("failed to login the user (3)\nuser is disabled", "user is disabled")}
 	}
 
 	if err = validator.ApplicationUserCredentialsValid(loginPayload.Password, user); err != nil {
@@ -188,8 +188,8 @@ func (appUser *applicationUser) Login(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (appUser *applicationUser) RefreshSession(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
+func (appUser *applicationUser) RefreshSession(ctx *context.Context) (err []errors.Error) {
+	return deprecatedStorageError
 	var (
 		tokenPayload struct {
 			Token string `json:"session_token"`
@@ -199,11 +199,11 @@ func (appUser *applicationUser) RefreshSession(ctx *context.Context) (err errors
 	)
 
 	if er = json.Unmarshal(ctx.Body, &tokenPayload); er != nil {
-		return errors.NewBadRequestError("failed to refresh the session token (1)\n"+er.Error(), er.Error())
+		return []errors.Error{errors.NewBadRequestError("failed to refresh the session token (1)\n"+er.Error(), er.Error())}
 	}
 
 	if tokenPayload.Token != ctx.SessionToken {
-		return errors.NewBadRequestError("failed to refresh the session token (2)\nsession token mismatch", "session token mismatch")
+		return []errors.Error{errors.NewBadRequestError("failed to refresh the session token (2)\nsession token mismatch", "session token mismatch")}
 	}
 
 	if sessionToken, err = appUser.storage.RefreshSession(
@@ -220,8 +220,8 @@ func (appUser *applicationUser) RefreshSession(ctx *context.Context) (err errors
 	return
 }
 
-func (appUser *applicationUser) Logout(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
+func (appUser *applicationUser) Logout(ctx *context.Context) (err []errors.Error) {
+	return deprecatedStorageError
 	var (
 		tokenPayload struct {
 			Token string `json:"session_token"`
@@ -230,11 +230,11 @@ func (appUser *applicationUser) Logout(ctx *context.Context) (err errors.Error) 
 	)
 
 	if er = json.Unmarshal(ctx.Body, &tokenPayload); er != nil {
-		return errors.NewBadRequestError("failed to logout the user (1)\n"+er.Error(), er.Error())
+		return []errors.Error{errors.NewBadRequestError("failed to logout the user (1)\n"+er.Error(), er.Error())}
 	}
 
 	if tokenPayload.Token != ctx.SessionToken {
-		return errors.NewBadRequestError("failed to logout the user (2)\nsession token mismatch", "session token mismatch")
+		return []errors.Error{errors.NewBadRequestError("failed to logout the user (2)\nsession token mismatch", "session token mismatch")}
 	}
 
 	if err = appUser.storage.DestroySession(
@@ -249,12 +249,12 @@ func (appUser *applicationUser) Logout(ctx *context.Context) (err errors.Error) 
 	return
 }
 
-func (appUser *applicationUser) Search(*context.Context) errors.Error {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (appUser *applicationUser) Search(*context.Context) []errors.Error {
+	return []errors.Error{errors.NewInternalError("not implemented yet", "not implemented yet")}
 }
 
-func (appUser *applicationUser) PopulateContext(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
+func (appUser *applicationUser) PopulateContext(ctx *context.Context) (err []errors.Error) {
+	return deprecatedStorageError
 	ctx.Bag["applicationUser"], err = appUser.storage.Read(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(string))
 	return
 }

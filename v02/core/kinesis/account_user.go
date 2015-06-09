@@ -1,4 +1,4 @@
-package redis
+package kinesis
 
 import (
 	"encoding/json"
@@ -20,92 +20,92 @@ type (
 	}
 )
 
-func (au *accountUser) Create(accountUser *entity.AccountUser, retrieve bool) (*entity.AccountUser, errors.Error) {
+func (au *accountUser) Create(accountUser *entity.AccountUser, retrieve bool) (*entity.AccountUser, []errors.Error) {
 	data, er := json.Marshal(accountUser)
 	if er != nil {
-		return nil, errors.NewInternalError("error while creating the account user (1)", er.Error())
+		return nil, []errors.Error{errors.NewInternalError("error while creating the account user (1)", er.Error())}
 	}
 
 	partitionKey := fmt.Sprintf("account-user-%d-%d", accountUser.AccountID, accountUser.ID)
 	_, err := au.storage.PackAndPutRecord(kinesis.StreamAccountUserCreate, partitionKey, data)
 
-	return nil, err
+	return nil, []errors.Error{err}
 }
 
-func (au *accountUser) Read(accountID, accountUserID int64) (accountUser *entity.AccountUser, er errors.Error) {
-	return nil, errors.NewNotFoundError("not found", "invalid handler specified")
+func (au *accountUser) Read(accountID, accountUserID int64) (accountUser *entity.AccountUser, er []errors.Error) {
+	return nil, invalidHandlerError
 }
 
-func (au *accountUser) Update(existingAccountUser, updatedAccountUser entity.AccountUser, retrieve bool) (*entity.AccountUser, errors.Error) {
+func (au *accountUser) Update(existingAccountUser, updatedAccountUser entity.AccountUser, retrieve bool) (*entity.AccountUser, []errors.Error) {
 	data, er := json.Marshal(updatedAccountUser)
 	if er != nil {
-		return nil, errors.NewInternalError("error while updating the account user (1)", er.Error())
+		return nil, []errors.Error{errors.NewInternalError("error while updating the account user (1)", er.Error())}
 	}
 
 	partitionKey := fmt.Sprintf("account-user-%d-%d", updatedAccountUser.AccountID, updatedAccountUser.ID)
 	_, err := au.storage.PackAndPutRecord(kinesis.StreamAccountUserUpdate, partitionKey, data)
 
-	return nil, err
+	return nil, []errors.Error{err}
 }
 
-func (au *accountUser) Delete(accountUser *entity.AccountUser) errors.Error {
+func (au *accountUser) Delete(accountUser *entity.AccountUser) []errors.Error {
 	data, er := json.Marshal(accountUser)
 	if er != nil {
-		return errors.NewInternalError("error while creating the event (1)", er.Error())
+		return []errors.Error{errors.NewInternalError("error while creating the event (1)", er.Error())}
 	}
 
 	partitionKey := fmt.Sprintf("account-user-%d-%d", accountUser.AccountID, accountUser.ID)
 	_, err := au.storage.PackAndPutRecord(kinesis.StreamAccountUserDelete, partitionKey, data)
 
-	return err
+	return []errors.Error{err}
 }
 
-func (au *accountUser) List(accountID int64) (accountUsers []*entity.AccountUser, er errors.Error) {
-	return accountUsers, errors.NewNotFoundError("not found", "invalid handler specified")
+func (au *accountUser) List(accountID int64) (accountUsers []*entity.AccountUser, er []errors.Error) {
+	return accountUsers, invalidHandlerError
 }
 
-func (au *accountUser) CreateSession(user *entity.AccountUser) (string, errors.Error) {
-	return "", errors.NewNotFoundError("not found", "invalid handler specified")
+func (au *accountUser) CreateSession(user *entity.AccountUser) (string, []errors.Error) {
+	return "", invalidHandlerError
 }
 
-func (au *accountUser) RefreshSession(sessionToken string, user *entity.AccountUser) (string, errors.Error) {
-	return "", errors.NewNotFoundError("not found", "invalid handler specified")
+func (au *accountUser) RefreshSession(sessionToken string, user *entity.AccountUser) (string, []errors.Error) {
+	return "", invalidHandlerError
 }
 
-func (au *accountUser) DestroySession(sessionToken string, user *entity.AccountUser) errors.Error {
-	return errors.NewNotFoundError("not found", "invalid handler specified")
+func (au *accountUser) DestroySession(sessionToken string, user *entity.AccountUser) []errors.Error {
+	return invalidHandlerError
 }
 
-func (au *accountUser) GetSession(user *entity.AccountUser) (string, errors.Error) {
-	return "", errors.NewNotFoundError("not found", "invalid handler specified")
+func (au *accountUser) GetSession(user *entity.AccountUser) (string, []errors.Error) {
+	return "", invalidHandlerError
 }
 
-func (au *accountUser) FindByEmail(email string) (*entity.Account, *entity.AccountUser, errors.Error) {
-	return nil, nil, errors.NewNotFoundError("not found", "invalid handler specified")
+func (au *accountUser) FindByEmail(email string) (*entity.Account, *entity.AccountUser, []errors.Error) {
+	return nil, nil, invalidHandlerError
 }
 
-func (au *accountUser) ExistsByEmail(email string) (bool, errors.Error) {
-	return false, errors.NewNotFoundError("not found", "invalid handler specified")
+func (au *accountUser) ExistsByEmail(email string) (bool, []errors.Error) {
+	return false, invalidHandlerError
 }
 
-func (au *accountUser) FindByUsername(username string) (*entity.Account, *entity.AccountUser, errors.Error) {
-	return nil, nil, errors.NewNotFoundError("not found", "invalid handler specified")
+func (au *accountUser) FindByUsername(username string) (*entity.Account, *entity.AccountUser, []errors.Error) {
+	return nil, nil, invalidHandlerError
 }
 
-func (au *accountUser) ExistsByUsername(username string) (bool, errors.Error) {
-	return false, errors.NewNotFoundError("not found", "invalid handler specified")
+func (au *accountUser) ExistsByUsername(username string) (bool, []errors.Error) {
+	return false, invalidHandlerError
 }
 
-func (au *accountUser) ExistsByID(accountID, userID int64) (bool, errors.Error) {
-	return false, errors.NewInternalError("not implemented yet", "not implemented yet")
+func (au *accountUser) ExistsByID(accountID, userID int64) (bool, []errors.Error) {
+	return false, invalidHandlerError
 }
 
-func (au *accountUser) FindBySession(sessionKey string) (*entity.AccountUser, errors.Error) {
-	return nil, errors.NewInternalError("not implemented yet", "not implemented yet")
+func (au *accountUser) FindBySession(sessionKey string) (*entity.AccountUser, []errors.Error) {
+	return nil, invalidHandlerError
 }
 
-func (au *accountUser) FindByPublicID(accountID int64, publicID string) (*entity.AccountUser, errors.Error) {
-	return nil, errors.NewInternalError("not implemented yet", "not implemented yet")
+func (au *accountUser) FindByPublicID(accountID int64, publicID string) (*entity.AccountUser, []errors.Error) {
+	return nil, invalidHandlerError
 }
 
 // NewAccountUser creates a new AccountUser

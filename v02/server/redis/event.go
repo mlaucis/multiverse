@@ -25,8 +25,8 @@ type (
 	}
 )
 
-func (evt *event) Read(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
+func (evt *event) Read(ctx *context.Context) (err []errors.Error) {
+	return deprecatedStorageError
 	var (
 		event   = &entity.Event{}
 		eventID string
@@ -47,8 +47,8 @@ func (evt *event) Read(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (evt *event) Update(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
+func (evt *event) Update(ctx *context.Context) (err []errors.Error) {
+	return deprecatedStorageError
 	var (
 		eventID string
 		er      error
@@ -68,7 +68,7 @@ func (evt *event) Update(ctx *context.Context) (err errors.Error) {
 
 	event := *existingEvent
 	if er = json.Unmarshal(ctx.Body, &event); er != nil {
-		return errors.NewBadRequestError("failed to update the event (2)\n"+er.Error(), er.Error())
+		return []errors.Error{errors.NewBadRequestError("failed to update the event (2)\n"+er.Error(), er.Error())}
 	}
 
 	event.ID = eventID
@@ -93,15 +93,15 @@ func (evt *event) Update(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (evt *event) CurrentUserUpdate(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (evt *event) CurrentUserUpdate(ctx *context.Context) (err []errors.Error) {
+	return []errors.Error{errors.NewInternalError("not implemented yet", "not implemented yet")}
 }
 
-func (evt *event) Delete(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
+func (evt *event) Delete(ctx *context.Context) (err []errors.Error) {
+	return deprecatedStorageError
 	event := &entity.Event{}
 	if er := json.Unmarshal(ctx.Body, event); er != nil {
-		return errors.NewBadRequestError("failed to delete the event (1)\n"+er.Error(), er.Error())
+		return []errors.Error{errors.NewBadRequestError("failed to delete the event (1)\n"+er.Error(), er.Error())}
 	}
 
 	if err = evt.storage.Delete(
@@ -116,8 +116,8 @@ func (evt *event) Delete(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (evt *event) List(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
+func (evt *event) List(ctx *context.Context) (err []errors.Error) {
+	return deprecatedStorageError
 	var events []*entity.Event
 
 	if events, err = evt.storage.List(
@@ -132,12 +132,12 @@ func (evt *event) List(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (evt *event) CurrentUserList(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (evt *event) CurrentUserList(ctx *context.Context) (err []errors.Error) {
+	return []errors.Error{errors.NewInternalError("not implemented yet", "not implemented yet")}
 }
 
-func (evt *event) Feed(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
+func (evt *event) Feed(ctx *context.Context) (err []errors.Error) {
+	return deprecatedStorageError
 	var events = []*entity.Event{}
 
 	if _, events, err = evt.storage.UserFeed(
@@ -151,15 +151,15 @@ func (evt *event) Feed(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (evt *event) Create(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
+func (evt *event) Create(ctx *context.Context) (err []errors.Error) {
+	return deprecatedStorageError
 	var (
 		event = &entity.Event{}
 		er    error
 	)
 
 	if er = json.Unmarshal(ctx.Body, event); er != nil {
-		return errors.NewBadRequestError("failed to create the event (1)\n"+er.Error(), er.Error())
+		return []errors.Error{errors.NewBadRequestError("failed to create the event (1)\n"+er.Error(), er.Error())}
 	}
 
 	event.UserID = ctx.Bag["applicationUserID"].(string)
@@ -185,16 +185,16 @@ func (evt *event) Create(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (evt *event) CurrentUserCreate(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (evt *event) CurrentUserCreate(ctx *context.Context) (err []errors.Error) {
+	return []errors.Error{errors.NewInternalError("not implemented yet", "not implemented yet")}
 }
 
-func (evt *event) Search(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
+func (evt *event) Search(ctx *context.Context) (err []errors.Error) {
+	return deprecatedStorageError
 }
 
-func (evt *event) SearchGeo(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
+func (evt *event) SearchGeo(ctx *context.Context) (err []errors.Error) {
+	return deprecatedStorageError
 	var (
 		events                      = []*entity.Event{}
 		latitude, longitude, radius float64
@@ -202,19 +202,19 @@ func (evt *event) SearchGeo(ctx *context.Context) (err errors.Error) {
 	)
 
 	if latitude, er = strconv.ParseFloat(ctx.Vars["latitude"], 64); er != nil {
-		return errors.NewBadRequestError("failed to read the event by geo (1)\n"+er.Error(), er.Error())
+		return []errors.Error{errors.NewBadRequestError("failed to read the event by geo (1)\n"+er.Error(), er.Error())}
 	}
 
 	if longitude, er = strconv.ParseFloat(ctx.Vars["longitude"], 64); er != nil {
-		return errors.NewBadRequestError("failed to read the event by geo (2)\n"+er.Error(), er.Error())
+		return []errors.Error{errors.NewBadRequestError("failed to read the event by geo (2)\n"+er.Error(), er.Error())}
 	}
 
 	if radius, er = strconv.ParseFloat(ctx.Vars["radius"], 64); er != nil {
-		return errors.NewBadRequestError("failed to read the event by geo (3)\n"+er.Error(), er.Error())
+		return []errors.Error{errors.NewBadRequestError("failed to read the event by geo (3)\n"+er.Error(), er.Error())}
 	}
 
 	if radius < 2 {
-		return errors.NewBadRequestError("failed to read the event by geo (4)\nLocation radius can't be smaller than 2 meters", "radius smaller than 2")
+		return []errors.Error{errors.NewBadRequestError("failed to read the event by geo (4)\nLocation radius can't be smaller than 2 meters", "radius smaller than 2")}
 	}
 
 	events, err = evt.storage.GeoSearch(
@@ -233,8 +233,8 @@ func (evt *event) SearchGeo(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (evt *event) SearchObject(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
+func (evt *event) SearchObject(ctx *context.Context) (err []errors.Error) {
+	return deprecatedStorageError
 	var (
 		events    = []*entity.Event{}
 		objectKey string
@@ -252,8 +252,8 @@ func (evt *event) SearchObject(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (evt *event) SearchLocation(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("deprecated storage used", "redis storage is deprecated")
+func (evt *event) SearchLocation(ctx *context.Context) (err []errors.Error) {
+	return deprecatedStorageError
 	var (
 		events   = []*entity.Event{}
 		location string
@@ -271,12 +271,12 @@ func (evt *event) SearchLocation(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (evt *event) UnreadFeed(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (evt *event) UnreadFeed(ctx *context.Context) (err []errors.Error) {
+	return []errors.Error{errors.NewInternalError("not implemented yet", "not implemented yet")}
 }
 
-func (evt *event) UnreadFeedCount(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (evt *event) UnreadFeedCount(ctx *context.Context) (err []errors.Error) {
+	return []errors.Error{errors.NewInternalError("not implemented yet", "not implemented yet")}
 }
 
 type byIDDesc []*entity.Event

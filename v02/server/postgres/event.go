@@ -24,7 +24,7 @@ type (
 	}
 )
 
-func (evt *event) Read(ctx *context.Context) (err errors.Error) {
+func (evt *event) Read(ctx *context.Context) (err []errors.Error) {
 	var (
 		event           = &entity.Event{}
 		eventID, userID string
@@ -32,12 +32,12 @@ func (evt *event) Read(ctx *context.Context) (err errors.Error) {
 
 	eventID = ctx.Vars["eventID"]
 	if !validator.IsValidUUID5(eventID) {
-		return invalidEventIDError
+		return []errors.Error{invalidEventIDError}
 	}
 
 	userID = ctx.Vars["applicationUserID"]
 	if !validator.IsValidUUID5(userID) {
-		return invalidUserIDError
+		return []errors.Error{invalidUserIDError}
 	}
 
 	if event, err = evt.storage.Read(
@@ -55,8 +55,8 @@ func (evt *event) Read(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (evt *event) Update(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (evt *event) Update(ctx *context.Context) (err []errors.Error) {
+	return []errors.Error{errors.NewInternalError("not implemented yet", "not implemented yet")}
 	var (
 		eventID, userID string
 		er              error
@@ -64,12 +64,12 @@ func (evt *event) Update(ctx *context.Context) (err errors.Error) {
 
 	eventID = ctx.Vars["eventID"]
 	if !validator.IsValidUUID5(eventID) {
-		return invalidEventIDError
+		return []errors.Error{invalidEventIDError}
 	}
 
 	userID = ctx.Vars["applicationUserID"]
 	if !validator.IsValidUUID5(userID) {
-		return invalidUserIDError
+		return []errors.Error{invalidUserIDError}
 	}
 
 	existingEvent, err := evt.storage.Read(
@@ -84,7 +84,7 @@ func (evt *event) Update(ctx *context.Context) (err errors.Error) {
 
 	event := *existingEvent
 	if er = json.Unmarshal(ctx.Body, &event); er != nil {
-		return errors.NewBadRequestError("failed to update the event (2)\n"+er.Error(), er.Error())
+		return []errors.Error{errors.NewBadRequestError("failed to update the event (2)\n"+er.Error(), er.Error())}
 	}
 
 	event.ID = eventID
@@ -109,7 +109,7 @@ func (evt *event) Update(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (evt *event) CurrentUserUpdate(ctx *context.Context) (err errors.Error) {
+func (evt *event) CurrentUserUpdate(ctx *context.Context) (err []errors.Error) {
 	var (
 		eventID string
 		er      error
@@ -117,7 +117,7 @@ func (evt *event) CurrentUserUpdate(ctx *context.Context) (err errors.Error) {
 
 	eventID = ctx.Vars["eventID"]
 	if !validator.IsValidUUID5(eventID) {
-		return invalidEventIDError
+		return []errors.Error{invalidEventIDError}
 	}
 
 	existingEvent, err := evt.storage.Read(
@@ -132,7 +132,7 @@ func (evt *event) CurrentUserUpdate(ctx *context.Context) (err errors.Error) {
 
 	event := *existingEvent
 	if er = json.Unmarshal(ctx.Body, &event); er != nil {
-		return errors.NewBadRequestError("failed to update the event (2)\n"+er.Error(), er.Error())
+		return []errors.Error{errors.NewBadRequestError("failed to update the event (2)\n"+er.Error(), er.Error())}
 	}
 
 	event.ID = eventID
@@ -157,13 +157,13 @@ func (evt *event) CurrentUserUpdate(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (evt *event) Delete(ctx *context.Context) (err errors.Error) {
+func (evt *event) Delete(ctx *context.Context) (err []errors.Error) {
 	accountID := ctx.Bag["accountID"].(int64)
 	applicationID := ctx.Bag["applicationID"].(int64)
 	userID := ctx.Bag["applicationUserID"].(string)
 	eventID := ctx.Vars["eventID"]
 	if !validator.IsValidUUID5(eventID) {
-		return invalidEventIDError
+		return []errors.Error{invalidEventIDError}
 	}
 
 	event, err := evt.storage.Read(accountID, applicationID, userID, userID, eventID)
@@ -183,12 +183,12 @@ func (evt *event) Delete(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (evt *event) List(ctx *context.Context) (err errors.Error) {
+func (evt *event) List(ctx *context.Context) (err []errors.Error) {
 	accountID := ctx.Bag["accountID"].(int64)
 	applicationID := ctx.Bag["applicationID"].(int64)
 	userID := ctx.Vars["applicationUserID"]
 	if !validator.IsValidUUID5(userID) {
-		return invalidUserIDError
+		return []errors.Error{invalidUserIDError}
 	}
 
 	exists, err := evt.appUser.ExistsByID(accountID, applicationID, userID)
@@ -197,7 +197,7 @@ func (evt *event) List(ctx *context.Context) (err errors.Error) {
 	}
 
 	if !exists {
-		return errors.NewNotFoundError("user not found", "user not found")
+		return []errors.Error{errors.NewNotFoundError("user not found", "user not found")}
 	}
 
 	var events []*entity.Event
@@ -225,7 +225,7 @@ func (evt *event) List(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (evt *event) CurrentUserList(ctx *context.Context) (err errors.Error) {
+func (evt *event) CurrentUserList(ctx *context.Context) (err []errors.Error) {
 	var events []*entity.Event
 
 	if events, err = evt.storage.List(
@@ -255,7 +255,7 @@ func (evt *event) CurrentUserList(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (evt *event) Feed(ctx *context.Context) (err errors.Error) {
+func (evt *event) Feed(ctx *context.Context) (err []errors.Error) {
 	response := entity.EventsResponseWithUnread{}
 
 	if response.UnreadCount, response.Events, err = evt.storage.UserFeed(
@@ -285,15 +285,15 @@ func (evt *event) Feed(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (evt *event) Create(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (evt *event) Create(ctx *context.Context) (err []errors.Error) {
+	return []errors.Error{errors.NewInternalError("not implemented yet", "not implemented yet")}
 	var (
 		event = &entity.Event{}
 		er    error
 	)
 
 	if er = json.Unmarshal(ctx.Body, event); er != nil {
-		return errors.NewBadRequestError("failed to create the event (1)\n"+er.Error(), er.Error())
+		return []errors.Error{errors.NewBadRequestError("failed to create the event (1)\n"+er.Error(), er.Error())}
 	}
 
 	event.UserID = ctx.Bag["applicationUserID"].(string)
@@ -323,14 +323,14 @@ func (evt *event) Create(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (evt *event) CurrentUserCreate(ctx *context.Context) (err errors.Error) {
+func (evt *event) CurrentUserCreate(ctx *context.Context) (err []errors.Error) {
 	var (
 		event = &entity.Event{}
 		er    error
 	)
 
 	if er = json.Unmarshal(ctx.Body, event); er != nil {
-		return errors.NewBadRequestError("failed to create the event (1)\n"+er.Error(), er.Error())
+		return []errors.Error{errors.NewBadRequestError("failed to create the event (1)\n"+er.Error(), er.Error())}
 	}
 
 	event.UserID = ctx.Bag["applicationUserID"].(string)
@@ -360,7 +360,7 @@ func (evt *event) CurrentUserCreate(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (evt *event) Search(ctx *context.Context) (err errors.Error) {
+func (evt *event) Search(ctx *context.Context) (err []errors.Error) {
 	var (
 		events                      = []*entity.Event{}
 		latitude, longitude, radius float64
@@ -370,43 +370,43 @@ func (evt *event) Search(ctx *context.Context) (err errors.Error) {
 
 	if l := ctx.Query.Get("lat"); l != "" {
 		if latitude, er = strconv.ParseFloat(l, 64); er != nil {
-			return errors.NewBadRequestError("failed to read the event by geo (1)\n"+er.Error(), er.Error())
+			return []errors.Error{errors.NewBadRequestError("failed to read the event by geo (1)\n"+er.Error(), er.Error())}
 		}
 	}
 
 	if l := ctx.Query.Get("lon"); l != "" {
 		if longitude, er = strconv.ParseFloat(l, 64); er != nil {
-			return errors.NewBadRequestError("failed to read the event by geo (2)\nyou must supply a latitude", er.Error())
+			return []errors.Error{errors.NewBadRequestError("failed to read the event by geo (2)\nyou must supply a latitude", er.Error())}
 		}
 	}
 
 	if rad := ctx.Query.Get("rad"); rad != "" {
 		if radius, er = strconv.ParseFloat(rad, 64); er != nil {
-			return errors.NewBadRequestError("failed to read the event by geo (3)\n"+er.Error(), er.Error())
+			return []errors.Error{errors.NewBadRequestError("failed to read the event by geo (3)\n"+er.Error(), er.Error())}
 		}
 	}
 
 	if near := ctx.Query.Get("nearest"); near != "" {
 		if nearest, er = strconv.ParseInt(near, 10, 64); er != nil {
-			return errors.NewBadRequestError("failed to read the event by geo (4)\n"+er.Error(), er.Error())
+			return []errors.Error{errors.NewBadRequestError("failed to read the event by geo (4)\n"+er.Error(), er.Error())}
 		}
 
 		if nearest < 1 || nearest > 200 {
-			return errors.NewBadRequestError("failed to read the events by geo(4)\nnear events limits not within accepted bounds", "nearest not within bounds")
+			return []errors.Error{errors.NewBadRequestError("failed to read the events by geo(4)\nnear events limits not within accepted bounds", "nearest not within bounds")}
 		}
 	}
 
 	if ctx.Query.Get("lat") != "" && ctx.Query.Get("lon") != "" {
 		if radius == 0 && nearest == 0 {
-			return errors.NewBadRequestError("failed to read the event by geo(5) \nyou must specify either a radius or a how many nearest events you want", "invalid radius and nearest")
+			return []errors.Error{errors.NewBadRequestError("failed to read the event by geo(5) \nyou must specify either a radius or a how many nearest events you want", "invalid radius and nearest")}
 		}
 
 		if radius < 2 && nearest == 0 {
-			return errors.NewBadRequestError("failed to read the event by geo (6)\nLocation radius can't be smaller than 2 meters", "radius smaller than 2")
+			return []errors.Error{errors.NewBadRequestError("failed to read the event by geo (6)\nLocation radius can't be smaller than 2 meters", "radius smaller than 2")}
 		}
 
 		if radius == 0 && nearest > 200 {
-			return errors.NewBadRequestError("failed to read the event by geo (7)\ncan't have more than 200 nearest events", "nearest is bigger than 200")
+			return []errors.Error{errors.NewBadRequestError("failed to read the event by geo (7)\ncan't have more than 200 nearest events", "nearest is bigger than 200")}
 		}
 
 		events, err = evt.storage.GeoSearch(
@@ -426,7 +426,7 @@ func (evt *event) Search(ctx *context.Context) (err errors.Error) {
 			return
 		}
 	} else {
-		err = errors.NewBadRequestError("failed to search for events\nno known search terms supplied", "failed to search for events\nno known search terms supplied")
+		err = []errors.Error{errors.NewBadRequestError("failed to search for events\nno known search terms supplied", "failed to search for events\nno known search terms supplied")}
 	}
 	if err != nil {
 		return
@@ -457,7 +457,7 @@ func (evt *event) Search(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (evt *event) UnreadFeed(ctx *context.Context) (err errors.Error) {
+func (evt *event) UnreadFeed(ctx *context.Context) (err []errors.Error) {
 	response := entity.EventsResponseWithUnread{}
 
 	if response.UnreadCount, response.Events, err = evt.storage.UnreadFeed(
@@ -487,7 +487,7 @@ func (evt *event) UnreadFeed(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (evt *event) UnreadFeedCount(ctx *context.Context) (err errors.Error) {
+func (evt *event) UnreadFeedCount(ctx *context.Context) (err []errors.Error) {
 	count := struct {
 		Count int `json:"unread_events_count"`
 	}{}
@@ -506,7 +506,7 @@ func (evt *event) UnreadFeedCount(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (evt *event) usersFromEvents(ctx *context.Context, events []*entity.Event) (users map[string]*entity.ApplicationUser, err errors.Error) {
+func (evt *event) usersFromEvents(ctx *context.Context, events []*entity.Event) (users map[string]*entity.ApplicationUser, err []errors.Error) {
 	users = map[string]*entity.ApplicationUser{}
 	eventUsers := map[string]bool{}
 	for idx := range events {

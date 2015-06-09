@@ -23,13 +23,13 @@ type (
 	}
 )
 
-func (acc *account) Read(ctx *context.Context) (err errors.Error) {
+func (acc *account) Read(ctx *context.Context) (err []errors.Error) {
 	if ctx.Bag["account"] == nil {
-		return errors.NewInternalError("request is missing account context", "context missing")
+		return []errors.Error{errors.NewInternalError("request is missing account context", "context missing")}
 	}
 
 	if ctx.Bag["account"].(*entity.Account).PublicID != ctx.Vars["accountID"] {
-		return errors.NewBadRequestError("account mismatch", "account mismatch")
+		return []errors.Error{errors.NewBadRequestError("account mismatch", "account mismatch")}
 	}
 
 	computeAccountLastModified(ctx, ctx.Bag["account"].(*entity.Account))
@@ -38,15 +38,15 @@ func (acc *account) Read(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (acc *account) Update(ctx *context.Context) (err errors.Error) {
+func (acc *account) Update(ctx *context.Context) (err []errors.Error) {
 	account := *(ctx.Bag["account"].(*entity.Account))
 
 	if account.PublicID != ctx.Vars["accountID"] {
-		return errors.New(errors.ConflictError, "failed to update the account (2)\naccount ID mismatch", "account ID mismatch", false)
+		return []errors.Error{errors.New(errors.ConflictError, "failed to update the account (2)\naccount ID mismatch", "account ID mismatch", false)}
 	}
 
 	if er := json.Unmarshal(ctx.Body, &account); er != nil {
-		return errors.NewBadRequestError("failed to update the account (2)\n"+er.Error(), "malformed json received")
+		return []errors.Error{errors.NewBadRequestError("failed to update the account (2)\n"+er.Error(), "malformed json received")}
 	}
 
 	account.ID = ctx.Bag["accountID"].(int64)
@@ -64,13 +64,13 @@ func (acc *account) Update(ctx *context.Context) (err errors.Error) {
 	return nil
 }
 
-func (acc *account) Delete(ctx *context.Context) (err errors.Error) {
+func (acc *account) Delete(ctx *context.Context) (err []errors.Error) {
 	if ctx.R.Header.Get("X-Jarvis-Auth") != "ZTBmZjI3MGE2M2YzYzAzOWI1MjhiYTNi" {
-		return errors.NewNotFoundError("not found", "request does not contain a correct Jarvis auth")
+		return []errors.Error{errors.NewNotFoundError("not found", "request does not contain a correct Jarvis auth")}
 	}
 
 	if ctx.Bag["account"].(*entity.Account).PublicID != ctx.Vars["accountID"] {
-		return errors.NewBadRequestError("account mismatch", "account mismatch")
+		return []errors.Error{errors.NewBadRequestError("account mismatch", "account mismatch")}
 	}
 
 	if err = acc.storage.Delete(ctx.Bag["account"].(*entity.Account)); err != nil {
@@ -81,15 +81,15 @@ func (acc *account) Delete(ctx *context.Context) (err errors.Error) {
 	return nil
 }
 
-func (acc *account) Create(ctx *context.Context) (err errors.Error) {
+func (acc *account) Create(ctx *context.Context) (err []errors.Error) {
 	if ctx.R.Header.Get("X-Jarvis-Auth") != "ZTBmZjI3MGE2M2YzYzAzOWI1MjhiYTNi" {
-		return errors.NewNotFoundError("not found", "request does not contain a correct Jarvis auth")
+		return []errors.Error{errors.NewNotFoundError("not found", "request does not contain a correct Jarvis auth")}
 	}
 
 	var account = &entity.Account{}
 
 	if er := json.Unmarshal(ctx.Body, account); er != nil {
-		return errors.NewBadRequestError("failed to create the account (1)\n"+er.Error(), er.Error())
+		return []errors.Error{errors.NewBadRequestError("failed to create the account (1)\n"+er.Error(), er.Error())}
 	}
 
 	if err = validator.CreateAccount(account); err != nil {
@@ -104,14 +104,14 @@ func (acc *account) Create(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (acc *account) PopulateContext(ctx *context.Context) (err errors.Error) {
+func (acc *account) PopulateContext(ctx *context.Context) (err []errors.Error) {
 	user, pass, ok := ctx.BasicAuth()
 	if !ok {
-		return errors.NewBadRequestError("error while reading account credentials", fmt.Sprintf("got %s:%s", user, pass))
+		return []errors.Error{errors.NewBadRequestError("error while reading account credentials", fmt.Sprintf("got %s:%s", user, pass))}
 	}
 	account, err := acc.storage.FindByKey(user)
 	if account == nil {
-		return errors.NewNotFoundError("account not found", "account not found")
+		return []errors.Error{errors.NewNotFoundError("account not found", "account not found")}
 	}
 	if err == nil {
 		ctx.Bag["account"] = account

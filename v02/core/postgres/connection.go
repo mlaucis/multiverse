@@ -44,9 +44,9 @@ var (
 	ConnectionAlreadyExists = errors.NewBadRequestError("connection already exists", "connection already exists")
 )
 
-func (c *connection) Create(accountID, applicationID int64, connection *entity.Connection, retrieve bool) (*entity.Connection, errors.Error) {
+func (c *connection) Create(accountID, applicationID int64, connection *entity.Connection, retrieve bool) (*entity.Connection, []errors.Error) {
 	exists, er := c.Read(accountID, applicationID, connection.UserFromID, connection.UserToID)
-	if er != nil && er != ConnectionNotFound {
+	if er != nil && er[0] != ConnectionNotFound {
 		return nil, er
 	}
 	if exists != nil {
@@ -55,29 +55,29 @@ func (c *connection) Create(accountID, applicationID int64, connection *entity.C
 			return c.Update(accountID, applicationID, *exists, *exists, true)
 		}
 
-		return nil, ConnectionAlreadyExists
+		return nil, []errors.Error{ConnectionAlreadyExists}
 	}
 
 	timeNow := time.Now()
 	connection.CreatedAt, connection.UpdatedAt = &timeNow, &timeNow
 	connectionJSON, err := json.Marshal(connection)
 	if err != nil {
-		return nil, errors.NewInternalError("error while saving the connection", err.Error())
+		return nil, []errors.Error{errors.NewInternalError("error while saving the connection", err.Error())}
 	}
 	_, err = c.mainPg.Exec(appSchema(createConnectionQuery, accountID, applicationID), string(connectionJSON))
 	if err != nil {
-		return nil, errors.NewInternalError("error while saving the connection", err.Error())
+		return nil, []errors.Error{errors.NewInternalError("error while saving the connection", err.Error())}
 	}
 
 	if connection.Type == "friend" {
 		connection.UserFromID, connection.UserToID = connection.UserToID, connection.UserFromID
 		connectionJSON, err = json.Marshal(connection)
 		if err != nil {
-			return nil, errors.NewInternalError("error while saving the connection", err.Error())
+			return nil, []errors.Error{errors.NewInternalError("error while saving the connection", err.Error())}
 		}
 		_, err = c.mainPg.Exec(appSchema(createConnectionQuery, accountID, applicationID), string(connectionJSON))
 		if err != nil {
-			return nil, errors.NewInternalError("error while saving the connection", err.Error())
+			return nil, []errors.Error{errors.NewInternalError("error while saving the connection", err.Error())}
 		}
 		// Switch back so we have the original IDs in place
 		connection.UserFromID, connection.UserToID = connection.UserToID, connection.UserFromID
@@ -89,40 +89,40 @@ func (c *connection) Create(accountID, applicationID int64, connection *entity.C
 	return c.Read(accountID, applicationID, connection.UserFromID, connection.UserToID)
 }
 
-func (c *connection) Read(accountID, applicationID int64, userFromID, userToID string) (*entity.Connection, errors.Error) {
+func (c *connection) Read(accountID, applicationID int64, userFromID, userToID string) (*entity.Connection, []errors.Error) {
 	var JSONData string
 	err := c.pg.SlaveDatastore(-1).
 		QueryRow(appSchema(selectConnectionQuery, accountID, applicationID), userFromID, userToID).
 		Scan(&JSONData)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, ConnectionNotFound
+			return nil, []errors.Error{ConnectionNotFound}
 		}
-		return nil, errors.NewInternalError("error while reading the connection", err.Error())
+		return nil, []errors.Error{errors.NewInternalError("error while reading the connection", err.Error())}
 	}
 
 	connection := &entity.Connection{}
 	err = json.Unmarshal([]byte(JSONData), connection)
 	if err != nil {
-		return nil, errors.NewInternalError("error while reading the connection", err.Error())
+		return nil, []errors.Error{errors.NewInternalError("error while reading the connection", err.Error())}
 	}
 
 	return connection, nil
 }
 
-func (c *connection) Update(accountID, applicationID int64, existingConnection, updatedConnection entity.Connection, retrieve bool) (*entity.Connection, errors.Error) {
+func (c *connection) Update(accountID, applicationID int64, existingConnection, updatedConnection entity.Connection, retrieve bool) (*entity.Connection, []errors.Error) {
 	timeNow := time.Now()
 	updatedConnection.UpdatedAt = &timeNow
 	connectionJSON, err := json.Marshal(updatedConnection)
 	if err != nil {
-		return nil, errors.NewInternalError("error while updating the connection", err.Error())
+		return nil, []errors.Error{errors.NewInternalError("error while updating the connection", err.Error())}
 	}
 
 	_, err = c.mainPg.Exec(
 		appSchema(updateConnectionQuery, accountID, applicationID),
 		string(connectionJSON), existingConnection.UserFromID, existingConnection.UserToID)
 	if err != nil {
-		return nil, errors.NewInternalError("error while updating the connection", err.Error())
+		return nil, []errors.Error{errors.NewInternalError("error while updating the connection", err.Error())}
 	}
 
 	if !retrieve {
@@ -132,7 +132,7 @@ func (c *connection) Update(accountID, applicationID int64, existingConnection, 
 	return c.Read(accountID, applicationID, existingConnection.UserFromID, existingConnection.UserToID)
 }
 
-func (c *connection) Delete(accountID, applicationID int64, connection *entity.Connection) errors.Error {
+func (c *connection) Delete(accountID, applicationID int64, connection *entity.Connection) []errors.Error {
 	connection.Enabled = false
 	_, err := c.Update(accountID, applicationID, *connection, *connection, false)
 	if err != nil {
@@ -147,29 +147,28 @@ func (c *connection) Delete(accountID, applicationID int64, connection *entity.C
 	return err
 }
 
-func (c *connection) List(accountID, applicationID int64, userID string) (users []*entity.ApplicationUser, er errors.Error) {
-	users = []*entity.ApplicationUser{}
-
+func (c *connection) List(accountID, applicationID int64, userID string) (users []*entity.ApplicationUser, er []errors.Error) {
 	rows, err := c.pg.SlaveDatastore(-1).
 		Query(appSchema(followsQuery, accountID, applicationID), userID)
 	if err != nil {
-		return users, errors.NewInternalError("error while retrieving list of application users", err.Error())
+		return nil, []errors.Error{errors.NewInternalError("error while retrieving list of application users", err.Error())}
 	}
 	defer rows.Close()
+
 	for rows.Next() {
 		var JSONData string
 		err := rows.Scan(&JSONData)
 		if err != nil {
-			return []*entity.ApplicationUser{}, errors.NewInternalError("error while retrieving list of following", err.Error())
+			return nil, []errors.Error{errors.NewInternalError("error while retrieving list of following", err.Error())}
 		}
 		conn := &entity.Connection{}
 		err = json.Unmarshal([]byte(JSONData), conn)
 		if err != nil {
-			return []*entity.ApplicationUser{}, errors.NewInternalError("error while retrieving list of following", err.Error())
+			return nil, []errors.Error{errors.NewInternalError("error while retrieving list of following", err.Error())}
 		}
 		user, er := c.appUser.Read(accountID, applicationID, conn.UserToID)
 		if er != nil {
-			return []*entity.ApplicationUser{}, er
+			return nil, er
 		}
 
 		users = append(users, user)
@@ -178,29 +177,29 @@ func (c *connection) List(accountID, applicationID int64, userID string) (users 
 	return users, nil
 }
 
-func (c *connection) FollowedBy(accountID, applicationID int64, userID string) ([]*entity.ApplicationUser, errors.Error) {
+func (c *connection) FollowedBy(accountID, applicationID int64, userID string) ([]*entity.ApplicationUser, []errors.Error) {
 	users := []*entity.ApplicationUser{}
 
 	rows, err := c.pg.SlaveDatastore(-1).
 		Query(appSchema(followersQuery, accountID, applicationID), userID)
 	if err != nil {
-		return users, errors.NewInternalError("error while retrieving list of account users", err.Error())
+		return nil, []errors.Error{errors.NewInternalError("error while retrieving list of account users", err.Error())}
 	}
 	defer rows.Close()
 	for rows.Next() {
 		var JSONData string
 		err := rows.Scan(&JSONData)
 		if err != nil {
-			return []*entity.ApplicationUser{}, errors.NewInternalError("error while retrieving list of followers", err.Error())
+			return nil, []errors.Error{errors.NewInternalError("error while retrieving list of followers", err.Error())}
 		}
 		conn := &entity.Connection{}
 		err = json.Unmarshal([]byte(JSONData), conn)
 		if err != nil {
-			return []*entity.ApplicationUser{}, errors.NewInternalError("error while retrieving list of followers", err.Error())
+			return nil, []errors.Error{errors.NewInternalError("error while retrieving list of followers", err.Error())}
 		}
 		user, er := c.appUser.Read(accountID, applicationID, conn.UserFromID)
 		if er != nil {
-			return []*entity.ApplicationUser{}, er
+			return nil, er
 		}
 
 		users = append(users, user)
@@ -209,29 +208,29 @@ func (c *connection) FollowedBy(accountID, applicationID int64, userID string) (
 	return users, nil
 }
 
-func (c *connection) Friends(accountID, applicationID int64, userID string) ([]*entity.ApplicationUser, errors.Error) {
+func (c *connection) Friends(accountID, applicationID int64, userID string) ([]*entity.ApplicationUser, []errors.Error) {
 	users := []*entity.ApplicationUser{}
 
 	rows, err := c.pg.SlaveDatastore(-1).
 		Query(appSchema(friendConnectionsQuery, accountID, applicationID), userID)
 	if err != nil {
-		return users, errors.NewInternalError("error while retrieving list of application users", err.Error())
+		return nil, []errors.Error{errors.NewInternalError("error while retrieving list of application users", err.Error())}
 	}
 	defer rows.Close()
 	for rows.Next() {
 		var JSONData string
 		err := rows.Scan(&JSONData)
 		if err != nil {
-			return []*entity.ApplicationUser{}, errors.NewInternalError("error while retrieving list of friends", err.Error())
+			return nil, []errors.Error{errors.NewInternalError("error while retrieving list of friends", err.Error())}
 		}
 		conn := &entity.Connection{}
 		err = json.Unmarshal([]byte(JSONData), conn)
 		if err != nil {
-			return []*entity.ApplicationUser{}, errors.NewInternalError("error while retrieving list of friends", err.Error())
+			return nil, []errors.Error{errors.NewInternalError("error while retrieving list of friends", err.Error())}
 		}
 		user, er := c.appUser.Read(accountID, applicationID, conn.UserToID)
 		if er != nil {
-			return []*entity.ApplicationUser{}, er
+			return nil, er
 		}
 
 		users = append(users, user)
@@ -240,29 +239,30 @@ func (c *connection) Friends(accountID, applicationID int64, userID string) ([]*
 	return users, nil
 }
 
-func (c *connection) FriendsAndFollowing(accountID, applicationID int64, userID string) ([]*entity.ApplicationUser, errors.Error) {
+func (c *connection) FriendsAndFollowing(accountID, applicationID int64, userID string) ([]*entity.ApplicationUser, []errors.Error) {
 	users := []*entity.ApplicationUser{}
 
 	rows, err := c.pg.SlaveDatastore(-1).
 		Query(appSchema(friendAndFollowingConnectionsQuery, accountID, applicationID), userID)
 	if err != nil {
-		return users, errors.NewInternalError("error while retrieving list of application users", err.Error())
+		return nil, []errors.Error{errors.NewInternalError("error while retrieving list of application users", err.Error())}
 	}
 	defer rows.Close()
+
 	for rows.Next() {
 		var JSONData string
 		err := rows.Scan(&JSONData)
 		if err != nil {
-			return []*entity.ApplicationUser{}, errors.NewInternalError("error while retrieving list of friends", err.Error())
+			return nil, []errors.Error{errors.NewInternalError("error while retrieving list of friends", err.Error())}
 		}
 		conn := &entity.Connection{}
 		err = json.Unmarshal([]byte(JSONData), conn)
 		if err != nil {
-			return []*entity.ApplicationUser{}, errors.NewInternalError("error while retrieving list of friends", err.Error())
+			return nil, []errors.Error{errors.NewInternalError("error while retrieving list of friends", err.Error())}
 		}
 		user, er := c.appUser.Read(accountID, applicationID, conn.UserToID)
 		if er != nil {
-			return []*entity.ApplicationUser{}, er
+			return nil, er
 		}
 
 		users = append(users, user)
@@ -271,7 +271,7 @@ func (c *connection) FriendsAndFollowing(accountID, applicationID int64, userID 
 	return users, nil
 }
 
-func (c *connection) Confirm(accountID, applicationID int64, connection *entity.Connection, retrieve bool) (*entity.Connection, errors.Error) {
+func (c *connection) Confirm(accountID, applicationID int64, connection *entity.Connection, retrieve bool) (*entity.Connection, []errors.Error) {
 	connection.Enabled = true
 	timeNow := time.Now()
 	connection.ConfirmedAt, connection.UpdatedAt = &timeNow, &timeNow
@@ -290,15 +290,15 @@ func (c *connection) Confirm(accountID, applicationID int64, connection *entity.
 	return conn, err
 }
 
-func (c *connection) WriteEventsToList(accountID, applicationID int64, connection *entity.Connection) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (c *connection) WriteEventsToList(accountID, applicationID int64, connection *entity.Connection) (err []errors.Error) {
+	return []errors.Error{errors.NewInternalError("not implemented yet", "not implemented yet")}
 }
 
-func (c *connection) DeleteEventsFromLists(accountID, applicationID int64, userFromID, userToID string) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (c *connection) DeleteEventsFromLists(accountID, applicationID int64, userFromID, userToID string) (err []errors.Error) {
+	return []errors.Error{errors.NewInternalError("not implemented yet", "not implemented yet")}
 }
 
-func (c *connection) SocialConnect(accountID, applicationID int64, user *entity.ApplicationUser, platform string, socialFriendsIDs []string, connectionType string) ([]*entity.ApplicationUser, errors.Error) {
+func (c *connection) SocialConnect(accountID, applicationID int64, user *entity.ApplicationUser, platform string, socialFriendsIDs []string, connectionType string) ([]*entity.ApplicationUser, []errors.Error) {
 	users := []*entity.ApplicationUser{}
 
 	if len(socialFriendsIDs) == 0 {
@@ -313,19 +313,19 @@ func (c *connection) SocialConnect(accountID, applicationID int64, user *entity.
 	dbUsers, err := c.pg.SlaveDatastore(-1).
 		Query(fmt.Sprintf(listUsersBySocialIDQuery, accountID, applicationID, strings.Join(conditions, " OR ")))
 	if err != nil {
-		return users, errors.NewInternalError("error while connecting the users", err.Error())
+		return nil, []errors.Error{errors.NewInternalError("error while connecting the users", err.Error())}
 	}
 	defer dbUsers.Close()
 	for dbUsers.Next() {
 		var JSONData string
 		err := dbUsers.Scan(&JSONData)
 		if err != nil {
-			return []*entity.ApplicationUser{}, errors.NewInternalError("error while connecting the users", err.Error())
+			return nil, []errors.Error{errors.NewInternalError("error while connecting the users", err.Error())}
 		}
 		user := &entity.ApplicationUser{}
 		err = json.Unmarshal([]byte(JSONData), user)
 		if err != nil {
-			return []*entity.ApplicationUser{}, errors.NewInternalError("error while connecting the users", err.Error())
+			return nil, []errors.Error{errors.NewInternalError("error while connecting the users", err.Error())}
 		}
 		users = append(users, user)
 	}
@@ -333,7 +333,7 @@ func (c *connection) SocialConnect(accountID, applicationID int64, user *entity.
 	return c.AutoConnectSocialFriends(accountID, applicationID, user, connectionType, users)
 }
 
-func (c *connection) AutoConnectSocialFriends(accountID, applicationID int64, user *entity.ApplicationUser, connectionType string, ourStoredUsersIDs []*entity.ApplicationUser) ([]*entity.ApplicationUser, errors.Error) {
+func (c *connection) AutoConnectSocialFriends(accountID, applicationID int64, user *entity.ApplicationUser, connectionType string, ourStoredUsersIDs []*entity.ApplicationUser) ([]*entity.ApplicationUser, []errors.Error) {
 	if len(ourStoredUsersIDs) == 0 {
 		return ourStoredUsersIDs, nil
 	}
@@ -364,7 +364,7 @@ func (c *connection) AutoConnectSocialFriends(accountID, applicationID int64, us
 		}
 
 		if _, err := c.Create(accountID, applicationID, connection, false); err != nil {
-			if err != ConnectionAlreadyExists {
+			if err[0] != ConnectionAlreadyExists {
 				return nil, err
 			}
 		}

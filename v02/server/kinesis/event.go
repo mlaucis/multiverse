@@ -18,64 +18,64 @@ type (
 	}
 )
 
-func (evt *event) Read(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (evt *event) Read(ctx *context.Context) (err []errors.Error) {
+	return notImplementedYet
 }
 
-func (evt *event) Update(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (evt *event) Update(ctx *context.Context) (err []errors.Error) {
+	return notImplementedYet
 }
 
-func (evt *event) CurrentUserUpdate(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (evt *event) CurrentUserUpdate(ctx *context.Context) (err []errors.Error) {
+	return notImplementedYet
 }
 
-func (evt *event) Delete(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (evt *event) Delete(ctx *context.Context) (err []errors.Error) {
+	return notImplementedYet
 }
 
-func (evt *event) List(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (evt *event) List(ctx *context.Context) (err []errors.Error) {
+	return notImplementedYet
 }
 
-func (evt *event) CurrentUserList(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (evt *event) CurrentUserList(ctx *context.Context) (err []errors.Error) {
+	return notImplementedYet
 }
 
-func (evt *event) Feed(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (evt *event) Feed(ctx *context.Context) (err []errors.Error) {
+	return notImplementedYet
 }
 
-func (evt *event) Create(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (evt *event) Create(ctx *context.Context) (err []errors.Error) {
+	return notImplementedYet
 }
 
-func (evt *event) CurrentUserCreate(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (evt *event) CurrentUserCreate(ctx *context.Context) (err []errors.Error) {
+	return notImplementedYet
 }
 
-func (evt *event) Search(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (evt *event) Search(ctx *context.Context) (err []errors.Error) {
+	return notImplementedYet
 }
 
-func (evt *event) SearchGeo(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (evt *event) SearchGeo(ctx *context.Context) (err []errors.Error) {
+	return notImplementedYet
 }
 
-func (evt *event) SearchObject(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (evt *event) SearchObject(ctx *context.Context) (err []errors.Error) {
+	return notImplementedYet
 }
 
-func (evt *event) SearchLocation(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (evt *event) SearchLocation(ctx *context.Context) (err []errors.Error) {
+	return notImplementedYet
 }
 
-func (evt *event) UnreadFeed(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (evt *event) UnreadFeed(ctx *context.Context) (err []errors.Error) {
+	return notImplementedYet
 }
 
-func (evt *event) UnreadFeedCount(ctx *context.Context) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (evt *event) UnreadFeedCount(ctx *context.Context) (err []errors.Error) {
+	return notImplementedYet
 }
 
 // NewEvent returns a new event handler

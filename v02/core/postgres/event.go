@@ -115,7 +115,7 @@ const (
 		ORDER BY ST_Distance_Sphere(geo, ST_SetSRID(ST_MakePoint($2, $3), 4326)), json_data->>'created_at' DESC LIMIT $4`
 )
 
-func (e *event) Create(accountID, applicationID int64, currentUserID string, event *entity.Event, retrieve bool) (*entity.Event, errors.Error) {
+func (e *event) Create(accountID, applicationID int64, currentUserID string, event *entity.Event, retrieve bool) (*entity.Event, []errors.Error) {
 	event.ID = storageHelper.GenerateUUIDV5(storageHelper.OIDUUIDNamespace, storageHelper.GenerateRandomString(20))
 	event.Enabled = true
 	timeNow := time.Now()
@@ -123,13 +123,13 @@ func (e *event) Create(accountID, applicationID int64, currentUserID string, eve
 
 	eventJSON, err := json.Marshal(event)
 	if err != nil {
-		return nil, errors.NewInternalError("error while saving the event", err.Error())
+		return nil, []errors.Error{errors.NewInternalError("error while saving the event", err.Error())}
 	}
 
 	_, err = e.mainPg.
 		Exec(appSchema(createEventQuery, accountID, applicationID), string(eventJSON), event.Latitude, event.Longitude)
 	if err != nil {
-		return nil, errors.NewInternalError("error while saving the event", err.Error())
+		return nil, []errors.Error{errors.NewInternalError("error while saving the event", err.Error())}
 	}
 
 	if !retrieve {
@@ -138,41 +138,41 @@ func (e *event) Create(accountID, applicationID int64, currentUserID string, eve
 	return e.Read(accountID, applicationID, event.UserID, currentUserID, event.ID)
 }
 
-func (e *event) Read(accountID, applicationID int64, userID, currentUserID, eventID string) (*entity.Event, errors.Error) {
+func (e *event) Read(accountID, applicationID int64, userID, currentUserID, eventID string) (*entity.Event, []errors.Error) {
 	var JSONData string
 	err := e.pg.SlaveDatastore(-1).
 		QueryRow(appSchema(selectEventByIDQuery, accountID, applicationID), eventID, userID).
 		Scan(&JSONData)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, errors.NewNotFoundError("event not found", "event not found")
+			return nil, []errors.Error{errors.NewNotFoundError("event not found", "event not found")}
 		}
-		return nil, errors.NewInternalError("error while reading the event", err.Error())
+		return nil, []errors.Error{errors.NewInternalError("error while reading the event", err.Error())}
 	}
 
 	event := &entity.Event{}
 	err = json.Unmarshal([]byte(JSONData), event)
 	if err != nil {
-		return nil, errors.NewInternalError("error while reading the account user", err.Error())
+		return nil, []errors.Error{errors.NewInternalError("error while reading the account user", err.Error())}
 	}
 	event.ID = eventID
 
 	return event, nil
 }
 
-func (e *event) Update(accountID, applicationID int64, currentUserID string, existingEvent, updatedEvent entity.Event, retrieve bool) (*entity.Event, errors.Error) {
+func (e *event) Update(accountID, applicationID int64, currentUserID string, existingEvent, updatedEvent entity.Event, retrieve bool) (*entity.Event, []errors.Error) {
 	timeNow := time.Now()
 	updatedEvent.UpdatedAt = &timeNow
 	eventJSON, err := json.Marshal(updatedEvent)
 	if err != nil {
-		return nil, errors.NewInternalError("failed to update the event", err.Error())
+		return nil, []errors.Error{errors.NewInternalError("failed to update the event", err.Error())}
 	}
 
 	_, err = e.mainPg.Exec(
 		appSchema(updateEventByIDQuery, accountID, applicationID),
 		string(eventJSON), updatedEvent.Latitude, updatedEvent.Longitude, existingEvent.ID, existingEvent.UserID)
 	if err != nil {
-		return nil, errors.NewInternalError("failed to update the event", err.Error())
+		return nil, []errors.Error{errors.NewInternalError("failed to update the event", err.Error())}
 	}
 
 	if !retrieve {
@@ -182,21 +182,21 @@ func (e *event) Update(accountID, applicationID int64, currentUserID string, exi
 	return e.Read(accountID, applicationID, existingEvent.UserID, currentUserID, existingEvent.ID)
 }
 
-func (e *event) Delete(accountID, applicationID int64, currentUserID string, event *entity.Event) errors.Error {
+func (e *event) Delete(accountID, applicationID int64, currentUserID string, event *entity.Event) []errors.Error {
 	event.Enabled = false
 	_, err := e.Update(accountID, applicationID, currentUserID, *event, *event, false)
 
 	return err
 }
 
-func (e *event) List(accountID, applicationID int64, userID, currentUserID string) (events []*entity.Event, er errors.Error) {
+func (e *event) List(accountID, applicationID int64, userID, currentUserID string) (events []*entity.Event, er []errors.Error) {
 	events = []*entity.Event{}
 
 	var query string
 	if userID == currentUserID {
 		query = listAllEventsByUserIDQuery
 	} else if _, err := e.c.Read(accountID, applicationID, currentUserID, userID); err != nil {
-		if err == ConnectionNotFound {
+		if err[0] == ConnectionNotFound {
 			query = listPublicEventsByUserIDQuery
 		} else {
 			return []*entity.Event{}, err
@@ -208,15 +208,15 @@ func (e *event) List(accountID, applicationID int64, userID, currentUserID strin
 	rows, err := e.pg.SlaveDatastore(-1).
 		Query(appSchema(query, accountID, applicationID), userID)
 	if err != nil {
-		return events, errors.NewInternalError("failed to read the events", err.Error())
+		return events, []errors.Error{errors.NewInternalError("failed to read the events", err.Error())}
 	}
 	return e.rowsToSlice(rows)
 }
 
-func (e *event) UserFeed(accountID, applicationID int64, user *entity.ApplicationUser) (count int, events []*entity.Event, er errors.Error) {
+func (e *event) UserFeed(accountID, applicationID int64, user *entity.ApplicationUser) (count int, events []*entity.Event, er []errors.Error) {
 	condition, er := e.composeConnectionCondition(accountID, applicationID, user.ID, " OR ")
 	if er != nil {
-		return 0, []*entity.Event{}, er
+		return 0, nil, er
 	}
 
 	if condition == "" {
@@ -226,7 +226,7 @@ func (e *event) UserFeed(accountID, applicationID int64, user *entity.Applicatio
 	rows, err := e.pg.SlaveDatastore(-1).
 		Query(fmt.Sprintf(listEventsByUserFollowerIDQuery, accountID, applicationID, condition))
 	if err != nil {
-		return 0, []*entity.Event{}, errors.NewInternalError("failed to read the events", err.Error())
+		return 0, nil, []errors.Error{errors.NewInternalError("failed to read the events", err.Error())}
 	}
 	defer rows.Close()
 
@@ -236,12 +236,12 @@ func (e *event) UserFeed(accountID, applicationID int64, user *entity.Applicatio
 		var JSONData string
 		err := rows.Scan(&JSONData)
 		if err != nil {
-			return 0, []*entity.Event{}, errors.NewInternalError("failed to read the events", err.Error())
+			return 0, nil, []errors.Error{errors.NewInternalError("failed to read the events", err.Error())}
 		}
 		event := &entity.Event{}
 		err = json.Unmarshal([]byte(JSONData), event)
 		if err != nil {
-			return 0, []*entity.Event{}, errors.NewInternalError("failed to read the events", err.Error())
+			return 0, nil, []errors.Error{errors.NewInternalError("failed to read the events", err.Error())}
 		}
 
 		if event.CreatedAt.Sub(*user.LastRead) > 0 {
@@ -256,23 +256,23 @@ func (e *event) UserFeed(accountID, applicationID int64, user *entity.Applicatio
 	return unread, events, nil
 }
 
-func (e *event) UnreadFeed(accountID, applicationID int64, user *entity.ApplicationUser) (count int, events []*entity.Event, er errors.Error) {
+func (e *event) UnreadFeed(accountID, applicationID int64, user *entity.ApplicationUser) (count int, events []*entity.Event, er []errors.Error) {
 	condition, er := e.composeConnectionCondition(accountID, applicationID, user.ID, " OR ")
 	if er != nil {
-		return 0, []*entity.Event{}, er
+		return 0, nil, er
 	}
 
 	if condition == "" {
-		return 0, []*entity.Event{}, nil
+		return 0, nil, nil
 	}
 
 	rows, err := e.pg.SlaveDatastore(-1).
 		Query(fmt.Sprintf(listUnreadEventsByUserFollowerIDQuery, accountID, applicationID, condition), user.LastRead)
 	if err != nil {
-		return 0, []*entity.Event{}, errors.NewInternalError("failed to read the events", err.Error())
+		return 0, nil, []errors.Error{errors.NewInternalError("failed to read the events", err.Error())}
 	}
-	events, err = e.rowsToSlice(rows)
-	if err != nil {
+	events, er = e.rowsToSlice(rows)
+	if er != nil {
 		return
 	}
 
@@ -281,7 +281,7 @@ func (e *event) UnreadFeed(accountID, applicationID int64, user *entity.Applicat
 	return len(events), events, nil
 }
 
-func (e *event) UnreadFeedCount(accountID, applicationID int64, user *entity.ApplicationUser) (count int, err errors.Error) {
+func (e *event) UnreadFeedCount(accountID, applicationID int64, user *entity.ApplicationUser) (count int, err []errors.Error) {
 	condition, err := e.composeConnectionCondition(accountID, applicationID, user.ID, " OR ")
 	if err != nil {
 		return 0, err
@@ -296,21 +296,21 @@ func (e *event) UnreadFeedCount(accountID, applicationID int64, user *entity.App
 		QueryRow(fmt.Sprintf(countUnreadEventsByUserFollowerIDQuery, accountID, applicationID, condition), user.LastRead).
 		Scan(&unread)
 	if er != nil {
-		return 0, errors.NewInternalError("failed to read the events", er.Error())
+		return 0, []errors.Error{errors.NewInternalError("failed to read the events", er.Error())}
 	}
 
 	return unread, nil
 }
 
-func (e *event) WriteToConnectionsLists(accountID, applicationID int64, event *entity.Event, key string) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (e *event) WriteToConnectionsLists(accountID, applicationID int64, event *entity.Event, key string) (err []errors.Error) {
+	return []errors.Error{errors.NewInternalError("not implemented yet", "not implemented yet")}
 }
 
-func (e *event) DeleteFromConnectionsLists(accountID, applicationID int64, userID, key string) (err errors.Error) {
-	return errors.NewInternalError("not implemented yet", "not implemented yet")
+func (e *event) DeleteFromConnectionsLists(accountID, applicationID int64, userID, key string) (err []errors.Error) {
+	return []errors.Error{errors.NewInternalError("not implemented yet", "not implemented yet")}
 }
 
-func (e *event) GeoSearch(accountID, applicationID int64, currentUserID string, latitude, longitude, radius float64, nearest int64) ([]*entity.Event, errors.Error) {
+func (e *event) GeoSearch(accountID, applicationID int64, currentUserID string, latitude, longitude, radius float64, nearest int64) ([]*entity.Event, []errors.Error) {
 	var (
 		rows *sql.Rows
 		err  error
@@ -318,7 +318,7 @@ func (e *event) GeoSearch(accountID, applicationID int64, currentUserID string, 
 
 	condition, er := e.composeConnectionCondition(accountID, applicationID, currentUserID, " OR ")
 	if er != nil {
-		return []*entity.Event{}, er
+		return nil, er
 	}
 
 	if condition != "" {
@@ -334,19 +334,19 @@ func (e *event) GeoSearch(accountID, applicationID int64, currentUserID string, 
 	}
 
 	if err != nil {
-		return []*entity.Event{}, errors.NewInternalError("failed to read the events", err.Error())
+		return nil, []errors.Error{errors.NewInternalError("failed to read the events", err.Error())}
 	}
 	return e.rowsToSlice(rows)
 }
 
-func (e *event) ObjectSearch(accountID, applicationID int64, currentUserID string, objectKey string) ([]*entity.Event, errors.Error) {
-	return []*entity.Event{}, errors.NewInternalError("not implemented yet", "not implemented yet")
+func (e *event) ObjectSearch(accountID, applicationID int64, currentUserID string, objectKey string) ([]*entity.Event, []errors.Error) {
+	return nil, []errors.Error{errors.NewInternalError("not implemented yet", "not implemented yet")}
 }
 
-func (e *event) LocationSearch(accountID, applicationID int64, currentUserID string, locationKey string) ([]*entity.Event, errors.Error) {
+func (e *event) LocationSearch(accountID, applicationID int64, currentUserID string, locationKey string) ([]*entity.Event, []errors.Error) {
 	condition, er := e.composeConnectionCondition(accountID, applicationID, currentUserID, " OR ")
 	if er != nil {
-		return []*entity.Event{}, er
+		return nil, er
 	}
 
 	if condition != "" {
@@ -356,32 +356,32 @@ func (e *event) LocationSearch(accountID, applicationID int64, currentUserID str
 	rows, err := e.pg.SlaveDatastore(-1).
 		Query(appSchemaWithParams(listEventsByLocationQuery, accountID, applicationID, condition), locationKey, currentUserID)
 	if err != nil {
-		return []*entity.Event{}, errors.NewInternalError("failed to read the events", err.Error())
+		return nil, []errors.Error{errors.NewInternalError("failed to read the events", err.Error())}
 	}
 	return e.rowsToSlice(rows)
 }
 
-func (e *event) updateApplicationUserLastRead(accountID, applicationID int64, user *entity.ApplicationUser) errors.Error {
+func (e *event) updateApplicationUserLastRead(accountID, applicationID int64, user *entity.ApplicationUser) []errors.Error {
 	_, err := e.mainPg.Exec(appSchema(updateApplicationUserLastReadQuery, accountID, applicationID), user.ID)
 	if err != nil {
-		return errors.NewInternalError("failed to update application", err.Error())
+		return []errors.Error{errors.NewInternalError("failed to update application", err.Error())}
 	}
 
 	return nil
 }
 
-func (e *event) rowsToSlice(rows *sql.Rows) (events []*entity.Event, err errors.Error) {
+func (e *event) rowsToSlice(rows *sql.Rows) (events []*entity.Event, err []errors.Error) {
 	defer rows.Close()
 	for rows.Next() {
 		var JSONData string
 		err := rows.Scan(&JSONData)
 		if err != nil {
-			return []*entity.Event{}, errors.NewInternalError("failed to read the events", err.Error())
+			return nil, []errors.Error{errors.NewInternalError("failed to read the events", err.Error())}
 		}
 		event := &entity.Event{}
 		err = json.Unmarshal([]byte(JSONData), event)
 		if err != nil {
-			return []*entity.Event{}, errors.NewInternalError("failed to read the events", err.Error())
+			return nil, []errors.Error{errors.NewInternalError("failed to read the events", err.Error())}
 		}
 
 		events = append(events, event)
@@ -389,7 +389,7 @@ func (e *event) rowsToSlice(rows *sql.Rows) (events []*entity.Event, err errors.
 	return
 }
 
-func (e *event) composeConnectionCondition(accountID, applicationID int64, userID, joinOperator string) (string, errors.Error) {
+func (e *event) composeConnectionCondition(accountID, applicationID int64, userID, joinOperator string) (string, []errors.Error) {
 	connections, er := e.c.FriendsAndFollowing(accountID, applicationID, userID)
 	if er != nil {
 		return "", er

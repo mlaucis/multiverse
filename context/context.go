@@ -44,7 +44,7 @@ type (
 	}
 
 	// Filter is a callback that helps updating the context with extra information
-	Filter func(*Context) errors.Error
+	Filter func(*Context) []errors.Error
 )
 
 // BasicAuth is a wrapper method for getting the basic auth info from the local cache rather that parse it always
@@ -78,8 +78,18 @@ func (ctx *Context) LogMessage(message string, stackDepth int) {
 // LogError provides the ability to log an error
 func (ctx *Context) LogError(err interface{}) {
 	var msg *logger.LogMsg
-	if tgError, ok := err.(errors.Error); ok {
+	if tgError, ok := err.([]errors.Error); ok {
+		for _, tgErr := range tgError {
+			msg := ctx.newLogMessage(-1)
+			msg.StatusCode = int(tgErr.Type())
+			msg.RawError = tgErr.InternalErrorWithLocation()
+			msg.Message = tgErr.Error()
+			ctx.ErrorLog <- msg
+		}
+		return
+	} else if tgError, ok := err.(errors.Error); ok {
 		msg = ctx.newLogMessage(-1)
+		msg.StatusCode = int(tgError.Type())
 		msg.RawError = tgError.InternalErrorWithLocation()
 		msg.Message = tgError.Error()
 	} else if er, ok := err.(error); ok {
@@ -125,7 +135,7 @@ func New(
 	routeName, scope, version string,
 	contextFilters []Filter,
 	environment string,
-	debugMode bool) (ctx *Context, err errors.Error) {
+	debugMode bool) (ctx *Context, err []errors.Error) {
 
 	ctx = new(Context)
 	ctx.StartTime = time.Now()

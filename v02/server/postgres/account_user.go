@@ -24,22 +24,22 @@ type (
 	}
 )
 
-func (accUser *accountUser) Read(ctx *context.Context) (err errors.Error) {
+func (accUser *accountUser) Read(ctx *context.Context) (err []errors.Error) {
 	// TODO This one read only the current account user maybe we want to have something to read any account user?
 	computeAccountUserLastModified(ctx, ctx.Bag["accountUser"].(*entity.AccountUser))
 	server.WriteResponse(ctx, ctx.Bag["accountUser"].(*entity.AccountUser), http.StatusOK, 10)
 	return
 }
 
-func (accUser *accountUser) Update(ctx *context.Context) (err errors.Error) {
+func (accUser *accountUser) Update(ctx *context.Context) (err []errors.Error) {
 	accountUser := *(ctx.Bag["accountUser"].(*entity.AccountUser))
 
 	if accountUser.PublicID != ctx.Vars["accountUserID"] {
-		return errors.New(errors.ConflictError, "account user mismatch", "account user mismatch", false)
+		return []errors.Error{errors.New(errors.ConflictError, "account user mismatch", "account user mismatch", false)}
 	}
 
 	if er := json.Unmarshal(ctx.Body, &accountUser); er != nil {
-		return errors.NewBadRequestError("failed to update the account user (1)\n"+er.Error(), er.Error())
+		return []errors.Error{errors.NewBadRequestError("failed to update the account user (1)\n"+er.Error(), er.Error())}
 	}
 
 	accountUser.ID = ctx.Bag["accountUserID"].(int64)
@@ -59,14 +59,14 @@ func (accUser *accountUser) Update(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (accUser *accountUser) Delete(ctx *context.Context) (err errors.Error) {
+func (accUser *accountUser) Delete(ctx *context.Context) (err []errors.Error) {
 	if ctx.R.Header.Get("X-Jarvis-Auth") != "ZTBmZjI3MGE2M2YzYzAzOWI1MjhiYTNi" {
-		return errors.NewNotFoundError("not found", "request does not contain a correct Jarvis auth")
+		return []errors.Error{errors.NewNotFoundError("not found", "request does not contain a correct Jarvis auth")}
 	}
 
 	accountUserID := ctx.Vars["accountUserID"]
 	if !validator.IsValidUUID5(accountUserID) {
-		return invalidUserIDError
+		return []errors.Error{invalidUserIDError}
 	}
 	accountUser, err := accUser.storage.FindByPublicID(ctx.Bag["accountID"].(int64), accountUserID)
 	if err != nil {
@@ -81,15 +81,15 @@ func (accUser *accountUser) Delete(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (accUser *accountUser) Create(ctx *context.Context) (err errors.Error) {
+func (accUser *accountUser) Create(ctx *context.Context) (err []errors.Error) {
 	if ctx.R.Header.Get("X-Jarvis-Auth") != "ZTBmZjI3MGE2M2YzYzAzOWI1MjhiYTNi" {
-		return errors.NewNotFoundError("not found", "request does not contain a correct Jarvis auth")
+		return []errors.Error{errors.NewNotFoundError("not found", "request does not contain a correct Jarvis auth")}
 	}
 
 	var accountUser = &entity.AccountUser{}
 
 	if err := json.Unmarshal(ctx.Body, accountUser); err != nil {
-		return errors.NewBadRequestError("failed to create the account user (1)"+err.Error(), err.Error())
+		return []errors.Error{errors.NewBadRequestError("failed to create the account user (1)"+err.Error(), err.Error())}
 	}
 
 	accountUser.AccountID = ctx.Bag["accountID"].(int64)
@@ -109,7 +109,7 @@ func (accUser *accountUser) Create(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (accUser *accountUser) List(ctx *context.Context) (err errors.Error) {
+func (accUser *accountUser) List(ctx *context.Context) (err []errors.Error) {
 	var (
 		accountUsers []*entity.AccountUser
 	)
@@ -135,7 +135,7 @@ func (accUser *accountUser) List(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (accUser *accountUser) Login(ctx *context.Context) (err errors.Error) {
+func (accUser *accountUser) Login(ctx *context.Context) (err []errors.Error) {
 	var (
 		loginPayload = &entity.LoginPayload{}
 		account      *entity.Account
@@ -145,7 +145,7 @@ func (accUser *accountUser) Login(ctx *context.Context) (err errors.Error) {
 	)
 
 	if er = json.Unmarshal(ctx.Body, loginPayload); er != nil {
-		return errors.NewBadRequestError("failed to login the user (1)\n"+er.Error(), er.Error())
+		return []errors.Error{errors.NewBadRequestError("failed to login the user (1)\n"+er.Error(), er.Error())}
 	}
 
 	if err = validator.IsValidLoginPayload(loginPayload); err != nil {
@@ -167,7 +167,7 @@ func (accUser *accountUser) Login(ctx *context.Context) (err errors.Error) {
 	}
 
 	if account == nil || user == nil {
-		return errors.NewNotFoundError("account user not found", "either account or account user are nil")
+		return []errors.Error{errors.NewNotFoundError("account user not found", "either account or account user are nil")}
 	}
 
 	if err = validator.AccountUserCredentialsValid(loginPayload.Password, user); err != nil {
@@ -200,7 +200,7 @@ func (accUser *accountUser) Login(ctx *context.Context) (err errors.Error) {
 	return
 }
 
-func (accUser *accountUser) RefreshSession(ctx *context.Context) (err errors.Error) {
+func (accUser *accountUser) RefreshSession(ctx *context.Context) (err []errors.Error) {
 	var (
 		tokenPayload struct {
 			Token string `json:"token"`
@@ -209,11 +209,11 @@ func (accUser *accountUser) RefreshSession(ctx *context.Context) (err errors.Err
 	)
 
 	if er := json.Unmarshal(ctx.Body, &tokenPayload); er != nil {
-		return errors.NewBadRequestError("failed to refresh session token (1)\n"+er.Error(), er.Error())
+		return []errors.Error{errors.NewBadRequestError("failed to refresh session token (1)\n"+er.Error(), er.Error())}
 	}
 
 	if ctx.SessionToken != tokenPayload.Token {
-		return errors.NewBadRequestError("failed to refresh session token (2) \nsession token mismatch", "session token mismatch")
+		return []errors.Error{errors.NewBadRequestError("failed to refresh session token (2) \nsession token mismatch", "session token mismatch")}
 	}
 
 	if sessionToken, err = accUser.storage.RefreshSession(ctx.SessionToken, ctx.Bag["accountUser"].(*entity.AccountUser)); err != nil {
@@ -226,7 +226,7 @@ func (accUser *accountUser) RefreshSession(ctx *context.Context) (err errors.Err
 	return
 }
 
-func (accUser *accountUser) Logout(ctx *context.Context) (err errors.Error) {
+func (accUser *accountUser) Logout(ctx *context.Context) (err []errors.Error) {
 	if err = accUser.storage.DestroySession(ctx.SessionToken, ctx.Bag["accountUser"].(*entity.AccountUser)); err != nil {
 		return
 	}
@@ -236,14 +236,14 @@ func (accUser *accountUser) Logout(ctx *context.Context) (err errors.Error) {
 }
 
 // PopulateContext adds the accountUser to the context
-func (accUser *accountUser) PopulateContext(ctx *context.Context) (err errors.Error) {
+func (accUser *accountUser) PopulateContext(ctx *context.Context) (err []errors.Error) {
 	user, pass, ok := ctx.BasicAuth()
 	if !ok {
-		return errors.NewBadRequestError("error while reading account user credentials", fmt.Sprintf("got %s:%s", user, pass))
+		return []errors.Error{errors.NewBadRequestError("error while reading account user credentials", fmt.Sprintf("got %s:%s", user, pass))}
 	}
 	accountUser, err := accUser.storage.FindBySession(pass)
 	if accountUser == nil {
-		return errors.NewNotFoundError("account user not found", "account user not found")
+		return []errors.Error{errors.NewNotFoundError("account user not found", "account user not found")}
 	}
 	if err == nil {
 		ctx.Bag["accountUser"] = accountUser
