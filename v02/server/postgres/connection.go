@@ -445,7 +445,7 @@ func (conn *connection) CreateSocial(ctx *context.Context) (err []errors.Error) 
 func (conn *connection) Friends(ctx *context.Context) (err []errors.Error) {
 	accountID := ctx.Bag["accountID"].(int64)
 	applicationID := ctx.Bag["applicationID"].(int64)
-	userID := ctx.Bag["applicationUserID"].(string)
+	userID := ctx.Vars["applicationUserID"]
 
 	exists, err := conn.appUser.ExistsByID(accountID, applicationID, userID)
 	if err != nil {
@@ -461,6 +461,8 @@ func (conn *connection) Friends(ctx *context.Context) (err []errors.Error) {
 		return
 	}
 
+	computeApplicationUsersLastModified(ctx, users)
+
 	for idx := range users {
 		users[idx].Password = ""
 		users[idx].Enabled = false
@@ -479,13 +481,11 @@ func (conn *connection) Friends(ctx *context.Context) (err []errors.Error) {
 	}
 
 	status := http.StatusOK
-	computeApplicationUsersLastModified(ctx, response.Users)
-
 	if response.UsersCount == 0 {
 		status = http.StatusNoContent
 	}
 
-	server.WriteResponse(ctx, users, status, 10)
+	server.WriteResponse(ctx, response, status, 10)
 	return
 }
 
@@ -495,6 +495,8 @@ func (conn *connection) CurrentUserFriends(ctx *context.Context) (err []errors.E
 		return
 	}
 
+	computeApplicationUsersLastModified(ctx, users)
+
 	for idx := range users {
 		users[idx].Password = ""
 		users[idx].Enabled = false
@@ -513,8 +515,6 @@ func (conn *connection) CurrentUserFriends(ctx *context.Context) (err []errors.E
 	}
 
 	status := http.StatusOK
-	computeApplicationUsersLastModified(ctx, response.Users)
-
 	if response.UsersCount == 0 {
 		status = http.StatusNoContent
 	}

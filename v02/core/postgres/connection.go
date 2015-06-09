@@ -228,7 +228,7 @@ func (c *connection) Friends(accountID, applicationID int64, userID string) ([]*
 		if err != nil {
 			return nil, []errors.Error{errors.NewInternalError("error while retrieving list of friends", err.Error())}
 		}
-		user, er := c.appUser.Read(accountID, applicationID, conn.UserToID)
+		user, er := c.appUser.Read(accountID, applicationID, conn.UserFromID)
 		if er != nil {
 			return nil, er
 		}
