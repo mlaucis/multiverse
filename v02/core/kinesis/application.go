@@ -22,7 +22,7 @@ type (
 func (app *application) Create(application *entity.Application, retrieve bool) (*entity.Application, []errors.Error) {
 	data, er := json.Marshal(application)
 	if er != nil {
-		return nil, []errors.Error{errors.NewInternalError("error while creating the application (1)", er.Error())}
+		return nil, []errors.Error{errors.NewInternalError(0, "error while creating the application (1)", er.Error())}
 	}
 
 	partitionKey := fmt.Sprintf("application-create-%d", application.AccountID)
@@ -38,7 +38,7 @@ func (app *application) Read(accountID, applicationID int64) (*entity.Applicatio
 func (app *application) Update(existingApplication, updatedApplication entity.Application, retrieve bool) (*entity.Application, []errors.Error) {
 	data, er := json.Marshal(updatedApplication)
 	if er != nil {
-		return nil, []errors.Error{errors.NewInternalError("error while updating the application (1)", er.Error())}
+		return nil, []errors.Error{errors.NewInternalError(0, "error while updating the application (1)", er.Error())}
 	}
 
 	partitionKey := fmt.Sprintf("application-update-%d-%d", updatedApplication.AccountID, updatedApplication.ID)
@@ -50,7 +50,7 @@ func (app *application) Update(existingApplication, updatedApplication entity.Ap
 func (app *application) Delete(application *entity.Application) []errors.Error {
 	data, er := json.Marshal(application)
 	if er != nil {
-		return []errors.Error{errors.NewInternalError("error while deleting the application (1)", er.Error())}
+		return []errors.Error{errors.NewInternalError(0, "error while deleting the application (1)", er.Error())}
 	}
 
 	partitionKey := fmt.Sprintf("application-delete-%d-%d", application.AccountID, application.ID)

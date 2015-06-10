@@ -30,7 +30,7 @@ func (a *account) Read(accountID int64) (account *entity.Account, err []errors.E
 func (a *account) Update(existingAccount, updatedAccount entity.Account, retrieve bool) (*entity.Account, []errors.Error) {
 	data, er := json.Marshal(updatedAccount)
 	if er != nil {
-		return nil, []errors.Error{errors.NewInternalError("error while updating the account (1)", er.Error())}
+		return nil, []errors.Error{errors.NewInternalError(0, "error while updating the account (1)", er.Error())}
 	}
 
 	partitionKey := fmt.Sprintf("account-%d-update", updatedAccount.ID)
@@ -42,7 +42,7 @@ func (a *account) Update(existingAccount, updatedAccount entity.Account, retriev
 func (a *account) Delete(account *entity.Account) []errors.Error {
 	data, er := json.Marshal(account)
 	if er != nil {
-		return []errors.Error{errors.NewInternalError("error while deleting the account (1)", er.Error())}
+		return []errors.Error{errors.NewInternalError(0, "error while deleting the account (1)", er.Error())}
 	}
 
 	partitionKey := fmt.Sprintf("partition-%d-delete", account.ID)

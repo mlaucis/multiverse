@@ -14,6 +14,7 @@ import (
 	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/entity"
+	"github.com/tapglue/backend/v02/errmsg"
 	storageHelper "github.com/tapglue/backend/v02/storage/helper"
 	"github.com/tapglue/backend/v02/storage/postgres"
 )
@@ -54,7 +55,7 @@ func (au *applicationUser) Create(accountID, applicationID int64, user *entity.A
 	var err error
 	user.Password, err = storageHelper.StrongEncryptPassword(user.Password)
 	if err != nil {
-		return nil, []errors.Error{errors.NewInternalError("failed to write the application user(2.5)", err.Error())}
+		return nil, []errors.Error{errmsg.InternalApplicationUserCreationError.UpdateInternalMessage(err.Error())}
 	}
 
 	timeNow := time.Now()
@@ -62,13 +63,13 @@ func (au *applicationUser) Create(accountID, applicationID int64, user *entity.A
 
 	applicationUserJSON, err := json.Marshal(user)
 	if err != nil {
-		return nil, []errors.Error{errors.NewInternalError("error while creating the application user", err.Error())}
+		return nil, []errors.Error{errmsg.InternalApplicationUserCreationError.UpdateInternalMessage(err.Error())}
 	}
 
 	_, err = au.mainPg.
 		Exec(appSchema(createApplicationUserQuery, accountID, applicationID), string(applicationUserJSON))
 	if err != nil {
-		return nil, []errors.Error{errors.NewInternalError("error while creating the application user", err.Error())}
+		return nil, []errors.Error{errmsg.InternalApplicationUserCreationError.UpdateInternalMessage(err.Error())}
 	}
 
 	for platform := range user.SocialIDs {
@@ -94,15 +95,15 @@ func (au *applicationUser) Read(accountID, applicationID int64, userID string) (
 		Scan(&JSONData, &lastRead)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, []errors.Error{errors.NewNotFoundError("application user not found", "application user not found")}
+			return nil, []errors.Error{errmsg.ApplicationUserNotFoundError}
 		}
-		return nil, []errors.Error{errors.NewInternalError("error while reading the application user", err.Error())}
+		return nil, []errors.Error{errmsg.InternalApplicationUserReadError.UpdateInternalMessage(err.Error())}
 	}
 
 	applicationUser := &entity.ApplicationUser{}
 	err = json.Unmarshal([]byte(JSONData), applicationUser)
 	if err != nil {
-		return nil, []errors.Error{errors.NewInternalError("error while reading the application user", err.Error())}
+		return nil, []errors.Error{errmsg.InternalApplicationUserReadError.UpdateInternalMessage(err.Error())}
 	}
 	applicationUser.LastRead = &lastRead
 
@@ -120,7 +121,7 @@ func (au *applicationUser) ReadMultiple(accountID, applicationID int64, userIDs 
 	rows, er := au.pg.SlaveDatastore(-1).
 		Query(appSchemaWithParams(listApplicationUsersByUserIDsQuery, accountID, applicationID, condition))
 	if er != nil {
-		return users, []errors.Error{errors.NewInternalError("error while retrieving list of application users", er.Error())}
+		return users, []errors.Error{errmsg.InternalApplicationUserListError.UpdateInternalMessage(er.Error())}
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -129,12 +130,12 @@ func (au *applicationUser) ReadMultiple(accountID, applicationID int64, userIDs 
 		)
 		err := rows.Scan(&JSONData)
 		if err != nil {
-			return nil, []errors.Error{errors.NewInternalError("error while retrieving list of application users", err.Error())}
+			return nil, []errors.Error{errmsg.InternalApplicationUserListError.UpdateInternalMessage(err.Error())}
 		}
 		user := &entity.ApplicationUser{}
 		err = json.Unmarshal([]byte(JSONData), user)
 		if err != nil {
-			return nil, []errors.Error{errors.NewInternalError("error while retrieving list of application users", err.Error())}
+			return nil, []errors.Error{errmsg.InternalApplicationUserListError.UpdateInternalMessage(err.Error())}
 		}
 
 		users = append(users, user)
@@ -151,7 +152,7 @@ func (au *applicationUser) Update(accountID, applicationID int64, existingUser, 
 		var err error
 		updatedUser.Password, err = storageHelper.StrongEncryptPassword(updatedUser.Password)
 		if err != nil {
-			return nil, []errors.Error{errors.NewInternalError("failed to write the application user(2.5)", err.Error())}
+			return nil, []errors.Error{errmsg.InternalApplicationUserUpdateError.UpdateInternalMessage(err.Error())}
 		}
 	}
 	timeNow := time.Now()
@@ -159,13 +160,13 @@ func (au *applicationUser) Update(accountID, applicationID int64, existingUser, 
 
 	userJSON, err := json.Marshal(updatedUser)
 	if err != nil {
-		return nil, []errors.Error{errors.NewInternalError("error while updating the application user", err.Error())}
+		return nil, []errors.Error{errmsg.InternalApplicationUserUpdateError.UpdateInternalMessage(err.Error())}
 	}
 
-	_, err = au.pg.SlaveDatastore(-1).
+	_, err = au.pg.MainDatastore().
 		Exec(appSchema(updateApplicationUserByIDQuery, accountID, applicationID), string(userJSON), existingUser.ID)
 	if err != nil {
-		return nil, []errors.Error{errors.NewInternalError("error while updating the application user", err.Error())}
+		return nil, []errors.Error{errmsg.InternalApplicationUserUpdateError.UpdateInternalMessage(err.Error())}
 	}
 
 	if !retrieve {
@@ -190,7 +191,7 @@ func (au *applicationUser) List(accountID, applicationID int64) (users []*entity
 	rows, err := au.pg.SlaveDatastore(-1).
 		Query(appSchema(listApplicationUsersByApplicationIDQuery, accountID, applicationID))
 	if err != nil {
-		return nil, []errors.Error{errors.NewInternalError("error while retrieving list of application users", err.Error())}
+		return nil, []errors.Error{errmsg.InternalApplicationUserListError.UpdateInternalMessage(err.Error())}
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -199,12 +200,12 @@ func (au *applicationUser) List(accountID, applicationID int64) (users []*entity
 		)
 		err := rows.Scan(&JSONData)
 		if err != nil {
-			return nil, []errors.Error{errors.NewInternalError("error while retrieving list of application users", err.Error())}
+			return nil, []errors.Error{errmsg.InternalApplicationUserListError.UpdateInternalMessage(err.Error())}
 		}
 		user := &entity.ApplicationUser{}
 		err = json.Unmarshal([]byte(JSONData), user)
 		if err != nil {
-			return nil, []errors.Error{errors.NewInternalError("error while retrieving list of application users", err.Error())}
+			return nil, []errors.Error{errmsg.InternalApplicationUserListError.UpdateInternalMessage(err.Error())}
 		}
 
 		users = append(users, user)
@@ -217,7 +218,7 @@ func (au *applicationUser) CreateSession(accountID, applicationID int64, user *e
 	sessionToken := storageHelper.GenerateApplicationSessionID(user)
 	_, err := au.mainPg.Exec(appSchema(createApplicationUserSessionQuery, accountID, applicationID), user.ID, sessionToken)
 	if err != nil {
-		return "", []errors.Error{errors.NewInternalError("error while creating application user session", err.Error())}
+		return "", []errors.Error{errmsg.InternalApplicationUserSessionCreationError.UpdateInternalMessage(err.Error())}
 	}
 
 	return sessionToken, nil
@@ -227,7 +228,7 @@ func (au *applicationUser) RefreshSession(accountID, applicationID int64, sessio
 	updatedSessionToken := storageHelper.GenerateApplicationSessionID(user)
 	_, err := au.mainPg.Exec(appSchema(updateApplicationUserSessionQuery, accountID, applicationID), sessionToken, user.ID, updatedSessionToken)
 	if err != nil {
-		return "", []errors.Error{errors.NewInternalError("error while updating application user session", err.Error())}
+		return "", []errors.Error{errmsg.InternalApplicationUserSessionUpdateError.UpdateInternalMessage(err.Error())}
 	}
 
 	return updatedSessionToken, nil
@@ -237,14 +238,14 @@ func (au *applicationUser) GetSession(accountID, applicationID int64, user *enti
 	rows, err := au.pg.SlaveDatastore(-1).
 		Query(appSchema(selectApplicationUserSessionQuery, accountID, applicationID), user.ID)
 	if err != nil {
-		return "", []errors.Error{errors.NewInternalError("error while reading session from the database", err.Error())}
+		return "", []errors.Error{errmsg.InternalApplicationUserSessionReadError.UpdateInternalMessage(err.Error())}
 	}
 	defer rows.Close()
 	sessions := []string{}
 	for rows.Next() {
 		session := ""
 		if err := rows.Scan(&session); err != nil {
-			return "", []errors.Error{errors.NewInternalError("error while reading session from the database", err.Error())}
+			return "", []errors.Error{errmsg.InternalApplicationUserSessionReadError.UpdateInternalMessage(err.Error())}
 		}
 		if session == user.SessionToken {
 			return session, nil
@@ -259,7 +260,7 @@ func (au *applicationUser) GetSession(accountID, applicationID int64, user *enti
 func (au *applicationUser) DestroySession(accountID, applicationID int64, sessionToken string, user *entity.ApplicationUser) []errors.Error {
 	_, err := au.mainPg.Exec(appSchema(destroyApplicationUserSessionQuery, accountID, applicationID), user.ID, sessionToken)
 	if err != nil {
-		return []errors.Error{errors.NewInternalError("error while deleting session", err.Error())}
+		return []errors.Error{errmsg.InternalApplicationUserSessionDeleteError.UpdateInternalMessage(err.Error())}
 	}
 
 	return nil
@@ -275,14 +276,14 @@ func (au *applicationUser) FindByEmail(accountID, applicationID int64, email str
 		Scan(&JSONData, &lastRead)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, []errors.Error{errors.NewNotFoundError("application user not found", "application user not found")}
+			return nil, []errors.Error{errmsg.ApplicationUserNotFoundError}
 		}
-		return nil, []errors.Error{errors.NewInternalError("error while reading the application user", err.Error())}
+		return nil, []errors.Error{errmsg.InternalApplicationUserReadError.UpdateInternalMessage(err.Error())}
 	}
 	user := &entity.ApplicationUser{}
 	err = json.Unmarshal([]byte(JSONData), user)
 	if err != nil {
-		return nil, []errors.Error{errors.NewInternalError("error while reading the application user", err.Error())}
+		return nil, []errors.Error{errmsg.InternalApplicationUserReadError.UpdateInternalMessage(err.Error())}
 	}
 	user.LastRead = &lastRead
 
@@ -301,7 +302,7 @@ func (au *applicationUser) ExistsByEmail(accountID, applicationID int64, email s
 		return false, nil
 	}
 	if err != nil {
-		return false, []errors.Error{errors.NewInternalError("error while reading the application user", err.Error())}
+		return false, []errors.Error{errmsg.InternalApplicationUserReadError.UpdateInternalMessage(err.Error())}
 	}
 
 	return true, nil
@@ -317,14 +318,14 @@ func (au *applicationUser) FindByUsername(accountID, applicationID int64, userna
 		Scan(&JSONData, &lastRead)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, []errors.Error{errors.NewNotFoundError("application user not found", "application user not found")}
+			return nil, []errors.Error{errmsg.ApplicationUserNotFoundError}
 		}
-		return nil, []errors.Error{errors.NewInternalError("error while reading the application user", err.Error())}
+		return nil, []errors.Error{errmsg.InternalApplicationUserReadError.UpdateInternalMessage(err.Error())}
 	}
 	user := &entity.ApplicationUser{}
 	err = json.Unmarshal([]byte(JSONData), user)
 	if err != nil {
-		return nil, []errors.Error{errors.NewInternalError("error while reading the application user", err.Error())}
+		return nil, []errors.Error{errmsg.InternalApplicationUserReadError.UpdateInternalMessage(err.Error())}
 	}
 	user.LastRead = &lastRead
 
@@ -343,7 +344,7 @@ func (au *applicationUser) ExistsByUsername(accountID, applicationID int64, user
 		return false, nil
 	}
 	if err != nil {
-		return false, []errors.Error{errors.NewInternalError("error while reading the application user", err.Error())}
+		return false, []errors.Error{errmsg.InternalApplicationUserReadError.UpdateInternalMessage(err.Error())}
 	}
 
 	return true, nil
@@ -361,7 +362,7 @@ func (au *applicationUser) ExistsByID(accountID, applicationID int64, userID str
 		return false, nil
 	}
 	if err != nil {
-		return false, []errors.Error{errors.NewInternalError("error while reading the application user", err.Error())}
+		return false, []errors.Error{errmsg.InternalApplicationUserReadError.UpdateInternalMessage(err.Error())}
 	}
 	return true, nil
 }
@@ -374,9 +375,9 @@ func (au *applicationUser) FindBySession(accountID, applicationID int64, session
 		Scan(&userID)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, []errors.Error{errors.NewNotFoundError("application user not found", err.Error())}
+			return nil, []errors.Error{errmsg.ApplicationUserNotFoundError}
 		}
-		return nil, []errors.Error{errors.NewNotFoundError("error whie reading the application user", err.Error())}
+		return nil, []errors.Error{errmsg.InternalApplicationUserReadError.UpdateInternalMessage(err.Error())}
 	}
 
 	return au.Read(accountID, applicationID, userID)
@@ -388,7 +389,7 @@ func (au *applicationUser) Search(accountID, applicationID int64, searchTerm str
 	rows, err := au.pg.SlaveDatastore(-1).
 		Query(appSchema(searchApplicationUsersQuery, accountID, applicationID), "%"+searchTerm+"%")
 	if err != nil {
-		return users, []errors.Error{errors.NewInternalError("error while retrieving list of application users", err.Error())}
+		return users, []errors.Error{errmsg.InternalApplicationUserListError.UpdateInternalMessage(err.Error())}
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -397,12 +398,12 @@ func (au *applicationUser) Search(accountID, applicationID int64, searchTerm str
 		)
 		err := rows.Scan(&JSONData)
 		if err != nil {
-			return nil, []errors.Error{errors.NewInternalError("error while retrieving list of application users", err.Error())}
+			return nil, []errors.Error{errmsg.InternalApplicationUserListError.UpdateInternalMessage(err.Error())}
 		}
 		user := &entity.ApplicationUser{}
 		err = json.Unmarshal([]byte(JSONData), user)
 		if err != nil {
-			return nil, []errors.Error{errors.NewInternalError("error while retrieving list of application users", err.Error())}
+			return nil, []errors.Error{errmsg.InternalApplicationUserListError.UpdateInternalMessage(err.Error())}
 		}
 
 		users = append(users, user)
@@ -414,7 +415,7 @@ func (au *applicationUser) Search(accountID, applicationID int64, searchTerm str
 func (au *applicationUser) destroyAllUserSession(accountID, applicationID int64, user *entity.ApplicationUser) []errors.Error {
 	_, err := au.mainPg.Exec(appSchema(destroyAllApplicationUserSessionQuery, accountID, applicationID), user.ID)
 	if err != nil {
-		return []errors.Error{errors.NewInternalError("error while deleting all session", err.Error())}
+		return []errors.Error{errmsg.InternalApplicationUserSessionsDeleteError.UpdateInternalMessage(err.Error())}
 	}
 
 	return nil

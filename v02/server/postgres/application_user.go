@@ -16,6 +16,7 @@ import (
 	"github.com/tapglue/backend/v02/entity"
 	"github.com/tapglue/backend/v02/server"
 	"github.com/tapglue/backend/v02/validator"
+	"github.com/tapglue/backend/v02/errmsg"
 )
 
 type (
@@ -27,7 +28,7 @@ type (
 func (appUser *applicationUser) Read(ctx *context.Context) (err []errors.Error) {
 	userID := ctx.Vars["applicationUserID"]
 	if !validator.IsValidUUID5(userID) {
-		return []errors.Error{invalidUserIDError}
+		return []errors.Error{errmsg.InvalidUserIDError}
 	}
 
 	user, err := appUser.storage.Read(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), userID)
@@ -60,7 +61,7 @@ func (appUser *applicationUser) UpdateCurrent(ctx *context.Context) (err []error
 	user := *(ctx.Bag["applicationUser"].(*entity.ApplicationUser))
 	var er error
 	if er = json.Unmarshal(ctx.Body, &user); er != nil {
-		return []errors.Error{errors.NewBadRequestError("failed to update the user (1)\n"+er.Error(), er.Error())}
+		return []errors.Error{errmsg.BadJsonReceivedError.UpdateMessage(er.Error())}
 	}
 
 	user.ID = ctx.Bag["applicationUserID"].(string)
@@ -114,7 +115,7 @@ func (appUser *applicationUser) Create(ctx *context.Context) (err []errors.Error
 	)
 
 	if er = json.Unmarshal(ctx.Body, user); er != nil {
-		return []errors.Error{errors.NewBadRequestError("failed to create the application user (1)\n"+er.Error(), er.Error())}
+		return []errors.Error{errmsg.BadJsonReceivedError.UpdateMessage(er.Error())}
 	}
 
 	if err = validator.CreateUser(appUser.storage, ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), user); err != nil {
@@ -161,7 +162,7 @@ func (appUser *applicationUser) Login(ctx *context.Context) (err []errors.Error)
 	)
 
 	if er = json.Unmarshal(ctx.Body, loginPayload); er != nil {
-		return []errors.Error{errors.NewBadRequestError("failed to login the user (1)\n"+er.Error(), er.Error())}
+		return []errors.Error{errmsg.BadJsonReceivedError.UpdateMessage(er.Error())}
 	}
 
 	if err = validator.IsValidLoginPayload(loginPayload); err != nil {
@@ -190,7 +191,7 @@ func (appUser *applicationUser) Login(ctx *context.Context) (err []errors.Error)
 	}
 
 	if user == nil || !user.Enabled {
-		return []errors.Error{errors.NewNotFoundError("application user not found", "user not found")}
+		return []errors.Error{errmsg.ApplicationUserNotFoundError}
 	}
 
 	if err = validator.ApplicationUserCredentialsValid(loginPayload.Password, user); err != nil {
@@ -237,11 +238,11 @@ func (appUser *applicationUser) RefreshSession(ctx *context.Context) (err []erro
 	)
 
 	if er := json.Unmarshal(ctx.Body, &tokenPayload); er != nil {
-		return []errors.Error{errors.NewBadRequestError("failed to refresh the session token (1)\n"+er.Error(), er.Error())}
+		return []errors.Error{errmsg.BadJsonReceivedError.UpdateMessage(er.Error())}
 	}
 
 	if tokenPayload.Token != ctx.SessionToken {
-		return []errors.Error{errors.NewBadRequestError("failed to refresh the session token (2)\nsession token mismatch", "session token mismatch")}
+		return []errors.Error{errmsg.SessionTokenMismatchError}
 	}
 
 	if sessionToken, err = appUser.storage.RefreshSession(
@@ -278,7 +279,7 @@ func (appUser *applicationUser) Search(ctx *context.Context) (err []errors.Error
 	}
 
 	if len(query) < 3 {
-		return []errors.Error{errors.NewBadRequestError("type at least 3 characters to search", "less than 3 chars for search")}
+		return []errors.Error{errmsg.TypeMin3CharsError}
 	}
 
 	users, err := appUser.storage.Search(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), query)
@@ -314,7 +315,7 @@ func (appUser *applicationUser) Search(ctx *context.Context) (err []errors.Error
 func (appUser *applicationUser) PopulateContext(ctx *context.Context) (err []errors.Error) {
 	user, pass, ok := ctx.BasicAuth()
 	if !ok {
-		return []errors.Error{errors.NewBadRequestError("error while reading user credentials", fmt.Sprintf("got %s:%s", user, pass))}
+		return []errors.Error{errmsg.InvalidApplicationUserCredentialsError.UpdateInternalMessage(fmt.Sprintf("got %s:%s", user, pass))}
 	}
 	ctx.Bag["applicationUser"], err = appUser.storage.FindBySession(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), pass)
 	if err == nil {

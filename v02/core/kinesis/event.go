@@ -22,7 +22,7 @@ type (
 func (e *event) Create(accountID, applicationID int64, currentUserID string, event *entity.Event, retrieve bool) (*entity.Event, []errors.Error) {
 	data, er := json.Marshal(event)
 	if er != nil {
-		return nil, []errors.Error{errors.NewInternalError("error while creating the event (1)", er.Error())}
+		return nil, []errors.Error{errors.NewInternalError(0, "error while creating the event (1)", er.Error())}
 	}
 
 	partitionKey := fmt.Sprintf("partitionKey-%d-%d", accountID, applicationID)
@@ -38,7 +38,7 @@ func (e *event) Read(accountID, applicationID int64, userID, currentUserID, even
 func (e *event) Update(accountID, applicationID int64, currentUserID string, existingEvent, updatedEvent entity.Event, retrieve bool) (*entity.Event, []errors.Error) {
 	data, er := json.Marshal(updatedEvent)
 	if er != nil {
-		return nil, []errors.Error{errors.NewInternalError("error while updating the event (1)", er.Error())}
+		return nil, []errors.Error{errors.NewInternalError(0, "error while updating the event (1)", er.Error())}
 	}
 
 	partitionKey := fmt.Sprintf("partitionKey-%d-%d", accountID, applicationID)
@@ -50,7 +50,7 @@ func (e *event) Update(accountID, applicationID int64, currentUserID string, exi
 func (e *event) Delete(accountID, applicationID int64, currentUserID string, event *entity.Event) []errors.Error {
 	data, er := json.Marshal(event)
 	if er != nil {
-		return []errors.Error{errors.NewInternalError("error while deleting the event (1)", er.Error())}
+		return []errors.Error{errors.NewInternalError(0, "error while deleting the event (1)", er.Error())}
 	}
 
 	partitionKey := fmt.Sprintf("partitionKey-%d-%d", accountID, applicationID)

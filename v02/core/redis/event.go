@@ -28,24 +28,24 @@ func (e *event) Create(accountID, applicationID int64, currentUserID string, eve
 	var er error
 
 	if event.ID, er = e.storage.GenerateApplicationEventID(applicationID); er != nil {
-		return nil, []errors.Error{errors.NewInternalError("failed to write the event (1)", er.Error())}
+		return nil, []errors.Error{errors.NewInternalError(0, "failed to write the event (1)", er.Error())}
 	}
 
 	val, er := json.Marshal(event)
 	if er != nil {
-		return nil, []errors.Error{errors.NewInternalError("failed to write the event (2)", er.Error())}
+		return nil, []errors.Error{errors.NewInternalError(0, "failed to write the event (2)", er.Error())}
 	}
 
 	key := storageHelper.Event(accountID, applicationID, event.UserID, event.ID)
 	if er = e.redis.Set(key, string(val)).Err(); err != nil {
-		return nil, []errors.Error{errors.NewInternalError("failed to write the event (3)", er.Error())}
+		return nil, []errors.Error{errors.NewInternalError(0, "failed to write the event (3)", er.Error())}
 	}
 
 	listKey := storageHelper.Events(accountID, applicationID, event.UserID)
 
 	setVal := red.Z{Score: float64(event.CreatedAt.Unix()), Member: key}
 	if er = e.redis.ZAdd(listKey, setVal).Err(); er != nil {
-		return nil, []errors.Error{errors.NewInternalError("failed to write the event (4)", er.Error())}
+		return nil, []errors.Error{errors.NewInternalError(0, "failed to write the event (4)", er.Error())}
 	}
 
 	if event.Latitude != 0 && event.Longitude != 0 {
@@ -62,14 +62,14 @@ func (e *event) Create(accountID, applicationID int64, currentUserID string, eve
 	if event.Object != nil {
 		objectEventKey := storageHelper.EventObjectKey(accountID, applicationID, event.Object.ID)
 		if er = e.redis.SAdd(objectEventKey, key).Err(); er != nil {
-			return nil, []errors.Error{errors.NewInternalError("failed to write the event (5)", er.Error())}
+			return nil, []errors.Error{errors.NewInternalError(0, "failed to write the event (5)", er.Error())}
 		}
 	}
 
 	if event.Location != "" {
 		locationEventKey := storageHelper.EventLocationKey(accountID, applicationID, event.Location)
 		if er = e.redis.SAdd(locationEventKey, key).Err(); er != nil {
-			return nil, []errors.Error{errors.NewInternalError("failed to write the event (6)", er.Error())}
+			return nil, []errors.Error{errors.NewInternalError(0, "failed to write the event (6)", er.Error())}
 		}
 	}
 
@@ -89,11 +89,11 @@ func (e *event) Read(accountID, applicationID int64, userID, currentUserID, even
 
 	result, er := e.redis.Get(key).Result()
 	if er != nil {
-		return nil, []errors.Error{errors.NewInternalError("failed to read the event (1)", er.Error())}
+		return nil, []errors.Error{errors.NewInternalError(0, "failed to read the event (1)", er.Error())}
 	}
 
 	if er = json.Unmarshal([]byte(result), &event); er != nil {
-		return nil, []errors.Error{errors.NewInternalError("failed to read the event (2)", er.Error())}
+		return nil, []errors.Error{errors.NewInternalError(0, "failed to read the event (2)", er.Error())}
 	}
 
 	return
@@ -105,12 +105,12 @@ func (e *event) Update(accountID, applicationID int64, currentUserID string, exi
 
 	val, er := json.Marshal(updatedEvent)
 	if er != nil {
-		return nil, []errors.Error{errors.NewInternalError("failed to update the event (1)", er.Error())}
+		return nil, []errors.Error{errors.NewInternalError(0, "failed to update the event (1)", er.Error())}
 	}
 
 	key := storageHelper.Event(accountID, applicationID, updatedEvent.UserID, updatedEvent.ID)
 	if er = e.redis.Set(key, string(val)).Err(); er != nil {
-		return nil, []errors.Error{errors.NewInternalError("failed to update the event (1)", er.Error())}
+		return nil, []errors.Error{errors.NewInternalError(0, "failed to update the event (1)", er.Error())}
 	}
 
 	if existingEvent.Latitude != 0 &&
@@ -152,7 +152,7 @@ func (e *event) Update(accountID, applicationID int64, currentUserID string, exi
 	if !updatedEvent.Enabled {
 		listKey := storageHelper.Events(accountID, applicationID, updatedEvent.UserID)
 		if er = e.redis.ZRem(listKey, key).Err(); er != nil {
-			return nil, []errors.Error{errors.NewInternalError("failed to read the event (1)", er.Error())}
+			return nil, []errors.Error{errors.NewInternalError(0, "failed to read the event (1)", er.Error())}
 		}
 		if err = e.DeleteFromConnectionsLists(accountID, applicationID, updatedEvent.UserID, key); err != nil {
 			return nil, err
@@ -182,16 +182,16 @@ func (e *event) Delete(accountID, applicationID int64, currentUserID string, eve
 	key := storageHelper.Event(accountID, applicationID, event.UserID, event.ID)
 	result, er := e.redis.Del(key).Result()
 	if er != nil {
-		return []errors.Error{errors.NewInternalError("failed to delete the event (1)", er.Error())}
+		return []errors.Error{errors.NewInternalError(0, "failed to delete the event (1)", er.Error())}
 	}
 
 	if result != 1 {
-		return []errors.Error{errors.NewInternalError("failed to delete the event (2)", "event already deleted")}
+		return []errors.Error{errors.NewInternalError(0, "failed to delete the event (2)", "event already deleted")}
 	}
 
 	listKey := storageHelper.Events(accountID, applicationID, event.UserID)
 	if er = e.redis.ZRem(listKey, key).Err(); er != nil {
-		return []errors.Error{errors.NewInternalError("failed to read the event (1)", er.Error())}
+		return []errors.Error{errors.NewInternalError(0, "failed to read the event (1)", er.Error())}
 	}
 
 	if err = e.DeleteFromConnectionsLists(accountID, applicationID, event.UserID, key); err != nil {
@@ -210,7 +210,7 @@ func (e *event) List(accountID, applicationID int64, userID, currentUserID strin
 
 	result, er := e.redis.ZRevRange(key, "0", "-1").Result()
 	if er != nil {
-		return nil, []errors.Error{errors.NewInternalError("failed to read the event list (1)", er.Error())}
+		return nil, []errors.Error{errors.NewInternalError(0, "failed to read the event list (1)", er.Error())}
 	}
 
 	if len(result) == 0 {
@@ -219,7 +219,7 @@ func (e *event) List(accountID, applicationID int64, userID, currentUserID strin
 
 	resultList, er := e.redis.MGet(result...).Result()
 	if er != nil {
-		return nil, []errors.Error{errors.NewInternalError("failed to read the event list (2)", er.Error())}
+		return nil, []errors.Error{errors.NewInternalError(0, "failed to read the event list (2)", er.Error())}
 	}
 
 	_, events, err = e.toEvents(resultList)
@@ -231,7 +231,7 @@ func (e *event) UserFeed(accountID, applicationID int64, user *entity.Applicatio
 
 	result, er := e.redis.ZRevRange(key, "0", "-1").Result()
 	if er != nil {
-		return 0, []*entity.Event{}, []errors.Error{errors.NewInternalError("failed to read the connections events (1)", er.Error())}
+		return 0, []*entity.Event{}, []errors.Error{errors.NewInternalError(0, "failed to read the connections events (1)", er.Error())}
 	}
 
 	// TODO maybe this shouldn't be an error but rather return that there are no events from connections
@@ -241,18 +241,18 @@ func (e *event) UserFeed(accountID, applicationID int64, user *entity.Applicatio
 
 	resultList, er := e.redis.MGet(result...).Result()
 	if er != nil {
-		return 0, []*entity.Event{}, []errors.Error{errors.NewInternalError("failed to read the connections events (2)", er.Error())}
+		return 0, []*entity.Event{}, []errors.Error{errors.NewInternalError(0, "failed to read the connections events (2)", er.Error())}
 	}
 
 	return e.toEvents(resultList)
 }
 
 func (e *event) UnreadFeed(accountID, applicationID int64, user *entity.ApplicationUser) (count int, events []*entity.Event, err []errors.Error) {
-	return 0, nil, []errors.Error{errors.NewNotFoundError("not found", "invalid handler specified")}
+	return 0, nil, []errors.Error{errors.NewNotFoundError(0, "not found", "invalid handler specified")}
 }
 
 func (e *event) UnreadFeedCount(accountID, applicationID int64, user *entity.ApplicationUser) (count int, err []errors.Error) {
-	return 0, []errors.Error{errors.NewNotFoundError("not found", "invalid handler specified")}
+	return 0, []errors.Error{errors.NewNotFoundError(0, "not found", "invalid handler specified")}
 }
 
 func (e *event) WriteToConnectionsLists(accountID, applicationID int64, event *entity.Event, key string) (err []errors.Error) {
@@ -260,7 +260,7 @@ func (e *event) WriteToConnectionsLists(accountID, applicationID int64, event *e
 
 	connections, er := e.redis.LRange(connectionsKey, 0, -1).Result()
 	if er != nil {
-		return []errors.Error{errors.NewInternalError("failed to write the event to the lists (1)", er.Error())}
+		return []errors.Error{errors.NewInternalError(0, "failed to write the event to the lists (1)", er.Error())}
 	}
 
 	for _, userKey := range connections {
@@ -268,7 +268,7 @@ func (e *event) WriteToConnectionsLists(accountID, applicationID int64, event *e
 
 		val := red.Z{Score: float64(event.CreatedAt.Unix()), Member: key}
 		if er = e.redis.ZAdd(feedKey, val).Err(); er != nil {
-			return []errors.Error{errors.NewInternalError("failed to write the event to the list (2)", er.Error())}
+			return []errors.Error{errors.NewInternalError(0, "failed to write the event to the list (2)", er.Error())}
 		}
 	}
 
@@ -279,13 +279,13 @@ func (e *event) DeleteFromConnectionsLists(accountID, applicationID int64, userI
 	connectionsKey := storageHelper.FollowedByUsers(accountID, applicationID, userID)
 	connections, er := e.redis.LRange(connectionsKey, 0, -1).Result()
 	if er != nil {
-		return []errors.Error{errors.NewInternalError("failed to delete the event from list (1)", er.Error())}
+		return []errors.Error{errors.NewInternalError(0, "failed to delete the event from list (1)", er.Error())}
 	}
 
 	for _, userKey := range connections {
 		feedKey := storageHelper.ConnectionEventsLoop(userKey)
 		if er = e.redis.ZRem(feedKey, key).Err(); er != nil {
-			return []errors.Error{errors.NewInternalError("failed to delete the event from list (2)", er.Error())}
+			return []errors.Error{errors.NewInternalError(0, "failed to delete the event from list (2)", er.Error())}
 		}
 	}
 
@@ -297,12 +297,12 @@ func (e *event) GeoSearch(accountID, applicationID int64, currentUserID string, 
 
 	eventKeys, er := georedis.SearchByRadius(e.redis, geoEventKey, latitude, longitude, radius, 52)
 	if er != nil {
-		return nil, []errors.Error{errors.NewInternalError("failed to search for events by geo (1)", er.Error())}
+		return nil, []errors.Error{errors.NewInternalError(0, "failed to search for events by geo (1)", er.Error())}
 	}
 
 	resultList, er := e.redis.MGet(eventKeys...).Result()
 	if err != nil {
-		return nil, []errors.Error{errors.NewInternalError("failed to search for events by geo (2)", er.Error())}
+		return nil, []errors.Error{errors.NewInternalError(0, "failed to search for events by geo (2)", er.Error())}
 	}
 
 	_, events, err = e.toEvents(resultList)
@@ -325,7 +325,7 @@ func (e *event) LocationSearch(accountID, applicationID int64, currentUserID, lo
 func (e *event) fetchEventsFromKeys(accountID, applicationID int64, bucketName string) ([]*entity.Event, []errors.Error) {
 	_, keys, err := e.redis.SScan(bucketName, 0, "", 300).Result()
 	if err != nil {
-		return nil, []errors.Error{errors.NewInternalError("failed to read the events (1)", err.Error())}
+		return nil, []errors.Error{errors.NewInternalError(0, "failed to read the events (1)", err.Error())}
 	}
 
 	if len(keys) == 0 {
@@ -334,7 +334,7 @@ func (e *event) fetchEventsFromKeys(accountID, applicationID int64, bucketName s
 
 	resultList, err := e.redis.MGet(keys...).Result()
 	if err != nil {
-		return nil, []errors.Error{errors.NewInternalError("failed to read the events (2)", err.Error())}
+		return nil, []errors.Error{errors.NewInternalError(0, "failed to read the events (2)", err.Error())}
 	}
 
 	_, events, er := e.toEvents(resultList)
@@ -350,7 +350,7 @@ func (e *event) toEvents(resultList []interface{}) (int, []*entity.Event, []erro
 		}
 		event := &entity.Event{}
 		if er := json.Unmarshal([]byte(result.(string)), event); er != nil {
-			return 0, []*entity.Event{}, []errors.Error{errors.NewInternalError("failed to read the event from list (1)", er.Error())}
+			return 0, []*entity.Event{}, []errors.Error{errors.NewInternalError(0, "failed to read the event from list (1)", er.Error())}
 		}
 		events = append(events, event)
 		event = &entity.Event{}
@@ -371,7 +371,7 @@ func (e *event) addEventGeo(accountID, applicationID int64, key string, updatedE
 	if er == nil {
 		return nil
 	}
-	return []errors.Error{errors.NewInternalError("failed to add the event by geo (1)", er.Error())}
+	return []errors.Error{errors.NewInternalError(0, "failed to add the event by geo (1)", er.Error())}
 }
 
 func (e *event) removeEventGeo(accountID, applicationID int64, key string, updatedEvent *entity.Event) []errors.Error {
@@ -380,7 +380,7 @@ func (e *event) removeEventGeo(accountID, applicationID int64, key string, updat
 	if er == nil {
 		return nil
 	}
-	return []errors.Error{errors.NewInternalError("failed to remove the event by geo (1)", er.Error())}
+	return []errors.Error{errors.NewInternalError(0, "failed to remove the event by geo (1)", er.Error())}
 }
 
 func (e *event) addEventObject(accountID, applicationID int64, key string, updatedEvent *entity.Event) []errors.Error {
@@ -389,7 +389,7 @@ func (e *event) addEventObject(accountID, applicationID int64, key string, updat
 	if er == nil {
 		return nil
 	}
-	return []errors.Error{errors.NewInternalError("failed to add the event by object (1)", er.Error())}
+	return []errors.Error{errors.NewInternalError(0, "failed to add the event by object (1)", er.Error())}
 }
 
 func (e *event) removeEventObject(accountID, applicationID int64, key string, updatedEvent *entity.Event) []errors.Error {
@@ -398,7 +398,7 @@ func (e *event) removeEventObject(accountID, applicationID int64, key string, up
 	if er == nil {
 		return nil
 	}
-	return []errors.Error{errors.NewInternalError("failed to remove the event by geo (1)", er.Error())}
+	return []errors.Error{errors.NewInternalError(0, "failed to remove the event by geo (1)", er.Error())}
 }
 
 func (e *event) addEventLocation(accountID, applicationID int64, key string, updatedEvent *entity.Event) []errors.Error {
@@ -407,7 +407,7 @@ func (e *event) addEventLocation(accountID, applicationID int64, key string, upd
 	if er == nil {
 		return nil
 	}
-	return []errors.Error{errors.NewInternalError("failed to add the event by location (1)", er.Error())}
+	return []errors.Error{errors.NewInternalError(0, "failed to add the event by location (1)", er.Error())}
 }
 
 func (e *event) removeEventLocation(accountID, applicationID int64, key string, updatedEvent *entity.Event) []errors.Error {
@@ -416,7 +416,7 @@ func (e *event) removeEventLocation(accountID, applicationID int64, key string, 
 	if er == nil {
 		return nil
 	}
-	return []errors.Error{errors.NewInternalError("failed to remove the event by location (1)", er.Error())}
+	return []errors.Error{errors.NewInternalError(0, "failed to remove the event by location (1)", er.Error())}
 }
 
 // NewEvent creates a new Event

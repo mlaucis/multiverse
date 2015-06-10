@@ -15,6 +15,7 @@ import (
 	"github.com/tapglue/backend/v02/entity"
 	"github.com/tapglue/backend/v02/server"
 	"github.com/tapglue/backend/v02/validator"
+	"github.com/tapglue/backend/v02/errmsg"
 )
 
 type (
@@ -32,7 +33,7 @@ func (conn *connection) Update(ctx *context.Context) (err []errors.Error) {
 
 	userToID = ctx.Vars["userToId"]
 	if !validator.IsValidUUID5(userToID) {
-		return []errors.Error{invalidUserIDError}
+		return []errors.Error{errmsg.InvalidUserIDError}
 	}
 
 	existingConnection, err := conn.storage.Read(
@@ -44,24 +45,24 @@ func (conn *connection) Update(ctx *context.Context) (err []errors.Error) {
 		return
 	}
 	if existingConnection == nil {
-		return []errors.Error{errors.NewNotFoundError("failed to update the connection (3)\nusers are not connected", "users are not connected")}
+		return []errors.Error{errmsg.UsersNotConnectedError}
 	}
 
 	connection := *existingConnection
 	if er = json.Unmarshal(ctx.Body, &connection); er != nil {
-		return []errors.Error{errors.NewBadRequestError("failed to update the connection (4)\n"+er.Error(), er.Error())}
+		return []errors.Error{errmsg.BadJsonReceivedError.UpdateMessage(er.Error())}
 	}
 
 	if connection.UserFromID != ctx.Bag["applicationUserID"].(string) {
-		return []errors.Error{errors.NewBadRequestError("failed to update the connection (5)\nuser_from mismatch", "user_from mismatch")}
+		return []errors.Error{errmsg.UserFromMismatchError}
 	}
 
 	if connection.UserToID != userToID {
-		return []errors.Error{errors.NewBadRequestError("failed to update the connection (6)\nuser_to mismatch", "user_to mismatch")}
+		return []errors.Error{errmsg.UserToMismatchError}
 	}
 
 	if connection.Type != "friend" && connection.Type != "follow" {
-		return []errors.Error{errors.NewBadRequestError(fmt.Sprintf("unexpected connection type %q", connection.Type), "unexpected connection type")}
+		return []errors.Error{errmsg.WrongConnectionTypeError.UpdateMessage(fmt.Sprintf("unexpected connection type %q", connection.Type))}
 	}
 
 	if err = validator.UpdateConnection(
@@ -91,7 +92,7 @@ func (conn *connection) Delete(ctx *context.Context) (err []errors.Error) {
 	userFromID := ctx.Bag["applicationUserID"].(string)
 	userToID := ctx.Vars["applicationUserToID"]
 	if !validator.IsValidUUID5(userToID) {
-		return []errors.Error{invalidUserIDError}
+		return []errors.Error{errmsg.InvalidUserIDError}
 	}
 
 	connection, err := conn.storage.Read(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), userFromID, userToID)
@@ -116,11 +117,11 @@ func (conn *connection) Create(ctx *context.Context) (err []errors.Error) {
 	connection.Enabled = true
 
 	if er = json.Unmarshal(ctx.Body, connection); er != nil {
-		return []errors.Error{errors.NewBadRequestError("failed to create the connection(1)\n"+er.Error(), er.Error())}
+		return []errors.Error{errmsg.BadJsonReceivedError.UpdateMessage(er.Error())}
 	}
 
 	if connection.Type != "friend" && connection.Type != "follow" {
-		return []errors.Error{errors.NewBadRequestError(fmt.Sprintf("unexpected connection type %q", connection.Type), "unexpected connection type")}
+		return []errors.Error{errmsg.WrongConnectionTypeError.UpdateMessage(fmt.Sprintf("unexpected connection type %q", connection.Type))}
 	}
 
 	receivedEnabled := connection.Enabled
@@ -128,7 +129,7 @@ func (conn *connection) Create(ctx *context.Context) (err []errors.Error) {
 	connection.UserFromID = ctx.Bag["applicationUserID"].(string)
 
 	if connection.UserFromID == connection.UserToID {
-		return []errors.Error{errors.NewBadRequestError("failed to create connection (2)\nuser is connecting with itself", "self-connecting user")}
+		return []errors.Error{errmsg.SelfConnectingUserError}
 	}
 
 	if err = validator.CreateConnection(
@@ -166,7 +167,7 @@ func (conn *connection) List(ctx *context.Context) (err []errors.Error) {
 	applicationID := ctx.Bag["applicationID"].(int64)
 	userID := ctx.Vars["applicationUserID"]
 	if !validator.IsValidUUID5(userID) {
-		return []errors.Error{invalidUserIDError}
+		return []errors.Error{errmsg.InvalidUserIDError}
 	}
 
 	exists, err := conn.appUser.ExistsByID(accountID, applicationID, userID)
@@ -175,7 +176,7 @@ func (conn *connection) List(ctx *context.Context) (err []errors.Error) {
 	}
 
 	if !exists {
-		return []errors.Error{errors.NewNotFoundError("user not found", "user not found")}
+		return []errors.Error{errmsg.ApplicationUserNotFoundError}
 	}
 
 	var users []*entity.ApplicationUser
@@ -254,7 +255,7 @@ func (conn *connection) FollowedByList(ctx *context.Context) (err []errors.Error
 	applicationID := ctx.Bag["applicationID"].(int64)
 	userID := ctx.Vars["applicationUserID"]
 	if !validator.IsValidUUID5(userID) {
-		return []errors.Error{invalidUserIDError}
+		return []errors.Error{errmsg.InvalidUserIDError}
 	}
 
 	exists, err := conn.appUser.ExistsByID(accountID, applicationID, userID)
@@ -263,7 +264,7 @@ func (conn *connection) FollowedByList(ctx *context.Context) (err []errors.Error
 	}
 
 	if !exists {
-		return []errors.Error{errors.NewNotFoundError("user not found", "user not found")}
+		return []errors.Error{errmsg.ApplicationUserNotFoundError}
 	}
 
 	var users []*entity.ApplicationUser
@@ -341,7 +342,7 @@ func (conn *connection) Confirm(ctx *context.Context) (err []errors.Error) {
 	var connection = &entity.Connection{}
 
 	if er := json.Unmarshal(ctx.Body, connection); er != nil {
-		return []errors.Error{errors.NewBadRequestError("failed to confirm the connection (1)\n"+er.Error(), er.Error())}
+		return []errors.Error{errmsg.BadJsonReceivedError.UpdateMessage(er.Error())}
 	}
 
 	connection.UserFromID = ctx.Bag["applicationUserID"].(string)
@@ -385,11 +386,11 @@ func (conn *connection) CreateSocial(ctx *context.Context) (err []errors.Error) 
 	}{}
 
 	if er := json.Unmarshal(ctx.Body, &request); er != nil {
-		return []errors.Error{errors.NewBadRequestError("social connecting failed (2)\n"+er.Error(), er.Error())}
+		return []errors.Error{errmsg.BadJsonReceivedError.UpdateMessage(er.Error())}
 	}
 
 	if request.ConnectionType == "" || (request.ConnectionType != "friend" && request.ConnectionType != "follow") {
-		return []errors.Error{errors.NewBadRequestError("you must specify the connection type", "connection type unspecified")}
+		return []errors.Error{errmsg.WrongConnectionTypeError}
 	}
 
 	user := ctx.Bag["applicationUser"].(*entity.ApplicationUser)
@@ -453,7 +454,7 @@ func (conn *connection) Friends(ctx *context.Context) (err []errors.Error) {
 	}
 
 	if !exists {
-		return []errors.Error{errors.NewNotFoundError("user not found", "user not found")}
+		return []errors.Error{errmsg.ApplicationUserNotFoundError}
 	}
 
 	var users []*entity.ApplicationUser

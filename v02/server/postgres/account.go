@@ -15,6 +15,7 @@ import (
 	"github.com/tapglue/backend/v02/entity"
 	"github.com/tapglue/backend/v02/server"
 	"github.com/tapglue/backend/v02/validator"
+	"github.com/tapglue/backend/v02/errmsg"
 )
 
 type (
@@ -25,11 +26,11 @@ type (
 
 func (acc *account) Read(ctx *context.Context) (err []errors.Error) {
 	if ctx.Bag["account"] == nil {
-		return []errors.Error{errors.NewInternalError("request is missing account context", "context missing")}
+		return []errors.Error{errmsg.MissingAccountInContextError}
 	}
 
 	if ctx.Bag["account"].(*entity.Account).PublicID != ctx.Vars["accountID"] {
-		return []errors.Error{errors.NewBadRequestError("account mismatch", "account mismatch")}
+		return []errors.Error{errmsg.AccountMismatchError}
 	}
 
 	computeAccountLastModified(ctx, ctx.Bag["account"].(*entity.Account))
@@ -42,11 +43,11 @@ func (acc *account) Update(ctx *context.Context) (err []errors.Error) {
 	account := *(ctx.Bag["account"].(*entity.Account))
 
 	if account.PublicID != ctx.Vars["accountID"] {
-		return []errors.Error{errors.New(errors.ConflictError, "failed to update the account (2)\naccount ID mismatch", "account ID mismatch", false)}
+		return []errors.Error{errmsg.AccountIDMismatchError}
 	}
 
 	if er := json.Unmarshal(ctx.Body, &account); er != nil {
-		return []errors.Error{errors.NewBadRequestError("failed to update the account (2)\n"+er.Error(), "malformed json received")}
+		return []errors.Error{errmsg.BadJsonReceivedError.UpdateMessage(er.Error())}
 	}
 
 	account.ID = ctx.Bag["accountID"].(int64)
@@ -66,11 +67,11 @@ func (acc *account) Update(ctx *context.Context) (err []errors.Error) {
 
 func (acc *account) Delete(ctx *context.Context) (err []errors.Error) {
 	if ctx.R.Header.Get("X-Jarvis-Auth") != "ZTBmZjI3MGE2M2YzYzAzOWI1MjhiYTNi" {
-		return []errors.Error{errors.NewNotFoundError("not found", "request does not contain a correct Jarvis auth")}
+		return []errors.Error{errmsg.MissingJarvisIDError}
 	}
 
 	if ctx.Bag["account"].(*entity.Account).PublicID != ctx.Vars["accountID"] {
-		return []errors.Error{errors.NewBadRequestError("account mismatch", "account mismatch")}
+		return []errors.Error{errmsg.AccountMismatchError}
 	}
 
 	if err = acc.storage.Delete(ctx.Bag["account"].(*entity.Account)); err != nil {
@@ -83,13 +84,13 @@ func (acc *account) Delete(ctx *context.Context) (err []errors.Error) {
 
 func (acc *account) Create(ctx *context.Context) (err []errors.Error) {
 	if ctx.R.Header.Get("X-Jarvis-Auth") != "ZTBmZjI3MGE2M2YzYzAzOWI1MjhiYTNi" {
-		return []errors.Error{errors.NewNotFoundError("not found", "request does not contain a correct Jarvis auth")}
+		return []errors.Error{errmsg.MissingJarvisIDError}
 	}
 
 	var account = &entity.Account{}
 
 	if er := json.Unmarshal(ctx.Body, account); er != nil {
-		return []errors.Error{errors.NewBadRequestError("failed to create the account (1)\n"+er.Error(), er.Error())}
+		return []errors.Error{errmsg.BadJsonReceivedError.UpdateMessage(er.Error())}
 	}
 
 	if err = validator.CreateAccount(account); err != nil {
@@ -107,11 +108,11 @@ func (acc *account) Create(ctx *context.Context) (err []errors.Error) {
 func (acc *account) PopulateContext(ctx *context.Context) (err []errors.Error) {
 	user, pass, ok := ctx.BasicAuth()
 	if !ok {
-		return []errors.Error{errors.NewBadRequestError("error while reading account credentials", fmt.Sprintf("got %s:%s", user, pass))}
+		return []errors.Error{errmsg.InvalidAccountCredentialsError.UpdateInternalMessage(fmt.Sprintf("got %s:%s", user, pass))}
 	}
 	account, err := acc.storage.FindByKey(user)
 	if account == nil {
-		return []errors.Error{errors.NewNotFoundError("account not found", "account not found")}
+		return []errors.Error{errmsg.AccountNotFoundError}
 	}
 	if err == nil {
 		ctx.Bag["account"] = account

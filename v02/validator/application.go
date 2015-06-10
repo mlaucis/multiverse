@@ -5,10 +5,9 @@
 package validator
 
 import (
-	"fmt"
-
 	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/v02/entity"
+	"github.com/tapglue/backend/v02/errmsg"
 )
 
 const (
@@ -19,53 +18,39 @@ const (
 	applicationDescriptionMax = 100
 )
 
-var (
-	errorApplicationNameSize = errors.NewBadRequestError(fmt.Sprintf("application name must be between %d and %d characters", applicationNameMin, applicationNameMax), "")
-	errorApplicationNameType = errors.NewBadRequestError(fmt.Sprintf("application name is not a valid alphanumeric sequence"), "")
-
-	errorApplicationDescriptionSize = errors.NewBadRequestError(fmt.Sprintf("application description must be between %d and %d characters", applicationDescriptionMin, applicationDescriptionMax), "")
-	errorApplicationDescriptionType = errors.NewBadRequestError(fmt.Sprintf("application description is not a valid alphanumeric sequence"), "")
-
-	errorApplicationUserURLInvalid = errors.NewBadRequestError(fmt.Sprintf("application url is not a valid url"), "")
-
-	errorApplicationIDIsAlreadySet = errors.NewBadRequestError(fmt.Sprintf("application id is already set"), "")
-
-	errorApplicationAuthTokenUpdateNotAllowed = errors.NewBadRequestError(fmt.Sprintf("not allowed to update the application token"), "")
-)
-
 // CreateApplication validates an application on create
 func CreateApplication(application *entity.Application) (errs []errors.Error) {
 	if !StringLengthBetween(application.Name, applicationNameMin, applicationNameMax) {
-		errs = append(errs, errorApplicationNameSize)
+		errs = append(errs, errmsg.ApplicationNameSizeError)
 	}
 
 	if !StringLengthBetween(application.Description, applicationDescriptionMin, applicationDescriptionMax) {
-		errs = append(errs, errorApplicationDescriptionSize)
+		errs = append(errs, errmsg.ApplicationDescriptionSizeError)
 	}
 
 	if !alphaNumExtraCharFirst.MatchString(application.Name) {
-		errs = append(errs, errorApplicationNameType)
+		errs = append(errs, errmsg.ApplicationNameTypeError)
 	}
 
 	if !alphaNumExtraCharFirst.MatchString(application.Description) {
-		errs = append(errs, errorApplicationDescriptionType)
+		errs = append(errs, errmsg.ApplicationDescriptionTypeError)
 	}
 
 	if application.ID != 0 {
-		errs = append(errs, errorApplicationIDIsAlreadySet)
+		errs = append(errs, errmsg.ApplicationIDIsAlreadySetError)
 	}
 
 	if application.AccountID == 0 {
-		errs = append(errs, errorAccountIDZero)
+		errs = append(errs, errmsg.AccountIDZeroError)
 	}
 
 	if application.URL != "" && !IsValidURL(application.URL, true) {
-		errs = append(errs, errorApplicationUserURLInvalid)
+		errs = append(errs, errmsg.ApplicationUserURLInvalidError)
 	}
 
 	if len(application.Images) > 0 {
 		if !checkImages(application.Images) {
-			errs = append(errs, errorInvalidImageURL)
+			errs = append(errs, errmsg.InvalidImageURLError)
 		}
 	}
 
@@ -75,33 +60,33 @@ func CreateApplication(application *entity.Application) (errs []errors.Error) {
 // UpdateApplication validates an application on update
 func UpdateApplication(existingApplication, updatedApplication *entity.Application) (errs []errors.Error) {
 	if !StringLengthBetween(updatedApplication.Name, applicationNameMin, applicationNameMax) {
-		errs = append(errs, errorApplicationNameSize)
+		errs = append(errs, errmsg.ApplicationNameSizeError)
 	}
 
 	if !StringLengthBetween(updatedApplication.Description, applicationDescriptionMin, applicationDescriptionMax) {
-		errs = append(errs, errorApplicationDescriptionSize)
+		errs = append(errs, errmsg.ApplicationDescriptionSizeError)
 	}
 
 	if !alphaNumExtraCharFirst.MatchString(updatedApplication.Name) {
-		errs = append(errs, errorApplicationNameType)
+		errs = append(errs, errmsg.ApplicationNameTypeError)
 	}
 
 	if !alphaNumExtraCharFirst.MatchString(updatedApplication.Description) {
-		errs = append(errs, errorApplicationDescriptionType)
+		errs = append(errs, errmsg.ApplicationDescriptionTypeError)
 	}
 
 	if updatedApplication.URL != "" && !IsValidURL(updatedApplication.URL, true) {
-		errs = append(errs, errorApplicationUserURLInvalid)
+		errs = append(errs, errmsg.ApplicationUserURLInvalidError)
 	}
 
 	if len(updatedApplication.Images) > 0 {
 		if !checkImages(updatedApplication.Images) {
-			errs = append(errs, errorInvalidImageURL)
+			errs = append(errs, errmsg.InvalidImageURLError)
 		}
 	}
 
 	if existingApplication.AuthToken != updatedApplication.AuthToken {
-		errs = append(errs, errorApplicationAuthTokenUpdateNotAllowed)
+		errs = append(errs, errmsg.ApplicationAuthTokenUpdateNotAllowedError)
 	}
 
 	return

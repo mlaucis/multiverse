@@ -18,19 +18,23 @@ type (
 	// Error holds our custom error
 	Error interface {
 		Type() errorType
+		Code() int
+		SetCode(errorCode int) Error
 		Error() string
 		Raw() error
 		ErrorWithLocation() string
 		InternalErrorWithLocation() string
 		SetCurrentLocation() Error
+		UpdateMessage(message string) Error
+		UpdateInternalMessage(message string) Error
 	}
 
 	myError struct {
 		internalMessage string
 		message         string
 		location        string
-		extraData       map[string]string
 		errType         errorType
+		errCode         int
 	}
 )
 
@@ -46,41 +50,41 @@ const (
 var dbgMode = false
 
 // New generates a new error message
-func New(errorType errorType, message, internalMessage string, withLocation bool) Error {
+func New(errorType errorType, errorCode int, message, internalMessage string, withLocation bool) Error {
 	stackDepth := -1
 	if withLocation {
 		stackDepth = 2
 	}
-	return newError(errorType, message, internalMessage, stackDepth)
+	return newError(errorType, errorCode, message, internalMessage, stackDepth)
 }
 
 // NewFromError generates a new error message from an existing error
-func NewFromError(errorType errorType, err error, withLocation bool) Error {
+func NewFromError(errorType errorType, errorCode int, err error, withLocation bool) Error {
 	stackDepth := -1
 	if withLocation {
 		stackDepth = 2
 	}
-	return newError(errorType, err.Error(), err.Error(), stackDepth)
+	return newError(errorType, errorCode, err.Error(), err.Error(), stackDepth)
 }
 
 // NewBadRequestError generatates a new client error
-func NewBadRequestError(message, internalMessage string) Error {
-	return newError(BadRequestError, message, internalMessage, -1)
+func NewBadRequestError(errorCode int, message, internalMessage string) Error {
+	return newError(BadRequestError, errorCode, message, internalMessage, -1)
 }
 
 // NewInternalError generatates a new client error
-func NewInternalError(message, internalMessage string) Error {
-	return newError(InternalError, message, internalMessage, -1)
+func NewInternalError(errorCode int, message, internalMessage string) Error {
+	return newError(InternalError, errorCode, message, internalMessage, -1)
 }
 
 // NewUnauthorizedError generatates a new client error
-func NewUnauthorizedError(message, internalMessage string) Error {
-	return newError(UnauthorizedError, message, internalMessage, -1)
+func NewUnauthorizedError(errorCode int, message, internalMessage string) Error {
+	return newError(UnauthorizedError, errorCode, message, internalMessage, -1)
 }
 
 // NewNotFoundError generatates a new client error
-func NewNotFoundError(message, internalMessage string) Error {
-	return newError(NotFoundError, message, internalMessage, -1)
+func NewNotFoundError(errorCode int, message, internalMessage string) Error {
+	return newError(NotFoundError, errorCode, message, internalMessage, -1)
 }
 
 // Fatal will cause the message to be printed and then panic
@@ -88,12 +92,12 @@ func Fatal(message error) {
 	panic(message)
 }
 
-func newError(errorType errorType, message, internalMessage string, stackDepth int) Error {
+func newError(errorType errorType, errorCode int, message, internalMessage string, stackDepth int) Error {
 	if internalMessage == "" {
 		internalMessage = message
 	}
 
-	err := &myError{message: message, internalMessage: internalMessage, errType: errorType}
+	err := myError{message: message, internalMessage: internalMessage, errType: errorType, errCode: errorCode}
 	if stackDepth == -1 && !dbgMode {
 		return err
 	}
@@ -108,52 +112,65 @@ func newError(errorType errorType, message, internalMessage string, stackDepth i
 		err.location = fmt.Sprintf("%s from %s:%d", err.location, filename, line)
 
 	}
-	err.extraData = map[string]string{}
 	return err
 }
 
 // Type returns the type of the error
-func (err *myError) Type() errorType {
+func (err myError) Type() errorType {
 	return err.errType
 }
 
 // RawError generates a go error out of the existing error
-func (err *myError) Raw() error {
+func (err myError) Raw() error {
 	return fmt.Errorf(err.Error())
 }
 
 // Error returns the error message
-func (err *myError) Error() string {
+func (err myError) Error() string {
 	return err.message
 }
 
 // ErrorWithLocation returns the error and the location where it happened if that information is present
-func (err *myError) ErrorWithLocation() string {
+func (err myError) ErrorWithLocation() string {
 	if err.location != "" {
-		return fmt.Sprintf("%q in %s", err.message, err.location)
+		return fmt.Sprintf("%q in %s", err.errCode, err.message, err.location)
 	}
 	return err.message
 }
 
 // InternalErrorWithLocation returns the internal error message and the location where it happened, if that exists
-func (err *myError) InternalErrorWithLocation() string {
+func (err myError) InternalErrorWithLocation() string {
 	if err.location != "" {
-		return fmt.Sprintf("%q in %s", err.internalMessage, err.location)
+		return fmt.Sprintf("%d %q in %s", err.errCode, err.internalMessage, err.location)
 	}
 	return err.internalMessage
 }
 
 // SetCurrentLocation will update the error location to point to the invokation line rather that the creation line
-func (err *myError) SetCurrentLocation() Error {
+func (err myError) SetCurrentLocation() Error {
 	_, filename, line, _ := runtime.Caller(1)
 	err.location = fmt.Sprintf("%s:%d", filename, line)
 	return err
 }
 
-// ExtraData is usefull if you want to attach more data to the error while producing the error.
-// This MUST be considered debug data and not be displayed to the user!
-func (err *myError) ExtraData(key, value string) Error {
-	err.extraData[key] = value
+// UpdateMessage updates the error message
+func (err myError) UpdateMessage(message string) Error {
+	err.message = message
+	return err
+}
+
+// UpdateInternalMessage updates the internal message of the error
+func (err myError) UpdateInternalMessage(message string) Error {
+	err.internalMessage = message
+	return err
+}
+
+func (err myError) Code() int {
+	return err.errCode
+}
+
+func (err myError) SetCode(errorCode int) Error {
+	err.errCode = errorCode
 	return err
 }
 

@@ -40,7 +40,7 @@ func (appUser *applicationUser) UpdateCurrent(ctx *context.Context) (err []error
 	user := *(ctx.Bag["applicationUser"].(*entity.ApplicationUser))
 	var er error
 	if er = json.Unmarshal(ctx.Body, &user); er != nil {
-		return []errors.Error{errors.NewBadRequestError("failed to update the user (1)\n"+er.Error(), er.Error())}
+		return []errors.Error{errors.NewBadRequestError(0, "failed to update the user (1)\n"+er.Error(), er.Error())}
 	}
 
 	user.ID = ctx.Bag["applicationUserID"].(string)
@@ -91,7 +91,7 @@ func (appUser *applicationUser) Create(ctx *context.Context) (err []errors.Error
 	)
 
 	if er = json.Unmarshal(ctx.Body, user); er != nil {
-		return []errors.Error{errors.NewBadRequestError("failed to create the application user (1)\n"+er.Error(), er.Error())}
+		return []errors.Error{errors.NewBadRequestError(0, "failed to create the application user (1)\n"+er.Error(), er.Error())}
 	}
 
 	if err = validator.CreateUser(
@@ -126,7 +126,7 @@ func (appUser *applicationUser) Login(ctx *context.Context) (err []errors.Error)
 	)
 
 	if er = json.Unmarshal(ctx.Body, loginPayload); er != nil {
-		return []errors.Error{errors.NewBadRequestError("failed to login the user (1)\n"+er.Error(), er.Error())}
+		return []errors.Error{errors.NewBadRequestError(0, "failed to login the user (1)\n"+er.Error(), er.Error())}
 	}
 
 	if err = validator.IsValidLoginPayload(loginPayload); err != nil {
@@ -148,11 +148,11 @@ func (appUser *applicationUser) Login(ctx *context.Context) (err []errors.Error)
 	}
 
 	if user == nil {
-		return []errors.Error{errors.NewInternalError("failed to login the application user (2)\n", "user is nil")}
+		return []errors.Error{errors.NewInternalError(0, "failed to login the application user (2)\n", "user is nil")}
 	}
 
 	if !user.Enabled {
-		return []errors.Error{errors.NewNotFoundError("failed to login the user (3)\nuser is disabled", "user is disabled")}
+		return []errors.Error{errors.NewNotFoundError(0, "failed to login the user (3)\nuser is disabled", "user is disabled")}
 	}
 
 	if err = validator.ApplicationUserCredentialsValid(loginPayload.Password, user); err != nil {
@@ -199,11 +199,11 @@ func (appUser *applicationUser) RefreshSession(ctx *context.Context) (err []erro
 	)
 
 	if er = json.Unmarshal(ctx.Body, &tokenPayload); er != nil {
-		return []errors.Error{errors.NewBadRequestError("failed to refresh the session token (1)\n"+er.Error(), er.Error())}
+		return []errors.Error{errors.NewBadRequestError(0, "failed to refresh the session token (1)\n"+er.Error(), er.Error())}
 	}
 
 	if tokenPayload.Token != ctx.SessionToken {
-		return []errors.Error{errors.NewBadRequestError("failed to refresh the session token (2)\nsession token mismatch", "session token mismatch")}
+		return []errors.Error{errors.NewBadRequestError(0, "failed to refresh the session token (2)\nsession token mismatch", "session token mismatch")}
 	}
 
 	if sessionToken, err = appUser.storage.RefreshSession(
@@ -230,11 +230,11 @@ func (appUser *applicationUser) Logout(ctx *context.Context) (err []errors.Error
 	)
 
 	if er = json.Unmarshal(ctx.Body, &tokenPayload); er != nil {
-		return []errors.Error{errors.NewBadRequestError("failed to logout the user (1)\n"+er.Error(), er.Error())}
+		return []errors.Error{errors.NewBadRequestError(0, "failed to logout the user (1)\n"+er.Error(), er.Error())}
 	}
 
 	if tokenPayload.Token != ctx.SessionToken {
-		return []errors.Error{errors.NewBadRequestError("failed to logout the user (2)\nsession token mismatch", "session token mismatch")}
+		return []errors.Error{errors.NewBadRequestError(0, "failed to logout the user (2)\nsession token mismatch", "session token mismatch")}
 	}
 
 	if err = appUser.storage.DestroySession(
@@ -250,7 +250,7 @@ func (appUser *applicationUser) Logout(ctx *context.Context) (err []errors.Error
 }
 
 func (appUser *applicationUser) Search(*context.Context) []errors.Error {
-	return []errors.Error{errors.NewInternalError("not implemented yet", "not implemented yet")}
+	return []errors.Error{errors.NewInternalError(0, "not implemented yet", "not implemented yet")}
 }
 
 func (appUser *applicationUser) PopulateContext(ctx *context.Context) (err []errors.Error) {

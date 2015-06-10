@@ -13,6 +13,7 @@ import (
 	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/entity"
+	"github.com/tapglue/backend/v02/errmsg"
 	storageHelper "github.com/tapglue/backend/v02/storage/helper"
 	"github.com/tapglue/backend/v02/storage/postgres"
 )
@@ -50,7 +51,7 @@ func (au *accountUser) Create(accountUser *entity.AccountUser, retrieve bool) (*
 
 	accountUserJSON, err := json.Marshal(accountUser)
 	if err != nil {
-		return nil, []errors.Error{errors.NewInternalError("error while creating the account user", err.Error())}
+		return nil, []errors.Error{errmsg.InternalAccountUserCreationError.UpdateInternalMessage(err.Error())}
 	}
 
 	var accountUserID int64
@@ -58,7 +59,7 @@ func (au *accountUser) Create(accountUser *entity.AccountUser, retrieve bool) (*
 		QueryRow(createAccountUserQuery, accountUser.AccountID, string(accountUserJSON)).
 		Scan(&accountUserID)
 	if err != nil {
-		return nil, []errors.Error{errors.NewInternalError("error while creating the account user", err.Error())}
+		return nil, []errors.Error{errmsg.InternalAccountUserCreationError.UpdateInternalMessage(err.Error())}
 	}
 
 	if !retrieve {
@@ -74,15 +75,15 @@ func (au *accountUser) Read(accountID, accountUserID int64) (accountUser *entity
 		Scan(&JSONData)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, []errors.Error{errors.NewNotFoundError("account user not found", "account user not found")}
+			return nil, []errors.Error{errmsg.AccountUserNotFoundError}
 		}
-		return nil, []errors.Error{errors.NewInternalError("error while reading the account user", err.Error())}
+		return nil, []errors.Error{errmsg.InternalAccountUserReadError.UpdateInternalMessage(err.Error())}
 	}
 
 	accountUser = &entity.AccountUser{}
 	err = json.Unmarshal([]byte(JSONData), accountUser)
 	if err != nil {
-		return nil, []errors.Error{errors.NewInternalError("error while reading the account user", err.Error())}
+		return nil, []errors.Error{errmsg.InternalAccountUserReadError.UpdateInternalMessage(err.Error())}
 	}
 	accountUser.ID = accountUserID
 	accountUser.AccountID = accountID
@@ -101,13 +102,13 @@ func (au *accountUser) Update(existingAccountUser, updatedAccountUser entity.Acc
 
 	accountUserJSON, err := json.Marshal(updatedAccountUser)
 	if err != nil {
-		return nil, []errors.Error{errors.NewInternalError("error while updating the account user", err.Error())}
+		return nil, []errors.Error{errmsg.InternalAccountUserUpdateError.UpdateInternalMessage(err.Error())}
 	}
 
 	_, err = au.pg.SlaveDatastore(-1).
 		Exec(updateAccountUserByIDQuery, string(accountUserJSON), existingAccountUser.ID, existingAccountUser.AccountID)
 	if err != nil {
-		return nil, []errors.Error{errors.NewInternalError("error while updating the account user", err.Error())}
+		return nil, []errors.Error{errmsg.InternalAccountUserUpdateError.UpdateInternalMessage(err.Error())}
 	}
 
 	if !retrieve {
@@ -134,7 +135,7 @@ func (au *accountUser) List(accountID int64) (accountUsers []*entity.AccountUser
 	rows, err := au.pg.SlaveDatastore(-1).
 		Query(listAccountUsersByAccountIDQuery, accountID)
 	if err != nil {
-		return accountUsers, []errors.Error{errors.NewInternalError("error while retrieving list of account users", err.Error())}
+		return accountUsers, []errors.Error{errmsg.InternalAccountUserListError.UpdateInternalMessage(err.Error())}
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -144,12 +145,12 @@ func (au *accountUser) List(accountID int64) (accountUsers []*entity.AccountUser
 		)
 		err := rows.Scan(&ID, &JSONData)
 		if err != nil {
-			return nil, []errors.Error{errors.NewInternalError("error while retrieving list of account users", err.Error())}
+			return nil, []errors.Error{errmsg.InternalAccountUserListError.UpdateInternalMessage(err.Error())}
 		}
 		accountUser := &entity.AccountUser{}
 		err = json.Unmarshal([]byte(JSONData), accountUser)
 		if err != nil {
-			return nil, []errors.Error{errors.NewInternalError("error while retrieving list of account users", err.Error())}
+			return nil, []errors.Error{errmsg.InternalAccountUserListError.UpdateInternalMessage(err.Error())}
 		}
 		accountUser.ID = ID
 
@@ -163,7 +164,7 @@ func (au *accountUser) CreateSession(user *entity.AccountUser) (string, []errors
 	sessionToken := storageHelper.GenerateAccountSessionID(user)
 	_, err := au.mainPg.Exec(createAccountUserSessionQuery, user.AccountID, user.ID, sessionToken)
 	if err != nil {
-		return "", []errors.Error{errors.NewInternalError("error while creating account user session", err.Error())}
+		return "", []errors.Error{errmsg.InternalAccountUserSessionCreationError.UpdateInternalMessage(err.Error())}
 	}
 
 	return sessionToken, nil
@@ -173,7 +174,7 @@ func (au *accountUser) RefreshSession(sessionToken string, user *entity.AccountU
 	updatedSessionToken := storageHelper.GenerateAccountSessionID(user)
 	_, err := au.mainPg.Exec(updateAccountUserSessionQuery, sessionToken, user.AccountID, user.ID, updatedSessionToken)
 	if err != nil {
-		return "", []errors.Error{errors.NewInternalError("error while updating account user session", err.Error())}
+		return "", []errors.Error{errmsg.InternalAccountUserSessionUpdateError.UpdateInternalMessage(err.Error())}
 	}
 
 	return updatedSessionToken, nil
@@ -182,7 +183,7 @@ func (au *accountUser) RefreshSession(sessionToken string, user *entity.AccountU
 func (au *accountUser) DestroySession(sessionToken string, user *entity.AccountUser) []errors.Error {
 	_, err := au.mainPg.Exec(destroyAccountUserSessionQuery, user.AccountID, user.ID, sessionToken)
 	if err != nil {
-		return []errors.Error{errors.NewInternalError("error while deleting account user session", err.Error())}
+		return []errors.Error{errmsg.InternalAccountUserSessionDeleteError.UpdateInternalMessage(err.Error())}
 	}
 
 	return nil
@@ -192,14 +193,14 @@ func (au *accountUser) GetSession(user *entity.AccountUser) (string, []errors.Er
 	rows, err := au.pg.SlaveDatastore(-1).
 		Query(selectAccountUserSessionQuery, user.AccountID, user.ID)
 	if err != nil {
-		return "", []errors.Error{errors.NewInternalError("error while reading session from the database", err.Error())}
+		return "", []errors.Error{errmsg.InternalAccountUserSessionReadError.UpdateInternalMessage(err.Error())}
 	}
 	defer rows.Close()
 	sessions := []string{}
 	for rows.Next() {
 		session := ""
 		if err := rows.Scan(&session); err != nil {
-			return "", []errors.Error{errors.NewInternalError("error while reading session from the database", err.Error())}
+			return "", []errors.Error{errmsg.InternalAccountUserSessionReadError.UpdateInternalMessage(err.Error())}
 		}
 		if session == user.SessionToken {
 			return session, nil
@@ -223,12 +224,12 @@ func (au *accountUser) FindByEmail(email string) (*entity.Account, *entity.Accou
 		if err == sql.ErrNoRows {
 			return nil, nil, nil
 		}
-		return nil, nil, []errors.Error{errors.NewInternalError("error while reading the account user", err.Error())}
+		return nil, nil, []errors.Error{errmsg.InternalAccountUserReadError.UpdateInternalMessage(err.Error())}
 	}
 	accountUser := &entity.AccountUser{}
 	err = json.Unmarshal([]byte(JSONData), accountUser)
 	if err != nil {
-		return nil, nil, []errors.Error{errors.NewInternalError("error while reading the account user", err.Error())}
+		return nil, nil, []errors.Error{errmsg.InternalAccountUserReadError.UpdateInternalMessage(err.Error())}
 	}
 	accountUser.ID = ID
 
@@ -253,7 +254,7 @@ func (au *accountUser) ExistsByEmail(email string) (bool, []errors.Error) {
 		return false, nil
 	}
 	if err != nil {
-		return false, []errors.Error{errors.NewInternalError("error while reading the account user", err.Error())}
+		return false, []errors.Error{errmsg.InternalAccountUserReadError.UpdateInternalMessage(err.Error())}
 	}
 	return true, nil
 }
@@ -270,12 +271,12 @@ func (au *accountUser) FindByUsername(username string) (*entity.Account, *entity
 		if err == sql.ErrNoRows {
 			return nil, nil, nil
 		}
-		return nil, nil, []errors.Error{errors.NewInternalError("error while reading the account user", err.Error())}
+		return nil, nil, []errors.Error{errmsg.InternalAccountUserReadError.UpdateInternalMessage(err.Error())}
 	}
 	accountUser := &entity.AccountUser{}
 	err = json.Unmarshal([]byte(JSONData), accountUser)
 	if err != nil {
-		return nil, nil, []errors.Error{errors.NewInternalError("error while reading the account user", err.Error())}
+		return nil, nil, []errors.Error{errmsg.InternalAccountUserReadError.UpdateInternalMessage(err.Error())}
 	}
 	accountUser.ID = ID
 
@@ -300,7 +301,7 @@ func (au *accountUser) ExistsByUsername(username string) (bool, []errors.Error) 
 		return false, nil
 	}
 	if err != nil {
-		return false, []errors.Error{errors.NewInternalError("error while reading the account user", err.Error())}
+		return false, []errors.Error{errmsg.InternalAccountUserReadError.UpdateInternalMessage(err.Error())}
 	}
 	return true, nil
 }
@@ -317,7 +318,7 @@ func (au *accountUser) ExistsByID(accountID, accountUserID int64) (bool, []error
 		return false, nil
 	}
 	if err != nil {
-		return false, []errors.Error{errors.NewInternalError("error while reading the account user", err.Error())}
+		return false, []errors.Error{errmsg.InternalAccountUserReadError.UpdateInternalMessage(err.Error())}
 	}
 	return true, nil
 }
@@ -333,9 +334,9 @@ func (au *accountUser) FindBySession(sessionKey string) (*entity.AccountUser, []
 	}
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, []errors.Error{errors.NewNotFoundError("account user not found", "account user not found")}
+			return nil, []errors.Error{errmsg.AccountUserNotFoundError}
 		}
-		return nil, []errors.Error{errors.NewInternalError("error while loading the account user", err.Error())}
+		return nil, []errors.Error{errmsg.InternalAccountUserReadError.UpdateInternalMessage(err.Error())}
 	}
 
 	return au.Read(accountID, accountUserID)
@@ -352,14 +353,14 @@ func (au *accountUser) FindByPublicID(accountID int64, publicID string) (*entity
 		Scan(&accountUserID, &JSONData)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, []errors.Error{errors.NewNotFoundError("account user not found", "account user not found")}
+			return nil, []errors.Error{errmsg.AccountUserNotFoundError}
 		}
-		return nil, []errors.Error{errors.NewInternalError("error while loading the account user", err.Error())}
+		return nil, []errors.Error{errmsg.InternalAccountUserReadError.UpdateInternalMessage(err.Error())}
 	}
 
 	accountUser := &entity.AccountUser{}
 	if err := json.Unmarshal([]byte(JSONData), accountUser); err != nil {
-		return nil, []errors.Error{errors.NewInternalError("error while loading the account user", err.Error())}
+		return nil, []errors.Error{errmsg.InternalAccountUserReadError.UpdateInternalMessage(err.Error())}
 	}
 	accountUser.ID = accountUserID
 	accountUser.AccountID = accountID
