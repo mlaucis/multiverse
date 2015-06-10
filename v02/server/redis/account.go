@@ -32,7 +32,7 @@ func (acc *account) Update(ctx *context.Context) (err []errors.Error) {
 	return deprecatedStorageError
 	account := *(ctx.Bag["account"].(*entity.Account))
 	if er := json.Unmarshal(ctx.Body, &account); er != nil {
-		return []errors.Error{errors.NewBadRequestError("failed to update the account (1)\n"+er.Error(), "malformed json received")}
+		return []errors.Error{errors.NewBadRequestError(0, "failed to update the account (1)\n"+er.Error(), "malformed json received")}
 	}
 
 	account.ID = ctx.Bag["accountID"].(int64)
@@ -65,7 +65,7 @@ func (acc *account) Create(ctx *context.Context) (err []errors.Error) {
 	var account = &entity.Account{}
 
 	if er := json.Unmarshal(ctx.Body, account); er != nil {
-		return []errors.Error{errors.NewBadRequestError("failed to create the account (1)\n"+er.Error(), er.Error())}
+		return []errors.Error{errors.NewBadRequestError(0, "failed to create the account (1)\n"+er.Error(), er.Error())}
 	}
 
 	if err = validator.CreateAccount(account); err != nil {

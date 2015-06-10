@@ -23,7 +23,7 @@ type (
 func (au *accountUser) Create(accountUser *entity.AccountUser, retrieve bool) (*entity.AccountUser, []errors.Error) {
 	data, er := json.Marshal(accountUser)
 	if er != nil {
-		return nil, []errors.Error{errors.NewInternalError("error while creating the account user (1)", er.Error())}
+		return nil, []errors.Error{errors.NewInternalError(0, "error while creating the account user (1)", er.Error())}
 	}
 
 	partitionKey := fmt.Sprintf("account-user-%d-%d", accountUser.AccountID, accountUser.ID)
@@ -39,7 +39,7 @@ func (au *accountUser) Read(accountID, accountUserID int64) (accountUser *entity
 func (au *accountUser) Update(existingAccountUser, updatedAccountUser entity.AccountUser, retrieve bool) (*entity.AccountUser, []errors.Error) {
 	data, er := json.Marshal(updatedAccountUser)
 	if er != nil {
-		return nil, []errors.Error{errors.NewInternalError("error while updating the account user (1)", er.Error())}
+		return nil, []errors.Error{errors.NewInternalError(0, "error while updating the account user (1)", er.Error())}
 	}
 
 	partitionKey := fmt.Sprintf("account-user-%d-%d", updatedAccountUser.AccountID, updatedAccountUser.ID)
@@ -51,7 +51,7 @@ func (au *accountUser) Update(existingAccountUser, updatedAccountUser entity.Acc
 func (au *accountUser) Delete(accountUser *entity.AccountUser) []errors.Error {
 	data, er := json.Marshal(accountUser)
 	if er != nil {
-		return []errors.Error{errors.NewInternalError("error while creating the event (1)", er.Error())}
+		return []errors.Error{errors.NewInternalError(0, "error while creating the event (1)", er.Error())}
 	}
 
 	partitionKey := fmt.Sprintf("account-user-%d-%d", accountUser.AccountID, accountUser.ID)

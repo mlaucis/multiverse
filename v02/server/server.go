@@ -15,7 +15,7 @@ import (
 	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/logger"
-	"github.com/tapglue/backend/v02/validator"
+	"github.com/tapglue/backend/v02/errmsg"
 
 	"github.com/gorilla/mux"
 )
@@ -163,7 +163,7 @@ func WriteCommonHeaders(cacheTime uint, ctx *context.Context) {
 			ctx.W.Header().Set("Last-Modified", myLastModified.(string))
 		} else {
 			// This will spam the server logs for issues with missing issues but then again, it should be there...
-			go ctx.LogError(errors.NewInternalError("something went wrong", "missing Last-Modified from bag for route "+ctx.RouteName+" response"))
+			go ctx.LogError(errmsg.MissingLastModifiedHeaderError.UpdateInternalMessage("missing Last-Modified from bag for route "+ctx.RouteName+" response"))
 		}
 	}
 
@@ -214,7 +214,7 @@ func ValidateGetCommon(ctx *context.Context) (err []errors.Error) {
 	if ctx.R.Header.Get("User-Agent") != "" {
 		return
 	}
-	return []errors.Error{badUserAgentError.SetCurrentLocation()}
+	return []errors.Error{errmsg.BadUserAgentError}
 }
 
 // ValidatePutCommon runs a series of predefinied, common, tests for PUT requests
@@ -224,38 +224,38 @@ func ValidatePutCommon(ctx *context.Context) (err []errors.Error) {
 	}
 
 	if ctx.R.Header.Get("User-Agent") == "" {
-		err = append(err, badUserAgentError.SetCurrentLocation())
+		err = append(err, errmsg.BadUserAgentError)
 	}
 
 	if ctx.R.Header.Get("Content-Length") == "" {
-		err = append(err, contentLengthMissingError.SetCurrentLocation())
+		err = append(err, errmsg.ContentLengthMissingError)
 	}
 
 	if ctx.R.Header.Get("Content-Type") == "" {
-		err = append(err, contentTypeMissingError.SetCurrentLocation())
+		err = append(err, errmsg.ContentTypeMissingError)
 	}
 
 	if ctx.R.Header.Get("Content-Type") != "application/json" &&
 		ctx.R.Header.Get("Content-Type") != "application/json; charset=UTF-8" {
-		err = append(err, contentTypeMismatchError.SetCurrentLocation())
+		err = append(err, errmsg.ContentTypeMismatchError)
 	}
 
 	reqCL, er := strconv.ParseInt(ctx.R.Header.Get("Content-Length"), 10, 64)
 	if er != nil {
-		err = append(err, contentLengthInvalidError.SetCurrentLocation())
+		err = append(err, errmsg.ContentLengthInvalidError)
 	}
 
 	if reqCL != ctx.R.ContentLength {
-		err = append(err, contentLengthSizeMismatchError.SetCurrentLocation())
+		err = append(err, errmsg.ContentLengthSizeMismatchError)
 	} else {
 		// TODO better handling here for limits, maybe make them customizable
 		if reqCL > 2048 {
-			err = append(err, validator.ErrorPayloadTooBig.SetCurrentLocation())
+			err = append(err, errmsg.PayloadTooBigError)
 		}
 	}
 
 	if ctx.R.Body == nil {
-		err = append(err, requestBodyEmpty.SetCurrentLocation())
+		err = append(err, errmsg.RequestBodyEmptyError)
 	}
 	return
 }
@@ -263,7 +263,7 @@ func ValidatePutCommon(ctx *context.Context) (err []errors.Error) {
 // ValidateDeleteCommon runs a series of predefinied, common, tests for DELETE requests
 func ValidateDeleteCommon(ctx *context.Context) (err []errors.Error) {
 	if ctx.R.Header.Get("User-Agent") == "" {
-		err = append(err, badUserAgentError.SetCurrentLocation())
+		err = append(err, errmsg.BadUserAgentError)
 	}
 
 	return
@@ -276,38 +276,38 @@ func ValidatePostCommon(ctx *context.Context) (err []errors.Error) {
 	}
 
 	if ctx.R.Header.Get("User-Agent") == "" {
-		err = append(err, badUserAgentError.SetCurrentLocation())
+		err = append(err, errmsg.BadUserAgentError)
 	}
 
 	if ctx.R.Header.Get("Content-Length") == "" {
-		err = append(err, contentLengthMissingError.SetCurrentLocation())
+		err = append(err, errmsg.ContentLengthMissingError)
 	}
 
 	if ctx.R.Header.Get("Content-Type") == "" {
-		err = append(err, contentTypeMissingError.SetCurrentLocation())
+		err = append(err, errmsg.ContentTypeMissingError)
 	}
 
 	if ctx.R.Header.Get("Content-Type") != "application/json" &&
 		ctx.R.Header.Get("Content-Type") != "application/json; charset=UTF-8" {
-		err = append(err, contentTypeMismatchError.SetCurrentLocation())
+		err = append(err, errmsg.ContentTypeMismatchError)
 	}
 
 	reqCL, er := strconv.ParseInt(ctx.R.Header.Get("Content-Length"), 10, 64)
 	if er != nil {
-		err = append(err, contentLengthInvalidError.SetCurrentLocation())
+		err = append(err, errmsg.ContentLengthInvalidError)
 	}
 
 	if reqCL != ctx.R.ContentLength {
-		err = append(err, contentLengthSizeMismatchError.SetCurrentLocation())
+		err = append(err, errmsg.ContentLengthSizeMismatchError)
 	} else {
 		// TODO better handling here for limits, maybe make them customizable
 		if reqCL > 2048 {
-			err = append(err, validator.ErrorPayloadTooBig.SetCurrentLocation())
+			err = append(err, errmsg.PayloadTooBigError)
 		}
 	}
 
 	if ctx.R.Body == nil {
-		err = append(err, requestBodyEmpty.SetCurrentLocation())
+		err = append(err, errmsg.RequestBodyEmptyError)
 	}
 	return
 }

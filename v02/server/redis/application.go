@@ -32,7 +32,7 @@ func (app *application) Update(ctx *context.Context) (err []errors.Error) {
 	return deprecatedStorageError
 	application := *(ctx.Bag["application"].(*entity.Application))
 	if er := json.Unmarshal(ctx.Body, &application); er != nil {
-		return []errors.Error{errors.NewBadRequestError("failed to update the application (1)\n"+er.Error(), er.Error())}
+		return []errors.Error{errors.NewBadRequestError(0, "failed to update the application (1)\n"+er.Error(), er.Error())}
 	}
 
 	application.ID = ctx.Bag["applicationID"].(int64)
@@ -68,7 +68,7 @@ func (app *application) Create(ctx *context.Context) (err []errors.Error) {
 	)
 
 	if er := json.Unmarshal(ctx.Body, application); er != nil {
-		return []errors.Error{errors.NewBadRequestError("failed to create the application (1)\n"+er.Error(), er.Error())}
+		return []errors.Error{errors.NewBadRequestError(0, "failed to create the application (1)\n"+er.Error(), er.Error())}
 	}
 
 	application.AccountID = ctx.Bag["accountID"].(int64)
@@ -112,7 +112,7 @@ func (app *application) PopulateContext(ctx *context.Context) (err []errors.Erro
 }
 
 func (app *application) PopulateContextFromID(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errors.NewInternalError("not implemented yet", "not implemented yet")}
+	return []errors.Error{errors.NewInternalError(0, "not implemented yet", "not implemented yet")}
 }
 
 // NewApplication returns a new application route handler

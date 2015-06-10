@@ -35,7 +35,7 @@ func (appu *applicationUser) ReadMultiple(accountID, applicationID int64, userID
 func (appu *applicationUser) Update(accountID, applicationID int64, existingUser, updatedUser entity.ApplicationUser, retrieve bool) (*entity.ApplicationUser, []errors.Error) {
 	data, er := json.Marshal(updatedUser)
 	if er != nil {
-		return nil, []errors.Error{errors.NewInternalError("error while updating the user (1)", er.Error())}
+		return nil, []errors.Error{errors.NewInternalError(0, "error while updating the user (1)", er.Error())}
 	}
 
 	partitionKey := fmt.Sprintf("application-user-update-%d-%d-%d", accountID, applicationID, updatedUser.ID)
@@ -47,7 +47,7 @@ func (appu *applicationUser) Update(accountID, applicationID int64, existingUser
 func (appu *applicationUser) Delete(accountID, applicationID int64, applicationUser *entity.ApplicationUser) []errors.Error {
 	data, er := json.Marshal(applicationUser)
 	if er != nil {
-		return []errors.Error{errors.NewInternalError("error while deleting the user (1)", er.Error())}
+		return []errors.Error{errors.NewInternalError(0, "error while deleting the user (1)", er.Error())}
 	}
 
 	partitionKey := fmt.Sprintf("application-user-delete-%d-%d-%d", accountID, applicationID, applicationUser.ID)

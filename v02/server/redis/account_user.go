@@ -33,7 +33,7 @@ func (accUser *accountUser) Update(ctx *context.Context) (err []errors.Error) {
 	return deprecatedStorageError
 	accountUser := *(ctx.Bag["accountUser"].(*entity.AccountUser))
 	if er := json.Unmarshal(ctx.Body, &accountUser); er != nil {
-		return []errors.Error{errors.NewBadRequestError("failed to update the account user (1)\n"+er.Error(), er.Error())}
+		return []errors.Error{errors.NewBadRequestError(0, "failed to update the account user (1)\n"+er.Error(), er.Error())}
 	}
 
 	accountUser.ID = ctx.Bag["accountUserID"].(int64)
@@ -68,7 +68,7 @@ func (accUser *accountUser) Create(ctx *context.Context) (err []errors.Error) {
 	var accountUser = &entity.AccountUser{}
 
 	if err := json.Unmarshal(ctx.Body, accountUser); err != nil {
-		return []errors.Error{errors.NewBadRequestError("failed to create the account user (1)"+err.Error(), err.Error())}
+		return []errors.Error{errors.NewBadRequestError(0, "failed to create the account user (1)"+err.Error(), err.Error())}
 	}
 
 	accountUser.AccountID = ctx.Bag["accountID"].(int64)
@@ -123,7 +123,7 @@ func (accUser *accountUser) Login(ctx *context.Context) (err []errors.Error) {
 	)
 
 	if er = json.Unmarshal(ctx.Body, loginPayload); er != nil {
-		return []errors.Error{errors.NewBadRequestError("failed to login the user (1)\n"+er.Error(), er.Error())}
+		return []errors.Error{errors.NewBadRequestError(0, "failed to login the user (1)\n"+er.Error(), er.Error())}
 	}
 
 	if err = validator.IsValidLoginPayload(loginPayload); err != nil {
@@ -182,11 +182,11 @@ func (accUser *accountUser) RefreshSession(ctx *context.Context) (err []errors.E
 	)
 
 	if er := json.Unmarshal(ctx.Body, &tokenPayload); er != nil {
-		return []errors.Error{errors.NewBadRequestError("failed to refresh session token (1)\n"+er.Error(), er.Error())}
+		return []errors.Error{errors.NewBadRequestError(0, "failed to refresh session token (1)\n"+er.Error(), er.Error())}
 	}
 
 	if ctx.SessionToken != tokenPayload.Token {
-		return []errors.Error{errors.NewBadRequestError("failed to refresh session token (2) \nsession token mismatch", "session token mismatch")}
+		return []errors.Error{errors.NewBadRequestError(0, "failed to refresh session token (2) \nsession token mismatch", "session token mismatch")}
 	}
 
 	if sessionToken, err = accUser.storage.RefreshSession(ctx.SessionToken, ctx.Bag["accountUser"].(*entity.AccountUser)); err != nil {
@@ -206,11 +206,11 @@ func (accUser *accountUser) Logout(ctx *context.Context) (err []errors.Error) {
 	}
 
 	if er := json.Unmarshal(ctx.Body, &logoutPayload); er != nil {
-		return []errors.Error{errors.NewBadRequestError("failed to logout the user (1)\n"+er.Error(), er.Error())}
+		return []errors.Error{errors.NewBadRequestError(0, "failed to logout the user (1)\n"+er.Error(), er.Error())}
 	}
 
 	if ctx.SessionToken != logoutPayload.Token {
-		return []errors.Error{errors.NewBadRequestError("failed to logout the user (2) \nsession token mismatch", "session token mismatch")}
+		return []errors.Error{errors.NewBadRequestError(0, "failed to logout the user (2) \nsession token mismatch", "session token mismatch")}
 	}
 
 	if err = accUser.storage.DestroySession(logoutPayload.Token, ctx.Bag["accountUser"].(*entity.AccountUser)); err != nil {

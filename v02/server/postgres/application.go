@@ -15,6 +15,7 @@ import (
 	"github.com/tapglue/backend/v02/entity"
 	"github.com/tapglue/backend/v02/server"
 	"github.com/tapglue/backend/v02/validator"
+	"github.com/tapglue/backend/v02/errmsg"
 )
 
 type (
@@ -33,7 +34,7 @@ func (app *application) Read(ctx *context.Context) (err []errors.Error) {
 func (app *application) Update(ctx *context.Context) (err []errors.Error) {
 	application := *(ctx.Bag["application"].(*entity.Application))
 	if er := json.Unmarshal(ctx.Body, &application); er != nil {
-		return []errors.Error{errors.NewBadRequestError("failed to update the application (1)\n"+er.Error(), er.Error())}
+		return []errors.Error{errmsg.BadJsonReceivedError.UpdateMessage(er.Error())}
 	}
 
 	application.ID = ctx.Bag["applicationID"].(int64)
@@ -68,7 +69,7 @@ func (app *application) Create(ctx *context.Context) (err []errors.Error) {
 	)
 
 	if er := json.Unmarshal(ctx.Body, application); er != nil {
-		return []errors.Error{errors.NewBadRequestError("failed to create the application (1)\n"+er.Error(), er.Error())}
+		return []errors.Error{errmsg.BadJsonReceivedError.UpdateMessage(er.Error())}
 	}
 
 	application.AccountID = ctx.Bag["accountID"].(int64)
@@ -110,7 +111,7 @@ func (app *application) List(ctx *context.Context) (err []errors.Error) {
 func (app *application) PopulateContext(ctx *context.Context) (err []errors.Error) {
 	user, pass, ok := ctx.BasicAuth()
 	if !ok {
-		return []errors.Error{errors.NewBadRequestError("error while reading application credentials", fmt.Sprintf("got %s:%s", user, pass))}
+		return []errors.Error{errmsg.InvalidApplicationCredentialsError.UpdateInternalMessage(fmt.Sprintf("got %s:%s", user, pass))}
 	}
 	ctx.Bag["application"], err = app.storage.FindByKey(user)
 	if err == nil {
@@ -123,13 +124,13 @@ func (app *application) PopulateContext(ctx *context.Context) (err []errors.Erro
 func (app *application) PopulateContextFromID(ctx *context.Context) (err []errors.Error) {
 	applicationID := ctx.Vars["applicationID"]
 	if !validator.IsValidUUID5(applicationID) {
-		return []errors.Error{invalidAppIDError}
+		return []errors.Error{errmsg.InvalidAppIDError}
 	}
 
 	ctx.Bag["application"], err = app.storage.FindByPublicID(applicationID)
 	if err == nil {
 		if ctx.Bag["application"].(*entity.Application) == nil {
-			return []errors.Error{errors.NewNotFoundError("application not found", "application not found")}
+			return []errors.Error{errmsg.ApplicationNotFoundError}
 		}
 
 		ctx.Bag["accountID"] = ctx.Bag["application"].(*entity.Application).AccountID

@@ -10,10 +10,11 @@ import (
 
 	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/errors"
+	"github.com/tapglue/backend/v02/errmsg"
 	httpBasic "github.com/tapglue/backend/v02/validator/request/basic"
 )
 
-var errAuthMethodNotSupported = []errors.Error{errors.NewBadRequestError("authorization method not supported", "auth method not supported")}
+var errAuthMethodNotSupported = []errors.Error{errmsg.AuthMethodNotSupportedError}
 
 // SignAccount checks that the current request is a signed account request
 func SignAccount(ctx *context.Context) []errors.Error {

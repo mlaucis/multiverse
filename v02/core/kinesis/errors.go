@@ -7,5 +7,5 @@ package kinesis
 import "github.com/tapglue/backend/errors"
 
 var (
-	invalidHandlerError = []errors.Error{errors.NewNotFoundError("not found", "invalid handler specified")}
+	invalidHandlerError = []errors.Error{errors.NewNotFoundError(0, "not found", "invalid handler specified")}
 )

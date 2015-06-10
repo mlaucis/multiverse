@@ -123,7 +123,7 @@ func (c *cli) PutRecord(streamName, partitionKey string, payload []byte) (*gksis
 	args.AddRecord(payload, partitionKey)
 	resp, err := c.kinesis.PutRecord(args)
 	if err != nil {
-		return nil, errors.NewInternalError("failed to execute operation (1)", err.Error())
+		return nil, errors.NewInternalError(0, "failed to execute operation (1)", err.Error())
 	}
 
 	return resp, nil
@@ -136,7 +136,7 @@ func (c *cli) PackAndPutRecord(streamName, partitionKey string, payload []byte) 
 	}
 	myPayload, err := json.Marshal(packedPayload)
 	if err != nil {
-		return nil, errors.NewInternalError("failed to generate the message", err.Error())
+		return nil, errors.NewInternalError(0, "failed to generate the message", err.Error())
 	}
 	return c.PutRecord(c.packedStreamName, partitionKey, myPayload)
 }
@@ -150,7 +150,7 @@ func (c *cli) GetRecords(streamName, shardID, consumerName string, maxEntries in
 	args.Add("ShardIteratorType", "LATEST")
 	shardIteratorResponse, err := c.kinesis.GetShardIterator(args)
 	if err != nil {
-		return []string{}, errors.NewInternalError("error while reading the internal data", err.Error())
+		return []string{}, errors.NewInternalError(0, "error while reading the internal data", err.Error())
 	}
 
 	shardIterator := shardIteratorResponse.ShardIterator
@@ -160,15 +160,15 @@ func (c *cli) GetRecords(streamName, shardID, consumerName string, maxEntries in
 	args.Add("Limit", maxEntries)
 	records, err := c.kinesis.GetRecords(args)
 	if err != nil {
-		return []string{}, errors.NewInternalError("error while reading the internal data", err.Error())
+		return []string{}, errors.NewInternalError(0, "error while reading the internal data", err.Error())
 	}
 
 	if err != nil {
-		return []string{}, errors.NewInternalError("error while reading the internal data", err.Error())
+		return []string{}, errors.NewInternalError(0, "error while reading the internal data", err.Error())
 	}
 
 	if records.NextShardIterator == "" || shardIterator == records.NextShardIterator {
-		return []string{}, errors.NewInternalError("error while reading the internal data", "malformed pointer received")
+		return []string{}, errors.NewInternalError(0, "error while reading the internal data", "malformed pointer received")
 	}
 
 	if len(records.Records) == 0 {
@@ -211,7 +211,7 @@ func (c *cli) StreamRecords(streamName, consumerName string, maxEntries int) (<-
 			args.Add("ShardIteratorType", "LATEST")
 			shardIteratorResponse, err := c.kinesis.GetShardIterator(args)
 			if err != nil {
-				errs <- errors.NewInternalError("error while reading the internal data", err.Error())
+				errs <- errors.NewInternalError(0, "error while reading the internal data", err.Error())
 				return
 			}
 
@@ -223,12 +223,12 @@ func (c *cli) StreamRecords(streamName, consumerName string, maxEntries int) (<-
 				args.Add("Limit", maxEntries)
 				records, err := c.kinesis.GetRecords(args)
 				if err != nil {
-					errs <- errors.NewInternalError("error while reading the internal data", err.Error())
+					errs <- errors.NewInternalError(0, "error while reading the internal data", err.Error())
 					break
 				}
 
 				if records.NextShardIterator == "" || shardIterator == records.NextShardIterator {
-					errs <- errors.NewInternalError("error while reading the internal data", "shard iterator returned an inconsistent iterator")
+					errs <- errors.NewInternalError(0, "error while reading the internal data", "shard iterator returned an inconsistent iterator")
 					break
 				}
 
@@ -262,11 +262,11 @@ func (c *cli) UnpackRecord(message string) (streamName, unpackedMessage string, 
 	unpackedPayload := packedPayload{}
 	er := json.Unmarshal([]byte(message), &unpackedPayload)
 	if er != nil {
-		return "", "", errors.NewInternalError("failed to receive the message", er.Error())
+		return "", "", errors.NewInternalError(0, "failed to receive the message", er.Error())
 	}
 	unpackedMessage, er = utils.Base64Decode(unpackedPayload.Message)
 	if er != nil {
-		return "", "", errors.NewInternalError("failed to decode the received message", er.Error())
+		return "", "", errors.NewInternalError(0, "failed to decode the received message", er.Error())
 	}
 	return unpackedPayload.StreamName, unpackedMessage, nil
 }
@@ -302,7 +302,7 @@ func (c *cli) DescribeStream(streamName string) (*gksis.DescribeStreamResp, erro
 			if err != nil {
 				response <- Response{
 					Descriptor: nil,
-					Error:      errors.NewInternalError("failed to read storage", err.Error()),
+					Error:      errors.NewInternalError(0, "failed to read storage", err.Error()),
 				}
 				return
 			}
@@ -320,7 +320,7 @@ func (c *cli) DescribeStream(streamName string) (*gksis.DescribeStreamResp, erro
 
 	select {
 	case <-time.After(30 * time.Second):
-		return nil, errors.NewInternalError("could not connect to the storage in a timely manner", fmt.Sprintf("more than 30 passed in attempting to describe stream %q", streamName))
+		return nil, errors.NewInternalError(0, "could not connect to the storage in a timely manner", fmt.Sprintf("more than 30 passed in attempting to describe stream %q", streamName))
 	case resp := <-respChan:
 		return resp.Descriptor, resp.Error
 	}

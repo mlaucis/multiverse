@@ -5,11 +5,10 @@
 package validator
 
 import (
-	"fmt"
-
 	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/entity"
+	"github.com/tapglue/backend/v02/errmsg"
 )
 
 const (
@@ -17,33 +16,24 @@ const (
 	verbMax = 30
 )
 
-var (
-	errorVerbSize = errors.NewBadRequestError(fmt.Sprintf("verb must be between %d and %d characters", verbMin, verbMax), "")
-	errorVerbType = errors.NewBadRequestError(fmt.Sprintf("verb is not a valid alphanumeric sequence"), "")
-
-	errorEventIDIsAlreadySet   = errors.NewBadRequestError(fmt.Sprintf("event id is already set"), "")
-	errorEventMissingVisiblity = errors.NewBadRequestError(fmt.Sprintf("event visibility is missing"), "")
-	errorEventInvalidVisiblity = errors.NewBadRequestError(fmt.Sprintf("event visibility is invalid"), "")
-)
-
 // CreateEvent validates an event on create
 func CreateEvent(datastore core.ApplicationUser, accountID, applicationID int64, event *entity.Event) (errs []errors.Error) {
 	if !StringLengthBetween(event.Type, verbMin, verbMax) {
-		errs = append(errs, errorVerbSize)
+		errs = append(errs, errmsg.VerbSizeError)
 	}
 
 	if !alphaNumExtraCharFirst.MatchString(event.Type) {
-		errs = append(errs, errorVerbType)
+		errs = append(errs, errmsg.VerbTypeError)
 	}
 
 	if event.ID != "" {
-		errs = append(errs, errorEventIDIsAlreadySet)
+		errs = append(errs, errmsg.EventIDIsAlreadySetError)
 	}
 
 	if event.Visibility == 0 {
-		errs = append(errs, errorEventMissingVisiblity)
+		errs = append(errs, errmsg.EventMissingVisiblityError)
 	} else if event.Visibility != 10 && event.Visibility != 20 && event.Visibility != 30 {
-		errs = append(errs, errorEventInvalidVisiblity)
+		errs = append(errs, errmsg.EventInvalidVisiblityError)
 	}
 
 	if len(errs) == 0 {
@@ -52,7 +42,7 @@ func CreateEvent(datastore core.ApplicationUser, accountID, applicationID int64,
 			if err != nil {
 				errs = append(errs, err...)
 			} else {
-				errs = append(errs, errors.NewNotFoundError(fmt.Sprintf("user %d does not exists", event.UserID), ""))
+				errs = append(errs, errmsg.ApplicationUserNotFoundError)
 			}
 		}
 	}
@@ -63,17 +53,17 @@ func CreateEvent(datastore core.ApplicationUser, accountID, applicationID int64,
 // UpdateEvent validates an event on update
 func UpdateEvent(existingEvent, event *entity.Event) (errs []errors.Error) {
 	if !StringLengthBetween(event.Type, verbMin, verbMax) {
-		errs = append(errs, errorVerbSize)
+		errs = append(errs, errmsg.VerbSizeError)
 	}
 
 	if !alphaNumExtraCharFirst.MatchString(event.Type) {
-		errs = append(errs, errorVerbType)
+		errs = append(errs, errmsg.VerbTypeError)
 	}
 
 	if event.Visibility == 0 {
-		errs = append(errs, errorEventMissingVisiblity)
+		errs = append(errs, errmsg.EventMissingVisiblityError)
 	} else if event.Visibility != entity.EventPrivate && event.Visibility != entity.EventConnections && event.Visibility != entity.EventPublic {
-		errs = append(errs, errorEventInvalidVisiblity)
+		errs = append(errs, errmsg.EventInvalidVisiblityError)
 	}
 
 	// TODO define more rules for updating an event

@@ -5,19 +5,10 @@
 package validator
 
 import (
-	"fmt"
-
 	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/entity"
-)
-
-var (
-	errorUserFromIDZero = errors.NewBadRequestError(fmt.Sprintf("user from id can't be 0"), "")
-	errorUserFromIDType = errors.NewBadRequestError(fmt.Sprintf("user from id is not a valid integer"), "")
-
-	errorUserToIDZero = errors.NewBadRequestError(fmt.Sprintf("user to id can't be 0"), "")
-	errorUserToIDType = errors.NewBadRequestError(fmt.Sprintf("user to id is not a valid integer"), "")
+	"github.com/tapglue/backend/v02/errmsg"
 )
 
 // CreateConnection validates a connection on create
@@ -26,7 +17,7 @@ func CreateConnection(datastore core.ApplicationUser, accountID, applicationID i
 		if err != nil {
 			errs = append(errs, err...)
 		} else {
-			errs = append(errs, errors.NewNotFoundError(fmt.Sprintf("user %s does not exists", connection.UserFromID), ""))
+			errs = append(errs, errmsg.ApplicationUserNotFoundError)
 		}
 	}
 	userFrom, err := datastore.Read(accountID, applicationID, connection.UserFromID)
@@ -34,14 +25,14 @@ func CreateConnection(datastore core.ApplicationUser, accountID, applicationID i
 		errs = append(errs, err...)
 	}
 	if !userFrom.Activated {
-		errs = append(errs, errors.NewInternalError(fmt.Sprintf("user %s is not activated", userFrom.Username), ""))
+		errs = append(errs, errmsg.ApplicationUserNotActivated)
 	}
 
 	if exists, err := datastore.ExistsByID(accountID, applicationID, connection.UserToID); !exists || err != nil {
 		if err != nil {
 			errs = append(errs, err...)
 		} else {
-			errs = append(errs, errors.NewNotFoundError(fmt.Sprintf("user %s does not exists", connection.UserFromID), ""))
+			errs = append(errs, errmsg.ApplicationUserNotFoundError)
 		}
 	}
 	userTo, err := datastore.Read(accountID, applicationID, connection.UserToID)
@@ -49,9 +40,9 @@ func CreateConnection(datastore core.ApplicationUser, accountID, applicationID i
 		errs = append(errs, err...)
 	}
 	if userTo == nil {
-		errs = append(errs, errors.NewNotFoundError(fmt.Sprintf("user %s not found", connection.UserToID), ""))
+		errs = append(errs, errmsg.ApplicationUserNotActivated)
 	} else if !userTo.Activated {
-		errs = append(errs, errors.NewNotFoundError(fmt.Sprintf("user %s is not activated", connection.UserToID), ""))
+		errs = append(errs, errmsg.ApplicationUserNotActivated)
 	}
 
 	return
@@ -63,7 +54,7 @@ func ConfirmConnection(datastore core.ApplicationUser, accountID, applicationID 
 		if err != nil {
 			errs = append(errs, err...)
 		} else {
-			errs = append(errs, errors.NewNotFoundError(fmt.Sprintf("user %s does not exists", connection.UserFromID), ""))
+			errs = append(errs, errmsg.ApplicationUserNotFoundError)
 		}
 	}
 
@@ -71,7 +62,7 @@ func ConfirmConnection(datastore core.ApplicationUser, accountID, applicationID 
 		if err != nil {
 			errs = append(errs, err...)
 		} else {
-			errs = append(errs, errors.NewNotFoundError(fmt.Sprintf("user %s does not exists", connection.UserFromID), ""))
+			errs = append(errs, errmsg.ApplicationUserNotFoundError)
 		}
 	}
 
@@ -84,7 +75,7 @@ func UpdateConnection(datastore core.ApplicationUser, accountID, applicationID i
 		if err != nil {
 			errs = append(errs, err...)
 		} else {
-			errs = append(errs, errors.NewNotFoundError(fmt.Sprintf("user %s does not exists", updatedConnection.UserFromID), ""))
+			errs = append(errs, errmsg.ApplicationUserNotFoundError)
 		}
 	}
 
