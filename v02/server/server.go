@@ -163,7 +163,7 @@ func WriteCommonHeaders(cacheTime uint, ctx *context.Context) {
 			ctx.W.Header().Set("Last-Modified", myLastModified.(string))
 		} else {
 			// This will spam the server logs for issues with missing issues but then again, it should be there...
-			go ctx.LogError(errmsg.MissingLastModifiedHeaderError.UpdateInternalMessage("missing Last-Modified from bag for route "+ctx.RouteName+" response"))
+			go ctx.LogError(errmsg.MissingLastModifiedHeaderError.UpdateInternalMessage("missing Last-Modified from bag for route " + ctx.RouteName + " response"))
 		}
 	}
 

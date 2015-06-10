@@ -14,9 +14,9 @@ import (
 	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/entity"
+	"github.com/tapglue/backend/v02/errmsg"
 	"github.com/tapglue/backend/v02/server"
 	"github.com/tapglue/backend/v02/validator"
-	"github.com/tapglue/backend/v02/errmsg"
 )
 
 type (
