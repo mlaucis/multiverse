@@ -42,7 +42,7 @@ func (a *account) Create(account *entity.Account, retrieve bool) (*entity.Accoun
 
 	accountJSON, err := json.Marshal(account)
 	if err != nil {
-		return nil, []errors.Error{errmsg.InternalAccountCreationError.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.InternalAccountCreationError.SetCurrentLocation().UpdateInternalMessage(err.Error())}
 	}
 
 	var createdAccountID int64

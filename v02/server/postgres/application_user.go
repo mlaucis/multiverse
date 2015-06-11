@@ -111,22 +111,30 @@ func (appUser *applicationUser) Create(ctx *context.Context) (err []errors.Error
 	var (
 		user      = &entity.ApplicationUser{}
 		er        error
-		withLogin = ctx.R.URL.Query().Get("withLogin") == "true"
+		withLogin = ctx.Query.Get("withLogin") == "true"
 	)
 
 	if er = json.Unmarshal(ctx.Body, user); er != nil {
 		return []errors.Error{errmsg.BadJsonReceivedError.UpdateMessage(er.Error())}
 	}
 
-	if err = validator.CreateUser(appUser.storage, ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), user); err != nil {
-		return
+	err = validator.CreateUser(appUser.storage, ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), user)
+	if err != nil {
+		if withLogin && (err[0] == errmsg.UserEmailAlreadyExistsError || err[0] == errmsg.UserUsernameAlreadyExistsError) {
+			ctx.Query.Set("withUserDetails", "true")
+			return appUser.Login(ctx)
+		} else {
+			return
+		}
 	}
 
 	if withLogin {
 		timeNow := time.Now()
 		user.LastLogin = &timeNow
 	}
-	if user, err = appUser.storage.Create(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), user, true); err != nil {
+
+	user, err = appUser.storage.Create(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), user, true)
+	if err != nil {
 		return
 	}
 
@@ -166,7 +174,9 @@ func (appUser *applicationUser) Login(ctx *context.Context) (err []errors.Error)
 	}
 
 	if err = validator.IsValidLoginPayload(loginPayload); err != nil {
-		return
+		if !(err[0] == errmsg.GotBothUsernameAndEmailError && ctx.Query.Get("withLogin") == "true") {
+			return
+		}
 	}
 
 	if loginPayload.EmailName != "" {
@@ -218,7 +228,7 @@ func (appUser *applicationUser) Login(ctx *context.Context) (err []errors.Error)
 		Token:  sessionToken,
 	}
 
-	if ctx.R.URL.Query().Get("withUserDetails") == "true" {
+	if ctx.Query.Get("withUserDetails") == "true" {
 		user.Password = ""
 		user.Enabled = false
 		response.ApplicationUser = *user

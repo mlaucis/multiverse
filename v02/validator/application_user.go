@@ -195,7 +195,7 @@ func ApplicationUserCredentialsValid(password string, user *entity.ApplicationUs
 	}
 
 	if encryptedPassword != passwordParts[2] {
-		return []errors.Error{errmsg.GenericAuthenticationError}
+		return []errors.Error{errmsg.GenericAuthenticationError.UpdateInternalMessage("password mismatch")}
 	}
 
 	return nil

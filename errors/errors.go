@@ -148,8 +148,13 @@ func (err myError) InternalErrorWithLocation() string {
 
 // SetCurrentLocation will update the error location to point to the invokation line rather that the creation line
 func (err myError) SetCurrentLocation() Error {
-	_, filename, line, _ := runtime.Caller(1)
+	_, filename, line, _ := runtime.Caller(2)
 	err.location = fmt.Sprintf("%s:%d", filename, line)
+	if dbgMode {
+		_, filename, line, _ := runtime.Caller(3)
+		err.location = fmt.Sprintf("%s from %s:%d", err.location, filename, line)
+
+	}
 	return err
 }
 
