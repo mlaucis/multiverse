@@ -7,6 +7,7 @@ package helper
 
 import (
 	"crypto/md5"
+	crand "crypto/rand"
 	"fmt"
 	"log"
 	"math/rand"
@@ -112,10 +113,20 @@ func GenerateRandomString(size int) string {
 	return salt
 }
 
+func GenerateRandomSecureString(size int) string {
+	buff := make([]byte, size)
+	_, err := crand.Read(buff)
+	if err != nil {
+		return GenerateRandomString(size)
+	}
+
+	return string(buff)
+}
+
 // GenerateAccountSecretKey returns a token for the specified application of an account
 func GenerateAccountSecretKey(account *entity.Account) string {
 	// Generate a random salt for the token
-	keySalt := GenerateRandomString(8)
+	keySalt := GenerateRandomSecureString(8)
 
 	// Generate the token itself
 	hasher := md5.New()
@@ -130,7 +141,7 @@ func GenerateAccountSecretKey(account *entity.Account) string {
 // GenerateApplicationSecretKey returns a token for the specified application of an account
 func GenerateApplicationSecretKey(application *entity.Application) string {
 	// Generate a random salt for the token
-	keySalt := GenerateRandomString(20)
+	keySalt := GenerateRandomSecureString(20)
 
 	// Generate the token itself
 	hasher := md5.New()
