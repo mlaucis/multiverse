@@ -65,10 +65,13 @@ func WriteResponse(ctx *context.Context, response interface{}, code int, cacheTi
 	// TODO here it would be nice if we would consider the requested format when the stuff happens and deliver
 	// either JSON or XML or FlatBuffers or whatever
 	output := new(bytes.Buffer)
-	json.NewEncoder(output).Encode(response)
+	err := json.NewEncoder(output).Encode(response)
+	if err != nil {
+		ctx.LogError(err)
+	}
 
 	// We should only check these for valid responses, I think. Future me blame past me for this decision
-	if ctx.R.Method == "GET" && ctx.StatusCode < 300 {
+	if (ctx.R.Method == "GET" || ctx.R.Method == "HEAD") && ctx.StatusCode < 300 {
 		// We implememt the etag check first, aka the hard check, because we don't know if something else was changed
 		// in the response, not just what we calculate the etag for.
 		// Example situation: we compute the etag for getFeed as being the highest LastUpdated date but maybe
@@ -77,12 +80,17 @@ func WriteResponse(ctx *context.Context, response interface{}, code int, cacheTi
 		// was changed or something else (thumbnail or whatever)
 
 		h := md5.New()
-		io.TeeReader(output, h)
+		h.Write(output.Bytes())
 		etag := h.Sum(nil)
-		ctx.W.Header().Set("ETag", fmt.Sprintf("%x", etag))
+		etagString := fmt.Sprintf("%x", etag)
+		ctx.W.Header().Set("ETag", etagString)
+
+		if myLastModified, ok := ctx.Bag["Last-Modified"]; ok {
+			ctx.W.Header().Set("Last-Modified", myLastModified.(string))
+		}
 
 		if requestEtag := ctx.R.Header.Get("If-None-Match"); requestEtag != "" {
-			if requestEtag == string(etag) {
+			if requestEtag == etagString {
 				ctx.StatusCode = http.StatusNotModified
 				ctx.W.WriteHeader(ctx.StatusCode)
 				return
@@ -98,6 +106,11 @@ func WriteResponse(ctx *context.Context, response interface{}, code int, cacheTi
 					return
 				}
 			}
+		}
+
+		if ctx.R.Method == "HEAD" {
+			ctx.W.WriteHeader(code)
+			return
 		}
 	}
 
