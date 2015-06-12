@@ -6,7 +6,6 @@ package postgres
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/tapglue/backend/context"
@@ -26,21 +25,18 @@ type (
 )
 
 func (conn *connection) Update(ctx *context.Context) (err []errors.Error) {
-	var (
-		userToID string
-		er       error
-	)
+	userFromID := ctx.Bag["applicationUserID"].(string)
+	userToID := ctx.Vars["userToId"]
 
-	userToID = ctx.Vars["userToId"]
-	if !validator.IsValidUUID5(userToID) {
-		return []errors.Error{errmsg.InvalidUserIDError}
+	accountID := ctx.Bag["accountID"].(int64)
+	applicationID := ctx.Bag["applicationID"].(int64)
+
+	userToID, err = conn.determineTGUserID(accountID, applicationID, userToID)
+	if err != nil {
+		return
 	}
 
-	existingConnection, err := conn.storage.Read(
-		ctx.Bag["accountID"].(int64),
-		ctx.Bag["applicationID"].(int64),
-		ctx.Bag["applicationUserID"].(string),
-		userToID)
+	existingConnection, err := conn.storage.Read(accountID, applicationID, userFromID, userToID)
 	if err != nil {
 		return
 	}
@@ -49,37 +45,19 @@ func (conn *connection) Update(ctx *context.Context) (err []errors.Error) {
 	}
 
 	connection := *existingConnection
-	if er = json.Unmarshal(ctx.Body, &connection); er != nil {
+	if er := json.Unmarshal(ctx.Body, &connection); er != nil {
 		return []errors.Error{errmsg.BadJsonReceivedError.UpdateMessage(er.Error())}
 	}
 
-	if connection.UserFromID != ctx.Bag["applicationUserID"].(string) {
-		return []errors.Error{errmsg.UserFromMismatchError}
-	}
+	connection.UserFromID = userFromID
+	connection.UserToID = userToID
 
-	if connection.UserToID != userToID {
-		return []errors.Error{errmsg.UserToMismatchError}
-	}
-
-	if connection.Type != "friend" && connection.Type != "follow" {
-		return []errors.Error{errmsg.WrongConnectionTypeError.UpdateMessage(fmt.Sprintf("unexpected connection type %q", connection.Type))}
-	}
-
-	if err = validator.UpdateConnection(
-		conn.appUser,
-		ctx.Bag["accountID"].(int64),
-		ctx.Bag["applicationID"].(int64),
-		existingConnection,
-		&connection); err != nil {
+	err = validator.UpdateConnection(conn.appUser, accountID, applicationID, existingConnection, &connection)
+	if err != nil {
 		return
 	}
 
-	updatedConnection, err := conn.storage.Update(
-		ctx.Bag["accountID"].(int64),
-		ctx.Bag["applicationID"].(int64),
-		*existingConnection,
-		connection,
-		false)
+	updatedConnection, err := conn.storage.Update(accountID, applicationID, *existingConnection, connection, false)
 	if err != nil {
 		return
 	}
@@ -89,18 +67,23 @@ func (conn *connection) Update(ctx *context.Context) (err []errors.Error) {
 }
 
 func (conn *connection) Delete(ctx *context.Context) (err []errors.Error) {
+	accountID := ctx.Bag["accountID"].(int64)
+	applicationID := ctx.Bag["applicationID"].(int64)
+
 	userFromID := ctx.Bag["applicationUserID"].(string)
 	userToID := ctx.Vars["applicationUserToID"]
-	if !validator.IsValidUUID5(userToID) {
-		return []errors.Error{errmsg.InvalidUserIDError}
-	}
 
-	connection, err := conn.storage.Read(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), userFromID, userToID)
+	userToID, err = conn.determineTGUserID(accountID, applicationID, userToID)
 	if err != nil {
 		return
 	}
 
-	err = conn.storage.Delete(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), connection)
+	connection, err := conn.storage.Read(accountID, applicationID, userFromID, userToID)
+	if err != nil {
+		return
+	}
+
+	err = conn.storage.Delete(accountID, applicationID, connection)
 	if err != nil {
 		return
 	}
@@ -120,40 +103,27 @@ func (conn *connection) Create(ctx *context.Context) (err []errors.Error) {
 		return []errors.Error{errmsg.BadJsonReceivedError.UpdateMessage(er.Error())}
 	}
 
-	if connection.Type != "friend" && connection.Type != "follow" {
-		return []errors.Error{errmsg.WrongConnectionTypeError.UpdateMessage(fmt.Sprintf("unexpected connection type %q", connection.Type))}
-	}
-
 	receivedEnabled := connection.Enabled
 
+	accountID := ctx.Bag["accountID"].(int64)
+	applicationID := ctx.Bag["applicationID"].(int64)
+
 	connection.UserFromID = ctx.Bag["applicationUserID"].(string)
-
-	if connection.UserFromID == connection.UserToID {
-		return []errors.Error{errmsg.SelfConnectingUserError}
-	}
-
-	if err = validator.CreateConnection(
-		conn.appUser,
-		ctx.Bag["accountID"].(int64),
-		ctx.Bag["applicationID"].(int64),
-		connection); err != nil {
+	connection.UserToID, err = conn.determineTGUserID(accountID, applicationID, connection.UserToID)
+	if err != nil {
 		return
 	}
 
-	if connection, err = conn.storage.Create(
-		ctx.Bag["accountID"].(int64),
-		ctx.Bag["applicationID"].(int64),
-		connection,
-		true); err != nil {
+	if err = validator.CreateConnection(conn.appUser, accountID, applicationID, connection); err != nil {
+		return
+	}
+
+	if connection, err = conn.storage.Create(accountID, applicationID, connection, true); err != nil {
 		return
 	}
 
 	if receivedEnabled {
-		if connection, err = conn.storage.Confirm(
-			ctx.Bag["accountID"].(int64),
-			ctx.Bag["applicationID"].(int64),
-			connection,
-			true); err != nil {
+		if connection, err = conn.storage.Confirm(accountID, applicationID, connection, true); err != nil {
 			return
 		}
 	}
@@ -166,8 +136,9 @@ func (conn *connection) List(ctx *context.Context) (err []errors.Error) {
 	accountID := ctx.Bag["accountID"].(int64)
 	applicationID := ctx.Bag["applicationID"].(int64)
 	userID := ctx.Vars["applicationUserID"]
-	if !validator.IsValidUUID5(userID) {
-		return []errors.Error{errmsg.InvalidUserIDError}
+	userID, err = conn.determineTGUserID(accountID, applicationID, userID)
+	if err != nil {
+		return
 	}
 
 	exists, err := conn.appUser.ExistsByID(accountID, applicationID, userID)
@@ -186,15 +157,7 @@ func (conn *connection) List(ctx *context.Context) (err []errors.Error) {
 	}
 
 	computeApplicationUsersLastModified(ctx, users)
-
-	for idx := range users {
-		users[idx].Password = ""
-		users[idx].Enabled = false
-		users[idx].SocialIDs = map[string]string{}
-		users[idx].Activated = false
-		users[idx].Email = ""
-		users[idx].CreatedAt, users[idx].UpdatedAt, users[idx].LastLogin, users[idx].LastRead = nil, nil, nil, nil
-	}
+	sanitizeApplicationUsers(users)
 
 	response := struct {
 		Users      []*entity.ApplicationUser `json:"users"`
@@ -224,14 +187,8 @@ func (conn *connection) CurrentUserList(ctx *context.Context) (err []errors.Erro
 		return
 	}
 
-	for idx := range users {
-		users[idx].Password = ""
-		users[idx].Enabled = false
-		users[idx].SocialIDs = map[string]string{}
-		users[idx].Activated = false
-		users[idx].Email = ""
-		users[idx].CreatedAt, users[idx].UpdatedAt, users[idx].LastLogin, users[idx].LastRead = nil, nil, nil, nil
-	}
+	computeApplicationUsersLastModified(ctx, users)
+	sanitizeApplicationUsers(users)
 
 	response := struct {
 		Users      []*entity.ApplicationUser `json:"users"`
@@ -254,8 +211,9 @@ func (conn *connection) FollowedByList(ctx *context.Context) (err []errors.Error
 	accountID := ctx.Bag["accountID"].(int64)
 	applicationID := ctx.Bag["applicationID"].(int64)
 	userID := ctx.Vars["applicationUserID"]
-	if !validator.IsValidUUID5(userID) {
-		return []errors.Error{errmsg.InvalidUserIDError}
+	userID, err = conn.determineTGUserID(accountID, applicationID, userID)
+	if err != nil {
+		return
 	}
 
 	exists, err := conn.appUser.ExistsByID(accountID, applicationID, userID)
@@ -273,15 +231,7 @@ func (conn *connection) FollowedByList(ctx *context.Context) (err []errors.Error
 	}
 
 	computeApplicationUsersLastModified(ctx, users)
-
-	for idx := range users {
-		users[idx].Password = ""
-		users[idx].Enabled = false
-		users[idx].SocialIDs = map[string]string{}
-		users[idx].Activated = false
-		users[idx].Email = ""
-		users[idx].CreatedAt, users[idx].UpdatedAt, users[idx].LastLogin, users[idx].LastRead = nil, nil, nil, nil
-	}
+	sanitizeApplicationUsers(users)
 
 	response := struct {
 		Users      []*entity.ApplicationUser `json:"users"`
@@ -310,14 +260,8 @@ func (conn *connection) CurrentUserFollowedByList(ctx *context.Context) (err []e
 		return
 	}
 
-	for idx := range users {
-		users[idx].Password = ""
-		users[idx].Enabled = false
-		users[idx].SocialIDs = map[string]string{}
-		users[idx].Activated = false
-		users[idx].Email = ""
-		users[idx].CreatedAt, users[idx].UpdatedAt, users[idx].LastLogin, users[idx].LastRead = nil, nil, nil, nil
-	}
+	computeApplicationUsersLastModified(ctx, users)
+	sanitizeApplicationUsers(users)
 
 	response := struct {
 		Users      []*entity.ApplicationUser `json:"users"`
@@ -328,7 +272,6 @@ func (conn *connection) CurrentUserFollowedByList(ctx *context.Context) (err []e
 	}
 
 	status := http.StatusOK
-	computeApplicationUsersLastModified(ctx, response.Users)
 
 	if response.UsersCount == 0 {
 		status = http.StatusNoContent
@@ -345,31 +288,25 @@ func (conn *connection) Confirm(ctx *context.Context) (err []errors.Error) {
 		return []errors.Error{errmsg.BadJsonReceivedError.UpdateMessage(er.Error())}
 	}
 
-	connection.UserFromID = ctx.Bag["applicationUserID"].(string)
+	accountID := ctx.Bag["accountID"].(int64)
+	applicationID := ctx.Bag["applicationID"].(int64)
 
-	connection, err = conn.storage.Read(
-		ctx.Bag["accountID"].(int64),
-		ctx.Bag["applicationID"].(int64),
-		connection.UserFromID,
-		connection.UserToID,
-	)
+	connection.UserFromID = ctx.Bag["applicationUserID"].(string)
+	connection.UserToID, err = conn.determineTGUserID(accountID, applicationID, connection.UserToID)
+	if err != nil {
+		return
+	}
+
+	connection, err = conn.storage.Read(accountID, applicationID, connection.UserFromID, connection.UserToID)
 	if err != nil {
 		return err
 	}
 
-	if err = validator.ConfirmConnection(
-		conn.appUser,
-		ctx.Bag["accountID"].(int64),
-		ctx.Bag["applicationID"].(int64),
-		connection); err != nil {
+	if err = validator.ConfirmConnection(conn.appUser, accountID, applicationID, connection); err != nil {
 		return
 	}
 
-	if connection, err = conn.storage.Confirm(
-		ctx.Bag["accountID"].(int64),
-		ctx.Bag["applicationID"].(int64),
-		connection,
-		false); err != nil {
+	if connection, err = conn.storage.Confirm(accountID, applicationID, connection, false); err != nil {
 		return
 	}
 
@@ -422,14 +359,7 @@ func (conn *connection) CreateSocial(ctx *context.Context) (err []errors.Error) 
 		return
 	}
 
-	for idx := range users {
-		users[idx].Password = ""
-		users[idx].Enabled = false
-		users[idx].SocialIDs = map[string]string{}
-		users[idx].Activated = false
-		users[idx].Email = ""
-		users[idx].CreatedAt, users[idx].UpdatedAt, users[idx].LastLogin, users[idx].LastRead = nil, nil, nil, nil
-	}
+	sanitizeApplicationUsers(users)
 
 	response := struct {
 		Users      []*entity.ApplicationUser `json:"users"`
@@ -447,6 +377,10 @@ func (conn *connection) Friends(ctx *context.Context) (err []errors.Error) {
 	accountID := ctx.Bag["accountID"].(int64)
 	applicationID := ctx.Bag["applicationID"].(int64)
 	userID := ctx.Vars["applicationUserID"]
+	userID, err = conn.determineTGUserID(accountID, applicationID, userID)
+	if err != nil {
+		return
+	}
 
 	exists, err := conn.appUser.ExistsByID(accountID, applicationID, userID)
 	if err != nil {
@@ -463,15 +397,7 @@ func (conn *connection) Friends(ctx *context.Context) (err []errors.Error) {
 	}
 
 	computeApplicationUsersLastModified(ctx, users)
-
-	for idx := range users {
-		users[idx].Password = ""
-		users[idx].Enabled = false
-		users[idx].SocialIDs = map[string]string{}
-		users[idx].Activated = false
-		users[idx].Email = ""
-		users[idx].CreatedAt, users[idx].UpdatedAt, users[idx].LastLogin, users[idx].LastRead = nil, nil, nil, nil
-	}
+	sanitizeApplicationUsers(users)
 
 	response := struct {
 		Users      []*entity.ApplicationUser `json:"users"`
@@ -497,15 +423,7 @@ func (conn *connection) CurrentUserFriends(ctx *context.Context) (err []errors.E
 	}
 
 	computeApplicationUsersLastModified(ctx, users)
-
-	for idx := range users {
-		users[idx].Password = ""
-		users[idx].Enabled = false
-		users[idx].SocialIDs = map[string]string{}
-		users[idx].Activated = false
-		users[idx].Email = ""
-		users[idx].CreatedAt, users[idx].UpdatedAt, users[idx].LastLogin, users[idx].LastRead = nil, nil, nil, nil
-	}
+	sanitizeApplicationUsers(users)
 
 	response := struct {
 		Users      []*entity.ApplicationUser `json:"users"`
@@ -522,6 +440,19 @@ func (conn *connection) CurrentUserFriends(ctx *context.Context) (err []errors.E
 
 	server.WriteResponse(ctx, response, status, 10)
 	return
+}
+
+func (conn *connection) determineTGUserID(accountID, applicationID int64, userID string) (string, []errors.Error) {
+	if validator.IsValidUUID5(userID) {
+		return userID, nil
+	}
+
+	user, err := conn.appUser.FindByCustomID(accountID, applicationID, userID)
+	if err != nil {
+		return "", err
+	}
+
+	return user.ID, nil
 }
 
 // NewConnectionWithApplicationUser initializes a new connection with an application user

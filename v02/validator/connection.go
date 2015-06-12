@@ -13,6 +13,14 @@ import (
 
 // CreateConnection validates a connection on create
 func CreateConnection(datastore core.ApplicationUser, accountID, applicationID int64, connection *entity.Connection) (errs []errors.Error) {
+	if connection.UserFromID == connection.UserToID {
+		return []errors.Error{errmsg.SelfConnectingUserError}
+	}
+
+	if connection.Type != "friend" && connection.Type != "follow" {
+		return []errors.Error{errmsg.WrongConnectionTypeError.UpdateMessage("unexpected connection type " + connection.Type)}
+	}
+
 	if exists, err := datastore.ExistsByID(accountID, applicationID, connection.UserFromID); !exists || err != nil {
 		if err != nil {
 			errs = append(errs, err...)
@@ -71,6 +79,10 @@ func ConfirmConnection(datastore core.ApplicationUser, accountID, applicationID 
 
 // UpdateConnection validates a connection on update
 func UpdateConnection(datastore core.ApplicationUser, accountID, applicationID int64, existingConnection, updatedConnection *entity.Connection) (errs []errors.Error) {
+	if updatedConnection.Type != "friend" && updatedConnection.Type != "follow" {
+		return []errors.Error{errmsg.WrongConnectionTypeError.UpdateMessage("unexpected connection type " + updatedConnection.Type)}
+	}
+
 	if exists, err := datastore.ExistsByID(accountID, applicationID, updatedConnection.UserToID); !exists || err != nil {
 		if err != nil {
 			errs = append(errs, err...)

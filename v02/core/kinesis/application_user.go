@@ -104,6 +104,10 @@ func (appu *applicationUser) Search(accountID, applicationID int64, searchTerm s
 	return nil, invalidHandlerError
 }
 
+func (appu *applicationUser) FindByCustomID(accountID, applicationID int64, customID string) (*entity.ApplicationUser, []errors.Error) {
+	return nil, invalidHandlerError
+}
+
 // NewApplicationUser creates a new Event
 func NewApplicationUser(storageClient kinesis.Client) core.ApplicationUser {
 	return &applicationUser{
