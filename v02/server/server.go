@@ -163,7 +163,7 @@ func WriteCommonHeaders(cacheTime uint, ctx *context.Context) {
 			ctx.W.Header().Set("Last-Modified", myLastModified.(string))
 		} else {
 			// This will spam the server logs for issues with missing issues but then again, it should be there...
-			go ctx.LogError(errmsg.MissingLastModifiedHeaderError.UpdateInternalMessage("missing Last-Modified from bag for route " + ctx.RouteName + " response"))
+			go ctx.LogError(errmsg.ErrMissingLastModifiedHeader.UpdateInternalMessage("missing Last-Modified from bag for route " + ctx.RouteName + " response"))
 		}
 	}
 
@@ -214,7 +214,7 @@ func ValidateGetCommon(ctx *context.Context) (err []errors.Error) {
 	if ctx.R.Header.Get("User-Agent") != "" {
 		return
 	}
-	return []errors.Error{errmsg.BadUserAgentError}
+	return []errors.Error{errmsg.ErrBadUserAgent}
 }
 
 // ValidatePutCommon runs a series of predefinied, common, tests for PUT requests
@@ -224,38 +224,38 @@ func ValidatePutCommon(ctx *context.Context) (err []errors.Error) {
 	}
 
 	if ctx.R.Header.Get("User-Agent") == "" {
-		err = append(err, errmsg.BadUserAgentError)
+		err = append(err, errmsg.ErrBadUserAgent)
 	}
 
 	if ctx.R.Header.Get("Content-Length") == "" {
-		err = append(err, errmsg.ContentLengthMissingError)
+		err = append(err, errmsg.ErrContentLengthMissing)
 	}
 
 	if ctx.R.Header.Get("Content-Type") == "" {
-		err = append(err, errmsg.ContentTypeMissingError)
+		err = append(err, errmsg.ErrContentTypeMissing)
 	}
 
 	if ctx.R.Header.Get("Content-Type") != "application/json" &&
 		ctx.R.Header.Get("Content-Type") != "application/json; charset=UTF-8" {
-		err = append(err, errmsg.ContentTypeMismatchError)
+		err = append(err, errmsg.ErrContentTypeMismatch)
 	}
 
 	reqCL, er := strconv.ParseInt(ctx.R.Header.Get("Content-Length"), 10, 64)
 	if er != nil {
-		err = append(err, errmsg.ContentLengthInvalidError)
+		err = append(err, errmsg.ErrContentLengthInvalid)
 	}
 
 	if reqCL != ctx.R.ContentLength {
-		err = append(err, errmsg.ContentLengthSizeMismatchError)
+		err = append(err, errmsg.ErrContentLengthSizeMismatch)
 	} else {
 		// TODO better handling here for limits, maybe make them customizable
 		if reqCL > 2048 {
-			err = append(err, errmsg.PayloadTooBigError)
+			err = append(err, errmsg.ErrPayloadTooBig)
 		}
 	}
 
 	if ctx.R.Body == nil {
-		err = append(err, errmsg.RequestBodyEmptyError)
+		err = append(err, errmsg.ErrRequestBodyEmpty)
 	}
 	return
 }
@@ -263,7 +263,7 @@ func ValidatePutCommon(ctx *context.Context) (err []errors.Error) {
 // ValidateDeleteCommon runs a series of predefinied, common, tests for DELETE requests
 func ValidateDeleteCommon(ctx *context.Context) (err []errors.Error) {
 	if ctx.R.Header.Get("User-Agent") == "" {
-		err = append(err, errmsg.BadUserAgentError)
+		err = append(err, errmsg.ErrBadUserAgent)
 	}
 
 	return
@@ -276,38 +276,38 @@ func ValidatePostCommon(ctx *context.Context) (err []errors.Error) {
 	}
 
 	if ctx.R.Header.Get("User-Agent") == "" {
-		err = append(err, errmsg.BadUserAgentError)
+		err = append(err, errmsg.ErrBadUserAgent)
 	}
 
 	if ctx.R.Header.Get("Content-Length") == "" {
-		err = append(err, errmsg.ContentLengthMissingError)
+		err = append(err, errmsg.ErrContentLengthMissing)
 	}
 
 	if ctx.R.Header.Get("Content-Type") == "" {
-		err = append(err, errmsg.ContentTypeMissingError)
+		err = append(err, errmsg.ErrContentTypeMissing)
 	}
 
 	if ctx.R.Header.Get("Content-Type") != "application/json" &&
 		ctx.R.Header.Get("Content-Type") != "application/json; charset=UTF-8" {
-		err = append(err, errmsg.ContentTypeMismatchError)
+		err = append(err, errmsg.ErrContentTypeMismatch)
 	}
 
 	reqCL, er := strconv.ParseInt(ctx.R.Header.Get("Content-Length"), 10, 64)
 	if er != nil {
-		err = append(err, errmsg.ContentLengthInvalidError)
+		err = append(err, errmsg.ErrContentLengthInvalid)
 	}
 
 	if reqCL != ctx.R.ContentLength {
-		err = append(err, errmsg.ContentLengthSizeMismatchError)
+		err = append(err, errmsg.ErrContentLengthSizeMismatch)
 	} else {
 		// TODO better handling here for limits, maybe make them customizable
 		if reqCL > 2048 {
-			err = append(err, errmsg.PayloadTooBigError)
+			err = append(err, errmsg.ErrPayloadTooBig)
 		}
 	}
 
 	if ctx.R.Body == nil {
-		err = append(err, errmsg.RequestBodyEmptyError)
+		err = append(err, errmsg.ErrRequestBodyEmpty)
 	}
 	return
 }

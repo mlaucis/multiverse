@@ -113,6 +113,7 @@ func GenerateRandomString(size int) string {
 	return salt
 }
 
+// GenerateRandomSecureString will generate a cryptographically secure random string
 func GenerateRandomSecureString(size int) string {
 	buff := make([]byte, size)
 	_, err := crand.Read(buff)

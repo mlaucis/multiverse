@@ -14,27 +14,27 @@ import (
 func IsValidLoginPayload(loginPayload *entity.LoginPayload) []errors.Error {
 	if loginPayload.Email != "" && loginPayload.Username != "" {
 		if loginPayload.EmailName == "" {
-			return []errors.Error{errmsg.GotBothUsernameAndEmailError}
+			return []errors.Error{errmsg.ErrGotBothUsernameAndEmail}
 		}
 	}
 
 	if loginPayload.Email == "" && loginPayload.Username == "" && loginPayload.EmailName == "" {
-		return []errors.Error{errmsg.GotNoUsernameOrEmailError}
+		return []errors.Error{errmsg.ErrGotNoUsernameOrEmail}
 	}
 
 	if loginPayload.Email != "" {
 		if !IsValidEmail(loginPayload.Email) {
-			return []errors.Error{errmsg.InvalidEmailAddressError}
+			return []errors.Error{errmsg.ErrInvalidEmailAddress}
 		}
 	}
 
 	if loginPayload.Username != "" {
 		if !StringLengthBetween(loginPayload.Username, accountUserNameMin, accountUserNameMax) {
-			return []errors.Error{errmsg.AccountUserUsernameSizeError}
+			return []errors.Error{errmsg.ErrAccountUserUsernameSize}
 		}
 
 		if !alphaNumExtraCharFirst.Match([]byte(loginPayload.Username)) {
-			return []errors.Error{errmsg.AccountUserUsernameTypeError}
+			return []errors.Error{errmsg.ErrAccountUserUsernameType}
 		}
 	}
 

@@ -14,18 +14,18 @@ import (
 // CreateConnection validates a connection on create
 func CreateConnection(datastore core.ApplicationUser, accountID, applicationID int64, connection *entity.Connection) (errs []errors.Error) {
 	if connection.UserFromID == connection.UserToID {
-		return []errors.Error{errmsg.SelfConnectingUserError}
+		return []errors.Error{errmsg.ErrSelfConnectingUser}
 	}
 
 	if connection.Type != "friend" && connection.Type != "follow" {
-		return []errors.Error{errmsg.WrongConnectionTypeError.UpdateMessage("unexpected connection type " + connection.Type)}
+		return []errors.Error{errmsg.ErrWrongConnectionType.UpdateMessage("unexpected connection type " + connection.Type)}
 	}
 
 	if exists, err := datastore.ExistsByID(accountID, applicationID, connection.UserFromID); !exists || err != nil {
 		if err != nil {
 			errs = append(errs, err...)
 		} else {
-			errs = append(errs, errmsg.ApplicationUserNotFoundError)
+			errs = append(errs, errmsg.ErrApplicationUserNotFound)
 		}
 	}
 	userFrom, err := datastore.Read(accountID, applicationID, connection.UserFromID)
@@ -33,14 +33,14 @@ func CreateConnection(datastore core.ApplicationUser, accountID, applicationID i
 		errs = append(errs, err...)
 	}
 	if !userFrom.Activated {
-		errs = append(errs, errmsg.ApplicationUserNotActivated)
+		errs = append(errs, errmsg.ErrApplicationUserNotActivated)
 	}
 
 	if exists, err := datastore.ExistsByID(accountID, applicationID, connection.UserToID); !exists || err != nil {
 		if err != nil {
 			errs = append(errs, err...)
 		} else {
-			errs = append(errs, errmsg.ApplicationUserNotFoundError)
+			errs = append(errs, errmsg.ErrApplicationUserNotFound)
 		}
 	}
 	userTo, err := datastore.Read(accountID, applicationID, connection.UserToID)
@@ -48,9 +48,9 @@ func CreateConnection(datastore core.ApplicationUser, accountID, applicationID i
 		errs = append(errs, err...)
 	}
 	if userTo == nil {
-		errs = append(errs, errmsg.ApplicationUserNotActivated)
+		errs = append(errs, errmsg.ErrApplicationUserNotActivated)
 	} else if !userTo.Activated {
-		errs = append(errs, errmsg.ApplicationUserNotActivated)
+		errs = append(errs, errmsg.ErrApplicationUserNotActivated)
 	}
 
 	return
@@ -62,7 +62,7 @@ func ConfirmConnection(datastore core.ApplicationUser, accountID, applicationID 
 		if err != nil {
 			errs = append(errs, err...)
 		} else {
-			errs = append(errs, errmsg.ApplicationUserNotFoundError)
+			errs = append(errs, errmsg.ErrApplicationUserNotFound)
 		}
 	}
 
@@ -70,7 +70,7 @@ func ConfirmConnection(datastore core.ApplicationUser, accountID, applicationID 
 		if err != nil {
 			errs = append(errs, err...)
 		} else {
-			errs = append(errs, errmsg.ApplicationUserNotFoundError)
+			errs = append(errs, errmsg.ErrApplicationUserNotFound)
 		}
 	}
 
@@ -80,14 +80,14 @@ func ConfirmConnection(datastore core.ApplicationUser, accountID, applicationID 
 // UpdateConnection validates a connection on update
 func UpdateConnection(datastore core.ApplicationUser, accountID, applicationID int64, existingConnection, updatedConnection *entity.Connection) (errs []errors.Error) {
 	if updatedConnection.Type != "friend" && updatedConnection.Type != "follow" {
-		return []errors.Error{errmsg.WrongConnectionTypeError.UpdateMessage("unexpected connection type " + updatedConnection.Type)}
+		return []errors.Error{errmsg.ErrWrongConnectionType.UpdateMessage("unexpected connection type " + updatedConnection.Type)}
 	}
 
 	if exists, err := datastore.ExistsByID(accountID, applicationID, updatedConnection.UserToID); !exists || err != nil {
 		if err != nil {
 			errs = append(errs, err...)
 		} else {
-			errs = append(errs, errmsg.ApplicationUserNotFoundError)
+			errs = append(errs, errmsg.ErrApplicationUserNotFound)
 		}
 	}
 

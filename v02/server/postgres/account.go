@@ -26,11 +26,11 @@ type (
 
 func (acc *account) Read(ctx *context.Context) (err []errors.Error) {
 	if ctx.Bag["account"] == nil {
-		return []errors.Error{errmsg.MissingAccountInContextError}
+		return []errors.Error{errmsg.ErrMissingAccountInContext}
 	}
 
 	if ctx.Bag["account"].(*entity.Account).PublicID != ctx.Vars["accountID"] {
-		return []errors.Error{errmsg.AccountMismatchError}
+		return []errors.Error{errmsg.ErrAccountMismatch}
 	}
 
 	computeAccountLastModified(ctx, ctx.Bag["account"].(*entity.Account))
@@ -43,11 +43,11 @@ func (acc *account) Update(ctx *context.Context) (err []errors.Error) {
 	account := *(ctx.Bag["account"].(*entity.Account))
 
 	if account.PublicID != ctx.Vars["accountID"] {
-		return []errors.Error{errmsg.AccountIDMismatchError}
+		return []errors.Error{errmsg.ErrAccountIDMismatch}
 	}
 
 	if er := json.Unmarshal(ctx.Body, &account); er != nil {
-		return []errors.Error{errmsg.BadJsonReceivedError.UpdateMessage(er.Error())}
+		return []errors.Error{errmsg.ErrBadJSONReceived.UpdateMessage(er.Error())}
 	}
 
 	account.ID = ctx.Bag["accountID"].(int64)
@@ -67,11 +67,11 @@ func (acc *account) Update(ctx *context.Context) (err []errors.Error) {
 
 func (acc *account) Delete(ctx *context.Context) (err []errors.Error) {
 	if ctx.R.Header.Get("X-Jarvis-Auth") != "ZTBmZjI3MGE2M2YzYzAzOWI1MjhiYTNi" {
-		return []errors.Error{errmsg.MissingJarvisIDError}
+		return []errors.Error{errmsg.ErrMissingJarvisID}
 	}
 
 	if ctx.Bag["account"].(*entity.Account).PublicID != ctx.Vars["accountID"] {
-		return []errors.Error{errmsg.AccountMismatchError}
+		return []errors.Error{errmsg.ErrAccountMismatch}
 	}
 
 	if err = acc.storage.Delete(ctx.Bag["account"].(*entity.Account)); err != nil {
@@ -84,13 +84,13 @@ func (acc *account) Delete(ctx *context.Context) (err []errors.Error) {
 
 func (acc *account) Create(ctx *context.Context) (err []errors.Error) {
 	if ctx.R.Header.Get("X-Jarvis-Auth") != "ZTBmZjI3MGE2M2YzYzAzOWI1MjhiYTNi" {
-		return []errors.Error{errmsg.MissingJarvisIDError}
+		return []errors.Error{errmsg.ErrMissingJarvisID}
 	}
 
 	var account = &entity.Account{}
 
 	if er := json.Unmarshal(ctx.Body, account); er != nil {
-		return []errors.Error{errmsg.BadJsonReceivedError.UpdateMessage(er.Error())}
+		return []errors.Error{errmsg.ErrBadJSONReceived.UpdateMessage(er.Error())}
 	}
 
 	if err = validator.CreateAccount(account); err != nil {
@@ -108,11 +108,11 @@ func (acc *account) Create(ctx *context.Context) (err []errors.Error) {
 func (acc *account) PopulateContext(ctx *context.Context) (err []errors.Error) {
 	user, pass, ok := ctx.BasicAuth()
 	if !ok {
-		return []errors.Error{errmsg.InvalidAccountCredentialsError.UpdateInternalMessage(fmt.Sprintf("got %s:%s", user, pass))}
+		return []errors.Error{errmsg.ErrInvalidAccountCredentials.UpdateInternalMessage(fmt.Sprintf("got %s:%s", user, pass))}
 	}
 	account, err := acc.storage.FindByKey(user)
 	if account == nil {
-		return []errors.Error{errmsg.AccountNotFoundError}
+		return []errors.Error{errmsg.ErrAccountNotFound}
 	}
 	if err == nil {
 		ctx.Bag["account"] = account

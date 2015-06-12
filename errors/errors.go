@@ -133,7 +133,7 @@ func (err myError) Error() string {
 // ErrorWithLocation returns the error and the location where it happened if that information is present
 func (err myError) ErrorWithLocation() string {
 	if err.location != "" {
-		return fmt.Sprintf("%q in %s", err.errCode, err.message, err.location)
+		return fmt.Sprintf("%q in %s", err.message, err.location)
 	}
 	return err.message
 }

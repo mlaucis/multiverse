@@ -21,32 +21,32 @@ const (
 // CreateAccount validates an account on create
 func CreateAccount(account *entity.Account) (errs []errors.Error) {
 	if !StringLengthBetween(account.Name, accountNameMin, accountNameMax) {
-		errs = append(errs, errmsg.AccountNameSizeError)
+		errs = append(errs, errmsg.ErrAccountNameSize)
 	}
 
 	if !StringLengthBetween(account.Description, accountDescriptionMin, accountDescriptionMax) {
-		errs = append(errs, errmsg.AccountDescriptionSizeError)
+		errs = append(errs, errmsg.ErrAccountDescriptionSize)
 	}
 
 	if !alphaNumExtraCharFirst.MatchString(account.Name) {
-		errs = append(errs, errmsg.AccountNameTypeError)
+		errs = append(errs, errmsg.ErrAccountNameType)
 	}
 
 	if !alphaNumExtraCharFirst.MatchString(account.Description) {
-		errs = append(errs, errmsg.AccountDescriptionTypeError)
+		errs = append(errs, errmsg.ErrAccountDescriptionType)
 	}
 
 	if account.ID != 0 {
-		errs = append(errs, errmsg.AccountIDIsAlreadySetError)
+		errs = append(errs, errmsg.ErrAccountIDIsAlreadySet)
 	}
 
 	if account.AuthToken != "" {
-		errs = append(errs, errmsg.AccountTokenAlreadySetError)
+		errs = append(errs, errmsg.ErrAccountTokenAlreadySet)
 	}
 
 	if len(account.Images) > 0 {
 		if !checkImages(account.Images) {
-			errs = append(errs, errmsg.InvalidImageURLError)
+			errs = append(errs, errmsg.ErrInvalidImageURL)
 		}
 	}
 
@@ -56,28 +56,28 @@ func CreateAccount(account *entity.Account) (errs []errors.Error) {
 // UpdateAccount validates an account on update
 func UpdateAccount(existingAccount, updatedAccount *entity.Account) (errs []errors.Error) {
 	if updatedAccount.ID == 0 {
-		errs = append(errs, errmsg.AccountIDZeroError)
+		errs = append(errs, errmsg.ErrAccountIDZero)
 	}
 
 	if !StringLengthBetween(updatedAccount.Name, accountNameMin, accountNameMax) {
-		errs = append(errs, errmsg.AccountNameSizeError)
+		errs = append(errs, errmsg.ErrAccountNameSize)
 	}
 
 	if !StringLengthBetween(updatedAccount.Description, accountDescriptionMin, accountDescriptionMax) {
-		errs = append(errs, errmsg.AccountDescriptionSizeError)
+		errs = append(errs, errmsg.ErrAccountDescriptionSize)
 	}
 
 	if !alphaNumExtraCharFirst.MatchString(updatedAccount.Name) {
-		errs = append(errs, errmsg.AccountNameTypeError)
+		errs = append(errs, errmsg.ErrAccountNameType)
 	}
 
 	if !alphaNumExtraCharFirst.MatchString(updatedAccount.Description) {
-		errs = append(errs, errmsg.AccountDescriptionTypeError)
+		errs = append(errs, errmsg.ErrAccountDescriptionType)
 	}
 
 	if len(updatedAccount.Images) > 0 {
 		if !checkImages(updatedAccount.Images) {
-			errs = append(errs, errmsg.InvalidImageURLError)
+			errs = append(errs, errmsg.ErrInvalidImageURL)
 		}
 	}
 

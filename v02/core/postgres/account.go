@@ -42,7 +42,7 @@ func (a *account) Create(account *entity.Account, retrieve bool) (*entity.Accoun
 
 	accountJSON, err := json.Marshal(account)
 	if err != nil {
-		return nil, []errors.Error{errmsg.InternalAccountCreationError.SetCurrentLocation().UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalAccountCreation.SetCurrentLocation().UpdateInternalMessage(err.Error())}
 	}
 
 	var createdAccountID int64
@@ -50,7 +50,7 @@ func (a *account) Create(account *entity.Account, retrieve bool) (*entity.Accoun
 		QueryRow(createAccountQuery, string(accountJSON)).
 		Scan(&createdAccountID)
 	if err != nil {
-		return nil, []errors.Error{errmsg.InternalAccountCreationError.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalAccountCreation.UpdateInternalMessage(err.Error())}
 	}
 
 	if !retrieve {
@@ -69,13 +69,13 @@ func (a *account) Read(accountID int64) (*entity.Account, []errors.Error) {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
-		return nil, []errors.Error{errmsg.InternalAccountReadError.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalAccountRead.UpdateInternalMessage(err.Error())}
 	}
 
 	acc := &entity.Account{}
 	err = json.Unmarshal([]byte(JSONData), acc)
 	if err != nil {
-		return nil, []errors.Error{errmsg.InternalAccountReadError.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalAccountRead.UpdateInternalMessage(err.Error())}
 	}
 	acc.ID = accountID
 
@@ -90,12 +90,12 @@ func (a *account) Update(existingAccount, updatedAccount entity.Account, retriev
 	updatedAccount.UpdatedAt = &timeNow
 	accountJSON, err := json.Marshal(updatedAccount)
 	if err != nil {
-		return nil, []errors.Error{errmsg.InternalAccountUpdateError.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalAccountUpdate.UpdateInternalMessage(err.Error())}
 	}
 
 	_, err = a.mainPg.Exec(updateAccountByIDQuery, string(accountJSON), existingAccount.ID)
 	if err != nil {
-		return nil, []errors.Error{errmsg.InternalAccountUpdateError.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalAccountUpdate.UpdateInternalMessage(err.Error())}
 	}
 
 	if !retrieve {
@@ -108,7 +108,7 @@ func (a *account) Update(existingAccount, updatedAccount entity.Account, retriev
 func (a *account) Delete(account *entity.Account) []errors.Error {
 	_, err := a.mainPg.Exec(deleteAccountByIDQuery, account.ID)
 	if err != nil {
-		return []errors.Error{errmsg.InternalAccountDeleteError.UpdateInternalMessage(err.Error())}
+		return []errors.Error{errmsg.ErrInternalAccountDelete.UpdateInternalMessage(err.Error())}
 	}
 	return nil
 }
@@ -119,7 +119,7 @@ func (a *account) Exists(accountID int64) (bool, []errors.Error) {
 		QueryRow(selectAccountByIDQuery, accountID).
 		Scan(&JSONData)
 	if err != nil {
-		return false, []errors.Error{errmsg.InternalAccountReadError.UpdateInternalMessage(err.Error())}
+		return false, []errors.Error{errmsg.ErrInternalAccountRead.UpdateInternalMessage(err.Error())}
 	}
 	return true, nil
 }
@@ -136,12 +136,12 @@ func (a *account) FindByKey(authKey string) (*entity.Account, []errors.Error) {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
-		return nil, []errors.Error{errmsg.InternalAccountReadError.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalAccountRead.UpdateInternalMessage(err.Error())}
 	}
 	account := &entity.Account{}
 	err = json.Unmarshal([]byte(JSONData), account)
 	if err != nil {
-		return nil, []errors.Error{errmsg.InternalAccountReadError.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalAccountRead.UpdateInternalMessage(err.Error())}
 	}
 	account.ID = ID
 
@@ -158,14 +158,14 @@ func (a *account) ReadByPublicID(id string) (*entity.Account, []errors.Error) {
 		Scan(&ID, &JSONData)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, []errors.Error{errmsg.AccountNotFoundError}
+			return nil, []errors.Error{errmsg.ErrAccountNotFound}
 		}
-		return nil, []errors.Error{errmsg.InternalAccountReadError.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalAccountRead.UpdateInternalMessage(err.Error())}
 	}
 	account := &entity.Account{}
 	err = json.Unmarshal([]byte(JSONData), account)
 	if err != nil {
-		return nil, []errors.Error{errmsg.InternalAccountReadError.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalAccountRead.UpdateInternalMessage(err.Error())}
 	}
 	account.ID = ID
 

@@ -36,11 +36,11 @@ func (accUser *accountUser) Update(ctx *context.Context) (err []errors.Error) {
 	accountUser := *(ctx.Bag["accountUser"].(*entity.AccountUser))
 
 	if accountUser.PublicID != ctx.Vars["accountUserID"] {
-		return []errors.Error{errmsg.AccountUserMismatchError}
+		return []errors.Error{errmsg.ErrAccountUserMismatchErr}
 	}
 
 	if er := json.Unmarshal(ctx.Body, &accountUser); er != nil {
-		return []errors.Error{errmsg.BadJsonReceivedError.UpdateMessage(er.Error())}
+		return []errors.Error{errmsg.ErrBadJSONReceived.UpdateMessage(er.Error())}
 	}
 
 	accountUser.ID = ctx.Bag["accountUserID"].(int64)
@@ -62,12 +62,12 @@ func (accUser *accountUser) Update(ctx *context.Context) (err []errors.Error) {
 
 func (accUser *accountUser) Delete(ctx *context.Context) (err []errors.Error) {
 	if ctx.R.Header.Get("X-Jarvis-Auth") != "ZTBmZjI3MGE2M2YzYzAzOWI1MjhiYTNi" {
-		return []errors.Error{errmsg.MissingJarvisIDError}
+		return []errors.Error{errmsg.ErrMissingJarvisID}
 	}
 
 	accountUserID := ctx.Vars["accountUserID"]
 	if !validator.IsValidUUID5(accountUserID) {
-		return []errors.Error{errmsg.InvalidUserIDError}
+		return []errors.Error{errmsg.ErrInvalidUserID}
 	}
 	accountUser, err := accUser.storage.FindByPublicID(ctx.Bag["accountID"].(int64), accountUserID)
 	if err != nil {
@@ -84,13 +84,13 @@ func (accUser *accountUser) Delete(ctx *context.Context) (err []errors.Error) {
 
 func (accUser *accountUser) Create(ctx *context.Context) (err []errors.Error) {
 	if ctx.R.Header.Get("X-Jarvis-Auth") != "ZTBmZjI3MGE2M2YzYzAzOWI1MjhiYTNi" {
-		return []errors.Error{errmsg.MissingJarvisIDError}
+		return []errors.Error{errmsg.ErrMissingJarvisID}
 	}
 
 	var accountUser = &entity.AccountUser{}
 
 	if err := json.Unmarshal(ctx.Body, accountUser); err != nil {
-		return []errors.Error{errmsg.BadJsonReceivedError.UpdateMessage(err.Error())}
+		return []errors.Error{errmsg.ErrBadJSONReceived.UpdateMessage(err.Error())}
 	}
 
 	accountUser.AccountID = ctx.Bag["accountID"].(int64)
@@ -145,7 +145,7 @@ func (accUser *accountUser) Login(ctx *context.Context) (err []errors.Error) {
 	)
 
 	if er = json.Unmarshal(ctx.Body, loginPayload); er != nil {
-		return []errors.Error{errmsg.BadJsonReceivedError.UpdateMessage(er.Error())}
+		return []errors.Error{errmsg.ErrBadJSONReceived.UpdateMessage(er.Error())}
 	}
 
 	if err = validator.IsValidLoginPayload(loginPayload); err != nil {
@@ -167,7 +167,7 @@ func (accUser *accountUser) Login(ctx *context.Context) (err []errors.Error) {
 	}
 
 	if account == nil || user == nil {
-		return []errors.Error{errmsg.AccountUserNotFoundError}
+		return []errors.Error{errmsg.ErrAccountUserNotFound}
 	}
 
 	if err = validator.AccountUserCredentialsValid(loginPayload.Password, user); err != nil {
@@ -209,11 +209,11 @@ func (accUser *accountUser) RefreshSession(ctx *context.Context) (err []errors.E
 	)
 
 	if er := json.Unmarshal(ctx.Body, &tokenPayload); er != nil {
-		return []errors.Error{errmsg.BadJsonReceivedError.UpdateMessage(er.Error())}
+		return []errors.Error{errmsg.ErrBadJSONReceived.UpdateMessage(er.Error())}
 	}
 
 	if ctx.SessionToken != tokenPayload.Token {
-		return []errors.Error{errmsg.SessionTokenMismatchError}
+		return []errors.Error{errmsg.ErrSessionTokenMismatch}
 	}
 
 	if sessionToken, err = accUser.storage.RefreshSession(ctx.SessionToken, ctx.Bag["accountUser"].(*entity.AccountUser)); err != nil {
@@ -239,11 +239,11 @@ func (accUser *accountUser) Logout(ctx *context.Context) (err []errors.Error) {
 func (accUser *accountUser) PopulateContext(ctx *context.Context) (err []errors.Error) {
 	user, pass, ok := ctx.BasicAuth()
 	if !ok {
-		return []errors.Error{errmsg.InvalidAccountUserCredentialsError.UpdateInternalMessage(fmt.Sprintf("got %s:%s", user, pass))}
+		return []errors.Error{errmsg.ErrInvalidAccountUserCredentials.UpdateInternalMessage(fmt.Sprintf("got %s:%s", user, pass))}
 	}
 	accountUser, err := accUser.storage.FindBySession(pass)
 	if accountUser == nil {
-		return []errors.Error{errmsg.AccountUserNotFoundError}
+		return []errors.Error{errmsg.ErrAccountUserNotFound}
 	}
 	if err == nil {
 		ctx.Bag["accountUser"] = accountUser

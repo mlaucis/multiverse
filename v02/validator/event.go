@@ -19,21 +19,21 @@ const (
 // CreateEvent validates an event on create
 func CreateEvent(datastore core.ApplicationUser, accountID, applicationID int64, event *entity.Event) (errs []errors.Error) {
 	if !StringLengthBetween(event.Type, verbMin, verbMax) {
-		errs = append(errs, errmsg.VerbSizeError)
+		errs = append(errs, errmsg.ErrVerbSize)
 	}
 
 	if !alphaNumExtraCharFirst.MatchString(event.Type) {
-		errs = append(errs, errmsg.VerbTypeError)
+		errs = append(errs, errmsg.ErrVerbType)
 	}
 
 	if event.ID != "" {
-		errs = append(errs, errmsg.EventIDIsAlreadySetError)
+		errs = append(errs, errmsg.ErrEventIDIsAlreadySet)
 	}
 
 	if event.Visibility == 0 {
-		errs = append(errs, errmsg.EventMissingVisiblityError)
+		errs = append(errs, errmsg.ErrEventMissingVisiblity)
 	} else if event.Visibility != 10 && event.Visibility != 20 && event.Visibility != 30 {
-		errs = append(errs, errmsg.EventInvalidVisiblityError)
+		errs = append(errs, errmsg.ErrEventInvalidVisiblity)
 	}
 
 	if len(errs) == 0 {
@@ -42,7 +42,7 @@ func CreateEvent(datastore core.ApplicationUser, accountID, applicationID int64,
 			if err != nil {
 				errs = append(errs, err...)
 			} else {
-				errs = append(errs, errmsg.ApplicationUserNotFoundError)
+				errs = append(errs, errmsg.ErrApplicationUserNotFound)
 			}
 		}
 	}
@@ -53,17 +53,17 @@ func CreateEvent(datastore core.ApplicationUser, accountID, applicationID int64,
 // UpdateEvent validates an event on update
 func UpdateEvent(existingEvent, event *entity.Event) (errs []errors.Error) {
 	if !StringLengthBetween(event.Type, verbMin, verbMax) {
-		errs = append(errs, errmsg.VerbSizeError)
+		errs = append(errs, errmsg.ErrVerbSize)
 	}
 
 	if !alphaNumExtraCharFirst.MatchString(event.Type) {
-		errs = append(errs, errmsg.VerbTypeError)
+		errs = append(errs, errmsg.ErrVerbType)
 	}
 
 	if event.Visibility == 0 {
-		errs = append(errs, errmsg.EventMissingVisiblityError)
+		errs = append(errs, errmsg.ErrEventMissingVisiblity)
 	} else if event.Visibility != entity.EventPrivate && event.Visibility != entity.EventConnections && event.Visibility != entity.EventPublic {
-		errs = append(errs, errmsg.EventInvalidVisiblityError)
+		errs = append(errs, errmsg.ErrEventInvalidVisiblity)
 	}
 
 	// TODO define more rules for updating an event

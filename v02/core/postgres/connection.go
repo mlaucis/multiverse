@@ -39,7 +39,7 @@ const (
 
 func (c *connection) Create(accountID, applicationID int64, connection *entity.Connection, retrieve bool) (*entity.Connection, []errors.Error) {
 	exists, er := c.Read(accountID, applicationID, connection.UserFromID, connection.UserToID)
-	if er != nil && er[0] != errmsg.ConnectionNotFoundError {
+	if er != nil && er[0] != errmsg.ErrConnectionNotFound {
 		return nil, er
 	}
 	if exists != nil {
@@ -48,29 +48,29 @@ func (c *connection) Create(accountID, applicationID int64, connection *entity.C
 			return c.Update(accountID, applicationID, *exists, *exists, true)
 		}
 
-		return nil, []errors.Error{errmsg.ConnectionAlreadyExistsError}
+		return nil, []errors.Error{errmsg.ErrConnectionAlreadyExists}
 	}
 
 	timeNow := time.Now()
 	connection.CreatedAt, connection.UpdatedAt = &timeNow, &timeNow
 	connectionJSON, err := json.Marshal(connection)
 	if err != nil {
-		return nil, []errors.Error{errmsg.InternalConnectionCreationError.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalConnectionCreation.UpdateInternalMessage(err.Error())}
 	}
 	_, err = c.mainPg.Exec(appSchema(createConnectionQuery, accountID, applicationID), string(connectionJSON))
 	if err != nil {
-		return nil, []errors.Error{errmsg.InternalConnectionCreationError.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalConnectionCreation.UpdateInternalMessage(err.Error())}
 	}
 
 	if connection.Type == "friend" {
 		connection.UserFromID, connection.UserToID = connection.UserToID, connection.UserFromID
 		connectionJSON, err = json.Marshal(connection)
 		if err != nil {
-			return nil, []errors.Error{errmsg.InternalConnectionCreationError.UpdateInternalMessage(err.Error())}
+			return nil, []errors.Error{errmsg.ErrInternalConnectionCreation.UpdateInternalMessage(err.Error())}
 		}
 		_, err = c.mainPg.Exec(appSchema(createConnectionQuery, accountID, applicationID), string(connectionJSON))
 		if err != nil {
-			return nil, []errors.Error{errmsg.InternalConnectionCreationError.UpdateInternalMessage(err.Error())}
+			return nil, []errors.Error{errmsg.ErrInternalConnectionCreation.UpdateInternalMessage(err.Error())}
 		}
 		// Switch back so we have the original IDs in place
 		connection.UserFromID, connection.UserToID = connection.UserToID, connection.UserFromID
@@ -89,15 +89,15 @@ func (c *connection) Read(accountID, applicationID int64, userFromID, userToID s
 		Scan(&JSONData)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, []errors.Error{errmsg.ConnectionNotFoundError}
+			return nil, []errors.Error{errmsg.ErrConnectionNotFound}
 		}
-		return nil, []errors.Error{errmsg.InternalConnectionReadError.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalConnectionRead.UpdateInternalMessage(err.Error())}
 	}
 
 	connection := &entity.Connection{}
 	err = json.Unmarshal([]byte(JSONData), connection)
 	if err != nil {
-		return nil, []errors.Error{errmsg.InternalConnectionReadError.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalConnectionRead.UpdateInternalMessage(err.Error())}
 	}
 
 	return connection, nil
@@ -108,14 +108,14 @@ func (c *connection) Update(accountID, applicationID int64, existingConnection, 
 	updatedConnection.UpdatedAt = &timeNow
 	connectionJSON, err := json.Marshal(updatedConnection)
 	if err != nil {
-		return nil, []errors.Error{errmsg.InternalConnectionUpdateError.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalConnectionUpdate.UpdateInternalMessage(err.Error())}
 	}
 
 	_, err = c.mainPg.Exec(
 		appSchema(updateConnectionQuery, accountID, applicationID),
 		string(connectionJSON), existingConnection.UserFromID, existingConnection.UserToID)
 	if err != nil {
-		return nil, []errors.Error{errmsg.InternalConnectionUpdateError.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalConnectionUpdate.UpdateInternalMessage(err.Error())}
 	}
 
 	if !retrieve {
@@ -144,7 +144,7 @@ func (c *connection) List(accountID, applicationID int64, userID string) (users 
 	rows, err := c.pg.SlaveDatastore(-1).
 		Query(appSchema(followsQuery, accountID, applicationID), userID)
 	if err != nil {
-		return nil, []errors.Error{errmsg.InternalApplicationUserListError.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalApplicationUserList.UpdateInternalMessage(err.Error())}
 	}
 	defer rows.Close()
 
@@ -152,12 +152,12 @@ func (c *connection) List(accountID, applicationID int64, userID string) (users 
 		var JSONData string
 		err := rows.Scan(&JSONData)
 		if err != nil {
-			return nil, []errors.Error{errmsg.InternalFollowingListError.UpdateInternalMessage(err.Error())}
+			return nil, []errors.Error{errmsg.ErrInternalFollowingList.UpdateInternalMessage(err.Error())}
 		}
 		conn := &entity.Connection{}
 		err = json.Unmarshal([]byte(JSONData), conn)
 		if err != nil {
-			return nil, []errors.Error{errmsg.InternalFollowingListError.UpdateInternalMessage(err.Error())}
+			return nil, []errors.Error{errmsg.ErrInternalFollowingList.UpdateInternalMessage(err.Error())}
 		}
 		user, er := c.appUser.Read(accountID, applicationID, conn.UserToID)
 		if er != nil {
@@ -176,19 +176,19 @@ func (c *connection) FollowedBy(accountID, applicationID int64, userID string) (
 	rows, err := c.pg.SlaveDatastore(-1).
 		Query(appSchema(followersQuery, accountID, applicationID), userID)
 	if err != nil {
-		return nil, []errors.Error{errmsg.InternalApplicationUserListError.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalApplicationUserList.UpdateInternalMessage(err.Error())}
 	}
 	defer rows.Close()
 	for rows.Next() {
 		var JSONData string
 		err := rows.Scan(&JSONData)
 		if err != nil {
-			return nil, []errors.Error{errmsg.InternalFollowersListError.UpdateInternalMessage(err.Error())}
+			return nil, []errors.Error{errmsg.ErrInternalFollowersList.UpdateInternalMessage(err.Error())}
 		}
 		conn := &entity.Connection{}
 		err = json.Unmarshal([]byte(JSONData), conn)
 		if err != nil {
-			return nil, []errors.Error{errmsg.InternalFollowersListError.UpdateInternalMessage(err.Error())}
+			return nil, []errors.Error{errmsg.ErrInternalFollowersList.UpdateInternalMessage(err.Error())}
 		}
 		user, er := c.appUser.Read(accountID, applicationID, conn.UserFromID)
 		if er != nil {
@@ -207,19 +207,19 @@ func (c *connection) Friends(accountID, applicationID int64, userID string) ([]*
 	rows, err := c.pg.SlaveDatastore(-1).
 		Query(appSchema(friendConnectionsQuery, accountID, applicationID), userID)
 	if err != nil {
-		return nil, []errors.Error{errmsg.InternalApplicationUserListError.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalApplicationUserList.UpdateInternalMessage(err.Error())}
 	}
 	defer rows.Close()
 	for rows.Next() {
 		var JSONData string
 		err := rows.Scan(&JSONData)
 		if err != nil {
-			return nil, []errors.Error{errmsg.InternalFriendsListError.UpdateInternalMessage(err.Error())}
+			return nil, []errors.Error{errmsg.ErrInternalFriendsList.UpdateInternalMessage(err.Error())}
 		}
 		conn := &entity.Connection{}
 		err = json.Unmarshal([]byte(JSONData), conn)
 		if err != nil {
-			return nil, []errors.Error{errmsg.InternalFriendsListError.UpdateInternalMessage(err.Error())}
+			return nil, []errors.Error{errmsg.ErrInternalFriendsList.UpdateInternalMessage(err.Error())}
 		}
 		user, er := c.appUser.Read(accountID, applicationID, conn.UserFromID)
 		if er != nil {
@@ -238,7 +238,7 @@ func (c *connection) FriendsAndFollowing(accountID, applicationID int64, userID 
 	rows, err := c.pg.SlaveDatastore(-1).
 		Query(appSchema(friendAndFollowingConnectionsQuery, accountID, applicationID), userID)
 	if err != nil {
-		return nil, []errors.Error{errmsg.InternalApplicationUserListError.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalApplicationUserList.UpdateInternalMessage(err.Error())}
 	}
 	defer rows.Close()
 
@@ -246,12 +246,12 @@ func (c *connection) FriendsAndFollowing(accountID, applicationID int64, userID 
 		var JSONData string
 		err := rows.Scan(&JSONData)
 		if err != nil {
-			return nil, []errors.Error{errmsg.InternalFriendsListError.UpdateInternalMessage(err.Error())}
+			return nil, []errors.Error{errmsg.ErrInternalFriendsList.UpdateInternalMessage(err.Error())}
 		}
 		conn := &entity.Connection{}
 		err = json.Unmarshal([]byte(JSONData), conn)
 		if err != nil {
-			return nil, []errors.Error{errmsg.InternalFriendsListError.UpdateInternalMessage(err.Error())}
+			return nil, []errors.Error{errmsg.ErrInternalFriendsList.UpdateInternalMessage(err.Error())}
 		}
 		user, er := c.appUser.Read(accountID, applicationID, conn.UserToID)
 		if er != nil {
@@ -284,11 +284,11 @@ func (c *connection) Confirm(accountID, applicationID int64, connection *entity.
 }
 
 func (c *connection) WriteEventsToList(accountID, applicationID int64, connection *entity.Connection) (err []errors.Error) {
-	return []errors.Error{errmsg.NotImplementedYetError}
+	return []errors.Error{errmsg.ErrNotImplementedYet}
 }
 
 func (c *connection) DeleteEventsFromLists(accountID, applicationID int64, userFromID, userToID string) (err []errors.Error) {
-	return []errors.Error{errmsg.NotImplementedYetError}
+	return []errors.Error{errmsg.ErrNotImplementedYet}
 }
 
 func (c *connection) SocialConnect(accountID, applicationID int64, user *entity.ApplicationUser, platform string, socialFriendsIDs []string, connectionType string) ([]*entity.ApplicationUser, []errors.Error) {
@@ -306,19 +306,19 @@ func (c *connection) SocialConnect(accountID, applicationID int64, user *entity.
 	dbUsers, err := c.pg.SlaveDatastore(-1).
 		Query(fmt.Sprintf(listUsersBySocialIDQuery, accountID, applicationID, strings.Join(conditions, " OR ")))
 	if err != nil {
-		return nil, []errors.Error{errmsg.InternalConnectingUsersError.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalConnectingUsers.UpdateInternalMessage(err.Error())}
 	}
 	defer dbUsers.Close()
 	for dbUsers.Next() {
 		var JSONData string
 		err := dbUsers.Scan(&JSONData)
 		if err != nil {
-			return nil, []errors.Error{errmsg.InternalConnectingUsersError.UpdateInternalMessage(err.Error())}
+			return nil, []errors.Error{errmsg.ErrInternalConnectingUsers.UpdateInternalMessage(err.Error())}
 		}
 		user := &entity.ApplicationUser{}
 		err = json.Unmarshal([]byte(JSONData), user)
 		if err != nil {
-			return nil, []errors.Error{errmsg.InternalConnectingUsersError.UpdateInternalMessage(err.Error())}
+			return nil, []errors.Error{errmsg.ErrInternalConnectingUsers.UpdateInternalMessage(err.Error())}
 		}
 		users = append(users, user)
 	}
@@ -357,7 +357,7 @@ func (c *connection) AutoConnectSocialFriends(accountID, applicationID int64, us
 		}
 
 		if _, err := c.Create(accountID, applicationID, connection, false); err != nil {
-			if err[0] != errmsg.ConnectionAlreadyExistsError {
+			if err[0] != errmsg.ErrConnectionAlreadyExists {
 				return nil, err
 			}
 		}

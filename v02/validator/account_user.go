@@ -26,56 +26,56 @@ const (
 // CreateAccountUser validates an account user on create
 func CreateAccountUser(datastore core.AccountUser, accountUser *entity.AccountUser) (errs []errors.Error) {
 	if !StringLengthBetween(accountUser.FirstName, accountUserNameMin, accountUserNameMax) {
-		errs = append(errs, errmsg.AccountUserFirstNameSizeError)
+		errs = append(errs, errmsg.ErrAccountUserFirstNameSize)
 	}
 
 	if !StringLengthBetween(accountUser.LastName, accountUserNameMin, accountUserNameMax) {
-		errs = append(errs, errmsg.AccountUserLastNameSizeError)
+		errs = append(errs, errmsg.ErrAccountUserLastNameSize)
 	}
 
 	if !StringLengthBetween(accountUser.Username, accountUserNameMin, accountUserNameMax) {
-		errs = append(errs, errmsg.AccountUserUsernameSizeError)
+		errs = append(errs, errmsg.ErrAccountUserUsernameSize)
 	}
 
 	if !StringLengthBetween(accountUser.Password, accountUserPasswordMin, accountUserPasswordMax) {
-		errs = append(errs, errmsg.AccountUserPasswordSizeError)
+		errs = append(errs, errmsg.ErrAccountUserPasswordSize)
 	}
 
 	if !alphaNumExtraCharFirst.MatchString(accountUser.FirstName) {
-		errs = append(errs, errmsg.AccountUserFirstNameTypeError)
+		errs = append(errs, errmsg.ErrAccountUserFirstNameType)
 	}
 
 	if !alphaNumExtraCharFirst.MatchString(accountUser.LastName) {
-		errs = append(errs, errmsg.AccountUserLastNameTypeError)
+		errs = append(errs, errmsg.ErrAccountUserLastNameType)
 	}
 
 	if !alphaNumExtraCharFirst.MatchString(accountUser.Username) {
-		errs = append(errs, errmsg.AccountUserUsernameTypeError)
+		errs = append(errs, errmsg.ErrAccountUserUsernameType)
 	}
 
 	// TODO add validation for password rules such as use all type of chars
 
 	if accountUser.AccountID == 0 {
-		errs = append(errs, errmsg.AccountIDZeroError)
+		errs = append(errs, errmsg.ErrAccountIDZero)
 	}
 
 	if accountUser.Email == "" || !IsValidEmail(accountUser.Email) {
-		errs = append(errs, errmsg.AccountUserEmailInvalidError)
+		errs = append(errs, errmsg.ErrAccountUserEmailInvalid)
 	}
 
 	if accountUser.URL != "" && !IsValidURL(accountUser.URL, false) {
-		errs = append(errs, errmsg.AccountUserURLInvalidError)
+		errs = append(errs, errmsg.ErrAccountUserURLInvalid)
 	}
 
 	if len(accountUser.Images) > 0 {
 		if !checkImages(accountUser.Images) {
-			errs = append(errs, errmsg.InvalidImageURLError)
+			errs = append(errs, errmsg.ErrInvalidImageURL)
 		}
 	}
 
 	if isDuplicate, err := DuplicateAccountUserEmail(datastore, accountUser.Email); isDuplicate || err != nil {
 		if isDuplicate {
-			errs = append(errs, errmsg.UserEmailAlreadyExistsError)
+			errs = append(errs, errmsg.ErrUserEmailAlreadyExists)
 		} else {
 			errs = append(errs, err...)
 		}
@@ -83,7 +83,7 @@ func CreateAccountUser(datastore core.AccountUser, accountUser *entity.AccountUs
 
 	if isDuplicate, err := DuplicateAccountUserUsername(datastore, accountUser.Username); isDuplicate || err != nil {
 		if isDuplicate {
-			errs = append(errs, errmsg.UserEmailAlreadyExistsError)
+			errs = append(errs, errmsg.ErrUserEmailAlreadyExists)
 		} else {
 			errs = append(errs, err...)
 		}
@@ -95,54 +95,54 @@ func CreateAccountUser(datastore core.AccountUser, accountUser *entity.AccountUs
 // UpdateAccountUser validates an account user on update
 func UpdateAccountUser(datastore core.AccountUser, existingAccountUser, updatedAccountUser *entity.AccountUser) (errs []errors.Error) {
 	if !StringLengthBetween(updatedAccountUser.FirstName, accountUserNameMin, accountUserNameMax) {
-		errs = append(errs, errmsg.AccountUserFirstNameSizeError)
+		errs = append(errs, errmsg.ErrAccountUserFirstNameSize)
 	}
 
 	if !StringLengthBetween(updatedAccountUser.LastName, accountUserNameMin, accountUserNameMax) {
-		errs = append(errs, errmsg.AccountUserLastNameSizeError)
+		errs = append(errs, errmsg.ErrAccountUserLastNameSize)
 	}
 
 	if !StringLengthBetween(updatedAccountUser.Username, accountUserNameMin, accountUserNameMax) {
-		errs = append(errs, errmsg.AccountUserUsernameSizeError)
+		errs = append(errs, errmsg.ErrAccountUserUsernameSize)
 	}
 
 	if updatedAccountUser.Password != "" {
 		if !StringLengthBetween(updatedAccountUser.Password, accountUserPasswordMin, accountUserPasswordMax) {
-			errs = append(errs, errmsg.AccountUserPasswordSizeError)
+			errs = append(errs, errmsg.ErrAccountUserPasswordSize)
 		}
 	}
 
 	if !alphaNumExtraCharFirst.MatchString(updatedAccountUser.FirstName) {
-		errs = append(errs, errmsg.AccountUserFirstNameTypeError)
+		errs = append(errs, errmsg.ErrAccountUserFirstNameType)
 	}
 
 	if !alphaNumExtraCharFirst.MatchString(updatedAccountUser.LastName) {
-		errs = append(errs, errmsg.AccountUserLastNameTypeError)
+		errs = append(errs, errmsg.ErrAccountUserLastNameType)
 	}
 
 	if !alphaNumExtraCharFirst.MatchString(updatedAccountUser.Username) {
-		errs = append(errs, errmsg.AccountUserUsernameTypeError)
+		errs = append(errs, errmsg.ErrAccountUserUsernameType)
 	}
 
 	// TODO add validation for password rules such as use all type of chars
 	if updatedAccountUser.Email == "" || !IsValidEmail(updatedAccountUser.Email) {
-		errs = append(errs, errmsg.AccountUserEmailInvalidError)
+		errs = append(errs, errmsg.ErrAccountUserEmailInvalid)
 	}
 
 	if updatedAccountUser.URL != "" && !IsValidURL(updatedAccountUser.URL, true) {
-		errs = append(errs, errmsg.AccountUserURLInvalidError)
+		errs = append(errs, errmsg.ErrAccountUserURLInvalid)
 	}
 
 	if len(updatedAccountUser.Images) > 0 {
 		if !checkImages(updatedAccountUser.Images) {
-			errs = append(errs, errmsg.InvalidImageURLError)
+			errs = append(errs, errmsg.ErrInvalidImageURL)
 		}
 	}
 
 	if existingAccountUser.Email != updatedAccountUser.Email {
 		if isDuplicate, err := DuplicateAccountUserEmail(datastore, updatedAccountUser.Email); isDuplicate || err != nil {
 			if isDuplicate {
-				errs = append(errs, errmsg.EmailAddressInUseError)
+				errs = append(errs, errmsg.ErrEmailAddressInUse)
 			} else if err != nil {
 				errs = append(errs, err...)
 			}
@@ -152,7 +152,7 @@ func UpdateAccountUser(datastore core.AccountUser, existingAccountUser, updatedA
 	if existingAccountUser.Username != updatedAccountUser.Username {
 		if isDuplicate, err := DuplicateAccountUserUsername(datastore, updatedAccountUser.Username); isDuplicate || err != nil {
 			if isDuplicate {
-				errs = append(errs, errmsg.UsernameInUseError)
+				errs = append(errs, errmsg.ErrUsernameInUse)
 			} else if err != nil {
 				errs = append(errs, err...)
 			}
@@ -166,27 +166,27 @@ func UpdateAccountUser(datastore core.AccountUser, existingAccountUser, updatedA
 func AccountUserCredentialsValid(password string, user *entity.AccountUser) (errs []errors.Error) {
 	pass, err := utils.Base64Decode(user.Password)
 	if err != nil {
-		return []errors.Error{errmsg.GenericAuthenticationError.UpdateInternalMessage(err.Error())}
+		return []errors.Error{errmsg.ErrGenericAuthentication.UpdateInternalMessage(err.Error())}
 	}
 	passwordParts := strings.SplitN(string(pass), ":", 3)
 	if len(passwordParts) != 3 {
-		return []errors.Error{errmsg.GenericAuthenticationError.UpdateInternalMessage("invalid password parts")}
+		return []errors.Error{errmsg.ErrGenericAuthentication.UpdateInternalMessage("invalid password parts")}
 	}
 
 	salt, err := utils.Base64Decode(passwordParts[0])
 	if err != nil {
-		return []errors.Error{errmsg.GenericAuthenticationError.UpdateInternalMessage(err.Error())}
+		return []errors.Error{errmsg.ErrGenericAuthentication.UpdateInternalMessage(err.Error())}
 	}
 
 	timestamp, err := utils.Base64Decode(passwordParts[1])
 	if err != nil {
-		return []errors.Error{errmsg.GenericAuthenticationError.UpdateInternalMessage(err.Error())}
+		return []errors.Error{errmsg.ErrGenericAuthentication.UpdateInternalMessage(err.Error())}
 	}
 
 	encryptedPassword := storageHelper.GenerateEncryptedPassword(password, string(salt), string(timestamp))
 
 	if encryptedPassword != passwordParts[2] {
-		return []errors.Error{errmsg.PasswordMismatchError}
+		return []errors.Error{errmsg.ErrPasswordMismatch}
 	}
 
 	return
@@ -198,7 +198,7 @@ func DuplicateAccountUserEmail(datastore core.AccountUser, email string) (isDupl
 		if err != nil {
 			return false, err
 		} else if userExists {
-			return true, []errors.Error{errmsg.UserEmailAlreadyExistsError}
+			return true, []errors.Error{errmsg.ErrUserEmailAlreadyExists}
 		}
 	}
 
@@ -211,7 +211,7 @@ func DuplicateAccountUserUsername(datastore core.AccountUser, username string) (
 		if err != nil {
 			return false, err
 		} else if userExists {
-			return true, []errors.Error{errmsg.UserUsernameAlreadyExistsError}
+			return true, []errors.Error{errmsg.ErrUserUsernameAlreadyExists}
 		}
 	}
 

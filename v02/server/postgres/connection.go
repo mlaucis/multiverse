@@ -41,12 +41,12 @@ func (conn *connection) Update(ctx *context.Context) (err []errors.Error) {
 		return
 	}
 	if existingConnection == nil {
-		return []errors.Error{errmsg.UsersNotConnectedError}
+		return []errors.Error{errmsg.ErrUsersNotConnected}
 	}
 
 	connection := *existingConnection
 	if er := json.Unmarshal(ctx.Body, &connection); er != nil {
-		return []errors.Error{errmsg.BadJsonReceivedError.UpdateMessage(er.Error())}
+		return []errors.Error{errmsg.ErrBadJSONReceived.UpdateMessage(er.Error())}
 	}
 
 	connection.UserFromID = userFromID
@@ -100,7 +100,7 @@ func (conn *connection) Create(ctx *context.Context) (err []errors.Error) {
 	connection.Enabled = true
 
 	if er = json.Unmarshal(ctx.Body, connection); er != nil {
-		return []errors.Error{errmsg.BadJsonReceivedError.UpdateMessage(er.Error())}
+		return []errors.Error{errmsg.ErrBadJSONReceived.UpdateMessage(er.Error())}
 	}
 
 	receivedEnabled := connection.Enabled
@@ -147,7 +147,7 @@ func (conn *connection) List(ctx *context.Context) (err []errors.Error) {
 	}
 
 	if !exists {
-		return []errors.Error{errmsg.ApplicationUserNotFoundError}
+		return []errors.Error{errmsg.ErrApplicationUserNotFound}
 	}
 
 	var users []*entity.ApplicationUser
@@ -222,7 +222,7 @@ func (conn *connection) FollowedByList(ctx *context.Context) (err []errors.Error
 	}
 
 	if !exists {
-		return []errors.Error{errmsg.ApplicationUserNotFoundError}
+		return []errors.Error{errmsg.ErrApplicationUserNotFound}
 	}
 
 	var users []*entity.ApplicationUser
@@ -285,7 +285,7 @@ func (conn *connection) Confirm(ctx *context.Context) (err []errors.Error) {
 	var connection = &entity.Connection{}
 
 	if er := json.Unmarshal(ctx.Body, connection); er != nil {
-		return []errors.Error{errmsg.BadJsonReceivedError.UpdateMessage(er.Error())}
+		return []errors.Error{errmsg.ErrBadJSONReceived.UpdateMessage(er.Error())}
 	}
 
 	accountID := ctx.Bag["accountID"].(int64)
@@ -323,11 +323,11 @@ func (conn *connection) CreateSocial(ctx *context.Context) (err []errors.Error) 
 	}{}
 
 	if er := json.Unmarshal(ctx.Body, &request); er != nil {
-		return []errors.Error{errmsg.BadJsonReceivedError.UpdateMessage(er.Error())}
+		return []errors.Error{errmsg.ErrBadJSONReceived.UpdateMessage(er.Error())}
 	}
 
 	if request.ConnectionType == "" || (request.ConnectionType != "friend" && request.ConnectionType != "follow") {
-		return []errors.Error{errmsg.WrongConnectionTypeError}
+		return []errors.Error{errmsg.ErrWrongConnectionType}
 	}
 
 	user := ctx.Bag["applicationUser"].(*entity.ApplicationUser)
@@ -388,7 +388,7 @@ func (conn *connection) Friends(ctx *context.Context) (err []errors.Error) {
 	}
 
 	if !exists {
-		return []errors.Error{errmsg.ApplicationUserNotFoundError}
+		return []errors.Error{errmsg.ErrApplicationUserNotFound}
 	}
 
 	var users []*entity.ApplicationUser

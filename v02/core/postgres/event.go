@@ -124,13 +124,13 @@ func (e *event) Create(accountID, applicationID int64, currentUserID string, eve
 
 	eventJSON, err := json.Marshal(event)
 	if err != nil {
-		return nil, []errors.Error{errmsg.InternalEventCreationError.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalEventCreation.UpdateInternalMessage(err.Error())}
 	}
 
 	_, err = e.mainPg.
 		Exec(appSchema(createEventQuery, accountID, applicationID), string(eventJSON), event.Latitude, event.Longitude)
 	if err != nil {
-		return nil, []errors.Error{errmsg.InternalEventCreationError.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalEventCreation.UpdateInternalMessage(err.Error())}
 	}
 
 	if !retrieve {
@@ -146,15 +146,15 @@ func (e *event) Read(accountID, applicationID int64, userID, currentUserID, even
 		Scan(&JSONData)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, []errors.Error{errmsg.EventNotFoundError}
+			return nil, []errors.Error{errmsg.ErrEventNotFound}
 		}
-		return nil, []errors.Error{errmsg.InternalEventReadError.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalEventRead.UpdateInternalMessage(err.Error())}
 	}
 
 	event := &entity.Event{}
 	err = json.Unmarshal([]byte(JSONData), event)
 	if err != nil {
-		return nil, []errors.Error{errmsg.InternalEventReadError.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalEventRead.UpdateInternalMessage(err.Error())}
 	}
 	event.ID = eventID
 
@@ -166,14 +166,14 @@ func (e *event) Update(accountID, applicationID int64, currentUserID string, exi
 	updatedEvent.UpdatedAt = &timeNow
 	eventJSON, err := json.Marshal(updatedEvent)
 	if err != nil {
-		return nil, []errors.Error{errmsg.InternalEventUpdateError.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalEventUpdate.UpdateInternalMessage(err.Error())}
 	}
 
 	_, err = e.mainPg.Exec(
 		appSchema(updateEventByIDQuery, accountID, applicationID),
 		string(eventJSON), updatedEvent.Latitude, updatedEvent.Longitude, existingEvent.ID, existingEvent.UserID)
 	if err != nil {
-		return nil, []errors.Error{errmsg.InternalEventUpdateError.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalEventUpdate.UpdateInternalMessage(err.Error())}
 	}
 
 	if !retrieve {
@@ -197,7 +197,7 @@ func (e *event) List(accountID, applicationID int64, userID, currentUserID strin
 	if userID == currentUserID {
 		query = listAllEventsByUserIDQuery
 	} else if _, err := e.c.Read(accountID, applicationID, currentUserID, userID); err != nil {
-		if err[0] == errmsg.ConnectionNotFoundError {
+		if err[0] == errmsg.ErrConnectionNotFound {
 			query = listPublicEventsByUserIDQuery
 		} else {
 			return []*entity.Event{}, err
@@ -209,7 +209,7 @@ func (e *event) List(accountID, applicationID int64, userID, currentUserID strin
 	rows, err := e.pg.SlaveDatastore(-1).
 		Query(appSchema(query, accountID, applicationID), userID)
 	if err != nil {
-		return events, []errors.Error{errmsg.InternalEventsListError.UpdateInternalMessage(err.Error())}
+		return events, []errors.Error{errmsg.ErrInternalEventsList.UpdateInternalMessage(err.Error())}
 	}
 	return e.rowsToSlice(rows)
 }
@@ -227,7 +227,7 @@ func (e *event) UserFeed(accountID, applicationID int64, user *entity.Applicatio
 	rows, err := e.pg.SlaveDatastore(-1).
 		Query(fmt.Sprintf(listEventsByUserFollowerIDQuery, accountID, applicationID, condition))
 	if err != nil {
-		return 0, nil, []errors.Error{errmsg.InternalEventsListError.UpdateInternalMessage(err.Error())}
+		return 0, nil, []errors.Error{errmsg.ErrInternalEventsList.UpdateInternalMessage(err.Error())}
 	}
 	defer rows.Close()
 
@@ -237,12 +237,12 @@ func (e *event) UserFeed(accountID, applicationID int64, user *entity.Applicatio
 		var JSONData string
 		err := rows.Scan(&JSONData)
 		if err != nil {
-			return 0, nil, []errors.Error{errmsg.InternalEventsListError.UpdateInternalMessage(err.Error())}
+			return 0, nil, []errors.Error{errmsg.ErrInternalEventsList.UpdateInternalMessage(err.Error())}
 		}
 		event := &entity.Event{}
 		err = json.Unmarshal([]byte(JSONData), event)
 		if err != nil {
-			return 0, nil, []errors.Error{errmsg.InternalEventsListError.UpdateInternalMessage(err.Error())}
+			return 0, nil, []errors.Error{errmsg.ErrInternalEventsList.UpdateInternalMessage(err.Error())}
 		}
 
 		if event.CreatedAt.Sub(*user.LastRead) > 0 {
@@ -270,7 +270,7 @@ func (e *event) UnreadFeed(accountID, applicationID int64, user *entity.Applicat
 	rows, err := e.pg.SlaveDatastore(-1).
 		Query(fmt.Sprintf(listUnreadEventsByUserFollowerIDQuery, accountID, applicationID, condition), user.LastRead)
 	if err != nil {
-		return 0, nil, []errors.Error{errmsg.InternalEventsListError.UpdateInternalMessage(err.Error())}
+		return 0, nil, []errors.Error{errmsg.ErrInternalEventsList.UpdateInternalMessage(err.Error())}
 	}
 	events, er = e.rowsToSlice(rows)
 	if er != nil {
@@ -297,18 +297,18 @@ func (e *event) UnreadFeedCount(accountID, applicationID int64, user *entity.App
 		QueryRow(fmt.Sprintf(countUnreadEventsByUserFollowerIDQuery, accountID, applicationID, condition), user.LastRead).
 		Scan(&unread)
 	if er != nil {
-		return 0, []errors.Error{errmsg.InternalEventsListError.UpdateInternalMessage(er.Error())}
+		return 0, []errors.Error{errmsg.ErrInternalEventsList.UpdateInternalMessage(er.Error())}
 	}
 
 	return unread, nil
 }
 
 func (e *event) WriteToConnectionsLists(accountID, applicationID int64, event *entity.Event, key string) (err []errors.Error) {
-	return []errors.Error{errmsg.NotImplementedYetError}
+	return []errors.Error{errmsg.ErrNotImplementedYet}
 }
 
 func (e *event) DeleteFromConnectionsLists(accountID, applicationID int64, userID, key string) (err []errors.Error) {
-	return []errors.Error{errmsg.NotImplementedYetError}
+	return []errors.Error{errmsg.ErrNotImplementedYet}
 }
 
 func (e *event) GeoSearch(accountID, applicationID int64, currentUserID string, latitude, longitude, radius float64, nearest int64) ([]*entity.Event, []errors.Error) {
@@ -335,13 +335,13 @@ func (e *event) GeoSearch(accountID, applicationID int64, currentUserID string, 
 	}
 
 	if err != nil {
-		return nil, []errors.Error{errmsg.InternalEventsListError.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalEventsList.UpdateInternalMessage(err.Error())}
 	}
 	return e.rowsToSlice(rows)
 }
 
 func (e *event) ObjectSearch(accountID, applicationID int64, currentUserID string, objectKey string) ([]*entity.Event, []errors.Error) {
-	return nil, []errors.Error{errmsg.NotImplementedYetError}
+	return nil, []errors.Error{errmsg.ErrNotImplementedYet}
 }
 
 func (e *event) LocationSearch(accountID, applicationID int64, currentUserID string, locationKey string) ([]*entity.Event, []errors.Error) {
@@ -357,7 +357,7 @@ func (e *event) LocationSearch(accountID, applicationID int64, currentUserID str
 	rows, err := e.pg.SlaveDatastore(-1).
 		Query(appSchemaWithParams(listEventsByLocationQuery, accountID, applicationID, condition), locationKey, currentUserID)
 	if err != nil {
-		return nil, []errors.Error{errmsg.InternalEventsListError.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalEventsList.UpdateInternalMessage(err.Error())}
 	}
 	return e.rowsToSlice(rows)
 }
@@ -365,7 +365,7 @@ func (e *event) LocationSearch(accountID, applicationID int64, currentUserID str
 func (e *event) updateApplicationUserLastRead(accountID, applicationID int64, user *entity.ApplicationUser) []errors.Error {
 	_, err := e.mainPg.Exec(appSchema(updateApplicationUserLastReadQuery, accountID, applicationID), user.ID)
 	if err != nil {
-		return []errors.Error{errmsg.InternalApplicationUpdateError.UpdateInternalMessage(err.Error())}
+		return []errors.Error{errmsg.ErrInternalApplicationUpdate.UpdateInternalMessage(err.Error())}
 	}
 
 	return nil
@@ -377,12 +377,12 @@ func (e *event) rowsToSlice(rows *sql.Rows) (events []*entity.Event, err []error
 		var JSONData string
 		err := rows.Scan(&JSONData)
 		if err != nil {
-			return nil, []errors.Error{errmsg.InternalEventsListError.UpdateInternalMessage(err.Error())}
+			return nil, []errors.Error{errmsg.ErrInternalEventsList.UpdateInternalMessage(err.Error())}
 		}
 		event := &entity.Event{}
 		err = json.Unmarshal([]byte(JSONData), event)
 		if err != nil {
-			return nil, []errors.Error{errmsg.InternalEventsListError.UpdateInternalMessage(err.Error())}
+			return nil, []errors.Error{errmsg.ErrInternalEventsList.UpdateInternalMessage(err.Error())}
 		}
 
 		events = append(events, event)
