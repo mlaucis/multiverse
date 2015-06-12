@@ -56,6 +56,10 @@ func CreateUser(datastore core.ApplicationUser, accountID, applicationID int64, 
 		errs = append(errs, errmsg.ErrUsernameAndEmailAreEmpty)
 	}
 
+	if user.Password == "" {
+		errs = append(errs, errmsg.ErrPasswordEmpty)
+	}
+
 	if user.Email != "" && !IsValidEmail(user.Email) {
 		errs = append(errs, errmsg.ErrUserEmailInvalid)
 	}

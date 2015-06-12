@@ -113,6 +113,7 @@ var (
 	ErrNoKnownSearchTermsSupplied             = errors.NewBadRequestError(0, "no known search terms supplied", "no known search terms supplied")
 	ErrNotImplementedYet                      = errors.NewInternalError(0, "not implemented yet", "")
 	ErrParseFloat                             = errors.NewBadRequestError(0, "", "parse float error")
+	ErrPasswordEmpty                          = errors.NewBadRequestError(0, "password is empty", "")
 	ErrPasswordMismatch                       = errors.NewBadRequestError(0, "different passwords", "")
 	ErrPayloadTooBig                          = errors.New(http.StatusRequestEntityTooLarge, 0, "payload too big", "fat payload detected", false)
 	ErrRadiusAndNearestMissing                = errors.NewBadRequestError(0, "you must specify either a radius or a how many nearest events you want", "invalid radius and nearest")
