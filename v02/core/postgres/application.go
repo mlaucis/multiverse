@@ -164,7 +164,8 @@ func (app *application) Delete(application *entity.Application) []errors.Error {
 func (app *application) List(accountID int64) ([]*entity.Application, []errors.Error) {
 	applications := []*entity.Application{}
 
-	rows, err := app.pg.SlaveDatastore(-1).Query(listApplicationsEntryByAccountIDQuery, accountID)
+	rows, err := app.pg.SlaveDatastore(-1).
+		Query(listApplicationsEntryByAccountIDQuery, accountID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return applications, nil

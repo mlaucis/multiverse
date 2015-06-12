@@ -105,7 +105,7 @@ func (au *accountUser) Update(existingAccountUser, updatedAccountUser entity.Acc
 		return nil, []errors.Error{errmsg.ErrInternalAccountUserUpdate.UpdateInternalMessage(err.Error())}
 	}
 
-	_, err = au.pg.SlaveDatastore(-1).
+	_, err = au.mainPg.
 		Exec(updateAccountUserByIDQuery, string(accountUserJSON), existingAccountUser.ID, existingAccountUser.AccountID)
 	if err != nil {
 		return nil, []errors.Error{errmsg.ErrInternalAccountUserUpdate.UpdateInternalMessage(err.Error())}

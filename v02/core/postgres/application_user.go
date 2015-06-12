@@ -164,7 +164,7 @@ func (au *applicationUser) Update(accountID, applicationID int64, existingUser, 
 		return nil, []errors.Error{errmsg.ErrInternalApplicationUserUpdate.UpdateInternalMessage(err.Error())}
 	}
 
-	_, err = au.pg.MainDatastore().
+	_, err = au.mainPg.
 		Exec(appSchema(updateApplicationUserByIDQuery, accountID, applicationID), string(userJSON), existingUser.ID)
 	if err != nil {
 		return nil, []errors.Error{errmsg.ErrInternalApplicationUserUpdate.UpdateInternalMessage(err.Error())}
