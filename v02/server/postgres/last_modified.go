@@ -22,7 +22,7 @@ func computeAccountsLastModified(ctx *context.Context, accounts []*entity.Accoun
 	}
 	highTime := accounts[0].UpdatedAt
 	for idx := range accounts {
-		if accounts[idx].UpdatedAt.Before(*highTime) {
+		if accounts[idx].UpdatedAt.After(*highTime) {
 			highTime = accounts[idx].UpdatedAt
 		}
 	}
@@ -40,7 +40,7 @@ func computeAccountUsersLastModified(ctx *context.Context, users []*entity.Accou
 	}
 	highTime := users[0].UpdatedAt
 	for idx := range users {
-		if users[idx].UpdatedAt.Before(*highTime) {
+		if users[idx].UpdatedAt.After(*highTime) {
 			highTime = users[idx].UpdatedAt
 		}
 	}
@@ -58,7 +58,7 @@ func computeApplicationsLastModified(ctx *context.Context, applications []*entit
 	}
 	highTime := applications[0].UpdatedAt
 	for idx := range applications {
-		if applications[idx].UpdatedAt.Before(*highTime) {
+		if applications[idx].UpdatedAt.After(*highTime) {
 			highTime = applications[idx].UpdatedAt
 		}
 	}
@@ -76,7 +76,7 @@ func computeApplicationUsersLastModified(ctx *context.Context, users []*entity.A
 	}
 	highTime := users[0].UpdatedAt
 	for idx := range users {
-		if users[idx].UpdatedAt.Before(*highTime) {
+		if users[idx].UpdatedAt.After(*highTime) {
 			highTime = users[idx].UpdatedAt
 		}
 	}
@@ -94,7 +94,7 @@ func computeConnectionsLastModified(ctx *context.Context, connections []*entity.
 	}
 	highTime := connections[0].UpdatedAt
 	for idx := range connections {
-		if connections[idx].UpdatedAt.Before(*highTime) {
+		if connections[idx].UpdatedAt.After(*highTime) {
 			highTime = connections[idx].UpdatedAt
 		}
 	}
@@ -112,7 +112,7 @@ func computeEventsLastModified(ctx *context.Context, events []*entity.Event) {
 	}
 	highTime := events[0].UpdatedAt
 	for idx := range events {
-		if events[idx].UpdatedAt.Before(*highTime) {
+		if events[idx].UpdatedAt.After(*highTime) {
 			highTime = events[idx].UpdatedAt
 		}
 	}

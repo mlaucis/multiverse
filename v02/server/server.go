@@ -83,7 +83,7 @@ func WriteResponse(ctx *context.Context, response interface{}, code int, cacheTi
 
 		if requestEtag := ctx.R.Header.Get("If-None-Match"); requestEtag != "" {
 			if requestEtag == string(etag) {
-				ctx.StatusCode = 304
+				ctx.StatusCode = http.StatusNotModified
 				ctx.W.WriteHeader(ctx.StatusCode)
 				return
 			}
@@ -93,7 +93,7 @@ func WriteResponse(ctx *context.Context, response interface{}, code int, cacheTi
 			if myLastModified, ok := ctx.Bag["Last-Modified"]; ok {
 				ctx.W.Header().Set("Last-Modified", myLastModified.(string))
 				if myLastModified.(string) == ifModifiedSince {
-					ctx.StatusCode = 304
+					ctx.StatusCode = http.StatusNotModified
 					ctx.W.WriteHeader(ctx.StatusCode)
 					return
 				}
