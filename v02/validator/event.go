@@ -22,10 +22,6 @@ func CreateEvent(datastore core.ApplicationUser, accountID, applicationID int64,
 		errs = append(errs, errmsg.ErrEventTypeSize)
 	}
 
-	if !alphaNumExtraCharFirst.MatchString(event.Type) {
-		errs = append(errs, errmsg.ErrEventTypeType)
-	}
-
 	if event.ID != "" {
 		errs = append(errs, errmsg.ErrEventIDIsAlreadySet)
 	}
@@ -54,10 +50,6 @@ func CreateEvent(datastore core.ApplicationUser, accountID, applicationID int64,
 func UpdateEvent(existingEvent, event *entity.Event) (errs []errors.Error) {
 	if !StringLengthBetween(event.Type, typeMin, typeMax) {
 		errs = append(errs, errmsg.ErrEventTypeSize)
-	}
-
-	if !alphaNumExtraCharFirst.MatchString(event.Type) {
-		errs = append(errs, errmsg.ErrEventTypeType)
 	}
 
 	if event.Visibility == 0 {

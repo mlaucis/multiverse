@@ -26,29 +26,17 @@ func CreateUser(datastore core.ApplicationUser, accountID, applicationID int64, 
 		if !StringLengthBetween(user.FirstName, userNameMin, userNameMax) {
 			errs = append(errs, errmsg.ErrApplicationUserFirstNameSize)
 		}
-
-		if !alphaNumExtraCharFirst.MatchString(user.FirstName) {
-			errs = append(errs, errmsg.ErrApplicationUserFirstNameType)
-		}
 	}
 
 	if user.LastName != "" {
 		if !StringLengthBetween(user.LastName, userNameMin, userNameMax) {
 			errs = append(errs, errmsg.ErrApplicationUserLastNameSize)
 		}
-
-		if !alphaNumExtraCharFirst.MatchString(user.LastName) {
-			errs = append(errs, errmsg.ErrApplicationUserLastNameType)
-		}
 	}
 
 	if user.Username != "" {
 		if !StringLengthBetween(user.Username, userNameMin, userNameMax) {
 			errs = append(errs, errmsg.ErrApplicationUserUsernameSize)
-		}
-
-		if !alphaNumExtraCharFirst.MatchString(user.Username) {
-			errs = append(errs, errmsg.ErrApplicationUserUsernameType)
 		}
 	}
 
@@ -103,29 +91,17 @@ func UpdateUser(datastore core.ApplicationUser, accountID, applicationID int64, 
 		if !StringLengthBetween(updatedApplicationUser.FirstName, userNameMin, userNameMax) {
 			errs = append(errs, errmsg.ErrApplicationUserFirstNameSize)
 		}
-
-		if !alphaNumExtraCharFirst.MatchString(updatedApplicationUser.FirstName) {
-			errs = append(errs, errmsg.ErrApplicationUserFirstNameType)
-		}
 	}
 
 	if updatedApplicationUser.LastName != "" {
 		if !StringLengthBetween(updatedApplicationUser.LastName, userNameMin, userNameMax) {
 			errs = append(errs, errmsg.ErrApplicationUserLastNameSize)
 		}
-
-		if !alphaNumExtraCharFirst.MatchString(updatedApplicationUser.LastName) {
-			errs = append(errs, errmsg.ErrApplicationUserLastNameType)
-		}
 	}
 
 	if updatedApplicationUser.Username != "" {
 		if !StringLengthBetween(updatedApplicationUser.Username, userNameMin, userNameMax) {
 			errs = append(errs, errmsg.ErrApplicationUserUsernameSize)
-		}
-
-		if !alphaNumExtraCharFirst.MatchString(updatedApplicationUser.Username) {
-			errs = append(errs, errmsg.ErrApplicationUserUsernameType)
 		}
 	}
 

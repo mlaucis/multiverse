@@ -94,12 +94,6 @@ func GenerateUUIDV5(namespace, payload string) string {
 	return uuid.NewV5(ns, payload).String()
 }
 
-// CheckUUID checks if a string is a valid UUID
-func CheckUUID(uuidString string) bool {
-	_, err := uuid.FromString(uuidString)
-	return err != nil
-}
-
 // GenerateRandomString returns a random string of the given size
 func GenerateRandomString(size int) string {
 	rand.Seed(time.Now().UnixNano())

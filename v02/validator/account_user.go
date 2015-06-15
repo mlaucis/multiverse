@@ -41,20 +41,6 @@ func CreateAccountUser(datastore core.AccountUser, accountUser *entity.AccountUs
 		errs = append(errs, errmsg.ErrAccountUserPasswordSize)
 	}
 
-	if !alphaNumExtraCharFirst.MatchString(accountUser.FirstName) {
-		errs = append(errs, errmsg.ErrAccountUserFirstNameType)
-	}
-
-	if !alphaNumExtraCharFirst.MatchString(accountUser.LastName) {
-		errs = append(errs, errmsg.ErrAccountUserLastNameType)
-	}
-
-	if !alphaNumExtraCharFirst.MatchString(accountUser.Username) {
-		errs = append(errs, errmsg.ErrAccountUserUsernameType)
-	}
-
-	// TODO add validation for password rules such as use all type of chars
-
 	if accountUser.AccountID == 0 {
 		errs = append(errs, errmsg.ErrAccountIDZero)
 	}
@@ -112,19 +98,6 @@ func UpdateAccountUser(datastore core.AccountUser, existingAccountUser, updatedA
 		}
 	}
 
-	if !alphaNumExtraCharFirst.MatchString(updatedAccountUser.FirstName) {
-		errs = append(errs, errmsg.ErrAccountUserFirstNameType)
-	}
-
-	if !alphaNumExtraCharFirst.MatchString(updatedAccountUser.LastName) {
-		errs = append(errs, errmsg.ErrAccountUserLastNameType)
-	}
-
-	if !alphaNumExtraCharFirst.MatchString(updatedAccountUser.Username) {
-		errs = append(errs, errmsg.ErrAccountUserUsernameType)
-	}
-
-	// TODO add validation for password rules such as use all type of chars
 	if updatedAccountUser.Email == "" || !IsValidEmail(updatedAccountUser.Email) {
 		errs = append(errs, errmsg.ErrAccountUserEmailInvalid)
 	}

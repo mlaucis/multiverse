@@ -43,7 +43,7 @@ func (acc *account) Update(ctx *context.Context) (err []errors.Error) {
 	account := *(ctx.Bag["account"].(*entity.Account))
 
 	if account.PublicID != ctx.Vars["accountID"] {
-		return []errors.Error{errmsg.ErrAccountIDMismatch}
+		return []errors.Error{errmsg.ErrAccountMismatch}
 	}
 
 	if er := json.Unmarshal(ctx.Body, &account); er != nil {

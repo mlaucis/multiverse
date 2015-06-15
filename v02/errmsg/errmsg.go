@@ -14,38 +14,30 @@ import (
 var (
 	// Account errors
 	ErrAccountDescriptionSize  = errors.New(http.StatusBadRequest, 0, "account description must be between 0 and 100 characters", "", false)
-	ErrAccountDescriptionType  = errors.New(http.StatusBadRequest, 0, "account description is not a valid alphanumeric sequence", "", false)
 	ErrAccountIDIsAlreadySet   = errors.New(http.StatusBadRequest, 0, "account id is already set", "", false)
-	ErrAccountIDMismatch       = errors.New(http.StatusConflict, 0, "account ID mismatch", "", false)
 	ErrAccountIDZero           = errors.New(http.StatusBadRequest, 0, "account id can't be 0", "", false)
 	ErrAccountMismatch         = errors.New(http.StatusBadRequest, 0, "account mismatch", "", false)
 	ErrAccountMissingInContext = errors.New(http.StatusInternalServerError, 0, "missing account context", "", false)
 	ErrAccountNameSize         = errors.New(http.StatusBadRequest, 0, "account name must be between 3 and 40 characters", "", false)
-	ErrAccountNameType         = errors.New(http.StatusBadRequest, 0, "account name is not a valid alphanumeric sequence", "", false)
 	ErrAccountNotFound         = errors.New(http.StatusNotFound, 0, "account not found", "", false)
 	ErrAccountTokenAlreadySet  = errors.New(http.StatusBadRequest, 0, "account token is already set", "", false)
 
 	// Account user errors
 	ErrAccountUserEmailInvalid  = errors.New(http.StatusBadRequest, 0, "user email is not valid", "", false)
 	ErrAccountUserFirstNameSize = errors.New(http.StatusBadRequest, 0, "user first name must be between 2 and 40 characters", "", false)
-	ErrAccountUserFirstNameType = errors.New(http.StatusBadRequest, 0, "user first name is not a valid alphanumeric sequence", "", false)
 	ErrAccountUserLastNameSize  = errors.New(http.StatusBadRequest, 0, "user last name must be between 2 and 40 characters", "", false)
-	ErrAccountUserLastNameType  = errors.New(http.StatusBadRequest, 0, "user last name is not a valid alphanumeric sequence", "", false)
 	ErrAccountUserMismatchErr   = errors.New(http.StatusConflict, 0, "account user mismatch", "", false)
 	ErrAccountUserNotFound      = errors.New(http.StatusNotFound, 0, "account user not found", "", false)
 	ErrAccountUserPasswordSize  = errors.New(http.StatusBadRequest, 0, "user password must be between 4 and 60 characters", "", false)
 	ErrAccountUserURLInvalid    = errors.New(http.StatusBadRequest, 0, "user url is not a valid url", "", false)
 	ErrAccountUserUsernameSize  = errors.New(http.StatusBadRequest, 0, "user username must be between 2 and 40 characters", "", false)
-	ErrAccountUserUsernameType  = errors.New(http.StatusBadRequest, 0, "user username is not a valid alphanumeric sequence", "", false)
 
 	// Application errors
 	ErrApplicationAuthTokenUpdateNotAllowed = errors.New(http.StatusBadRequest, 0, "not allowed to update the application token", "", false)
 	ErrApplicationDescriptionSize           = errors.New(http.StatusBadRequest, 0, "application description must be between 0 and 100 characters", "", false)
-	ErrApplicationDescriptionType           = errors.New(http.StatusBadRequest, 0, "application description is not a valid alphanumeric sequence", "", false)
 	ErrApplicationIDInvalid                 = errors.New(http.StatusBadRequest, 0, "application id is not valid", "", false)
 	ErrApplicationIDIsAlreadySet            = errors.New(http.StatusBadRequest, 0, "application id is already set", "", false)
 	ErrApplicationNameSize                  = errors.New(http.StatusBadRequest, 0, "application name must be between 2 and 40 characters", "", false)
-	ErrApplicationNameType                  = errors.New(http.StatusBadRequest, 0, "application name is not a valid alphanumeric sequence", "", false)
 	ErrApplicationNotFound                  = errors.New(http.StatusNotFound, 0, "application not found", "application not found", false)
 	ErrApplicationURLInvalid                = errors.New(http.StatusBadRequest, 0, "application url is not a valid url", "", false)
 
@@ -55,10 +47,8 @@ var (
 	ErrApplicationUserEmailAlreadyExists    = errors.New(http.StatusBadRequest, 0, "email address already in use", "", false)
 	ErrApplicationUserEmailInvalid          = errors.New(http.StatusBadRequest, 0, "user email is not valid", "", false)
 	ErrApplicationUserFirstNameSize         = errors.New(http.StatusBadRequest, 0, "user first name must be between 2 and 40 characters", "", false)
-	ErrApplicationUserFirstNameType         = errors.New(http.StatusBadRequest, 0, "user first name is not a valid alphanumeric sequence", "", false)
 	ErrApplicationUserIDInvalid             = errors.New(http.StatusBadRequest, 0, "user id is not valid", "", false)
 	ErrApplicationUserLastNameSize          = errors.New(http.StatusBadRequest, 0, "user last name must be between 2 and 40 characters", "", false)
-	ErrApplicationUserLastNameType          = errors.New(http.StatusBadRequest, 0, "user last name is not a valid alphanumeric sequence", "", false)
 	ErrApplicationUsernameAndEmailAreEmpty  = errors.New(http.StatusBadRequest, 0, "user email and username are both empty", "", false)
 	ErrApplicationUserUsernameInUse         = errors.New(http.StatusBadRequest, 0, "username already in use", "", false)
 	ErrApplicationUserSearchTypeMin3Chars   = errors.New(http.StatusBadRequest, 0, "type at least 3 characters to search", "", false)
@@ -66,7 +56,6 @@ var (
 	ErrApplicationUserURLInvalid            = errors.New(http.StatusBadRequest, 0, "user url is not a valid url", "", false)
 	ErrApplicationUserUsernameAlreadyExists = errors.New(http.StatusBadRequest, 0, "user already exists", "", false)
 	ErrApplicationUserUsernameSize          = errors.New(http.StatusBadRequest, 0, "user username must be between 2 and 40 characters", "", false)
-	ErrApplicationUserUsernameType          = errors.New(http.StatusBadRequest, 0, "user username is not a valid alphanumeric sequence", "", false)
 
 	// Authentication errors
 	ErrAuthGeneric                           = errors.New(http.StatusBadRequest, 0, "authentication error", "", false)
@@ -98,7 +87,6 @@ var (
 	ErrEventNearestNotInBounds         = errors.New(http.StatusBadRequest, 0, "near events limits not within accepted bounds", "nearest not within bounds", false)
 	ErrEventNotFound                   = errors.New(http.StatusNotFound, 0, "event not found", "", false)
 	ErrEventTypeSize                   = errors.New(http.StatusBadRequest, 0, "type must be between 1 and 30 characters", "", false)
-	ErrEventTypeType                   = errors.New(http.StatusBadRequest, 0, "type is not a valid alphanumeric sequence", "", false)
 
 	// Internal account errors
 	ErrInternalAccountCreation = errors.New(http.StatusInternalServerError, 0, "error while creating the account", "", false)

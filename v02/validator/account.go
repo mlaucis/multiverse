@@ -28,14 +28,6 @@ func CreateAccount(account *entity.Account) (errs []errors.Error) {
 		errs = append(errs, errmsg.ErrAccountDescriptionSize)
 	}
 
-	if !alphaNumExtraCharFirst.MatchString(account.Name) {
-		errs = append(errs, errmsg.ErrAccountNameType)
-	}
-
-	if !alphaNumExtraCharFirst.MatchString(account.Description) {
-		errs = append(errs, errmsg.ErrAccountDescriptionType)
-	}
-
 	if account.ID != 0 {
 		errs = append(errs, errmsg.ErrAccountIDIsAlreadySet)
 	}
@@ -65,14 +57,6 @@ func UpdateAccount(existingAccount, updatedAccount *entity.Account) (errs []erro
 
 	if !StringLengthBetween(updatedAccount.Description, accountDescriptionMin, accountDescriptionMax) {
 		errs = append(errs, errmsg.ErrAccountDescriptionSize)
-	}
-
-	if !alphaNumExtraCharFirst.MatchString(updatedAccount.Name) {
-		errs = append(errs, errmsg.ErrAccountNameType)
-	}
-
-	if !alphaNumExtraCharFirst.MatchString(updatedAccount.Description) {
-		errs = append(errs, errmsg.ErrAccountDescriptionType)
 	}
 
 	if len(updatedAccount.Images) > 0 {

@@ -28,14 +28,6 @@ func CreateApplication(application *entity.Application) (errs []errors.Error) {
 		errs = append(errs, errmsg.ErrApplicationDescriptionSize)
 	}
 
-	if !alphaNumExtraCharFirst.MatchString(application.Name) {
-		errs = append(errs, errmsg.ErrApplicationNameType)
-	}
-
-	if !alphaNumExtraCharFirst.MatchString(application.Description) {
-		errs = append(errs, errmsg.ErrApplicationDescriptionType)
-	}
-
 	if application.ID != 0 {
 		errs = append(errs, errmsg.ErrApplicationIDIsAlreadySet)
 	}
@@ -65,14 +57,6 @@ func UpdateApplication(existingApplication, updatedApplication *entity.Applicati
 
 	if !StringLengthBetween(updatedApplication.Description, applicationDescriptionMin, applicationDescriptionMax) {
 		errs = append(errs, errmsg.ErrApplicationDescriptionSize)
-	}
-
-	if !alphaNumExtraCharFirst.MatchString(updatedApplication.Name) {
-		errs = append(errs, errmsg.ErrApplicationNameType)
-	}
-
-	if !alphaNumExtraCharFirst.MatchString(updatedApplication.Description) {
-		errs = append(errs, errmsg.ErrApplicationDescriptionType)
 	}
 
 	if updatedApplication.URL != "" && !IsValidURL(updatedApplication.URL, true) {
