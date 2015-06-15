@@ -41,7 +41,7 @@ func (conn *connection) Update(ctx *context.Context) (err []errors.Error) {
 		return
 	}
 	if existingConnection == nil {
-		return []errors.Error{errmsg.ErrApplicationUsersNotConnected}
+		return []errors.Error{errmsg.ErrConnectionUsersNotConnected}
 	}
 
 	connection := *existingConnection
