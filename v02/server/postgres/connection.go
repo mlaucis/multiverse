@@ -41,12 +41,12 @@ func (conn *connection) Update(ctx *context.Context) (err []errors.Error) {
 		return
 	}
 	if existingConnection == nil {
-		return []errors.Error{errmsg.ErrUsersNotConnected}
+		return []errors.Error{errmsg.ErrApplicationUsersNotConnected}
 	}
 
 	connection := *existingConnection
 	if er := json.Unmarshal(ctx.Body, &connection); er != nil {
-		return []errors.Error{errmsg.ErrBadJSONReceived.UpdateMessage(er.Error())}
+		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
 	}
 
 	connection.UserFromID = userFromID
@@ -100,7 +100,7 @@ func (conn *connection) Create(ctx *context.Context) (err []errors.Error) {
 	connection.Enabled = true
 
 	if er = json.Unmarshal(ctx.Body, connection); er != nil {
-		return []errors.Error{errmsg.ErrBadJSONReceived.UpdateMessage(er.Error())}
+		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
 	}
 
 	receivedEnabled := connection.Enabled
@@ -285,7 +285,7 @@ func (conn *connection) Confirm(ctx *context.Context) (err []errors.Error) {
 	var connection = &entity.Connection{}
 
 	if er := json.Unmarshal(ctx.Body, connection); er != nil {
-		return []errors.Error{errmsg.ErrBadJSONReceived.UpdateMessage(er.Error())}
+		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
 	}
 
 	accountID := ctx.Bag["accountID"].(int64)
@@ -323,11 +323,11 @@ func (conn *connection) CreateSocial(ctx *context.Context) (err []errors.Error) 
 	}{}
 
 	if er := json.Unmarshal(ctx.Body, &request); er != nil {
-		return []errors.Error{errmsg.ErrBadJSONReceived.UpdateMessage(er.Error())}
+		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
 	}
 
 	if request.ConnectionType == "" || (request.ConnectionType != "friend" && request.ConnectionType != "follow") {
-		return []errors.Error{errmsg.ErrWrongConnectionType}
+		return []errors.Error{errmsg.ErrConnectionTypeIsWrong}
 	}
 
 	user := ctx.Bag["applicationUser"].(*entity.ApplicationUser)

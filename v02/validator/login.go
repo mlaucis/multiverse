@@ -14,17 +14,17 @@ import (
 func IsValidLoginPayload(loginPayload *entity.LoginPayload) []errors.Error {
 	if loginPayload.Email != "" && loginPayload.Username != "" {
 		if loginPayload.EmailName == "" {
-			return []errors.Error{errmsg.ErrGotBothUsernameAndEmail}
+			return []errors.Error{errmsg.ErrAuthGotBothUsernameAndEmail}
 		}
 	}
 
 	if loginPayload.Email == "" && loginPayload.Username == "" && loginPayload.EmailName == "" {
-		return []errors.Error{errmsg.ErrGotNoUsernameOrEmail}
+		return []errors.Error{errmsg.ErrAuthGotNoUsernameOrEmail}
 	}
 
 	if loginPayload.Email != "" {
 		if !IsValidEmail(loginPayload.Email) {
-			return []errors.Error{errmsg.ErrInvalidEmailAddress}
+			return []errors.Error{errmsg.ErrAuthInvalidEmailAddress}
 		}
 	}
 

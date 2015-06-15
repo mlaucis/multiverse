@@ -26,7 +26,7 @@ type (
 
 func (acc *account) Read(ctx *context.Context) (err []errors.Error) {
 	if ctx.Bag["account"] == nil {
-		return []errors.Error{errmsg.ErrMissingAccountInContext}
+		return []errors.Error{errmsg.ErrAccountMissingInContext}
 	}
 
 	if ctx.Bag["account"].(*entity.Account).PublicID != ctx.Vars["accountID"] {
@@ -47,7 +47,7 @@ func (acc *account) Update(ctx *context.Context) (err []errors.Error) {
 	}
 
 	if er := json.Unmarshal(ctx.Body, &account); er != nil {
-		return []errors.Error{errmsg.ErrBadJSONReceived.UpdateMessage(er.Error())}
+		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
 	}
 
 	account.ID = ctx.Bag["accountID"].(int64)
@@ -67,7 +67,7 @@ func (acc *account) Update(ctx *context.Context) (err []errors.Error) {
 
 func (acc *account) Delete(ctx *context.Context) (err []errors.Error) {
 	if ctx.R.Header.Get("X-Jarvis-Auth") != "ZTBmZjI3MGE2M2YzYzAzOWI1MjhiYTNi" {
-		return []errors.Error{errmsg.ErrMissingJarvisID}
+		return []errors.Error{errmsg.ErrServerReqMissingJarvisID}
 	}
 
 	if ctx.Bag["account"].(*entity.Account).PublicID != ctx.Vars["accountID"] {
@@ -84,13 +84,13 @@ func (acc *account) Delete(ctx *context.Context) (err []errors.Error) {
 
 func (acc *account) Create(ctx *context.Context) (err []errors.Error) {
 	if ctx.R.Header.Get("X-Jarvis-Auth") != "ZTBmZjI3MGE2M2YzYzAzOWI1MjhiYTNi" {
-		return []errors.Error{errmsg.ErrMissingJarvisID}
+		return []errors.Error{errmsg.ErrServerReqMissingJarvisID}
 	}
 
 	var account = &entity.Account{}
 
 	if er := json.Unmarshal(ctx.Body, account); er != nil {
-		return []errors.Error{errmsg.ErrBadJSONReceived.UpdateMessage(er.Error())}
+		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
 	}
 
 	if err = validator.CreateAccount(account); err != nil {
@@ -108,7 +108,7 @@ func (acc *account) Create(ctx *context.Context) (err []errors.Error) {
 func (acc *account) PopulateContext(ctx *context.Context) (err []errors.Error) {
 	user, pass, ok := ctx.BasicAuth()
 	if !ok {
-		return []errors.Error{errmsg.ErrInvalidAccountCredentials.UpdateInternalMessage(fmt.Sprintf("got %s:%s", user, pass))}
+		return []errors.Error{errmsg.ErrAuthInvalidAccountCredentials.UpdateInternalMessage(fmt.Sprintf("got %s:%s", user, pass))}
 	}
 	account, err := acc.storage.FindByKey(user)
 	if account == nil {

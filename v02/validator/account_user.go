@@ -75,7 +75,7 @@ func CreateAccountUser(datastore core.AccountUser, accountUser *entity.AccountUs
 
 	if isDuplicate, err := DuplicateAccountUserEmail(datastore, accountUser.Email); isDuplicate || err != nil {
 		if isDuplicate {
-			errs = append(errs, errmsg.ErrUserEmailAlreadyExists)
+			errs = append(errs, errmsg.ErrApplicationUserEmailAlreadyExists)
 		} else {
 			errs = append(errs, err...)
 		}
@@ -83,7 +83,7 @@ func CreateAccountUser(datastore core.AccountUser, accountUser *entity.AccountUs
 
 	if isDuplicate, err := DuplicateAccountUserUsername(datastore, accountUser.Username); isDuplicate || err != nil {
 		if isDuplicate {
-			errs = append(errs, errmsg.ErrUserEmailAlreadyExists)
+			errs = append(errs, errmsg.ErrApplicationUserEmailAlreadyExists)
 		} else {
 			errs = append(errs, err...)
 		}
@@ -142,7 +142,7 @@ func UpdateAccountUser(datastore core.AccountUser, existingAccountUser, updatedA
 	if existingAccountUser.Email != updatedAccountUser.Email {
 		if isDuplicate, err := DuplicateAccountUserEmail(datastore, updatedAccountUser.Email); isDuplicate || err != nil {
 			if isDuplicate {
-				errs = append(errs, errmsg.ErrEmailAddressInUse)
+				errs = append(errs, errmsg.ErrApplicationUserEmailAlreadyExists)
 			} else if err != nil {
 				errs = append(errs, err...)
 			}
@@ -152,7 +152,7 @@ func UpdateAccountUser(datastore core.AccountUser, existingAccountUser, updatedA
 	if existingAccountUser.Username != updatedAccountUser.Username {
 		if isDuplicate, err := DuplicateAccountUserUsername(datastore, updatedAccountUser.Username); isDuplicate || err != nil {
 			if isDuplicate {
-				errs = append(errs, errmsg.ErrUsernameInUse)
+				errs = append(errs, errmsg.ErrApplicationUserUsernameInUse)
 			} else if err != nil {
 				errs = append(errs, err...)
 			}
@@ -166,27 +166,27 @@ func UpdateAccountUser(datastore core.AccountUser, existingAccountUser, updatedA
 func AccountUserCredentialsValid(password string, user *entity.AccountUser) (errs []errors.Error) {
 	pass, err := utils.Base64Decode(user.Password)
 	if err != nil {
-		return []errors.Error{errmsg.ErrGenericAuthentication.UpdateInternalMessage(err.Error())}
+		return []errors.Error{errmsg.ErrAuthGeneric.UpdateInternalMessage(err.Error())}
 	}
 	passwordParts := strings.SplitN(string(pass), ":", 3)
 	if len(passwordParts) != 3 {
-		return []errors.Error{errmsg.ErrGenericAuthentication.UpdateInternalMessage("invalid password parts")}
+		return []errors.Error{errmsg.ErrAuthGeneric.UpdateInternalMessage("invalid password parts")}
 	}
 
 	salt, err := utils.Base64Decode(passwordParts[0])
 	if err != nil {
-		return []errors.Error{errmsg.ErrGenericAuthentication.UpdateInternalMessage(err.Error())}
+		return []errors.Error{errmsg.ErrAuthGeneric.UpdateInternalMessage(err.Error())}
 	}
 
 	timestamp, err := utils.Base64Decode(passwordParts[1])
 	if err != nil {
-		return []errors.Error{errmsg.ErrGenericAuthentication.UpdateInternalMessage(err.Error())}
+		return []errors.Error{errmsg.ErrAuthGeneric.UpdateInternalMessage(err.Error())}
 	}
 
 	encryptedPassword := storageHelper.GenerateEncryptedPassword(password, string(salt), string(timestamp))
 
 	if encryptedPassword != passwordParts[2] {
-		return []errors.Error{errmsg.ErrPasswordMismatch}
+		return []errors.Error{errmsg.ErrAuthPasswordMismatch}
 	}
 
 	return
@@ -198,7 +198,7 @@ func DuplicateAccountUserEmail(datastore core.AccountUser, email string) (isDupl
 		if err != nil {
 			return false, err
 		} else if userExists {
-			return true, []errors.Error{errmsg.ErrUserEmailAlreadyExists}
+			return true, []errors.Error{errmsg.ErrApplicationUserEmailAlreadyExists}
 		}
 	}
 
@@ -211,7 +211,7 @@ func DuplicateAccountUserUsername(datastore core.AccountUser, username string) (
 		if err != nil {
 			return false, err
 		} else if userExists {
-			return true, []errors.Error{errmsg.ErrUserUsernameAlreadyExists}
+			return true, []errors.Error{errmsg.ErrApplicationUserUsernameAlreadyExists}
 		}
 	}
 

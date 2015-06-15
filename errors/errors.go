@@ -122,7 +122,7 @@ func (err myError) Type() errorType {
 
 // RawError generates a go error out of the existing error
 func (err myError) Raw() error {
-	return fmt.Errorf(err.Error())
+	return err
 }
 
 // Error returns the error message

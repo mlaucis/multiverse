@@ -28,7 +28,7 @@ type (
 func (appUser *applicationUser) Read(ctx *context.Context) (err []errors.Error) {
 	userID := ctx.Vars["applicationUserID"]
 	if !validator.IsValidUUID5(userID) {
-		return []errors.Error{errmsg.ErrInvalidUserID}
+		return []errors.Error{errmsg.ErrApplicationUserIDInvalid}
 	}
 
 	user, err := appUser.storage.Read(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), userID)
@@ -61,7 +61,7 @@ func (appUser *applicationUser) UpdateCurrent(ctx *context.Context) (err []error
 	user := *(ctx.Bag["applicationUser"].(*entity.ApplicationUser))
 	var er error
 	if er = json.Unmarshal(ctx.Body, &user); er != nil {
-		return []errors.Error{errmsg.ErrBadJSONReceived.UpdateMessage(er.Error())}
+		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
 	}
 
 	user.ID = ctx.Bag["applicationUserID"].(string)
@@ -115,12 +115,12 @@ func (appUser *applicationUser) Create(ctx *context.Context) (err []errors.Error
 	)
 
 	if er = json.Unmarshal(ctx.Body, user); er != nil {
-		return []errors.Error{errmsg.ErrBadJSONReceived.UpdateMessage(er.Error())}
+		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
 	}
 
 	err = validator.CreateUser(appUser.storage, ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), user)
 	if err != nil {
-		if withLogin && (err[0] == errmsg.ErrUserEmailAlreadyExists || err[0] == errmsg.ErrUserUsernameAlreadyExists) {
+		if withLogin && (err[0] == errmsg.ErrApplicationUserEmailAlreadyExists || err[0] == errmsg.ErrApplicationUserUsernameAlreadyExists) {
 			ctx.Query.Set("withUserDetails", "true")
 			return appUser.Login(ctx)
 		}
@@ -170,11 +170,11 @@ func (appUser *applicationUser) Login(ctx *context.Context) (err []errors.Error)
 	)
 
 	if er = json.Unmarshal(ctx.Body, loginPayload); er != nil {
-		return []errors.Error{errmsg.ErrBadJSONReceived.UpdateMessage(er.Error())}
+		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
 	}
 
 	if err = validator.IsValidLoginPayload(loginPayload); err != nil {
-		if !(err[0] == errmsg.ErrGotBothUsernameAndEmail && ctx.Query.Get("withLogin") == "true") {
+		if !(err[0] == errmsg.ErrAuthGotBothUsernameAndEmail && ctx.Query.Get("withLogin") == "true") {
 			return
 		}
 	}
@@ -248,11 +248,11 @@ func (appUser *applicationUser) RefreshSession(ctx *context.Context) (err []erro
 	)
 
 	if er := json.Unmarshal(ctx.Body, &tokenPayload); er != nil {
-		return []errors.Error{errmsg.ErrBadJSONReceived.UpdateMessage(er.Error())}
+		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
 	}
 
 	if tokenPayload.Token != ctx.SessionToken {
-		return []errors.Error{errmsg.ErrSessionTokenMismatch}
+		return []errors.Error{errmsg.ErrAuthSessionTokenMismatch}
 	}
 
 	if sessionToken, err = appUser.storage.RefreshSession(
@@ -289,7 +289,7 @@ func (appUser *applicationUser) Search(ctx *context.Context) (err []errors.Error
 	}
 
 	if len(query) < 3 {
-		return []errors.Error{errmsg.ErrTypeMin3Chars}
+		return []errors.Error{errmsg.ErrApplicationUserSearchTypeMin3Chars}
 	}
 
 	users, err := appUser.storage.Search(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), query)
@@ -325,7 +325,7 @@ func (appUser *applicationUser) Search(ctx *context.Context) (err []errors.Error
 func (appUser *applicationUser) PopulateContext(ctx *context.Context) (err []errors.Error) {
 	user, pass, ok := ctx.BasicAuth()
 	if !ok {
-		return []errors.Error{errmsg.ErrInvalidApplicationUserCredentials.UpdateInternalMessage(fmt.Sprintf("got %s:%s", user, pass))}
+		return []errors.Error{errmsg.ErrAuthInvalidApplicationUserCredentials.UpdateInternalMessage(fmt.Sprintf("got %s:%s", user, pass))}
 	}
 	ctx.Bag["applicationUser"], err = appUser.storage.FindBySession(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), pass)
 	if err == nil {

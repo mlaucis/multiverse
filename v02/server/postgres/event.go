@@ -33,12 +33,12 @@ func (evt *event) Read(ctx *context.Context) (err []errors.Error) {
 
 	eventID = ctx.Vars["eventID"]
 	if !validator.IsValidUUID5(eventID) {
-		return []errors.Error{errmsg.ErrInvalidEventID}
+		return []errors.Error{errmsg.ErrEventIDInvalid}
 	}
 
 	userID = ctx.Vars["applicationUserID"]
 	if !validator.IsValidUUID5(userID) {
-		return []errors.Error{errmsg.ErrInvalidUserID}
+		return []errors.Error{errmsg.ErrApplicationUserIDInvalid}
 	}
 
 	if event, err = evt.storage.Read(
@@ -57,7 +57,7 @@ func (evt *event) Read(ctx *context.Context) (err []errors.Error) {
 }
 
 func (evt *event) Update(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet}
 	var (
 		eventID, userID string
 		er              error
@@ -65,12 +65,12 @@ func (evt *event) Update(ctx *context.Context) (err []errors.Error) {
 
 	eventID = ctx.Vars["eventID"]
 	if !validator.IsValidUUID5(eventID) {
-		return []errors.Error{errmsg.ErrInvalidEventID}
+		return []errors.Error{errmsg.ErrEventIDInvalid}
 	}
 
 	userID = ctx.Vars["applicationUserID"]
 	if !validator.IsValidUUID5(userID) {
-		return []errors.Error{errmsg.ErrInvalidUserID}
+		return []errors.Error{errmsg.ErrApplicationUserIDInvalid}
 	}
 
 	existingEvent, err := evt.storage.Read(
@@ -85,7 +85,7 @@ func (evt *event) Update(ctx *context.Context) (err []errors.Error) {
 
 	event := *existingEvent
 	if er = json.Unmarshal(ctx.Body, &event); er != nil {
-		return []errors.Error{errmsg.ErrBadJSONReceived.UpdateMessage(er.Error())}
+		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
 	}
 
 	event.ID = eventID
@@ -118,7 +118,7 @@ func (evt *event) CurrentUserUpdate(ctx *context.Context) (err []errors.Error) {
 
 	eventID = ctx.Vars["eventID"]
 	if !validator.IsValidUUID5(eventID) {
-		return []errors.Error{errmsg.ErrInvalidEventID}
+		return []errors.Error{errmsg.ErrEventIDInvalid}
 	}
 
 	existingEvent, err := evt.storage.Read(
@@ -133,7 +133,7 @@ func (evt *event) CurrentUserUpdate(ctx *context.Context) (err []errors.Error) {
 
 	event := *existingEvent
 	if er = json.Unmarshal(ctx.Body, &event); er != nil {
-		return []errors.Error{errmsg.ErrBadJSONReceived.UpdateMessage(er.Error())}
+		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
 	}
 
 	event.ID = eventID
@@ -164,7 +164,7 @@ func (evt *event) Delete(ctx *context.Context) (err []errors.Error) {
 	userID := ctx.Bag["applicationUserID"].(string)
 	eventID := ctx.Vars["eventID"]
 	if !validator.IsValidUUID5(eventID) {
-		return []errors.Error{errmsg.ErrInvalidEventID}
+		return []errors.Error{errmsg.ErrEventIDInvalid}
 	}
 
 	event, err := evt.storage.Read(accountID, applicationID, userID, userID, eventID)
@@ -189,7 +189,7 @@ func (evt *event) List(ctx *context.Context) (err []errors.Error) {
 	applicationID := ctx.Bag["applicationID"].(int64)
 	userID := ctx.Vars["applicationUserID"]
 	if !validator.IsValidUUID5(userID) {
-		return []errors.Error{errmsg.ErrInvalidUserID}
+		return []errors.Error{errmsg.ErrApplicationUserIDInvalid}
 	}
 
 	exists, err := evt.appUser.ExistsByID(accountID, applicationID, userID)
@@ -287,14 +287,14 @@ func (evt *event) Feed(ctx *context.Context) (err []errors.Error) {
 }
 
 func (evt *event) Create(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet}
 	var (
 		event = &entity.Event{}
 		er    error
 	)
 
 	if er = json.Unmarshal(ctx.Body, event); er != nil {
-		return []errors.Error{errmsg.ErrBadJSONReceived.UpdateMessage(er.Error())}
+		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
 	}
 
 	event.UserID = ctx.Bag["applicationUserID"].(string)
@@ -331,7 +331,7 @@ func (evt *event) CurrentUserCreate(ctx *context.Context) (err []errors.Error) {
 	)
 
 	if er = json.Unmarshal(ctx.Body, event); er != nil {
-		return []errors.Error{errmsg.ErrBadJSONReceived.UpdateMessage(er.Error())}
+		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
 	}
 
 	event.UserID = ctx.Bag["applicationUserID"].(string)
@@ -371,25 +371,25 @@ func (evt *event) Search(ctx *context.Context) (err []errors.Error) {
 
 	if l := ctx.Query.Get("lat"); l != "" {
 		if latitude, er = strconv.ParseFloat(l, 64); er != nil {
-			return []errors.Error{errmsg.ErrParseFloat.UpdateMessage(er.Error())}
+			return []errors.Error{errmsg.ErrServerReqParseFloat.UpdateMessage(er.Error())}
 		}
 	}
 
 	if l := ctx.Query.Get("lon"); l != "" {
 		if longitude, er = strconv.ParseFloat(l, 64); er != nil {
-			return []errors.Error{errmsg.ErrParseFloat.UpdateMessage(er.Error())}
+			return []errors.Error{errmsg.ErrServerReqParseFloat.UpdateMessage(er.Error())}
 		}
 	}
 
 	if rad := ctx.Query.Get("rad"); rad != "" {
 		if radius, er = strconv.ParseFloat(rad, 64); er != nil {
-			return []errors.Error{errmsg.ErrParseFloat.UpdateMessage(er.Error())}
+			return []errors.Error{errmsg.ErrServerReqParseFloat.UpdateMessage(er.Error())}
 		}
 	}
 
 	if near := ctx.Query.Get("nearest"); near != "" {
 		if nearest, er = strconv.ParseInt(near, 10, 64); er != nil {
-			return []errors.Error{errmsg.ErrParseFloat.UpdateMessage(er.Error())}
+			return []errors.Error{errmsg.ErrServerReqParseFloat.UpdateMessage(er.Error())}
 		}
 
 		if nearest < 1 || nearest > 200 {
@@ -399,11 +399,11 @@ func (evt *event) Search(ctx *context.Context) (err []errors.Error) {
 
 	if ctx.Query.Get("lat") != "" && ctx.Query.Get("lon") != "" {
 		if radius == 0 && nearest == 0 {
-			return []errors.Error{errmsg.ErrRadiusAndNearestMissing}
+			return []errors.Error{errmsg.ErrEventGeoRadiusAndNearestMissing}
 		}
 
 		if radius < 2 && nearest == 0 {
-			return []errors.Error{errmsg.ErrRadiusUnder2M}
+			return []errors.Error{errmsg.ErrEventGeoRadiusUnder2M}
 		}
 
 		if radius == 0 && nearest > 200 {
@@ -427,7 +427,7 @@ func (evt *event) Search(ctx *context.Context) (err []errors.Error) {
 			return
 		}
 	} else {
-		err = []errors.Error{errmsg.ErrNoKnownSearchTermsSupplied}
+		err = []errors.Error{errmsg.ErrServerReqNoKnownSearchTermsSupplied}
 	}
 	if err != nil {
 		return

@@ -45,7 +45,7 @@ func CreateApplication(application *entity.Application) (errs []errors.Error) {
 	}
 
 	if application.URL != "" && !IsValidURL(application.URL, true) {
-		errs = append(errs, errmsg.ErrApplicationUserURLInvalid)
+		errs = append(errs, errmsg.ErrApplicationURLInvalid)
 	}
 
 	if len(application.Images) > 0 {
@@ -76,7 +76,7 @@ func UpdateApplication(existingApplication, updatedApplication *entity.Applicati
 	}
 
 	if updatedApplication.URL != "" && !IsValidURL(updatedApplication.URL, true) {
-		errs = append(errs, errmsg.ErrApplicationUserURLInvalid)
+		errs = append(errs, errmsg.ErrApplicationURLInvalid)
 	}
 
 	if len(updatedApplication.Images) > 0 {

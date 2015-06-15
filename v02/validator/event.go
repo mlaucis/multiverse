@@ -12,18 +12,18 @@ import (
 )
 
 const (
-	verbMin = 1
-	verbMax = 30
+	typeMin = 1
+	typeMax = 30
 )
 
 // CreateEvent validates an event on create
 func CreateEvent(datastore core.ApplicationUser, accountID, applicationID int64, event *entity.Event) (errs []errors.Error) {
-	if !StringLengthBetween(event.Type, verbMin, verbMax) {
-		errs = append(errs, errmsg.ErrVerbSize)
+	if !StringLengthBetween(event.Type, typeMin, typeMax) {
+		errs = append(errs, errmsg.ErrEventTypeSize)
 	}
 
 	if !alphaNumExtraCharFirst.MatchString(event.Type) {
-		errs = append(errs, errmsg.ErrVerbType)
+		errs = append(errs, errmsg.ErrEventTypeType)
 	}
 
 	if event.ID != "" {
@@ -52,12 +52,12 @@ func CreateEvent(datastore core.ApplicationUser, accountID, applicationID int64,
 
 // UpdateEvent validates an event on update
 func UpdateEvent(existingEvent, event *entity.Event) (errs []errors.Error) {
-	if !StringLengthBetween(event.Type, verbMin, verbMax) {
-		errs = append(errs, errmsg.ErrVerbSize)
+	if !StringLengthBetween(event.Type, typeMin, typeMax) {
+		errs = append(errs, errmsg.ErrEventTypeSize)
 	}
 
 	if !alphaNumExtraCharFirst.MatchString(event.Type) {
-		errs = append(errs, errmsg.ErrVerbType)
+		errs = append(errs, errmsg.ErrEventTypeType)
 	}
 
 	if event.Visibility == 0 {

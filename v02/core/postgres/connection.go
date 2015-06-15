@@ -284,11 +284,11 @@ func (c *connection) Confirm(accountID, applicationID int64, connection *entity.
 }
 
 func (c *connection) WriteEventsToList(accountID, applicationID int64, connection *entity.Connection) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet}
 }
 
 func (c *connection) DeleteEventsFromLists(accountID, applicationID int64, userFromID, userToID string) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet}
 }
 
 func (c *connection) SocialConnect(accountID, applicationID int64, user *entity.ApplicationUser, platform string, socialFriendsIDs []string, connectionType string) ([]*entity.ApplicationUser, []errors.Error) {

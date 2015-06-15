@@ -304,11 +304,11 @@ func (e *event) UnreadFeedCount(accountID, applicationID int64, user *entity.App
 }
 
 func (e *event) WriteToConnectionsLists(accountID, applicationID int64, event *entity.Event, key string) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet}
 }
 
 func (e *event) DeleteFromConnectionsLists(accountID, applicationID int64, userID, key string) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet}
 }
 
 func (e *event) GeoSearch(accountID, applicationID int64, currentUserID string, latitude, longitude, radius float64, nearest int64) ([]*entity.Event, []errors.Error) {
@@ -341,7 +341,7 @@ func (e *event) GeoSearch(accountID, applicationID int64, currentUserID string, 
 }
 
 func (e *event) ObjectSearch(accountID, applicationID int64, currentUserID string, objectKey string) ([]*entity.Event, []errors.Error) {
-	return nil, []errors.Error{errmsg.ErrNotImplementedYet}
+	return nil, []errors.Error{errmsg.ErrServerNotImplementedYet}
 }
 
 func (e *event) LocationSearch(accountID, applicationID int64, currentUserID string, locationKey string) ([]*entity.Event, []errors.Error) {

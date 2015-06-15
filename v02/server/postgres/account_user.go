@@ -40,7 +40,7 @@ func (accUser *accountUser) Update(ctx *context.Context) (err []errors.Error) {
 	}
 
 	if er := json.Unmarshal(ctx.Body, &accountUser); er != nil {
-		return []errors.Error{errmsg.ErrBadJSONReceived.UpdateMessage(er.Error())}
+		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
 	}
 
 	accountUser.ID = ctx.Bag["accountUserID"].(int64)
@@ -62,12 +62,12 @@ func (accUser *accountUser) Update(ctx *context.Context) (err []errors.Error) {
 
 func (accUser *accountUser) Delete(ctx *context.Context) (err []errors.Error) {
 	if ctx.R.Header.Get("X-Jarvis-Auth") != "ZTBmZjI3MGE2M2YzYzAzOWI1MjhiYTNi" {
-		return []errors.Error{errmsg.ErrMissingJarvisID}
+		return []errors.Error{errmsg.ErrServerReqMissingJarvisID}
 	}
 
 	accountUserID := ctx.Vars["accountUserID"]
 	if !validator.IsValidUUID5(accountUserID) {
-		return []errors.Error{errmsg.ErrInvalidUserID}
+		return []errors.Error{errmsg.ErrApplicationUserIDInvalid}
 	}
 	accountUser, err := accUser.storage.FindByPublicID(ctx.Bag["accountID"].(int64), accountUserID)
 	if err != nil {
@@ -84,13 +84,13 @@ func (accUser *accountUser) Delete(ctx *context.Context) (err []errors.Error) {
 
 func (accUser *accountUser) Create(ctx *context.Context) (err []errors.Error) {
 	if ctx.R.Header.Get("X-Jarvis-Auth") != "ZTBmZjI3MGE2M2YzYzAzOWI1MjhiYTNi" {
-		return []errors.Error{errmsg.ErrMissingJarvisID}
+		return []errors.Error{errmsg.ErrServerReqMissingJarvisID}
 	}
 
 	var accountUser = &entity.AccountUser{}
 
 	if err := json.Unmarshal(ctx.Body, accountUser); err != nil {
-		return []errors.Error{errmsg.ErrBadJSONReceived.UpdateMessage(err.Error())}
+		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(err.Error())}
 	}
 
 	accountUser.AccountID = ctx.Bag["accountID"].(int64)
@@ -145,7 +145,7 @@ func (accUser *accountUser) Login(ctx *context.Context) (err []errors.Error) {
 	)
 
 	if er = json.Unmarshal(ctx.Body, loginPayload); er != nil {
-		return []errors.Error{errmsg.ErrBadJSONReceived.UpdateMessage(er.Error())}
+		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
 	}
 
 	if err = validator.IsValidLoginPayload(loginPayload); err != nil {
@@ -209,11 +209,11 @@ func (accUser *accountUser) RefreshSession(ctx *context.Context) (err []errors.E
 	)
 
 	if er := json.Unmarshal(ctx.Body, &tokenPayload); er != nil {
-		return []errors.Error{errmsg.ErrBadJSONReceived.UpdateMessage(er.Error())}
+		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
 	}
 
 	if ctx.SessionToken != tokenPayload.Token {
-		return []errors.Error{errmsg.ErrSessionTokenMismatch}
+		return []errors.Error{errmsg.ErrAuthSessionTokenMismatch}
 	}
 
 	if sessionToken, err = accUser.storage.RefreshSession(ctx.SessionToken, ctx.Bag["accountUser"].(*entity.AccountUser)); err != nil {
@@ -239,7 +239,7 @@ func (accUser *accountUser) Logout(ctx *context.Context) (err []errors.Error) {
 func (accUser *accountUser) PopulateContext(ctx *context.Context) (err []errors.Error) {
 	user, pass, ok := ctx.BasicAuth()
 	if !ok {
-		return []errors.Error{errmsg.ErrInvalidAccountUserCredentials.UpdateInternalMessage(fmt.Sprintf("got %s:%s", user, pass))}
+		return []errors.Error{errmsg.ErrAuthInvalidAccountUserCredentials.UpdateInternalMessage(fmt.Sprintf("got %s:%s", user, pass))}
 	}
 	accountUser, err := accUser.storage.FindBySession(pass)
 	if accountUser == nil {
