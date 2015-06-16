@@ -8,6 +8,7 @@ import (
 	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/v02/core"
+	"github.com/tapglue/backend/v02/errmsg"
 	"github.com/tapglue/backend/v02/server"
 )
 
@@ -19,47 +20,47 @@ type (
 )
 
 func (conn *connection) Update(ctx *context.Context) (err []errors.Error) {
-	return notImplementedYet
+	return []errors.Error{errmsg.ErrServerNotImplementedYet}
 }
 
 func (conn *connection) Delete(ctx *context.Context) (err []errors.Error) {
-	return notImplementedYet
+	return []errors.Error{errmsg.ErrServerNotImplementedYet}
 }
 
 func (conn *connection) Create(ctx *context.Context) (err []errors.Error) {
-	return notImplementedYet
+	return []errors.Error{errmsg.ErrServerNotImplementedYet}
 }
 
 func (conn *connection) List(ctx *context.Context) (err []errors.Error) {
-	return notImplementedYet
+	return []errors.Error{errmsg.ErrServerNotImplementedYet}
 }
 
 func (conn *connection) CurrentUserList(ctx *context.Context) (err []errors.Error) {
-	return notImplementedYet
+	return []errors.Error{errmsg.ErrServerNotImplementedYet}
 }
 
 func (conn *connection) FollowedByList(ctx *context.Context) (err []errors.Error) {
-	return notImplementedYet
+	return []errors.Error{errmsg.ErrServerNotImplementedYet}
 }
 
 func (conn *connection) CurrentUserFollowedByList(ctx *context.Context) (err []errors.Error) {
-	return notImplementedYet
+	return []errors.Error{errmsg.ErrServerNotImplementedYet}
 }
 
 func (conn *connection) Confirm(ctx *context.Context) (err []errors.Error) {
-	return notImplementedYet
+	return []errors.Error{errmsg.ErrServerNotImplementedYet}
 }
 
 func (conn *connection) CreateSocial(ctx *context.Context) (err []errors.Error) {
-	return notImplementedYet
+	return []errors.Error{errmsg.ErrServerNotImplementedYet}
 }
 
 func (conn *connection) Friends(ctx *context.Context) (err []errors.Error) {
-	return notImplementedYet
+	return []errors.Error{errmsg.ErrServerNotImplementedYet}
 }
 
 func (conn *connection) CurrentUserFriends(ctx *context.Context) (err []errors.Error) {
-	return notImplementedYet
+	return []errors.Error{errmsg.ErrServerNotImplementedYet}
 }
 
 // NewConnection returns a new connection handler

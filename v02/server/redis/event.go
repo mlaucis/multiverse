@@ -14,6 +14,7 @@ import (
 	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/entity"
+	"github.com/tapglue/backend/v02/errmsg"
 	"github.com/tapglue/backend/v02/server"
 	"github.com/tapglue/backend/v02/validator"
 )
@@ -26,7 +27,7 @@ type (
 )
 
 func (evt *event) Read(ctx *context.Context) (err []errors.Error) {
-	return deprecatedStorageError
+	return []errors.Error{errmsg.ErrServerDeprecatedStorage}
 	var (
 		event   = &entity.Event{}
 		eventID string
@@ -48,7 +49,7 @@ func (evt *event) Read(ctx *context.Context) (err []errors.Error) {
 }
 
 func (evt *event) Update(ctx *context.Context) (err []errors.Error) {
-	return deprecatedStorageError
+	return []errors.Error{errmsg.ErrServerDeprecatedStorage}
 	var (
 		eventID string
 		er      error
@@ -98,7 +99,7 @@ func (evt *event) CurrentUserUpdate(ctx *context.Context) (err []errors.Error) {
 }
 
 func (evt *event) Delete(ctx *context.Context) (err []errors.Error) {
-	return deprecatedStorageError
+	return []errors.Error{errmsg.ErrServerDeprecatedStorage}
 	event := &entity.Event{}
 	if er := json.Unmarshal(ctx.Body, event); er != nil {
 		return []errors.Error{errors.NewBadRequestError(0, "failed to delete the event (1)\n"+er.Error(), er.Error())}
@@ -117,7 +118,7 @@ func (evt *event) Delete(ctx *context.Context) (err []errors.Error) {
 }
 
 func (evt *event) List(ctx *context.Context) (err []errors.Error) {
-	return deprecatedStorageError
+	return []errors.Error{errmsg.ErrServerDeprecatedStorage}
 	var events []*entity.Event
 
 	if events, err = evt.storage.List(
@@ -137,7 +138,7 @@ func (evt *event) CurrentUserList(ctx *context.Context) (err []errors.Error) {
 }
 
 func (evt *event) Feed(ctx *context.Context) (err []errors.Error) {
-	return deprecatedStorageError
+	return []errors.Error{errmsg.ErrServerDeprecatedStorage}
 	var events = []*entity.Event{}
 
 	if _, events, err = evt.storage.UserFeed(
@@ -152,7 +153,7 @@ func (evt *event) Feed(ctx *context.Context) (err []errors.Error) {
 }
 
 func (evt *event) Create(ctx *context.Context) (err []errors.Error) {
-	return deprecatedStorageError
+	return []errors.Error{errmsg.ErrServerDeprecatedStorage}
 	var (
 		event = &entity.Event{}
 		er    error
@@ -190,11 +191,11 @@ func (evt *event) CurrentUserCreate(ctx *context.Context) (err []errors.Error) {
 }
 
 func (evt *event) Search(ctx *context.Context) (err []errors.Error) {
-	return deprecatedStorageError
+	return []errors.Error{errmsg.ErrServerDeprecatedStorage}
 }
 
 func (evt *event) SearchGeo(ctx *context.Context) (err []errors.Error) {
-	return deprecatedStorageError
+	return []errors.Error{errmsg.ErrServerDeprecatedStorage}
 	var (
 		events                      = []*entity.Event{}
 		latitude, longitude, radius float64
@@ -234,7 +235,7 @@ func (evt *event) SearchGeo(ctx *context.Context) (err []errors.Error) {
 }
 
 func (evt *event) SearchObject(ctx *context.Context) (err []errors.Error) {
-	return deprecatedStorageError
+	return []errors.Error{errmsg.ErrServerDeprecatedStorage}
 	var (
 		events    = []*entity.Event{}
 		objectKey string
@@ -253,7 +254,7 @@ func (evt *event) SearchObject(ctx *context.Context) (err []errors.Error) {
 }
 
 func (evt *event) SearchLocation(ctx *context.Context) (err []errors.Error) {
-	return deprecatedStorageError
+	return []errors.Error{errmsg.ErrServerDeprecatedStorage}
 	var (
 		events   = []*entity.Event{}
 		location string

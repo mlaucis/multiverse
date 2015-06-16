@@ -13,6 +13,7 @@ import (
 	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/entity"
+	"github.com/tapglue/backend/v02/errmsg"
 	"github.com/tapglue/backend/v02/server"
 	"github.com/tapglue/backend/v02/validator"
 )
@@ -24,19 +25,19 @@ type (
 )
 
 func (appUser *applicationUser) Read(ctx *context.Context) (err []errors.Error) {
-	return deprecatedStorageError
+	return []errors.Error{errmsg.ErrServerDeprecatedStorage}
 	server.WriteResponse(ctx, ctx.Bag["applicationUser"].(*entity.ApplicationUser), http.StatusOK, 10)
 	return
 }
 
 func (appUser *applicationUser) ReadCurrent(ctx *context.Context) (err []errors.Error) {
-	return deprecatedStorageError
+	return []errors.Error{errmsg.ErrServerDeprecatedStorage}
 	server.WriteResponse(ctx, ctx.Bag["applicationUser"].(*entity.ApplicationUser), http.StatusOK, 10)
 	return
 }
 
 func (appUser *applicationUser) UpdateCurrent(ctx *context.Context) (err []errors.Error) {
-	return deprecatedStorageError
+	return []errors.Error{errmsg.ErrServerDeprecatedStorage}
 	user := *(ctx.Bag["applicationUser"].(*entity.ApplicationUser))
 	var er error
 	if er = json.Unmarshal(ctx.Body, &user); er != nil {
@@ -71,7 +72,7 @@ func (appUser *applicationUser) UpdateCurrent(ctx *context.Context) (err []error
 }
 
 func (appUser *applicationUser) DeleteCurrent(ctx *context.Context) (err []errors.Error) {
-	return deprecatedStorageError
+	return []errors.Error{errmsg.ErrServerDeprecatedStorage}
 	if err = appUser.storage.Delete(
 		ctx.Bag["accountID"].(int64),
 		ctx.Bag["applicationID"].(int64),
@@ -84,7 +85,7 @@ func (appUser *applicationUser) DeleteCurrent(ctx *context.Context) (err []error
 }
 
 func (appUser *applicationUser) Create(ctx *context.Context) (err []errors.Error) {
-	return deprecatedStorageError
+	return []errors.Error{errmsg.ErrServerDeprecatedStorage}
 	var (
 		user = &entity.ApplicationUser{}
 		er   error
@@ -117,7 +118,7 @@ func (appUser *applicationUser) Create(ctx *context.Context) (err []errors.Error
 }
 
 func (appUser *applicationUser) Login(ctx *context.Context) (err []errors.Error) {
-	return deprecatedStorageError
+	return []errors.Error{errmsg.ErrServerDeprecatedStorage}
 	var (
 		loginPayload = &entity.LoginPayload{}
 		user         *entity.ApplicationUser
@@ -189,7 +190,7 @@ func (appUser *applicationUser) Login(ctx *context.Context) (err []errors.Error)
 }
 
 func (appUser *applicationUser) RefreshSession(ctx *context.Context) (err []errors.Error) {
-	return deprecatedStorageError
+	return []errors.Error{errmsg.ErrServerDeprecatedStorage}
 	var (
 		tokenPayload struct {
 			Token string `json:"session_token"`
@@ -221,7 +222,7 @@ func (appUser *applicationUser) RefreshSession(ctx *context.Context) (err []erro
 }
 
 func (appUser *applicationUser) Logout(ctx *context.Context) (err []errors.Error) {
-	return deprecatedStorageError
+	return []errors.Error{errmsg.ErrServerDeprecatedStorage}
 	var (
 		tokenPayload struct {
 			Token string `json:"session_token"`
@@ -254,7 +255,7 @@ func (appUser *applicationUser) Search(*context.Context) []errors.Error {
 }
 
 func (appUser *applicationUser) PopulateContext(ctx *context.Context) (err []errors.Error) {
-	return deprecatedStorageError
+	return []errors.Error{errmsg.ErrServerDeprecatedStorage}
 	ctx.Bag["applicationUser"], err = appUser.storage.Read(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(string))
 	return
 }

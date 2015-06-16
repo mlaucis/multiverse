@@ -12,6 +12,7 @@ import (
 	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/entity"
+	"github.com/tapglue/backend/v02/errmsg"
 	"github.com/tapglue/backend/v02/server"
 	"github.com/tapglue/backend/v02/validator"
 )
@@ -23,13 +24,13 @@ type (
 )
 
 func (acc *account) Read(ctx *context.Context) (err []errors.Error) {
-	return deprecatedStorageError
+	return []errors.Error{errmsg.ErrServerDeprecatedStorage}
 	server.WriteResponse(ctx, ctx.Bag["account"].(*entity.Account), http.StatusOK, 10)
 	return
 }
 
 func (acc *account) Update(ctx *context.Context) (err []errors.Error) {
-	return deprecatedStorageError
+	return []errors.Error{errmsg.ErrServerDeprecatedStorage}
 	account := *(ctx.Bag["account"].(*entity.Account))
 	if er := json.Unmarshal(ctx.Body, &account); er != nil {
 		return []errors.Error{errors.NewBadRequestError(0, "failed to update the account (1)\n"+er.Error(), "malformed json received")}
@@ -51,7 +52,7 @@ func (acc *account) Update(ctx *context.Context) (err []errors.Error) {
 }
 
 func (acc *account) Delete(ctx *context.Context) (err []errors.Error) {
-	return deprecatedStorageError
+	return []errors.Error{errmsg.ErrServerDeprecatedStorage}
 	if err = acc.storage.Delete(ctx.Bag["account"].(*entity.Account)); err != nil {
 		return err
 	}
@@ -61,7 +62,7 @@ func (acc *account) Delete(ctx *context.Context) (err []errors.Error) {
 }
 
 func (acc *account) Create(ctx *context.Context) (err []errors.Error) {
-	return deprecatedStorageError
+	return []errors.Error{errmsg.ErrServerDeprecatedStorage}
 	var account = &entity.Account{}
 
 	if er := json.Unmarshal(ctx.Body, account); er != nil {
@@ -81,7 +82,7 @@ func (acc *account) Create(ctx *context.Context) (err []errors.Error) {
 }
 
 func (acc *account) PopulateContext(ctx *context.Context) (err []errors.Error) {
-	return deprecatedStorageError
+	return []errors.Error{errmsg.ErrServerDeprecatedStorage}
 	ctx.Bag["account"], err = acc.storage.Read(ctx.Bag["accountID"].(int64))
 	return
 }

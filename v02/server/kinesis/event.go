@@ -8,6 +8,7 @@ import (
 	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/v02/core"
+	"github.com/tapglue/backend/v02/errmsg"
 	"github.com/tapglue/backend/v02/server"
 )
 
@@ -19,63 +20,63 @@ type (
 )
 
 func (evt *event) Read(ctx *context.Context) (err []errors.Error) {
-	return notImplementedYet
+	return []errors.Error{errmsg.ErrServerNotImplementedYet}
 }
 
 func (evt *event) Update(ctx *context.Context) (err []errors.Error) {
-	return notImplementedYet
+	return []errors.Error{errmsg.ErrServerNotImplementedYet}
 }
 
 func (evt *event) CurrentUserUpdate(ctx *context.Context) (err []errors.Error) {
-	return notImplementedYet
+	return []errors.Error{errmsg.ErrServerNotImplementedYet}
 }
 
 func (evt *event) Delete(ctx *context.Context) (err []errors.Error) {
-	return notImplementedYet
+	return []errors.Error{errmsg.ErrServerNotImplementedYet}
 }
 
 func (evt *event) List(ctx *context.Context) (err []errors.Error) {
-	return notImplementedYet
+	return []errors.Error{errmsg.ErrServerNotImplementedYet}
 }
 
 func (evt *event) CurrentUserList(ctx *context.Context) (err []errors.Error) {
-	return notImplementedYet
+	return []errors.Error{errmsg.ErrServerNotImplementedYet}
 }
 
 func (evt *event) Feed(ctx *context.Context) (err []errors.Error) {
-	return notImplementedYet
+	return []errors.Error{errmsg.ErrServerNotImplementedYet}
 }
 
 func (evt *event) Create(ctx *context.Context) (err []errors.Error) {
-	return notImplementedYet
+	return []errors.Error{errmsg.ErrServerNotImplementedYet}
 }
 
 func (evt *event) CurrentUserCreate(ctx *context.Context) (err []errors.Error) {
-	return notImplementedYet
+	return []errors.Error{errmsg.ErrServerNotImplementedYet}
 }
 
 func (evt *event) Search(ctx *context.Context) (err []errors.Error) {
-	return notImplementedYet
+	return []errors.Error{errmsg.ErrServerNotImplementedYet}
 }
 
 func (evt *event) SearchGeo(ctx *context.Context) (err []errors.Error) {
-	return notImplementedYet
+	return []errors.Error{errmsg.ErrServerNotImplementedYet}
 }
 
 func (evt *event) SearchObject(ctx *context.Context) (err []errors.Error) {
-	return notImplementedYet
+	return []errors.Error{errmsg.ErrServerNotImplementedYet}
 }
 
 func (evt *event) SearchLocation(ctx *context.Context) (err []errors.Error) {
-	return notImplementedYet
+	return []errors.Error{errmsg.ErrServerNotImplementedYet}
 }
 
 func (evt *event) UnreadFeed(ctx *context.Context) (err []errors.Error) {
-	return notImplementedYet
+	return []errors.Error{errmsg.ErrServerNotImplementedYet}
 }
 
 func (evt *event) UnreadFeedCount(ctx *context.Context) (err []errors.Error) {
-	return notImplementedYet
+	return []errors.Error{errmsg.ErrServerNotImplementedYet}
 }
 
 // NewEvent returns a new event handler

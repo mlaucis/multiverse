@@ -86,7 +86,7 @@ var (
 	ErrAuthSessionTokenMismatch              = errors.New(http.StatusBadRequest, 4012, "session token mismatch", "", false)
 
 	// Server errors
-	ErrServerNotImplementedYet = errors.New(http.StatusInternalServerError, 5000, "not implemented yet", "", false)
+	ErrInvalidImageURL = errors.New(http.StatusBadRequest, 5000, "image url is not valid", "", false)
 
 	// Server request errors
 	ErrServerReqBadJSONReceived            = errors.New(http.StatusBadRequest, 5001, "malformed json received", "", false)
@@ -106,7 +106,8 @@ var (
 	ErrServerRespMissingLastModifiedHeader = errors.New(http.StatusInternalServerError, 5013, "something went wrong", "", false)
 
 	// Misc errors
-	ErrInvalidImageURL = errors.New(http.StatusBadRequest, 5500, "image url is not valid", "", false)
+	ErrServerNotImplementedYet = errors.New(http.StatusInternalServerError, 5500, "not implemented yet", "", false)
+	ErrServerDeprecatedStorage = errors.New(http.StatusInternalServerError, 5501, "deprecated storage", "", false)
 
 	// Account errors
 	ErrAccountDescriptionSize  = errors.New(http.StatusBadRequest, 6000, "account description must be between 0 and 100 characters", "", false)

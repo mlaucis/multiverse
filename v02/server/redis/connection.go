@@ -13,6 +13,7 @@ import (
 	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/entity"
+	"github.com/tapglue/backend/v02/errmsg"
 	"github.com/tapglue/backend/v02/server"
 	"github.com/tapglue/backend/v02/validator"
 )
@@ -25,7 +26,7 @@ type (
 )
 
 func (conn *connection) Update(ctx *context.Context) (err []errors.Error) {
-	return deprecatedStorageError
+	return []errors.Error{errmsg.ErrServerDeprecatedStorage}
 	var (
 		userToID string
 		er       error
@@ -82,7 +83,7 @@ func (conn *connection) Update(ctx *context.Context) (err []errors.Error) {
 }
 
 func (conn *connection) Delete(ctx *context.Context) (err []errors.Error) {
-	return deprecatedStorageError
+	return []errors.Error{errmsg.ErrServerDeprecatedStorage}
 	connection := &entity.Connection{}
 	if er := json.Unmarshal(ctx.Body, connection); er != nil {
 		return []errors.Error{errors.NewBadRequestError(0, er.Error(), er.Error())}
@@ -100,7 +101,7 @@ func (conn *connection) Delete(ctx *context.Context) (err []errors.Error) {
 }
 
 func (conn *connection) Create(ctx *context.Context) (err []errors.Error) {
-	return deprecatedStorageError
+	return []errors.Error{errmsg.ErrServerDeprecatedStorage}
 	var (
 		connection = &entity.Connection{}
 		er         error
@@ -150,7 +151,7 @@ func (conn *connection) Create(ctx *context.Context) (err []errors.Error) {
 }
 
 func (conn *connection) List(ctx *context.Context) (err []errors.Error) {
-	return deprecatedStorageError
+	return []errors.Error{errmsg.ErrServerDeprecatedStorage}
 	var users []*entity.ApplicationUser
 
 	if users, err = conn.storage.List(
@@ -173,7 +174,7 @@ func (conn *connection) CurrentUserList(ctx *context.Context) (err []errors.Erro
 }
 
 func (conn *connection) FollowedByList(ctx *context.Context) (err []errors.Error) {
-	return deprecatedStorageError
+	return []errors.Error{errmsg.ErrServerDeprecatedStorage}
 	var users []*entity.ApplicationUser
 
 	if users, err = conn.storage.FollowedBy(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(string)); err != nil {
@@ -193,7 +194,7 @@ func (conn *connection) CurrentUserFollowedByList(ctx *context.Context) (err []e
 }
 
 func (conn *connection) Confirm(ctx *context.Context) (err []errors.Error) {
-	return deprecatedStorageError
+	return []errors.Error{errmsg.ErrServerDeprecatedStorage}
 	var connection = &entity.Connection{}
 
 	if er := json.Unmarshal(ctx.Body, connection); er != nil {
@@ -223,7 +224,7 @@ func (conn *connection) Confirm(ctx *context.Context) (err []errors.Error) {
 }
 
 func (conn *connection) CreateSocial(ctx *context.Context) (err []errors.Error) {
-	return deprecatedStorageError
+	return []errors.Error{errmsg.ErrServerDeprecatedStorage}
 	platformName := strings.ToLower(ctx.Vars["platformName"])
 
 	socialConnections := struct {
