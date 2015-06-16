@@ -36,7 +36,7 @@ type (
 
 		// StreamRecords will stream all the records it can from from all the shards of a stream
 		// To stop it, just close the output channel
-		StreamRecords(streamName, consumerName string, maxEntries int) (output <-chan string, errors <-chan errors.Error, done <-chan struct{})
+		StreamRecords(streamName, consumerName, consumerPosition string, maxEntries int) (<-chan string, <-chan string, chan errors.Error, <-chan struct{})
 
 		// UnpackRecord takes a record and unpacks it then returns the stream name and the original message as a string
 		UnpackRecord(message string) (streamName, unpackedMessage string, err errors.Error)
@@ -182,9 +182,10 @@ func (c *cli) GetRecords(streamName, shardID, consumerName string, maxEntries in
 	return result, nil
 }
 
-func (c *cli) StreamRecords(streamName, consumerName string, maxEntries int) (<-chan string, <-chan errors.Error, <-chan struct{}) {
+func (c *cli) StreamRecords(streamName, consumerName, consumerPosition string, maxEntries int) (<-chan string, <-chan string, chan errors.Error, <-chan struct{}) {
 
 	output := make(chan string, 10*maxEntries)
+	sequenceNumber := make(chan string, 10*maxEntries)
 	errs := make(chan errors.Error, 10)
 	done := make(chan struct{})
 
@@ -192,23 +193,26 @@ func (c *cli) StreamRecords(streamName, consumerName string, maxEntries int) (<-
 	if err != nil {
 		errs <- err
 		close(done)
-		return output, errs, done
+		return output, sequenceNumber, errs, done
 	}
 
 	// Keep track of internal producers and when all of them have quit, we should quit as well
 	internalDone := make(chan bool, len(stream.StreamDescription.Shards))
 
 	for idx := range stream.StreamDescription.Shards {
-		go func(streamName, shardID string, maxEntries int, output chan<- string, errs chan<- errors.Error, done chan bool) {
+		go func(streamName, shardID string, maxEntries int, output, sequenceNumber chan<- string, errs chan<- errors.Error, done chan bool) {
 			defer func() {
 				done <- true
 			}()
 			args := gksis.NewArgs()
 			args.Add("StreamName", streamName)
 			args.Add("ShardId", shardID)
-			// TODO this one should actually be retrieved from REDIS or other place where we can store the current iterator
-			// so that we can have resume support for it
-			args.Add("ShardIteratorType", "LATEST")
+			if consumerPosition == "" {
+				args.Add("ShardIteratorType", "LATEST")
+			} else {
+				args.Add("ShardIteratorType", "AFTER_SEQUENCE_NUMBER")
+				args.Add("StartingSequenceNumber", consumerPosition)
+			}
 			shardIteratorResponse, err := c.kinesis.GetShardIterator(args)
 			if err != nil {
 				errs <- errors.NewInternalError(0, "error while reading the internal data", err.Error())
@@ -234,12 +238,13 @@ func (c *cli) StreamRecords(streamName, consumerName string, maxEntries int) (<-
 
 				for _, d := range records.Records {
 					output <- string(d.GetData())
+					sequenceNumber <- d.SequenceNumber
 				}
 
 				shardIterator = records.NextShardIterator
 				time.Sleep(1 * time.Second)
 			}
-		}(streamName, stream.StreamDescription.Shards[idx].ShardId, maxEntries, output, errs, internalDone)
+		}(streamName, stream.StreamDescription.Shards[idx].ShardId, maxEntries, output, sequenceNumber, errs, internalDone)
 	}
 
 	go func() {
@@ -251,11 +256,12 @@ func (c *cli) StreamRecords(streamName, consumerName string, maxEntries int) (<-
 			}
 		}
 		close(output)
+		close(sequenceNumber)
 		close(errs)
 		close(done)
 	}()
 
-	return output, errs, done
+	return output, sequenceNumber, errs, done
 }
 
 func (c *cli) UnpackRecord(message string) (streamName, unpackedMessage string, err errors.Error) {

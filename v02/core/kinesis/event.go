@@ -21,15 +21,30 @@ type (
 )
 
 func (e *event) Create(accountID, applicationID int64, currentUserID string, event *entity.Event, retrieve bool) (*entity.Event, []errors.Error) {
-	data, er := json.Marshal(event)
+	if event.ID == "" {
+		return nil, []errors.Error{errmsg.ErrInternalEventMissingID}
+	}
+	evt := entity.EventWithIDs{}
+	evt.AccountID = accountID
+	evt.ApplicationID = applicationID
+	event.Enabled = true
+	evt.Event = *event
+	data, er := json.Marshal(evt)
 	if er != nil {
 		return nil, []errors.Error{errors.NewInternalError(0, "error while creating the event (1)", er.Error())}
 	}
 
 	partitionKey := fmt.Sprintf("partitionKey-%d-%d", accountID, applicationID)
 	_, err := e.storage.PackAndPutRecord(kinesis.StreamEventCreate, partitionKey, data)
+	if err != nil {
+		return nil, []errors.Error{err}
+	}
 
-	return nil, []errors.Error{err}
+	if retrieve {
+		return event, nil
+	}
+
+	return nil, nil
 }
 
 func (e *event) Read(accountID, applicationID int64, userID, currentUserID, eventID string) (event *entity.Event, err []errors.Error) {
@@ -37,27 +52,45 @@ func (e *event) Read(accountID, applicationID int64, userID, currentUserID, even
 }
 
 func (e *event) Update(accountID, applicationID int64, currentUserID string, existingEvent, updatedEvent entity.Event, retrieve bool) (*entity.Event, []errors.Error) {
-	data, er := json.Marshal(updatedEvent)
+	evt := entity.EventWithIDs{}
+	evt.AccountID = accountID
+	evt.ApplicationID = applicationID
+	evt.Event = updatedEvent
+	data, er := json.Marshal(evt)
 	if er != nil {
 		return nil, []errors.Error{errors.NewInternalError(0, "error while updating the event (1)", er.Error())}
 	}
 
 	partitionKey := fmt.Sprintf("partitionKey-%d-%d", accountID, applicationID)
 	_, err := e.storage.PackAndPutRecord(kinesis.StreamEventUpdate, partitionKey, data)
+	if err != nil {
+		return nil, []errors.Error{err}
+	}
 
-	return nil, []errors.Error{err}
+	if retrieve {
+		return &updatedEvent, nil
+	}
+
+	return nil, nil
 }
 
 func (e *event) Delete(accountID, applicationID int64, currentUserID string, event *entity.Event) []errors.Error {
-	data, er := json.Marshal(event)
+	evt := entity.EventWithIDs{}
+	evt.AccountID = accountID
+	evt.ApplicationID = applicationID
+	evt.Event = *event
+	data, er := json.Marshal(evt)
 	if er != nil {
 		return []errors.Error{errors.NewInternalError(0, "error while deleting the event (1)", er.Error())}
 	}
 
 	partitionKey := fmt.Sprintf("partitionKey-%d-%d", accountID, applicationID)
 	_, err := e.storage.PackAndPutRecord(kinesis.StreamEventDelete, partitionKey, data)
+	if err != nil {
+		return []errors.Error{err}
+	}
 
-	return []errors.Error{err}
+	return nil
 }
 
 func (e *event) List(accountID, applicationID int64, userID, currentUserID string) (events []*entity.Event, err []errors.Error) {

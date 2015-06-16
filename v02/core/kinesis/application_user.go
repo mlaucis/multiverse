@@ -34,27 +34,45 @@ func (appu *applicationUser) ReadMultiple(accountID, applicationID int64, userID
 }
 
 func (appu *applicationUser) Update(accountID, applicationID int64, existingUser, updatedUser entity.ApplicationUser, retrieve bool) (*entity.ApplicationUser, []errors.Error) {
-	data, er := json.Marshal(updatedUser)
+	user := entity.ApplicationUserWithIDs{}
+	user.AccountID = accountID
+	user.ApplicationID = applicationID
+	user.ApplicationUser = updatedUser
+	data, er := json.Marshal(user)
 	if er != nil {
 		return nil, []errors.Error{errors.NewInternalError(0, "error while updating the user (1)", er.Error())}
 	}
 
 	partitionKey := fmt.Sprintf("application-user-update-%d-%d-%d", accountID, applicationID, updatedUser.ID)
 	_, err := appu.storage.PackAndPutRecord(kinesis.StreamApplicationUserUpdate, partitionKey, data)
+	if err != nil {
+		return nil, []errors.Error{err}
+	}
 
-	return nil, []errors.Error{err}
+	if retrieve {
+		return &updatedUser, nil
+	}
+
+	return nil, nil
 }
 
 func (appu *applicationUser) Delete(accountID, applicationID int64, applicationUser *entity.ApplicationUser) []errors.Error {
-	data, er := json.Marshal(applicationUser)
+	user := entity.ApplicationUserWithIDs{}
+	user.AccountID = accountID
+	user.ApplicationID = applicationID
+	user.ApplicationUser = *applicationUser
+	data, er := json.Marshal(user)
 	if er != nil {
 		return []errors.Error{errors.NewInternalError(0, "error while deleting the user (1)", er.Error())}
 	}
 
-	partitionKey := fmt.Sprintf("application-user-delete-%d-%d-%d", accountID, applicationID, applicationUser.ID)
+	partitionKey := fmt.Sprintf("application-user-delete-%d-%d-%s", accountID, applicationID, applicationUser.ID)
 	_, err := appu.storage.PackAndPutRecord(kinesis.StreamApplicationUserDelete, partitionKey, data)
+	if err != nil {
+		return []errors.Error{err}
+	}
 
-	return []errors.Error{err}
+	return nil
 }
 
 func (appu *applicationUser) List(accountID, applicationID int64) (users []*entity.ApplicationUser, err []errors.Error) {

@@ -37,6 +37,7 @@ var (
 	ErrInternalApplicationUserSessionsDelete  = errors.New(http.StatusInternalServerError, 1506, "error while deleting all session", "", false)
 	ErrInternalApplicationUserSessionUpdate   = errors.New(http.StatusInternalServerError, 1507, "error while updating the application user session", "", false)
 	ErrInternalApplicationUserUpdate          = errors.New(http.StatusInternalServerError, 1508, "error while updating the application user", "", false)
+	ErrInternalApplicationUserIDMissing       = errors.New(http.StatusInternalServerError, 1509, "user ID is missing", "", false)
 
 	// Connection errors
 	ErrConnectionAlreadyExists      = errors.New(http.StatusBadRequest, 2000, "connection already exists", "", false)
@@ -50,6 +51,9 @@ var (
 	ErrInternalConnectionCreation = errors.New(http.StatusInternalServerError, 2501, "error while creating the connection", "", false)
 	ErrInternalConnectionRead     = errors.New(http.StatusInternalServerError, 2502, "error while reading the connection", "", false)
 	ErrInternalConnectionUpdate   = errors.New(http.StatusInternalServerError, 2503, "error while updating the connection", "", false)
+	ErrInternalFollowersList      = errors.New(http.StatusInternalServerError, 2504, "error while retrieving list of followers", "", false)
+	ErrInternalFollowingList      = errors.New(http.StatusInternalServerError, 2505, "error while retrieving list of following", "", false)
+	ErrInternalFriendsList        = errors.New(http.StatusInternalServerError, 2506, "error while retrieving list of friends", "", false)
 
 	// Event errors
 	ErrEventGeoRadiusAndNearestMissing = errors.New(http.StatusBadRequest, 3000, "you must specify either a radius or a how many nearest events you want", "invalid radius and nearest", false)
@@ -63,13 +67,11 @@ var (
 	ErrEventTypeSize                   = errors.New(http.StatusBadRequest, 3008, "type must be between 1 and 30 characters", "", false)
 
 	// Internal event errors
-	ErrInternalEventCreation = errors.New(http.StatusInternalServerError, 3500, "error while saving the event", "", false)
-	ErrInternalEventRead     = errors.New(http.StatusInternalServerError, 3501, "error while reading the event", "", false)
-	ErrInternalEventsList    = errors.New(http.StatusInternalServerError, 3502, "failed to read the events", "", false)
-	ErrInternalEventUpdate   = errors.New(http.StatusInternalServerError, 3503, "error while updating the event", "", false)
-	ErrInternalFollowersList = errors.New(http.StatusInternalServerError, 3504, "error while retrieving list of followers", "", false)
-	ErrInternalFollowingList = errors.New(http.StatusInternalServerError, 3505, "error while retrieving list of following", "", false)
-	ErrInternalFriendsList   = errors.New(http.StatusInternalServerError, 3506, "error while retrieving list of friends", "", false)
+	ErrInternalEventCreation  = errors.New(http.StatusInternalServerError, 3500, "error while saving the event", "", false)
+	ErrInternalEventRead      = errors.New(http.StatusInternalServerError, 3501, "error while reading the event", "", false)
+	ErrInternalEventsList     = errors.New(http.StatusInternalServerError, 3502, "failed to read the events", "", false)
+	ErrInternalEventUpdate    = errors.New(http.StatusInternalServerError, 3503, "error while updating the event", "", false)
+	ErrInternalEventMissingID = errors.New(http.StatusInternalServerError, 3504, "event is missing ID", "", false)
 
 	// Authentication errors
 	ErrAuthGeneric                           = errors.New(http.StatusBadRequest, 4001, "authentication error", "", false)
@@ -106,9 +108,10 @@ var (
 	ErrServerRespMissingLastModifiedHeader = errors.New(http.StatusInternalServerError, 5013, "something went wrong", "", false)
 
 	// Misc errors
-	ErrServerNotImplementedYet = errors.New(http.StatusInternalServerError, 5500, "not implemented yet", "", false)
-	ErrServerDeprecatedStorage = errors.New(http.StatusInternalServerError, 5501, "deprecated storage", "", false)
-	ErrServerInvalidHandler    = errors.New(http.StatusInternalServerError, 5502, "something went wrong", "handler used in wrong context", false)
+	ErrServerNotImplementedYet         = errors.New(http.StatusInternalServerError, 5500, "not implemented yet", "", false)
+	ErrServerDeprecatedStorage         = errors.New(http.StatusInternalServerError, 5501, "deprecated storage", "", false)
+	ErrServerInvalidHandler            = errors.New(http.StatusInternalServerError, 5502, "something went wrong", "handler used in wrong context", false)
+	ErrServerUnsportedHandlerOperation = errors.New(http.StatusInternalServerError, 5503, "something went wrong", "handler does not support operation", false)
 
 	// Account errors
 	ErrAccountDescriptionSize  = errors.New(http.StatusBadRequest, 6000, "account description must be between 0 and 100 characters", "", false)

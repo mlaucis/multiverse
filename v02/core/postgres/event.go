@@ -15,7 +15,6 @@ import (
 	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/entity"
 	"github.com/tapglue/backend/v02/errmsg"
-	storageHelper "github.com/tapglue/backend/v02/storage/helper"
 	"github.com/tapglue/backend/v02/storage/postgres"
 )
 
@@ -117,7 +116,9 @@ const (
 )
 
 func (e *event) Create(accountID, applicationID int64, currentUserID string, event *entity.Event, retrieve bool) (*entity.Event, []errors.Error) {
-	event.ID = storageHelper.GenerateUUIDV5(storageHelper.OIDUUIDNamespace, storageHelper.GenerateRandomString(20))
+	if event.ID == "" {
+		return nil, []errors.Error{errmsg.ErrInternalEventMissingID}
+	}
 	event.Enabled = true
 	timeNow := time.Now()
 	event.CreatedAt, event.UpdatedAt = &timeNow, &timeNow

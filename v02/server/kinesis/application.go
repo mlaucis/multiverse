@@ -5,16 +5,20 @@
 package kinesis
 
 import (
+	"net/http"
+
 	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/v02/core"
+	"github.com/tapglue/backend/v02/entity"
 	"github.com/tapglue/backend/v02/errmsg"
 	"github.com/tapglue/backend/v02/server"
 )
 
 type (
 	application struct {
-		storage core.Application
+		writeStorage core.Application
+		readStorage  core.Application
 	}
 )
 
@@ -27,7 +31,12 @@ func (app *application) Update(ctx *context.Context) (err []errors.Error) {
 }
 
 func (app *application) Delete(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	if err = app.writeStorage.Delete(ctx.Bag["application"].(*entity.Application)); err != nil {
+		return
+	}
+
+	server.WriteResponse(ctx, "", http.StatusNoContent, 10)
+	return
 }
 
 func (app *application) Create(ctx *context.Context) (err []errors.Error) {
@@ -47,8 +56,9 @@ func (app *application) PopulateContextFromID(ctx *context.Context) (err []error
 }
 
 // NewApplication returns a new application route handler
-func NewApplication(storage core.Application) server.Application {
+func NewApplication(writeStorage, readStorage core.Application) server.Application {
 	return &application{
-		storage: storage,
+		writeStorage: writeStorage,
+		readStorage:  readStorage,
 	}
 }

@@ -50,6 +50,13 @@ CREATE TABLE tg.applications (
   enabled INT DEFAULT 1 NOT NULL
 );
 
+CREATE TABLE tg.consumers
+(
+  consumer_name TEXT NOT NULL,
+  consumer_position TEXT NOT NULL,
+  updated_at TIMESTAMP NOT NULL
+);
+
 CREATE INDEX on tg.accounts USING GIN (json_data);
 CREATE INDEX on tg.account_users USING GIN (json_data);
 CREATE INDEX on tg.applications USING GIN (json_data);
