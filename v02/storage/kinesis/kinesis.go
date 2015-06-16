@@ -343,10 +343,7 @@ func (c *cli) Datastore() *gksis.Kinesis {
 
 // New returns a new Kinesis client
 func New(authKey, secretKey, region, env string) Client {
-	auth := &gksis.Auth{
-		AccessKey: authKey,
-		SecretKey: secretKey,
-	}
+	auth := gksis.NewAuth(authKey, secretKey)
 
 	packedStreamName := "dev"
 
@@ -360,17 +357,14 @@ func New(authKey, secretKey, region, env string) Client {
 	}
 
 	return &cli{
-		kinesis:          gksis.New(auth, gksis.Region{Name: region}),
+		kinesis:          gksis.New(auth, region),
 		packedStreamName: packedStreamName,
 	}
 }
 
 // NewTest returns a new testing-enabled client
 func NewTest(authKey, secretKey, region, endpoint, env string) Client {
-	auth := &gksis.Auth{
-		AccessKey: authKey,
-		SecretKey: secretKey,
-	}
+	auth := gksis.NewAuth(authKey, secretKey)
 
 	packedStreamName := "dev"
 
@@ -384,7 +378,7 @@ func NewTest(authKey, secretKey, region, endpoint, env string) Client {
 	}
 
 	return &cli{
-		kinesis:          gksis.NewWithEndpoint(auth, gksis.Region{Name: region}, endpoint),
+		kinesis:          gksis.NewWithEndpoint(auth, region, endpoint),
 		packedStreamName: packedStreamName,
 	}
 }

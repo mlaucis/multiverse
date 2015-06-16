@@ -156,8 +156,8 @@ func (conn *connection) List(ctx *context.Context) (err []errors.Error) {
 		return
 	}
 
-	computeApplicationUsersLastModified(ctx, users)
-	sanitizeApplicationUsers(users)
+	server.ComputeApplicationUsersLastModified(ctx, users)
+	server.SanitizeApplicationUsers(users)
 
 	response := struct {
 		Users      []*entity.ApplicationUser `json:"users"`
@@ -187,8 +187,8 @@ func (conn *connection) CurrentUserList(ctx *context.Context) (err []errors.Erro
 		return
 	}
 
-	computeApplicationUsersLastModified(ctx, users)
-	sanitizeApplicationUsers(users)
+	server.ComputeApplicationUsersLastModified(ctx, users)
+	server.SanitizeApplicationUsers(users)
 
 	response := struct {
 		Users      []*entity.ApplicationUser `json:"users"`
@@ -230,8 +230,8 @@ func (conn *connection) FollowedByList(ctx *context.Context) (err []errors.Error
 		return
 	}
 
-	computeApplicationUsersLastModified(ctx, users)
-	sanitizeApplicationUsers(users)
+	server.ComputeApplicationUsersLastModified(ctx, users)
+	server.SanitizeApplicationUsers(users)
 
 	response := struct {
 		Users      []*entity.ApplicationUser `json:"users"`
@@ -260,8 +260,8 @@ func (conn *connection) CurrentUserFollowedByList(ctx *context.Context) (err []e
 		return
 	}
 
-	computeApplicationUsersLastModified(ctx, users)
-	sanitizeApplicationUsers(users)
+	server.ComputeApplicationUsersLastModified(ctx, users)
+	server.SanitizeApplicationUsers(users)
 
 	response := struct {
 		Users      []*entity.ApplicationUser `json:"users"`
@@ -359,7 +359,7 @@ func (conn *connection) CreateSocial(ctx *context.Context) (err []errors.Error) 
 		return
 	}
 
-	sanitizeApplicationUsers(users)
+	server.SanitizeApplicationUsers(users)
 
 	response := struct {
 		Users      []*entity.ApplicationUser `json:"users"`
@@ -396,8 +396,8 @@ func (conn *connection) Friends(ctx *context.Context) (err []errors.Error) {
 		return
 	}
 
-	computeApplicationUsersLastModified(ctx, users)
-	sanitizeApplicationUsers(users)
+	server.ComputeApplicationUsersLastModified(ctx, users)
+	server.SanitizeApplicationUsers(users)
 
 	response := struct {
 		Users      []*entity.ApplicationUser `json:"users"`
@@ -422,8 +422,8 @@ func (conn *connection) CurrentUserFriends(ctx *context.Context) (err []errors.E
 		return
 	}
 
-	computeApplicationUsersLastModified(ctx, users)
-	sanitizeApplicationUsers(users)
+	server.ComputeApplicationUsersLastModified(ctx, users)
+	server.SanitizeApplicationUsers(users)
 
 	response := struct {
 		Users      []*entity.ApplicationUser `json:"users"`

@@ -36,7 +36,7 @@ func (appUser *applicationUser) Read(ctx *context.Context) (err []errors.Error) 
 		return err
 	}
 
-	computeApplicationUserLastModified(ctx, user)
+	server.ComputeApplicationUserLastModified(ctx, user)
 
 	user.Password = ""
 	user.Enabled = false
@@ -51,7 +51,7 @@ func (appUser *applicationUser) ReadCurrent(ctx *context.Context) (err []errors.
 	user.Password = ""
 	user.Enabled = false
 
-	computeApplicationUserLastModified(ctx, user)
+	server.ComputeApplicationUserLastModified(ctx, user)
 
 	server.WriteResponse(ctx, user, http.StatusOK, 10)
 	return
@@ -297,7 +297,7 @@ func (appUser *applicationUser) Search(ctx *context.Context) (err []errors.Error
 		return
 	}
 
-	computeApplicationUsersLastModified(ctx, users)
+	server.ComputeApplicationUsersLastModified(ctx, users)
 
 	for idx := range users {
 		users[idx].Password = ""

@@ -26,7 +26,7 @@ type (
 
 func (app *application) Read(ctx *context.Context) (err []errors.Error) {
 	// TODO This one read only the current application maybe we want to have something to read any application?
-	computeApplicationLastModified(ctx, ctx.Bag["application"].(*entity.Application))
+	server.ComputeApplicationLastModified(ctx, ctx.Bag["application"].(*entity.Application))
 	server.WriteResponse(ctx, ctx.Bag["application"].(*entity.Application), http.StatusOK, 10)
 	return
 }
@@ -102,7 +102,7 @@ func (app *application) List(ctx *context.Context) (err []errors.Error) {
 		Applications: applications,
 	}
 
-	computeApplicationsLastModified(ctx, response.Applications)
+	server.ComputeApplicationsLastModified(ctx, response.Applications)
 
 	server.WriteResponse(ctx, response, http.StatusOK, 10)
 	return

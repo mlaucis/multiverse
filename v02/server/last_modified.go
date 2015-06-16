@@ -2,7 +2,7 @@
  * @author Florin Patan <florinpatan@gmail.com>
  */
 
-package postgres
+package server
 
 import (
 	"net/http"
@@ -11,11 +11,11 @@ import (
 	"github.com/tapglue/backend/v02/entity"
 )
 
-func computeAccountLastModified(ctx *context.Context, account *entity.Account) {
+func ComputeAccountLastModified(ctx *context.Context, account *entity.Account) {
 	ctx.Bag["Last-Modified"] = account.UpdatedAt.Format(http.TimeFormat)
 }
 
-func computeAccountsLastModified(ctx *context.Context, accounts []*entity.Account) {
+func ComputeAccountsLastModified(ctx *context.Context, accounts []*entity.Account) {
 	if len(accounts) == 0 {
 		ctx.Bag["Last-Modified"] = ctx.StartTime.Format(http.TimeFormat)
 		return
@@ -29,11 +29,11 @@ func computeAccountsLastModified(ctx *context.Context, accounts []*entity.Accoun
 	ctx.Bag["Last-Modified"] = highTime.Format(http.TimeFormat)
 }
 
-func computeAccountUserLastModified(ctx *context.Context, user *entity.AccountUser) {
+func ComputeAccountUserLastModified(ctx *context.Context, user *entity.AccountUser) {
 	ctx.Bag["Last-Modified"] = user.UpdatedAt.Format(http.TimeFormat)
 }
 
-func computeAccountUsersLastModified(ctx *context.Context, users []*entity.AccountUser) {
+func ComputeAccountUsersLastModified(ctx *context.Context, users []*entity.AccountUser) {
 	if len(users) == 0 {
 		ctx.Bag["Last-Modified"] = ctx.StartTime.Format(http.TimeFormat)
 		return
@@ -47,11 +47,11 @@ func computeAccountUsersLastModified(ctx *context.Context, users []*entity.Accou
 	ctx.Bag["Last-Modified"] = highTime.Format(http.TimeFormat)
 }
 
-func computeApplicationLastModified(ctx *context.Context, application *entity.Application) {
+func ComputeApplicationLastModified(ctx *context.Context, application *entity.Application) {
 	ctx.Bag["Last-Modified"] = application.UpdatedAt.Format(http.TimeFormat)
 }
 
-func computeApplicationsLastModified(ctx *context.Context, applications []*entity.Application) {
+func ComputeApplicationsLastModified(ctx *context.Context, applications []*entity.Application) {
 	if len(applications) == 0 {
 		ctx.Bag["Last-Modified"] = ctx.StartTime.Format(http.TimeFormat)
 		return
@@ -65,11 +65,11 @@ func computeApplicationsLastModified(ctx *context.Context, applications []*entit
 	ctx.Bag["Last-Modified"] = highTime.Format(http.TimeFormat)
 }
 
-func computeApplicationUserLastModified(ctx *context.Context, user *entity.ApplicationUser) {
+func ComputeApplicationUserLastModified(ctx *context.Context, user *entity.ApplicationUser) {
 	ctx.Bag["Last-Modified"] = user.UpdatedAt.Format(http.TimeFormat)
 }
 
-func computeApplicationUsersLastModified(ctx *context.Context, users []*entity.ApplicationUser) {
+func ComputeApplicationUsersLastModified(ctx *context.Context, users []*entity.ApplicationUser) {
 	if len(users) == 0 {
 		ctx.Bag["Last-Modified"] = ctx.StartTime.Format(http.TimeFormat)
 		return
@@ -83,11 +83,11 @@ func computeApplicationUsersLastModified(ctx *context.Context, users []*entity.A
 	ctx.Bag["Last-Modified"] = highTime.Format(http.TimeFormat)
 }
 
-func computeConnectionLastModified(ctx *context.Context, connection *entity.Connection) {
+func ComputeConnectionLastModified(ctx *context.Context, connection *entity.Connection) {
 	ctx.Bag["Last-Modified"] = connection.UpdatedAt.Format(http.TimeFormat)
 }
 
-func computeConnectionsLastModified(ctx *context.Context, connections []*entity.Connection) {
+func ComputeConnectionsLastModified(ctx *context.Context, connections []*entity.Connection) {
 	if len(connections) == 0 {
 		ctx.Bag["Last-Modified"] = ctx.StartTime.Format(http.TimeFormat)
 		return
@@ -101,11 +101,11 @@ func computeConnectionsLastModified(ctx *context.Context, connections []*entity.
 	ctx.Bag["Last-Modified"] = highTime.Format(http.TimeFormat)
 }
 
-func computeEventLastModified(ctx *context.Context, event *entity.Event) {
+func ComputeEventLastModified(ctx *context.Context, event *entity.Event) {
 	ctx.Bag["Last-Modified"] = event.UpdatedAt.Format(http.TimeFormat)
 }
 
-func computeEventsLastModified(ctx *context.Context, events []*entity.Event) {
+func ComputeEventsLastModified(ctx *context.Context, events []*entity.Event) {
 	if len(events) == 0 {
 		ctx.Bag["Last-Modified"] = ctx.StartTime.Format(http.TimeFormat)
 		return
@@ -119,6 +119,6 @@ func computeEventsLastModified(ctx *context.Context, events []*entity.Event) {
 	ctx.Bag["Last-Modified"] = highTime.Format(http.TimeFormat)
 }
 
-func computeLastModifiedNow(ctx *context.Context) {
+func ComputeLastModifiedNow(ctx *context.Context) {
 	ctx.Bag["Last-Modified"] = ctx.StartTime.Format(http.TimeFormat)
 }

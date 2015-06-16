@@ -2,11 +2,11 @@
  * @author Florin Patan <florinpatan@gmail.com>
  */
 
-package postgres
+package server
 
 import "github.com/tapglue/backend/v02/entity"
 
-func sanitizeApplicationUsers(users []*entity.ApplicationUser) {
+func SanitizeApplicationUsers(users []*entity.ApplicationUser) {
 	for idx := range users {
 		users[idx].Password = ""
 		users[idx].Enabled = false
@@ -17,7 +17,7 @@ func sanitizeApplicationUsers(users []*entity.ApplicationUser) {
 	}
 }
 
-func sanitizeApplicationUsersMap(users map[string]*entity.ApplicationUser) {
+func SanitizeApplicationUsersMap(users map[string]*entity.ApplicationUser) {
 	for idx := range users {
 		users[idx].Password = ""
 		users[idx].Enabled = false
