@@ -5,11 +5,15 @@
 package kinesis
 
 import (
+	"encoding/json"
+	"net/http"
+
 	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/errmsg"
 	"github.com/tapglue/backend/v02/server"
+	"github.com/tapglue/backend/v02/validator"
 )
 
 type (
@@ -28,7 +32,51 @@ func (evt *event) Update(ctx *context.Context) (err []errors.Error) {
 }
 
 func (evt *event) CurrentUserUpdate(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	var (
+		eventID string
+		er      error
+	)
+
+	eventID = ctx.Vars["eventID"]
+	if !validator.IsValidUUID5(eventID) {
+		return []errors.Error{errmsg.ErrEventIDInvalid}
+	}
+
+	existingEvent, err := evt.storage.Read(
+		ctx.Bag["accountID"].(int64),
+		ctx.Bag["applicationID"].(int64),
+		ctx.Bag["applicationUserID"].(string),
+		ctx.Bag["applicationUserID"].(string),
+		eventID)
+	if err != nil {
+		return
+	}
+
+	event := *existingEvent
+	if er = json.Unmarshal(ctx.Body, &event); er != nil {
+		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
+	}
+
+	event.ID = eventID
+	event.UserID = ctx.Bag["applicationUserID"].(string)
+
+	if err = validator.UpdateEvent(existingEvent, &event); err != nil {
+		return
+	}
+
+	updatedEvent, err := evt.storage.Update(
+		ctx.Bag["accountID"].(int64),
+		ctx.Bag["applicationID"].(int64),
+		ctx.Bag["applicationUserID"].(string),
+		*existingEvent,
+		event,
+		true)
+	if err != nil {
+		return
+	}
+
+	server.WriteResponse(ctx, updatedEvent, http.StatusCreated, 0)
+	return
 }
 
 func (evt *event) Delete(ctx *context.Context) (err []errors.Error) {

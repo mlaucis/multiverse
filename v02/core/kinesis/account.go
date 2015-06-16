@@ -7,6 +7,7 @@ import (
 	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/entity"
+	"github.com/tapglue/backend/v02/errmsg"
 	"github.com/tapglue/backend/v02/storage/kinesis"
 
 	ksis "github.com/sendgridlabs/go-kinesis"
@@ -20,11 +21,11 @@ type (
 )
 
 func (a *account) Create(account *entity.Account, retrieve bool) (acc *entity.Account, err []errors.Error) {
-	return nil, invalidHandlerError
+	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
 }
 
 func (a *account) Read(accountID int64) (account *entity.Account, err []errors.Error) {
-	return nil, invalidHandlerError
+	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
 }
 
 func (a *account) Update(existingAccount, updatedAccount entity.Account, retrieve bool) (*entity.Account, []errors.Error) {
@@ -52,15 +53,15 @@ func (a *account) Delete(account *entity.Account) []errors.Error {
 }
 
 func (a *account) Exists(accountID int64) (bool, []errors.Error) {
-	return false, invalidHandlerError
+	return false, []errors.Error{errmsg.ErrServerInvalidHandler}
 }
 
 func (a *account) FindByKey(authKey string) (*entity.Account, []errors.Error) {
-	return nil, invalidHandlerError
+	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
 }
 
 func (a *account) ReadByPublicID(id string) (*entity.Account, []errors.Error) {
-	return nil, invalidHandlerError
+	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
 }
 
 // NewAccount creates a new Account

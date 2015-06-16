@@ -7,6 +7,7 @@ import (
 	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/entity"
+	"github.com/tapglue/backend/v02/errmsg"
 	"github.com/tapglue/backend/v02/storage/kinesis"
 
 	ksis "github.com/sendgridlabs/go-kinesis"
@@ -32,7 +33,7 @@ func (app *application) Create(application *entity.Application, retrieve bool) (
 }
 
 func (app *application) Read(accountID, applicationID int64) (*entity.Application, []errors.Error) {
-	return nil, invalidHandlerError
+	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
 }
 
 func (app *application) Update(existingApplication, updatedApplication entity.Application, retrieve bool) (*entity.Application, []errors.Error) {
@@ -60,19 +61,19 @@ func (app *application) Delete(application *entity.Application) []errors.Error {
 }
 
 func (app *application) List(accountID int64) ([]*entity.Application, []errors.Error) {
-	return nil, invalidHandlerError
+	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
 }
 
 func (app *application) Exists(accountID, applicationID int64) (bool, []errors.Error) {
-	return false, invalidHandlerError
+	return false, []errors.Error{errmsg.ErrServerInvalidHandler}
 }
 
 func (app *application) FindByKey(applicationKey string) (*entity.Application, []errors.Error) {
-	return nil, invalidHandlerError
+	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
 }
 
 func (app *application) FindByPublicID(publicID string) (*entity.Application, []errors.Error) {
-	return nil, invalidHandlerError
+	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
 }
 
 // NewApplication creates a new Application

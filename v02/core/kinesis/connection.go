@@ -7,6 +7,7 @@ import (
 	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/entity"
+	"github.com/tapglue/backend/v02/errmsg"
 	"github.com/tapglue/backend/v02/storage/kinesis"
 
 	ksis "github.com/sendgridlabs/go-kinesis"
@@ -32,7 +33,7 @@ func (c *connection) Create(accountID, applicationID int64, conn *entity.Connect
 }
 
 func (c *connection) Read(accountID, applicationID int64, userFromID, userToID string) (connection *entity.Connection, err []errors.Error) {
-	return connection, invalidHandlerError
+	return connection, []errors.Error{errmsg.ErrServerInvalidHandler}
 }
 
 func (c *connection) Update(accountID, applicationID int64, existingConnection, updatedConnection entity.Connection, retrieve bool) (*entity.Connection, []errors.Error) {
@@ -60,19 +61,19 @@ func (c *connection) Delete(accountID, applicationID int64, connection *entity.C
 }
 
 func (c *connection) List(accountID, applicationID int64, userID string) (users []*entity.ApplicationUser, err []errors.Error) {
-	return users, invalidHandlerError
+	return users, []errors.Error{errmsg.ErrServerInvalidHandler}
 }
 
 func (c *connection) FollowedBy(accountID, applicationID int64, userID string) (users []*entity.ApplicationUser, err []errors.Error) {
-	return users, invalidHandlerError
+	return users, []errors.Error{errmsg.ErrServerInvalidHandler}
 }
 
 func (c *connection) Friends(accountID, applicationID int64, userID string) (users []*entity.ApplicationUser, err []errors.Error) {
-	return nil, invalidHandlerError
+	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
 }
 
 func (c *connection) FriendsAndFollowing(accountID, applicationID int64, userID string) ([]*entity.ApplicationUser, []errors.Error) {
-	return nil, invalidHandlerError
+	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
 }
 
 func (c *connection) Confirm(accountID, applicationID int64, connection *entity.Connection, retrieve bool) (*entity.Connection, []errors.Error) {
@@ -88,11 +89,11 @@ func (c *connection) Confirm(accountID, applicationID int64, connection *entity.
 }
 
 func (c *connection) WriteEventsToList(accountID, applicationID int64, connection *entity.Connection) (err []errors.Error) {
-	return invalidHandlerError
+	return []errors.Error{errmsg.ErrServerInvalidHandler}
 }
 
 func (c *connection) DeleteEventsFromLists(accountID, applicationID int64, userFromID, userToID string) (err []errors.Error) {
-	return invalidHandlerError
+	return []errors.Error{errmsg.ErrServerInvalidHandler}
 }
 
 func (c *connection) SocialConnect(accountID, applicationID int64, user *entity.ApplicationUser, platform string, socialFriendsIDs []string, connectionType string) ([]*entity.ApplicationUser, []errors.Error) {

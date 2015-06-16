@@ -108,6 +108,7 @@ var (
 	// Misc errors
 	ErrServerNotImplementedYet = errors.New(http.StatusInternalServerError, 5500, "not implemented yet", "", false)
 	ErrServerDeprecatedStorage = errors.New(http.StatusInternalServerError, 5501, "deprecated storage", "", false)
+	ErrServerInvalidHandler    = errors.New(http.StatusInternalServerError, 5502, "something went wrong", "handler used in wrong context", false)
 
 	// Account errors
 	ErrAccountDescriptionSize  = errors.New(http.StatusBadRequest, 6000, "account description must be between 0 and 100 characters", "", false)
