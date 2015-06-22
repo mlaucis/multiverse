@@ -64,6 +64,9 @@ var (
 		`CREATE INDEX ON app_%d_%d.connections USING GIN (json_data jsonb_path_ops)`,
 		`CREATE INDEX ON app_%d_%d.events USING GIN (json_data jsonb_path_ops)`,
 		`CREATE INDEX ON app_%d_%d.events USING GIST (geo)`,
+		`CREATE UNIQUE INDEX user_id_idx ON app_%d_%d.users((json_data->>'id'))`,
+		`CREATE UNIQUE INDEX event_id_idx ON app_%d_%d.events((json_data->>'id'))`,
+		`CREATE UNIQUE INDEX session_id_idx ON app_%d_%d.sessions((session_id))`,
 	}
 )
 
