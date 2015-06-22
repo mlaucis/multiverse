@@ -17,12 +17,14 @@ import (
 	"github.com/tapglue/backend/v02/errmsg"
 	storageHelper "github.com/tapglue/backend/v02/storage/helper"
 	"github.com/tapglue/backend/v02/storage/postgres"
+
+	"github.com/jmoiron/sqlx"
 )
 
 type (
 	applicationUser struct {
 		pg     postgres.Client
-		mainPg *sql.DB
+		mainPg *sqlx.DB
 		conn   core.Connection
 	}
 )

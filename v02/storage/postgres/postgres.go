@@ -6,13 +6,13 @@
 package postgres
 
 import (
-	"database/sql"
 	"fmt"
 	"math/rand"
 
 	"github.com/tapglue/backend/config"
 	"github.com/tapglue/backend/errors"
 
+	"github.com/jmoiron/sqlx"
 	// Well, we want to have PostgreSQL as database so we kinda need this..
 	_ "github.com/lib/pq"
 )
@@ -21,30 +21,30 @@ type (
 	//Client interface to define PostgreSQL methods
 	Client interface {
 		// Returns the raw main database connection
-		MainDatastore() *sql.DB
+		MainDatastore() *sqlx.DB
 
 		// SlaveDatastore returns a random slave database connection
 		//
 		// If the paramater is -1 then the returned connection is chosen out of the connection pool
 		//
 		// If there's no slave connection available, then the main connection is returned
-		SlaveDatastore(id int) *sql.DB
+		SlaveDatastore(id int) *sqlx.DB
 	}
 
 	cli struct {
 		master *config.PostgresDB
 		slaves []config.PostgresDB
 
-		mainPg  *sql.DB
-		slavePg []*sql.DB
+		mainPg  *sqlx.DB
+		slavePg []*sqlx.DB
 	}
 )
 
-func (c *cli) MainDatastore() *sql.DB {
+func (c *cli) MainDatastore() *sqlx.DB {
 	return c.mainPg
 }
 
-func (c *cli) SlaveDatastore(id int) *sql.DB {
+func (c *cli) SlaveDatastore(id int) *sqlx.DB {
 	if len(c.slavePg) == 0 {
 		return c.mainPg
 	}
@@ -60,8 +60,8 @@ func formatConnectionURL(database string, config *config.PostgresDB) string {
 	return fmt.Sprintf("postgres://%s:%s@%s/%s?%s", config.Username, config.Password, config.Host, database, config.Options)
 }
 
-func composeConnection(database string, config *config.PostgresDB) *sql.DB {
-	db, err := sql.Open("postgres", formatConnectionURL(database, config))
+func composeConnection(database string, config *config.PostgresDB) *sqlx.DB {
+	db, err := sqlx.Open("postgres", formatConnectionURL(database, config))
 	if err != nil {
 		errors.Fatal(err)
 	}
