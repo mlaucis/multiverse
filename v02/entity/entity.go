@@ -10,6 +10,15 @@ import (
 )
 
 type (
+	// AccAppIDs holds the account and application IDs
+	AccAppIDs struct {
+		AccountID           int64  `json:"acc_id,omitempty"`
+		ApplicationID       int64  `json:"app_id,omitempty"`
+		PublicAccountID     string `json:"pub_acc_id,omitempty"`
+		PublicApplicationID string `json:"pub_app_id,omitempty"`
+		CurrentUserID       string `json:"current_user_id,omitempty"`
+	}
+
 	// Common holds common used fields
 	Common struct {
 		Metadata  interface{}       `json:"metadata,omitempty"`
@@ -108,6 +117,12 @@ type (
 		Common
 	}
 
+	// ApplicationUserWithIDs
+	ApplicationUserWithIDs struct {
+		AccAppIDs
+		ApplicationUser
+	}
+
 	// Connection structure holds the connections of the users
 	Connection struct {
 		UserFromID  string     `json:"user_from_id"`
@@ -115,6 +130,12 @@ type (
 		Type        string     `json:"type"`
 		ConfirmedAt *time.Time `json:"confirmed_at,omitempty"`
 		Common
+	}
+
+	// ConnectionWithIDs
+	ConnectionWithIDs struct {
+		AccAppIDs
+		Connection
 	}
 
 	// Device structure
@@ -165,6 +186,12 @@ type (
 		Common
 	}
 
+	// EventWithIDs
+	EventWithIDs struct {
+		AccAppIDs
+		Event
+	}
+
 	// LoginPayload defines how the login payload should look like
 	LoginPayload struct {
 		Email     string `json:"email,omitempty"`
@@ -188,6 +215,19 @@ type (
 	EventsResponseWithUnread struct {
 		EventsResponse
 		UnreadCount int `json:"unread_events_count"`
+	}
+
+	AutoConnectSocialFriends struct {
+		User              *ApplicationUserWithIDs `json:"user"`
+		Type              string                  `json:"type"`
+		OurStoredUsersIDs []*ApplicationUser      `json:"our_stored_users_ids"`
+	}
+
+	SocialConnection struct {
+		User             *ApplicationUserWithIDs `json:"user"`
+		Platform         string                  `json:"platform"`
+		Type             string                  `json:"type"`
+		SocialFriendsIDs []string                `json:"social_friends_ids"`
 	}
 )
 

@@ -81,7 +81,7 @@ func defaultConfig() *Config {
 	cfg.Kinesis.AuthKey = ""
 	cfg.Kinesis.SecretKey = ""
 	cfg.Kinesis.Region = "eu-central-1"
-	cfg.Kinesis.Endpoint = "http://127.0.0.1:4567"
+	cfg.Kinesis.Endpoint = ""
 
 	return cfg
 }

@@ -21,15 +21,26 @@ type (
 )
 
 func (c *connection) Create(accountID, applicationID int64, conn *entity.Connection, retrieve bool) (*entity.Connection, []errors.Error) {
-	data, er := json.Marshal(conn)
+	con := entity.ConnectionWithIDs{}
+	con.AccountID = accountID
+	con.ApplicationID = applicationID
+	con.Connection = *conn
+	data, er := json.Marshal(con)
 	if er != nil {
 		return nil, []errors.Error{errors.NewInternalError(0, "error while creating the connection (1)", er.Error())}
 	}
 
 	partitionKey := fmt.Sprintf("partitionKey-%d-%d", accountID, applicationID)
 	_, err := c.storage.PackAndPutRecord(kinesis.StreamConnectionCreate, partitionKey, data)
+	if err != nil {
+		return nil, []errors.Error{err}
+	}
 
-	return nil, []errors.Error{err}
+	if retrieve {
+		return conn, nil
+	}
+
+	return nil, nil
 }
 
 func (c *connection) Read(accountID, applicationID int64, userFromID, userToID string) (connection *entity.Connection, err []errors.Error) {
@@ -37,27 +48,45 @@ func (c *connection) Read(accountID, applicationID int64, userFromID, userToID s
 }
 
 func (c *connection) Update(accountID, applicationID int64, existingConnection, updatedConnection entity.Connection, retrieve bool) (*entity.Connection, []errors.Error) {
-	data, er := json.Marshal(updatedConnection)
+	con := entity.ConnectionWithIDs{}
+	con.AccountID = accountID
+	con.ApplicationID = applicationID
+	con.Connection = updatedConnection
+	data, er := json.Marshal(con)
 	if er != nil {
 		return nil, []errors.Error{errors.NewInternalError(0, "error while updating the connection (1)", er.Error())}
 	}
 
 	partitionKey := fmt.Sprintf("partitionKey-%d-%d", accountID, applicationID)
 	_, err := c.storage.PackAndPutRecord(kinesis.StreamConnectionUpdate, partitionKey, data)
+	if err != nil {
+		return nil, []errors.Error{err}
+	}
 
-	return nil, []errors.Error{err}
+	if retrieve {
+		return &updatedConnection, nil
+	}
+
+	return nil, nil
 }
 
 func (c *connection) Delete(accountID, applicationID int64, connection *entity.Connection) []errors.Error {
-	data, er := json.Marshal(connection)
+	con := entity.ConnectionWithIDs{}
+	con.AccountID = accountID
+	con.ApplicationID = applicationID
+	con.Connection = *connection
+	data, er := json.Marshal(con)
 	if er != nil {
 		return []errors.Error{errors.NewInternalError(0, "error while deleting the connection (1)", er.Error())}
 	}
 
 	partitionKey := fmt.Sprintf("partitionKey-%d-%d", accountID, applicationID)
 	_, err := c.storage.PackAndPutRecord(kinesis.StreamConnectionDelete, partitionKey, data)
+	if err != nil {
+		return []errors.Error{err}
+	}
 
-	return []errors.Error{err}
+	return nil
 }
 
 func (c *connection) List(accountID, applicationID int64, userID string) (users []*entity.ApplicationUser, err []errors.Error) {
@@ -77,15 +106,26 @@ func (c *connection) FriendsAndFollowing(accountID, applicationID int64, userID 
 }
 
 func (c *connection) Confirm(accountID, applicationID int64, connection *entity.Connection, retrieve bool) (*entity.Connection, []errors.Error) {
-	data, er := json.Marshal(connection)
+	con := entity.ConnectionWithIDs{}
+	con.AccountID = accountID
+	con.ApplicationID = applicationID
+	con.Connection = *connection
+	data, er := json.Marshal(con)
 	if er != nil {
 		return nil, []errors.Error{errors.NewInternalError(0, "error while confirming the connection (1)", er.Error())}
 	}
 
 	partitionKey := fmt.Sprintf("partitionKey-%d-%d", accountID, applicationID)
 	_, err := c.storage.PackAndPutRecord(kinesis.StreamConnectionConfirm, partitionKey, data)
+	if err != nil {
+		return nil, []errors.Error{err}
+	}
 
-	return nil, []errors.Error{err}
+	if retrieve {
+		return connection, nil
+	}
+
+	return nil, nil
 }
 
 func (c *connection) WriteEventsToList(accountID, applicationID int64, connection *entity.Connection) (err []errors.Error) {
@@ -97,41 +137,48 @@ func (c *connection) DeleteEventsFromLists(accountID, applicationID int64, userF
 }
 
 func (c *connection) SocialConnect(accountID, applicationID int64, user *entity.ApplicationUser, platform string, socialFriendsIDs []string, connectionType string) ([]*entity.ApplicationUser, []errors.Error) {
-	data, er := json.Marshal(struct {
-		User             *entity.ApplicationUser `json:"user"`
-		Platform         string                  `json:"platform"`
-		SocialFriendsIDs []string                `json:"social_friends_ids"`
-	}{
-		User:             user,
+	msg := entity.SocialConnection{
 		Platform:         platform,
+		Type:             connectionType,
 		SocialFriendsIDs: socialFriendsIDs,
-	})
+	}
+	msg.User.AccountID = accountID
+	msg.User.ApplicationID = applicationID
+	msg.User.ApplicationUser = *user
+	data, er := json.Marshal(msg)
 	if er != nil {
 		return nil, []errors.Error{errors.NewInternalError(0, "error while confirming the connection (1)", er.Error())}
 	}
 
 	partitionKey := fmt.Sprintf("partitionKey-%d-%d", accountID, applicationID)
 	_, err := c.storage.PackAndPutRecord(kinesis.StreamConnectionSocialConnect, partitionKey, data)
+	if err != nil {
+		return nil, []errors.Error{err}
+	}
 
-	return nil, []errors.Error{err}
+	return nil, nil
 }
 
 func (c *connection) AutoConnectSocialFriends(accountID, applicationID int64, user *entity.ApplicationUser, connectionType string, ourStoredUsersIDs []*entity.ApplicationUser) ([]*entity.ApplicationUser, []errors.Error) {
-	data, er := json.Marshal(struct {
-		User              *entity.ApplicationUser   `json:"user"`
-		OurStoredUsersIDs []*entity.ApplicationUser `json:"our_stored_users_ids"`
-	}{
-		User:              user,
+	msg := entity.AutoConnectSocialFriends{
+		Type:              connectionType,
 		OurStoredUsersIDs: ourStoredUsersIDs,
-	})
+	}
+	msg.User.AccountID = accountID
+	msg.User.ApplicationID = applicationID
+	msg.User.ApplicationUser = *user
+	data, er := json.Marshal(msg)
 	if er != nil {
 		return nil, []errors.Error{errors.NewInternalError(0, "error while creating the connections via social platform (1)", er.Error())}
 	}
 
 	partitionKey := fmt.Sprintf("partitionKey-%d-%d", accountID, applicationID)
 	_, err := c.storage.PackAndPutRecord(kinesis.StreamConnectionAutoConnect, partitionKey, data)
+	if err != nil {
+		return nil, []errors.Error{err}
+	}
 
-	return nil, []errors.Error{err}
+	return nil, nil
 }
 
 // NewConnection creates a new Connection

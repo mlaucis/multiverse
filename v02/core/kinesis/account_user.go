@@ -29,8 +29,15 @@ func (au *accountUser) Create(accountUser *entity.AccountUser, retrieve bool) (*
 
 	partitionKey := fmt.Sprintf("account-user-%d-%d", accountUser.AccountID, accountUser.ID)
 	_, err := au.storage.PackAndPutRecord(kinesis.StreamAccountUserCreate, partitionKey, data)
+	if err != nil {
+		return nil, []errors.Error{err}
+	}
 
-	return nil, []errors.Error{err}
+	if retrieve {
+		return accountUser, nil
+	}
+
+	return nil, nil
 }
 
 func (au *accountUser) Read(accountID, accountUserID int64) (accountUser *entity.AccountUser, er []errors.Error) {
@@ -45,8 +52,15 @@ func (au *accountUser) Update(existingAccountUser, updatedAccountUser entity.Acc
 
 	partitionKey := fmt.Sprintf("account-user-%d-%d", updatedAccountUser.AccountID, updatedAccountUser.ID)
 	_, err := au.storage.PackAndPutRecord(kinesis.StreamAccountUserUpdate, partitionKey, data)
+	if err != nil {
+		return nil, []errors.Error{err}
+	}
 
-	return nil, []errors.Error{err}
+	if retrieve {
+		return &updatedAccountUser, nil
+	}
+
+	return nil, nil
 }
 
 func (au *accountUser) Delete(accountUser *entity.AccountUser) []errors.Error {
@@ -57,8 +71,11 @@ func (au *accountUser) Delete(accountUser *entity.AccountUser) []errors.Error {
 
 	partitionKey := fmt.Sprintf("account-user-%d-%d", accountUser.AccountID, accountUser.ID)
 	_, err := au.storage.PackAndPutRecord(kinesis.StreamAccountUserDelete, partitionKey, data)
+	if err != nil {
+		return []errors.Error{err}
+	}
 
-	return []errors.Error{err}
+	return nil
 }
 
 func (au *accountUser) List(accountID int64) (accountUsers []*entity.AccountUser, er []errors.Error) {

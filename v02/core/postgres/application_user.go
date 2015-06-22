@@ -46,9 +46,10 @@ const (
 )
 
 func (au *applicationUser) Create(accountID, applicationID int64, user *entity.ApplicationUser, retrieve bool) (*entity.ApplicationUser, []errors.Error) {
+	if user.ID == "" {
+		return nil, []errors.Error{errmsg.ErrInternalApplicationUserIDMissing}
+	}
 	connectionType := user.SocialConnectionType
-
-	user.ID = storageHelper.GenerateUUIDV5(storageHelper.OIDUUIDNamespace, storageHelper.GenerateRandomString(20))
 	user.SocialConnectionType = ""
 	user.Activated = true
 	user.Enabled = true

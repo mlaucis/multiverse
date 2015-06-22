@@ -26,19 +26,19 @@ const (
 type (
 	//LogMsg defines the log message fields
 	LogMsg struct {
-		RemoteAddr string
-		Name       string
-		StatusCode int
-		Method     string
-		RequestURI string
-		Headers    http.Header
-		Payload    string
-		Duration   string
-		Message    string
-		RawError   string
-		Location   string
-		Start      time.Time
-		End        time.Time `json:"-"`
+		RemoteAddr string      `json:"remote_addr,omitempty"`
+		Name       string      `json:"name,omitempty"`
+		StatusCode int         `json:"status_code,omitempty"`
+		Method     string      `json:"method,omitempty"`
+		RequestURI string      `json:"request_uri,omitempty"`
+		Headers    http.Header `json:"headers,omitempty"`
+		Payload    string      `json:"payload,omitempty"`
+		Duration   string      `json:"duration,omitempty"`
+		Message    string      `json:"message,omitempty"`
+		RawError   string      `json:"raw_error,omitempty"`
+		Location   string      `json:"location,omitempty"`
+		Start      time.Time   `json:"start,omitempty"`
+		End        time.Time   `json:"-"`
 	}
 )
 
@@ -60,7 +60,7 @@ func TGLog(msg chan *LogMsg) {
 					m.Method,
 					m.RequestURI,
 					m.Payload,
-					getSanitizedHeaders(m.Headers),
+					m.Headers,
 					m.Name,
 					m.Location,
 					m.End.Sub(m.Start),
@@ -104,7 +104,6 @@ func JSONLog(msg chan *LogMsg) {
 				}
 
 				m.Duration = m.End.Sub(m.Start).String()
-				m.Headers = getSanitizedHeaders(m.Headers)
 				if m.StatusCode < 300 {
 					m.Location = ""
 				}
@@ -163,11 +162,4 @@ func TGCurlLog(msg chan *LogMsg) {
 			}
 		}
 	}
-}
-
-// getSanitizedHeaders returns the sanitized request headers
-func getSanitizedHeaders(headers http.Header) http.Header {
-	// TODO sanitize headers that shouldn't not appear in the logs
-
-	return headers
 }

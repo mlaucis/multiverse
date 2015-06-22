@@ -11,15 +11,18 @@ import (
 	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/v02/core"
+	"github.com/tapglue/backend/v02/entity"
 	"github.com/tapglue/backend/v02/errmsg"
 	"github.com/tapglue/backend/v02/server"
+	storageHelper "github.com/tapglue/backend/v02/storage/helper"
 	"github.com/tapglue/backend/v02/validator"
 )
 
 type (
 	event struct {
-		appUser core.ApplicationUser
-		storage core.Event
+		readAppUser  core.ApplicationUser
+		writeStorage core.Event
+		readStorage  core.Event
 	}
 )
 
@@ -42,7 +45,7 @@ func (evt *event) CurrentUserUpdate(ctx *context.Context) (err []errors.Error) {
 		return []errors.Error{errmsg.ErrEventIDInvalid}
 	}
 
-	existingEvent, err := evt.storage.Read(
+	existingEvent, err := evt.readStorage.Read(
 		ctx.Bag["accountID"].(int64),
 		ctx.Bag["applicationID"].(int64),
 		ctx.Bag["applicationUserID"].(string),
@@ -64,7 +67,7 @@ func (evt *event) CurrentUserUpdate(ctx *context.Context) (err []errors.Error) {
 		return
 	}
 
-	updatedEvent, err := evt.storage.Update(
+	updatedEvent, err := evt.writeStorage.Update(
 		ctx.Bag["accountID"].(int64),
 		ctx.Bag["applicationID"].(int64),
 		ctx.Bag["applicationUserID"].(string),
@@ -80,7 +83,29 @@ func (evt *event) CurrentUserUpdate(ctx *context.Context) (err []errors.Error) {
 }
 
 func (evt *event) Delete(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	accountID := ctx.Bag["accountID"].(int64)
+	applicationID := ctx.Bag["applicationID"].(int64)
+	userID := ctx.Bag["applicationUserID"].(string)
+	eventID := ctx.Vars["eventID"]
+	if !validator.IsValidUUID5(eventID) {
+		return []errors.Error{errmsg.ErrEventIDInvalid}
+	}
+
+	event, err := evt.readStorage.Read(accountID, applicationID, userID, userID, eventID)
+	if err != nil {
+		return
+	}
+
+	if err = evt.writeStorage.Delete(
+		accountID,
+		applicationID,
+		userID,
+		event); err != nil {
+		return
+	}
+
+	server.WriteResponse(ctx, "", http.StatusNoContent, 10)
+	return
 }
 
 func (evt *event) List(ctx *context.Context) (err []errors.Error) {
@@ -97,10 +122,79 @@ func (evt *event) Feed(ctx *context.Context) (err []errors.Error) {
 
 func (evt *event) Create(ctx *context.Context) (err []errors.Error) {
 	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	var (
+		event = &entity.Event{}
+		er    error
+	)
+
+	if er = json.Unmarshal(ctx.Body, event); er != nil {
+		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
+	}
+
+	event.UserID = ctx.Bag["applicationUserID"].(string)
+	if event.Visibility == 0 {
+		event.Visibility = entity.EventPublic
+	}
+
+	if err = validator.CreateEvent(
+		evt.readAppUser,
+		ctx.Bag["accountID"].(int64),
+		ctx.Bag["applicationID"].(int64),
+		event); err != nil {
+		return
+	}
+
+	if event, err = evt.writeStorage.Create(
+		ctx.Bag["accountID"].(int64),
+		ctx.Bag["applicationID"].(int64),
+		ctx.Bag["applicationUserID"].(string),
+		event,
+		true); err != nil {
+		return
+	}
+
+	ctx.W.Header().Set("Location", "https://api.tapglue.com/0.2/user/events/"+event.ID)
+	server.WriteResponse(ctx, event, http.StatusCreated, 0)
+	return
 }
 
 func (evt *event) CurrentUserCreate(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	var (
+		event = &entity.Event{}
+		er    error
+	)
+
+	if er = json.Unmarshal(ctx.Body, event); er != nil {
+		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
+	}
+
+	event.UserID = ctx.Bag["applicationUserID"].(string)
+	if event.Visibility == 0 {
+		event.Visibility = entity.EventPublic
+	}
+
+	if err = validator.CreateEvent(
+		evt.readAppUser,
+		ctx.Bag["accountID"].(int64),
+		ctx.Bag["applicationID"].(int64),
+		event); err != nil {
+		return
+	}
+
+	event.ID = storageHelper.GenerateUUIDV5(storageHelper.OIDUUIDNamespace, storageHelper.GenerateRandomString(20))
+
+	if event, err = evt.writeStorage.Create(
+		ctx.Bag["accountID"].(int64),
+		ctx.Bag["applicationID"].(int64),
+		ctx.Bag["applicationUserID"].(string),
+		event,
+		true); err != nil {
+		return
+	}
+
+	ctx.W.Header().Set("Location", "https://api.tapglue.com/0.2/user/events/"+event.ID)
+	server.WriteResponse(ctx, event, http.StatusCreated, 0)
+	return
 }
 
 func (evt *event) Search(ctx *context.Context) (err []errors.Error) {
@@ -127,17 +221,11 @@ func (evt *event) UnreadFeedCount(ctx *context.Context) (err []errors.Error) {
 	return []errors.Error{errmsg.ErrServerNotImplementedYet}
 }
 
-// NewEvent returns a new event handler
-func NewEvent(storage core.Event) server.Event {
-	return &event{
-		storage: storage,
-	}
-}
-
 // NewEventWithApplicationUser returns a new event handler
-func NewEventWithApplicationUser(storage core.Event, appUser core.ApplicationUser) server.Event {
+func NewEventWithApplicationUser(witeStorage, readStorage core.Event, readAppUser core.ApplicationUser) server.Event {
 	return &event{
-		storage: storage,
-		appUser: appUser,
+		writeStorage: witeStorage,
+		readStorage:  readStorage,
+		readAppUser:  readAppUser,
 	}
 }

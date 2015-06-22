@@ -16,6 +16,7 @@ import (
 	"github.com/tapglue/backend/v02/entity"
 	"github.com/tapglue/backend/v02/errmsg"
 	"github.com/tapglue/backend/v02/server"
+	storageHelper "github.com/tapglue/backend/v02/storage/helper"
 	"github.com/tapglue/backend/v02/validator"
 )
 
@@ -132,6 +133,8 @@ func (appUser *applicationUser) Create(ctx *context.Context) (err []errors.Error
 		timeNow := time.Now()
 		user.LastLogin = &timeNow
 	}
+
+	user.ID = storageHelper.GenerateUUIDV5(storageHelper.OIDUUIDNamespace, storageHelper.GenerateRandomString(20))
 
 	user, err = appUser.storage.Create(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), user, true)
 	if err != nil {

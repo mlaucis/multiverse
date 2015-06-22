@@ -28,8 +28,15 @@ func (app *application) Create(application *entity.Application, retrieve bool) (
 
 	partitionKey := fmt.Sprintf("application-create-%d", application.AccountID)
 	_, err := app.storage.PackAndPutRecord(kinesis.StreamApplicationCreate, partitionKey, data)
+	if err != nil {
+		return nil, []errors.Error{err}
+	}
 
-	return nil, []errors.Error{err}
+	if retrieve {
+		return application, nil
+	}
+
+	return nil, nil
 }
 
 func (app *application) Read(accountID, applicationID int64) (*entity.Application, []errors.Error) {
@@ -44,8 +51,15 @@ func (app *application) Update(existingApplication, updatedApplication entity.Ap
 
 	partitionKey := fmt.Sprintf("application-update-%d-%d", updatedApplication.AccountID, updatedApplication.ID)
 	_, err := app.storage.PackAndPutRecord(kinesis.StreamApplicationUpdate, partitionKey, data)
+	if err != nil {
+		return nil, []errors.Error{err}
+	}
 
-	return nil, []errors.Error{err}
+	if retrieve {
+		return &updatedApplication, nil
+	}
+
+	return nil, nil
 }
 
 func (app *application) Delete(application *entity.Application) []errors.Error {
@@ -56,8 +70,11 @@ func (app *application) Delete(application *entity.Application) []errors.Error {
 
 	partitionKey := fmt.Sprintf("application-delete-%d-%d", application.AccountID, application.ID)
 	_, err := app.storage.PackAndPutRecord(kinesis.StreamApplicationDelete, partitionKey, data)
+	if err != nil {
+		return []errors.Error{err}
+	}
 
-	return []errors.Error{err}
+	return nil
 }
 
 func (app *application) List(accountID int64) ([]*entity.Application, []errors.Error) {
