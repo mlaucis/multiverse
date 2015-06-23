@@ -25,7 +25,7 @@ func CreateConnection(datastore core.ApplicationUser, accountID, applicationID i
 		if err != nil {
 			errs = append(errs, err...)
 		} else {
-			errs = append(errs, errmsg.ErrApplicationUserNotFound)
+			errs = append(errs, errmsg.ErrApplicationUserNotFound.SetCurrentLocation())
 		}
 	}
 	userFrom, err := datastore.Read(accountID, applicationID, connection.UserFromID)
@@ -40,7 +40,7 @@ func CreateConnection(datastore core.ApplicationUser, accountID, applicationID i
 		if err != nil {
 			errs = append(errs, err...)
 		} else {
-			errs = append(errs, errmsg.ErrApplicationUserNotFound)
+			errs = append(errs, errmsg.ErrApplicationUserNotFound.SetCurrentLocation())
 		}
 	}
 	userTo, err := datastore.Read(accountID, applicationID, connection.UserToID)
@@ -62,7 +62,7 @@ func ConfirmConnection(datastore core.ApplicationUser, accountID, applicationID 
 		if err != nil {
 			errs = append(errs, err...)
 		} else {
-			errs = append(errs, errmsg.ErrApplicationUserNotFound)
+			errs = append(errs, errmsg.ErrApplicationUserNotFound.SetCurrentLocation())
 		}
 	}
 
@@ -70,7 +70,7 @@ func ConfirmConnection(datastore core.ApplicationUser, accountID, applicationID 
 		if err != nil {
 			errs = append(errs, err...)
 		} else {
-			errs = append(errs, errmsg.ErrApplicationUserNotFound)
+			errs = append(errs, errmsg.ErrApplicationUserNotFound.SetCurrentLocation())
 		}
 	}
 
@@ -87,7 +87,7 @@ func UpdateConnection(datastore core.ApplicationUser, accountID, applicationID i
 		if err != nil {
 			errs = append(errs, err...)
 		} else {
-			errs = append(errs, errmsg.ErrApplicationUserNotFound)
+			errs = append(errs, errmsg.ErrApplicationUserNotFound.SetCurrentLocation())
 		}
 	}
 

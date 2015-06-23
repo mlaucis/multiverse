@@ -11,12 +11,12 @@ import (
 	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/logger"
-
-	"github.com/gorilla/mux"
 	"github.com/tapglue/backend/v02/server/handlers"
 	"github.com/tapglue/backend/v02/server/handlers/kinesis"
 	"github.com/tapglue/backend/v02/server/handlers/postgres"
 	"github.com/tapglue/backend/v02/server/response"
+
+	"github.com/gorilla/mux"
 	"github.com/yvasiyarov/gorelic"
 )
 
@@ -43,7 +43,6 @@ const (
 	applicationID       = "{applicationID}"
 	applicationUserID   = "{applicationUserID}"
 	applicationUserToID = "{applicationUserToID}"
-	connectionID        = "{connectionID}"
 	eventID             = "{eventID}"
 )
 
@@ -54,11 +53,22 @@ var (
 	postgresApplicationUserHandler, kinesisApplicationUserHandler handlers.ApplicationUser
 	postgresConnectionHandler, kinesisConnectionHandler           handlers.Connection
 	postgresEventHandler, kinesisEventHandler                     handlers.Event
+
+	applicationUserIDPattern = "%d"
+	eventIDPattern           = "%d"
 )
 
 // RoutePattern returns the full route path, inclulding the api version
 func (r *Route) RoutePattern() string {
 	return "/" + APIVersion + r.Path
+}
+
+func ReplaceTestApplicationUserIDPattern(pattern string) {
+	applicationUserIDPattern = pattern
+}
+
+func ReplaceTestEventIDPattern(pattern string) {
+	eventIDPattern = pattern
 }
 
 // TestPattern returns the pattern used during tests
@@ -68,10 +78,9 @@ func (r *Route) TestPattern() string {
 	pattern = strings.Replace(pattern, accountID, "%s", -1)
 	pattern = strings.Replace(pattern, accountUserID, "%s", -1)
 	pattern = strings.Replace(pattern, applicationID, "%s", -1)
-	pattern = strings.Replace(pattern, applicationUserID, "%s", -1)
-	pattern = strings.Replace(pattern, applicationUserToID, "%s", -1)
-	pattern = strings.Replace(pattern, connectionID, "%s", -1)
-	pattern = strings.Replace(pattern, eventID, "%s", -1)
+	pattern = strings.Replace(pattern, applicationUserID, applicationUserIDPattern, -1)
+	pattern = strings.Replace(pattern, applicationUserToID, applicationUserIDPattern, -1)
+	pattern = strings.Replace(pattern, eventID, eventIDPattern, -1)
 
 	return pattern
 }

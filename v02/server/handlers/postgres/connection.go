@@ -7,6 +7,7 @@ package postgres
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/errors"
@@ -26,13 +27,12 @@ type (
 )
 
 func (conn *connection) Update(ctx *context.Context) (err []errors.Error) {
-	userFromID := ctx.Bag["applicationUserID"].(string)
-	userToID := ctx.Vars["userToId"]
+	userFromID := ctx.Bag["applicationUserID"].(uint64)
 
 	accountID := ctx.Bag["accountID"].(int64)
 	applicationID := ctx.Bag["applicationID"].(int64)
 
-	userToID, err = conn.determineTGUserID(accountID, applicationID, userToID)
+	userToID, err := conn.determineTGUserID(accountID, applicationID, ctx.Vars["userToId"])
 	if err != nil {
 		return
 	}
@@ -71,10 +71,9 @@ func (conn *connection) Delete(ctx *context.Context) (err []errors.Error) {
 	accountID := ctx.Bag["accountID"].(int64)
 	applicationID := ctx.Bag["applicationID"].(int64)
 
-	userFromID := ctx.Bag["applicationUserID"].(string)
-	userToID := ctx.Vars["applicationUserToID"]
+	userFromID := ctx.Bag["applicationUserID"].(uint64)
 
-	userToID, err = conn.determineTGUserID(accountID, applicationID, userToID)
+	userToID, err := conn.determineTGUserID(accountID, applicationID, ctx.Vars["applicationUserToID"])
 	if err != nil {
 		return
 	}
@@ -108,12 +107,7 @@ func (conn *connection) Create(ctx *context.Context) (err []errors.Error) {
 
 	accountID := ctx.Bag["accountID"].(int64)
 	applicationID := ctx.Bag["applicationID"].(int64)
-
-	connection.UserFromID = ctx.Bag["applicationUserID"].(string)
-	connection.UserToID, err = conn.determineTGUserID(accountID, applicationID, connection.UserToID)
-	if err != nil {
-		return
-	}
+	connection.UserFromID = ctx.Bag["applicationUserID"].(uint64)
 
 	if err = validator.CreateConnection(conn.appUser, accountID, applicationID, connection); err != nil {
 		return
@@ -136,8 +130,7 @@ func (conn *connection) Create(ctx *context.Context) (err []errors.Error) {
 func (conn *connection) List(ctx *context.Context) (err []errors.Error) {
 	accountID := ctx.Bag["accountID"].(int64)
 	applicationID := ctx.Bag["applicationID"].(int64)
-	userID := ctx.Vars["applicationUserID"]
-	userID, err = conn.determineTGUserID(accountID, applicationID, userID)
+	userID, err := conn.determineTGUserID(accountID, applicationID, ctx.Vars["applicationUserID"])
 	if err != nil {
 		return
 	}
@@ -184,7 +177,7 @@ func (conn *connection) CurrentUserList(ctx *context.Context) (err []errors.Erro
 	if users, err = conn.storage.List(
 		ctx.Bag["accountID"].(int64),
 		ctx.Bag["applicationID"].(int64),
-		ctx.Bag["applicationUserID"].(string)); err != nil {
+		ctx.Bag["applicationUserID"].(uint64)); err != nil {
 		return
 	}
 
@@ -211,8 +204,7 @@ func (conn *connection) CurrentUserList(ctx *context.Context) (err []errors.Erro
 func (conn *connection) FollowedByList(ctx *context.Context) (err []errors.Error) {
 	accountID := ctx.Bag["accountID"].(int64)
 	applicationID := ctx.Bag["applicationID"].(int64)
-	userID := ctx.Vars["applicationUserID"]
-	userID, err = conn.determineTGUserID(accountID, applicationID, userID)
+	userID, err := conn.determineTGUserID(accountID, applicationID, ctx.Vars["applicationUserID"])
 	if err != nil {
 		return
 	}
@@ -256,7 +248,7 @@ func (conn *connection) CurrentUserFollowedByList(ctx *context.Context) (err []e
 	users, err = conn.storage.FollowedBy(
 		ctx.Bag["accountID"].(int64),
 		ctx.Bag["applicationID"].(int64),
-		ctx.Bag["applicationUserID"].(string))
+		ctx.Bag["applicationUserID"].(uint64))
 	if err != nil {
 		return
 	}
@@ -291,12 +283,7 @@ func (conn *connection) Confirm(ctx *context.Context) (err []errors.Error) {
 
 	accountID := ctx.Bag["accountID"].(int64)
 	applicationID := ctx.Bag["applicationID"].(int64)
-
-	connection.UserFromID = ctx.Bag["applicationUserID"].(string)
-	connection.UserToID, err = conn.determineTGUserID(accountID, applicationID, connection.UserToID)
-	if err != nil {
-		return
-	}
+	connection.UserFromID = ctx.Bag["applicationUserID"].(uint64)
 
 	connection, err = conn.storage.Read(accountID, applicationID, connection.UserFromID, connection.UserToID)
 	if err != nil {
@@ -377,8 +364,7 @@ func (conn *connection) CreateSocial(ctx *context.Context) (err []errors.Error) 
 func (conn *connection) Friends(ctx *context.Context) (err []errors.Error) {
 	accountID := ctx.Bag["accountID"].(int64)
 	applicationID := ctx.Bag["applicationID"].(int64)
-	userID := ctx.Vars["applicationUserID"]
-	userID, err = conn.determineTGUserID(accountID, applicationID, userID)
+	userID, err := conn.determineTGUserID(accountID, applicationID, ctx.Vars["applicationUserID"])
 	if err != nil {
 		return
 	}
@@ -418,7 +404,7 @@ func (conn *connection) Friends(ctx *context.Context) (err []errors.Error) {
 }
 
 func (conn *connection) CurrentUserFriends(ctx *context.Context) (err []errors.Error) {
-	users, err := conn.storage.Friends(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(string))
+	users, err := conn.storage.Friends(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(uint64))
 	if err != nil {
 		return
 	}
@@ -443,14 +429,18 @@ func (conn *connection) CurrentUserFriends(ctx *context.Context) (err []errors.E
 	return
 }
 
-func (conn *connection) determineTGUserID(accountID, applicationID int64, userID string) (string, []errors.Error) {
-	if validator.IsValidUUID5(userID) {
-		return userID, nil
+func (conn *connection) determineTGUserID(accountID, applicationID int64, userID string) (uint64, []errors.Error) {
+	id, er := strconv.ParseUint(userID, 10, 64)
+	if er == nil {
+		// Ho* Lee SH*T, there has to be a better way to do this
+		if id > 27246450442288181 {
+			return id, nil
+		}
 	}
 
 	user, err := conn.appUser.FindByCustomID(accountID, applicationID, userID)
 	if err != nil {
-		return "", err
+		return 0, err
 	}
 
 	return user.ID, nil

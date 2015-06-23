@@ -22,7 +22,7 @@ func CreateEvent(datastore core.ApplicationUser, accountID, applicationID int64,
 		errs = append(errs, errmsg.ErrEventTypeSize)
 	}
 
-	if event.ID != "" {
+	if event.ID != 0 {
 		errs = append(errs, errmsg.ErrEventIDIsAlreadySet)
 	}
 

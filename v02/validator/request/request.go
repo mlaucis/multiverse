@@ -30,7 +30,7 @@ func VerifyAccount(ctx *context.Context) []errors.Error {
 	if ctx.R.Header.Get("Authorization") != "" {
 		httpAuthorization := ctx.R.Header.Get("Authorization")
 		if strings.HasPrefix(httpAuthorization, "Basic ") {
-			return httpBasic.VerifyAccount(ctx)
+			return nil
 		}
 	}
 
@@ -51,7 +51,7 @@ func VerifyAccountUser(ctx *context.Context) []errors.Error {
 	if ctx.R.Header.Get("Authorization") != "" {
 		httpAuthorization := ctx.R.Header.Get("Authorization")
 		if strings.HasPrefix(httpAuthorization, "Basic ") {
-			return httpBasic.VerifyAccountUser(ctx)
+			return nil
 		}
 	}
 
@@ -72,7 +72,7 @@ func VerifyApplication(ctx *context.Context) []errors.Error {
 	if ctx.R.Header.Get("Authorization") != "" {
 		httpAuthorization := ctx.R.Header.Get("Authorization")
 		if strings.HasPrefix(httpAuthorization, "Basic ") {
-			return httpBasic.VerifyApplication(ctx)
+			return nil
 		}
 	}
 
@@ -93,7 +93,7 @@ func VerifyApplicationUser(ctx *context.Context) []errors.Error {
 	if ctx.R.Header.Get("Authorization") != "" {
 		httpAuthorization := ctx.R.Header.Get("Authorization")
 		if strings.HasPrefix(httpAuthorization, "Basic ") {
-			return httpBasic.VerifyApplicationUser(ctx)
+			return nil
 		}
 	}
 

@@ -10,9 +10,9 @@ import (
 
 	"github.com/tapglue/backend/config"
 	"github.com/tapglue/backend/errors"
+	"github.com/tapglue/backend/tgflake"
 	"github.com/tapglue/backend/v02/entity"
 	"github.com/tapglue/backend/v02/fixtures"
-	storageHelper "github.com/tapglue/backend/v02/storage/helper"
 )
 
 // AddCorrectAccount creates a correct account
@@ -76,7 +76,7 @@ func AddCorrectUser2(accountID, applicationID int64, fetchUser bool) (*entity.Ap
 }
 
 // AddCorrectConnection creates a correct user connection
-func AddCorrectConnection(accountID, applicationID int64, userFromID, userToID string, fetchConnection bool) (*entity.Connection, errors.Error) {
+func AddCorrectConnection(accountID, applicationID int64, userFromID, userToID uint64, fetchConnection bool) (*entity.Connection, errors.Error) {
 	connectionWithIDs := fixtures.CorrectConnection
 	connectionWithIDs.UserFromID = userFromID
 	connectionWithIDs.UserToID = userToID
@@ -90,7 +90,7 @@ func AddCorrectConnection(accountID, applicationID int64, userFromID, userToID s
 }
 
 // AddCorrectEvent creates a correct event
-func AddCorrectEvent(accountID, applicationID int64, userID string, fetchEvent bool) (*entity.Event, errors.Error) {
+func AddCorrectEvent(accountID, applicationID int64, userID uint64, fetchEvent bool) (*entity.Event, errors.Error) {
 	eventWithIDs := fixtures.CorrectEvent
 	eventWithIDs.UserID = userID
 	event, err := coreEvt.Create(accountID, applicationID, userID, &eventWithIDs, fetchEvent)
@@ -147,8 +147,12 @@ func CorrectUser() *entity.ApplicationUser {
 
 // CorrectUserWithDefaults returns a new user entity with prepoulated defaults
 func CorrectUserWithDefaults(accountID, applicationID, userNumber int64) *entity.ApplicationUser {
+	userID, err := tgflake.FlakeNextID(applicationID, "users")
+	if err != nil {
+		panic(err)
+	}
 	user := CorrectUser()
-	user.ID = storageHelper.GenerateUUIDV5(storageHelper.OIDUUIDNamespace, storageHelper.GenerateRandomString(20))
+	user.ID = userID
 	user.Username = fmt.Sprintf("acc-%d-app-%d-user-%d", accountID, applicationID, userNumber)
 	user.Email = fmt.Sprintf("acc-%d-app-%d-user-%d@tapglue-test.com", accountID, applicationID, userNumber)
 	user.Password = fmt.Sprintf("acc-%d-app-%d-user-%d", accountID, applicationID, userNumber)
@@ -166,9 +170,9 @@ func CorrectUserWithDefaults(accountID, applicationID, userNumber int64) *entity
 }
 
 // CorrectEvent returns a correct event
-func CorrectEvent() *entity.Event {
+func CorrectEvent(applicationID int64) *entity.Event {
 	event := &fixtures.CorrectEvent
-	event.ID = storageHelper.GenerateUUIDV5(storageHelper.OIDUUIDNamespace, storageHelper.GenerateRandomString(20))
+	event.ID, _ = tgflake.FlakeNextID(applicationID, "events")
 	return event
 }
 
@@ -245,7 +249,7 @@ func AddCorrectApplications(account *entity.Account, numberOfApplicationsPerAcco
 }
 
 // HookUp create a connection between two users provided
-func HookUp(accountID, applicationID int64, userFromID, userToID string) {
+func HookUp(accountID, applicationID int64, userFromID, userToID uint64) {
 	connection := &entity.Connection{
 		UserFromID: userFromID,
 		UserToID:   userToID,
@@ -389,7 +393,7 @@ func AddCorrectUserEvents(accountID, applicationID int64, user *entity.Applicati
 
 	result := make([]*entity.Event, numberOfEventsPerUser)
 	for i := 0; i < numberOfEventsPerUser; i++ {
-		event := CorrectEvent()
+		event := CorrectEvent(applicationID)
 		event.Visibility = uint8(i%4*10 + 10)
 		event.UserID = user.ID
 		if event.Visibility == entity.EventPublic {

@@ -43,7 +43,7 @@ func (c *connection) Create(accountID, applicationID int64, conn *entity.Connect
 	return nil, nil
 }
 
-func (c *connection) Read(accountID, applicationID int64, userFromID, userToID string) (connection *entity.Connection, err []errors.Error) {
+func (c *connection) Read(accountID, applicationID int64, userFromID, userToID uint64) (connection *entity.Connection, err []errors.Error) {
 	return connection, []errors.Error{errmsg.ErrServerInvalidHandler}
 }
 
@@ -89,19 +89,19 @@ func (c *connection) Delete(accountID, applicationID int64, connection *entity.C
 	return nil
 }
 
-func (c *connection) List(accountID, applicationID int64, userID string) (users []*entity.ApplicationUser, err []errors.Error) {
+func (c *connection) List(accountID, applicationID int64, userID uint64) (users []*entity.ApplicationUser, err []errors.Error) {
 	return users, []errors.Error{errmsg.ErrServerInvalidHandler}
 }
 
-func (c *connection) FollowedBy(accountID, applicationID int64, userID string) (users []*entity.ApplicationUser, err []errors.Error) {
+func (c *connection) FollowedBy(accountID, applicationID int64, userID uint64) (users []*entity.ApplicationUser, err []errors.Error) {
 	return users, []errors.Error{errmsg.ErrServerInvalidHandler}
 }
 
-func (c *connection) Friends(accountID, applicationID int64, userID string) (users []*entity.ApplicationUser, err []errors.Error) {
+func (c *connection) Friends(accountID, applicationID int64, userID uint64) (users []*entity.ApplicationUser, err []errors.Error) {
 	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
 }
 
-func (c *connection) FriendsAndFollowing(accountID, applicationID int64, userID string) ([]*entity.ApplicationUser, []errors.Error) {
+func (c *connection) FriendsAndFollowing(accountID, applicationID int64, userID uint64) ([]*entity.ApplicationUser, []errors.Error) {
 	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
 }
 
@@ -132,7 +132,7 @@ func (c *connection) WriteEventsToList(accountID, applicationID int64, connectio
 	return []errors.Error{errmsg.ErrServerInvalidHandler}
 }
 
-func (c *connection) DeleteEventsFromLists(accountID, applicationID int64, userFromID, userToID string) (err []errors.Error) {
+func (c *connection) DeleteEventsFromLists(accountID, applicationID int64, userFromID, userToID uint64) (err []errors.Error) {
 	return []errors.Error{errmsg.ErrServerInvalidHandler}
 }
 

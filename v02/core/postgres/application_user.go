@@ -8,7 +8,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"math/rand"
-	"strings"
+	"strconv"
 	"time"
 
 	"github.com/tapglue/backend/errors"
@@ -31,10 +31,10 @@ type (
 
 const (
 	createApplicationUserQuery               = `INSERT INTO app_%d_%d.users(json_data) VALUES($1)`
-	selectApplicationUserByIDQuery           = `SELECT json_data, last_read FROM app_%d_%d.users WHERE json_data @> json_build_object('id', $1::text, 'enabled', true)::jsonb LIMIT 1`
-	updateApplicationUserByIDQuery           = `UPDATE app_%d_%d.users SET json_data = $1 WHERE json_data @> json_build_object('id', $2::text)::jsonb`
+	selectApplicationUserByIDQuery           = `SELECT json_data, last_read FROM app_%d_%d.users WHERE json_data @> json_build_object('id', $1::bigint, 'enabled', true)::jsonb LIMIT 1`
+	updateApplicationUserByIDQuery           = `UPDATE app_%d_%d.users SET json_data = $1 WHERE json_data @> json_build_object('id', $2::bigint)::jsonb`
 	listApplicationUsersByApplicationIDQuery = `SELECT json_data FROM app_%d_%d.users WHERE json_data @> '{"enabled": true}' LIMIT 1`
-	listApplicationUsersByUserIDsQuery       = `SELECT json_data FROM app_%d_%d.users WHERE json_data->>'id' = ANY(%s) AND json_data @> '{"enabled": true}'`
+	listApplicationUsersByUserIDsQuery       = `SELECT json_data FROM app_%d_%d.users WHERE (json_data->>'id')::BIGINT = ANY(%s) AND json_data @> '{"enabled": true}'`
 	selectApplicationUserByEmailQuery        = `SELECT json_data, last_read FROM app_%d_%d.users WHERE json_data @> json_build_object('email', $1::text, 'enabled', true)::jsonb LIMIT 1`
 	selectApplicationUserByUsernameQuery     = `SELECT json_data, last_read FROM app_%d_%d.users WHERE json_data @> json_build_object('user_name', $1::text, 'enabled', true)::jsonb LIMIT 1`
 	selectApplicationUserByCustomIDQuery     = `SELECT json_data, last_read FROM app_%d_%d.users WHERE json_data @> json_build_object('custom_id', $1::text, 'enabled', true)::jsonb LIMIT 1`
@@ -48,7 +48,7 @@ const (
 )
 
 func (au *applicationUser) Create(accountID, applicationID int64, user *entity.ApplicationUser, retrieve bool) (*entity.ApplicationUser, []errors.Error) {
-	if user.ID == "" {
+	if user.ID == 0 {
 		return nil, []errors.Error{errmsg.ErrInternalApplicationUserIDMissing}
 	}
 	connectionType := user.SocialConnectionType
@@ -89,17 +89,18 @@ func (au *applicationUser) Create(accountID, applicationID int64, user *entity.A
 	return au.Read(accountID, applicationID, user.ID)
 }
 
-func (au *applicationUser) Read(accountID, applicationID int64, userID string) (*entity.ApplicationUser, []errors.Error) {
+func (au *applicationUser) Read(accountID, applicationID int64, userID uint64) (*entity.ApplicationUser, []errors.Error) {
 	var (
 		JSONData string
 		lastRead time.Time
 	)
+
 	err := au.pg.SlaveDatastore(-1).
 		QueryRow(appSchema(selectApplicationUserByIDQuery, accountID, applicationID), userID).
 		Scan(&JSONData, &lastRead)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, []errors.Error{errmsg.ErrApplicationUserNotFound}
+			return nil, []errors.Error{errmsg.ErrApplicationUserNotFound.SetCurrentLocation()}
 		}
 		return nil, []errors.Error{errmsg.ErrInternalApplicationUserRead.UpdateInternalMessage(err.Error())}
 	}
@@ -114,13 +115,18 @@ func (au *applicationUser) Read(accountID, applicationID int64, userID string) (
 	return applicationUser, nil
 }
 
-func (au *applicationUser) ReadMultiple(accountID, applicationID int64, userIDs []string) (users []*entity.ApplicationUser, err []errors.Error) {
+func (au *applicationUser) ReadMultiple(accountID, applicationID int64, userIDs []uint64) (users []*entity.ApplicationUser, err []errors.Error) {
 	users = []*entity.ApplicationUser{}
 	if len(userIDs) == 0 {
 		return
 	}
 
-	condition := `VALUES ('` + strings.Join(userIDs, "'),('") + `')`
+	ids := ""
+	for idx := 0; idx < len(userIDs)-1; idx++ {
+		ids += strconv.FormatUint(userIDs[idx], 10) + ", "
+	}
+	ids += strconv.FormatUint(userIDs[len(userIDs)-1], 10)
+	condition := `ARRAY[` + ids + `]`
 
 	rows, er := au.pg.SlaveDatastore(-1).
 		Query(appSchemaWithParams(listApplicationUsersByUserIDsQuery, accountID, applicationID, condition))
@@ -280,7 +286,7 @@ func (au *applicationUser) FindByEmail(accountID, applicationID int64, email str
 		Scan(&JSONData, &lastRead)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, []errors.Error{errmsg.ErrApplicationUserNotFound}
+			return nil, []errors.Error{errmsg.ErrApplicationUserNotFound.SetCurrentLocation()}
 		}
 		return nil, []errors.Error{errmsg.ErrInternalApplicationUserRead.UpdateInternalMessage(err.Error())}
 	}
@@ -322,7 +328,7 @@ func (au *applicationUser) FindByUsername(accountID, applicationID int64, userna
 		Scan(&JSONData, &lastRead)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, []errors.Error{errmsg.ErrApplicationUserNotFound}
+			return nil, []errors.Error{errmsg.ErrApplicationUserNotFound.SetCurrentLocation()}
 		}
 		return nil, []errors.Error{errmsg.ErrInternalApplicationUserRead.UpdateInternalMessage(err.Error())}
 	}
@@ -354,11 +360,12 @@ func (au *applicationUser) ExistsByUsername(accountID, applicationID int64, user
 	return true, nil
 }
 
-func (au *applicationUser) ExistsByID(accountID, applicationID int64, userID string) (bool, []errors.Error) {
+func (au *applicationUser) ExistsByID(accountID, applicationID int64, userID uint64) (bool, []errors.Error) {
 	var (
 		JSONData string
 		lastRead time.Time
 	)
+
 	err := au.pg.SlaveDatastore(-1).
 		QueryRow(appSchema(selectApplicationUserByIDQuery, accountID, applicationID), userID).
 		Scan(&JSONData, &lastRead)
@@ -372,14 +379,14 @@ func (au *applicationUser) ExistsByID(accountID, applicationID int64, userID str
 }
 
 func (au *applicationUser) FindBySession(accountID, applicationID int64, sessionKey string) (*entity.ApplicationUser, []errors.Error) {
-	var userID string
+	var userID uint64
 
 	err := au.pg.SlaveDatastore(-1).
 		QueryRow(appSchema(selectApplicationUserBySessionQuery, accountID, applicationID), sessionKey).
 		Scan(&userID)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, []errors.Error{errmsg.ErrApplicationUserNotFound}
+			return nil, []errors.Error{errmsg.ErrApplicationUserNotFound.SetCurrentLocation()}
 		}
 		return nil, []errors.Error{errmsg.ErrInternalApplicationUserRead.UpdateInternalMessage(err.Error())}
 	}
@@ -426,7 +433,7 @@ func (au *applicationUser) FindByCustomID(accountID, applicationID int64, custom
 		Scan(&JSONData, &lastRead)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, []errors.Error{errmsg.ErrApplicationUserNotFound}
+			return nil, []errors.Error{errmsg.ErrApplicationUserNotFound.SetCurrentLocation()}
 		}
 		return nil, []errors.Error{errmsg.ErrInternalApplicationUserRead.UpdateInternalMessage(err.Error())}
 	}

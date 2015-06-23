@@ -34,40 +34,40 @@ const (
 
 	selectEventByIDQuery = `SELECT json_data
 		FROM app_%d_%d.events
-		WHERE json_data @> json_build_object('id', $1::text, 'user_id', $2::text, 'enabled', true)::jsonb  LIMIT 1`
+		WHERE json_data @> json_build_object('id', $1::bigint, 'user_id', $2::bigint, 'enabled', true)::jsonb  LIMIT 1`
 
 	updateEventByIDQuery = `UPDATE app_%d_%d.events
 		SET json_data = $1, geo = ST_GeomFromText('POINT(' || $2 || ' ' || $3 || ')', 4326)
-		WHERE json_data @> json_build_object('id', $4::text, 'user_id', $5::text)::jsonb`
+		WHERE json_data @> json_build_object('id', $4::bigint, 'user_id', $5::bigint)::jsonb`
 
 	listPublicEventsByUserIDQuery = `SELECT json_data
 		FROM app_%d_%d.events
-		WHERE json_data @> json_build_object('user_id', $1::text, 'enabled', true)::jsonb
+		WHERE json_data @> json_build_object('user_id', $1::bigint, 'enabled', true)::jsonb
 			AND (json_data @> '{"visibility": 30}' OR json_data @> '{"visibility": 40}')
 		ORDER BY json_data->>'created_at' DESC LIMIT 200`
 
 	listConnectionEventsByUserIDQuery = `SELECT json_data
 		FROM app_%d_%d.events
-		WHERE json_data @> json_build_object('user_id', $1::text, 'enabled', true)::jsonb
+		WHERE json_data @> json_build_object('user_id', $1::bigint, 'enabled', true)::jsonb
 			AND (json_data @> '{"visibility": 20}' OR json_data @> '{"visibility": 30}' OR json_data @> '{"visibility": 40}')
 		ORDER BY json_data->>'created_at' DESC LIMIT 200`
 
 	listAllEventsByUserIDQuery = `SELECT json_data
 		FROM app_%d_%d.events
-		WHERE json_data @> json_build_object('user_id', $1::text, 'enabled', true)::jsonb
+		WHERE json_data @> json_build_object('user_id', $1::bigint, 'enabled', true)::jsonb
 		ORDER BY json_data->>'created_at' DESC LIMIT 200`
 
 	listEventsByUserFollowerIDQuery = `SELECT json_data
 		FROM app_%d_%d.events
 		WHERE (((%s) AND (json_data @> '{"visibility": 20}' OR json_data @> '{"visibility": 30}'))
-			OR (json_data @> '{"visibility": 40}' AND json_data->>'user_id' != $1))
+			OR (json_data @> '{"visibility": 40}' AND (json_data->>'user_id')::bigint != $1::bigint))
 			AND json_data @> '{"enabled": true}'
 		ORDER BY json_data->>'created_at' DESC LIMIT 200`
 
 	listUnreadEventsByUserFollowerIDQuery = `SELECT json_data
 		FROM app_%d_%d.events
 		WHERE (((%s) AND (json_data @> '{"visibility": 20}' OR json_data @> '{"visibility": 30}'))
-			OR (json_data @> '{"visibility": 40}' AND json_data->>'user_id' != $1))
+			OR (json_data @> '{"visibility": 40}' AND (json_data->>'user_id')::bigint != $1::bigint))
 			AND json_data->>'created_at' > $2
 			AND json_data @> '{"enabled": true}'
 		ORDER BY json_data->>'created_at' DESC LIMIT 200`
@@ -77,14 +77,14 @@ const (
 			SELECT json_data
 			FROM app_%d_%d.events
 			WHERE (((%s) AND (json_data @> '{"visibility": 20}' OR json_data @> '{"visibility": 30}'))
-				OR (json_data @> '{"visibility": 40}' AND json_data->>'user_id' != $1))
+				OR (json_data @> '{"visibility": 40}' AND (json_data->>'user_id')::bigint != $1::bigint))
 				AND json_data->>'created_at' > $2
 				AND json_data @> '{"enabled": true}'
 			ORDER BY json_data->>'created_at' DESC LIMIT 200) AS events`
 
 	updateApplicationUserLastReadQuery = `UPDATE app_%d_%d.users
 		SET last_read = now()
-		WHERE json_data @> json_build_object('id', $1::text, 'enabled', true)::jsonb`
+		WHERE json_data @> json_build_object('id', $1::bigint, 'enabled', true)::jsonb`
 
 	listEventsByLocationQuery = `SELECT json_data
 		FROM app_%d_%d.events
@@ -92,7 +92,7 @@ const (
 			AND (
 				json_data @> '{"visibility": 30}' OR json_data @> '{"visibility": 40}' OR
 				%s
-				json_data @> json_build_object('user_id', $2::text)::jsonb
+				json_data @> json_build_object('user_id', $2::bigint)::jsonb
 			)
 		ORDER BY json_data->>'created_at' DESC LIMIT 200`
 
@@ -103,7 +103,7 @@ const (
 			AND (
 				json_data @> '{"visibility": 30}' OR json_data @> '{"visibility": 40}' OR
 				%s
-				json_data @> json_build_object('user_id', $4::text)::jsonb
+				json_data @> json_build_object('user_id', $4::bigint)::jsonb
 			)
 		ORDER BY json_data->>'created_at' DESC LIMIT 200`
 
@@ -113,13 +113,13 @@ const (
 			AND (
 				json_data @> '{"visibility": 30}' OR json_data @> '{"visibility": 40}' OR
 				%s
-				json_data @> json_build_object('user_id', $1::text)::jsonb
+				json_data @> json_build_object('user_id', $1::bigint)::jsonb
 			)
 		ORDER BY ST_Distance_Sphere(geo, ST_SetSRID(ST_MakePoint($2, $3), 4326)), json_data->>'created_at' DESC LIMIT $4`
 )
 
-func (e *event) Create(accountID, applicationID int64, currentUserID string, event *entity.Event, retrieve bool) (*entity.Event, []errors.Error) {
-	if event.ID == "" {
+func (e *event) Create(accountID, applicationID int64, currentUserID uint64, event *entity.Event, retrieve bool) (*entity.Event, []errors.Error) {
+	if event.ID == 0 {
 		return nil, []errors.Error{errmsg.ErrInternalEventMissingID}
 	}
 	event.Enabled = true
@@ -143,7 +143,7 @@ func (e *event) Create(accountID, applicationID int64, currentUserID string, eve
 	return e.Read(accountID, applicationID, event.UserID, currentUserID, event.ID)
 }
 
-func (e *event) Read(accountID, applicationID int64, userID, currentUserID, eventID string) (*entity.Event, []errors.Error) {
+func (e *event) Read(accountID, applicationID int64, userID, currentUserID, eventID uint64) (*entity.Event, []errors.Error) {
 	var JSONData string
 	err := e.pg.SlaveDatastore(-1).
 		QueryRow(appSchema(selectEventByIDQuery, accountID, applicationID), eventID, userID).
@@ -165,7 +165,7 @@ func (e *event) Read(accountID, applicationID int64, userID, currentUserID, even
 	return event, nil
 }
 
-func (e *event) Update(accountID, applicationID int64, currentUserID string, existingEvent, updatedEvent entity.Event, retrieve bool) (*entity.Event, []errors.Error) {
+func (e *event) Update(accountID, applicationID int64, currentUserID uint64, existingEvent, updatedEvent entity.Event, retrieve bool) (*entity.Event, []errors.Error) {
 	timeNow := time.Now()
 	updatedEvent.UpdatedAt = &timeNow
 	eventJSON, err := json.Marshal(updatedEvent)
@@ -187,14 +187,14 @@ func (e *event) Update(accountID, applicationID int64, currentUserID string, exi
 	return e.Read(accountID, applicationID, existingEvent.UserID, currentUserID, existingEvent.ID)
 }
 
-func (e *event) Delete(accountID, applicationID int64, currentUserID string, event *entity.Event) []errors.Error {
+func (e *event) Delete(accountID, applicationID int64, currentUserID uint64, event *entity.Event) []errors.Error {
 	event.Enabled = false
 	_, err := e.Update(accountID, applicationID, currentUserID, *event, *event, false)
 
 	return err
 }
 
-func (e *event) List(accountID, applicationID int64, userID, currentUserID string) (events []*entity.Event, er []errors.Error) {
+func (e *event) List(accountID, applicationID int64, userID, currentUserID uint64) (events []*entity.Event, er []errors.Error) {
 	events = []*entity.Event{}
 
 	var query string
@@ -311,11 +311,11 @@ func (e *event) WriteToConnectionsLists(accountID, applicationID int64, event *e
 	return []errors.Error{errmsg.ErrServerNotImplementedYet}
 }
 
-func (e *event) DeleteFromConnectionsLists(accountID, applicationID int64, userID, key string) (err []errors.Error) {
+func (e *event) DeleteFromConnectionsLists(accountID, applicationID int64, userID uint64, key string) (err []errors.Error) {
 	return []errors.Error{errmsg.ErrServerNotImplementedYet}
 }
 
-func (e *event) GeoSearch(accountID, applicationID int64, currentUserID string, latitude, longitude, radius float64, nearest int64) ([]*entity.Event, []errors.Error) {
+func (e *event) GeoSearch(accountID, applicationID int64, currentUserID uint64, latitude, longitude, radius float64, nearest int64) ([]*entity.Event, []errors.Error) {
 	var (
 		rows *sql.Rows
 		err  error
@@ -344,11 +344,11 @@ func (e *event) GeoSearch(accountID, applicationID int64, currentUserID string, 
 	return e.rowsToSlice(rows)
 }
 
-func (e *event) ObjectSearch(accountID, applicationID int64, currentUserID string, objectKey string) ([]*entity.Event, []errors.Error) {
+func (e *event) ObjectSearch(accountID, applicationID int64, currentUserID uint64, objectKey string) ([]*entity.Event, []errors.Error) {
 	return nil, []errors.Error{errmsg.ErrServerNotImplementedYet}
 }
 
-func (e *event) LocationSearch(accountID, applicationID int64, currentUserID string, locationKey string) ([]*entity.Event, []errors.Error) {
+func (e *event) LocationSearch(accountID, applicationID int64, currentUserID uint64, locationKey string) ([]*entity.Event, []errors.Error) {
 	condition, er := e.composeConnectionCondition(accountID, applicationID, currentUserID, " OR ")
 	if er != nil {
 		return nil, er
@@ -394,7 +394,7 @@ func (e *event) rowsToSlice(rows *sql.Rows) (events []*entity.Event, err []error
 	return
 }
 
-func (e *event) composeConnectionCondition(accountID, applicationID int64, userID, joinOperator string) (string, []errors.Error) {
+func (e *event) composeConnectionCondition(accountID, applicationID int64, userID uint64, joinOperator string) (string, []errors.Error) {
 	connections, er := e.c.FriendsAndFollowing(accountID, applicationID, userID)
 	if er != nil {
 		return "", er
@@ -406,7 +406,7 @@ func (e *event) composeConnectionCondition(accountID, applicationID int64, userI
 
 	condition := []string{}
 	for idx := range connections {
-		condition = append(condition, fmt.Sprintf(`json_data @> '{"user_id": %q}'`, connections[idx].ID))
+		condition = append(condition, fmt.Sprintf(`json_data @> '{"user_id": %d}'`, connections[idx].ID))
 	}
 
 	return strings.Join(condition, joinOperator), nil

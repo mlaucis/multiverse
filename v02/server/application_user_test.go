@@ -88,10 +88,7 @@ func (s *ApplicationUserSuite) TestCreateUser_OK(c *C) {
 	receivedUser := &entity.ApplicationUser{}
 	er := json.Unmarshal([]byte(body), receivedUser)
 	c.Assert(er, IsNil)
-	if receivedUser.ID == "" {
-		c.Fail()
-	}
-	c.Assert(receivedUser.ID, Not(Equals), "")
+	c.Assert(receivedUser.ID, Not(Equals), 0)
 	c.Assert(receivedUser.Username, Equals, user.Username)
 }
 
@@ -120,9 +117,7 @@ func (s *ApplicationUserSuite) TestCreateUserBareDetailsOK(c *C) {
 	receivedUser := &entity.ApplicationUser{}
 	er := json.Unmarshal([]byte(body), receivedUser)
 	c.Assert(er, IsNil)
-	if receivedUser.ID == "" {
-		c.Fail()
-	}
+	c.Assert(receivedUser.ID, Not(Equals), 0)
 	c.Assert(receivedUser.Username, Equals, user.Username)
 
 	payload = fmt.Sprintf(
@@ -139,9 +134,7 @@ func (s *ApplicationUserSuite) TestCreateUserBareDetailsOK(c *C) {
 	receivedUser = &entity.ApplicationUser{}
 	er = json.Unmarshal([]byte(body), receivedUser)
 	c.Assert(er, IsNil)
-	if receivedUser.ID == "" {
-		c.Fail()
-	}
+	c.Assert(receivedUser.ID, Not(Equals), 0)
 	c.Assert(receivedUser.Email, Equals, user.Email)
 }
 
@@ -177,9 +170,7 @@ func (s *ApplicationUserSuite) TestCreateAndLoginUser_OK(c *C) {
 	}{}
 	er := json.Unmarshal([]byte(body), receivedUser)
 	c.Assert(er, IsNil)
-	if receivedUser.ID == "" {
-		c.Fail()
-	}
+	c.Assert(receivedUser.ID, Not(Equals), 0)
 	c.Assert(receivedUser.Username, Equals, user.Username)
 	c.Assert(receivedUser.SessionToken, Not(Equals), "")
 }
@@ -215,9 +206,7 @@ func (s *ApplicationUserSuite) TestCreateAndLoginExistingUser_OK(c *C) {
 	}{}
 	er := json.Unmarshal([]byte(body), receivedUser)
 	c.Assert(er, IsNil)
-	if receivedUser.ID == "" {
-		c.Fail()
-	}
+	c.Assert(receivedUser.ID, Not(Equals), 0)
 	c.Assert(receivedUser.Username, Equals, user.Username)
 	c.Assert(receivedUser.SessionToken, Not(Equals), "")
 }
@@ -248,9 +237,7 @@ func (s *ApplicationUserSuite) TestUpdateUser_OK(c *C) {
 	receivedUser := &entity.ApplicationUser{}
 	er := json.Unmarshal([]byte(body), receivedUser)
 	c.Assert(er, IsNil)
-	if receivedUser.ID == "" {
-		c.Fail()
-	}
+	c.Assert(receivedUser.ID, Not(Equals), 0)
 	c.Assert(receivedUser.Username, Equals, user.Username)
 }
 
@@ -374,7 +361,7 @@ func (s *ApplicationUserSuite) TestGetUser_WrongID(c *C) {
 	user := application.Users[0]
 
 	routeName := "getApplicationUser"
-	route := getComposedRoute(routeName, user.ID+"1")
+	route := getComposedRoute(routeName, user.ID+1)
 	code, _, err := runRequest(routeName, route, "", signApplicationRequest(application, user, true, true))
 	c.Assert(err, IsNil)
 
@@ -400,7 +387,7 @@ func (s *ApplicationUserSuite) TestLoginUserWorks(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	sessionToken := struct {
-		UserID string `json:"id"`
+		UserID uint64 `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
 	er := json.Unmarshal([]byte(body), &sessionToken)
@@ -429,7 +416,7 @@ func (s *ApplicationUserSuite) TestLoginUserWorksWithUsernameOrEmail(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	sessionToken := struct {
-		UserID string `json:"id"`
+		UserID uint64 `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
 	er := json.Unmarshal([]byte(body), &sessionToken)
@@ -449,7 +436,7 @@ func (s *ApplicationUserSuite) TestLoginUserWorksWithUsernameOrEmail(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	sessionToken = struct {
-		UserID string `json:"id"`
+		UserID uint64 `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
 	er = json.Unmarshal([]byte(body), &sessionToken)
@@ -507,7 +494,7 @@ func (s *ApplicationUserSuite) TestRefreshSessionOnOriginalTokenFailsAfterDouble
 	c.Assert(body, Not(Equals), "")
 
 	sessionToken := struct {
-		UserID string `json:"id"`
+		UserID uint64 `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
 	er := json.Unmarshal([]byte(body), &sessionToken)
@@ -544,7 +531,7 @@ func (s *ApplicationUserSuite) TestLoginUserAfterLoginWorks(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	sessionToken := struct {
-		UserID string `json:"id"`
+		UserID uint64 `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
 	er := json.Unmarshal([]byte(body), &sessionToken)
@@ -560,7 +547,7 @@ func (s *ApplicationUserSuite) TestLoginUserAfterLoginWorks(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	sessionToken = struct {
-		UserID string `json:"id"`
+		UserID uint64 `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
 	er = json.Unmarshal([]byte(body), &sessionToken)
@@ -589,7 +576,7 @@ func (s *ApplicationUserSuite) TestLoginAndRefreshSessionWorks(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	sessionToken := struct {
-		UserID string `json:"id"`
+		UserID uint64 `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
 	er := json.Unmarshal([]byte(body), &sessionToken)
@@ -636,7 +623,7 @@ func (s *ApplicationUserSuite) TestLoginRefreshSessionLogoutWorks(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	sessionToken := struct {
-		UserID string `json:"id"`
+		UserID uint64 `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
 	er := json.Unmarshal([]byte(body), &sessionToken)
@@ -690,7 +677,7 @@ func (s *ApplicationUserSuite) TestLogoutUserWorks(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	sessionToken := struct {
-		UserID string `json:"id"`
+		UserID uint64 `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
 	er := json.Unmarshal([]byte(body), &sessionToken)
@@ -725,7 +712,7 @@ func (s *ApplicationUserSuite) TestLoginLogoutLoginWorks(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	sessionToken := struct {
-		UserID string `json:"id"`
+		UserID uint64 `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
 	er := json.Unmarshal([]byte(body), &sessionToken)
@@ -755,7 +742,7 @@ func (s *ApplicationUserSuite) TestLoginLogoutLoginWorks(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	newSession := struct {
-		UserID string `json:"id"`
+		UserID uint64 `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
 	er = json.Unmarshal([]byte(body), &newSession)
@@ -804,7 +791,7 @@ func (s *ApplicationUserSuite) TestLoginLogoutRefreshSessionFails(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	sessionToken := struct {
-		UserID string `json:"id"`
+		UserID uint64 `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
 	er := json.Unmarshal([]byte(body), &sessionToken)
@@ -850,7 +837,7 @@ func (s *ApplicationUserSuite) TestLoginChangePasswordRefreshWorks(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	sessionToken := struct {
-		UserID string `json:"id"`
+		UserID uint64 `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
 	er := json.Unmarshal([]byte(body), &sessionToken)
@@ -926,7 +913,7 @@ func (s *ApplicationUserSuite) TestLoginChangeUsernameRefreshWorks(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	sessionToken := struct {
-		UserID string `json:"id"`
+		UserID uint64 `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
 	er := json.Unmarshal([]byte(body), &sessionToken)
@@ -1004,7 +991,7 @@ func (s *ApplicationUserSuite) TestLoginChangeEmailRefreshWorks(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	sessionToken := struct {
-		UserID string `json:"id"`
+		UserID uint64 `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
 	er := json.Unmarshal([]byte(body), &sessionToken)
@@ -1081,7 +1068,7 @@ func (s *ApplicationUserSuite) TestLoginLogoutLogoutFails(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	sessionToken := struct {
-		UserID string `json:"id"`
+		UserID uint64 `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
 	er := json.Unmarshal([]byte(body), &sessionToken)
@@ -1127,7 +1114,7 @@ func (s *ApplicationUserSuite) TestLoginChangeUsernameGetEventWorks(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	sessionToken := struct {
-		UserID string `json:"id"`
+		UserID uint64 `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
 	er := json.Unmarshal([]byte(body), &sessionToken)
@@ -1264,9 +1251,7 @@ func (s *ApplicationUserSuite) TestCreateUserAutoBindSocialAccounts(c *C) {
 	receivedUser := &entity.ApplicationUser{}
 	err = json.Unmarshal([]byte(body), receivedUser)
 	c.Assert(err, IsNil)
-	if receivedUser.ID == "" {
-		c.Fail()
-	}
+	c.Assert(receivedUser.ID, Not(Equals), 0)
 	user2.OriginalPassword, receivedUser.OriginalPassword = user2.Password, user2.Password
 	user2.Password = ""
 	user2.CreatedAt = receivedUser.CreatedAt

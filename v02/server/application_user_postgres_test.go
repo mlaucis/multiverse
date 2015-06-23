@@ -34,7 +34,7 @@ func (s *ApplicationUserSuite) TestLoginDisableLoginFails(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	sessionToken := struct {
-		UserID string `json:"id"`
+		UserID uint64 `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
 	er := json.Unmarshal([]byte(body), &sessionToken)
@@ -104,7 +104,7 @@ func (s *ApplicationUserSuite) TestLoginDeleteLogoutFails(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	sessionToken := struct {
-		UserID string `json:"id"`
+		UserID uint64 `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
 	er := json.Unmarshal([]byte(body), &sessionToken)
@@ -147,7 +147,7 @@ func (s *ApplicationUserSuite) TestLoginDeleteLoginFails(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	sessionToken := struct {
-		UserID string `json:"id"`
+		UserID uint64 `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
 	er := json.Unmarshal([]byte(body), &sessionToken)
@@ -197,7 +197,7 @@ func (s *ApplicationUserSuite) TestLoginChangeUsernameLogoutLoginWorks(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	sessionToken := struct {
-		UserID string `json:"id"`
+		UserID uint64 `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
 	er := json.Unmarshal([]byte(body), &sessionToken)
@@ -255,7 +255,7 @@ func (s *ApplicationUserSuite) TestLoginChangeUsernameLogoutLoginWorks(c *C) {
 	c.Assert(code, Equals, http.StatusCreated)
 
 	newSessionToken := struct {
-		UserID string `json:"id"`
+		UserID uint64 `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
 	er = json.Unmarshal([]byte(body), &newSessionToken)
@@ -284,7 +284,7 @@ func (s *ApplicationUserSuite) TestLoginChangeEmailLogoutLoginWorks(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	sessionToken := struct {
-		UserID string `json:"id"`
+		UserID uint64 `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
 	er := json.Unmarshal([]byte(body), &sessionToken)
@@ -341,7 +341,7 @@ func (s *ApplicationUserSuite) TestLoginChangeEmailLogoutLoginWorks(c *C) {
 	c.Assert(code, Equals, http.StatusCreated)
 
 	newSessionToken := struct {
-		UserID string `json:"id"`
+		UserID uint64 `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
 	er = json.Unmarshal([]byte(body), &newSessionToken)
@@ -371,7 +371,7 @@ func (s *ApplicationUserSuite) TestLoginChangePasswordLoginWorks(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	sessionToken := struct {
-		UserID string `json:"id"`
+		UserID uint64 `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
 	er := json.Unmarshal([]byte(body), &sessionToken)
@@ -422,7 +422,7 @@ func (s *ApplicationUserSuite) TestLoginChangePasswordLoginWorks(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	newSessionToken := struct {
-		UserID string `json:"id"`
+		UserID uint64 `json:"id"`
 		Token  string `json:"session_token"`
 	}{}
 	er = json.Unmarshal([]byte(body), &newSessionToken)

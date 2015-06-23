@@ -6,6 +6,7 @@ package kinesis
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/errors"
@@ -13,7 +14,6 @@ import (
 	"github.com/tapglue/backend/v02/errmsg"
 	"github.com/tapglue/backend/v02/server/handlers"
 	"github.com/tapglue/backend/v02/server/response"
-	"github.com/tapglue/backend/v02/validator"
 )
 
 type (
@@ -32,10 +32,10 @@ func (conn *connection) Delete(ctx *context.Context) (err []errors.Error) {
 	accountID := ctx.Bag["accountID"].(int64)
 	applicationID := ctx.Bag["applicationID"].(int64)
 
-	userFromID := ctx.Bag["applicationUserID"].(string)
-	userToID := ctx.Vars["applicationUserToID"]
+	userFromID := ctx.Bag["applicationUserID"].(uint64)
+	userToCustomID := ctx.Vars["applicationUserToID"]
 
-	userToID, err = conn.determineTGUserID(accountID, applicationID, userToID)
+	userToID, err := conn.determineTGUserID(accountID, applicationID, userToCustomID)
 	if err != nil {
 		return
 	}
@@ -90,14 +90,18 @@ func (conn *connection) CurrentUserFriends(ctx *context.Context) (err []errors.E
 	return []errors.Error{errmsg.ErrServerNotImplementedYet}
 }
 
-func (conn *connection) determineTGUserID(accountID, applicationID int64, userID string) (string, []errors.Error) {
-	if validator.IsValidUUID5(userID) {
-		return userID, nil
+func (conn *connection) determineTGUserID(accountID, applicationID int64, userID string) (uint64, []errors.Error) {
+	id, er := strconv.ParseUint(userID, 10, 64)
+	if er == nil {
+		// TODO There has to be a better way to do this, no? no? But otherwise, how should we detect if the incoming id is a custom ID or not??
+		if id > 27246450442288181 {
+			return id, nil
+		}
 	}
 
 	user, err := conn.readAppUser.FindByCustomID(accountID, applicationID, userID)
 	if err != nil {
-		return "", err
+		return 0, err
 	}
 
 	return user.ID, nil
