@@ -341,7 +341,9 @@ func (c *connection) AutoConnectSocialFriends(accountID, applicationID int64, us
 		}
 
 		if _, err := c.Create(accountID, applicationID, connection, false); err != nil {
-			return nil, err
+			if err[0] != errmsg.ErrConnectionAlreadyExists {
+				return nil, err
+			}
 		}
 
 		if _, err := c.Confirm(accountID, applicationID, connection, false); err != nil {
