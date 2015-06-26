@@ -8,7 +8,6 @@ package kinesis
 import (
 	"encoding/json"
 	"fmt"
-	"math/rand"
 	"time"
 
 	"github.com/tapglue/backend/errors"
@@ -117,7 +116,6 @@ var (
 )
 
 func (c *cli) PutRecord(streamName, partitionKey string, payload []byte) (*gksis.PutRecordResp, errors.Error) {
-	time.Sleep(time.Duration(rand.Intn(100)*100) * time.Millisecond)
 	args := gksis.NewArgs()
 	args.Add("StreamName", streamName)
 	args.AddRecord(payload, partitionKey)
