@@ -1,24 +1,42 @@
 machine:
   node:
-    version: 0.10.26
+    version: 0.10.33
   services:
     - docker
     - redis
+    - postgresql
 dependencies:
-  override:
+  pre:
     - echo "" > ~/.gitconfig
-    - docker run -d -t -p 4567:4567 dlsniper/kinesalite:1.4.1
-    - sudo pip install codecov
-    - go get -v -u github.com/tools/godep
-    - go get -v -u github.com/axw/gocov/gocov
-    - go get -v -u github.com/AlekSi/gocov-xml
-    - ./bin/test_configs.sh
+  override:
+    - docker run -d -t -p 4567:4567 dlsniper/kinesalite:1.7.0
+    - sudo pip install codecov awscli
+    - go get github.com/tools/godep github.com/axw/gocov/gocov github.com/AlekSi/gocov-xml gopkg.in/check.v1
+  cache_directories:
+    - "~/.go_workspace"
+database:
+  override:
+    - PGPASSWORD=unicode psql -U ubuntu -d circle_test -f v02/resources/db/pgsql.sql -h 127.0.0.1
+test:
+  pre:
     - mkdir -p /home/ubuntu/.go_workspace/src/github.com/tapglue
     - ln -nfs /home/ubuntu/backend /home/ubuntu/.go_workspace/src/github.com/tapglue/backend
-test:
+    - ./bin/test_configs.sh
   override:
-    - cd v01/server && GOPATH=`godep path`:$GOPATH gocov test -race -coverpkg=github.com/tapglue/backend/v01/core,github.com/tapglue/backend/v01/context,github.com/tapglue/backend/v01/storage,github.com/tapglue/backend/v01/validator,github.com/tapglue/backend/v01/validator/keys,github.com/tapglue/backend/v01/validator/tokens,github.com/tapglue/backend/v01/entity -check.v | GOPATH=`godep path`:$GOPATH gocov-xml > coverage.xml
-    - cd v02/server && GOPATH=`godep path`:$GOPATH gocov test -race -coverpkg=github.com/tapglue/backend/v02/core,github.com/tapglue/backend/context,github.com/tapglue/backend/v02/storage,github.com/tapglue/backend/v02/validator,github.com/tapglue/backend/v02/validator/keys,github.com/tapglue/backend/v02/validator/tokens,github.com/tapglue/backend/v02/entity -check.v | GOPATH=`godep path`:$GOPATH gocov-xml > coverage.xml
+    - GOPATH=`godep path`:${GOPATH} go build -ldflags "-X main.currentRevision `git rev-parse HEAD`" -tags postgres -o intaker_postgres_${CIRCLE_BUILD_NUM} cmd/intaker/intaker.go
+    - GOPATH=`godep path`:${GOPATH} go build -ldflags "-X main.currentRevision `git rev-parse HEAD`" -tags kinesis -o intaker_kinesis_${CIRCLE_BUILD_NUM} cmd/intaker/intaker.go
+    - cd v02/server && GOPATH=`godep path`:${GOPATH} gocov test -race -tags postgres -coverpkg=github.com/tapglue/backend/v02/core/postgres,github.com/tapglue/backend/v02/server/postgres,github.com/tapglue/backend/v02/storage/postgres,github.com/tapglue/backend/v02/validator -check.v github.com/tapglue/backend/v02/server > coverage_postgres.json
+    - cd v02/server && GOPATH=`godep path`:${GOPATH} gocov test -race -tags kinesis -coverpkg=github.com/tapglue/backend/v02/core/kinesis,github.com/tapglue/backend/v02/server/kinesis,github.com/tapglue/backend/v02/storage/kinesis,github.com/tapglue/backend/v02/validator -check.v github.com/tapglue/backend/v02/server > coverage_kinesis.json
   post:
-    - cd v01/server && codecov --token=$CODECOV_TOKEN
-    - cd v02/server && codecov --token=$CODECOV_TOKEN
+    - cd v02/server && GOPATH=`godep path`:${GOPATH} cat coverage_postgres.json | gocov-xml > coverage_postgres.xml
+    - cd v02/server && GOPATH=`godep path`:${GOPATH} cat coverage_kinesis.json | gocov-xml > coverage_kinesis.xml
+    - cd v02/server && sed -i 's/\/home\/ubuntu\/backend\///g' coverage_postgres.xml
+    - cd v02/server && sed -i 's/\/home\/ubuntu\/backend\///g' coverage_kinesis.xml
+    - rm -f /home/ubuntu/.go_workspace/src/github.com/tapglue/backend
+    - cd v02/server && codecov --token=${CODECOV_TOKEN}
+deployment:
+  s3:
+    branch: master
+    commands:
+      - ./bin/make_release.sh postgres
+      - ./bin/make_release.sh kinesis

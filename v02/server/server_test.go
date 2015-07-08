@@ -16,8 +16,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/tapglue/intaker/v02/server"
-
 	"github.com/tapglue/backend/config"
 	"github.com/tapglue/backend/errors"
 	ratelimiter_redis "github.com/tapglue/backend/limiter/redis"
@@ -28,6 +26,7 @@ import (
 	v02_postgres_core "github.com/tapglue/backend/v02/core/postgres"
 	v02_redis_core "github.com/tapglue/backend/v02/core/redis"
 	"github.com/tapglue/backend/v02/entity"
+	"github.com/tapglue/backend/v02/server"
 	v02_kinesis "github.com/tapglue/backend/v02/storage/kinesis"
 	v02_postgres "github.com/tapglue/backend/v02/storage/postgres"
 	v02_redis "github.com/tapglue/backend/v02/storage/redis"

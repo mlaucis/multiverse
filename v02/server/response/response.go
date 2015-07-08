@@ -6,9 +6,12 @@
 package response
 
 import (
+	"bytes"
 	"compress/gzip"
+	"crypto/md5"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -52,24 +55,76 @@ func CORSHandler(ctx *context.Context) []errors.Error {
 
 // WriteResponse handles the http responses and returns the data
 func WriteResponse(ctx *context.Context, response interface{}, code int, cacheTime uint) {
+	ctx.StatusCode = code
+
 	// Set the response headers
 	WriteCommonHeaders(cacheTime, ctx)
 	CORSHandler(ctx)
-	ctx.W.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	ctx.StatusCode = code
+
+	// TODO here it would be nice if we would consider the requested format when the stuff happens and deliver
+	// either JSON or XML or FlatBuffers or whatever
+	output := new(bytes.Buffer)
+	err := json.NewEncoder(output).Encode(response)
+	if err != nil {
+		ctx.LogError(err)
+	}
+
+	// We should only check these for valid responses, I think. Future me blame past me for this decision
+	if (ctx.R.Method == "GET" || ctx.R.Method == "HEAD") && ctx.StatusCode < 300 {
+		// We implememt the etag check first, aka the hard check, because we don't know if something else was changed
+		// in the response, not just what we calculate the etag for.
+		// Example situation: we compute the etag for getFeed as being the highest LastUpdated date but maybe
+		// a user was updated meanwhile which would mean that the feed might be the same, event wise, but the user wise
+		// it will be different so the app should retrieve the feed and process it as maybe the display name of the user
+		// was changed or something else (thumbnail or whatever)
+
+		h := md5.New()
+		h.Write(output.Bytes())
+		etag := h.Sum(nil)
+		etagString := fmt.Sprintf("%x", etag)
+		ctx.W.Header().Set("ETag", etagString)
+
+		if myLastModified, ok := ctx.Bag["Last-Modified"]; ok {
+			ctx.W.Header().Set("Last-Modified", myLastModified.(string))
+		}
+
+		if requestEtag := ctx.R.Header.Get("If-None-Match"); requestEtag != "" {
+			if requestEtag == etagString {
+				ctx.StatusCode = http.StatusNotModified
+				ctx.W.WriteHeader(ctx.StatusCode)
+				return
+			}
+		}
+
+		if ifModifiedSince := ctx.R.Header.Get("If-Modified-Since"); ifModifiedSince != "" {
+			if myLastModified, ok := ctx.Bag["Last-Modified"]; ok {
+				ctx.W.Header().Set("Last-Modified", myLastModified.(string))
+				if myLastModified.(string) == ifModifiedSince {
+					ctx.StatusCode = http.StatusNotModified
+					ctx.W.WriteHeader(ctx.StatusCode)
+					return
+				}
+			}
+		}
+
+		if ctx.R.Method == "HEAD" {
+			ctx.W.WriteHeader(code)
+			return
+		}
+	}
 
 	// Write response
 	if !strings.Contains(ctx.R.Header.Get("Accept-Encoding"), "gzip") {
 		// No gzip support
 		ctx.W.WriteHeader(code)
-		json.NewEncoder(ctx.W).Encode(response)
+		io.Copy(ctx.W, output)
 		return
 	}
 
 	ctx.W.Header().Set("Content-Encoding", "gzip")
 	ctx.W.WriteHeader(code)
 	gz := gzip.NewWriter(ctx.W)
-	json.NewEncoder(gz).Encode(response)
+	io.Copy(gz, output)
 	gz.Close()
 }
 

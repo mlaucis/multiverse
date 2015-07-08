@@ -15,7 +15,7 @@ import (
 	"time"
 
 	"github.com/tapglue/backend/v02/entity"
-	"github.com/tapglue/intaker/v02/server"
+	"github.com/tapglue/backend/v02/server"
 
 	"github.com/gorilla/mux"
 	. "gopkg.in/check.v1"
