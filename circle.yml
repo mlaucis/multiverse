@@ -22,8 +22,9 @@ test:
     - ln -nfs /home/ubuntu/backend /home/ubuntu/.go_workspace/src/github.com/tapglue/backend
     - ./bin/test_configs.sh intaker
   override:
-    - ./bin/run_tests.sh postgres
-    - ./bin/run_tests.sh kinesis
+    - ./bin/run_tests.sh intaker postgres
+    - ./bin/run_tests.sh intaker kinesis
+    - ./bin/run_tests.sh distributor postgres
   post:
     - ./bin/process_coverage.sh
     - rm -f /home/ubuntu/.go_workspace/src/github.com/tapglue/backend
@@ -31,5 +32,6 @@ deployment:
   s3:
     branch: master
     commands:
-      - ./bin/make_release.sh postgres
-      - ./bin/make_release.sh kinesis
+      - ./bin/make_release.sh intaker postgres
+      - ./bin/make_release.sh intaker kinesis
+      - ./bin/make_release.sh distributor postgres

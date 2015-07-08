@@ -1,9 +1,11 @@
 #!/bin/bash
 
-finalReleaseTarget=${1}
-finalExecName=intaker_${finalReleaseTarget}_$CIRCLE_BUILD_NUM
-finalArchiveName=intaker_${finalReleaseTarget}.$CIRCLE_BUILD_NUM.tar.gz
-finalS3Location=s3://tapglue-builds/intaker/${finalReleaseTarget}
+finalComponentName=${1}
+finalReleaseTarget=${2}
+
+finalExecName=${finalComponentName}_${finalReleaseTarget}_$CIRCLE_BUILD_NUM
+finalArchiveName=${finalComponentName}_${finalReleaseTarget}.$CIRCLE_BUILD_NUM.tar.gz
+finalS3Location=s3://tapglue-builds/${finalComponentName}/${finalReleaseTarget}
 finalReleasesFilename=releases.json
 
 tar -czf ${finalArchiveName} ${finalExecName}
