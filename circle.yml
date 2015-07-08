@@ -1,6 +1,4 @@
 machine:
-  node:
-    version: 0.10.33
   services:
     - docker
     - redis
@@ -11,6 +9,7 @@ dependencies:
   override:
     - docker run -d -t -p 4567:4567 dlsniper/kinesalite:1.7.0
     - sudo pip install codecov awscli
+    - sudo chown -R ubuntu /home/ubuntu/.cache/
     - go get github.com/tools/godep github.com/axw/gocov/gocov github.com/AlekSi/gocov-xml gopkg.in/check.v1
   cache_directories:
     - "~/.go_workspace"
@@ -21,19 +20,13 @@ test:
   pre:
     - mkdir -p /home/ubuntu/.go_workspace/src/github.com/tapglue
     - ln -nfs /home/ubuntu/backend /home/ubuntu/.go_workspace/src/github.com/tapglue/backend
-    - ./bin/test_configs.sh
+    - ./bin/test_configs.sh intaker
   override:
-    - GOPATH=`godep path`:${GOPATH} go build -ldflags "-X main.currentRevision `git rev-parse HEAD`" -tags postgres -o intaker_postgres_${CIRCLE_BUILD_NUM} cmd/intaker/intaker.go
-    - GOPATH=`godep path`:${GOPATH} go build -ldflags "-X main.currentRevision `git rev-parse HEAD`" -tags kinesis -o intaker_kinesis_${CIRCLE_BUILD_NUM} cmd/intaker/intaker.go
-    - cd v02/server && GOPATH=`godep path`:${GOPATH} gocov test -race -tags postgres -coverpkg=github.com/tapglue/backend/v02/core/postgres,github.com/tapglue/backend/v02/server/postgres,github.com/tapglue/backend/v02/storage/postgres,github.com/tapglue/backend/v02/validator -check.v github.com/tapglue/backend/v02/server > coverage_postgres.json
-    - cd v02/server && GOPATH=`godep path`:${GOPATH} gocov test -race -tags kinesis -coverpkg=github.com/tapglue/backend/v02/core/kinesis,github.com/tapglue/backend/v02/server/kinesis,github.com/tapglue/backend/v02/storage/kinesis,github.com/tapglue/backend/v02/validator -check.v github.com/tapglue/backend/v02/server > coverage_kinesis.json
+    - ./bin/run_tests.sh postgres
+    - ./bin/run_tests.sh kinesis
   post:
-    - cd v02/server && GOPATH=`godep path`:${GOPATH} cat coverage_postgres.json | gocov-xml > coverage_postgres.xml
-    - cd v02/server && GOPATH=`godep path`:${GOPATH} cat coverage_kinesis.json | gocov-xml > coverage_kinesis.xml
-    - cd v02/server && sed -i 's/\/home\/ubuntu\/backend\///g' coverage_postgres.xml
-    - cd v02/server && sed -i 's/\/home\/ubuntu\/backend\///g' coverage_kinesis.xml
+    - ./bin/process_coverage.sh
     - rm -f /home/ubuntu/.go_workspace/src/github.com/tapglue/backend
-    - cd v02/server && codecov --token=${CODECOV_TOKEN}
 deployment:
   s3:
     branch: master

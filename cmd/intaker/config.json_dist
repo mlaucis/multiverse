@@ -1,0 +1,33 @@
+{
+	"env": "APP_ENV",
+	"listenHost": "APP_HOST_PORT",
+	"skip_security": false,
+	"json_logs": true,
+	"use_ssl": false,
+	"redis": {
+		"hosts": [
+			"REDIS_HOST"
+		],
+		"password": "",
+		"db": REDIS_DB_ID,
+		"pool_size": 30
+	},
+	"kinesis": {
+		"auth_key": "AWS_AUTH_KEY",
+		"secret_key": "AWS_SECRET_KEY",
+		"region": "AWS_REGION",
+		"endpoint": "AWS_ENDPOINT"
+	},
+	"postgres": {
+		"database": "PG_DATABASE",
+		"master": {
+			"username": "PG_USERNAME",
+			"password": "PG_PASSWORD",
+			"host": "PG_HOSTNAME",
+			"options": "PG_OPTIONS"
+		},
+		"slaves": [
+			PG_SLAVES
+		]
+	}
+}
