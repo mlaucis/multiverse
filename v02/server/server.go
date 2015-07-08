@@ -1,226 +1,54 @@
+/**
+ * @author Florin Patan <florinpatan@gmail.com>
+ */
+
+// Package server provides handling for all the requests towards this module
 package server
 
 import (
-	"bytes"
-	"compress/gzip"
-	"crypto/md5"
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"strconv"
-	"strings"
-	"time"
 
 	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/errors"
+	"github.com/tapglue/backend/limiter"
 	"github.com/tapglue/backend/logger"
+	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/errmsg"
+	"github.com/tapglue/backend/v02/server/response"
 
 	"github.com/gorilla/mux"
 )
 
 type (
-	// RouteFunc defines the pattern for a route handling function
-	RouteFunc func(*context.Context) []errors.Error
-
-	// Route holds the route pattern
-	Route struct {
-		Method   string
-		Pattern  string
-		CPattern string
-		Scope    string
-		Handlers []RouteFunc
-		Filters  []context.Filter
+	errorResponse struct {
+		Code             int    `json:"code"`
+		Message          string `json:"message"`
+		DocumentationURL string `json:"documentation_url,omitempty"`
 	}
 )
 
-const version = "0.2"
+const (
+	// Which API Version does this module holds
+	APIVersion = "0.2"
+
+	appRateLimit        int64 = 1000
+	appRateLimitSeconds int64 = 60
+)
 
 var (
+	postgresAccount, redisAccount, kinesisAccount                         core.Account
+	postgresAccountUser, redisAccountUser, kinesisAccountUser             core.AccountUser
+	postgresApplication, redisApplication, kinesisApplication             core.Application
+	postgresApplicationUser, redisApplicationUser, kinesisApplicationUser core.ApplicationUser
+	postgresConnection, redisConnection, kinesisConnection                core.Connection
+	postgresEvent, redisEvent, kinesisEvent                               core.Event
+
+	appRateLimiter limiter.Limiter
+
 	currentRevision, currentHostname string
 )
-
-// RoutePattern returns the route pattern for a certain version
-func (r *Route) RoutePattern(version string) string {
-	if version == "" {
-		return r.Pattern
-	}
-	return "/" + version + r.Pattern
-}
-
-// ComposePattern returns the composed pattern for a route
-func (r *Route) ComposePattern(version string) string {
-	return "/" + version + r.CPattern
-}
-
-// WriteResponse handles the http responses and returns the data
-func WriteResponse(ctx *context.Context, response interface{}, code int, cacheTime uint) {
-	ctx.StatusCode = code
-
-	// Set the response headers
-	WriteCommonHeaders(cacheTime, ctx)
-	WriteCorsHeaders(ctx)
-
-	// TODO here it would be nice if we would consider the requested format when the stuff happens and deliver
-	// either JSON or XML or FlatBuffers or whatever
-	output := new(bytes.Buffer)
-	err := json.NewEncoder(output).Encode(response)
-	if err != nil {
-		ctx.LogError(err)
-	}
-
-	// We should only check these for valid responses, I think. Future me blame past me for this decision
-	if (ctx.R.Method == "GET" || ctx.R.Method == "HEAD") && ctx.StatusCode < 300 {
-		// We implememt the etag check first, aka the hard check, because we don't know if something else was changed
-		// in the response, not just what we calculate the etag for.
-		// Example situation: we compute the etag for getFeed as being the highest LastUpdated date but maybe
-		// a user was updated meanwhile which would mean that the feed might be the same, event wise, but the user wise
-		// it will be different so the app should retrieve the feed and process it as maybe the display name of the user
-		// was changed or something else (thumbnail or whatever)
-
-		h := md5.New()
-		h.Write(output.Bytes())
-		etag := h.Sum(nil)
-		etagString := fmt.Sprintf("%x", etag)
-		ctx.W.Header().Set("ETag", etagString)
-
-		if myLastModified, ok := ctx.Bag["Last-Modified"]; ok {
-			ctx.W.Header().Set("Last-Modified", myLastModified.(string))
-		}
-
-		if requestEtag := ctx.R.Header.Get("If-None-Match"); requestEtag != "" {
-			if requestEtag == etagString {
-				ctx.StatusCode = http.StatusNotModified
-				ctx.W.WriteHeader(ctx.StatusCode)
-				return
-			}
-		}
-
-		if ifModifiedSince := ctx.R.Header.Get("If-Modified-Since"); ifModifiedSince != "" {
-			if myLastModified, ok := ctx.Bag["Last-Modified"]; ok {
-				ctx.W.Header().Set("Last-Modified", myLastModified.(string))
-				if myLastModified.(string) == ifModifiedSince {
-					ctx.StatusCode = http.StatusNotModified
-					ctx.W.WriteHeader(ctx.StatusCode)
-					return
-				}
-			}
-		}
-
-		if ctx.R.Method == "HEAD" {
-			ctx.W.WriteHeader(code)
-			return
-		}
-	}
-
-	// Write response
-	if !strings.Contains(ctx.R.Header.Get("Accept-Encoding"), "gzip") {
-		// No gzip support
-		ctx.W.WriteHeader(code)
-		io.Copy(ctx.W, output)
-		return
-	}
-
-	ctx.W.Header().Set("Content-Encoding", "gzip")
-	ctx.W.WriteHeader(code)
-	gz := gzip.NewWriter(ctx.W)
-	io.Copy(gz, output)
-	gz.Close()
-}
-
-// ErrorHappened handles the error message
-func ErrorHappened(ctx *context.Context, err []errors.Error) {
-	ctx.StatusCode = int(err[0].Type())
-
-	WriteCommonHeaders(0, ctx)
-	WriteCorsHeaders(ctx)
-
-	// Write response
-	if !strings.Contains(ctx.R.Header.Get("Accept-Encoding"), "gzip") {
-		// No gzip support
-		ctx.W.WriteHeader(ctx.StatusCode)
-		fmt.Fprintf(ctx.W, "%d %s", err[0].Type(), err[0].Error())
-	} else {
-		ctx.W.Header().Set("Content-Encoding", "gzip")
-		ctx.W.WriteHeader(ctx.StatusCode)
-		gz := gzip.NewWriter(ctx.W)
-		fmt.Fprintf(gz, "%d %s", int(err[0].Type()), err[0].Error())
-		gz.Close()
-	}
-
-	go ctx.LogError(err)
-}
-
-// WriteCommonHeaders will add the corresponding cache headers based on the time supplied (in seconds)
-func WriteCommonHeaders(cacheTime uint, ctx *context.Context) {
-	ctx.W.Header().Set("Strict-Transport-Security", "max-age=63072000")
-	ctx.W.Header().Set("X-Content-Type-Options", "nosniff")
-	ctx.W.Header().Set("X-Frame-Options", "DENY")
-	ctx.W.Header().Set("Content-Type", "application/json; charset=UTF-8")
-
-	ctx.W.Header().Set("X-Tapglue-Hash", currentRevision)
-	ctx.W.Header().Set("X-Tapglue-Server", currentHostname)
-
-	if cacheTime > 0 {
-		ctx.W.Header().Set("Cache-Control", fmt.Sprintf(`max-age=%d, public`, cacheTime))
-		ctx.W.Header().Set("Expires", time.Now().Add(time.Duration(cacheTime)*time.Second).Format(http.TimeFormat))
-	} else {
-		ctx.W.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-		ctx.W.Header().Set("Pragma", "no-cache")
-		ctx.W.Header().Set("Expires", "0")
-	}
-
-	if ctx.R.Method == "GET" && ctx.StatusCode < 300 {
-		if myLastModified, ok := ctx.Bag["Last-Modified"]; ok {
-			ctx.W.Header().Set("Last-Modified", myLastModified.(string))
-		} else {
-			// This will spam the server logs for issues with missing issues but then again, it should be there...
-			go ctx.LogError(errmsg.ErrServerRespMissingLastModifiedHeader.UpdateInternalMessage("missing Last-Modified from bag for route " + ctx.RouteName + " response"))
-		}
-	}
-
-	if !ctx.Bag["rateLimit.enabled"].(bool) {
-		return
-	}
-	ctx.W.Header().Set("X-RateLimit-Limit", strconv.FormatInt(1000, 10))
-	ctx.W.Header().Set("X-RateLimit-Remaining", strconv.FormatInt(ctx.Bag["rateLimit.limit"].(int64), 10))
-	ctx.W.Header().Set("X-RateLimit-Reset", strconv.FormatInt(ctx.Bag["rateLimit.refreshTime"].(time.Time).Unix(), 10))
-}
-
-// WriteCorsHeaders will write the needed CORS headers
-func WriteCorsHeaders(ctx *context.Context) {
-	ctx.W.Header().Set("Access-Control-Allow-Origin", "*")
-	ctx.W.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-	ctx.W.Header().Set("Access-Control-Allow-Headers", "User-Agent, Content-Type, Content-Length, Accept-Encoding, Authorization")
-	ctx.W.Header().Set("Access-Control-Allow-Credentials", "true")
-}
-
-// CorsHandler will handle the CORS requests
-func CorsHandler(ctx *context.Context) (err []errors.Error) {
-	WriteCommonHeaders(100, ctx)
-	WriteCorsHeaders(ctx)
-	return
-}
-
-// VersionHandler handlers the requests for the version status
-func VersionHandler(ctx *context.Context) []errors.Error {
-	response := struct {
-		Version string `json:"version"`
-		Status  string `json:"status"`
-	}{"v" + version, "current"}
-	WriteResponse(ctx, response, 200, 86400)
-	return nil
-}
-
-// GetRoute takes a route name and returns the route including the version
-func GetRoute(routeName string) *Route {
-	if _, ok := Routes[routeName]; !ok {
-		panic(fmt.Errorf("You requested a route, %s, that does not exists in the routing table\n", routeName))
-	}
-
-	return Routes[routeName]
-}
 
 // ValidateGetCommon runs a series of predefined, common, tests for GET requests
 func ValidateGetCommon(ctx *context.Context) (err []errors.Error) {
@@ -325,9 +153,49 @@ func ValidatePostCommon(ctx *context.Context) (err []errors.Error) {
 	return
 }
 
-// CustomHandler composes the http handling function according to its definition and returns it
-func CustomHandler(routeName, version string, route *Route, mainLog, errorLog chan *logger.LogMsg, environment string, debugMode, skipSecurity bool) http.HandlerFunc {
-	extraHandlers := []RouteFunc{CorsHandler}
+// GetRoute takes a route name and returns the route including the version
+func GetRoute(routeName string) *Route {
+	for idx := range Routes {
+		if Routes[idx].Name == routeName {
+			return Routes[idx]
+		}
+	}
+
+	panic(fmt.Sprintf("route %q not found", routeName))
+}
+
+// RateLimitApplication takes care of appling the rate limits for the application
+func RateLimitApplication(ctx *context.Context) []errors.Error {
+	if ctx.SkipSecurity {
+		return nil
+	}
+
+	hash, _, ok := ctx.BasicAuth()
+	if !ok {
+		return []errors.Error{errors.NewBadRequestError(2300, "something went wrong with the authentication", "something went wrong with the authentication")}
+	}
+
+	hash = fmt.Sprintf("%s.%s", hash, ctx.R.Method)
+
+	limit, refreshTime, err := appRateLimiter.Request(&limiter.Limitee{hash, appRateLimit, appRateLimitSeconds})
+	if err != nil {
+		return []errors.Error{errors.NewInternalError(0, "something went wrong", err.Error())}
+	}
+
+	ctx.Bag["rateLimit.enabled"] = true
+	ctx.Bag["rateLimit.limit"] = limit
+	ctx.Bag["rateLimit.refreshTime"] = refreshTime
+
+	if limit == 0 {
+		return []errors.Error{errors.New(429, 0, "Too Many Requests", "over quota", false)}
+	}
+
+	return nil
+}
+
+// CustomHandler generates the handler for a certain route
+func CustomHandler(route *Route, mainLogChan, errorLogChan chan *logger.LogMsg, env string, skipSecurity, debug bool) http.HandlerFunc {
+	extraHandlers := []RouteFunc{}
 	switch route.Method {
 	case "DELETE":
 		{
@@ -346,28 +214,27 @@ func CustomHandler(routeName, version string, route *Route, mainLog, errorLog ch
 			extraHandlers = append(extraHandlers, ValidatePostCommon)
 		}
 	}
-
 	route.Handlers = append(extraHandlers, route.Handlers...)
-	route.Filters = append([]context.Filter{func(ctx *context.Context) []errors.Error {
-		ctx.Vars = mux.Vars(ctx.R)
-		return nil
-	}}, route.Filters...)
 
 	return func(w http.ResponseWriter, r *http.Request) {
-
-		ctx, err := context.New(w, r, mainLog, errorLog, routeName, route.Scope, version, route.Filters, environment, debugMode)
+		ctx, err := NewContext(w, r, mux.Vars(r), mainLogChan, errorLogChan, route, env, debug)
 		if err != nil {
-			ErrorHappened(ctx, err)
+			response.ErrorHappened(ctx, err)
 			return
 		}
-
 		ctx.SkipSecurity = skipSecurity
 
-		for _, handler := range route.Handlers {
-			// Any response that happens in a handler MUST send a Content-Type header
-			if err := handler(ctx); err != nil {
-				ErrorHappened(ctx, err)
-				break
+		for idx := range route.Filters {
+			if err = route.Filters[idx](ctx); err != nil {
+				response.ErrorHappened(ctx, err)
+				return
+			}
+		}
+
+		for idx := range route.Handlers {
+			if err = route.Handlers[idx](ctx); err != nil {
+				response.ErrorHappened(ctx, err)
+				return
 			}
 		}
 
@@ -375,8 +242,105 @@ func CustomHandler(routeName, version string, route *Route, mainLog, errorLog ch
 	}
 }
 
-// Init takes care of initializing the router with the requests needed
-func Init(revision, hostname string) {
+// CustomOptionsHandler handles all the OPTIONS requests for us
+func CustomOptionsHandler(route *Route, mainLogChan, errorLogChan chan *logger.LogMsg, env string, skipSecurity, debug bool) http.HandlerFunc {
+	// Override the route method to what we need
+	route.Method = "OPTIONS"
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx, err := NewContext(w, r, mux.Vars(r), mainLogChan, errorLogChan, route, env, debug)
+		ctx.SkipSecurity = skipSecurity
+		if err != nil {
+			go response.ErrorHappened(ctx, err)
+			return
+		}
+		ctx.StatusCode = 200
+		if err = response.CORSHandler(ctx); err != nil {
+			go response.ErrorHappened(ctx, err)
+			return
+		}
+
+		if ctx.R.Header.Get("User-Agent") == "ELB-HealthChecker/1.0" {
+			return
+		} else if ctx.R.Header.Get("User-Agent") == "updown.io bot 2.0" {
+			return
+		}
+
+		go ctx.LogRequest(ctx.StatusCode, -1)
+	}
+}
+
+// SetupRateLimit initializes the rate limiters
+func SetupRateLimit(applicationRateLimiter limiter.Limiter) {
+	appRateLimiter = applicationRateLimiter
+}
+
+// SetupRedisCores takes care of initializing the redis core
+func SetupRedisCores(
+	account core.Account,
+	accountUser core.AccountUser,
+	application core.Application,
+	applicationUser core.ApplicationUser,
+	connection core.Connection,
+	event core.Event) {
+	redisAccount = account
+	redisAccountUser = accountUser
+	redisApplication = application
+	redisApplicationUser = applicationUser
+	redisConnection = connection
+	redisEvent = event
+}
+
+// SetupKinesisCores takes care of initializing the redis core
+func SetupKinesisCores(
+	account core.Account,
+	accountUser core.AccountUser,
+	application core.Application,
+	applicationUser core.ApplicationUser,
+	connection core.Connection,
+	event core.Event) {
+	kinesisAccount = account
+	kinesisAccountUser = accountUser
+	kinesisApplication = application
+	kinesisApplicationUser = applicationUser
+	kinesisConnection = connection
+	kinesisEvent = event
+}
+
+// SetupPostgresCores takes care of initializing the PostgresSQL core
+func SetupPostgresCores(
+	account core.Account,
+	accountUser core.AccountUser,
+	application core.Application,
+	applicationUser core.ApplicationUser,
+	connection core.Connection,
+	event core.Event) {
+	postgresAccount = account
+	postgresAccountUser = accountUser
+	postgresApplication = application
+	postgresApplicationUser = applicationUser
+	postgresConnection = connection
+	postgresEvent = event
+}
+
+// Setup initializes the route handlers
+// Must be called after initializing the cores
+func Setup(revision, hostname string) {
+	if appRateLimiter == nil {
+		panic("You must first initialize the rate limiter")
+	}
+
+	if redisAccount == nil || kinesisAccount == nil || postgresAccount == nil {
+		panic("You must initialize the redis, kinesis and postgres cores first")
+	}
+
+	if revision == "" {
+		panic("omfg missing revision")
+	}
+
 	currentRevision = revision
 	currentHostname = hostname
+
+	InitHandlers()
+
+	Routes = SetupRoutes()
 }
