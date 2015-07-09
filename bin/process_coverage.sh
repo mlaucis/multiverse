@@ -8,6 +8,12 @@ cd v02/server
 for target in "${targets[@]}"
 do
     cat coverage_${target}.json | gocov-xml > coverage_${target}.xml
+done
+
+rm -f /home/ubuntu/.go_workspace/src/github.com/tapglue/backend
+
+for target in "${targets[@]}"
+do
     sed -i 's/\/home\/ubuntu\/backend\///g' coverage_${target}.xml
 done
 

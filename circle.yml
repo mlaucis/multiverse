@@ -27,7 +27,6 @@ test:
     - ./bin/run_tests.sh distributor postgres
   post:
     - ./bin/process_coverage.sh
-    - rm -f /home/ubuntu/.go_workspace/src/github.com/tapglue/backend
 deployment:
   s3:
     branch: master
