@@ -42,7 +42,7 @@ chmod +x ./run.sh
 
 kill -9 `pgrep intaker_${INTAKER_DEPLOY_TARGET}_`
 
-nohup `./run.sh ${INTAKER_DEPLOY_TARGET} ${releaseVersion}` &
+nohup ./run.sh ${INTAKER_DEPLOY_TARGET} ${releaseVersion} &
 
 logger -t intaker_installer started intaker_${INTAKER_DEPLOY_TARGET}_${releaseVersion}
 
