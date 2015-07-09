@@ -85,14 +85,10 @@ func main() {
 
 	switch *consumerTarget {
 	case "postgres":
-		{
-			myConsumer = pgConsumer
-		}
+		myConsumer = pgConsumer
 	default:
-		{
-			flag.PrintDefaults()
-			os.Exit(64)
-		}
+		flag.PrintDefaults()
+		os.Exit(64)
 	}
 
 	if conf.JSONLogs {

@@ -106,11 +106,11 @@ func NewContext(
 	r *http.Request,
 	p map[string]string,
 	mainLog, errorLog chan *logger.LogMsg,
-	routeName string,
-	environment string,
-	debugMode bool) (ctx *context.Context, err []errors.Error) {
+	routeName, environment string,
+	debugMode bool,
+) (*context.Context, []errors.Error) {
 
-	ctx = new(context.Context)
+	ctx := new(context.Context)
 	ctx.StartTime = time.Now()
 	ctx.R = r
 	ctx.W = w
@@ -136,7 +136,11 @@ func NewContext(
 }
 
 // GetRouter creates the router
-func GetRouter(agent *gorelic.Agent, environment string, debugMode, skipSecurityChecks bool) (*mux.Router, chan *logger.LogMsg, chan *logger.LogMsg, error) {
+func GetRouter(
+	agent *gorelic.Agent,
+	environment string,
+	debugMode, skipSecurityChecks bool,
+) (*mux.Router, chan *logger.LogMsg, chan *logger.LogMsg, error) {
 	router := mux.NewRouter().StrictSlash(true)
 
 	v02_server.InitRouter(agent, router, mainLogChan, errorLogChan, environment, skipSecurityChecks, debugMode)
