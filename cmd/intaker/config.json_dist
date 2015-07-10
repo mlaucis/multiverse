@@ -3,6 +3,7 @@
 	"listenHost": "APP_HOST_PORT",
 	"skip_security": false,
 	"json_logs": true,
+	"use_syslog": true,
 	"use_ssl": false,
 	"redis": {
 		"hosts": [

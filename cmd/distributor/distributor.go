@@ -11,19 +11,19 @@ package main
 import (
 	"flag"
 	"log"
+	"log/syslog"
 	mr "math/rand"
 	"os"
 	"runtime"
 	"time"
 
 	"github.com/tapglue/backend/config"
-	"github.com/tapglue/backend/v02/writer"
-	"github.com/tapglue/backend/v02/writer/postgres"
-
 	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/logger"
 	v02_kinesis "github.com/tapglue/backend/v02/storage/kinesis"
 	v02_postgres "github.com/tapglue/backend/v02/storage/postgres"
+	"github.com/tapglue/backend/v02/writer"
+	"github.com/tapglue/backend/v02/writer/postgres"
 )
 
 const (
@@ -56,6 +56,20 @@ func init() {
 	flag.Parse()
 
 	conf = config.NewConf(EnvConfigVar)
+
+	log.SetFlags(0)
+
+	if conf.UseSysLog {
+		syslogWriter, err := syslog.New(syslog.LOG_INFO, "intaker")
+		if err == nil {
+			log.Printf("logging to syslog is enabled. Please tail your syslog for intaker app for further logs\n")
+			log.SetOutput(syslogWriter)
+		} else {
+			log.Printf("%v\n", err)
+			log.Printf("logging to syslog failed reverting to stdout logging\n")
+		}
+		conf.UseArtwork = false
+	}
 
 	errors.Init(conf.Environment != "prod")
 
