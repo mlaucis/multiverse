@@ -28,7 +28,10 @@ func CreateEvent(datastore core.ApplicationUser, accountID, applicationID int64,
 
 	if event.Visibility == 0 {
 		errs = append(errs, errmsg.ErrEventMissingVisiblity)
-	} else if event.Visibility != 10 && event.Visibility != 20 && event.Visibility != 30 {
+	} else if event.Visibility != entity.EventPrivate &&
+		event.Visibility != entity.EventConnections &&
+		event.Visibility != entity.EventPublic &&
+		event.Visibility != entity.EventGlobal {
 		errs = append(errs, errmsg.ErrEventInvalidVisiblity)
 	}
 
@@ -54,7 +57,10 @@ func UpdateEvent(existingEvent, event *entity.Event) (errs []errors.Error) {
 
 	if event.Visibility == 0 {
 		errs = append(errs, errmsg.ErrEventMissingVisiblity)
-	} else if event.Visibility != entity.EventPrivate && event.Visibility != entity.EventConnections && event.Visibility != entity.EventPublic {
+	} else if event.Visibility != entity.EventPrivate &&
+		event.Visibility != entity.EventConnections &&
+		event.Visibility != entity.EventPublic &&
+		event.Visibility != entity.EventGlobal {
 		errs = append(errs, errmsg.ErrEventInvalidVisiblity)
 	}
 
