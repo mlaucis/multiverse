@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"log/syslog"
 	mr "math/rand"
 	"net/http"
 	_ "net/http/pprof"
@@ -65,6 +66,20 @@ func init() {
 		if !*forceNoSec {
 			panic("attempted to launch in production with no security checks enabled")
 		}
+	}
+
+	log.SetFlags(0)
+
+	if conf.UseSysLog {
+		syslogWriter, err := syslog.New(syslog.LOG_INFO, "intaker")
+		if err == nil {
+			log.Printf("logging to syslog is enabled. Please tail your syslog for intaker app for further logs\n")
+			log.SetOutput(syslogWriter)
+		} else {
+			log.Printf("%v\n", err)
+			log.Printf("logging to syslog failed reverting to stdout logging\n")
+		}
+		conf.UseArtwork = false
 	}
 
 	if conf.SkipSecurity {

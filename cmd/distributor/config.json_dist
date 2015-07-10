@@ -2,6 +2,7 @@
 	"env": "APP_ENV",
 	"listenHost": "APP_HOST_PORT",
 	"skip_security": false,
+	"use_syslog": true,
 	"json_logs": true,
 	"use_ssl": false,
 	"redis": {
