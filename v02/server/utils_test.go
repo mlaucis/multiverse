@@ -390,9 +390,9 @@ func AddCorrectUserEvents(accountID, applicationID int64, user *entity.Applicati
 	result := make([]*entity.Event, numberOfEventsPerUser)
 	for i := 0; i < numberOfEventsPerUser; i++ {
 		event := CorrectEvent()
-		event.Visibility = uint8(i)%3*10 + 10
+		event.Visibility = uint8(i%4*10 + 10)
 		event.UserID = user.ID
-		if i < 4 {
+		if event.Visibility == entity.EventPublic {
 			event.Location = fmt.Sprintf("location-all-%d", i+1)
 			event.Target = &entity.Object{
 				ID:           fmt.Sprintf("target-%d", i+1),
@@ -401,6 +401,16 @@ func AddCorrectUserEvents(accountID, applicationID int64, user *entity.Applicati
 			event.Object = &entity.Object{
 				ID:           fmt.Sprintf("object-%d", i+1),
 				DisplayNames: map[string]string{"all": fmt.Sprintf("object-%d-all", i+1)},
+			}
+		} else if event.Visibility == entity.EventGlobal {
+			event.Location = fmt.Sprintf("location-global-%d", i+1)
+			event.Target = &entity.Object{
+				ID:           fmt.Sprintf("target-global-%d", i+1),
+				DisplayNames: map[string]string{"all": fmt.Sprintf("target-global-%d-all", i+1)},
+			}
+			event.Object = &entity.Object{
+				ID:           fmt.Sprintf("object-global-%d", i+1),
+				DisplayNames: map[string]string{"all": fmt.Sprintf("object-global-%d-all", i+1)},
 			}
 		} else {
 			event.Location = fmt.Sprintf("location-%d", i+1)
@@ -413,6 +423,8 @@ func AddCorrectUserEvents(accountID, applicationID int64, user *entity.Applicati
 				DisplayNames: map[string]string{"all": fmt.Sprintf("acc-%d-app-%d-usr-%s-object-%d-lall", accountID, applicationID, user.ID, i+1)},
 			}
 		}
+
+		// Some locations are more special then others (easier things to debug when it comes to the location search by geo coordinates)
 		if i < len(locations) {
 			event.Latitude = locations[i].Lat
 			event.Longitude = locations[i].Lon

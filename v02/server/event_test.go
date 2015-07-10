@@ -62,9 +62,10 @@ func (s *EventSuite) TestCreateEvent_OK(c *C) {
 	event := CorrectEvent()
 
 	payload := fmt.Sprintf(
-		`{"type":%q, "language":%q, "visibility": 30}`,
+		`{"type":%q, "language":%q, "visibility": %d}`,
 		event.Type,
 		event.Language,
+		entity.EventPublic,
 	)
 
 	routeName := "createCurrentUserEvent"
@@ -84,6 +85,7 @@ func (s *EventSuite) TestCreateEvent_OK(c *C) {
 	c.Assert(receivedEvent.Enabled, Equals, true)
 	c.Assert(receivedEvent.Type, Equals, event.Type)
 	c.Assert(receivedEvent.Language, Equals, event.Language)
+	c.Assert(int(receivedEvent.Visibility), Equals, entity.EventPublic)
 
 	payload = fmt.Sprintf(
 		`{"type":%q, "language":%q}`,
@@ -105,6 +107,30 @@ func (s *EventSuite) TestCreateEvent_OK(c *C) {
 	c.Assert(receivedEvent.Enabled, Equals, true)
 	c.Assert(receivedEvent.Type, Equals, event.Type)
 	c.Assert(receivedEvent.Language, Equals, event.Language)
+	c.Assert(int(receivedEvent.Visibility), Equals, entity.EventPublic)
+
+	payload = fmt.Sprintf(
+		`{"type":%q, "language":%q, "visibility": %d}`,
+		event.Type,
+		event.Language,
+		entity.EventGlobal,
+	)
+
+	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, user, true, true))
+	c.Assert(err, IsNil)
+
+	c.Assert(code, Equals, http.StatusCreated)
+
+	c.Assert(body, Not(Equals), "")
+
+	receivedEvent = &entity.Event{}
+	er = json.Unmarshal([]byte(body), receivedEvent)
+	c.Assert(er, IsNil)
+	c.Assert(receivedEvent.UserID, Equals, user.ID)
+	c.Assert(receivedEvent.Enabled, Equals, true)
+	c.Assert(receivedEvent.Type, Equals, event.Type)
+	c.Assert(receivedEvent.Language, Equals, event.Language)
+	c.Assert(int(receivedEvent.Visibility), Equals, entity.EventGlobal)
 }
 
 // Test a correct updateEvent request
@@ -505,9 +531,9 @@ func (s *EventSuite) TestGetFeed(c *C) {
 	er := json.Unmarshal([]byte(body), &response)
 	c.Assert(er, IsNil)
 
-	c.Assert(response.Count, Equals, 18)
-	c.Assert(len(response.Events), Equals, 18)
-	c.Assert(len(response.Users), Equals, 3)
+	c.Assert(response.Count, Equals, 33)
+	c.Assert(len(response.Events), Equals, 33)
+	c.Assert(len(response.Users), Equals, 9)
 
 	time.Sleep(10 * time.Millisecond)
 
@@ -526,8 +552,8 @@ func (s *EventSuite) TestGetFeed(c *C) {
 	er = json.Unmarshal([]byte(body), &response)
 	c.Assert(er, IsNil)
 	c.Assert(response.Count, Equals, 0)
-	c.Assert(len(response.Events), Equals, 18)
-	c.Assert(len(response.Users), Equals, 3)
+	c.Assert(len(response.Events), Equals, 33)
+	c.Assert(len(response.Users), Equals, 9)
 }
 
 func (s *EventSuite) TestGetFeedWithCacheHeaders(c *C) {
@@ -555,9 +581,9 @@ func (s *EventSuite) TestGetFeedWithCacheHeaders(c *C) {
 	er := json.Unmarshal([]byte(body), &response)
 	c.Assert(er, IsNil)
 
-	c.Assert(response.Count, Equals, 18)
-	c.Assert(len(response.Events), Equals, 18)
-	c.Assert(len(response.Users), Equals, 3)
+	c.Assert(response.Count, Equals, 33)
+	c.Assert(len(response.Events), Equals, 33)
+	c.Assert(len(response.Users), Equals, 9)
 
 	time.Sleep(10 * time.Millisecond)
 
@@ -619,8 +645,8 @@ func (s *EventSuite) TestGetUnreadFeed(c *C) {
 	er := json.Unmarshal([]byte(body), &response)
 	c.Assert(er, IsNil)
 
-	c.Assert(response.Count, Equals, 18)
-	c.Assert(len(response.Events), Equals, 18)
+	c.Assert(response.Count, Equals, 33)
+	c.Assert(len(response.Events), Equals, 33)
 
 	time.Sleep(10 * time.Millisecond)
 
@@ -659,7 +685,7 @@ func (s *EventSuite) TestGetUnreadFeedCount(c *C) {
 	}{}
 	er := json.Unmarshal([]byte(body), &response)
 	c.Assert(er, IsNil)
-	c.Assert(response.Count, Equals, 18)
+	c.Assert(response.Count, Equals, 33)
 
 	routeName = "getUnreadFeed"
 	route = getComposedRoute(routeName)
@@ -673,8 +699,8 @@ func (s *EventSuite) TestGetUnreadFeedCount(c *C) {
 	}{}
 	er = json.Unmarshal([]byte(body), &response)
 	c.Assert(er, IsNil)
-	c.Assert(response.Count, Equals, 18)
-	c.Assert(len(response.Events), Equals, 18)
+	c.Assert(response.Count, Equals, 33)
+	c.Assert(len(response.Events), Equals, 33)
 
 	time.Sleep(1 * time.Second)
 

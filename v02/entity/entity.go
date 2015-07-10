@@ -240,6 +240,9 @@ const (
 
 	// EventPublic flags that the event is public
 	EventPublic = 30
+
+	// EventGlobal flags that the event is public and visibile in the WHOLE app (use it with consideration)
+	EventGlobal = 40
 )
 
 func (e SortableEventsByDistance) Len() int      { return len(e) }

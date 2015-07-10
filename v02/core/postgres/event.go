@@ -42,13 +42,14 @@ const (
 
 	listPublicEventsByUserIDQuery = `SELECT json_data
 		FROM app_%d_%d.events
-		WHERE json_data @> json_build_object('user_id', $1::text, 'enabled', true, 'visibility', 30)::jsonb
+		WHERE json_data @> json_build_object('user_id', $1::text, 'enabled', true)::jsonb
+			AND (json_data @> '{"visibility": 30}' OR json_data @> '{"visibility": 40}')
 		ORDER BY json_data->>'created_at' DESC LIMIT 200`
 
 	listConnectionEventsByUserIDQuery = `SELECT json_data
 		FROM app_%d_%d.events
 		WHERE json_data @> json_build_object('user_id', $1::text, 'enabled', true)::jsonb
-			AND (json_data @> '{"visibility": 20}' OR json_data @> '{"visibility": 30}')
+			AND (json_data @> '{"visibility": 20}' OR json_data @> '{"visibility": 30}' OR json_data @> '{"visibility": 40}')
 		ORDER BY json_data->>'created_at' DESC LIMIT 200`
 
 	listAllEventsByUserIDQuery = `SELECT json_data
@@ -58,27 +59,27 @@ const (
 
 	listEventsByUserFollowerIDQuery = `SELECT json_data
 		FROM app_%d_%d.events
-		WHERE (%s)
+		WHERE (((%s) AND (json_data @> '{"visibility": 20}' OR json_data @> '{"visibility": 30}'))
+			OR (json_data @> '{"visibility": 40}' AND json_data->>'user_id' != $1))
 			AND json_data @> '{"enabled": true}'
-			AND (json_data @> '{"visibility": 20}' OR json_data @> '{"visibility": 30}')
 		ORDER BY json_data->>'created_at' DESC LIMIT 200`
 
 	listUnreadEventsByUserFollowerIDQuery = `SELECT json_data
 		FROM app_%d_%d.events
-		WHERE (%s)
-			AND json_data->>'created_at' > $1
+		WHERE (((%s) AND (json_data @> '{"visibility": 20}' OR json_data @> '{"visibility": 30}'))
+			OR (json_data @> '{"visibility": 40}' AND json_data->>'user_id' != $1))
+			AND json_data->>'created_at' > $2
 			AND json_data @> '{"enabled": true}'
-			AND (json_data @> '{"visibility": 20}' OR json_data @> '{"visibility": 30}')
 		ORDER BY json_data->>'created_at' DESC LIMIT 200`
 
 	countUnreadEventsByUserFollowerIDQuery = `SELECT count(*)
 		FROM (
 			SELECT json_data
 			FROM app_%d_%d.events
-			WHERE (%s)
-				AND json_data->>'created_at' > $1
+			WHERE (((%s) AND (json_data @> '{"visibility": 20}' OR json_data @> '{"visibility": 30}'))
+				OR (json_data @> '{"visibility": 40}' AND json_data->>'user_id' != $1))
+				AND json_data->>'created_at' > $2
 				AND json_data @> '{"enabled": true}'
-				AND (json_data @> '{"visibility": 20}' OR json_data @> '{"visibility": 30}')
 			ORDER BY json_data->>'created_at' DESC LIMIT 200) AS events`
 
 	updateApplicationUserLastReadQuery = `UPDATE app_%d_%d.users
@@ -89,7 +90,7 @@ const (
 		FROM app_%d_%d.events
 		WHERE json_data @> json_build_object('location', $1::text, 'enabled', true)::jsonb
 			AND (
-				json_data @> '{"visibility": 30}' OR
+				json_data @> '{"visibility": 30}' OR json_data @> '{"visibility": 40}' OR
 				%s
 				json_data @> json_build_object('user_id', $2::text)::jsonb
 			)
@@ -100,7 +101,7 @@ const (
 		WHERE ST_DWithin(geo, ST_SetSRID(ST_MakePoint($1, $2), 4326), $3, true)
 			AND json_data @> '{"enabled": true}'
 			AND (
-				json_data @> '{"visibility": 30}' OR
+				json_data @> '{"visibility": 30}' OR json_data @> '{"visibility": 40}' OR
 				%s
 				json_data @> json_build_object('user_id', $4::text)::jsonb
 			)
@@ -110,7 +111,7 @@ const (
 		FROM app_%d_%d.events
 		WHERE json_data @> '{"enabled": true}'
 			AND (
-				json_data @> '{"visibility": 30}' OR
+				json_data @> '{"visibility": 30}' OR json_data @> '{"visibility": 40}' OR
 				%s
 				json_data @> json_build_object('user_id', $1::text)::jsonb
 			)
@@ -228,7 +229,7 @@ func (e *event) UserFeed(accountID, applicationID int64, user *entity.Applicatio
 	}
 
 	rows, err := e.pg.SlaveDatastore(-1).
-		Query(fmt.Sprintf(listEventsByUserFollowerIDQuery, accountID, applicationID, condition))
+		Query(fmt.Sprintf(listEventsByUserFollowerIDQuery, accountID, applicationID, condition), user.ID)
 	if err != nil {
 		return 0, nil, []errors.Error{errmsg.ErrInternalEventsList.UpdateInternalMessage(err.Error())}
 	}
@@ -271,7 +272,7 @@ func (e *event) UnreadFeed(accountID, applicationID int64, user *entity.Applicat
 	}
 
 	rows, err := e.pg.SlaveDatastore(-1).
-		Query(fmt.Sprintf(listUnreadEventsByUserFollowerIDQuery, accountID, applicationID, condition), user.LastRead)
+		Query(fmt.Sprintf(listUnreadEventsByUserFollowerIDQuery, accountID, applicationID, condition), user.ID, user.LastRead)
 	if err != nil {
 		return 0, nil, []errors.Error{errmsg.ErrInternalEventsList.UpdateInternalMessage(err.Error())}
 	}
@@ -297,7 +298,7 @@ func (e *event) UnreadFeedCount(accountID, applicationID int64, user *entity.App
 
 	unread := 0
 	er := e.pg.SlaveDatastore(-1).
-		QueryRow(fmt.Sprintf(countUnreadEventsByUserFollowerIDQuery, accountID, applicationID, condition), user.LastRead).
+		QueryRow(fmt.Sprintf(countUnreadEventsByUserFollowerIDQuery, accountID, applicationID, condition), user.ID, user.LastRead).
 		Scan(&unread)
 	if er != nil {
 		return 0, []errors.Error{errmsg.ErrInternalEventsList.UpdateInternalMessage(er.Error())}
