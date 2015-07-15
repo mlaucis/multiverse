@@ -3,8 +3,8 @@
 finalComponentName=${1}
 finalReleaseTarget=${2}
 
-finalExecName=${finalComponentName}_${finalReleaseTarget}_$CIRCLE_BUILD_NUM
-finalArchiveName=${finalComponentName}_${finalReleaseTarget}.$CIRCLE_BUILD_NUM.tar.gz
+finalExecName=${finalComponentName}_${finalReleaseTarget}_${CIRCLE_BUILD_NUM}
+finalArchiveName=${finalComponentName}_${finalReleaseTarget}.${CIRCLE_BUILD_NUM}.tar.gz
 finalS3Location=s3://tapglue-builds/${finalComponentName}/${finalReleaseTarget}
 finalReleasesFilename=releases.json
 
