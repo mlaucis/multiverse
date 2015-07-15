@@ -15,4 +15,4 @@ then
 fi
 
 cd v02/server
-gocov test -race -tags ${TEST_TARGET} -coverpkg=github.com/tapglue/backend/v02/core/${TEST_TARGET},github.com/tapglue/backend/v02/server/handlers/${TEST_TARGET},github.com/tapglue/backend/v02/storage/${TEST_TARGET},github.com/tapglue/backend/v02/validator -check.v github.com/tapglue/backend/v02/server > coverage_${TEST_TARGET}.json
+gocov test -race -tags ${TEST_TARGET} -coverpkg=github.com/tapglue/backend/v02/core/${TEST_TARGET},github.com/tapglue/backend/v02/server/handlers/${TEST_TARGET},github.com/tapglue/backend/v02/storage/${TEST_TARGET},github.com/tapglue/backend/v02/validator,github.com/tapglue/backend/v02/server/response,github.com/tapglue/backend/v02/errmsg,github.com/tapglue/backend/v02/storage/helper -check.v github.com/tapglue/backend/v02/server > coverage_server_${TEST_TARGET}.json

@@ -1,35 +1,27 @@
 #!/bin/bash
 
-cd ${GOPATH}/src/github.com/tapglue/backend/v01/server/
-gocov test -race -coverpkg=github.com/tapglue/backend/v01/server,github.com/tapglue/backend/v01/core,github.com/tapglue/backend/v01/context,github.com/tapglue/backend/v01/storage,github.com/tapglue/backend/v01/storage/redis,github.com/tapglue/backend/v01/validator,github.com/tapglue/backend/v01/validator/keys,github.com/tapglue/backend/v01/validator/tokens,github.com/tapglue/backend/v01/fixtures,github.com/tapglue/backend/v01/entity > coverage.json
-gocov-html coverage.json > coverage.html
-
-case "$(uname -s)" in
-   Darwin)
-     open -a Google\ Chrome coverage.html &
-     ;;
-
-   *)
-     google-chrome coverage.html &
-     ;;
-esac
-
-sleep 3
-rm coverage.json coverage.html
-
 cd ${GOPATH}/src/github.com/tapglue/backend/v02/server/
-gocov test -race -coverpkg=github.com/tapglue/backend/v02/server,github.com/tapglue/backend/v02/core,github.com/tapglue/backend/v02/context,github.com/tapglue/backend/v02/storage/redis,github.com/tapglue/backend/v02/validator,github.com/tapglue/backend/v02/validator/keys,github.com/tapglue/backend/v02/validator/tokens,github.com/tapglue/backend/v02/fixtures,github.com/tapglue/backend/v02/entity > coverage.json
-gocov-html coverage.json > coverage.html
 
-case "$(uname -s)" in
-   Darwin)
-     open -a Google\ Chrome coverage.html &
-     ;;
+declare -a targets=("postgres" "kinesis")
 
-   *)
-     google-chrome coverage.html &
-     ;;
-esac
+export CI=true
 
-sleep 3
-rm coverage.json coverage.html
+for target in "${targets[@]}"
+do
+    TEST_TARGET=${target}
+    gocov test -race -tags ${TEST_TARGET} -coverpkg=github.com/tapglue/backend/v02/core/${TEST_TARGET},github.com/tapglue/backend/v02/server/handlers/${TEST_TARGET},github.com/tapglue/backend/v02/storage/${TEST_TARGET},github.com/tapglue/backend/v02/validator,github.com/tapglue/backend/v02/server/response,github.com/tapglue/backend/v02/errmsg,github.com/tapglue/backend/v02/storage/helper -check.v github.com/tapglue/backend/v02/server > coverage_${TEST_TARGET}.json
+    gocov-html coverage_${TEST_TARGET}.json > coverage_server_${TEST_TARGET}.html
+
+    case "$(uname -s)" in
+       Darwin)
+         open -a Google\ Chrome coverage_server_${TEST_TARGET}.html &
+         ;;
+
+       *)
+         google-chrome coverage_server_${TEST_TARGET}.html &
+         ;;
+    esac
+
+    sleep 3
+    rm coverage_server_${TEST_TARGET}.json coverage_server_${TEST_TARGET}.html
+done
