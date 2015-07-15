@@ -1,9 +1,8 @@
-# Tapglue backend 
+# Tapglue backend
 
 This repository contains the implementation of tapglues backend.
 
 [![Circle CI](https://circleci.com/gh/tapglue/backend.svg?style=svg&circle-token=22a2b029440b825d23a4f0118274af084da917b2)](https://circleci.com/gh/tapglue/backend)
-[![codecov.io](https://codecov.io/github/tapglue/backend/coverage.svg?token=OHlqgNOv66&branch=master)](https://codecov.io/github/tapglue/backend?branch=master)
 
 ## Documentation
 
@@ -106,7 +105,7 @@ $ bin/ab/*.sh
 
 ## Code commit
 
-Before doing a commit, please run the following in the ```$GOPATH/src/github.com/tapglue/backend```  
+Before doing a commit, please run the following in the ```$GOPATH/src/github.com/tapglue/backend```
 ```shell
 goimports -w ./.. && golint ./... && go vet ./...
 ```
