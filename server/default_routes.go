@@ -3,15 +3,20 @@ package server
 import (
 	"compress/gzip"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
+
+	"github.com/tapglue/backend/context"
+
+	"github.com/sendgridlabs/go-kinesis"
 )
 
 type generalRoute struct {
 	name    string
 	path    string
 	method  string
-	handler http.HandlerFunc
+	handler func(*context.Context)
 }
 
 var generalRoutes = map[string]generalRoute{
@@ -39,6 +44,12 @@ var generalRoutes = map[string]generalRoute{
 		method:  "POST",
 		handler: analyticsHandler,
 	},
+	"healthcheck": {
+		name:    "healthcheck",
+		path:    "/health-45016490610398192",
+		method:  "GET",
+		handler: healthCheckHandler,
+	},
 	"index": {
 		name:    "home",
 		path:    "/",
@@ -55,46 +66,44 @@ var (
 // home handles request to API root
 // Request: GET /
 // Test with: `curl -i localhost/`
-func homeHandler(w http.ResponseWriter, r *http.Request) {
-	WriteCommonHeaders(10*24*3600, w, r)
-	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
-	w.Header().Set("Refresh", "3; url=https://tapglue.com")
-	w.Write([]byte(`these aren't the droids you're looking for`))
+func homeHandler(ctx *context.Context) {
+	WriteCommonHeaders(10*24*3600, ctx.W, ctx.R)
+	ctx.W.Header().Set("Content-Type", "text/plain; charset=UTF-8")
+	ctx.W.Header().Set("Refresh", "3; url=https://tapglue.com")
+	ctx.W.Write([]byte(`these aren't the droids you're looking for`))
 }
 
 // humans handles requests to humans.txt
 // Request: GET /humans.txt
 // Test with: curl -i localhost/humans.txt
-func humansHandler(w http.ResponseWriter, r *http.Request) {
-	WriteCommonHeaders(10*24*3600, w, r)
-	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
-	w.Write([]byte(`/* TEAM */
+func humansHandler(ctx *context.Context) {
+	WriteCommonHeaders(10*24*3600, ctx.W, ctx.R)
+	ctx.W.Header().Set("Content-Type", "text/plain; charset=UTF-8")
+	ctx.W.Write([]byte(`/* TEAM */
 Founders: Normal Wiese, Onur Akpolat
-Lead developer: Florin Patan
-http://tapglue.com
-Location: Berlin, Germany.
+Team: Florin Patan, Alexander Simmerl
+https://www.tapglue.com
+Location: Berlin, Germany
 
 /* SITE */
-Last update: 2015/03/15
-Standards: HTML5
-Components: None
-Software: Go, AWS Kinesis, PostgreSQL, REDIS, Docker`))
+Last update: 2015/07/15
+Software: Go, AWS Kinesis, PostgreSQL, Redis, node.js`))
 }
 
 // robots handles requests to robots.txt
 // Request: GET /robots.txt
 // Test with: curl -i localhost/robots.txt
-func robotsHandler(w http.ResponseWriter, r *http.Request) {
-	WriteCommonHeaders(10*24*3600, w, r)
-	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
-	w.Write([]byte(`User-agent: *
+func robotsHandler(ctx *context.Context) {
+	WriteCommonHeaders(10*24*3600, ctx.W, ctx.R)
+	ctx.W.Header().Set("Content-Type", "text/plain; charset=UTF-8")
+	ctx.W.Write([]byte(`User-agent: *
 Disallow: /`))
 }
 
 // versionsHandler endpoint handles the api status for each api version
 // Request: GET /versions
 // Test with: curl -i localhost/versions
-func versionsHandler(w http.ResponseWriter, r *http.Request) {
+func versionsHandler(ctx *context.Context) {
 	response := struct {
 		Version map[string]struct {
 			Version string `json:"version"`
@@ -112,28 +121,28 @@ func versionsHandler(w http.ResponseWriter, r *http.Request) {
 		Revision: currentRevision,
 	}
 
-	WriteCommonHeaders(7200, w, r)
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	WriteCommonHeaders(7200, ctx.W, ctx.R)
+	ctx.W.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 	// Write response
-	if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+	if !strings.Contains(ctx.R.Header.Get("Accept-Encoding"), "gzip") {
 		// No gzip support
-		w.WriteHeader(200)
-		json.NewEncoder(w).Encode(response)
+		ctx.W.WriteHeader(200)
+		json.NewEncoder(ctx.W).Encode(response)
 		return
 	}
 
-	w.Header().Set("Content-Encoding", "gzip")
-	w.WriteHeader(200)
-	gz := gzip.NewWriter(w)
+	ctx.W.Header().Set("Content-Encoding", "gzip")
+	ctx.W.WriteHeader(200)
+	gz := gzip.NewWriter(ctx.W)
 	json.NewEncoder(gz).Encode(response)
 	gz.Close()
 }
 
-func analyticsHandler(w http.ResponseWriter, r *http.Request) {
-	WriteCommonHeaders(0, w, r)
-	w.WriteHeader(200)
-	w.Write(analyticsOKResponse)
+func analyticsHandler(ctx *context.Context) {
+	WriteCommonHeaders(0, ctx.W, ctx.R)
+	ctx.W.WriteHeader(200)
+	ctx.W.Write(analyticsOKResponse)
 }
 
 func notFoundHandler(w http.ResponseWriter, r *http.Request) {
@@ -154,4 +163,51 @@ func notFoundHandler(w http.ResponseWriter, r *http.Request) {
 	gz := gzip.NewWriter(w)
 	gz.Write(notFoundResponse)
 	gz.Close()
+}
+
+func healthCheckHandler(ctx *context.Context) {
+	// TODO make the checks concurrently
+	// TODO make the checks return which service fails (useful if the health-check service knows how to read our response)
+
+	defer func() {
+		WriteCommonHeaders(0, ctx.W, ctx.R)
+		ctx.W.WriteHeader(ctx.StatusCode)
+		ctx.W.Write([]byte(fmt.Sprintf(`{"healthy": %t}`, ctx.StatusCode == 200)))
+	}()
+
+	ctx.StatusCode = 200
+
+	// Check Kinesis
+	args := kinesis.NewArgs()
+	resp, err := rawKinesisClient.Datastore().ListStreams(args)
+	if err != nil {
+		ctx.StatusCode = 500
+		return
+	} else if len(resp.StreamNames) == 0 {
+		// We should have at least one stream, the production one
+		ctx.StatusCode = 500
+		return
+	}
+
+	// Check Postgres
+	if _, err := rawPostgresClient.MainDatastore().Query("SELECT 1"); err != nil {
+		ctx.StatusCode = 500
+		return
+	}
+
+	for slave := 0; slave < rawPostgresClient.SlaveCount(); slave++ {
+		if _, err := rawPostgresClient.SlaveDatastore(slave).Query("SELECT 1"); err != nil {
+			ctx.StatusCode = 500
+			return
+		}
+	}
+
+	// Check Rate-Limiter
+	rlConn := rawRateLimiterPool.Get()
+	if rlConn.Err() != nil {
+		ctx.StatusCode = 500
+		return
+	} else if rlConn != nil {
+		rlConn.Close()
+	}
 }

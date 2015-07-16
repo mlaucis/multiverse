@@ -21,8 +21,10 @@ import (
 	"github.com/tapglue/backend/utils"
 	v02_core "github.com/tapglue/backend/v02/core"
 	v02_server "github.com/tapglue/backend/v02/server"
-	"github.com/tapglue/backend/v02/storage/postgres"
+	v02_kinesis "github.com/tapglue/backend/v02/storage/kinesis"
+	v02_postgres "github.com/tapglue/backend/v02/storage/postgres"
 
+	redigo "github.com/garyburd/redigo/redis"
 	"github.com/gorilla/mux"
 	"github.com/yvasiyarov/gorelic"
 )
@@ -41,6 +43,10 @@ var (
 
 	currentRevision = ""
 	currentHostname = ""
+
+	rawKinesisClient   v02_kinesis.Client
+	rawPostgresClient  v02_postgres.Client
+	rawRateLimiterPool *redigo.Pool
 )
 
 // WriteCommonHeaders will add the corresponding cache headers based on the time supplied (in seconds)
@@ -159,8 +165,7 @@ func GetRouter(
 					return
 				}
 
-				route.handler(w, r)
-				ctx.StatusCode = 200
+				route.handler(ctx)
 				if ctx.R.Header.Get("User-Agent") == "ELB-HealthChecker/1.0" {
 					return
 				} else if ctx.R.Header.Get("User-Agent") == "updown.io bot 2.0" {
@@ -193,6 +198,16 @@ func GetRouter(
 // SetupRateLimit will allow for proper rate limits to be configured
 func SetupRateLimit(applicationRateLimiter limiter.Limiter) {
 	v02_server.SetupRateLimit(applicationRateLimiter)
+}
+
+func SetupRawConnections(
+	kinesisClient v02_kinesis.Client,
+	postgresClient v02_postgres.Client,
+	rateLimiterPool *redigo.Pool) {
+
+	rawKinesisClient = kinesisClient
+	rawPostgresClient = postgresClient
+	rawRateLimiterPool = rateLimiterPool
 }
 
 // SetupRedisCores takes care of initializing the core
@@ -232,8 +247,8 @@ func SetupPostgresCores(
 	v02_server.SetupPostgresCores(account, accountUser, application, applicationUser, connection, event)
 }
 
-func SetupFlakes(storageClient postgres.Client) {
-	v02_server.SetupFlakes(storageClient)
+func SetupFlakes() {
+	v02_server.SetupFlakes(rawPostgresClient)
 }
 
 // Setup initializes the dependencies

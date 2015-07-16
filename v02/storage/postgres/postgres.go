@@ -29,6 +29,8 @@ type (
 		//
 		// If there's no slave connection available, then the main connection is returned
 		SlaveDatastore(id int) *sqlx.DB
+
+		SlaveCount() int
 	}
 
 	cli struct {
@@ -54,6 +56,10 @@ func (c *cli) SlaveDatastore(id int) *sqlx.DB {
 	}
 
 	return c.slavePg[id]
+}
+
+func (c *cli) SlaveCount() int {
+	return len(c.slavePg)
 }
 
 func formatConnectionURL(database string, config *config.PostgresDB) string {
