@@ -24,7 +24,6 @@ import (
 	"github.com/tapglue/backend/v02/core"
 	v02_kinesis_core "github.com/tapglue/backend/v02/core/kinesis"
 	v02_postgres_core "github.com/tapglue/backend/v02/core/postgres"
-	v02_redis_core "github.com/tapglue/backend/v02/core/redis"
 	"github.com/tapglue/backend/v02/entity"
 	"github.com/tapglue/backend/v02/server"
 	v02_kinesis "github.com/tapglue/backend/v02/storage/kinesis"
@@ -114,8 +113,6 @@ func init() {
 		go logger.TGSilentLog(errorLogChan)
 	}
 
-	v02RedisClient = v02_redis.New(conf.Redis.Hosts[0], conf.Redis.Password, conf.Redis.DB, conf.Redis.PoolSize)
-
 	if conf.Environment == "prod" {
 		v02KinesisClient = v02_kinesis.New(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Environment)
 	} else {
@@ -142,13 +139,6 @@ func init() {
 
 	applicationRateLimiter := ratelimiter_redis.NewLimiter(redigoRateLimitPool, "ratelimiter.app.")
 
-	redisAccount := v02_redis_core.NewAccount(v02RedisClient)
-	redisAccountUser := v02_redis_core.NewAccountUser(v02RedisClient)
-	redisApplication := v02_redis_core.NewApplication(v02RedisClient)
-	redisApplicationUser := v02_redis_core.NewApplicationUser(v02RedisClient)
-	redisConnection := v02_redis_core.NewConnection(v02RedisClient)
-	redisEvent := v02_redis_core.NewEvent(v02RedisClient)
-
 	kinesisAccount := v02_kinesis_core.NewAccount(v02KinesisClient)
 	kinesisAccountUser := v02_kinesis_core.NewAccountUser(v02KinesisClient)
 	kinesisApplication := v02_kinesis_core.NewApplication(v02KinesisClient)
@@ -171,7 +161,6 @@ func init() {
 	coreEvt = postgresEvent
 
 	server.SetupRateLimit(applicationRateLimiter)
-	server.SetupRedisCores(redisAccount, redisAccountUser, redisApplication, redisApplicationUser, redisConnection, redisEvent)
 	server.SetupKinesisCores(kinesisAccount, kinesisAccountUser, kinesisApplication, kinesisApplicationUser, kinesisConnection, kinesisEvent)
 	server.SetupPostgresCores(postgresAccount, postgresAccountUser, postgresApplication, postgresApplicationUser, postgresConnection, postgresEvent)
 	server.Setup("HEAD", "CI-Machine")

@@ -16,7 +16,6 @@ import (
 	"github.com/tapglue/backend/v02/server/handlers"
 	"github.com/tapglue/backend/v02/server/handlers/kinesis"
 	"github.com/tapglue/backend/v02/server/handlers/postgres"
-	"github.com/tapglue/backend/v02/server/handlers/redis"
 	"github.com/tapglue/backend/v02/server/response"
 	"github.com/yvasiyarov/gorelic"
 )
@@ -49,12 +48,12 @@ const (
 )
 
 var (
-	postgresAccountHandler, redisAccountHandler, kinesisAccountHandler                         handlers.Account
-	postgresAccountUserHandler, redisAccountUserHandler, kinesisAccountUserHandler             handlers.AccountUser
-	postgresApplicationHandler, redisApplicationHandler, kinesisApplicationHandler             handlers.Application
-	postgresApplicationUserHandler, redisApplicationUserHandler, kinesisApplicationUserHandler handlers.ApplicationUser
-	postgresConnectionHandler, redisConnectionHandler, kinesisConnectionHandler                handlers.Connection
-	postgresEventHandler, redisEventHandler, kinesisEventHandler                               handlers.Event
+	postgresAccountHandler, kinesisAccountHandler                 handlers.Account
+	postgresAccountUserHandler, kinesisAccountUserHandler         handlers.AccountUser
+	postgresApplicationHandler, kinesisApplicationHandler         handlers.Application
+	postgresApplicationUserHandler, kinesisApplicationUserHandler handlers.ApplicationUser
+	postgresConnectionHandler, kinesisConnectionHandler           handlers.Connection
+	postgresEventHandler, kinesisEventHandler                     handlers.Event
 )
 
 // RoutePattern returns the full route path, inclulding the api version
@@ -100,13 +99,6 @@ func InitRouter(agent *gorelic.Agent, router *mux.Router, mainLogChan, errorLogC
 }
 
 func InitHandlers() {
-	redisAccountHandler = redis.NewAccount(redisAccount)
-	redisAccountUserHandler = redis.NewAccountUser(redisAccountUser)
-	redisApplicationHandler = redis.NewApplication(redisApplication)
-	redisApplicationUserHandler = redis.NewApplicationUser(redisApplicationUser)
-	redisConnectionHandler = redis.NewConnection(redisConnection)
-	redisEventHandler = redis.NewEvent(redisEvent)
-
 	kinesisAccountHandler = kinesis.NewAccount(kinesisAccount, postgresAccount)
 	kinesisAccountUserHandler = kinesis.NewAccountUser(kinesisAccountUser, postgresAccountUser)
 	kinesisApplicationHandler = kinesis.NewApplication(kinesisApplication, postgresApplication)

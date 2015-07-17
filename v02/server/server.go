@@ -329,8 +329,8 @@ func Setup(revision, hostname string) {
 		panic("You must first initialize the rate limiter")
 	}
 
-	if redisAccount == nil || kinesisAccount == nil || postgresAccount == nil {
-		panic("You must initialize the redis, kinesis and postgres cores first")
+	if kinesisAccount == nil || postgresAccount == nil {
+		panic("You must initialize the kinesis and postgres cores first")
 	}
 
 	if revision == "" {
