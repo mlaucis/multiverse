@@ -27,7 +27,6 @@ import (
 	"github.com/tapglue/backend/server"
 	v02_kinesis_core "github.com/tapglue/backend/v02/core/kinesis"
 	v02_postgres_core "github.com/tapglue/backend/v02/core/postgres"
-	v02_redis_core "github.com/tapglue/backend/v02/core/redis"
 	v02_kinesis "github.com/tapglue/backend/v02/storage/kinesis"
 	v02_postgres "github.com/tapglue/backend/v02/storage/postgres"
 	v02_redis "github.com/tapglue/backend/v02/storage/redis"
@@ -87,7 +86,6 @@ func init() {
 	}
 
 	errors.Init(true)
-	v02RedisClient := v02_redis.New(conf.Redis.Hosts[0], conf.Redis.Password, conf.Redis.DB, conf.Redis.PoolSize)
 
 	var v02KinesisClient v02_kinesis.Client
 	if conf.Environment == "prod" {
@@ -116,13 +114,6 @@ func init() {
 
 	applicationRateLimiter := ratelimiter_redis.NewLimiter(redigoRateLimitPool, "ratelimiter.app.")
 
-	redisAccount := v02_redis_core.NewAccount(v02RedisClient)
-	redisAccountUser := v02_redis_core.NewAccountUser(v02RedisClient)
-	redisApplication := v02_redis_core.NewApplication(v02RedisClient)
-	redisApplicationUser := v02_redis_core.NewApplicationUser(v02RedisClient)
-	redisConnection := v02_redis_core.NewConnection(v02RedisClient)
-	redisEvent := v02_redis_core.NewEvent(v02RedisClient)
-
 	kinesisAccount := v02_kinesis_core.NewAccount(v02KinesisClient)
 	kinesisAccountUser := v02_kinesis_core.NewAccountUser(v02KinesisClient)
 	kinesisApplication := v02_kinesis_core.NewApplication(v02KinesisClient)
@@ -138,7 +129,6 @@ func init() {
 	postgresEvent := v02_postgres_core.NewEvent(v02PostgresClient)
 
 	server.SetupRateLimit(applicationRateLimiter)
-	server.SetupRedisCores(redisAccount, redisAccountUser, redisApplication, redisApplicationUser, redisConnection, redisEvent)
 	server.SetupKinesisCores(kinesisAccount, kinesisAccountUser, kinesisApplication, kinesisApplicationUser, kinesisConnection, kinesisEvent)
 	server.SetupPostgresCores(postgresAccount, postgresAccountUser, postgresApplication, postgresApplicationUser, postgresConnection, postgresEvent)
 
