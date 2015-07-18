@@ -385,6 +385,8 @@ func (s *ApplicationUserSuite) TestLoginUserWorks(c *C) {
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
+	c.Assert(strings.Contains(body, "user_name"), Not(Equals), true)
+	c.Assert(strings.Contains(body, "password"), Not(Equals), true)
 
 	sessionToken := struct {
 		UserID uint64 `json:"id"`
