@@ -6,17 +6,18 @@ package postgres
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/errors"
+	"github.com/tapglue/backend/tgflake"
 	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/entity"
 	"github.com/tapglue/backend/v02/errmsg"
 	"github.com/tapglue/backend/v02/server/handlers"
 	"github.com/tapglue/backend/v02/server/response"
-	storageHelper "github.com/tapglue/backend/v02/storage/helper"
 	"github.com/tapglue/backend/v02/validator"
 )
 
@@ -28,18 +29,15 @@ type (
 )
 
 func (evt *event) Read(ctx *context.Context) (err []errors.Error) {
-	var (
-		event           = &entity.Event{}
-		eventID, userID string
-	)
+	var event = &entity.Event{}
 
-	eventID = ctx.Vars["eventID"]
-	if !validator.IsValidUUID5(eventID) {
+	eventID, er := strconv.ParseUint(ctx.Vars["eventID"], 10, 64)
+	if er != nil {
 		return []errors.Error{errmsg.ErrEventIDInvalid}
 	}
 
-	userID = ctx.Vars["applicationUserID"]
-	if !validator.IsValidUUID5(userID) {
+	userID, er := strconv.ParseUint(ctx.Vars["applicationUserID"], 10, 64)
+	if er != nil {
 		return []errors.Error{errmsg.ErrApplicationUserIDInvalid}
 	}
 
@@ -47,7 +45,7 @@ func (evt *event) Read(ctx *context.Context) (err []errors.Error) {
 		ctx.Bag["accountID"].(int64),
 		ctx.Bag["applicationID"].(int64),
 		userID,
-		ctx.Bag["applicationUserID"].(string),
+		ctx.Bag["applicationUserID"].(uint64),
 		eventID); err != nil {
 		return
 	}
@@ -60,18 +58,14 @@ func (evt *event) Read(ctx *context.Context) (err []errors.Error) {
 
 func (evt *event) Update(ctx *context.Context) (err []errors.Error) {
 	return []errors.Error{errmsg.ErrServerNotImplementedYet}
-	var (
-		eventID, userID string
-		er              error
-	)
 
-	eventID = ctx.Vars["eventID"]
-	if !validator.IsValidUUID5(eventID) {
+	eventID, er := strconv.ParseUint(ctx.Vars["eventID"], 10, 64)
+	if er != nil {
 		return []errors.Error{errmsg.ErrEventIDInvalid}
 	}
 
-	userID = ctx.Vars["applicationUserID"]
-	if !validator.IsValidUUID5(userID) {
+	userID, er := strconv.ParseUint(ctx.Vars["applicationUserID"], 10, 64)
+	if er != nil {
 		return []errors.Error{errmsg.ErrApplicationUserIDInvalid}
 	}
 
@@ -79,7 +73,7 @@ func (evt *event) Update(ctx *context.Context) (err []errors.Error) {
 		ctx.Bag["accountID"].(int64),
 		ctx.Bag["applicationID"].(int64),
 		userID,
-		ctx.Bag["applicationUserID"].(string),
+		ctx.Bag["applicationUserID"].(uint64),
 		eventID)
 	if err != nil {
 		return
@@ -91,7 +85,7 @@ func (evt *event) Update(ctx *context.Context) (err []errors.Error) {
 	}
 
 	event.ID = eventID
-	event.UserID = ctx.Bag["applicationUserID"].(string)
+	event.UserID = ctx.Bag["applicationUserID"].(uint64)
 
 	if err = validator.UpdateEvent(existingEvent, &event); err != nil {
 		return
@@ -100,7 +94,7 @@ func (evt *event) Update(ctx *context.Context) (err []errors.Error) {
 	updatedEvent, err := evt.storage.Update(
 		ctx.Bag["accountID"].(int64),
 		ctx.Bag["applicationID"].(int64),
-		ctx.Bag["applicationUserID"].(string),
+		ctx.Bag["applicationUserID"].(uint64),
 		*existingEvent,
 		event,
 		true)
@@ -113,21 +107,16 @@ func (evt *event) Update(ctx *context.Context) (err []errors.Error) {
 }
 
 func (evt *event) CurrentUserUpdate(ctx *context.Context) (err []errors.Error) {
-	var (
-		eventID string
-		er      error
-	)
-
-	eventID = ctx.Vars["eventID"]
-	if !validator.IsValidUUID5(eventID) {
+	eventID, er := strconv.ParseUint(ctx.Vars["eventID"], 10, 64)
+	if er != nil {
 		return []errors.Error{errmsg.ErrEventIDInvalid}
 	}
 
 	existingEvent, err := evt.storage.Read(
 		ctx.Bag["accountID"].(int64),
 		ctx.Bag["applicationID"].(int64),
-		ctx.Bag["applicationUserID"].(string),
-		ctx.Bag["applicationUserID"].(string),
+		ctx.Bag["applicationUserID"].(uint64),
+		ctx.Bag["applicationUserID"].(uint64),
 		eventID)
 	if err != nil {
 		return
@@ -139,7 +128,7 @@ func (evt *event) CurrentUserUpdate(ctx *context.Context) (err []errors.Error) {
 	}
 
 	event.ID = eventID
-	event.UserID = ctx.Bag["applicationUserID"].(string)
+	event.UserID = ctx.Bag["applicationUserID"].(uint64)
 
 	if err = validator.UpdateEvent(existingEvent, &event); err != nil {
 		return
@@ -148,7 +137,7 @@ func (evt *event) CurrentUserUpdate(ctx *context.Context) (err []errors.Error) {
 	updatedEvent, err := evt.storage.Update(
 		ctx.Bag["accountID"].(int64),
 		ctx.Bag["applicationID"].(int64),
-		ctx.Bag["applicationUserID"].(string),
+		ctx.Bag["applicationUserID"].(uint64),
 		*existingEvent,
 		event,
 		true)
@@ -163,9 +152,9 @@ func (evt *event) CurrentUserUpdate(ctx *context.Context) (err []errors.Error) {
 func (evt *event) Delete(ctx *context.Context) (err []errors.Error) {
 	accountID := ctx.Bag["accountID"].(int64)
 	applicationID := ctx.Bag["applicationID"].(int64)
-	userID := ctx.Bag["applicationUserID"].(string)
-	eventID := ctx.Vars["eventID"]
-	if !validator.IsValidUUID5(eventID) {
+	userID := ctx.Bag["applicationUserID"].(uint64)
+	eventID, er := strconv.ParseUint(ctx.Vars["eventID"], 10, 64)
+	if er != nil {
 		return []errors.Error{errmsg.ErrEventIDInvalid}
 	}
 
@@ -189,8 +178,8 @@ func (evt *event) Delete(ctx *context.Context) (err []errors.Error) {
 func (evt *event) List(ctx *context.Context) (err []errors.Error) {
 	accountID := ctx.Bag["accountID"].(int64)
 	applicationID := ctx.Bag["applicationID"].(int64)
-	userID := ctx.Vars["applicationUserID"]
-	if !validator.IsValidUUID5(userID) {
+	userID, er := strconv.ParseUint(ctx.Vars["applicationUserID"], 10, 64)
+	if er != nil {
 		return []errors.Error{errmsg.ErrApplicationUserIDInvalid}
 	}
 
@@ -234,8 +223,8 @@ func (evt *event) CurrentUserList(ctx *context.Context) (err []errors.Error) {
 	if events, err = evt.storage.List(
 		ctx.Bag["accountID"].(int64),
 		ctx.Bag["applicationID"].(int64),
-		ctx.Bag["applicationUserID"].(string),
-		ctx.Bag["applicationUserID"].(string)); err != nil {
+		ctx.Bag["applicationUserID"].(uint64),
+		ctx.Bag["applicationUserID"].(uint64)); err != nil {
 		return
 	}
 
@@ -299,7 +288,7 @@ func (evt *event) Create(ctx *context.Context) (err []errors.Error) {
 		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
 	}
 
-	event.UserID = ctx.Bag["applicationUserID"].(string)
+	event.UserID = ctx.Bag["applicationUserID"].(uint64)
 	if event.Visibility == 0 {
 		event.Visibility = entity.EventPublic
 	}
@@ -315,13 +304,13 @@ func (evt *event) Create(ctx *context.Context) (err []errors.Error) {
 	if event, err = evt.storage.Create(
 		ctx.Bag["accountID"].(int64),
 		ctx.Bag["applicationID"].(int64),
-		ctx.Bag["applicationUserID"].(string),
+		ctx.Bag["applicationUserID"].(uint64),
 		event,
 		true); err != nil {
 		return
 	}
 
-	ctx.W.Header().Set("Location", "https://api.tapglue.com/0.2/user/events/"+event.ID)
+	ctx.W.Header().Set("Location", fmt.Sprintf("https://api.tapglue.com/0.2/user/events/%d", event.ID))
 	response.WriteResponse(ctx, event, http.StatusCreated, 0)
 	return
 }
@@ -336,7 +325,7 @@ func (evt *event) CurrentUserCreate(ctx *context.Context) (err []errors.Error) {
 		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
 	}
 
-	event.UserID = ctx.Bag["applicationUserID"].(string)
+	event.UserID = ctx.Bag["applicationUserID"].(uint64)
 	if event.Visibility == 0 {
 		event.Visibility = entity.EventPublic
 	}
@@ -349,18 +338,21 @@ func (evt *event) CurrentUserCreate(ctx *context.Context) (err []errors.Error) {
 		return
 	}
 
-	event.ID = storageHelper.GenerateUUIDV5(storageHelper.OIDUUIDNamespace, storageHelper.GenerateRandomString(20))
+	event.ID, er = tgflake.FlakeNextID(ctx.Bag["applicationID"].(int64), "events")
+	if er != nil {
+		return []errors.Error{errmsg.ErrServerInternalError.UpdateInternalMessage(er.Error())}
+	}
 
 	if event, err = evt.storage.Create(
 		ctx.Bag["accountID"].(int64),
 		ctx.Bag["applicationID"].(int64),
-		ctx.Bag["applicationUserID"].(string),
+		ctx.Bag["applicationUserID"].(uint64),
 		event,
 		true); err != nil {
 		return
 	}
 
-	ctx.W.Header().Set("Location", "https://api.tapglue.com/0.2/user/events/"+event.ID)
+	ctx.W.Header().Set("Location", fmt.Sprintf("https://api.tapglue.com/0.2/user/events/%d", event.ID))
 	response.WriteResponse(ctx, event, http.StatusCreated, 0)
 	return
 }
@@ -417,17 +409,17 @@ func (evt *event) Search(ctx *context.Context) (err []errors.Error) {
 		events, err = evt.storage.GeoSearch(
 			ctx.Bag["accountID"].(int64),
 			ctx.Bag["applicationID"].(int64),
-			ctx.Bag["applicationUserID"].(string),
+			ctx.Bag["applicationUserID"].(uint64),
 			latitude,
 			longitude,
 			radius,
 			nearest)
 	} else if location := ctx.Query.Get("location"); location != "" {
-		if events, err = evt.storage.LocationSearch(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(string), location); err != nil {
+		if events, err = evt.storage.LocationSearch(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(uint64), location); err != nil {
 			return
 		}
 	} else if objectKey := ctx.Query.Get("object"); objectKey != "" {
-		if events, err = evt.storage.ObjectSearch(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(string), objectKey); err != nil {
+		if events, err = evt.storage.ObjectSearch(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(uint64), objectKey); err != nil {
 			return
 		}
 	} else {
@@ -513,12 +505,12 @@ func (evt *event) UnreadFeedCount(ctx *context.Context) (err []errors.Error) {
 
 func (evt *event) usersFromEvents(ctx *context.Context, events []*entity.Event) (users map[string]*entity.ApplicationUser, err []errors.Error) {
 	users = map[string]*entity.ApplicationUser{}
-	eventUsers := map[string]bool{}
+	eventUsers := map[uint64]bool{}
 	for idx := range events {
 		eventUsers[events[idx].UserID] = true
 	}
 
-	usrs := []string{}
+	usrs := []uint64{}
 	for idx := range eventUsers {
 		usrs = append(usrs, idx)
 	}
@@ -529,7 +521,7 @@ func (evt *event) usersFromEvents(ctx *context.Context, events []*entity.Event) 
 	}
 
 	for idx := range urs {
-		users[urs[idx].ID] = urs[idx]
+		users[strconv.FormatUint(urs[idx].ID, 10)] = urs[idx]
 	}
 
 	response.SanitizeApplicationUsersMap(users)

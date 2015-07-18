@@ -30,12 +30,12 @@ type (
 
 const (
 	createConnectionQuery              = `INSERT INTO app_%d_%d.connections(json_data) VALUES ($1)`
-	selectConnectionQuery              = `SELECT json_data FROM app_%d_%d.connections WHERE json_data @> json_build_object('user_from_id', $1::text, 'user_to_id', $2::text)::jsonb LIMIT 1`
-	updateConnectionQuery              = `UPDATE app_%d_%d.connections SET json_data = $1 WHERE json_data @> json_build_object('user_from_id', $2::text, 'user_to_id', $3::text)::jsonb`
-	followsQuery                       = `SELECT json_data FROM app_%d_%d.connections WHERE json_data @> json_build_object('user_from_id', $1::text, 'type', 'follow', 'enabled', true)::jsonb`
-	followersQuery                     = `SELECT json_data FROM app_%d_%d.connections WHERE json_data @> json_build_object('user_to_id', $1::text, 'type', 'follow', 'enabled', true)::jsonb`
-	friendConnectionsQuery             = `SELECT json_data FROM app_%d_%d.connections WHERE json_data @> json_build_object('user_to_id', $1::text, 'type', 'friend', 'enabled', true)::jsonb`
-	friendAndFollowingConnectionsQuery = `SELECT json_data FROM app_%d_%d.connections WHERE json_data @> json_build_object('user_from_id', $1::text, 'enabled', true)::jsonb`
+	selectConnectionQuery              = `SELECT json_data FROM app_%d_%d.connections WHERE json_data @> json_build_object('user_from_id', $1::bigint, 'user_to_id', $2::bigint)::jsonb LIMIT 1`
+	updateConnectionQuery              = `UPDATE app_%d_%d.connections SET json_data = $1 WHERE json_data @> json_build_object('user_from_id', $2::bigint, 'user_to_id', $3::bigint)::jsonb`
+	followsQuery                       = `SELECT json_data FROM app_%d_%d.connections WHERE json_data @> json_build_object('user_from_id', $1::bigint, 'type', 'follow', 'enabled', true)::jsonb`
+	followersQuery                     = `SELECT json_data FROM app_%d_%d.connections WHERE json_data @> json_build_object('user_to_id', $1::bigint, 'type', 'follow', 'enabled', true)::jsonb`
+	friendConnectionsQuery             = `SELECT json_data FROM app_%d_%d.connections WHERE json_data @> json_build_object('user_to_id', $1::bigint, 'type', 'friend', 'enabled', true)::jsonb`
+	friendAndFollowingConnectionsQuery = `SELECT json_data FROM app_%d_%d.connections WHERE json_data @> json_build_object('user_from_id', $1::bigint, 'enabled', true)::jsonb`
 	listUsersBySocialIDQuery           = `SELECT json_data FROM app_%d_%d.users WHERE %s`
 )
 
@@ -84,7 +84,7 @@ func (c *connection) Create(accountID, applicationID int64, connection *entity.C
 	return c.Read(accountID, applicationID, connection.UserFromID, connection.UserToID)
 }
 
-func (c *connection) Read(accountID, applicationID int64, userFromID, userToID string) (*entity.Connection, []errors.Error) {
+func (c *connection) Read(accountID, applicationID int64, userFromID, userToID uint64) (*entity.Connection, []errors.Error) {
 	var JSONData string
 	err := c.pg.SlaveDatastore(-1).
 		QueryRow(appSchema(selectConnectionQuery, accountID, applicationID), userFromID, userToID).
@@ -142,7 +142,7 @@ func (c *connection) Delete(accountID, applicationID int64, connection *entity.C
 	return err
 }
 
-func (c *connection) List(accountID, applicationID int64, userID string) (users []*entity.ApplicationUser, er []errors.Error) {
+func (c *connection) List(accountID, applicationID int64, userID uint64) (users []*entity.ApplicationUser, er []errors.Error) {
 	rows, err := c.pg.SlaveDatastore(-1).
 		Query(appSchema(followsQuery, accountID, applicationID), userID)
 	if err != nil {
@@ -172,7 +172,7 @@ func (c *connection) List(accountID, applicationID int64, userID string) (users 
 	return users, nil
 }
 
-func (c *connection) FollowedBy(accountID, applicationID int64, userID string) ([]*entity.ApplicationUser, []errors.Error) {
+func (c *connection) FollowedBy(accountID, applicationID int64, userID uint64) ([]*entity.ApplicationUser, []errors.Error) {
 	users := []*entity.ApplicationUser{}
 
 	rows, err := c.pg.SlaveDatastore(-1).
@@ -203,7 +203,7 @@ func (c *connection) FollowedBy(accountID, applicationID int64, userID string) (
 	return users, nil
 }
 
-func (c *connection) Friends(accountID, applicationID int64, userID string) ([]*entity.ApplicationUser, []errors.Error) {
+func (c *connection) Friends(accountID, applicationID int64, userID uint64) ([]*entity.ApplicationUser, []errors.Error) {
 	users := []*entity.ApplicationUser{}
 
 	rows, err := c.pg.SlaveDatastore(-1).
@@ -234,7 +234,7 @@ func (c *connection) Friends(accountID, applicationID int64, userID string) ([]*
 	return users, nil
 }
 
-func (c *connection) FriendsAndFollowing(accountID, applicationID int64, userID string) ([]*entity.ApplicationUser, []errors.Error) {
+func (c *connection) FriendsAndFollowing(accountID, applicationID int64, userID uint64) ([]*entity.ApplicationUser, []errors.Error) {
 	users := []*entity.ApplicationUser{}
 
 	rows, err := c.pg.SlaveDatastore(-1).
@@ -289,7 +289,7 @@ func (c *connection) WriteEventsToList(accountID, applicationID int64, connectio
 	return []errors.Error{errmsg.ErrServerNotImplementedYet}
 }
 
-func (c *connection) DeleteEventsFromLists(accountID, applicationID int64, userFromID, userToID string) (err []errors.Error) {
+func (c *connection) DeleteEventsFromLists(accountID, applicationID int64, userFromID, userToID uint64) (err []errors.Error) {
 	return []errors.Error{errmsg.ErrServerNotImplementedYet}
 }
 

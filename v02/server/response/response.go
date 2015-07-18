@@ -20,6 +20,7 @@ import (
 	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/limiter"
+	"github.com/tapglue/backend/v02/errmsg"
 )
 
 type (
@@ -67,6 +68,8 @@ func WriteResponse(ctx *context.Context, response interface{}, code int, cacheTi
 	err := json.NewEncoder(output).Encode(response)
 	if err != nil {
 		ctx.LogError(err)
+		ErrorHappened(ctx, []errors.Error{errmsg.ErrServerInternalError.UpdateInternalMessage(err.Error())})
+		return
 	}
 
 	// We should only check these for valid responses, I think. Future me blame past me for this decision

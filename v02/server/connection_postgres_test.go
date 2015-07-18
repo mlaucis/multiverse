@@ -24,7 +24,7 @@ func (s *ConnectionSuite) TestCreateConnectionAfterDisable(c *C) {
 	LoginApplicationUser(accounts[0].ID, application.ID, userFrom)
 
 	payload := fmt.Sprintf(
-		`{"user_from_id":%q, "user_to_id":%q, "type": "friend"}`,
+		`{"user_from_id":%d, "user_to_id":%d, "type": "friend"}`,
 		userFrom.ID,
 		userTo.ID,
 	)

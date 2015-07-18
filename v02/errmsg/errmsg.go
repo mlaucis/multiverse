@@ -14,7 +14,7 @@ import (
 var (
 	// Application user errors
 	ErrApplicationUserNotActivated          = errors.New(http.StatusNotAcceptable, 1000, "user not activated", "", false)
-	ErrApplicationUserNotFound              = errors.New(http.StatusNotFound, 1001, "application user not found", "user not found", false)
+	ErrApplicationUserNotFound              = errors.New(http.StatusNotFound, 1001, "application user not found", "", false)
 	ErrApplicationUserEmailAlreadyExists    = errors.New(http.StatusBadRequest, 1002, "email address already in use", "", false)
 	ErrApplicationUserEmailInvalid          = errors.New(http.StatusBadRequest, 1003, "user email is not valid", "", false)
 	ErrApplicationUserFirstNameSize         = errors.New(http.StatusBadRequest, 1004, "user first name must be between 2 and 40 characters", "", false)
@@ -112,6 +112,7 @@ var (
 	ErrServerDeprecatedStorage         = errors.New(http.StatusInternalServerError, 5501, "deprecated storage", "", false)
 	ErrServerInvalidHandler            = errors.New(http.StatusInternalServerError, 5502, "something went wrong", "handler used in wrong context", false)
 	ErrServerUnsportedHandlerOperation = errors.New(http.StatusInternalServerError, 5503, "something went wrong", "handler does not support operation", false)
+	ErrServerInternalError             = errors.New(http.StatusInternalServerError, 5504, "something went wrong", "", false)
 
 	// Account errors
 	ErrAccountDescriptionSize  = errors.New(http.StatusBadRequest, 6000, "account description must be between 0 and 100 characters", "", false)

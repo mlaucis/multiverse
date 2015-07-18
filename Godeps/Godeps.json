@@ -1,6 +1,6 @@
 {
 	"ImportPath": "github.com/tapglue/backend",
-	"GoVersion": "go1.4.2",
+	"GoVersion": "devel",
 	"Packages": [
 		"./..."
 	],
@@ -41,12 +41,8 @@
 			"Rev": "9ed4b83e29f247a07183ffa59940a2f39ca05bc0"
 		},
 		{
-			"ImportPath": "github.com/tapglue/geohash",
-			"Rev": "21724955d6d39d9bc671507e03869681fcfae043"
-		},
-		{
-			"ImportPath": "github.com/tapglue/georedis",
-			"Rev": "c7399dfa078e45e074151b311c8e635d4fe36953"
+			"ImportPath": "github.com/sony/sonyflake",
+			"Rev": "63503fdccf0c68f6ea60f1da6722f6b5c862324f"
 		},
 		{
 			"ImportPath": "github.com/yvasiyarov/go-metrics",

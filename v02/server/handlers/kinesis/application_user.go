@@ -40,7 +40,7 @@ func (appUser *applicationUser) UpdateCurrent(ctx *context.Context) (err []error
 		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
 	}
 
-	user.ID = ctx.Bag["applicationUserID"].(string)
+	user.ID = ctx.Bag["applicationUserID"].(uint64)
 
 	if err = validator.UpdateUser(
 		appUser.readStorage,

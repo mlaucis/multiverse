@@ -6,16 +6,18 @@ package kinesis
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/errors"
+	"github.com/tapglue/backend/tgflake"
 	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/entity"
 	"github.com/tapglue/backend/v02/errmsg"
 	"github.com/tapglue/backend/v02/server/handlers"
 	"github.com/tapglue/backend/v02/server/response"
-	storageHelper "github.com/tapglue/backend/v02/storage/helper"
 	"github.com/tapglue/backend/v02/validator"
 )
 
@@ -36,21 +38,16 @@ func (evt *event) Update(ctx *context.Context) (err []errors.Error) {
 }
 
 func (evt *event) CurrentUserUpdate(ctx *context.Context) (err []errors.Error) {
-	var (
-		eventID string
-		er      error
-	)
-
-	eventID = ctx.Vars["eventID"]
-	if !validator.IsValidUUID5(eventID) {
+	eventID, er := strconv.ParseUint(ctx.Vars["eventID"], 10, 64)
+	if er != nil {
 		return []errors.Error{errmsg.ErrEventIDInvalid}
 	}
 
 	existingEvent, err := evt.readStorage.Read(
 		ctx.Bag["accountID"].(int64),
 		ctx.Bag["applicationID"].(int64),
-		ctx.Bag["applicationUserID"].(string),
-		ctx.Bag["applicationUserID"].(string),
+		ctx.Bag["applicationUserID"].(uint64),
+		ctx.Bag["applicationUserID"].(uint64),
 		eventID)
 	if err != nil {
 		return
@@ -62,7 +59,7 @@ func (evt *event) CurrentUserUpdate(ctx *context.Context) (err []errors.Error) {
 	}
 
 	event.ID = eventID
-	event.UserID = ctx.Bag["applicationUserID"].(string)
+	event.UserID = ctx.Bag["applicationUserID"].(uint64)
 
 	if err = validator.UpdateEvent(existingEvent, &event); err != nil {
 		return
@@ -71,7 +68,7 @@ func (evt *event) CurrentUserUpdate(ctx *context.Context) (err []errors.Error) {
 	updatedEvent, err := evt.writeStorage.Update(
 		ctx.Bag["accountID"].(int64),
 		ctx.Bag["applicationID"].(int64),
-		ctx.Bag["applicationUserID"].(string),
+		ctx.Bag["applicationUserID"].(uint64),
 		*existingEvent,
 		event,
 		true)
@@ -86,9 +83,9 @@ func (evt *event) CurrentUserUpdate(ctx *context.Context) (err []errors.Error) {
 func (evt *event) Delete(ctx *context.Context) (err []errors.Error) {
 	accountID := ctx.Bag["accountID"].(int64)
 	applicationID := ctx.Bag["applicationID"].(int64)
-	userID := ctx.Bag["applicationUserID"].(string)
-	eventID := ctx.Vars["eventID"]
-	if !validator.IsValidUUID5(eventID) {
+	userID := ctx.Bag["applicationUserID"].(uint64)
+	eventID, er := strconv.ParseUint(ctx.Vars["eventID"], 10, 64)
+	if er != nil {
 		return []errors.Error{errmsg.ErrEventIDInvalid}
 	}
 
@@ -132,7 +129,7 @@ func (evt *event) Create(ctx *context.Context) (err []errors.Error) {
 		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
 	}
 
-	event.UserID = ctx.Bag["applicationUserID"].(string)
+	event.UserID = ctx.Bag["applicationUserID"].(uint64)
 	if event.Visibility == 0 {
 		event.Visibility = entity.EventPublic
 	}
@@ -148,13 +145,13 @@ func (evt *event) Create(ctx *context.Context) (err []errors.Error) {
 	if event, err = evt.writeStorage.Create(
 		ctx.Bag["accountID"].(int64),
 		ctx.Bag["applicationID"].(int64),
-		ctx.Bag["applicationUserID"].(string),
+		ctx.Bag["applicationUserID"].(uint64),
 		event,
 		true); err != nil {
 		return
 	}
 
-	ctx.W.Header().Set("Location", "https://api.tapglue.com/0.2/user/events/"+event.ID)
+	ctx.W.Header().Set("Location", fmt.Sprintf("https://api.tapglue.com/0.2/user/events/%d", event.ID))
 	response.WriteResponse(ctx, event, http.StatusCreated, 0)
 	return
 }
@@ -169,7 +166,7 @@ func (evt *event) CurrentUserCreate(ctx *context.Context) (err []errors.Error) {
 		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
 	}
 
-	event.UserID = ctx.Bag["applicationUserID"].(string)
+	event.UserID = ctx.Bag["applicationUserID"].(uint64)
 	if event.Visibility == 0 {
 		event.Visibility = entity.EventPublic
 	}
@@ -182,18 +179,21 @@ func (evt *event) CurrentUserCreate(ctx *context.Context) (err []errors.Error) {
 		return
 	}
 
-	event.ID = storageHelper.GenerateUUIDV5(storageHelper.OIDUUIDNamespace, storageHelper.GenerateRandomString(20))
+	event.ID, er = tgflake.FlakeNextID(ctx.Bag["applicationID"].(int64), "events")
+	if er != nil {
+		return []errors.Error{errmsg.ErrServerInternalError.UpdateInternalMessage(er.Error())}
+	}
 
 	if event, err = evt.writeStorage.Create(
 		ctx.Bag["accountID"].(int64),
 		ctx.Bag["applicationID"].(int64),
-		ctx.Bag["applicationUserID"].(string),
+		ctx.Bag["applicationUserID"].(uint64),
 		event,
 		true); err != nil {
 		return
 	}
 
-	ctx.W.Header().Set("Location", "https://api.tapglue.com/0.2/user/events/"+event.ID)
+	ctx.W.Header().Set("Location", fmt.Sprintf("https://api.tapglue.com/0.2/user/events/%d", event.ID))
 	response.WriteResponse(ctx, event, http.StatusCreated, 0)
 	return
 }

@@ -21,6 +21,7 @@ import (
 	"github.com/tapglue/backend/utils"
 	v02_core "github.com/tapglue/backend/v02/core"
 	v02_server "github.com/tapglue/backend/v02/server"
+	"github.com/tapglue/backend/v02/storage/postgres"
 
 	"github.com/gorilla/mux"
 	"github.com/yvasiyarov/gorelic"
@@ -229,6 +230,10 @@ func SetupPostgresCores(
 	event v02_core.Event) {
 
 	v02_server.SetupPostgresCores(account, accountUser, application, applicationUser, connection, event)
+}
+
+func SetupFlakes(storageClient postgres.Client) {
+	v02_server.SetupFlakes(storageClient)
 }
 
 // Setup initializes the dependencies

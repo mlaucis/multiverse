@@ -490,10 +490,6 @@ func getComposedRouteString(routeName string, params ...interface{}) string {
 		return pattern
 	}
 
-	pattern = strings.Replace(pattern, "%d", "%s", -1)
-	pattern = strings.Replace(pattern, "%.f", "%s", -1)
-	pattern = strings.Replace(pattern, "%.7f", "%s", -1)
-
 	return fmt.Sprintf(pattern, params...)
 }
 

@@ -25,11 +25,11 @@ func (appu *applicationUser) Create(accountID, applicationID int64, user *entity
 	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
 }
 
-func (appu *applicationUser) Read(accountID, applicationID int64, userID string) (user *entity.ApplicationUser, err []errors.Error) {
+func (appu *applicationUser) Read(accountID, applicationID int64, userID uint64) (user *entity.ApplicationUser, err []errors.Error) {
 	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
 }
 
-func (appu *applicationUser) ReadMultiple(accountID, applicationID int64, userIDs []string) (users []*entity.ApplicationUser, err []errors.Error) {
+func (appu *applicationUser) ReadMultiple(accountID, applicationID int64, userIDs []uint64) (users []*entity.ApplicationUser, err []errors.Error) {
 	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
 }
 
@@ -111,7 +111,7 @@ func (appu *applicationUser) ExistsByUsername(accountID, applicationID int64, us
 	return false, []errors.Error{errmsg.ErrServerInvalidHandler}
 }
 
-func (appu *applicationUser) ExistsByID(accountID, applicationID int64, userID string) (bool, []errors.Error) {
+func (appu *applicationUser) ExistsByID(accountID, applicationID int64, userID uint64) (bool, []errors.Error) {
 	return false, []errors.Error{errmsg.ErrServerInvalidHandler}
 }
 

@@ -20,8 +20,8 @@ type (
 	}
 )
 
-func (e *event) Create(accountID, applicationID int64, currentUserID string, event *entity.Event, retrieve bool) (*entity.Event, []errors.Error) {
-	if event.ID == "" {
+func (e *event) Create(accountID, applicationID int64, currentUserID uint64, event *entity.Event, retrieve bool) (*entity.Event, []errors.Error) {
+	if event.ID == 0 {
 		return nil, []errors.Error{errmsg.ErrInternalEventMissingID}
 	}
 	evt := entity.EventWithIDs{}
@@ -47,11 +47,11 @@ func (e *event) Create(accountID, applicationID int64, currentUserID string, eve
 	return nil, nil
 }
 
-func (e *event) Read(accountID, applicationID int64, userID, currentUserID, eventID string) (event *entity.Event, err []errors.Error) {
+func (e *event) Read(accountID, applicationID int64, userID, currentUserID, eventID uint64) (event *entity.Event, err []errors.Error) {
 	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
 }
 
-func (e *event) Update(accountID, applicationID int64, currentUserID string, existingEvent, updatedEvent entity.Event, retrieve bool) (*entity.Event, []errors.Error) {
+func (e *event) Update(accountID, applicationID int64, currentUserID uint64, existingEvent, updatedEvent entity.Event, retrieve bool) (*entity.Event, []errors.Error) {
 	evt := entity.EventWithIDs{}
 	evt.AccountID = accountID
 	evt.ApplicationID = applicationID
@@ -74,7 +74,7 @@ func (e *event) Update(accountID, applicationID int64, currentUserID string, exi
 	return nil, nil
 }
 
-func (e *event) Delete(accountID, applicationID int64, currentUserID string, event *entity.Event) []errors.Error {
+func (e *event) Delete(accountID, applicationID int64, currentUserID uint64, event *entity.Event) []errors.Error {
 	evt := entity.EventWithIDs{}
 	evt.AccountID = accountID
 	evt.ApplicationID = applicationID
@@ -93,7 +93,7 @@ func (e *event) Delete(accountID, applicationID int64, currentUserID string, eve
 	return nil
 }
 
-func (e *event) List(accountID, applicationID int64, userID, currentUserID string) (events []*entity.Event, err []errors.Error) {
+func (e *event) List(accountID, applicationID int64, userID, currentUserID uint64) (events []*entity.Event, err []errors.Error) {
 	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
 }
 
@@ -113,19 +113,19 @@ func (e *event) WriteToConnectionsLists(accountID, applicationID int64, event *e
 	return []errors.Error{errmsg.ErrServerInvalidHandler}
 }
 
-func (e *event) DeleteFromConnectionsLists(accountID, applicationID int64, userID, key string) (err []errors.Error) {
+func (e *event) DeleteFromConnectionsLists(accountID, applicationID int64, userID uint64, key string) (err []errors.Error) {
 	return []errors.Error{errmsg.ErrServerInvalidHandler}
 }
 
-func (e *event) GeoSearch(accountID, applicationID int64, currentUserID string, latitude, longitude, radius float64, nearest int64) (events []*entity.Event, err []errors.Error) {
+func (e *event) GeoSearch(accountID, applicationID int64, currentUserID uint64, latitude, longitude, radius float64, nearest int64) (events []*entity.Event, err []errors.Error) {
 	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
 }
 
-func (e *event) ObjectSearch(accountID, applicationID int64, currentUserID, objectKey string) ([]*entity.Event, []errors.Error) {
+func (e *event) ObjectSearch(accountID, applicationID int64, currentUserID uint64, objectKey string) ([]*entity.Event, []errors.Error) {
 	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
 }
 
-func (e *event) LocationSearch(accountID, applicationID int64, currentUserID, locationKey string) ([]*entity.Event, []errors.Error) {
+func (e *event) LocationSearch(accountID, applicationID int64, currentUserID uint64, locationKey string) ([]*entity.Event, []errors.Error) {
 	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
 }
 

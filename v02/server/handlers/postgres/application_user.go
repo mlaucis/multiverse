@@ -8,16 +8,17 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/errors"
+	"github.com/tapglue/backend/tgflake"
 	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/entity"
 	"github.com/tapglue/backend/v02/errmsg"
 	"github.com/tapglue/backend/v02/server/handlers"
 	"github.com/tapglue/backend/v02/server/response"
-	storageHelper "github.com/tapglue/backend/v02/storage/helper"
 	"github.com/tapglue/backend/v02/validator"
 )
 
@@ -28,8 +29,8 @@ type (
 )
 
 func (appUser *applicationUser) Read(ctx *context.Context) (err []errors.Error) {
-	userID := ctx.Vars["applicationUserID"]
-	if !validator.IsValidUUID5(userID) {
+	userID, er := strconv.ParseUint(ctx.Vars["applicationUserID"], 10, 64)
+	if er != nil {
 		return []errors.Error{errmsg.ErrApplicationUserIDInvalid}
 	}
 
@@ -66,7 +67,7 @@ func (appUser *applicationUser) UpdateCurrent(ctx *context.Context) (err []error
 		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
 	}
 
-	user.ID = ctx.Bag["applicationUserID"].(string)
+	user.ID = ctx.Bag["applicationUserID"].(uint64)
 
 	if err = validator.UpdateUser(
 		appUser.storage,
@@ -135,7 +136,10 @@ func (appUser *applicationUser) Create(ctx *context.Context) (err []errors.Error
 		user.LastLogin = &timeNow
 	}
 
-	user.ID = storageHelper.GenerateUUIDV5(storageHelper.OIDUUIDNamespace, storageHelper.GenerateRandomString(20))
+	user.ID, er = tgflake.FlakeNextID(ctx.Bag["applicationID"].(int64), "users")
+	if er != nil {
+		return []errors.Error{errmsg.ErrServerInternalError.UpdateInternalMessage(er.Error())}
+	}
 
 	user, err = appUser.storage.Create(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), user, true)
 	if err != nil {
@@ -160,7 +164,7 @@ func (appUser *applicationUser) Create(ctx *context.Context) (err []errors.Error
 		SessionToken:    sessionToken,
 	}
 
-	ctx.W.Header().Set("Location", "https://api.tapglue.com/0.2/users/"+user.ID)
+	ctx.W.Header().Set("Location", fmt.Sprintf("https://api.tapglue.com/0.2/users/%d", user.ID))
 	response.WriteResponse(ctx, result, http.StatusCreated, 0)
 	return
 }
@@ -225,7 +229,7 @@ func (appUser *applicationUser) Login(ctx *context.Context) (err []errors.Error)
 
 	resp := struct {
 		entity.ApplicationUser
-		UserID string `json:"id"`
+		UserID uint64 `json:"id"`
 		Token  string `json:"session_token"`
 	}{
 		UserID: user.ID,
@@ -238,7 +242,7 @@ func (appUser *applicationUser) Login(ctx *context.Context) (err []errors.Error)
 		resp.ApplicationUser = *user
 	}
 
-	ctx.W.Header().Set("Location", "https://api.tapglue.com/0.2/users/"+user.ID)
+	ctx.W.Header().Set("Location", fmt.Sprintf("https://api.tapglue.com/0.2/users/%d", user.ID))
 	response.WriteResponse(ctx, resp, http.StatusCreated, 0)
 	return
 }
