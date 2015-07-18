@@ -17,8 +17,11 @@ import (
 	"github.com/tapglue/backend/v02/core"
 	"github.com/tapglue/backend/v02/errmsg"
 	"github.com/tapglue/backend/v02/server/response"
+	"github.com/tapglue/backend/v02/storage/postgres"
 
 	"github.com/gorilla/mux"
+	"strings"
+	"github.com/tapglue/backend/tgflake"
 )
 
 type (
@@ -320,6 +323,34 @@ func SetupPostgresCores(
 	postgresApplicationUser = applicationUser
 	postgresConnection = connection
 	postgresEvent = event
+}
+
+func SetupFlakes(storageClient postgres.Client) {
+	db := storageClient.MainDatastore()
+
+	existingSchemas, err := db.Query(`SELECT nspname FROM pg_catalog.pg_namespace WHERE nspname ILIKE 'app_%_%'`)
+	if err != nil {
+		panic(err)
+	}
+	defer existingSchemas.Close()
+	for existingSchemas.Next() {
+		schemaName := ""
+		err := existingSchemas.Scan(&schemaName)
+		if err != nil {
+			panic(err)
+		}
+		details := strings.Split(schemaName, "_")
+		if len(details) != 3 || details[0] != "app" {
+			continue
+		}
+
+		appID, err := strconv.ParseInt(details[2], 10, 64)
+		if err != nil {
+			panic(err)
+		}
+		_ = tgflake.Flake(appID, "users")
+		_ = tgflake.Flake(appID, "events")
+	}
 }
 
 // Setup initializes the route handlers

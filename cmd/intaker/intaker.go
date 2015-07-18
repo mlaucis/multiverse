@@ -131,6 +131,7 @@ func init() {
 	server.SetupRateLimit(applicationRateLimiter)
 	server.SetupKinesisCores(kinesisAccount, kinesisAccountUser, kinesisApplication, kinesisApplicationUser, kinesisConnection, kinesisEvent)
 	server.SetupPostgresCores(postgresAccount, postgresAccountUser, postgresApplication, postgresApplicationUser, postgresConnection, postgresEvent)
+	server.SetupFlakes(v02PostgresClient)
 
 	currentHostname, err := os.Hostname()
 	if err != nil {

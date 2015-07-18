@@ -24,7 +24,6 @@ func Flake(appID int64, flake string) *sonyflake.Sonyflake {
 		flakes[appID] = map[string]*sonyflake.Sonyflake{}
 	}
 
-	// TODO break logic to separate InitializeFlake() method
 	var st sonyflake.Settings
 	st.StartTime = time.Date(2014, 12, 17, 18, 7, 0, 0, time.UTC)
 	flakes[appID][flake] = sonyflake.NewSonyflake(st)
@@ -37,4 +36,9 @@ func Flake(appID int64, flake string) *sonyflake.Sonyflake {
 
 func FlakeNextID(appID int64, flake string) (uint64, error) {
 	return Flake(appID, flake).NextID()
+}
+
+// RemoveAllFlakes removes all active flakes! Do not use this in production!
+func RemoveAllFlakes() {
+	flakes = map[int64]map[string]*sonyflake.Sonyflake{}
 }

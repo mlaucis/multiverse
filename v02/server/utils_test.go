@@ -516,4 +516,6 @@ func testBootup(conf *config.Postgres) {
 			panic(err)
 		}
 	}
+
+	tgflake.RemoveAllFlakes()
 }
