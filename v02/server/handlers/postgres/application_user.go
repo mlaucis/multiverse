@@ -227,22 +227,32 @@ func (appUser *applicationUser) Login(ctx *context.Context) (err []errors.Error)
 		return
 	}
 
+	ctx.W.Header().Set("Location", fmt.Sprintf("https://api.tapglue.com/0.2/users/%d", user.ID))
+	if ctx.Query.Get("withUserDetails") != "true" {
+		resp := struct {
+			UserID uint64 `json:"id"`
+			Token  string `json:"session_token"`
+		}{
+			UserID: user.ID,
+			Token:  sessionToken,
+		}
+		response.WriteResponse(ctx, resp, http.StatusCreated, 0)
+		return
+	}
+
 	resp := struct {
 		entity.ApplicationUser
 		UserID uint64 `json:"id"`
 		Token  string `json:"session_token"`
 	}{
-		UserID: user.ID,
-		Token:  sessionToken,
+		UserID:          user.ID,
+		Token:           sessionToken,
+		ApplicationUser: *user,
 	}
 
-	if ctx.Query.Get("withUserDetails") == "true" {
-		user.Password = ""
-		user.Enabled = false
-		resp.ApplicationUser = *user
-	}
+	resp.Password = ""
+	resp.Enabled = false
 
-	ctx.W.Header().Set("Location", fmt.Sprintf("https://api.tapglue.com/0.2/users/%d", user.ID))
 	response.WriteResponse(ctx, resp, http.StatusCreated, 0)
 	return
 }
