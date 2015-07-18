@@ -12,6 +12,7 @@ import (
 	"log"
 	"net/http"
 	"time"
+	"regexp"
 )
 
 const (
@@ -42,6 +43,14 @@ type (
 	}
 )
 
+var (
+	// This won't catch all the passwords, think passwords that have double-quotes in them
+	// but we shouldn't never have those here anyway, clients should never send us passwords
+	// in clear, right? Right? RIGHT?
+	passwordRE = regexp.MustCompile(`("password": ".*?")`)
+	passwordREReplacement = []byte(`"password": ""`)
+)
+
 // TGLog is the Tapglue logger
 func TGLog(msg chan *LogMsg) {
 	for {
@@ -51,6 +60,8 @@ func TGLog(msg chan *LogMsg) {
 				if m == nil {
 					continue
 				}
+
+				m.Payload = string(passwordRE.ReplaceAll([]byte(m.Payload), passwordREReplacement))
 
 				log.Printf(
 					logFormat,
@@ -107,6 +118,7 @@ func JSONLog(msg chan *LogMsg) {
 				if m.StatusCode < 300 {
 					m.Location = ""
 				}
+				m.Payload = string(passwordRE.ReplaceAll([]byte(m.Payload), passwordREReplacement))
 
 				message, err := json.Marshal(m)
 				if err != nil {
