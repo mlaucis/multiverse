@@ -128,10 +128,11 @@ func init() {
 	postgresConnection := v02_postgres_core.NewConnection(v02PostgresClient)
 	postgresEvent := v02_postgres_core.NewEvent(v02PostgresClient)
 
+	server.SetupRawConnections(v02KinesisClient, v02PostgresClient, redigoRateLimitPool)
 	server.SetupRateLimit(applicationRateLimiter)
 	server.SetupKinesisCores(kinesisAccount, kinesisAccountUser, kinesisApplication, kinesisApplicationUser, kinesisConnection, kinesisEvent)
 	server.SetupPostgresCores(postgresAccount, postgresAccountUser, postgresApplication, postgresApplicationUser, postgresConnection, postgresEvent)
-	server.SetupFlakes(v02PostgresClient)
+	server.SetupFlakes()
 
 	currentHostname, err := os.Hostname()
 	if err != nil {

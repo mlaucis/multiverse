@@ -2,13 +2,12 @@
 
 cd ${GOPATH}/src/github.com/tapglue/backend/v02/server/
 
-declare -a targets=("postgres" "kinesis")
+declare -a TEST_TARGETS=("postgres" "kinesis")
 
 export CI=true
 
-for target in "${targets[@]}"
+for TEST_TARGET in "${TEST_TARGETS[@]}"
 do
-    TEST_TARGET=${target}
     gocov test -race -tags ${TEST_TARGET} -coverpkg=github.com/tapglue/backend/v02/core/${TEST_TARGET},github.com/tapglue/backend/v02/server/handlers/${TEST_TARGET},github.com/tapglue/backend/v02/storage/${TEST_TARGET},github.com/tapglue/backend/v02/validator,github.com/tapglue/backend/v02/server/response,github.com/tapglue/backend/v02/errmsg,github.com/tapglue/backend/v02/storage/helper -check.v github.com/tapglue/backend/v02/server > coverage_${TEST_TARGET}.json
     gocov-html coverage_${TEST_TARGET}.json > coverage_server_${TEST_TARGET}.html
 
