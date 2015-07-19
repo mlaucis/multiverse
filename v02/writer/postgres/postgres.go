@@ -1,7 +1,3 @@
-/**
- * @author Florin Patan <florinpatan@gmail.com>
- */
-
 // Package postgres implements the writer logic for writing data to postgres
 package postgres
 

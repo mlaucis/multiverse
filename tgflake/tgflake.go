@@ -1,7 +1,3 @@
-/**
- * @author Florin Patan <florinpatan@gmail.com>
- */
-
 // Package tgflake is a wrapper around sonyflake
 package tgflake
 

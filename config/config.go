@@ -1,7 +1,3 @@
-/**
- * @author Florin Patan <florinpatan@gmail.com>
- */
-
 // Package config provides application configuration structure and loading logic
 package config
 

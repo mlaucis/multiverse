@@ -1,7 +1,3 @@
-/**
- * @author Florin Patan <florinpatan@gmail.com>
- */
-
 // Package writer defines the interface that the various writers need to implement
 package writer
 

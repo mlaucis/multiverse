@@ -1,7 +1,3 @@
-/**
- * @author Florin Patan <florinpatan@gmail.com>
- */
-
 // Package server provides handling for all the requests towards this module
 package server
 

@@ -1,7 +1,3 @@
-/**
- * @author Onur Akpolat <onurakpolat@gmail.com>
- */
-
 package validator
 
 import (

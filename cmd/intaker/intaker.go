@@ -1,7 +1,4 @@
-/**
- * @author Florin Patan <florinpatan@gmail.com>
- */
-
+// Command intaker will launch a specified frontend for Tapglue
 package main
 
 import (

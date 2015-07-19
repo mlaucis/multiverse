@@ -1,7 +1,3 @@
-/**
- * @author Florin Patan <florinpatan@gmail.com>
- */
-
 // Package kinesis provides the AWS Kinesis needed functions for kinesis
 package kinesis
 

@@ -1,8 +1,4 @@
-/**
- * @author Onur Akpolat <onurakpolat@gmail.com>
- * @author Florin Patan <florinpatan@gmail.com>
- */
-
+// Package fixtures holds the common fixtures for the application
 package fixtures
 
 import "github.com/tapglue/backend/v02/entity"

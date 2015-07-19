@@ -1,7 +1,3 @@
-/**
- * @author Florin Patan <florinpatan@gmail.com>
- */
-
 package response
 
 import "github.com/tapglue/backend/v02/entity"

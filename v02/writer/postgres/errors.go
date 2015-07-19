@@ -1,7 +1,3 @@
-/**
- * @author Florin Patan <florinpatan@gmail.com>
- */
-
 package postgres
 
 import "github.com/tapglue/backend/errors"

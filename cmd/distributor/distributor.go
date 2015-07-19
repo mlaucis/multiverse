@@ -1,7 +1,3 @@
-/**
- * @author Florin Patan <florinpatan@gmail.com>
- */
-
 // Command distributor will launch a specified consumer for Kinesis and write the received information to its target
 //
 // Currently it supports:

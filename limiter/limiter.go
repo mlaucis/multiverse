@@ -1,7 +1,3 @@
-/**
- * @author Florin Patan <florinpatan@gmail.com>
- */
-
 // Package limiter takes care of limiting HTTP requests (and not only)
 package limiter
 

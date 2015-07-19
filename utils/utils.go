@@ -1,7 +1,4 @@
-/**
- * @author Florin Patan <florinpatan@gmail.com>
- */
-
+// Package utils holds some commonly used funtions that have no other better places to be in
 package utils
 
 import (

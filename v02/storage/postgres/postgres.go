@@ -1,7 +1,3 @@
-/**
- * @author Florin Patan <florinpatan@gmail.com>
- */
-
 // Package postgres supports various functionality for using PostgreSQL as a storage backend
 package postgres
 

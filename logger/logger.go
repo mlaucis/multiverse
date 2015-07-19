@@ -1,8 +1,3 @@
-/**
- * @author Onur Akpolat <onurakpolat@gmail.com>
- * @author Florin Patan <florinpatan@gmail.com>
- */
-
 // Package logger provides logging functionality to the backend
 package logger
 

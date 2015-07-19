@@ -1,8 +1,3 @@
-/**
- * @author Florin Patan <florinpatan@gmail.com>
- */
-
-// Package utils handles utils related things
 package response
 
 import (

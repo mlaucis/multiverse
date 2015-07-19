@@ -1,7 +1,4 @@
-/**
- * @author Florin Patan <florinpatan@gmail.com>
- */
-
+// Package errmsg holds the error messages accros the application
 package errmsg
 
 import (
