@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"crypto/tls"
 	"crypto/x509"
+	_ "expvar"
 	"flag"
 	"fmt"
 	"io/ioutil"

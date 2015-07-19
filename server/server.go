@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/http/pprof"
 	"strings"
 	"time"
 
@@ -180,10 +179,7 @@ func GetRouter(
 	})
 
 	if debugMode {
-		router.Methods("GET").Path("/debug/pprof").Handler(http.HandlerFunc(pprof.Index))
-		router.Methods("GET").Path("/debug/pprof/cmdline").Handler(http.HandlerFunc(pprof.Cmdline))
-		router.Methods("GET").Path("/debug/pprof/profile").Handler(http.HandlerFunc(pprof.Profile))
-		router.Methods("GET").Path("/debug/pprof/symbol").Handler(http.HandlerFunc(pprof.Symbol))
+		router.PathPrefix("/debug/").Handler(http.DefaultServeMux)
 	}
 
 	router.NotFoundHandler = http.HandlerFunc(notFoundHandler)
