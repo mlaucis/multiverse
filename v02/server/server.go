@@ -15,9 +15,10 @@ import (
 	"github.com/tapglue/backend/v02/server/response"
 	"github.com/tapglue/backend/v02/storage/postgres"
 
+	"strings"
+
 	"github.com/gorilla/mux"
 	"github.com/tapglue/backend/tgflake"
-	"strings"
 )
 
 type (
@@ -29,7 +30,7 @@ type (
 )
 
 const (
-	// Which API Version does this module holds
+	// APIVersion holds which API Version does this module holds
 	APIVersion = "0.2"
 
 	appRateLimit        int64 = 1000
@@ -303,6 +304,7 @@ func SetupPostgresCores(
 	postgresEvent = event
 }
 
+// SetupFlakes initializes the flakes for all the existing applications in the system
 func SetupFlakes(storageClient postgres.Client) {
 	db := storageClient.MainDatastore()
 

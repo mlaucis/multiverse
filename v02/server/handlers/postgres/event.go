@@ -55,51 +55,51 @@ func (evt *event) Read(ctx *context.Context) (err []errors.Error) {
 func (evt *event) Update(ctx *context.Context) (err []errors.Error) {
 	return []errors.Error{errmsg.ErrServerNotImplementedYet}
 
-	eventID, er := strconv.ParseUint(ctx.Vars["eventID"], 10, 64)
-	if er != nil {
-		return []errors.Error{errmsg.ErrEventIDInvalid}
-	}
+	/*	eventID, er := strconv.ParseUint(ctx.Vars["eventID"], 10, 64)
+		if er != nil {
+			return []errors.Error{errmsg.ErrEventIDInvalid}
+		}
 
-	userID, er := strconv.ParseUint(ctx.Vars["applicationUserID"], 10, 64)
-	if er != nil {
-		return []errors.Error{errmsg.ErrApplicationUserIDInvalid}
-	}
+		userID, er := strconv.ParseUint(ctx.Vars["applicationUserID"], 10, 64)
+		if er != nil {
+			return []errors.Error{errmsg.ErrApplicationUserIDInvalid}
+		}
 
-	existingEvent, err := evt.storage.Read(
-		ctx.Bag["accountID"].(int64),
-		ctx.Bag["applicationID"].(int64),
-		userID,
-		ctx.Bag["applicationUserID"].(uint64),
-		eventID)
-	if err != nil {
-		return
-	}
+		existingEvent, err := evt.storage.Read(
+			ctx.Bag["accountID"].(int64),
+			ctx.Bag["applicationID"].(int64),
+			userID,
+			ctx.Bag["applicationUserID"].(uint64),
+			eventID)
+		if err != nil {
+			return
+		}
 
-	event := *existingEvent
-	if er = json.Unmarshal(ctx.Body, &event); er != nil {
-		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
-	}
+		event := *existingEvent
+		if er = json.Unmarshal(ctx.Body, &event); er != nil {
+			return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
+		}
 
-	event.ID = eventID
-	event.UserID = ctx.Bag["applicationUserID"].(uint64)
+		event.ID = eventID
+		event.UserID = ctx.Bag["applicationUserID"].(uint64)
 
-	if err = validator.UpdateEvent(existingEvent, &event); err != nil {
-		return
-	}
+		if err = validator.UpdateEvent(existingEvent, &event); err != nil {
+			return
+		}
 
-	updatedEvent, err := evt.storage.Update(
-		ctx.Bag["accountID"].(int64),
-		ctx.Bag["applicationID"].(int64),
-		ctx.Bag["applicationUserID"].(uint64),
-		*existingEvent,
-		event,
-		true)
-	if err != nil {
-		return
-	}
+		updatedEvent, err := evt.storage.Update(
+			ctx.Bag["accountID"].(int64),
+			ctx.Bag["applicationID"].(int64),
+			ctx.Bag["applicationUserID"].(uint64),
+			*existingEvent,
+			event,
+			true)
+		if err != nil {
+			return
+		}
 
-	response.WriteResponse(ctx, updatedEvent, http.StatusCreated, 0)
-	return
+		response.WriteResponse(ctx, updatedEvent, http.StatusCreated, 0)
+		return*/
 }
 
 func (evt *event) CurrentUserUpdate(ctx *context.Context) (err []errors.Error) {
@@ -275,40 +275,41 @@ func (evt *event) Feed(ctx *context.Context) (err []errors.Error) {
 
 func (evt *event) Create(ctx *context.Context) (err []errors.Error) {
 	return []errors.Error{errmsg.ErrServerNotImplementedYet}
-	var (
-		event = &entity.Event{}
-		er    error
-	)
 
-	if er = json.Unmarshal(ctx.Body, event); er != nil {
-		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
-	}
+	/*	var (
+			event = &entity.Event{}
+			er    error
+		)
 
-	event.UserID = ctx.Bag["applicationUserID"].(uint64)
-	if event.Visibility == 0 {
-		event.Visibility = entity.EventPublic
-	}
+		if er = json.Unmarshal(ctx.Body, event); er != nil {
+			return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
+		}
 
-	if err = validator.CreateEvent(
-		evt.appUser,
-		ctx.Bag["accountID"].(int64),
-		ctx.Bag["applicationID"].(int64),
-		event); err != nil {
-		return
-	}
+		event.UserID = ctx.Bag["applicationUserID"].(uint64)
+		if event.Visibility == 0 {
+			event.Visibility = entity.EventPublic
+		}
 
-	if event, err = evt.storage.Create(
-		ctx.Bag["accountID"].(int64),
-		ctx.Bag["applicationID"].(int64),
-		ctx.Bag["applicationUserID"].(uint64),
-		event,
-		true); err != nil {
-		return
-	}
+		if err = validator.CreateEvent(
+			evt.appUser,
+			ctx.Bag["accountID"].(int64),
+			ctx.Bag["applicationID"].(int64),
+			event); err != nil {
+			return
+		}
 
-	ctx.W.Header().Set("Location", fmt.Sprintf("https://api.tapglue.com/0.2/user/events/%d", event.ID))
-	response.WriteResponse(ctx, event, http.StatusCreated, 0)
-	return
+		if event, err = evt.storage.Create(
+			ctx.Bag["accountID"].(int64),
+			ctx.Bag["applicationID"].(int64),
+			ctx.Bag["applicationUserID"].(uint64),
+			event,
+			true); err != nil {
+			return
+		}
+
+		ctx.W.Header().Set("Location", fmt.Sprintf("https://api.tapglue.com/0.2/user/events/%d", event.ID))
+		response.WriteResponse(ctx, event, http.StatusCreated, 0)
+		return*/
 }
 
 func (evt *event) CurrentUserCreate(ctx *context.Context) (err []errors.Error) {

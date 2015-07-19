@@ -1249,7 +1249,7 @@ func (s *ConnectionSuite) TestConnectionMalformedPayloadFails(c *C) {
 		},
 		// 4
 		{
-			Payload:   fmt.Sprintf(`{"user_from_id":%q, "user_to_id":%d, "enabled":false}`, user1.ID, "13"),
+			Payload:   fmt.Sprintf(`{"user_from_id":%q, "user_to_id":%d, "enabled":false}`, user1.ID, 13),
 			RouteName: "confirmConnection",
 			Route:     getComposedRoute("confirmConnection"),
 			Code:      http.StatusBadRequest,

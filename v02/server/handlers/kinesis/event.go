@@ -116,40 +116,6 @@ func (evt *event) Feed(ctx *context.Context) (err []errors.Error) {
 
 func (evt *event) Create(ctx *context.Context) (err []errors.Error) {
 	return []errors.Error{errmsg.ErrServerNotImplementedYet}
-	var (
-		event = &entity.Event{}
-		er    error
-	)
-
-	if er = json.Unmarshal(ctx.Body, event); er != nil {
-		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
-	}
-
-	event.UserID = ctx.Bag["applicationUserID"].(uint64)
-	if event.Visibility == 0 {
-		event.Visibility = entity.EventPublic
-	}
-
-	if err = validator.CreateEvent(
-		evt.readAppUser,
-		ctx.Bag["accountID"].(int64),
-		ctx.Bag["applicationID"].(int64),
-		event); err != nil {
-		return
-	}
-
-	if event, err = evt.writeStorage.Create(
-		ctx.Bag["accountID"].(int64),
-		ctx.Bag["applicationID"].(int64),
-		ctx.Bag["applicationUserID"].(uint64),
-		event,
-		true); err != nil {
-		return
-	}
-
-	ctx.W.Header().Set("Location", fmt.Sprintf("https://api.tapglue.com/0.2/user/events/%d", event.ID))
-	response.WriteResponse(ctx, event, http.StatusCreated, 0)
-	return
 }
 
 func (evt *event) CurrentUserCreate(ctx *context.Context) (err []errors.Error) {

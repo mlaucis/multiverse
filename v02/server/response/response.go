@@ -26,7 +26,7 @@ type (
 )
 
 const (
-	// Which API Version does this module holds
+	// APIVersion holds which API Version does this module holds
 	APIVersion = "0.2"
 
 	appRateLimit        int64 = 1000

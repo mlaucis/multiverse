@@ -81,6 +81,7 @@ func (p *pg) consumeStream(streamName, position string) {
 
 		go func() {
 			ticker := time.NewTicker(60 * time.Second)
+			defer ticker.Stop()
 			prevPosition := ""
 			for {
 				<-ticker.C
@@ -92,7 +93,6 @@ func (p *pg) consumeStream(streamName, position string) {
 				go log.Printf("SAVING SEQUENCE:\t%s", savedSequence.seq)
 				go p.pg.MainDatastore().Exec(updateConsumerPositionQuery, savedSequence.seq)
 			}
-			ticker.Stop()
 		}()
 
 		for {

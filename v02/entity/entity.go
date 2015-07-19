@@ -113,7 +113,7 @@ type (
 		Common
 	}
 
-	// ApplicationUserWithIDs
+	// ApplicationUserWithIDs holds the application user structure with the added account and application ids
 	ApplicationUserWithIDs struct {
 		AccAppIDs
 		ApplicationUser
@@ -128,7 +128,7 @@ type (
 		Common
 	}
 
-	// ConnectionWithIDs
+	// ConnectionWithIDs holds the connection structure with the added account and application ids
 	ConnectionWithIDs struct {
 		AccAppIDs
 		Connection
@@ -182,7 +182,7 @@ type (
 		Common
 	}
 
-	// EventWithIDs
+	// EventWithIDs holds the event structure with the added account and application ids
 	EventWithIDs struct {
 		AccAppIDs
 		Event
@@ -213,12 +213,14 @@ type (
 		UnreadCount int `json:"unread_events_count"`
 	}
 
+	// AutoConnectSocialFriends holds the informatin that we have for auto-connecting social frieds
 	AutoConnectSocialFriends struct {
 		User              *ApplicationUserWithIDs `json:"user"`
 		Type              string                  `json:"type"`
 		OurStoredUsersIDs []*ApplicationUser      `json:"our_stored_users_ids"`
 	}
 
+	// SocialConnection holds the social connection information
 	SocialConnection struct {
 		User             *ApplicationUserWithIDs `json:"user"`
 		Platform         string                  `json:"platform"`

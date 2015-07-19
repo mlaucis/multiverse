@@ -196,6 +196,7 @@ func SetupRateLimit(applicationRateLimiter limiter.Limiter) {
 	v02_server.SetupRateLimit(applicationRateLimiter)
 }
 
+// SetupRawConnections will initialize the raw connections for the package
 func SetupRawConnections(
 	kinesisClient v02_kinesis.Client,
 	postgresClient v02_postgres.Client,
@@ -231,6 +232,7 @@ func SetupPostgresCores(
 	v02_server.SetupPostgresCores(account, accountUser, application, applicationUser, connection, event)
 }
 
+// SetupFlakes will initialize the Tapglue Flakes for the existing applications
 func SetupFlakes() {
 	v02_server.SetupFlakes(rawPostgresClient)
 }
