@@ -3,7 +3,6 @@ package server
 import (
 	"compress/gzip"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -169,44 +168,74 @@ func healthCheckHandler(ctx *context.Context) {
 	// TODO make the checks concurrently
 	// TODO make the checks return which service fails (useful if the health-check service knows how to read our response)
 
+	response := struct {
+		Healthy  bool `json:"healty"`
+		Services struct {
+			Kinesis        bool   `json:"kinesis"`
+			PostgresMaster bool   `json:"postgres_master"`
+			PostgresSlaves []bool `json:"postgres_slaves"`
+			RateLimiter    bool   `json:"rate_limiter"`
+		} `json:"services"`
+	}{
+		Healthy: true,
+		Services: struct {
+			Kinesis        bool   `json:"kinesis"`
+			PostgresMaster bool   `json:"postgres_master"`
+			PostgresSlaves []bool `json:"postgres_slaves"`
+			RateLimiter    bool   `json:"rate_limiter"`
+		}{
+			Kinesis:        true,
+			PostgresMaster: true,
+			PostgresSlaves: make([]bool, rawPostgresClient.SlaveCount()),
+			RateLimiter:    true,
+		},
+	}
+
 	defer func() {
+		if response.Healthy {
+			ctx.StatusCode = 200
+		} else {
+			ctx.StatusCode = 500
+		}
+
 		WriteCommonHeaders(0, ctx.W, ctx.R)
 		ctx.W.WriteHeader(ctx.StatusCode)
-		ctx.W.Write([]byte(fmt.Sprintf(`{"healthy": %t}`, ctx.StatusCode == 200)))
+		json.NewEncoder(ctx.W).Encode(response)
 	}()
-
-	ctx.StatusCode = 200
 
 	// Check Kinesis
 	args := kinesis.NewArgs()
 	resp, err := rawKinesisClient.Datastore().ListStreams(args)
 	if err != nil {
-		ctx.StatusCode = 500
-		return
+		response.Healthy = false
+		response.Services.Kinesis = false
 	} else if len(resp.StreamNames) == 0 {
 		// We should have at least one stream, the production one
-		ctx.StatusCode = 500
-		return
+		response.Healthy = false
+		response.Services.Kinesis = false
 	}
 
 	// Check Postgres
 	if _, err := rawPostgresClient.MainDatastore().Query("SELECT 1"); err != nil {
-		ctx.StatusCode = 500
-		return
+		response.Healthy = false
+		response.Services.PostgresMaster = false
 	}
 
+	// TODO add exactly the slaves
 	for slave := 0; slave < rawPostgresClient.SlaveCount(); slave++ {
 		if _, err := rawPostgresClient.SlaveDatastore(slave).Query("SELECT 1"); err != nil {
-			ctx.StatusCode = 500
-			return
+			response.Healthy = false
+			response.Services.PostgresSlaves[slave] = false
+		} else {
+			response.Services.PostgresSlaves[slave] = true
 		}
 	}
 
 	// Check Rate-Limiter
 	rlConn := rawRateLimiterPool.Get()
 	if rlConn.Err() != nil {
-		ctx.StatusCode = 500
-		return
+		response.Healthy = false
+		response.Services.RateLimiter = false
 	} else if rlConn != nil {
 		rlConn.Close()
 	}
