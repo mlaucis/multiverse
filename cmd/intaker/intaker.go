@@ -98,7 +98,6 @@ func init() {
 		}
 	}
 
-	//v02KinesisClient.SetupStreams(v02_kinesis.Streams)
 	switch conf.Environment {
 	case "dev":
 		v02KinesisClient.SetupStreams([]string{v02_kinesis.PackedStreamNameDev})

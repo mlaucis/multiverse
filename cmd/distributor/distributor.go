@@ -131,5 +131,7 @@ func main() {
 `)
 	}
 
+	log.Printf("Starting server at \"%s\" in %s", conf.ListenHostPort, time.Now().Sub(startTime))
+
 	myConsumer.Execute(conf.Environment, mainLogChan, errorLogChan)
 }

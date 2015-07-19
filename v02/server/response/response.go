@@ -19,7 +19,6 @@ import (
 
 	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/errors"
-	"github.com/tapglue/backend/limiter"
 	"github.com/tapglue/backend/v02/errmsg"
 )
 
@@ -40,8 +39,6 @@ const (
 )
 
 var (
-	appRateLimiter limiter.Limiter
-
 	currentRevision, currentHostname string
 )
 
@@ -167,4 +164,9 @@ func ErrorHappened(ctx *context.Context, errs []errors.Error) {
 	}
 	WriteResponse(ctx, errorMessage, int(errs[0].Type()), 0)
 	go ctx.LogError(errs)
+}
+
+// Setup initializes the response
+func Setup(revision, hostname string) {
+	currentRevision, currentHostname = revision, hostname
 }

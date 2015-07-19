@@ -210,18 +210,6 @@ func SetupRawConnections(
 	rawRateLimiterPool = rateLimiterPool
 }
 
-// SetupRedisCores takes care of initializing the core
-func SetupRedisCores(
-	account v02_core.Account,
-	accountUser v02_core.AccountUser,
-	application v02_core.Application,
-	applicationUser v02_core.ApplicationUser,
-	connection v02_core.Connection,
-	event v02_core.Event) {
-
-	v02_server.SetupRedisCores(account, accountUser, application, applicationUser, connection, event)
-}
-
 // SetupKinesisCores takes care of initializing the core
 func SetupKinesisCores(
 	account v02_core.Account,
