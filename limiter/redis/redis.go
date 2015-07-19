@@ -1,7 +1,3 @@
-/**
- * @author Florin Patan <florinpatan@gmail.com>
- */
-
 // Package redis provides a Redis implementation of the rate limiting interfaces
 // NOTE: As of 13.05.2015 this is not a very strict implementation, meaning that with
 // sufficient concurrency levels / high latency the limits will be broken.

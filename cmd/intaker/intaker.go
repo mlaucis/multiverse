@@ -1,7 +1,4 @@
-/**
- * @author Florin Patan <florinpatan@gmail.com>
- */
-
+// Command intaker will launch a specified frontend for Tapglue
 package main
 
 import (
@@ -98,7 +95,6 @@ func init() {
 		}
 	}
 
-	//v02KinesisClient.SetupStreams(v02_kinesis.Streams)
 	switch conf.Environment {
 	case "dev":
 		v02KinesisClient.SetupStreams([]string{v02_kinesis.PackedStreamNameDev})

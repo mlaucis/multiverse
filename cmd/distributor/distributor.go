@@ -1,7 +1,3 @@
-/**
- * @author Florin Patan <florinpatan@gmail.com>
- */
-
 // Command distributor will launch a specified consumer for Kinesis and write the received information to its target
 //
 // Currently it supports:
@@ -130,6 +126,8 @@ func main() {
 
 `)
 	}
+
+	log.Printf("Starting server at \"%s\" in %s", conf.ListenHostPort, time.Now().Sub(startTime))
 
 	myConsumer.Execute(conf.Environment, mainLogChan, errorLogChan)
 }

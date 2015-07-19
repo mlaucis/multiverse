@@ -1,7 +1,3 @@
-/**
- * @author Onur Akpolat <onurakpolat@gmail.com>
- */
-
 package server_test
 
 import (
@@ -660,7 +656,9 @@ func (s *ConnectionSuite) TestCreateConnectionUsersAlreadyConnected(c *C) {
 }
 
 // Test to create connections if users are from different appIDs
-func (s *ConnectionSuite) TestCreateConnectionUsersFromDifferentApps(c *C) {
+// TODO Remove this for good. Our IDs are completly separated now, individual per app but due to their generating scheme
+// they'll most likely overlap at points in time (whic is ok).
+/*func (s *ConnectionSuite) TestCreateConnectionUsersFromDifferentApps(c *C) {
 	accounts := CorrectDeploy(1, 0, 2, 2, 0, false, true)
 	account := accounts[0]
 	application1 := account.Applications[0]
@@ -676,7 +674,7 @@ func (s *ConnectionSuite) TestCreateConnectionUsersFromDifferentApps(c *C) {
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusNotFound)
 	c.Assert(body, Equals, `{"errors":[{"code":1001,"message":"application user not found"},{"code":1001,"message":"application user not found"},{"code":1000,"message":"user not activated"}]}`+"\n")
-}
+}*/
 
 // Test to create connections if users are not activated
 func (s *ConnectionSuite) TestCreateConnectionUsersNotActivated(c *C) {
@@ -1251,7 +1249,7 @@ func (s *ConnectionSuite) TestConnectionMalformedPayloadFails(c *C) {
 		},
 		// 4
 		{
-			Payload:   fmt.Sprintf(`{"user_from_id":%q, "user_to_id":%d, "enabled":false}`, user1.ID, "13"),
+			Payload:   fmt.Sprintf(`{"user_from_id":%q, "user_to_id":%d, "enabled":false}`, user1.ID, 13),
 			RouteName: "confirmConnection",
 			Route:     getComposedRoute("confirmConnection"),
 			Code:      http.StatusBadRequest,

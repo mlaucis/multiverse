@@ -1,11 +1,8 @@
-/**
- * @author Florin Patan <florinpatan@gmail.com>
- */
-
 package response
 
 import "github.com/tapglue/backend/v02/entity"
 
+// SanitizeApplicationUsers sanitize a slice of application users
 func SanitizeApplicationUsers(users []*entity.ApplicationUser) {
 	for idx := range users {
 		users[idx].Password = ""
@@ -17,6 +14,7 @@ func SanitizeApplicationUsers(users []*entity.ApplicationUser) {
 	}
 }
 
+// SanitizeApplicationUsersMap sanitizes a map of application users
 func SanitizeApplicationUsersMap(users map[string]*entity.ApplicationUser) {
 	for idx := range users {
 		users[idx].Password = ""

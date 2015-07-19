@@ -1,8 +1,3 @@
-/**
- * @author Onur Akpolat <onurakpolat@gmail.com>
- * @author Florin Patan <florinpatan@gmail.com>
- */
-
 // Package logger provides logging functionality to the backend
 package logger
 
@@ -11,8 +6,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"time"
 	"regexp"
+	"time"
 )
 
 const (
@@ -47,7 +42,7 @@ var (
 	// This won't catch all the passwords, think passwords that have double-quotes in them
 	// but we shouldn't never have those here anyway, clients should never send us passwords
 	// in clear, right? Right? RIGHT?
-	passwordRE = regexp.MustCompile(`("password": ".*?")`)
+	passwordRE            = regexp.MustCompile(`("password": ".*?")`)
 	passwordREReplacement = []byte(`"password": ""`)
 )
 

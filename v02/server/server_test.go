@@ -1,7 +1,3 @@
-/**
- * @author Onur Akpolat <onurakpolat@gmail.com>
- */
-
 package server_test
 
 import (
@@ -79,7 +75,6 @@ var (
 	coreEvt     core.Event
 
 	v02KinesisClient  v02_kinesis.Client
-	v02RedisClient    v02_redis.Client
 	v02PostgresClient v02_postgres.Client
 
 	nilTime             *time.Time

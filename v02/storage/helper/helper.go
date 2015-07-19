@@ -1,7 +1,3 @@
-/**
- * @author Florin Patan <florinpatan@gmail.com>
- */
-
 // Package helper holds common functions regardless of the storage engine used
 package helper
 

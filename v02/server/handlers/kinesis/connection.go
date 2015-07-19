@@ -1,7 +1,3 @@
-/**
- * @author Florin Patan <florinpatan@gmail.com>
- */
-
 package kinesis
 
 import (
@@ -107,7 +103,7 @@ func (conn *connection) determineTGUserID(accountID, applicationID int64, userID
 	return user.ID, nil
 }
 
-// NewConnection returns a new connection handler
+// NewConnectionWithApplicationUser returns a new connection handler
 func NewConnectionWithApplicationUser(storage, permaStorage core.Connection, readAppUser core.ApplicationUser) handlers.Connection {
 	return &connection{
 		writeStorage: storage,

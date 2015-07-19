@@ -1,7 +1,3 @@
-/**
- * @author Florin Patan <florinpatan@gmail.com>
- */
-
 // Package tgflake is a wrapper around sonyflake
 package tgflake
 
@@ -15,6 +11,7 @@ var (
 	flakes = map[int64]map[string]*sonyflake.Sonyflake{}
 )
 
+// Flake returns the specific flake for a certain application
 func Flake(appID int64, flake string) *sonyflake.Sonyflake {
 	if f, ok := flakes[appID][flake]; ok {
 		return f
@@ -34,6 +31,7 @@ func Flake(appID int64, flake string) *sonyflake.Sonyflake {
 	return flakes[appID][flake]
 }
 
+// FlakeNextID will get the next ID from the
 func FlakeNextID(appID int64, flake string) (uint64, error) {
 	return Flake(appID, flake).NextID()
 }

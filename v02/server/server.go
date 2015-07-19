@@ -1,7 +1,3 @@
-/**
- * @author Florin Patan <florinpatan@gmail.com>
- */
-
 // Package server provides handling for all the requests towards this module
 package server
 
@@ -19,8 +15,9 @@ import (
 	"github.com/tapglue/backend/v02/server/response"
 	"github.com/tapglue/backend/v02/storage/postgres"
 
-	"github.com/gorilla/mux"
 	"strings"
+
+	"github.com/gorilla/mux"
 	"github.com/tapglue/backend/tgflake"
 )
 
@@ -33,7 +30,7 @@ type (
 )
 
 const (
-	// Which API Version does this module holds
+	// APIVersion holds which API Version does this module holds
 	APIVersion = "0.2"
 
 	appRateLimit        int64 = 1000
@@ -41,16 +38,14 @@ const (
 )
 
 var (
-	postgresAccount, redisAccount, kinesisAccount                         core.Account
-	postgresAccountUser, redisAccountUser, kinesisAccountUser             core.AccountUser
-	postgresApplication, redisApplication, kinesisApplication             core.Application
-	postgresApplicationUser, redisApplicationUser, kinesisApplicationUser core.ApplicationUser
-	postgresConnection, redisConnection, kinesisConnection                core.Connection
-	postgresEvent, redisEvent, kinesisEvent                               core.Event
+	postgresAccount, kinesisAccount                 core.Account
+	postgresAccountUser, kinesisAccountUser         core.AccountUser
+	postgresApplication, kinesisApplication         core.Application
+	postgresApplicationUser, kinesisApplicationUser core.ApplicationUser
+	postgresConnection, kinesisConnection           core.Connection
+	postgresEvent, kinesisEvent                     core.Event
 
 	appRateLimiter limiter.Limiter
-
-	currentRevision, currentHostname string
 )
 
 // ValidateGetCommon runs a series of predefined, common, tests for GET requests
@@ -277,22 +272,6 @@ func SetupRateLimit(applicationRateLimiter limiter.Limiter) {
 	appRateLimiter = applicationRateLimiter
 }
 
-// SetupRedisCores takes care of initializing the redis core
-func SetupRedisCores(
-	account core.Account,
-	accountUser core.AccountUser,
-	application core.Application,
-	applicationUser core.ApplicationUser,
-	connection core.Connection,
-	event core.Event) {
-	redisAccount = account
-	redisAccountUser = accountUser
-	redisApplication = application
-	redisApplicationUser = applicationUser
-	redisConnection = connection
-	redisEvent = event
-}
-
 // SetupKinesisCores takes care of initializing the redis core
 func SetupKinesisCores(
 	account core.Account,
@@ -325,6 +304,7 @@ func SetupPostgresCores(
 	postgresEvent = event
 }
 
+// SetupFlakes initializes the flakes for all the existing applications in the system
 func SetupFlakes(storageClient postgres.Client) {
 	db := storageClient.MainDatastore()
 
@@ -368,9 +348,7 @@ func Setup(revision, hostname string) {
 		panic("omfg missing revision")
 	}
 
-	currentRevision = revision
-	currentHostname = hostname
-
+	response.Setup(revision, hostname)
 	InitHandlers()
 
 	Routes = SetupRoutes()

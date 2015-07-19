@@ -1,8 +1,3 @@
-/**
- * @author Florin Patan <florinpatan@gmail.com>
- */
-
-// Package utils handles utils related things
 package response
 
 import (
@@ -19,7 +14,6 @@ import (
 
 	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/errors"
-	"github.com/tapglue/backend/limiter"
 	"github.com/tapglue/backend/v02/errmsg"
 )
 
@@ -32,7 +26,7 @@ type (
 )
 
 const (
-	// Which API Version does this module holds
+	// APIVersion holds which API Version does this module holds
 	APIVersion = "0.2"
 
 	appRateLimit        int64 = 1000
@@ -40,8 +34,6 @@ const (
 )
 
 var (
-	appRateLimiter limiter.Limiter
-
 	currentRevision, currentHostname string
 )
 
@@ -167,4 +159,9 @@ func ErrorHappened(ctx *context.Context, errs []errors.Error) {
 	}
 	WriteResponse(ctx, errorMessage, int(errs[0].Type()), 0)
 	go ctx.LogError(errs)
+}
+
+// Setup initializes the response
+func Setup(revision, hostname string) {
+	currentRevision, currentHostname = revision, hostname
 }

@@ -1,7 +1,3 @@
-/**
- * @author Florin Patan <florinpatan@gmail.com>
- */
-
 // Package server holds all the server related logic
 package server
 
@@ -200,6 +196,7 @@ func SetupRateLimit(applicationRateLimiter limiter.Limiter) {
 	v02_server.SetupRateLimit(applicationRateLimiter)
 }
 
+// SetupRawConnections will initialize the raw connections for the package
 func SetupRawConnections(
 	kinesisClient v02_kinesis.Client,
 	postgresClient v02_postgres.Client,
@@ -208,18 +205,6 @@ func SetupRawConnections(
 	rawKinesisClient = kinesisClient
 	rawPostgresClient = postgresClient
 	rawRateLimiterPool = rateLimiterPool
-}
-
-// SetupRedisCores takes care of initializing the core
-func SetupRedisCores(
-	account v02_core.Account,
-	accountUser v02_core.AccountUser,
-	application v02_core.Application,
-	applicationUser v02_core.ApplicationUser,
-	connection v02_core.Connection,
-	event v02_core.Event) {
-
-	v02_server.SetupRedisCores(account, accountUser, application, applicationUser, connection, event)
 }
 
 // SetupKinesisCores takes care of initializing the core
@@ -247,6 +232,7 @@ func SetupPostgresCores(
 	v02_server.SetupPostgresCores(account, accountUser, application, applicationUser, connection, event)
 }
 
+// SetupFlakes will initialize the Tapglue Flakes for the existing applications
 func SetupFlakes() {
 	v02_server.SetupFlakes(rawPostgresClient)
 }

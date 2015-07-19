@@ -1,7 +1,3 @@
-/**
- * @author Florin Patan <florinpatan@gmail.com>
- */
-
 package server
 
 import (
@@ -63,10 +59,12 @@ func (r *Route) RoutePattern() string {
 	return "/" + APIVersion + r.Path
 }
 
+// ReplaceTestApplicationUserIDPattern is used in testing for replacing the application user id pattern
 func ReplaceTestApplicationUserIDPattern(pattern string) {
 	applicationUserIDPattern = pattern
 }
 
+// ReplaceTestEventIDPattern is used in testing for replacing the event id pattern
 func ReplaceTestEventIDPattern(pattern string) {
 	eventIDPattern = pattern
 }
@@ -107,6 +105,7 @@ func InitRouter(agent *gorelic.Agent, router *mux.Router, mainLogChan, errorLogC
 	}
 }
 
+// InitHandlers handles the initialization of the route handlers
 func InitHandlers() {
 	kinesisAccountHandler = kinesis.NewAccount(kinesisAccount, postgresAccount)
 	kinesisAccountUserHandler = kinesis.NewAccountUser(kinesisAccountUser, postgresAccountUser)

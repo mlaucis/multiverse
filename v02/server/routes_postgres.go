@@ -1,5 +1,3 @@
-// @author Florin Patan <florinpatan@gmail.com>
-
 // +build !kinesis
 // +build postgres
 

@@ -1,7 +1,4 @@
-/**
- * @author Florin Patan <florinpatan@gmail.com>
- */
-
+// Package errmsg holds the error messages accros the application
 package errmsg
 
 import (
@@ -13,6 +10,7 @@ import (
 // These are all the errors in the application, sorted alphabetically by their name
 var (
 	// Application user errors
+
 	ErrApplicationUserNotActivated          = errors.New(http.StatusNotAcceptable, 1000, "user not activated", "", false)
 	ErrApplicationUserNotFound              = errors.New(http.StatusNotFound, 1001, "application user not found", "", false)
 	ErrApplicationUserEmailAlreadyExists    = errors.New(http.StatusBadRequest, 1002, "email address already in use", "", false)
@@ -28,6 +26,7 @@ var (
 	ErrApplicationUserUsernameSize          = errors.New(http.StatusBadRequest, 1012, "user username must be between 2 and 40 characters", "", false)
 
 	// Internal application user errors
+
 	ErrInternalApplicationUserCreation        = errors.New(http.StatusInternalServerError, 1500, "error while creating the application user", "", false)
 	ErrInternalApplicationUserList            = errors.New(http.StatusInternalServerError, 1501, "error while retrieving list of application users", "", false)
 	ErrInternalApplicationUserRead            = errors.New(http.StatusInternalServerError, 1502, "error while reading the application user", "", false)
@@ -40,6 +39,7 @@ var (
 	ErrInternalApplicationUserIDMissing       = errors.New(http.StatusInternalServerError, 1509, "user ID is missing", "", false)
 
 	// Connection errors
+
 	ErrConnectionAlreadyExists      = errors.New(http.StatusBadRequest, 2000, "connection already exists", "", false)
 	ErrConnectionNotFound           = errors.New(http.StatusNotFound, 2001, "connection not found", "", false)
 	ErrConnectionTypeIsWrong        = errors.New(http.StatusBadRequest, 2002, "unexpected connection type", "", false)
@@ -47,6 +47,7 @@ var (
 	ErrConnectionUsersNotConnected  = errors.New(http.StatusNotFound, 2004, "users are not connected", "", false)
 
 	// Internal connection errors
+
 	ErrInternalConnectingUsers    = errors.New(http.StatusInternalServerError, 2500, "error while connecting the users", "", false)
 	ErrInternalConnectionCreation = errors.New(http.StatusInternalServerError, 2501, "error while creating the connection", "", false)
 	ErrInternalConnectionRead     = errors.New(http.StatusInternalServerError, 2502, "error while reading the connection", "", false)
@@ -56,6 +57,7 @@ var (
 	ErrInternalFriendsList        = errors.New(http.StatusInternalServerError, 2506, "error while retrieving list of friends", "", false)
 
 	// Event errors
+
 	ErrEventGeoRadiusAndNearestMissing = errors.New(http.StatusBadRequest, 3000, "you must specify either a radius or a how many nearest events you want", "invalid radius and nearest", false)
 	ErrEventGeoRadiusUnder2M           = errors.New(http.StatusBadRequest, 3001, "Location radius can't be smaller than 2 meters", "radius smaller than 2", false)
 	ErrEventIDInvalid                  = errors.New(http.StatusBadRequest, 3002, "event id is not valid", "", false)
@@ -67,6 +69,7 @@ var (
 	ErrEventTypeSize                   = errors.New(http.StatusBadRequest, 3008, "type must be between 1 and 30 characters", "", false)
 
 	// Internal event errors
+
 	ErrInternalEventCreation  = errors.New(http.StatusInternalServerError, 3500, "error while saving the event", "", false)
 	ErrInternalEventRead      = errors.New(http.StatusInternalServerError, 3501, "error while reading the event", "", false)
 	ErrInternalEventsList     = errors.New(http.StatusInternalServerError, 3502, "failed to read the events", "", false)
@@ -74,6 +77,7 @@ var (
 	ErrInternalEventMissingID = errors.New(http.StatusInternalServerError, 3504, "event is missing ID", "", false)
 
 	// Authentication errors
+
 	ErrAuthGeneric                           = errors.New(http.StatusBadRequest, 4001, "authentication error", "", false)
 	ErrAuthGotBothUsernameAndEmail           = errors.New(http.StatusBadRequest, 4002, "both username and email are specified", "", false)
 	ErrAuthGotNoUsernameOrEmail              = errors.New(http.StatusBadRequest, 4003, "both username and email are empty", "", false)
@@ -88,9 +92,11 @@ var (
 	ErrAuthSessionTokenMismatch              = errors.New(http.StatusBadRequest, 4012, "session token mismatch", "", false)
 
 	// Server errors
+
 	ErrInvalidImageURL = errors.New(http.StatusBadRequest, 5000, "image url is not valid", "", false)
 
 	// Server request errors
+
 	ErrServerReqBadJSONReceived            = errors.New(http.StatusBadRequest, 5001, "malformed json received", "", false)
 	ErrServerReqBadUserAgent               = errors.New(http.StatusBadRequest, 5002, "User-Agent header must be set (1)", "missing ua header", false)
 	ErrServerReqContentLengthInvalid       = errors.New(http.StatusBadRequest, 5003, "Content-Length header is invalid", "content-length header is not an int", false)
@@ -105,9 +111,11 @@ var (
 	ErrServerReqBodyEmpty                  = errors.New(http.StatusBadRequest, 5012, "Empty request body", "empty request body", false)
 
 	// Server response errors
+
 	ErrServerRespMissingLastModifiedHeader = errors.New(http.StatusInternalServerError, 5013, "something went wrong", "", false)
 
 	// Misc errors
+
 	ErrServerNotImplementedYet         = errors.New(http.StatusInternalServerError, 5500, "not implemented yet", "", false)
 	ErrServerDeprecatedStorage         = errors.New(http.StatusInternalServerError, 5501, "deprecated storage", "", false)
 	ErrServerInvalidHandler            = errors.New(http.StatusInternalServerError, 5502, "something went wrong", "handler used in wrong context", false)
@@ -115,6 +123,7 @@ var (
 	ErrServerInternalError             = errors.New(http.StatusInternalServerError, 5504, "something went wrong", "", false)
 
 	// Account errors
+
 	ErrAccountDescriptionSize  = errors.New(http.StatusBadRequest, 6000, "account description must be between 0 and 100 characters", "", false)
 	ErrAccountIDIsAlreadySet   = errors.New(http.StatusBadRequest, 6001, "account id is already set", "", false)
 	ErrAccountIDZero           = errors.New(http.StatusBadRequest, 6002, "account id can't be 0", "", false)
@@ -125,12 +134,14 @@ var (
 	ErrAccountTokenAlreadySet  = errors.New(http.StatusBadRequest, 6007, "account token is already set", "", false)
 
 	// Internal account errors
+
 	ErrInternalAccountCreation = errors.New(http.StatusInternalServerError, 6500, "error while creating the account", "", false)
 	ErrInternalAccountDelete   = errors.New(http.StatusInternalServerError, 6501, "error while deleting the account", "", false)
 	ErrInternalAccountRead     = errors.New(http.StatusInternalServerError, 6502, "error while reading the account", "", false)
 	ErrInternalAccountUpdate   = errors.New(http.StatusInternalServerError, 6503, "error while updating the account", "", false)
 
 	// Account user errors
+
 	ErrAccountUserEmailInvalid  = errors.New(http.StatusBadRequest, 7000, "user email is not valid", "", false)
 	ErrAccountUserFirstNameSize = errors.New(http.StatusBadRequest, 7001, "user first name must be between 2 and 40 characters", "", false)
 	ErrAccountUserLastNameSize  = errors.New(http.StatusBadRequest, 7002, "user last name must be between 2 and 40 characters", "", false)
@@ -141,6 +152,7 @@ var (
 	ErrAccountUserUsernameSize  = errors.New(http.StatusBadRequest, 7007, "user username must be between 2 and 40 characters", "", false)
 
 	// Internal account user errors
+
 	ErrInternalAccountUserCreation        = errors.New(http.StatusInternalServerError, 7500, "error while creating the account user", "", false)
 	ErrInternalAccountUserList            = errors.New(http.StatusInternalServerError, 7501, "error while retrieving list of account users", "", false)
 	ErrInternalAccountUserRead            = errors.New(http.StatusInternalServerError, 7502, "error while reading the account user", "", false)
@@ -151,6 +163,7 @@ var (
 	ErrInternalAccountUserUpdate          = errors.New(http.StatusInternalServerError, 7507, "error while updating the account user", "", false)
 
 	// Application errors
+
 	ErrApplicationAuthTokenUpdateNotAllowed = errors.New(http.StatusBadRequest, 8000, "not allowed to update the application token", "", false)
 	ErrApplicationDescriptionSize           = errors.New(http.StatusBadRequest, 8001, "application description must be between 0 and 100 characters", "", false)
 	ErrApplicationIDInvalid                 = errors.New(http.StatusBadRequest, 8002, "application id is not valid", "", false)
@@ -160,6 +173,7 @@ var (
 	ErrApplicationURLInvalid                = errors.New(http.StatusBadRequest, 8006, "application url is not a valid url", "", false)
 
 	// Internal application errors
+
 	ErrInternalApplicationCreation = errors.New(http.StatusInternalServerError, 8500, "error while creating the application", "", false)
 	ErrInternalApplicationDelete   = errors.New(http.StatusInternalServerError, 8501, "error while deleting the application", "", false)
 	ErrInternalApplicationRead     = errors.New(http.StatusInternalServerError, 8502, "error while reading the application", "", false)
