@@ -12,7 +12,7 @@ type (
 		ApplicationID       int64  `json:"app_id,omitempty"`
 		PublicAccountID     string `json:"pub_acc_id,omitempty"`
 		PublicApplicationID string `json:"pub_app_id,omitempty"`
-		CurrentUserID       string `json:"current_user_id,omitempty"`
+		CurrentUserID       uint64 `json:"current_user_id,omitempty"`
 	}
 
 	// Common holds common used fields
