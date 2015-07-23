@@ -194,51 +194,7 @@ func (c *cli) StreamRecords(streamName, consumerName, consumerPosition string, m
 	internalDone := make(chan bool, len(stream.StreamDescription.Shards))
 
 	for idx := range stream.StreamDescription.Shards {
-		go func(streamName, shardID string, maxEntries int, output, sequenceNumber chan<- string, errs chan<- errors.Error, done chan bool) {
-			defer func() {
-				done <- true
-			}()
-			args := gksis.NewArgs()
-			args.Add("StreamName", streamName)
-			args.Add("ShardId", shardID)
-			if consumerPosition == "" {
-				args.Add("ShardIteratorType", "LATEST")
-			} else {
-				args.Add("ShardIteratorType", "AFTER_SEQUENCE_NUMBER")
-				args.Add("StartingSequenceNumber", consumerPosition)
-			}
-			shardIteratorResponse, err := c.kinesis.GetShardIterator(args)
-			if err != nil {
-				errs <- errors.NewInternalError(0, "error while reading the internal data", err.Error())
-				return
-			}
-
-			shardIterator := shardIteratorResponse.ShardIterator
-
-			for {
-				args = gksis.NewArgs()
-				args.Add("ShardIterator", shardIterator)
-				args.Add("Limit", maxEntries)
-				records, err := c.kinesis.GetRecords(args)
-				if err != nil {
-					errs <- errors.NewInternalError(0, "error while reading the internal data", err.Error())
-					break
-				}
-
-				if records.NextShardIterator == "" || shardIterator == records.NextShardIterator {
-					errs <- errors.NewInternalError(0, "error while reading the internal data", "shard iterator returned an inconsistent iterator")
-					break
-				}
-
-				for _, d := range records.Records {
-					output <- string(d.GetData())
-					sequenceNumber <- d.SequenceNumber
-				}
-
-				shardIterator = records.NextShardIterator
-				time.Sleep(1 * time.Second)
-			}
-		}(streamName, stream.StreamDescription.Shards[idx].ShardId, maxEntries, output, sequenceNumber, errs, internalDone)
+		go c.streamShard(consumerPosition, streamName, stream.StreamDescription.Shards[idx].ShardId, maxEntries, output, sequenceNumber, errs, internalDone)
 	}
 
 	go func() {
@@ -256,6 +212,53 @@ func (c *cli) StreamRecords(streamName, consumerName, consumerPosition string, m
 	}()
 
 	return output, sequenceNumber, errs, done
+}
+
+func (c *cli) streamShard(consumerPosition, streamName, shardID string, maxEntries int, output, sequenceNumber chan<- string, errs chan<- errors.Error, done chan bool) {
+	defer func() {
+		done <- true
+	}()
+
+	args := gksis.NewArgs()
+	args.Add("StreamName", streamName)
+	args.Add("ShardId", shardID)
+	if consumerPosition == "" {
+		args.Add("ShardIteratorType", "LATEST")
+	} else {
+		args.Add("ShardIteratorType", "AFTER_SEQUENCE_NUMBER")
+		args.Add("StartingSequenceNumber", consumerPosition)
+	}
+	shardIteratorResponse, err := c.kinesis.GetShardIterator(args)
+	if err != nil {
+		errs <- errors.NewInternalError(0, "error while reading the internal data", err.Error())
+		return
+	}
+
+	shardIterator := shardIteratorResponse.ShardIterator
+
+	for {
+		args = gksis.NewArgs()
+		args.Add("ShardIterator", shardIterator)
+		args.Add("Limit", maxEntries)
+		records, err := c.kinesis.GetRecords(args)
+		if err != nil {
+			errs <- errors.NewInternalError(0, "error while reading the internal data", err.Error())
+			continue
+		}
+
+		if records.NextShardIterator == "" || shardIterator == records.NextShardIterator {
+			errs <- errors.NewInternalError(0, "error while reading the internal data", "shard iterator returned an inconsistent iterator")
+			continue
+		}
+
+		for _, d := range records.Records {
+			output <- string(d.GetData())
+			sequenceNumber <- d.SequenceNumber
+		}
+
+		shardIterator = records.NextShardIterator
+		time.Sleep(1 * time.Second)
+	}
 }
 
 func (c *cli) UnpackRecord(message string) (streamName, unpackedMessage string, err errors.Error) {

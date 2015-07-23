@@ -1,4 +1,4 @@
-DROP SCHEMA public;
+DROP SCHEMA IF EXISTS public CASCADE ;
 
 CREATE SCHEMA IF NOT EXISTS public;
 
@@ -32,6 +32,13 @@ CREATE TABLE tg.applications (
   account_id INT NOT NULL,
   json_data JSONB NOT NULL,
   enabled INT DEFAULT 1 NOT NULL
+);
+
+CREATE TABLE tg.consumers
+(
+  consumer_name TEXT NOT NULL,
+  consumer_position TEXT NOT NULL,
+  updated_at TIMESTAMP NOT NULL
 );
 
 CREATE INDEX on tg.accounts USING GIN (json_data jsonb_path_ops);

@@ -5,14 +5,21 @@
 package main
 
 import (
+	_ "expvar"
 	"flag"
+	"io/ioutil"
 	"log"
 	"log/syslog"
 	mr "math/rand"
+	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"runtime"
 	"time"
 
+	"crypto/rand"
+	"crypto/tls"
+	"crypto/x509"
 	"github.com/tapglue/backend/config"
 	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/logger"
@@ -109,6 +116,18 @@ func main() {
 		go logger.TGLog(errorLogChan)
 	}
 
+	server := &http.Server{
+		Addr:           conf.ListenHostPort,
+		Handler:        http.DefaultServeMux,
+		ReadTimeout:    5 * time.Second,
+		WriteTimeout:   10 * time.Second,
+		MaxHeaderBytes: 1 << 20,
+	}
+
+	if conf.UseSSL {
+		server.TLSConfig = configTLS()
+	}
+
 	if conf.UseArtwork {
 		log.Printf(`
 
@@ -127,7 +146,67 @@ func main() {
 `)
 	}
 
-	log.Printf("Starting server at \"%s\" in %s", conf.ListenHostPort, time.Now().Sub(startTime))
+	go func() {
+		if conf.Environment == "prod" {
+			if conf.UseSSL {
+				log.Printf("Starting SSL server at \"%s\" in %s", conf.ListenHostPort, time.Now().Sub(startTime))
+			} else {
+				log.Printf("Starting NORMAL server at \"%s\" in %s", conf.ListenHostPort, time.Now().Sub(startTime))
+			}
+		} else {
+			if conf.UseSSL {
+				log.Printf("Starting SSL server at \"%s\" in %s", conf.ListenHostPort, time.Now().Sub(startTime))
+				log.Fatal(server.ListenAndServeTLS("./cert/STAR_tapglue_com.pem", "./cert/STAR_tapglue_com.key"))
+			} else {
+				log.Printf("Starting NORMAL server at \"%s\" in %s", conf.ListenHostPort, time.Now().Sub(startTime))
+				log.Fatal(server.ListenAndServe())
+			}
+		}
+	}()
 
-	myConsumer.Execute(conf.Environment, mainLogChan, errorLogChan)
+	for {
+		myConsumer.Execute(conf.Environment, mainLogChan, errorLogChan)
+	}
+}
+
+func configTLS() *tls.Config {
+	TLSConfig := &tls.Config{}
+	TLSConfig.CipherSuites = []uint16{
+		tls.TLS_FALLBACK_SCSV,
+		tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+		tls.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,
+		tls.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,
+		tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+		tls.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
+		tls.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,
+		tls.TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA,
+		tls.TLS_RSA_WITH_AES_256_CBC_SHA,
+		tls.TLS_RSA_WITH_AES_128_CBC_SHA,
+		tls.TLS_RSA_WITH_3DES_EDE_CBC_SHA,
+	}
+
+	TLSConfig.Rand = rand.Reader
+	TLSConfig.MinVersion = tls.VersionTLS10
+	TLSConfig.SessionTicketsDisabled = false
+	TLSConfig.InsecureSkipVerify = false
+	TLSConfig.ClientAuth = tls.VerifyClientCertIfGiven
+	TLSConfig.PreferServerCipherSuites = true
+	TLSConfig.ClientSessionCache = tls.NewLRUClientSessionCache(1000)
+	TLSConfig.RootCAs = loadCertificates()
+
+	return TLSConfig
+}
+
+func loadCertificates() *x509.CertPool {
+	pem, err := ioutil.ReadFile("./cert/STAR_tapglue_com.ca-bundle")
+	if err != nil {
+		panic(err)
+	}
+
+	rootCertPool := x509.NewCertPool()
+	if !rootCertPool.AppendCertsFromPEM(pem) {
+		panic("Failed appending certs")
+	}
+
+	return rootCertPool
 }
