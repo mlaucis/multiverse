@@ -217,14 +217,15 @@ func healthCheckHandler(ctx *context.Context) {
 	}
 
 	// Check Postgres
-	if _, err := rawPostgresClient.MainDatastore().Query("SELECT 1"); err != nil {
+	if _, err := rawPostgresClient.MainDatastore().Exec("SELECT 1"); err != nil {
 		response.Healthy = false
 		response.Services.PostgresMaster = false
 	}
 
+
 	// TODO add exactly the slaves
 	for slave := 0; slave < rawPostgresClient.SlaveCount(); slave++ {
-		if _, err := rawPostgresClient.SlaveDatastore(slave).Query("SELECT 1"); err != nil {
+		if _, err := rawPostgresClient.SlaveDatastore(slave).Exec("SELECT 1"); err != nil {
 			response.Healthy = false
 			response.Services.PostgresSlaves[slave] = false
 		} else {
