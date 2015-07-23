@@ -199,6 +199,7 @@ func healthCheckHandler(ctx *context.Context) {
 		}
 
 		WriteCommonHeaders(0, ctx.W, ctx.R)
+		ctx.W.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		ctx.W.WriteHeader(ctx.StatusCode)
 		json.NewEncoder(ctx.W).Encode(response)
 	}()

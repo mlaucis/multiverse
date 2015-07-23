@@ -56,6 +56,8 @@ func WriteResponse(ctx *context.Context, response interface{}, code int, cacheTi
 
 	// TODO here it would be nice if we would consider the requested format when the stuff happens and deliver
 	// either JSON or XML or FlatBuffers or whatever
+	ctx.W.Header().Add("Content-Type", "application/json; charset=UTF-8")
+
 	output := new(bytes.Buffer)
 	err := json.NewEncoder(output).Encode(response)
 	if err != nil {
@@ -109,13 +111,15 @@ func WriteResponse(ctx *context.Context, response interface{}, code int, cacheTi
 	}
 
 	// Write response
+
+	// No gzip support
 	if !strings.Contains(ctx.R.Header.Get("Accept-Encoding"), "gzip") {
-		// No gzip support
 		ctx.W.WriteHeader(code)
 		io.Copy(ctx.W, output)
 		return
 	}
 
+	// gzip support
 	ctx.W.Header().Set("Content-Encoding", "gzip")
 	ctx.W.WriteHeader(code)
 	gz := gzip.NewWriter(ctx.W)
