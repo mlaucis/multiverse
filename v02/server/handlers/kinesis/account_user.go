@@ -28,10 +28,6 @@ func (accUser *accountUser) Update(ctx *context.Context) (err []errors.Error) {
 }
 
 func (accUser *accountUser) Delete(ctx *context.Context) (err []errors.Error) {
-	if ctx.R.Header.Get("X-Jarvis-Auth") != "ZTBmZjI3MGE2M2YzYzAzOWI1MjhiYTNi" {
-		return []errors.Error{errmsg.ErrServerReqMissingJarvisID}
-	}
-
 	accountUserID := ctx.Vars["accountUserID"]
 	if !validator.IsValidUUID5(accountUserID) {
 		return []errors.Error{errmsg.ErrApplicationUserIDInvalid}

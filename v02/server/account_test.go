@@ -16,7 +16,7 @@ func (s *AccountSuite) TestCreateAccount_WrongKey(c *C) {
 
 	routeName := "createAccount"
 	route := getComposedRoute(routeName)
-	code, body, err := runRequest(routeName, route, payload, jarvisSigner)
+	code, body, err := runRequest(routeName, route, payload, signAccountRequest(nil, nil, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusBadRequest)
 	c.Assert(body, Not(Equals), "")
@@ -28,7 +28,7 @@ func (s *AccountSuite) TestCreateAccount_WrongValue(c *C) {
 
 	routeName := "createAccount"
 	route := getComposedRoute(routeName)
-	code, body, err := runRequest(routeName, route, payload, jarvisSigner)
+	code, body, err := runRequest(routeName, route, payload, signAccountRequest(nil, nil, true, true))
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusBadRequest)
@@ -42,7 +42,7 @@ func (s *AccountSuite) TestCreateAccount_OK(c *C) {
 
 	routeName := "createAccount"
 	route := getComposedRoute(routeName)
-	code, body, err := runRequest(routeName, route, payload, jarvisSigner)
+	code, body, err := runRequest(routeName, route, payload, signAccountRequest(nil, nil, true, true))
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusCreated)
