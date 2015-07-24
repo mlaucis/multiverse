@@ -24,8 +24,10 @@ type (
 
 func (accUser *accountUser) Read(ctx *context.Context) (err []errors.Error) {
 	// TODO This one read only the current account user maybe we want to have something to read any account user?
-	response.ComputeAccountUserLastModified(ctx, ctx.Bag["accountUser"].(*entity.AccountUser))
-	response.WriteResponse(ctx, ctx.Bag["accountUser"].(*entity.AccountUser), http.StatusOK, 10)
+	accountUser := ctx.Bag["accountUser"].(*entity.AccountUser)
+	response.SanitizeAccountUser(accountUser)
+	response.ComputeAccountUserLastModified(ctx, accountUser)
+	response.WriteResponse(ctx, accountUser, http.StatusOK, 10)
 	return
 }
 
@@ -116,8 +118,8 @@ func (accUser *accountUser) List(ctx *context.Context) (err []errors.Error) {
 		return
 	}
 
-	for idx := range accountUsers {
-		accountUsers[idx].Password = ""
+	for _, accountUser := range accountUsers {
+		response.SanitizeAccountUser(accountUser)
 	}
 
 	resp := &struct {
