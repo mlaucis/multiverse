@@ -255,7 +255,6 @@ func (s *ServerSuite) TestValidatePostCommon_CLHeader(c *C) {
 	c.Assert(err, IsNil)
 
 	createCommonRequestHeaders(req)
-	req.Header.Add("X-Jarvis-Auth", "ZTBmZjI3MGE2M2YzYzAzOWI1MjhiYTNi")
 
 	w := httptest.NewRecorder()
 	m := mux.NewRouter()
@@ -625,10 +624,6 @@ func nilSigner(*http.Request) {
 
 }
 
-func jarvisSigner(r *http.Request) {
-	r.Header.Add("X-Jarvis-Auth", "ZTBmZjI3MGE2M2YzYzAzOWI1MjhiYTNi")
-}
-
 func signAccountRequest(account *entity.Account, accountUser *entity.AccountUser, goodAccountToken, goodAccountUserToken bool) func(*http.Request) {
 	return func(r *http.Request) {
 		user := ""
@@ -667,7 +662,6 @@ func signAccountRequest(account *entity.Account, accountUser *entity.AccountUser
 		encodedAuth := Base64Encode(user + ":" + pass)
 
 		r.Header.Add("Authorization", "Basic "+encodedAuth)
-		r.Header.Add("X-Jarvis-Auth", "ZTBmZjI3MGE2M2YzYzAzOWI1MjhiYTNi")
 	}
 }
 
