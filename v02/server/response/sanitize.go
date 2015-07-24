@@ -2,6 +2,11 @@ package response
 
 import "github.com/tapglue/backend/v02/entity"
 
+// SanitizeAccountUser will sanitize the account user for usage via the API
+func SanitizeAccountUser(user *entity.AccountUser) {
+	user.Password = ""
+}
+
 // SanitizeApplicationUsers sanitize a slice of application users
 func SanitizeApplicationUsers(users []*entity.ApplicationUser) {
 	for idx := range users {

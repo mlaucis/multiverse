@@ -70,6 +70,7 @@ func (s *AccountUserSuite) TestCreateAccountUser_OK(c *C) {
 	c.Assert(receivedAccountUser.ID, Not(Equals), "")
 	c.Assert(receivedAccountUser.Username, Equals, accountUser.Username)
 	c.Assert(receivedAccountUser.Enabled, Equals, true)
+	c.Assert(receivedAccountUser.Password, Equals, "")
 }
 
 // Test a correct updateAccountUser request
@@ -105,6 +106,7 @@ func (s *AccountUserSuite) TestUpdateAccountUser_OK(c *C) {
 	}
 	c.Assert(receivedAccountUser.Username, Equals, accountUser.Username)
 	c.Assert(receivedAccountUser.Enabled, Equals, true)
+	c.Assert(receivedAccountUser.Password, Equals, "")
 }
 
 // Test a correct updateAccountUser request with a wrong id
@@ -263,6 +265,7 @@ func (s *AccountUserSuite) TestGetAccountUser_OK(c *C) {
 	c.Assert(receivedAccountUser.PublicID, Equals, accountUser.PublicID)
 	c.Assert(receivedAccountUser.Username, Equals, accountUser.Username)
 	c.Assert(receivedAccountUser.Enabled, Equals, true)
+	c.Assert(receivedAccountUser.Password, Equals, "")
 }
 
 func (s *AccountUserSuite) TestGetAccountUserListWorks(c *C) {
@@ -287,6 +290,8 @@ func (s *AccountUserSuite) TestGetAccountUserListWorks(c *C) {
 	c.Assert(numAccountUsers, Equals, 3)
 	for idx := range accountUsers {
 		c.Logf("pass %d", idx)
+		c.Assert(accountUsers[idx].Password, Equals, "")
+
 		accountUsers[idx].ID = account.Users[numAccountUsers-1-idx].ID
 		accountUsers[idx].AccountID = account.Users[numAccountUsers-1-idx].AccountID
 		accountUsers[idx].SessionToken = account.Users[numAccountUsers-1-idx].SessionToken
