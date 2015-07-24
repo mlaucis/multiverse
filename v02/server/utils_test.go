@@ -11,6 +11,20 @@ import (
 	"github.com/tapglue/backend/v02/fixtures"
 )
 
+type (
+	AppUserByID []*entity.ApplicationUser
+)
+
+func (s AppUserByID) Len() int {
+	return len(s)
+}
+func (s AppUserByID) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+func (s AppUserByID) Less(i, j int) bool {
+	return s[i].ID < s[j].ID
+}
+
 // AddCorrectAccount creates a correct account
 func AddCorrectAccount(fetchAccount bool) (*entity.Account, errors.Error) {
 	account, err := coreAcc.Create(&fixtures.CorrectAccount, fetchAccount)
