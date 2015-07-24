@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sort"
 
 	"github.com/tapglue/backend/v02/entity"
 	"github.com/tapglue/backend/v02/server"
@@ -1370,6 +1371,7 @@ func (s *ConnectionSuite) TestCreateSocialConnectionFriendsAlreadyConnected(c *C
 	}{}
 	er = json.Unmarshal([]byte(body), &connectedUsers)
 	c.Assert(er, IsNil)
+	sort.Sort(AppUserByID(connectedUsers.Users))
 	c.Assert(connectedUsers.UsersCount, Equals, 2)
 	c.Assert(connectedUsers.Users[0].ID, Equals, userFrom.ID)
 	c.Assert(connectedUsers.Users[1].ID, Equals, user4.ID)
@@ -1447,6 +1449,7 @@ func (s *ConnectionSuite) TestCreateSocialConnectionFollowsAlreadyConnected(c *C
 	}{}
 	er = json.Unmarshal([]byte(body), &connectedUsers)
 	c.Assert(er, IsNil)
+	sort.Sort(AppUserByID(connectedUsers.Users))
 	c.Assert(connectedUsers.UsersCount, Equals, 2)
 	c.Assert(connectedUsers.Users[0].ID, Equals, userFrom.ID)
 	c.Assert(connectedUsers.Users[1].ID, Equals, user4.ID)
@@ -1524,6 +1527,7 @@ func (s *ConnectionSuite) TestCreateSocialConnectionFollowsFriendAlreadyConnecte
 	}{}
 	er = json.Unmarshal([]byte(body), &connectedUsers)
 	c.Assert(er, IsNil)
+	sort.Sort(AppUserByID(connectedUsers.Users))
 	c.Assert(connectedUsers.UsersCount, Equals, 2)
 	c.Assert(connectedUsers.Users[0].ID, Equals, userFrom.ID)
 	c.Assert(connectedUsers.Users[1].ID, Equals, user4.ID)
@@ -1601,6 +1605,7 @@ func (s *ConnectionSuite) TestCreateSocialConnectionFriendFollowsAlreadyConnecte
 	}{}
 	er = json.Unmarshal([]byte(body), &connectedUsers)
 	c.Assert(er, IsNil)
+	sort.Sort(AppUserByID(connectedUsers.Users))
 	c.Assert(connectedUsers.UsersCount, Equals, 2)
 	c.Assert(connectedUsers.Users[0].ID, Equals, userFrom.ID)
 	c.Assert(connectedUsers.Users[1].ID, Equals, user4.ID)
