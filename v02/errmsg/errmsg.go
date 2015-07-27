@@ -90,6 +90,7 @@ var (
 	ErrAuthPasswordEmpty                     = errors.New(http.StatusBadRequest, 4010, "password is empty", "", false)
 	ErrAuthPasswordMismatch                  = errors.New(http.StatusBadRequest, 4011, "different passwords", "", false)
 	ErrAuthSessionTokenMismatch              = errors.New(http.StatusBadRequest, 4012, "session token mismatch", "", false)
+	ErrAuthUserSessionNotSet                 = errors.New(http.StatusBadRequest, 4013, "session token missing from request", "", false)
 
 	// Server errors
 
