@@ -341,6 +341,9 @@ func (appUser *applicationUser) PopulateContext(ctx *context.Context) (err []err
 	if !ok {
 		return []errors.Error{errmsg.ErrAuthInvalidApplicationUserCredentials.UpdateInternalMessage(fmt.Sprintf("got %s:%s", user, pass))}
 	}
+	if pass == "" {
+		return []errors.Error{errmsg.ErrAuthUserSessionNotSet}
+	}
 	ctx.Bag["applicationUser"], err = appUser.storage.FindBySession(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), pass)
 	if err == nil {
 		ctx.Bag["applicationUserID"] = ctx.Bag["applicationUser"].(*entity.ApplicationUser).ID

@@ -507,7 +507,7 @@ func (s *ApplicationUserSuite) TestRefreshSessionOnOriginalTokenFailsAfterDouble
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, nil, true, true))
 	c.Assert(err, IsNil)
-	c.Assert(code, Equals, http.StatusNotFound)
+	c.Assert(code, Equals, http.StatusBadRequest)
 }
 
 func (s *ApplicationUserSuite) TestLoginUserAfterLoginWorks(c *C) {
@@ -753,19 +753,12 @@ func (s *ApplicationUserSuite) TestLoginLogoutLoginWorks(c *C) {
 func (s *ApplicationUserSuite) TestRefreshSessionWithoutLoginFails(c *C) {
 	accounts := CorrectDeploy(1, 0, 1, 1, 0, false, false)
 	application := accounts[0].Applications[0]
-	user := application.Users[0]
-
-	payload := fmt.Sprintf(
-		`{"email": "%s", "password": "%s"}`,
-		user.Email,
-		user.OriginalPassword,
-	)
 
 	// REFRESH USER SESSION
-	payload = fmt.Sprintf(`{"session_token": "%s"}`, "random session token stuff")
+	payload := fmt.Sprintf(`{"session_token": "%s"}`, "random session token stuff")
 	routeName := "refreshApplicationUserSession"
 	route := getComposedRoute(routeName)
-	code, _, err := runRequest(routeName, route, payload, signApplicationRequest(application, nil, true, true))
+	code, _, err := runRequest(routeName, route, payload, signApplicationRequest(application, nil, true, false))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusNotFound)
 }
@@ -1449,4 +1442,16 @@ func (s *ApplicationUserSuite) TestSearch(c *C) {
 		}
 		c.Assert(response.Users, DeepEquals, iterations[idx].Response)
 	}
+}
+
+func (s *ApplicationUserSuite) TestGetUserWithoutSessionFails(c *C) {
+	accounts := CorrectDeploy(1, 0, 1, 1, 0, false, true)
+	application := accounts[0].Applications[0]
+
+	routeName := "getCurrentApplicationUser"
+	route := getComposedRoute(routeName)
+	code, body, err := runRequest(routeName, route, "", signApplicationRequest(application, nil, true, true))
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusBadRequest)
+	c.Assert(body, Equals, "{\"errors\":[{\"code\":4013,\"message\":\"session token missing from request\"}]}\n")
 }
