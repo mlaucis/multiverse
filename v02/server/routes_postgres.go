@@ -360,6 +360,7 @@ func SetupRoutes() []*Route {
 				ContextHasApplicationUser(postgresApplicationUserHandler),
 			},
 		},
+		// TODO NOT DOCUMENTED
 		&Route{
 			Name:   "confirmConnection",
 			Method: "POST",
@@ -467,6 +468,7 @@ func SetupRoutes() []*Route {
 
 	// Event
 	routes = append(routes,
+		// TODO NOT DOCUMENTED, NOT IMPLEMENTED
 		&Route{
 			Name:   "updateUserEvent",
 			Method: "PUT",
@@ -493,6 +495,7 @@ func SetupRoutes() []*Route {
 				ContextHasApplicationUser(postgresApplicationUserHandler),
 			},
 		},
+		// TODO NOT DOCUMENTED, NOT IMPLEMENTED
 		&Route{
 			Name:   "deleteEvent",
 			Method: "DELETE",
@@ -519,6 +522,8 @@ func SetupRoutes() []*Route {
 				ContextHasApplicationUser(postgresApplicationUserHandler),
 			},
 		},
+
+		// TODO NOT DOCUMENTED, NOT IMPLEMENTED
 		&Route{
 			Name:   "createEvent",
 			Method: "POST",
@@ -558,6 +563,7 @@ func SetupRoutes() []*Route {
 				ContextHasApplicationUser(postgresApplicationUserHandler),
 			},
 		},
+		// TODO NOT DOCUMENTED, NOT IMPLEMENTED
 		&Route{
 			Name:   "getCurrentUserEvent",
 			Method: "GET",
@@ -636,6 +642,7 @@ func SetupRoutes() []*Route {
 				ContextHasApplicationUser(postgresApplicationUserHandler),
 			},
 		},
+		// TODO NOT DOCUMENTED, NOT IMPLEMENTED
 		&Route{
 			Name:   "searchEvents",
 			Method: "GET",
