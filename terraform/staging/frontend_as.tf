@@ -1,0 +1,77 @@
+resource "aws_launch_configuration" "frontend" {
+  depends_on                  = [
+    "aws_security_group.frontend-elb-vpc",
+    "aws_security_group.frontend-ssh"]
+
+  image_id                    = "${var.aws_ubuntu_ami}"
+  instance_type               = "t2.micro"
+  associate_public_ip_address = false
+  enable_monitoring           = false
+  ebs_optimized               = false
+
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  security_groups             = [
+    "${aws_security_group.frontend-elb-vpc.id}",
+    "${aws_security_group.frontend-ssh.id}",
+    "${aws_security_group.to-nat.id}",
+    "${aws_security_group.rds_ec2.id}",
+    "${aws_security_group.ec-redis-ec2.id}"]
+}
+
+# Group
+resource "aws_autoscaling_group" "frontend" {
+  vpc_zone_identifier       = [
+    "${aws_subnet.frontend-a.id}",
+    "${aws_subnet.frontend-b.id}"]
+  name                      = "frontend"
+  max_size                  = 0
+  min_size                  = 0
+  health_check_type         = "ELB"
+  health_check_grace_period = 30
+  force_delete              = false
+  launch_configuration      = "${aws_launch_configuration.frontend.name}"
+  load_balancers            = [
+    "${aws_elb.frontend.name}"]
+  termination_policies      = [
+    "OldestInstance",
+    "OldestLaunchConfiguration",
+    "ClosestToNextInstanceHour"]
+
+  tag {
+    key                 = "tapglue_installer"
+    value               = "intaker"
+    propagate_at_launch = true
+  }
+
+  tag {
+    key                 = "intaker_target"
+    value               = "postgres"
+    propagate_at_launch = true
+  }
+
+  tag {
+    key                 = "channel"
+    value               = "beta"
+    propagate_at_launch = true
+  }
+}
+
+# Policies
+resource "aws_autoscaling_policy" "frontend-increase-on-load" {
+  name                   = "frontend-increase-on-load"
+  scaling_adjustment     = 10
+  adjustment_type        = "PercentChangeInCapacity"
+  cooldown               = 60
+  autoscaling_group_name = "${aws_autoscaling_group.frontend.name}"
+}
+
+resource "aws_autoscaling_policy" "frontend-decrease-on-load" {
+  name                   = "frontend-decrease-on-load"
+  scaling_adjustment     = 10
+  adjustment_type        = "PercentChangeInCapacity"
+  cooldown               = 60
+  autoscaling_group_name = "${aws_autoscaling_group.frontend.name}"
+}
