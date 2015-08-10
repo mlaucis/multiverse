@@ -575,6 +575,9 @@ func (s *EventSuite) TestGetFeed(c *C) {
 	c.Assert(response.Count, Equals, 0)
 	c.Assert(len(response.Events), Equals, 33)
 	c.Assert(len(response.Users), Equals, 9)
+	for _, user := range response.Users {
+		c.Assert(user.Deleted, IsNil)
+	}
 }
 
 func (s *EventSuite) TestGetFeedWithCacheHeaders(c *C) {
@@ -605,6 +608,9 @@ func (s *EventSuite) TestGetFeedWithCacheHeaders(c *C) {
 	c.Assert(response.Count, Equals, 33)
 	c.Assert(len(response.Events), Equals, 33)
 	c.Assert(len(response.Users), Equals, 9)
+	for _, user := range response.Users {
+		c.Assert(user.Deleted, IsNil)
+	}
 
 	time.Sleep(10 * time.Millisecond)
 
@@ -660,14 +666,19 @@ func (s *EventSuite) TestGetUnreadFeed(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	response := struct {
-		Count  int            `json:"unread_events_count"`
-		Events []entity.Event `json:"events"`
+		Count  int                               `json:"unread_events_count"`
+		Events []entity.Event                    `json:"events"`
+		Users  map[string]entity.ApplicationUser `json:"users"`
 	}{}
 	er := json.Unmarshal([]byte(body), &response)
 	c.Assert(er, IsNil)
 
 	c.Assert(response.Count, Equals, 33)
 	c.Assert(len(response.Events), Equals, 33)
+	c.Assert(len(response.Users), Equals, 9)
+	for _, user := range response.Users {
+		c.Assert(user.Deleted, IsNil)
+	}
 
 	time.Sleep(10 * time.Millisecond)
 
@@ -679,8 +690,9 @@ func (s *EventSuite) TestGetUnreadFeed(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	response = struct {
-		Count  int            `json:"unread_events_count"`
-		Events []entity.Event `json:"events"`
+		Count  int                               `json:"unread_events_count"`
+		Events []entity.Event                    `json:"events"`
+		Users  map[string]entity.ApplicationUser `json:"users"`
 	}{}
 	er = json.Unmarshal([]byte(body), &response)
 	c.Assert(er, IsNil)

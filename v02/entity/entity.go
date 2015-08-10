@@ -35,6 +35,7 @@ type (
 		URL              string     `json:"url,omitempty"`
 		LastLogin        *time.Time `json:"last_login,omitempty"`
 		Activated        bool       `json:"activated,omitempty"`
+		Deleted          *bool      `json:"deleted,omitempty"`
 	}
 
 	// Image structure
@@ -254,6 +255,18 @@ const (
 	// EventGlobal flags that the event is public and visibile in the WHOLE app (use it with consideration)
 	EventGlobal = 40
 )
+
+var (
+	// PTrue and PFalse are pointers to true and false, because I don't know another way to have optional json values and still have values
+	PTrue, PFalse *bool
+)
+
+func init() {
+	tr := true
+	fl := false
+	PTrue = &tr
+	PFalse = &fl
+}
 
 func (e SortableEventsByDistance) Len() int      { return len(e) }
 func (e SortableEventsByDistance) Swap(i, j int) { e[i], e[j] = e[j], e[i] }

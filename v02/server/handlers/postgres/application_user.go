@@ -38,6 +38,7 @@ func (appUser *applicationUser) Read(ctx *context.Context) (err []errors.Error) 
 	response.ComputeApplicationUserLastModified(ctx, user)
 
 	user.Password = ""
+	user.Deleted = nil
 	user.CreatedAt, user.UpdatedAt, user.LastLogin, user.LastRead = nil, nil, nil, nil
 
 	response.WriteResponse(ctx, user, http.StatusOK, 10)
@@ -47,6 +48,7 @@ func (appUser *applicationUser) Read(ctx *context.Context) (err []errors.Error) 
 func (appUser *applicationUser) ReadCurrent(ctx *context.Context) (err []errors.Error) {
 	user := ctx.Bag["applicationUser"].(*entity.ApplicationUser)
 	user.Password = ""
+	user.Deleted = nil
 
 	response.ComputeApplicationUserLastModified(ctx, user)
 
@@ -310,6 +312,7 @@ func (appUser *applicationUser) Search(ctx *context.Context) (err []errors.Error
 
 	for idx := range users {
 		users[idx].Password = ""
+		users[idx].Deleted = nil
 		users[idx].CreatedAt, users[idx].UpdatedAt, users[idx].LastLogin, users[idx].LastRead = nil, nil, nil, nil
 	}
 

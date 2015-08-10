@@ -1439,6 +1439,7 @@ func (s *ApplicationUserSuite) TestSearch(c *C) {
 			response.Users[0].LastLogin = iterations[idx].Response[0].LastLogin
 			response.Users[0].LastRead = iterations[idx].Response[0].LastRead
 			response.Users[0].Enabled = iterations[idx].Response[0].Enabled
+			iterations[idx].Response[0].Deleted = nil
 		}
 		c.Assert(response.Users, DeepEquals, iterations[idx].Response)
 	}
