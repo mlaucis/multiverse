@@ -21,7 +21,7 @@ type (
 		Images    map[string]*Image `json:"images,omitempty"`
 		CreatedAt *time.Time        `json:"created_at,omitempty"`
 		UpdatedAt *time.Time        `json:"updated_at,omitempty"`
-		Enabled   bool              `json:"enabled,omitempty"`
+		Enabled   bool              `json:"enabled"`
 	}
 
 	// UserCommon holds common used fields for users
