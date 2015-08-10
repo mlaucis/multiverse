@@ -227,6 +227,18 @@ type (
 		Type             string                  `json:"type"`
 		SocialFriendsIDs []string                `json:"social_friends_ids"`
 	}
+
+	// ErrorResponse holds the structure of an error what's reported back to the user
+	ErrorResponse struct {
+		Code             int    `json:"code"`
+		Message          string `json:"message"`
+		DocumentationURL string `json:"documentation_url,omitempty"`
+	}
+
+	// ErrorsResponse holds the structure for multiple errors that are reported back to the user
+	ErrorsResponse struct {
+		Errors []ErrorResponse `json:"errors"`
+	}
 )
 
 const (

@@ -119,7 +119,7 @@ func (appUser *applicationUser) Create(ctx *context.Context) (err []errors.Error
 
 	err = validator.CreateUser(appUser.storage, ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), user)
 	if err != nil {
-		if withLogin && (err[0] == errmsg.ErrApplicationUserEmailAlreadyExists || err[0] == errmsg.ErrApplicationUserUsernameAlreadyExists) {
+		if withLogin && (err[0] == errmsg.ErrApplicationUserEmailAlreadyExists || err[0] == errmsg.ErrApplicationUserUsernameInUse) {
 			ctx.Query.Set("withUserDetails", "true")
 			return appUser.Login(ctx)
 		}

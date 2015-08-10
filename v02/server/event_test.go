@@ -66,7 +66,7 @@ func (s *EventSuite) TestCreateEvent_OK(c *C) {
 
 	routeName := "createCurrentUserEvent"
 	route := getComposedRoute(routeName)
-	code, body, headerz, err := runRequestWithHeaders(routeName, route, payload, func(*http.Request){}, signApplicationRequest(application, user, true, true))
+	code, body, headerz, err := runRequestWithHeaders(routeName, route, payload, func(*http.Request) {}, signApplicationRequest(application, user, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(headerz.Get("Location"), Not(Equals), "")

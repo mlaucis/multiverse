@@ -136,7 +136,7 @@ const (
 )
 
 var (
-	startTime           time.Time
+	startTime         time.Time
 	db                *sqlx.DB
 	conf              *config.Config
 	v02PostgresClient v02_postgres.Client

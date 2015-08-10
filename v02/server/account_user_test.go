@@ -7,6 +7,7 @@ import (
 
 	"github.com/tapglue/backend/utils"
 	"github.com/tapglue/backend/v02/entity"
+	"github.com/tapglue/backend/v02/errmsg"
 
 	. "gopkg.in/check.v1"
 )
@@ -483,4 +484,32 @@ func (s *AccountUserSuite) TestLoginRefreshSessionLogoutAccountUserWorks(c *C) {
 	code, body, err = runRequest(routeName, route, payload, signAccountRequest(account, user, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusNoContent)
+}
+
+func (s *AccountUserSuite) TestCreateAccountUserDoubleEmailCheckMessage(c *C) {
+	account := CorrectDeploy(1, 1, 0, 0, 0, false, true)[0]
+	accountUser := account.Users[0]
+
+	payload := fmt.Sprintf(
+		`{"user_name":%q, "password":%q, "first_name": %q, "last_name": %q, "email": %q}`,
+		accountUser.Username,
+		accountUser.OriginalPassword,
+		accountUser.FirstName,
+		accountUser.LastName,
+		"new+"+accountUser.Email,
+	)
+
+	routeName := "createAccountUser"
+	route := getComposedRoute(routeName, account.PublicID)
+	code, body, err := runRequest(routeName, route, payload, signAccountRequest(account, nil, true, true))
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusBadRequest)
+	c.Assert(body, Not(Equals), "")
+
+	receivedResponse := &entity.ErrorsResponse{}
+	er := json.Unmarshal([]byte(body), receivedResponse)
+	c.Assert(er, IsNil)
+	c.Assert(len(receivedResponse.Errors), Equals, 1)
+	c.Assert(receivedResponse.Errors[0].Code, Equals, errmsg.ErrApplicationUserUsernameInUse.Code())
+	c.Assert(receivedResponse.Errors[0].Message, Equals, errmsg.ErrApplicationUserUsernameInUse.Error())
 }

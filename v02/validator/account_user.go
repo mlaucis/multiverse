@@ -65,7 +65,7 @@ func CreateAccountUser(datastore core.AccountUser, accountUser *entity.AccountUs
 
 	if isDuplicate, err := DuplicateAccountUserUsername(datastore, accountUser.Username); isDuplicate || err != nil {
 		if isDuplicate {
-			errs = append(errs, errmsg.ErrApplicationUserEmailAlreadyExists)
+			errs = append(errs, errmsg.ErrApplicationUserUsernameInUse)
 		} else {
 			errs = append(errs, err...)
 		}
@@ -180,7 +180,7 @@ func DuplicateAccountUserUsername(datastore core.AccountUser, username string) (
 		if err != nil {
 			return false, err
 		} else if userExists {
-			return true, []errors.Error{errmsg.ErrApplicationUserUsernameAlreadyExists}
+			return true, []errors.Error{errmsg.ErrApplicationUserUsernameInUse}
 		}
 	}
 
