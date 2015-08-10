@@ -7,7 +7,7 @@ dependencies:
   pre:
     - echo "" > ~/.gitconfig
   override:
-    - docker run -d -t -p 4567:4567 dlsniper/kinesalite:1.7.1
+    - docker run -d -t -p 4567:4567 dlsniper/kinesalite:1.8.0
     - sudo chown -R ubuntu /home/ubuntu/.cache/
     - sudo -H pip install awscli
     - sudo chown -R ubuntu /home/ubuntu/.cache/
