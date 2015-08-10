@@ -8,13 +8,16 @@ import (
 type (
 	// Event route handler
 	Event interface {
+		// CurrentUserRead handles requests to retrieve a single event for the current user
+		CurrentUserRead(*context.Context) []errors.Error
+
 		// Read handles requests to retrieve a single event
 		Read(*context.Context) []errors.Error
 
 		// Update handles requests to update an event
 		Update(*context.Context) []errors.Error
 
-		// CurrentUserUpdate handles requests to update an event
+		// CurrentUserUpdate handles requests to update an event for the current user
 		CurrentUserUpdate(*context.Context) []errors.Error
 
 		// Delete handles requests to delete a single event
@@ -29,11 +32,11 @@ type (
 		// Feed handles requests to retrieve a users connections events
 		Feed(*context.Context) []errors.Error
 
-		// Create handles requests to create an event for a user
-		Create(*context.Context) []errors.Error
-
 		// CurrentUserCreate handles requests to create an event for the current user
 		CurrentUserCreate(*context.Context) []errors.Error
+
+		// Create handles requests to create an event for a user
+		Create(*context.Context) []errors.Error
 
 		// Search handles requests to retrieve events that match a certain query
 		Search(*context.Context) []errors.Error

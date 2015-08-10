@@ -305,6 +305,28 @@ func (s *EventSuite) TestGetEvent_OK(c *C) {
 	c.Assert(receivedEvent.Enabled, Equals, true)
 }
 
+func (s *EventSuite) TestGetCurrentUserEventOK(c *C) {
+	accounts := CorrectDeploy(1, 0, 1, 1, 1, false, true)
+	application := accounts[0].Applications[0]
+	user := application.Users[0]
+	event := user.Events[rand.Intn(1)]
+
+	routeName := "getCurrentUserEvent"
+	route := getComposedRoute(routeName, event.ID)
+	code, body, err := runRequest(routeName, route, "", signApplicationRequest(application, user, true, true))
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusOK)
+
+	c.Assert(body, Not(Equals), "")
+
+	receivedEvent := &entity.Event{}
+	er := json.Unmarshal([]byte(body), receivedEvent)
+	c.Assert(er, IsNil)
+	c.Assert(receivedEvent.ID, Equals, event.ID)
+	c.Assert(receivedEvent.UserID, Equals, user.ID)
+	c.Assert(receivedEvent.Enabled, Equals, true)
+}
+
 // Test a correct getEventList request
 func (s *EventSuite) TestGetEventList_OK(c *C) {
 	accounts := CorrectDeploy(1, 0, 1, 2, 5, false, true)
