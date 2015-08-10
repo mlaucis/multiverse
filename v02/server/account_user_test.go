@@ -532,3 +532,28 @@ func (s *AccountUserSuite) TestDeleteAccountUserNewRequestFail(c *C) {
 	c.Assert(code, Equals, http.StatusNotFound)
 	c.Assert(body, Not(Equals), "")
 }
+
+func (s *AccountUserSuite) TestLoginAfterDeleteAccount(c *C) {
+	account := CorrectDeploy(1, 1, 0, 0, 0, false, true)[0]
+	accountUser := account.Users[0]
+
+	routeName := "deleteAccountUser"
+	route := getComposedRoute(routeName, account.PublicID, accountUser.PublicID)
+	code, _, err := runRequest(routeName, route, "", signAccountRequest(account, accountUser, true, true))
+
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusNoContent)
+
+	payload := fmt.Sprintf(
+		`{"email": "%s", "password": "%s"}`,
+		accountUser.Email,
+		accountUser.OriginalPassword,
+	)
+
+	routeName = "loginAccountUser"
+	route = getComposedRoute(routeName)
+	code, body, err := runRequest(routeName, route, payload, signAccountRequest(nil, nil, true, true))
+	c.Assert(err, IsNil)
+	c.Assert(body, Not(Equals), "")
+	c.Assert(code, Equals, http.StatusNotFound)
+}
