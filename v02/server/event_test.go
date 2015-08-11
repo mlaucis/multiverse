@@ -66,7 +66,7 @@ func (s *EventSuite) TestCreateEvent_OK(c *C) {
 
 	routeName := "createCurrentUserEvent"
 	route := getComposedRoute(routeName)
-	code, body, headerz, err := runRequestWithHeaders(routeName, route, payload, func(*http.Request){}, signApplicationRequest(application, user, true, true))
+	code, body, headerz, err := runRequestWithHeaders(routeName, route, payload, func(*http.Request) {}, signApplicationRequest(application, user, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(headerz.Get("Location"), Not(Equals), "")
@@ -291,6 +291,28 @@ func (s *EventSuite) TestGetEvent_OK(c *C) {
 
 	routeName := "getEvent"
 	route := getComposedRoute(routeName, user.ID, event.ID)
+	code, body, err := runRequest(routeName, route, "", signApplicationRequest(application, user, true, true))
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusOK)
+
+	c.Assert(body, Not(Equals), "")
+
+	receivedEvent := &entity.Event{}
+	er := json.Unmarshal([]byte(body), receivedEvent)
+	c.Assert(er, IsNil)
+	c.Assert(receivedEvent.ID, Equals, event.ID)
+	c.Assert(receivedEvent.UserID, Equals, user.ID)
+	c.Assert(receivedEvent.Enabled, Equals, true)
+}
+
+func (s *EventSuite) TestGetCurrentUserEventOK(c *C) {
+	accounts := CorrectDeploy(1, 0, 1, 1, 1, false, true)
+	application := accounts[0].Applications[0]
+	user := application.Users[0]
+	event := user.Events[rand.Intn(1)]
+
+	routeName := "getCurrentUserEvent"
+	route := getComposedRoute(routeName, event.ID)
 	code, body, err := runRequest(routeName, route, "", signApplicationRequest(application, user, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusOK)
@@ -553,6 +575,9 @@ func (s *EventSuite) TestGetFeed(c *C) {
 	c.Assert(response.Count, Equals, 0)
 	c.Assert(len(response.Events), Equals, 33)
 	c.Assert(len(response.Users), Equals, 9)
+	for _, user := range response.Users {
+		c.Assert(user.Deleted, IsNil)
+	}
 }
 
 func (s *EventSuite) TestGetFeedWithCacheHeaders(c *C) {
@@ -583,6 +608,9 @@ func (s *EventSuite) TestGetFeedWithCacheHeaders(c *C) {
 	c.Assert(response.Count, Equals, 33)
 	c.Assert(len(response.Events), Equals, 33)
 	c.Assert(len(response.Users), Equals, 9)
+	for _, user := range response.Users {
+		c.Assert(user.Deleted, IsNil)
+	}
 
 	time.Sleep(10 * time.Millisecond)
 
@@ -638,14 +666,19 @@ func (s *EventSuite) TestGetUnreadFeed(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	response := struct {
-		Count  int            `json:"unread_events_count"`
-		Events []entity.Event `json:"events"`
+		Count  int                               `json:"unread_events_count"`
+		Events []entity.Event                    `json:"events"`
+		Users  map[string]entity.ApplicationUser `json:"users"`
 	}{}
 	er := json.Unmarshal([]byte(body), &response)
 	c.Assert(er, IsNil)
 
 	c.Assert(response.Count, Equals, 33)
 	c.Assert(len(response.Events), Equals, 33)
+	c.Assert(len(response.Users), Equals, 9)
+	for _, user := range response.Users {
+		c.Assert(user.Deleted, IsNil)
+	}
 
 	time.Sleep(10 * time.Millisecond)
 
@@ -657,8 +690,9 @@ func (s *EventSuite) TestGetUnreadFeed(c *C) {
 	c.Assert(body, Not(Equals), "")
 
 	response = struct {
-		Count  int            `json:"unread_events_count"`
-		Events []entity.Event `json:"events"`
+		Count  int                               `json:"unread_events_count"`
+		Events []entity.Event                    `json:"events"`
+		Users  map[string]entity.ApplicationUser `json:"users"`
 	}{}
 	er = json.Unmarshal([]byte(body), &response)
 	c.Assert(er, IsNil)

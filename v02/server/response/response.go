@@ -14,15 +14,8 @@ import (
 
 	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/errors"
+	"github.com/tapglue/backend/v02/entity"
 	"github.com/tapglue/backend/v02/errmsg"
-)
-
-type (
-	errorResponse struct {
-		Code             int    `json:"code"`
-		Message          string `json:"message"`
-		DocumentationURL string `json:"documentation_url,omitempty"`
-	}
 )
 
 const (
@@ -155,11 +148,9 @@ func WriteCommonHeaders(cacheTime uint, ctx *context.Context) {
 
 // ErrorHappened handles the error message
 func ErrorHappened(ctx *context.Context, errs []errors.Error) {
-	errorMessage := map[string][]errorResponse{
-		"errors": []errorResponse{},
-	}
+	errorMessage := entity.ErrorsResponse{Errors: []entity.ErrorResponse{}}
 	for idx := range errs {
-		errorMessage["errors"] = append(errorMessage["errors"], errorResponse{Code: errs[idx].Code(), Message: errs[idx].Error()})
+		errorMessage.Errors = append(errorMessage.Errors, entity.ErrorResponse{Code: errs[idx].Code(), Message: errs[idx].Error()})
 	}
 	WriteResponse(ctx, errorMessage, int(errs[0].Type()), 0)
 	go ctx.LogError(errs)

@@ -369,6 +369,7 @@ func AddCorrectApplicationUsers(accountID int64, application *entity.Application
 		user := CorrectUserWithDefaults(accountID, application.ID, int64(i+1))
 		password := user.Password
 		user.Activated = true
+		user.Deleted = entity.PFalse
 		result[i], err = coreAppUser.Create(accountID, application.ID, user, true)
 		if err != nil {
 			panic(err[0].InternalErrorWithLocation())
@@ -429,12 +430,12 @@ func AddCorrectUserEvents(accountID, applicationID int64, user *entity.Applicati
 		} else {
 			event.Location = fmt.Sprintf("location-%d", i+1)
 			event.Target = &entity.Object{
-				ID:           fmt.Sprintf("acc-%d-app-%d-usr-%s-target-%d", accountID, applicationID, user.ID, i+1),
-				DisplayNames: map[string]string{"all": fmt.Sprintf("acc-%d-app-%d-usr-%s-target-%d-lall", accountID, applicationID, user.ID, i+1)},
+				ID:           fmt.Sprintf("acc-%d-app-%d-usr-%d-target-%d", accountID, applicationID, user.ID, i+1),
+				DisplayNames: map[string]string{"all": fmt.Sprintf("acc-%d-app-%d-usr-%d-target-%d-lall", accountID, applicationID, user.ID, i+1)},
 			}
 			event.Object = &entity.Object{
-				ID:           fmt.Sprintf("acc-%d-app-%d-usr-%s-object-%d", accountID, applicationID, user.ID, i+1),
-				DisplayNames: map[string]string{"all": fmt.Sprintf("acc-%d-app-%d-usr-%s-object-%d-lall", accountID, applicationID, user.ID, i+1)},
+				ID:           fmt.Sprintf("acc-%d-app-%d-usr-%d-object-%d", accountID, applicationID, user.ID, i+1),
+				DisplayNames: map[string]string{"all": fmt.Sprintf("acc-%d-app-%d-usr-%d-object-%d-lall", accountID, applicationID, user.ID, i+1)},
 			}
 		}
 

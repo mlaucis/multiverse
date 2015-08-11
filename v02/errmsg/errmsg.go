@@ -11,19 +11,18 @@ import (
 var (
 	// Application user errors
 
-	ErrApplicationUserNotActivated          = errors.New(http.StatusNotAcceptable, 1000, "user not activated", "", false)
-	ErrApplicationUserNotFound              = errors.New(http.StatusNotFound, 1001, "application user not found", "", false)
-	ErrApplicationUserEmailAlreadyExists    = errors.New(http.StatusBadRequest, 1002, "email address already in use", "", false)
-	ErrApplicationUserEmailInvalid          = errors.New(http.StatusBadRequest, 1003, "user email is not valid", "", false)
-	ErrApplicationUserFirstNameSize         = errors.New(http.StatusBadRequest, 1004, "user first name must be between 2 and 40 characters", "", false)
-	ErrApplicationUserIDInvalid             = errors.New(http.StatusBadRequest, 1005, "user id is not valid", "", false)
-	ErrApplicationUserLastNameSize          = errors.New(http.StatusBadRequest, 1006, "user last name must be between 2 and 40 characters", "", false)
-	ErrApplicationUsernameAndEmailAreEmpty  = errors.New(http.StatusBadRequest, 1007, "user email and username are both empty", "", false)
-	ErrApplicationUserUsernameInUse         = errors.New(http.StatusBadRequest, 1008, "username already in use", "", false)
-	ErrApplicationUserSearchTypeMin3Chars   = errors.New(http.StatusBadRequest, 1009, "type at least 3 characters to search", "", false)
-	ErrApplicationUserURLInvalid            = errors.New(http.StatusBadRequest, 1010, "user url is not a valid url", "", false)
-	ErrApplicationUserUsernameAlreadyExists = errors.New(http.StatusBadRequest, 1011, "user already exists", "", false)
-	ErrApplicationUserUsernameSize          = errors.New(http.StatusBadRequest, 1012, "user username must be between 2 and 40 characters", "", false)
+	ErrApplicationUserNotActivated         = errors.New(http.StatusNotAcceptable, 1000, "user not activated", "", false)
+	ErrApplicationUserNotFound             = errors.New(http.StatusNotFound, 1001, "application user not found", "", false)
+	ErrApplicationUserEmailAlreadyExists   = errors.New(http.StatusBadRequest, 1002, "email address already in use", "", false)
+	ErrApplicationUserEmailInvalid         = errors.New(http.StatusBadRequest, 1003, "user email is not valid", "", false)
+	ErrApplicationUserFirstNameSize        = errors.New(http.StatusBadRequest, 1004, "user first name must be between 2 and 40 characters", "", false)
+	ErrApplicationUserIDInvalid            = errors.New(http.StatusBadRequest, 1005, "user id is not valid", "", false)
+	ErrApplicationUserLastNameSize         = errors.New(http.StatusBadRequest, 1006, "user last name must be between 2 and 40 characters", "", false)
+	ErrApplicationUsernameAndEmailAreEmpty = errors.New(http.StatusBadRequest, 1007, "user email and username are both empty", "", false)
+	ErrApplicationUserUsernameInUse        = errors.New(http.StatusBadRequest, 1008, "username already in use", "", false)
+	ErrApplicationUserSearchTypeMin3Chars  = errors.New(http.StatusBadRequest, 1009, "type at least 3 characters to search", "", false)
+	ErrApplicationUserURLInvalid           = errors.New(http.StatusBadRequest, 1010, "user url is not a valid url", "", false)
+	ErrApplicationUserUsernameSize         = errors.New(http.StatusBadRequest, 1012, "user username must be between 2 and 40 characters", "", false)
 
 	// Internal application user errors
 

@@ -24,6 +24,29 @@ type (
 	}
 )
 
+func (evt *event) CurrentUserRead(ctx *context.Context) (err []errors.Error) {
+	var event = &entity.Event{}
+
+	eventID, er := strconv.ParseUint(ctx.Vars["eventID"], 10, 64)
+	if er != nil {
+		return []errors.Error{errmsg.ErrEventIDInvalid}
+	}
+
+	if event, err = evt.storage.Read(
+		ctx.Bag["accountID"].(int64),
+		ctx.Bag["applicationID"].(int64),
+		ctx.Bag["applicationUserID"].(uint64),
+		ctx.Bag["applicationUserID"].(uint64),
+		eventID); err != nil {
+		return
+	}
+
+	response.ComputeEventLastModified(ctx, event)
+
+	response.WriteResponse(ctx, event, http.StatusOK, 10)
+	return
+}
+
 func (evt *event) Read(ctx *context.Context) (err []errors.Error) {
 	var event = &entity.Event{}
 

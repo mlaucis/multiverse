@@ -38,6 +38,7 @@ const (
 	selectAccountUserByPublicIDQuery = `SELECT id, json_data FROM tg.account_users WHERE account_id = $1 AND json_data @> json_build_object('id', $2::text)::jsonb LIMIT 1`
 	updateAccountUserSessionQuery    = `UPDATE tg.account_user_sessions SET session_id = $1 WHERE account_id = $2 AND account_user_id = $3 AND session_id = $4`
 	destroyAccountUserSessionQuery   = `DELETE FROM tg.account_user_sessions WHERE account_id = $1 AND account_user_id = $2 AND session_id = $3`
+	destroyAccountUserSessionsQuery  = `DELETE FROM tg.account_user_sessions WHERE account_id = $1 AND account_user_id = $2`
 )
 
 func (au *accountUser) Create(accountUser *entity.AccountUser, retrieve bool) (*entity.AccountUser, []errors.Error) {
@@ -124,7 +125,16 @@ func (au *accountUser) Delete(accountUser *entity.AccountUser) []errors.Error {
 	user.Enabled = false
 
 	_, err = au.Update(*user, *user, false)
-	return err
+	if err != nil {
+		return err
+	}
+
+	_, er := au.mainPg.Exec(destroyAccountUserSessionsQuery, user.AccountID, user.ID)
+	if er != nil {
+		return []errors.Error{errmsg.ErrInternalAccountUserSessionDelete.UpdateInternalMessage(er.Error())}
+	}
+
+	return nil
 }
 
 func (au *accountUser) List(accountID int64) (accountUsers []*entity.AccountUser, er []errors.Error) {
@@ -337,7 +347,15 @@ func (au *accountUser) FindBySession(sessionKey string) (*entity.AccountUser, []
 		return nil, []errors.Error{errmsg.ErrInternalAccountUserRead.UpdateInternalMessage(err.Error())}
 	}
 
-	return au.Read(accountID, accountUserID)
+	accountUser, er := au.Read(accountID, accountUserID)
+	if er != nil {
+		return nil, er
+	}
+	if accountUser == nil || accountUser.Enabled == false {
+		return nil, []errors.Error{errmsg.ErrAccountUserNotFound}
+	}
+
+	return accountUser, nil
 }
 
 func (au *accountUser) FindByPublicID(accountID int64, publicID string) (*entity.AccountUser, []errors.Error) {

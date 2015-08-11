@@ -71,7 +71,7 @@ func CreateUser(datastore core.ApplicationUser, accountID, applicationID int64, 
 	if user.Username != "" {
 		if isDuplicate, err := DuplicateApplicationUserUsername(datastore, accountID, applicationID, user.Username); isDuplicate || err != nil {
 			if isDuplicate {
-				errs = append(errs, errmsg.ErrApplicationUserUsernameAlreadyExists)
+				errs = append(errs, errmsg.ErrApplicationUserUsernameInUse)
 			} else {
 				errs = append(errs, err...)
 			}
@@ -196,7 +196,7 @@ func DuplicateApplicationUserUsername(datastore core.ApplicationUser, accountID,
 		if err != nil {
 			return false, err
 		} else if userExists {
-			return true, []errors.Error{errmsg.ErrApplicationUserUsernameAlreadyExists}
+			return true, []errors.Error{errmsg.ErrApplicationUserUsernameInUse}
 		}
 	}
 

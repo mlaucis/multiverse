@@ -157,7 +157,7 @@ func (accUser *accountUser) Login(ctx *context.Context) (err []errors.Error) {
 		}
 	}
 
-	if account == nil || user == nil {
+	if account == nil || user == nil || !user.Enabled {
 		return []errors.Error{errmsg.ErrAccountUserNotFound}
 	}
 

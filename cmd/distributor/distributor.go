@@ -20,6 +20,7 @@ import (
 	"crypto/rand"
 	"crypto/tls"
 	"crypto/x509"
+
 	"github.com/tapglue/backend/config"
 	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/logger"

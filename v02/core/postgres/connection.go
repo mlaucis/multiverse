@@ -32,7 +32,7 @@ const (
 	followersQuery                     = `SELECT json_data FROM app_%d_%d.connections WHERE json_data @> json_build_object('user_to_id', $1::bigint, 'type', 'follow', 'enabled', true)::jsonb`
 	friendConnectionsQuery             = `SELECT json_data FROM app_%d_%d.connections WHERE json_data @> json_build_object('user_to_id', $1::bigint, 'type', 'friend', 'enabled', true)::jsonb`
 	friendAndFollowingConnectionsQuery = `SELECT json_data FROM app_%d_%d.connections WHERE json_data @> json_build_object('user_from_id', $1::bigint, 'enabled', true)::jsonb`
-	listUsersBySocialIDQuery           = `SELECT json_data FROM app_%d_%d.users WHERE %s`
+	listUsersBySocialIDQuery           = `SELECT json_data FROM app_%d_%d.users WHERE json_data @> '{"enabled": true, "deleted": false}' AND (%s)`
 )
 
 func (c *connection) Create(accountID, applicationID int64, connection *entity.Connection, retrieve bool) (*entity.Connection, []errors.Error) {

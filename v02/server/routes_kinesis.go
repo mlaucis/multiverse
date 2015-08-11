@@ -563,7 +563,7 @@ func SetupRoutes() []*Route {
 			Method: "GET",
 			Path:   fmt.Sprintf("/user/events/%s", eventID),
 			Handlers: []RouteFunc{
-				postgresEventHandler.Read,
+				postgresEventHandler.CurrentUserRead,
 			},
 			Filters: []Filter{
 				RateLimitApplication,

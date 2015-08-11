@@ -21,7 +21,7 @@ type (
 		Images    map[string]*Image `json:"images,omitempty"`
 		CreatedAt *time.Time        `json:"created_at,omitempty"`
 		UpdatedAt *time.Time        `json:"updated_at,omitempty"`
-		Enabled   bool              `json:"enabled,omitempty"`
+		Enabled   bool              `json:"enabled"`
 	}
 
 	// UserCommon holds common used fields for users
@@ -35,6 +35,7 @@ type (
 		URL              string     `json:"url,omitempty"`
 		LastLogin        *time.Time `json:"last_login,omitempty"`
 		Activated        bool       `json:"activated,omitempty"`
+		Deleted          *bool      `json:"deleted,omitempty"`
 	}
 
 	// Image structure
@@ -227,6 +228,18 @@ type (
 		Type             string                  `json:"type"`
 		SocialFriendsIDs []string                `json:"social_friends_ids"`
 	}
+
+	// ErrorResponse holds the structure of an error what's reported back to the user
+	ErrorResponse struct {
+		Code             int    `json:"code"`
+		Message          string `json:"message"`
+		DocumentationURL string `json:"documentation_url,omitempty"`
+	}
+
+	// ErrorsResponse holds the structure for multiple errors that are reported back to the user
+	ErrorsResponse struct {
+		Errors []ErrorResponse `json:"errors"`
+	}
 )
 
 const (
@@ -242,6 +255,18 @@ const (
 	// EventGlobal flags that the event is public and visibile in the WHOLE app (use it with consideration)
 	EventGlobal = 40
 )
+
+var (
+	// PTrue and PFalse are pointers to true and false, because I don't know another way to have optional json values and still have values
+	PTrue, PFalse *bool
+)
+
+func init() {
+	tr := true
+	fl := false
+	PTrue = &tr
+	PFalse = &fl
+}
 
 func (e SortableEventsByDistance) Len() int      { return len(e) }
 func (e SortableEventsByDistance) Swap(i, j int) { e[i], e[j] = e[j], e[i] }

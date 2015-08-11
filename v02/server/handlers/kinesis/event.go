@@ -25,6 +25,10 @@ type (
 	}
 )
 
+func (evt *event) CurrentUserRead(ctx *context.Context) (err []errors.Error) {
+	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+}
+
 func (evt *event) Read(ctx *context.Context) (err []errors.Error) {
 	return []errors.Error{errmsg.ErrServerNotImplementedYet}
 }

@@ -222,7 +222,6 @@ func healthCheckHandler(ctx *context.Context) {
 		response.Services.PostgresMaster = false
 	}
 
-
 	// TODO add exactly the slaves
 	for slave := 0; slave < rawPostgresClient.SlaveCount(); slave++ {
 		if _, err := rawPostgresClient.SlaveDatastore(slave).Exec("SELECT 1"); err != nil {
