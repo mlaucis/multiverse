@@ -185,6 +185,10 @@ func (c *connection) Relation(accountID, applicationID int64, userFromID, userTo
 	return nil, []errors.Error{errmsg.ErrServerNotImplementedYet}
 }
 
+func (c *connection) Exists(accountID, applicationID int64, userFromID, userToID uint64, connType string) (bool, []errors.Error) {
+	return false, []errors.Error{errmsg.ErrServerNotImplementedYet}
+}
+
 // NewConnection creates a new Connection
 func NewConnection(storageClient kinesis.Client) core.Connection {
 	return &connection{

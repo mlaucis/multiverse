@@ -336,7 +336,7 @@ func SetupRoutes() []*Route {
 	routes = append(routes,
 		&Route{
 			Name:   "createConnection",
-			Method: "POST",
+			Method: "PUT",
 			Path:   "/me/connections",
 			Handlers: []RouteFunc{
 				postgresConnectionHandler.Create,

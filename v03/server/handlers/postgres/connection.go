@@ -105,6 +105,17 @@ func (conn *connection) Create(ctx *context.Context) (err []errors.Error) {
 	applicationID := ctx.Bag["applicationID"].(int64)
 	connection.UserFromID = ctx.Bag["applicationUserID"].(uint64)
 
+	if exists, err := conn.storage.Exists(
+		accountID, applicationID,
+		connection.UserFromID, connection.UserToID, connection.Type); exists || err != nil {
+		if exists {
+			response.WriteResponse(ctx, "", http.StatusNoContent, 0)
+			return nil
+		}
+
+		return err
+	}
+
 	if err = validator.CreateConnection(conn.appUser, accountID, applicationID, connection); err != nil {
 		return
 	}

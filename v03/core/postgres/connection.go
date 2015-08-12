@@ -42,6 +42,11 @@ FROM app_%d_%d.connections
 WHERE json_data @> '{"enabled": true}'
       AND (json_data @> json_build_object('user_from_id', $1::BIGINT, 'user_to_id', $2::BIGINT)::JSONB OR
            json_data @> json_build_object('user_from_id', $2::BIGINT, 'user_to_id', $1::BIGINT)::JSONB)`
+
+	connectionExistsQuery = `SELECT
+  (count(*) > 0) :: BOOL AS "exists"
+FROM app_%d_%d.connections
+WHERE json_data @> json_build_object('user_from_id', $1::BIGINT, 'user_to_id', $2::BIGINT, 'type', $3::TEXT, 'enabled', true)::JSONB;`
 )
 
 func (c *connection) Create(accountID, applicationID int64, connection *entity.Connection, retrieve bool) (*entity.Connection, []errors.Error) {
@@ -419,6 +424,21 @@ func (c *connection) Relation(accountID, applicationID int64, userFromID, userTo
 	}
 
 	return rel, nil
+}
+
+func (c *connection) Exists(accountID, applicationID int64, userFromID, userToID uint64, connType string) (bool, []errors.Error) {
+	exists := false
+	err := c.pg.SlaveDatastore(-1).
+		QueryRow(appSchema(connectionExistsQuery, accountID, applicationID), userFromID, userToID, connType).
+		Scan(&exists)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, []errors.Error{errmsg.ErrConnectionNotFound}
+		}
+		return false, []errors.Error{errmsg.ErrInternalConnectionRead.UpdateInternalMessage(err.Error())}
+	}
+
+	return exists, nil
 }
 
 // NewConnection returns a new connection handler with PostgreSQL as storage driver
