@@ -159,7 +159,7 @@ func (evt *event) CurrentUserCreate(ctx *context.Context) (err []errors.Error) {
 		return
 	}
 
-	ctx.W.Header().Set("Location", fmt.Sprintf("https://api.tapglue.com/0.3/user/events/%d", event.ID))
+	ctx.W.Header().Set("Location", fmt.Sprintf("https://api.tapglue.com/0.3/me/events/%d", event.ID))
 	response.WriteResponse(ctx, event, http.StatusCreated, 0)
 	return
 }

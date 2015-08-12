@@ -244,7 +244,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "getCurrentApplicationUser",
 			Method: "GET",
-			Path:   "/user",
+			Path:   "/me",
 			Handlers: []RouteFunc{
 				postgresApplicationUserHandler.ReadCurrent,
 			},
@@ -257,7 +257,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "updateCurrentApplicationUser",
 			Method: "PUT",
-			Path:   "/user",
+			Path:   "/me",
 			Handlers: []RouteFunc{
 				postgresApplicationUserHandler.UpdateCurrent,
 			},
@@ -270,7 +270,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "deleteCurrentApplicationUser",
 			Method: "DELETE",
-			Path:   "/user",
+			Path:   "/me",
 			Handlers: []RouteFunc{
 				postgresApplicationUserHandler.DeleteCurrent,
 			},
@@ -283,7 +283,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "createApplicationUser",
 			Method: "POST",
-			Path:   fmt.Sprintf("/users"),
+			Path:   "/users",
 			Handlers: []RouteFunc{
 				postgresApplicationUserHandler.Create,
 			},
@@ -295,7 +295,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "loginApplicationUser",
 			Method: "POST",
-			Path:   "/user/login",
+			Path:   "/me/login",
 			Handlers: []RouteFunc{
 				postgresApplicationUserHandler.Login,
 			},
@@ -307,7 +307,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "refreshApplicationUserSession",
 			Method: "POST",
-			Path:   "/user/refresh",
+			Path:   "/me/refresh",
 			Handlers: []RouteFunc{
 				postgresApplicationUserHandler.RefreshSession,
 			},
@@ -320,7 +320,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "logoutApplicationUser",
 			Method: "DELETE",
-			Path:   "/user/logout",
+			Path:   "/me/logout",
 			Handlers: []RouteFunc{
 				postgresApplicationUserHandler.Logout,
 			},
@@ -337,7 +337,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "createConnection",
 			Method: "POST",
-			Path:   "/user/connections",
+			Path:   "/me/connections",
 			Handlers: []RouteFunc{
 				postgresConnectionHandler.Create,
 			},
@@ -350,7 +350,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "deleteConnection",
 			Method: "DELETE",
-			Path:   fmt.Sprintf("/user/connections/%s", applicationUserToID),
+			Path:   fmt.Sprintf("/me/connections/%s", applicationUserToID),
 			Handlers: []RouteFunc{
 				postgresConnectionHandler.Delete,
 			},
@@ -363,7 +363,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "confirmConnection",
 			Method: "POST",
-			Path:   fmt.Sprintf("/user/connections/%s/confirm", applicationUserToID),
+			Path:   fmt.Sprintf("/me/connections/%s/confirm", applicationUserToID),
 			Handlers: []RouteFunc{
 				postgresConnectionHandler.Confirm,
 			},
@@ -376,7 +376,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "createSocialConnections",
 			Method: "POST",
-			Path:   "/user/connections/social",
+			Path:   "/me/connections/social",
 			Handlers: []RouteFunc{
 				postgresConnectionHandler.CreateSocial,
 			},
@@ -402,7 +402,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "getCurrentUserFollows",
 			Method: "GET",
-			Path:   "/user/follows",
+			Path:   "/me/follows",
 			Handlers: []RouteFunc{
 				postgresConnectionHandler.CurrentUserList,
 			},
@@ -428,7 +428,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "getCurrentUserFollowers",
 			Method: "GET",
-			Path:   "/user/followers",
+			Path:   "/me/followers",
 			Handlers: []RouteFunc{
 				postgresConnectionHandler.CurrentUserFollowedByList,
 			},
@@ -454,7 +454,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "getCurrentUserFriends",
 			Method: "GET",
-			Path:   "/user/friends",
+			Path:   "/me/friends",
 			Handlers: []RouteFunc{
 				postgresConnectionHandler.CurrentUserFriends,
 			},
@@ -483,7 +483,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "updateCurrentUserEvent",
 			Method: "PUT",
-			Path:   fmt.Sprintf("/user/events/%s", eventID),
+			Path:   fmt.Sprintf("/me/events/%s", eventID),
 			Handlers: []RouteFunc{
 				postgresEventHandler.CurrentUserUpdate,
 			},
@@ -509,7 +509,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "deleteCurrentUserEvent",
 			Method: "DELETE",
-			Path:   fmt.Sprintf("/user/events/%s", eventID),
+			Path:   fmt.Sprintf("/me/events/%s", eventID),
 			Handlers: []RouteFunc{
 				postgresEventHandler.Delete,
 			},
@@ -535,7 +535,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "createCurrentUserEvent",
 			Method: "POST",
-			Path:   "/user/events",
+			Path:   "/me/events",
 			Handlers: []RouteFunc{
 				postgresEventHandler.CurrentUserCreate,
 			},
@@ -561,7 +561,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "getCurrentUserEvent",
 			Method: "GET",
-			Path:   fmt.Sprintf("/user/events/%s", eventID),
+			Path:   fmt.Sprintf("/me/events/%s", eventID),
 			Handlers: []RouteFunc{
 				postgresEventHandler.CurrentUserRead,
 			},
@@ -587,7 +587,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "getCurrentUserEventList",
 			Method: "GET",
-			Path:   "/user/events",
+			Path:   "/me/events",
 			Handlers: []RouteFunc{
 				postgresEventHandler.CurrentUserList,
 			},
@@ -600,7 +600,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "getFeed",
 			Method: "GET",
-			Path:   "/user/feed",
+			Path:   "/me/feed",
 			Handlers: []RouteFunc{
 				postgresEventHandler.Feed,
 			},
@@ -613,7 +613,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "getUnreadFeedCount",
 			Method: "GET",
-			Path:   "/user/feed/unread/count",
+			Path:   "/me/feed/unread/count",
 			Handlers: []RouteFunc{
 				postgresEventHandler.UnreadFeedCount,
 			},
@@ -626,7 +626,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "getUnreadFeed",
 			Method: "GET",
-			Path:   "/user/feed/unread",
+			Path:   "/me/feed/unread",
 			Handlers: []RouteFunc{
 				postgresEventHandler.UnreadFeed,
 			},
