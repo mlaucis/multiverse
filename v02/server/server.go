@@ -5,17 +5,18 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/limiter"
 	"github.com/tapglue/backend/logger"
-	"github.com/tapglue/backend/tgflake"
 	"github.com/tapglue/backend/v02/core"
+	v02_kinesis_core "github.com/tapglue/backend/v02/core/kinesis"
+	v02_postgres_core "github.com/tapglue/backend/v02/core/postgres"
 	"github.com/tapglue/backend/v02/errmsg"
 	"github.com/tapglue/backend/v02/server/response"
-	"github.com/tapglue/backend/v02/storage/postgres"
+	v02_kinesis "github.com/tapglue/backend/v02/storage/kinesis"
+	v02_postgres "github.com/tapglue/backend/v02/storage/postgres"
 
 	"github.com/gorilla/mux"
 )
@@ -271,77 +272,26 @@ func SetupRateLimit(applicationRateLimiter limiter.Limiter) {
 	appRateLimiter = applicationRateLimiter
 }
 
-// SetupKinesisCores takes care of initializing the redis core
-func SetupKinesisCores(
-	account core.Account,
-	accountUser core.AccountUser,
-	application core.Application,
-	applicationUser core.ApplicationUser,
-	connection core.Connection,
-	event core.Event) {
-	kinesisAccount = account
-	kinesisAccountUser = accountUser
-	kinesisApplication = application
-	kinesisApplicationUser = applicationUser
-	kinesisConnection = connection
-	kinesisEvent = event
-}
-
-// SetupPostgresCores takes care of initializing the PostgresSQL core
-func SetupPostgresCores(
-	account core.Account,
-	accountUser core.AccountUser,
-	application core.Application,
-	applicationUser core.ApplicationUser,
-	connection core.Connection,
-	event core.Event) {
-	postgresAccount = account
-	postgresAccountUser = accountUser
-	postgresApplication = application
-	postgresApplicationUser = applicationUser
-	postgresConnection = connection
-	postgresEvent = event
-}
-
-// SetupFlakes initializes the flakes for all the existing applications in the system
-func SetupFlakes(storageClient postgres.Client) {
-	db := storageClient.MainDatastore()
-
-	existingSchemas, err := db.Query(`SELECT nspname FROM pg_catalog.pg_namespace WHERE nspname ILIKE 'app_%_%'`)
-	if err != nil {
-		panic(err)
-	}
-	defer existingSchemas.Close()
-	for existingSchemas.Next() {
-		schemaName := ""
-		err := existingSchemas.Scan(&schemaName)
-		if err != nil {
-			panic(err)
-		}
-		details := strings.Split(schemaName, "_")
-		if len(details) != 3 || details[0] != "app" {
-			continue
-		}
-
-		appID, err := strconv.ParseInt(details[2], 10, 64)
-		if err != nil {
-			panic(err)
-		}
-		_ = tgflake.Flake(appID, "users")
-		_ = tgflake.Flake(appID, "events")
-	}
-}
-
 // Setup initializes the route handlers
 // Must be called after initializing the cores
-func Setup(revision, hostname string) {
+func Setup(v02KinesisClient v02_kinesis.Client, v02PostgresClient v02_postgres.Client, revision, hostname string) {
 	if appRateLimiter == nil {
 		panic("You must first initialize the rate limiter")
 	}
 
-	if kinesisAccount == nil || postgresAccount == nil {
-		panic("You must initialize the kinesis and postgres cores first")
-	}
+	kinesisAccount = v02_kinesis_core.NewAccount(v02KinesisClient)
+	kinesisAccountUser = v02_kinesis_core.NewAccountUser(v02KinesisClient)
+	kinesisApplication = v02_kinesis_core.NewApplication(v02KinesisClient)
+	kinesisApplicationUser = v02_kinesis_core.NewApplicationUser(v02KinesisClient)
+	kinesisConnection = v02_kinesis_core.NewConnection(v02KinesisClient)
+	kinesisEvent = v02_kinesis_core.NewEvent(v02KinesisClient)
+
+	postgresAccount = v02_postgres_core.NewAccount(v02PostgresClient)
+	postgresAccountUser = v02_postgres_core.NewAccountUser(v02PostgresClient)
+	postgresApplication = v02_postgres_core.NewApplication(v02PostgresClient)
+	postgresApplicationUser = v02_postgres_core.NewApplicationUser(v02PostgresClient)
+	postgresConnection = v02_postgres_core.NewConnection(v02PostgresClient)
+	postgresEvent = v02_postgres_core.NewEvent(v02PostgresClient)
 
 	if revision == "" {
 		panic("omfg missing revision")

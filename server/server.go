@@ -6,21 +6,28 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/tapglue/backend/config"
 	"github.com/tapglue/backend/context"
 	"github.com/tapglue/backend/errors"
-	"github.com/tapglue/backend/limiter"
+	ratelimiter_redis "github.com/tapglue/backend/limiter/redis"
 	"github.com/tapglue/backend/logger"
+	"github.com/tapglue/backend/tgflake"
 	"github.com/tapglue/backend/utils"
-	v02_core "github.com/tapglue/backend/v02/core"
 	v02_server "github.com/tapglue/backend/v02/server"
 	v02_kinesis "github.com/tapglue/backend/v02/storage/kinesis"
 	v02_postgres "github.com/tapglue/backend/v02/storage/postgres"
+	v03_redis "github.com/tapglue/backend/v02/storage/redis"
+	v03_server "github.com/tapglue/backend/v03/server"
+	v03_kinesis "github.com/tapglue/backend/v03/storage/kinesis"
+	v03_postgres "github.com/tapglue/backend/v03/storage/postgres"
 
 	redigo "github.com/garyburd/redigo/redis"
 	"github.com/gorilla/mux"
+	"github.com/jmoiron/sqlx"
 	"github.com/yvasiyarov/gorelic"
 )
 
@@ -39,9 +46,9 @@ var (
 	currentRevision = ""
 	currentHostname = ""
 
-	rawKinesisClient   v02_kinesis.Client
-	rawPostgresClient  v02_postgres.Client
-	rawRateLimiterPool *redigo.Pool
+	rawKinesisClient  v03_kinesis.Client
+	rawPostgresClient v03_postgres.Client
+	rateLimiterPool   *redigo.Pool
 )
 
 // WriteCommonHeaders will add the corresponding cache headers based on the time supplied (in seconds)
@@ -187,56 +194,77 @@ func GetRouter(
 	return router, mainLogChan, errorLogChan, nil
 }
 
-// SetupRateLimit will allow for proper rate limits to be configured
-func SetupRateLimit(applicationRateLimiter limiter.Limiter) {
-	v02_server.SetupRateLimit(applicationRateLimiter)
-}
+// SetupFlakes initializes the flakes for all the existing applications in the system
+func SetupFlakes(db *sqlx.DB) {
+	existingSchemas, err := db.Query(`SELECT nspname FROM pg_catalog.pg_namespace WHERE nspname ILIKE 'app_%_%'`)
+	if err != nil {
+		panic(err)
+	}
+	defer existingSchemas.Close()
+	for existingSchemas.Next() {
+		schemaName := ""
+		err := existingSchemas.Scan(&schemaName)
+		if err != nil {
+			panic(err)
+		}
+		details := strings.Split(schemaName, "_")
+		if len(details) != 3 || details[0] != "app" {
+			continue
+		}
 
-// SetupRawConnections will initialize the raw connections for the package
-func SetupRawConnections(
-	kinesisClient v02_kinesis.Client,
-	postgresClient v02_postgres.Client,
-	rateLimiterPool *redigo.Pool) {
-
-	rawKinesisClient = kinesisClient
-	rawPostgresClient = postgresClient
-	rawRateLimiterPool = rateLimiterPool
-}
-
-// SetupKinesisCores takes care of initializing the core
-func SetupKinesisCores(
-	account v02_core.Account,
-
-	accountUser v02_core.AccountUser,
-	application v02_core.Application,
-	applicationUser v02_core.ApplicationUser,
-	connection v02_core.Connection,
-	event v02_core.Event) {
-
-	v02_server.SetupKinesisCores(account, accountUser, application, applicationUser, connection, event)
-}
-
-// SetupPostgresCores takes care of initializing the PostgresSQL core
-func SetupPostgresCores(
-	account v02_core.Account,
-	accountUser v02_core.AccountUser,
-	application v02_core.Application,
-	applicationUser v02_core.ApplicationUser,
-	connection v02_core.Connection,
-	event v02_core.Event) {
-
-	v02_server.SetupPostgresCores(account, accountUser, application, applicationUser, connection, event)
-}
-
-// SetupFlakes will initialize the Tapglue Flakes for the existing applications
-func SetupFlakes() {
-	v02_server.SetupFlakes(rawPostgresClient)
+		appID, err := strconv.ParseInt(details[2], 10, 64)
+		if err != nil {
+			panic(err)
+		}
+		_ = tgflake.Flake(appID, "users")
+		_ = tgflake.Flake(appID, "events")
+	}
 }
 
 // Setup initializes the dependencies
-// Must be called after initializing the cores
-func Setup(revision, hostname string) {
+func Setup(conf *config.Config, revision, hostname string) {
 	currentRevision = revision
 	currentHostname = hostname
-	v02_server.Setup(currentRevision, currentHostname)
+
+	rateLimiterPool = v03_redis.NewRedigoPool(conf.Redis.Hosts[0], "")
+	applicationRateLimiter := ratelimiter_redis.NewLimiter(rateLimiterPool, "ratelimiter.app.")
+	v02_server.SetupRateLimit(applicationRateLimiter)
+	v03_server.SetupRateLimit(applicationRateLimiter)
+
+	var (
+		v02KinesisClient v02_kinesis.Client
+		v03KinesisClient v03_kinesis.Client
+	)
+	if conf.Environment == "prod" {
+		v02KinesisClient = v02_kinesis.New(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Environment)
+		v03KinesisClient = v03_kinesis.New(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Environment)
+	} else {
+		if conf.Kinesis.Endpoint != "" {
+			v02KinesisClient = v02_kinesis.NewTest(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Kinesis.Endpoint, conf.Environment)
+			v03KinesisClient = v03_kinesis.NewTest(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Kinesis.Endpoint, conf.Environment)
+		} else {
+			v02KinesisClient = v02_kinesis.New(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Environment)
+			v03KinesisClient = v03_kinesis.New(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Environment)
+		}
+	}
+	rawKinesisClient = v03KinesisClient
+
+	switch conf.Environment {
+	case "dev":
+		v03KinesisClient.SetupStreams([]string{v03_kinesis.PackedStreamNameDev})
+	case "test":
+		v03KinesisClient.SetupStreams([]string{v03_kinesis.PackedStreamNameTest})
+	case "prod":
+		v03KinesisClient.SetupStreams([]string{v03_kinesis.PackedStreamNameProduction})
+	}
+
+	v02PostgresClient := v02_postgres.New(conf.Postgres)
+	v03PostgresClient := v03_postgres.New(conf.Postgres)
+	rawPostgresClient = v03PostgresClient
+
+	SetupFlakes(v03PostgresClient.SlaveDatastore(-1))
+
+	v02_server.Setup(v02KinesisClient, v02PostgresClient, currentRevision, currentHostname)
+	v03_server.Setup(v03KinesisClient, v03PostgresClient, currentRevision, currentHostname)
+
 }

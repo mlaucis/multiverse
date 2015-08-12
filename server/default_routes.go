@@ -115,7 +115,8 @@ func versionsHandler(ctx *context.Context) {
 			Status  string `json:"status"`
 		}{
 			"0.1": {"0.1", "disabled"},
-			"0.2": {"0.2", "current"},
+			"0.2": {"0.2", "deprecated"},
+			"0.3": {"0.3", "current"},
 		},
 		Revision: currentRevision,
 	}
@@ -233,7 +234,7 @@ func healthCheckHandler(ctx *context.Context) {
 	}
 
 	// Check Rate-Limiter
-	rlConn := rawRateLimiterPool.Get()
+	rlConn := rateLimiterPool.Get()
 	if rlConn.Err() != nil {
 		response.Healthy = false
 		response.Services.RateLimiter = false
