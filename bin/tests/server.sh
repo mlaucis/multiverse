@@ -1,12 +1,16 @@
 #!/bin/bash
 
-cd ${GOPATH}/src/github.com/tapglue/backend/v02/server/
-
 declare -a TEST_TARGETS=("postgres" "kinesis")
 
 export CI=true
+CWD=`pwd`
 
 for TEST_TARGET in "${TEST_TARGETS[@]}"
 do
-    go test -race -tags ${TEST_TARGET} -check.v github.com/tapglue/backend/v02/server
+    declare -a VERSIONS=( "v02" "v03" )
+    for VERSION in "${VERSIONS[@]}"
+    do
+        cd ${GOPATH}/src/github.com/tapglue/backend/${VERSION}/server/
+        go test -race -tags ${TEST_TARGET} -check.v github.com/tapglue/backend/${VERSION}/server
+    done
 done

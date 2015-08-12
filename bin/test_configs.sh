@@ -2,13 +2,13 @@
 
 TEST_TARGET=${1}
 
-cd $GOPATH/src/github.com/tapglue/${TEST_TARGET}
+cd ${GOPATH}/src/github.com/tapglue/${TEST_TARGET}
 cp cmd/${TEST_TARGET}/config.json_dist config.json
 
 sed -i "s/APP_ENV/test/g" config.json
 sed -i "s/APP_HOST_PORT/:8082/g" config.json
 sed -i "s/AWS_ENDPOINT/http:\/\/127.0.0.1:4567/g" config.json
-if [ "$CIRCLECI" = true ] ; then
+if [ "${CIRCLECI}" = true ] ; then
     sed -i "s/REDIS_HOST/127.0.0.1:6379/g" config.json
     sed -i "s/PG_DATABASE/circle_test/g" config.json
     sed -i "s/PG_USERNAME/ubuntu/g" config.json
@@ -21,4 +21,10 @@ else
 fi
 sed -i "s/REDIS_DB_ID/0/g" config.json
 
-cp config.json v02/server/
+CWD=`pwd`
+
+declare -a VERSIONS=( "v02" "v03" )
+for VERSION in "${VERSIONS[@]}"
+do
+    cp config.json ${CWD}/${VERSION}/server/
+done

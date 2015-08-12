@@ -18,7 +18,6 @@ import (
 	"github.com/tapglue/backend/logger"
 	. "github.com/tapglue/backend/utils"
 	"github.com/tapglue/backend/v02/core"
-	v02_kinesis_core "github.com/tapglue/backend/v02/core/kinesis"
 	v02_postgres_core "github.com/tapglue/backend/v02/core/postgres"
 	"github.com/tapglue/backend/v02/entity"
 	"github.com/tapglue/backend/v02/server"
@@ -46,8 +45,6 @@ type (
 	ConnectionSuite      struct{}
 	EventSuite           struct{}
 )
-
-const apiVersion = "0.2"
 
 var (
 	_ = Suite(&ServerSuite{})
@@ -131,34 +128,17 @@ func init() {
 	v02PostgresClient = v02_postgres.New(conf.Postgres)
 
 	redigoRateLimitPool = v02_redis.NewRedigoPool(conf.Redis.Hosts[0], "")
-
 	applicationRateLimiter := ratelimiter_redis.NewLimiter(redigoRateLimitPool, "ratelimiter.app.")
 
-	kinesisAccount := v02_kinesis_core.NewAccount(v02KinesisClient)
-	kinesisAccountUser := v02_kinesis_core.NewAccountUser(v02KinesisClient)
-	kinesisApplication := v02_kinesis_core.NewApplication(v02KinesisClient)
-	kinesisApplicationUser := v02_kinesis_core.NewApplicationUser(v02KinesisClient)
-	kinesisConnection := v02_kinesis_core.NewConnection(v02KinesisClient)
-	kinesisEvent := v02_kinesis_core.NewEvent(v02KinesisClient)
-
-	postgresAccount := v02_postgres_core.NewAccount(v02PostgresClient)
-	postgresAccountUser := v02_postgres_core.NewAccountUser(v02PostgresClient)
-	postgresApplication := v02_postgres_core.NewApplication(v02PostgresClient)
-	postgresApplicationUser := v02_postgres_core.NewApplicationUser(v02PostgresClient)
-	postgresConnection := v02_postgres_core.NewConnection(v02PostgresClient)
-	postgresEvent := v02_postgres_core.NewEvent(v02PostgresClient)
-
-	coreAcc = postgresAccount
-	coreAccUser = postgresAccountUser
-	coreApp = postgresApplication
-	coreAppUser = postgresApplicationUser
-	coreConn = postgresConnection
-	coreEvt = postgresEvent
+	coreAcc = v02_postgres_core.NewAccount(v02PostgresClient)
+	coreAccUser = v02_postgres_core.NewAccountUser(v02PostgresClient)
+	coreApp = v02_postgres_core.NewApplication(v02PostgresClient)
+	coreAppUser = v02_postgres_core.NewApplicationUser(v02PostgresClient)
+	coreConn = v02_postgres_core.NewConnection(v02PostgresClient)
+	coreEvt = v02_postgres_core.NewEvent(v02PostgresClient)
 
 	server.SetupRateLimit(applicationRateLimiter)
-	server.SetupKinesisCores(kinesisAccount, kinesisAccountUser, kinesisApplication, kinesisApplicationUser, kinesisConnection, kinesisEvent)
-	server.SetupPostgresCores(postgresAccount, postgresAccountUser, postgresApplication, postgresApplicationUser, postgresConnection, postgresEvent)
-	server.Setup("HEAD", "CI-Machine")
+	server.Setup(v02KinesisClient, v02PostgresClient, "HEAD", "CI-Machine")
 
 	testBootup(conf.Postgres)
 

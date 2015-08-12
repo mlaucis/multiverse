@@ -20,16 +20,9 @@ import (
 
 	"github.com/tapglue/backend/config"
 	"github.com/tapglue/backend/errors"
-	ratelimiter_redis "github.com/tapglue/backend/limiter/redis"
 	"github.com/tapglue/backend/logger"
 	"github.com/tapglue/backend/server"
-	v02_kinesis_core "github.com/tapglue/backend/v02/core/kinesis"
-	v02_postgres_core "github.com/tapglue/backend/v02/core/postgres"
-	v02_kinesis "github.com/tapglue/backend/v02/storage/kinesis"
-	v02_postgres "github.com/tapglue/backend/v02/storage/postgres"
-	v02_redis "github.com/tapglue/backend/v02/storage/redis"
 
-	redigo "github.com/garyburd/redigo/redis"
 	"github.com/yvasiyarov/gorelic"
 )
 
@@ -39,11 +32,10 @@ const (
 )
 
 var (
-	conf                *config.Config
-	startTime           time.Time
-	redigoRateLimitPool *redigo.Pool
-	currentRevision     string
-	forceNoSec          = flag.Bool("force-no-sec", false, "Force no sec enables launching the backend in production without security checks")
+	conf            *config.Config
+	startTime       time.Time
+	currentRevision string
+	forceNoSec      = flag.Bool("force-no-sec", false, "Force no sec enables launching the backend in production without security checks")
 )
 
 func init() {
@@ -55,6 +47,9 @@ func init() {
 	// Seed random generator
 	mr.Seed(time.Now().UTC().UnixNano())
 
+}
+
+func main() {
 	flag.Parse()
 
 	conf = config.NewConf(EnvConfigVar)
@@ -65,6 +60,7 @@ func init() {
 		}
 	}
 
+	// rsyslog will create the timestamps for us
 	log.SetFlags(0)
 
 	if conf.UseSysLog {
@@ -85,52 +81,6 @@ func init() {
 
 	errors.Init(true)
 
-	var v02KinesisClient v02_kinesis.Client
-	if conf.Environment == "prod" {
-		v02KinesisClient = v02_kinesis.New(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Environment)
-	} else {
-		if conf.Kinesis.Endpoint != "" {
-			v02KinesisClient = v02_kinesis.NewTest(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Kinesis.Endpoint, conf.Environment)
-		} else {
-			v02KinesisClient = v02_kinesis.New(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Environment)
-		}
-	}
-
-	switch conf.Environment {
-	case "dev":
-		v02KinesisClient.SetupStreams([]string{v02_kinesis.PackedStreamNameDev})
-	case "test":
-		v02KinesisClient.SetupStreams([]string{v02_kinesis.PackedStreamNameTest})
-	case "prod":
-		v02KinesisClient.SetupStreams([]string{v02_kinesis.PackedStreamNameProduction})
-	}
-
-	v02PostgresClient := v02_postgres.New(conf.Postgres)
-
-	redigoRateLimitPool = v02_redis.NewRedigoPool(conf.Redis.Hosts[0], "")
-
-	applicationRateLimiter := ratelimiter_redis.NewLimiter(redigoRateLimitPool, "ratelimiter.app.")
-
-	kinesisAccount := v02_kinesis_core.NewAccount(v02KinesisClient)
-	kinesisAccountUser := v02_kinesis_core.NewAccountUser(v02KinesisClient)
-	kinesisApplication := v02_kinesis_core.NewApplication(v02KinesisClient)
-	kinesisApplicationUser := v02_kinesis_core.NewApplicationUser(v02KinesisClient)
-	kinesisConnection := v02_kinesis_core.NewConnection(v02KinesisClient)
-	kinesisEvent := v02_kinesis_core.NewEvent(v02KinesisClient)
-
-	postgresAccount := v02_postgres_core.NewAccount(v02PostgresClient)
-	postgresAccountUser := v02_postgres_core.NewAccountUser(v02PostgresClient)
-	postgresApplication := v02_postgres_core.NewApplication(v02PostgresClient)
-	postgresApplicationUser := v02_postgres_core.NewApplicationUser(v02PostgresClient)
-	postgresConnection := v02_postgres_core.NewConnection(v02PostgresClient)
-	postgresEvent := v02_postgres_core.NewEvent(v02PostgresClient)
-
-	server.SetupRawConnections(v02KinesisClient, v02PostgresClient, redigoRateLimitPool)
-	server.SetupRateLimit(applicationRateLimiter)
-	server.SetupKinesisCores(kinesisAccount, kinesisAccountUser, kinesisApplication, kinesisApplicationUser, kinesisConnection, kinesisEvent)
-	server.SetupPostgresCores(postgresAccount, postgresAccountUser, postgresApplication, postgresApplicationUser, postgresConnection, postgresEvent)
-	server.SetupFlakes()
-
 	currentHostname, err := os.Hostname()
 	if err != nil {
 		panic(fmt.Sprintf("failed to retrieve the current hostname. Error: %q", err))
@@ -139,10 +89,8 @@ func init() {
 		panic("hostname is empty")
 	}
 
-	server.Setup(currentRevision, currentHostname)
-}
+	server.Setup(conf, currentRevision, currentHostname)
 
-func main() {
 	agent := gorelic.NewAgent()
 	agent.NewrelicName = "Intaker"
 	agent.NewrelicLicense = "24f345545c02907b32909bd9f818b29c63bbc5c1"

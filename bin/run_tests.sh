@@ -14,5 +14,20 @@ then
     exit 0
 fi
 
-cd v02/server
-gocov test -race -tags ${TEST_TARGET} -coverpkg=github.com/tapglue/backend/v02/core/${TEST_TARGET},github.com/tapglue/backend/v02/server/handlers/${TEST_TARGET},github.com/tapglue/backend/v02/storage/${TEST_TARGET},github.com/tapglue/backend/v02/validator,github.com/tapglue/backend/v02/server/response,github.com/tapglue/backend/v02/errmsg,github.com/tapglue/backend/v02/storage/helper -check.v github.com/tapglue/backend/v02/server > coverage_server_${TEST_TARGET}.json
+CWD=`pwd`
+
+declare -a VERSIONS=( "v02" "v03" )
+for VERSION in "${VERSIONS[@]}"
+do
+    cd ${CWD}/${VERSION}/server
+
+    gocov test -race -tags ${TEST_TARGET} -check.v\
+        -coverpkg=github.com/tapglue/backend/${VERSION}/core/${TEST_TARGET},\
+github.com/tapglue/backend/${VERSION}/server/handlers/${TEST_TARGET},\
+github.com/tapglue/backend/${VERSION}/storage/${TEST_TARGET},\
+github.com/tapglue/backend/${VERSION}/validator,\
+github.com/tapglue/backend/${VERSION}/server/response,\
+github.com/tapglue/backend/${VERSION}/errmsg,\
+github.com/tapglue/backend/${VERSION}/storage/helper \
+github.com/tapglue/backend/${VERSION}/server > coverage_server_${VERSION}_${TEST_TARGET}.json
+done
