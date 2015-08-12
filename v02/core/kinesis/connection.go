@@ -181,6 +181,10 @@ func (c *connection) AutoConnectSocialFriends(accountID, applicationID int64, us
 	return nil, nil
 }
 
+func (c *connection) Relation(accountID, applicationID int64, userFromID, userToID uint64) (*entity.Relation, []errors.Error) {
+	return nil, []errors.Error{errmsg.ErrServerNotImplementedYet}
+}
+
 // NewConnection creates a new Connection
 func NewConnection(storageClient kinesis.Client) core.Connection {
 	return &connection{

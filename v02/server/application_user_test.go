@@ -312,10 +312,11 @@ func (s *ApplicationUserSuite) TestDeleteUser_OK(c *C) {
 }
 
 func (s *ApplicationUserSuite) TestGetUser_OK(c *C) {
-	accounts := CorrectDeploy(1, 0, 1, 2, 0, false, true)
+	accounts := CorrectDeploy(1, 0, 1, 10, 0, true, true)
 	application := accounts[0].Applications[0]
 	user := application.Users[0]
 	user2 := application.Users[1]
+	user10 := application.Users[9]
 
 	routeName := "getCurrentApplicationUser"
 	route := getComposedRoute(routeName)
@@ -330,8 +331,11 @@ func (s *ApplicationUserSuite) TestGetUser_OK(c *C) {
 	er := json.Unmarshal([]byte(body), receivedUser)
 	c.Assert(er, IsNil)
 	c.Assert(receivedUser.Username, Equals, user.Username)
-	c.Assert(receivedUser.CreatedAt == nil, Not(Equals), true)
-	c.Assert(receivedUser.UpdatedAt == nil, Not(Equals), true)
+	c.Assert(*receivedUser.IsFriends, Equals, false)
+	c.Assert(*receivedUser.IsFollower, Equals, false)
+	c.Assert(*receivedUser.IsFollowing, Equals, false)
+	c.Assert(receivedUser.CreatedAt, Not(IsNil))
+	c.Assert(receivedUser.UpdatedAt, Not(IsNil))
 
 	routeName = "getApplicationUser"
 	route = getComposedRoute(routeName, user2.ID)
@@ -345,8 +349,31 @@ func (s *ApplicationUserSuite) TestGetUser_OK(c *C) {
 	er = json.Unmarshal([]byte(body), receivedUser)
 	c.Assert(er, IsNil)
 	c.Assert(receivedUser.Username, Equals, user2.Username)
-	c.Assert(receivedUser.CreatedAt == nil, Equals, true)
-	c.Assert(receivedUser.UpdatedAt == nil, Equals, true)
+	c.Assert(*receivedUser.IsFriends, Equals, false)
+	c.Assert(*receivedUser.IsFollower, Equals, true)
+	c.Assert(*receivedUser.IsFollowing, Equals, true)
+	c.Assert(receivedUser.CreatedAt, IsNil)
+	c.Assert(receivedUser.UpdatedAt, IsNil)
+	c.Assert(strings.Contains(body, `created_at":null`), Equals, false)
+	c.Assert(strings.Contains(body, `updated_at":null`), Equals, false)
+
+	routeName = "getApplicationUser"
+	route = getComposedRoute(routeName, user10.ID)
+	code, body, err = runRequest(routeName, route, "", signApplicationRequest(application, user, true, true))
+	c.Assert(err, IsNil)
+
+	c.Assert(code, Equals, http.StatusOK)
+	c.Assert(body, Not(Equals), "")
+
+	receivedUser = &entity.ApplicationUser{}
+	er = json.Unmarshal([]byte(body), receivedUser)
+	c.Assert(er, IsNil)
+	c.Assert(receivedUser.Username, Equals, user10.Username)
+	c.Assert(*receivedUser.IsFriends, Equals, false)
+	c.Assert(*receivedUser.IsFollower, Equals, false)
+	c.Assert(*receivedUser.IsFollowing, Equals, false)
+	c.Assert(receivedUser.CreatedAt, IsNil)
+	c.Assert(receivedUser.UpdatedAt, IsNil)
 	c.Assert(strings.Contains(body, `created_at":null`), Equals, false)
 	c.Assert(strings.Contains(body, `updated_at":null`), Equals, false)
 }

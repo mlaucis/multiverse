@@ -110,6 +110,7 @@ type (
 		Events               []*Event            `json:"events,omitempty"`
 		Connections          []*ApplicationUser  `json:"connections,omitempty"`
 		LastRead             *time.Time          `json:"-"`
+		Relation
 		UserCommon
 		Common
 	}
@@ -133,6 +134,13 @@ type (
 	ConnectionWithIDs struct {
 		AccAppIDs
 		Connection
+	}
+
+	// Relation holds the relation between two users
+	Relation struct {
+		IsFriends   *bool `json:"is_friends,omitempty"`
+		IsFollower  *bool `json:"is_follower,omitempty"`
+		IsFollowing *bool `json:"is_following,omitempty"`
 	}
 
 	// Device structure
@@ -257,8 +265,13 @@ const (
 )
 
 var (
-	// PTrue and PFalse are pointers to true and false, because I don't know another way to have optional json values and still have values
-	PTrue, PFalse *bool
+	// Because I don't know another way to have optional json values and still have values
+
+	// PTrue is a pointers to true
+	PTrue *bool
+
+	// PFalse is a pointers to false
+	PFalse *bool
 )
 
 func init() {

@@ -442,8 +442,8 @@ func (conn *connection) determineTGUserID(accountID, applicationID int64, userID
 	return user.ID, nil
 }
 
-// NewConnectionWithApplicationUser initializes a new connection with an application user
-func NewConnectionWithApplicationUser(storage core.Connection, appUser core.ApplicationUser) handlers.Connection {
+// NewConnection initializes a new connection with an application user
+func NewConnection(storage core.Connection, appUser core.ApplicationUser) handlers.Connection {
 	return &connection{
 		storage: storage,
 		appUser: appUser,

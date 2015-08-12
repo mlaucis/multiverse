@@ -117,9 +117,9 @@ func InitHandlers() {
 	postgresAccountHandler = postgres.NewAccount(postgresAccount)
 	postgresAccountUserHandler = postgres.NewAccountUser(postgresAccountUser)
 	postgresApplicationHandler = postgres.NewApplication(postgresApplication)
-	postgresApplicationUserHandler = postgres.NewApplicationUser(postgresApplicationUser)
-	postgresConnectionHandler = postgres.NewConnectionWithApplicationUser(postgresConnection, postgresApplicationUser)
-	postgresEventHandler = postgres.NewEventWithApplicationUser(postgresEvent, postgresApplicationUser)
+	postgresApplicationUserHandler = postgres.NewApplicationUser(postgresApplicationUser, postgresConnection)
+	postgresConnectionHandler = postgres.NewConnection(postgresConnection, postgresApplicationUser)
+	postgresEventHandler = postgres.NewEvent(postgresEvent, postgresApplicationUser)
 }
 
 // VersionHandler returns the current version status

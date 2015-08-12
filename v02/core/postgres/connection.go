@@ -26,13 +26,22 @@ type (
 
 const (
 	createConnectionQuery              = `INSERT INTO app_%d_%d.connections(json_data) VALUES ($1)`
-	selectConnectionQuery              = `SELECT json_data FROM app_%d_%d.connections WHERE json_data @> json_build_object('user_from_id', $1::bigint, 'user_to_id', $2::bigint)::jsonb LIMIT 1`
-	updateConnectionQuery              = `UPDATE app_%d_%d.connections SET json_data = $1 WHERE json_data @> json_build_object('user_from_id', $2::bigint, 'user_to_id', $3::bigint)::jsonb`
-	followsQuery                       = `SELECT json_data FROM app_%d_%d.connections WHERE json_data @> json_build_object('user_from_id', $1::bigint, 'type', 'follow', 'enabled', true)::jsonb`
-	followersQuery                     = `SELECT json_data FROM app_%d_%d.connections WHERE json_data @> json_build_object('user_to_id', $1::bigint, 'type', 'follow', 'enabled', true)::jsonb`
-	friendConnectionsQuery             = `SELECT json_data FROM app_%d_%d.connections WHERE json_data @> json_build_object('user_to_id', $1::bigint, 'type', 'friend', 'enabled', true)::jsonb`
-	friendAndFollowingConnectionsQuery = `SELECT json_data FROM app_%d_%d.connections WHERE json_data @> json_build_object('user_from_id', $1::bigint, 'enabled', true)::jsonb`
+	selectConnectionQuery              = `SELECT json_data FROM app_%d_%d.connections WHERE json_data @> json_build_object('user_from_id', $1::BIGINT, 'user_to_id', $2::BIGINT)::JSONB LIMIT 1`
+	updateConnectionQuery              = `UPDATE app_%d_%d.connections SET json_data = $1 WHERE json_data @> json_build_object('user_from_id', $2::BIGINT, 'user_to_id', $3::BIGINT)::JSONB`
+	followsQuery                       = `SELECT json_data FROM app_%d_%d.connections WHERE json_data @> json_build_object('user_from_id', $1::BIGINT, 'type', 'follow', 'enabled', TRUE)::JSONB`
+	followersQuery                     = `SELECT json_data FROM app_%d_%d.connections WHERE json_data @> json_build_object('user_to_id', $1::BIGINT, 'type', 'follow', 'enabled', TRUE)::JSONB`
+	friendConnectionsQuery             = `SELECT json_data FROM app_%d_%d.connections WHERE json_data @> json_build_object('user_to_id', $1::BIGINT, 'type', 'friend', 'enabled', TRUE)::JSONB`
+	friendAndFollowingConnectionsQuery = `SELECT json_data FROM app_%d_%d.connections WHERE json_data @> json_build_object('user_from_id', $1::BIGINT, 'enabled', TRUE)::JSONB`
 	listUsersBySocialIDQuery           = `SELECT json_data FROM app_%d_%d.users WHERE json_data @> '{"enabled": true, "deleted": false}' AND (%s)`
+
+	getUsersRelationQuery = `SELECT
+  json_data ->> 'user_from_id' AS "from",
+  json_data ->> 'user_to_id'   AS "to",
+  json_data ->> 'type'         AS "type"
+FROM app_%d_%d.connections
+WHERE json_data @> '{"enabled": true}'
+      AND (json_data @> json_build_object('user_from_id', $1::BIGINT, 'user_to_id', $2::BIGINT)::JSONB OR
+           json_data @> json_build_object('user_from_id', $2::BIGINT, 'user_to_id', $1::BIGINT)::JSONB)`
 )
 
 func (c *connection) Create(accountID, applicationID int64, connection *entity.Connection, retrieve bool) (*entity.Connection, []errors.Error) {
@@ -368,6 +377,48 @@ func (c *connection) AutoConnectSocialFriends(accountID, applicationID int64, us
 	}
 
 	return ourStoredUsersIDs, nil
+}
+
+func (c *connection) Relation(accountID, applicationID int64, userFromID, userToID uint64) (*entity.Relation, []errors.Error) {
+	relations, err := c.pg.SlaveDatastore(-1).
+		Query(appSchema(getUsersRelationQuery, accountID, applicationID), userFromID, userToID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, []errors.Error{errmsg.ErrConnectionNotFound}
+		}
+		return nil, []errors.Error{errmsg.ErrInternalConnectionRead.UpdateInternalMessage(err.Error())}
+	}
+	defer relations.Close()
+
+	rel := &entity.Relation{
+		IsFriends:   entity.PFalse,
+		IsFollowing: entity.PFalse,
+		IsFollower:  entity.PFalse,
+	}
+	var (
+		relationFrom, relationTo uint64
+		relationType             string
+	)
+	for relations.Next() {
+		err := relations.Scan(&relationFrom, &relationTo, &relationType)
+		if err != nil {
+			return nil, []errors.Error{errmsg.ErrInternalConnectingUsers.UpdateInternalMessage(err.Error())}
+		}
+
+		if relationType == "friends" {
+			rel.IsFriends = entity.PTrue
+		}
+
+		if relationFrom == userFromID && relationTo == userToID && relationType == "follow" {
+			rel.IsFollowing = entity.PTrue
+		}
+
+		if relationFrom == userToID && relationTo == userFromID && relationType == "follow" {
+			rel.IsFollower = entity.PTrue
+		}
+	}
+
+	return rel, nil
 }
 
 // NewConnection returns a new connection handler with PostgreSQL as storage driver
