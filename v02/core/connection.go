@@ -46,5 +46,8 @@ type (
 
 		// AutoConnectSocialFriends will connect a user with their its friends on from another social network
 		AutoConnectSocialFriends(accountID, applicationID int64, user *entity.ApplicationUser, connectionType string, ourStoredUsersIDs []*entity.ApplicationUser) ([]*entity.ApplicationUser, []errors.Error)
+
+		// Relation returns the relation between two users
+		Relation(accountID, applicationID int64, userFromID, userToID uint64) (*entity.Relation, []errors.Error)
 	}
 )

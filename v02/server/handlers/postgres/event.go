@@ -549,8 +549,8 @@ func (evt *event) usersFromEvents(ctx *context.Context, events []*entity.Event) 
 	return
 }
 
-// NewEventWithApplicationUser returns a new event handler
-func NewEventWithApplicationUser(storage core.Event, appUser core.ApplicationUser) handlers.Event {
+// NewEvent returns a new event handler
+func NewEvent(storage core.Event, appUser core.ApplicationUser) handlers.Event {
 	return &event{
 		storage: storage,
 		appUser: appUser,

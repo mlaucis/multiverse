@@ -21,6 +21,7 @@ import (
 type (
 	applicationUser struct {
 		storage core.ApplicationUser
+		conn    core.Connection
 	}
 )
 
@@ -35,11 +36,29 @@ func (appUser *applicationUser) Read(ctx *context.Context) (err []errors.Error) 
 		return err
 	}
 
+	relation := make(chan *entity.Relation)
+	go func(relation chan *entity.Relation) {
+		user := ctx.Bag["applicationUser"].(*entity.ApplicationUser)
+		rel, _ := appUser.conn.Relation(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), user.ID, userID)
+
+		relation <- rel
+	}(relation)
+
 	response.ComputeApplicationUserLastModified(ctx, user)
 
 	user.Password = ""
 	user.Deleted = nil
 	user.CreatedAt, user.UpdatedAt, user.LastLogin, user.LastRead = nil, nil, nil, nil
+
+	if rel := <-relation; rel != nil {
+		user.IsFriends = rel.IsFriends
+		user.IsFollower = rel.IsFollower
+		user.IsFollowing = rel.IsFollowing
+	} else {
+		user.IsFriends = entity.PFalse
+		user.IsFollower = entity.PFalse
+		user.IsFollowing = entity.PFalse
+	}
 
 	response.WriteResponse(ctx, user, http.StatusOK, 10)
 	return
@@ -49,6 +68,9 @@ func (appUser *applicationUser) ReadCurrent(ctx *context.Context) (err []errors.
 	user := ctx.Bag["applicationUser"].(*entity.ApplicationUser)
 	user.Password = ""
 	user.Deleted = nil
+	user.IsFriends = entity.PFalse
+	user.IsFollower = entity.PFalse
+	user.IsFollowing = entity.PFalse
 
 	response.ComputeApplicationUserLastModified(ctx, user)
 
@@ -350,8 +372,9 @@ func (appUser *applicationUser) PopulateContext(ctx *context.Context) (err []err
 }
 
 // NewApplicationUser returns a new application user routes handler
-func NewApplicationUser(storage core.ApplicationUser) handlers.ApplicationUser {
+func NewApplicationUser(storage core.ApplicationUser, conn core.Connection) handlers.ApplicationUser {
 	return &applicationUser{
 		storage: storage,
+		conn:    conn,
 	}
 }
