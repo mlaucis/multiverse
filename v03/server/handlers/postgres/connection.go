@@ -28,9 +28,9 @@ func (conn *connection) Update(ctx *context.Context) (err []errors.Error) {
 	accountID := ctx.Bag["accountID"].(int64)
 	applicationID := ctx.Bag["applicationID"].(int64)
 
-	userToID, err := conn.determineTGUserID(accountID, applicationID, ctx.Vars["userToId"])
-	if err != nil {
-		return
+	userToID, er := strconv.ParseUint(ctx.Vars["userToID"], 10, 64)
+	if er != nil {
+		return []errors.Error{errmsg.ErrApplicationUserIDInvalid}
 	}
 
 	existingConnection, err := conn.storage.Read(accountID, applicationID, userFromID, userToID)
@@ -69,9 +69,9 @@ func (conn *connection) Delete(ctx *context.Context) (err []errors.Error) {
 
 	userFromID := ctx.Bag["applicationUserID"].(uint64)
 
-	userToID, err := conn.determineTGUserID(accountID, applicationID, ctx.Vars["applicationUserToID"])
-	if err != nil {
-		return
+	userToID, er := strconv.ParseUint(ctx.Vars["applicationUserToID"], 10, 64)
+	if er != nil {
+		return []errors.Error{errmsg.ErrApplicationUserIDInvalid}
 	}
 
 	connection, err := conn.storage.Read(accountID, applicationID, userFromID, userToID)
@@ -126,9 +126,9 @@ func (conn *connection) Create(ctx *context.Context) (err []errors.Error) {
 func (conn *connection) List(ctx *context.Context) (err []errors.Error) {
 	accountID := ctx.Bag["accountID"].(int64)
 	applicationID := ctx.Bag["applicationID"].(int64)
-	userID, err := conn.determineTGUserID(accountID, applicationID, ctx.Vars["applicationUserID"])
-	if err != nil {
-		return
+	userID, er := strconv.ParseUint(ctx.Vars["applicationUserID"], 10, 64)
+	if er != nil {
+		return []errors.Error{errmsg.ErrApplicationUserIDInvalid}
 	}
 
 	exists, err := conn.appUser.ExistsByID(accountID, applicationID, userID)
@@ -200,9 +200,9 @@ func (conn *connection) CurrentUserList(ctx *context.Context) (err []errors.Erro
 func (conn *connection) FollowedByList(ctx *context.Context) (err []errors.Error) {
 	accountID := ctx.Bag["accountID"].(int64)
 	applicationID := ctx.Bag["applicationID"].(int64)
-	userID, err := conn.determineTGUserID(accountID, applicationID, ctx.Vars["applicationUserID"])
-	if err != nil {
-		return
+	userID, er := strconv.ParseUint(ctx.Vars["applicationUserID"], 10, 64)
+	if er != nil {
+		return []errors.Error{errmsg.ErrApplicationUserIDInvalid}
 	}
 
 	exists, err := conn.appUser.ExistsByID(accountID, applicationID, userID)
@@ -360,9 +360,9 @@ func (conn *connection) CreateSocial(ctx *context.Context) (err []errors.Error) 
 func (conn *connection) Friends(ctx *context.Context) (err []errors.Error) {
 	accountID := ctx.Bag["accountID"].(int64)
 	applicationID := ctx.Bag["applicationID"].(int64)
-	userID, err := conn.determineTGUserID(accountID, applicationID, ctx.Vars["applicationUserID"])
-	if err != nil {
-		return
+	userID, er := strconv.ParseUint(ctx.Vars["applicationUserID"], 10, 64)
+	if er != nil {
+		return []errors.Error{errmsg.ErrApplicationUserIDInvalid}
 	}
 
 	exists, err := conn.appUser.ExistsByID(accountID, applicationID, userID)
@@ -423,23 +423,6 @@ func (conn *connection) CurrentUserFriends(ctx *context.Context) (err []errors.E
 
 	response.WriteResponse(ctx, resp, status, 10)
 	return
-}
-
-func (conn *connection) determineTGUserID(accountID, applicationID int64, userID string) (uint64, []errors.Error) {
-	id, er := strconv.ParseUint(userID, 10, 64)
-	if er == nil {
-		// Ho* Lee SH*T, there has to be a better way to do this
-		if id > 27246450442288181 {
-			return id, nil
-		}
-	}
-
-	user, err := conn.appUser.FindByCustomID(accountID, applicationID, userID)
-	if err != nil {
-		return 0, err
-	}
-
-	return user.ID, nil
 }
 
 // NewConnection initializes a new connection with an application user
