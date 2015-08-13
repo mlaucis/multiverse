@@ -66,7 +66,7 @@ func (appu *applicationUser) Delete(accountID, applicationID int64, userID uint6
 		return []errors.Error{errors.NewInternalError(0, "error while deleting the user (1)", er.Error())}
 	}
 
-	partitionKey := fmt.Sprintf("application-user-delete-%d-%d-%s", accountID, applicationID, userID)
+	partitionKey := fmt.Sprintf("application-user-delete-%d-%d-%d", accountID, applicationID, userID)
 	_, err := appu.storage.PackAndPutRecord(kinesis.StreamApplicationUserDelete, partitionKey, data)
 	if err != nil {
 		return []errors.Error{err}

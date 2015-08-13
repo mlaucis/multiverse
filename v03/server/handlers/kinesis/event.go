@@ -84,7 +84,7 @@ func (evt *event) Delete(ctx *context.Context) (err []errors.Error) {
 	applicationID := ctx.Bag["applicationID"].(int64)
 	userID, er := strconv.ParseUint(ctx.Vars["applicationUserID"], 10, 64)
 	if er != nil {
-		return []errors.Error{errmsg.ErrEventIDInvalid}
+		return []errors.Error{errmsg.ErrApplicationUserIDInvalid}
 	}
 	eventID, er := strconv.ParseUint(ctx.Vars["eventID"], 10, 64)
 	if er != nil {

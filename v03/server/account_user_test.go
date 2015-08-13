@@ -9,8 +9,9 @@ import (
 	"github.com/tapglue/backend/v03/entity"
 	"github.com/tapglue/backend/v03/errmsg"
 
-	. "gopkg.in/check.v1"
 	"strings"
+
+	. "gopkg.in/check.v1"
 )
 
 // Test create acccountUser request with a wrong key

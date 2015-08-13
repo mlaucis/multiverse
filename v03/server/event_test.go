@@ -260,22 +260,6 @@ func (s *EventSuite) TestDeleteEvent_OK(c *C) {
 	c.Assert(code, Equals, http.StatusNoContent)
 }
 
-// Test deleteEvent request with a wrong id
-func (s *EventSuite) TestDeleteEvent_WrongID(c *C) {
-	accounts := CorrectDeploy(1, 0, 1, 1, 1, true, true)
-	application := accounts[0].Applications[0]
-	user := application.Users[0]
-	event := user.Events[0]
-
-	routeName := "deleteCurrentUserEvent"
-	route := getComposedRoute(routeName, event.ID+1)
-	code, _, err := runRequest(routeName, route, "", signApplicationRequest(application, user, true, true))
-	c.Assert(err, IsNil)
-
-	c.Assert(err, IsNil)
-	c.Assert(code, Equals, http.StatusNotFound)
-}
-
 func (s *EventSuite) TestDeleteEventMalformedIDFails(c *C) {
 	c.Skip("we can't have malformed ids for now in the tests")
 	accounts := CorrectDeploy(1, 0, 1, 1, 1, true, true)
