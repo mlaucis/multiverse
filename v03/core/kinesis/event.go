@@ -47,7 +47,7 @@ func (e *event) Create(accountID, applicationID int64, currentUserID uint64, eve
 	return nil, nil
 }
 
-func (e *event) Read(accountID, applicationID int64, userID, currentUserID, eventID uint64) (event *entity.Event, err []errors.Error) {
+func (e *event) Read(accountID, applicationID int64, userID, eventID uint64) (event *entity.Event, err []errors.Error) {
 	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
 }
 
@@ -74,11 +74,12 @@ func (e *event) Update(accountID, applicationID int64, currentUserID uint64, exi
 	return nil, nil
 }
 
-func (e *event) Delete(accountID, applicationID int64, currentUserID uint64, event *entity.Event) []errors.Error {
+func (e *event) Delete(accountID, applicationID int64, userID, eventID uint64) []errors.Error {
 	evt := entity.EventWithIDs{}
 	evt.AccountID = accountID
 	evt.ApplicationID = applicationID
-	evt.Event = *event
+	evt.ID = eventID
+	evt.UserID = userID
 	data, er := json.Marshal(evt)
 	if er != nil {
 		return []errors.Error{errors.NewInternalError(0, "error while deleting the event (1)", er.Error())}

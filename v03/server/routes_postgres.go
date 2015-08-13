@@ -363,7 +363,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "createFollowConnectionAlias",
 			Method: "PUT",
-			Path:   "/me/following",
+			Path:   "/me/follow",
 			Handlers: []RouteFunc{
 				postgresConnectionHandler.CreateFollow,
 			},
@@ -537,7 +537,7 @@ func SetupRoutes() []*Route {
 			Method: "DELETE",
 			Path:   fmt.Sprintf("/me/events/%s", eventID),
 			Handlers: []RouteFunc{
-				postgresEventHandler.Delete,
+				postgresEventHandler.CurrentUserDelete,
 			},
 			Filters: []Filter{
 				RateLimitApplication,

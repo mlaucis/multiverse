@@ -47,7 +47,6 @@ func (evt *event) CurrentUserUpdate(ctx *context.Context) (err []errors.Error) {
 		ctx.Bag["accountID"].(int64),
 		ctx.Bag["applicationID"].(int64),
 		ctx.Bag["applicationUserID"].(uint64),
-		ctx.Bag["applicationUserID"].(uint64),
 		eventID)
 	if err != nil {
 		return
@@ -83,22 +82,41 @@ func (evt *event) CurrentUserUpdate(ctx *context.Context) (err []errors.Error) {
 func (evt *event) Delete(ctx *context.Context) (err []errors.Error) {
 	accountID := ctx.Bag["accountID"].(int64)
 	applicationID := ctx.Bag["applicationID"].(int64)
-	userID := ctx.Bag["applicationUserID"].(uint64)
-	eventID, er := strconv.ParseUint(ctx.Vars["eventID"], 10, 64)
+	userID, er := strconv.ParseUint(ctx.Vars["applicationUserID"], 10, 64)
 	if er != nil {
 		return []errors.Error{errmsg.ErrEventIDInvalid}
 	}
-
-	event, err := evt.readStorage.Read(accountID, applicationID, userID, userID, eventID)
-	if err != nil {
-		return
+	eventID, er := strconv.ParseUint(ctx.Vars["eventID"], 10, 64)
+	if er != nil {
+		return []errors.Error{errmsg.ErrEventIDInvalid}
 	}
 
 	if err = evt.writeStorage.Delete(
 		accountID,
 		applicationID,
 		userID,
-		event); err != nil {
+		eventID); err != nil {
+		return
+	}
+
+	response.WriteResponse(ctx, "", http.StatusNoContent, 10)
+	return
+}
+
+func (evt *event) CurrentUserDelete(ctx *context.Context) (err []errors.Error) {
+	accountID := ctx.Bag["accountID"].(int64)
+	applicationID := ctx.Bag["applicationID"].(int64)
+	userID := ctx.Bag["applicationUserID"].(uint64)
+	eventID, er := strconv.ParseUint(ctx.Vars["eventID"], 10, 64)
+	if er != nil {
+		return []errors.Error{errmsg.ErrEventIDInvalid}
+	}
+
+	if err = evt.writeStorage.Delete(
+		accountID,
+		applicationID,
+		userID,
+		eventID); err != nil {
 		return
 	}
 

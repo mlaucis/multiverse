@@ -12,13 +12,13 @@ type (
 		Create(accountID, applicationID int64, currentUserID uint64, event *entity.Event, retrieve bool) (evn *entity.Event, err []errors.Error)
 
 		// Read returns the event matching the ID or an error
-		Read(accountID, applicationID int64, userID, currentUserID, eventID uint64) (event *entity.Event, err []errors.Error)
+		Read(accountID, applicationID int64, userID, eventID uint64) (event *entity.Event, err []errors.Error)
 
 		// Update updates an event in the database and returns the updated event or an error
 		Update(accountID, applicationID int64, currentUserID uint64, existingEvent, updatedEvent entity.Event, retrieve bool) (evn *entity.Event, err []errors.Error)
 
 		// Delete deletes the event matching the IDs or an error
-		Delete(accountID, applicationID int64, currentUserID uint64, evt *entity.Event) []errors.Error
+		Delete(accountID, applicationID int64, userID, eventID uint64) []errors.Error
 
 		// List returns all events from a certain user
 		List(accountID, applicationID int64, userID, currentUserID uint64) (events []*entity.Event, err []errors.Error)

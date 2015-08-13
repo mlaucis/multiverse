@@ -136,10 +136,10 @@ func (e *event) Create(accountID, applicationID int64, currentUserID uint64, eve
 	if !retrieve {
 		return nil, nil
 	}
-	return e.Read(accountID, applicationID, event.UserID, currentUserID, event.ID)
+	return e.Read(accountID, applicationID, event.UserID, event.ID)
 }
 
-func (e *event) Read(accountID, applicationID int64, userID, currentUserID, eventID uint64) (*entity.Event, []errors.Error) {
+func (e *event) Read(accountID, applicationID int64, userID, eventID uint64) (*entity.Event, []errors.Error) {
 	var JSONData string
 	err := e.pg.SlaveDatastore(-1).
 		QueryRow(appSchema(selectEventByIDQuery, accountID, applicationID), eventID, userID).
@@ -180,12 +180,17 @@ func (e *event) Update(accountID, applicationID int64, currentUserID uint64, exi
 		return nil, nil
 	}
 
-	return e.Read(accountID, applicationID, existingEvent.UserID, currentUserID, existingEvent.ID)
+	return e.Read(accountID, applicationID, existingEvent.UserID, existingEvent.ID)
 }
 
-func (e *event) Delete(accountID, applicationID int64, currentUserID uint64, event *entity.Event) []errors.Error {
+func (e *event) Delete(accountID, applicationID int64, userID, eventID uint64) []errors.Error {
+	event, err := e.Read(accountID, applicationID, userID, eventID)
+
+	if err != nil {
+		return err
+	}
 	event.Enabled = false
-	_, err := e.Update(accountID, applicationID, currentUserID, *event, *event, false)
+	_, err = e.Update(accountID, applicationID, userID, *event, *event, false)
 
 	return err
 }
@@ -406,15 +411,6 @@ func (e *event) composeConnectionCondition(accountID, applicationID int64, userI
 	}
 
 	return strings.Join(condition, joinOperator), nil
-}
-
-// NewEventWithConnection returns a new event handler with PostgreSQL as storage driver
-func NewEventWithConnection(pgsql postgres.Client, connection core.Connection) core.Event {
-	return &event{
-		pg:     pgsql,
-		mainPg: pgsql.MainDatastore(),
-		c:      connection,
-	}
 }
 
 // NewEvent returns a new event handler with PostgreSQL as storage driver
