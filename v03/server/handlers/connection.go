@@ -40,5 +40,11 @@ type (
 
 		// CreateSocialConnections creates the social connections between users of the same social network
 		CreateSocial(*context.Context) []errors.Error
+
+		// CreateFriend is a an alias for creating a friend connection type
+		CreateFriend(*context.Context) []errors.Error
+
+		// CreateFollow is an alias for creating a follow connection type
+		CreateFollow(*context.Context) []errors.Error
 	}
 )

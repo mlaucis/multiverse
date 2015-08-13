@@ -93,45 +93,12 @@ func (conn *connection) Create(ctx *context.Context) (err []errors.Error) {
 		connection = &entity.Connection{}
 		er         error
 	)
-	connection.Enabled = true
 
 	if er = json.Unmarshal(ctx.Body, connection); er != nil {
 		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
 	}
 
-	receivedEnabled := connection.Enabled
-
-	accountID := ctx.Bag["accountID"].(int64)
-	applicationID := ctx.Bag["applicationID"].(int64)
-	connection.UserFromID = ctx.Bag["applicationUserID"].(uint64)
-
-	if exists, err := conn.storage.Exists(
-		accountID, applicationID,
-		connection.UserFromID, connection.UserToID, connection.Type); exists || err != nil {
-		if exists {
-			response.WriteResponse(ctx, "", http.StatusNoContent, 0)
-			return nil
-		}
-
-		return err
-	}
-
-	if err = validator.CreateConnection(conn.appUser, accountID, applicationID, connection); err != nil {
-		return
-	}
-
-	if connection, err = conn.storage.Create(accountID, applicationID, connection, true); err != nil {
-		return
-	}
-
-	if receivedEnabled {
-		if connection, err = conn.storage.Confirm(accountID, applicationID, connection, true); err != nil {
-			return
-		}
-	}
-
-	response.WriteResponse(ctx, connection, http.StatusCreated, 0)
-	return
+	return conn.doCreateConnection(ctx, connection)
 }
 
 func (conn *connection) List(ctx *context.Context) (err []errors.Error) {
@@ -434,6 +401,76 @@ func (conn *connection) CurrentUserFriends(ctx *context.Context) (err []errors.E
 
 	response.WriteResponse(ctx, resp, status, 10)
 	return
+}
+
+func (conn *connection) CreateFriend(ctx *context.Context) []errors.Error {
+	var (
+		connection = &entity.Connection{}
+		er         error
+	)
+	connection.Enabled = true
+
+	if er = json.Unmarshal(ctx.Body, connection); er != nil {
+		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
+	}
+
+	connection.Type = "friend"
+	return conn.doCreateConnection(ctx, connection)
+}
+
+func (conn *connection) CreateFollow(ctx *context.Context) []errors.Error {
+	var (
+		connection = &entity.Connection{}
+		er         error
+	)
+	connection.Enabled = true
+
+	if er = json.Unmarshal(ctx.Body, connection); er != nil {
+		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
+	}
+
+	connection.Type = "follow"
+	return conn.doCreateConnection(ctx, connection)
+}
+
+func (conn *connection) doCreateConnection(ctx *context.Context, connection *entity.Connection) []errors.Error {
+	accountID := ctx.Bag["accountID"].(int64)
+	applicationID := ctx.Bag["applicationID"].(int64)
+	connection.UserFromID = ctx.Bag["applicationUserID"].(uint64)
+
+	receivedEnabled := connection.Enabled
+	connection.Enabled = true
+
+	if exists, err := conn.storage.Exists(
+		accountID, applicationID,
+		connection.UserFromID, connection.UserToID, connection.Type); exists || err != nil {
+		if exists {
+			response.WriteResponse(ctx, "", http.StatusNoContent, 0)
+			return nil
+		}
+
+		return err
+	}
+
+	err := validator.CreateConnection(conn.appUser, accountID, applicationID, connection)
+	if err != nil {
+		return err
+	}
+
+	connection, err = conn.storage.Create(accountID, applicationID, connection, true)
+	if err != nil {
+		return err
+	}
+
+	if receivedEnabled {
+		connection, err = conn.storage.Confirm(accountID, applicationID, connection, true)
+		if err != nil {
+			return err
+		}
+	}
+
+	response.WriteResponse(ctx, connection, http.StatusCreated, 0)
+	return nil
 }
 
 // NewConnection initializes a new connection with an application user

@@ -118,6 +118,66 @@ func (s *ConnectionSuite) TestCreateConnectionTwice(c *C) {
 	c.Assert(body, Equals, "\"\"\n")
 }
 
+func (s *ConnectionSuite) TestCreateFriendConnection(c *C) {
+	accounts := CorrectDeploy(1, 0, 1, 2, 0, false, true)
+	application := accounts[0].Applications[0]
+	userFrom := application.Users[0]
+	userTo := application.Users[1]
+
+	LoginApplicationUser(accounts[0].ID, application.ID, userFrom)
+
+	payload := fmt.Sprintf(
+		`{"user_to_id":%d}`,
+		userTo.ID,
+	)
+
+	routeName := "createFriendConnectionAlias"
+	route := getComposedRoute(routeName)
+	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
+	c.Assert(err, IsNil)
+
+	c.Assert(code, Equals, http.StatusCreated)
+	c.Assert(body, Not(Equals), "")
+
+	connection := &entity.Connection{}
+	er := json.Unmarshal([]byte(body), connection)
+	c.Assert(er, IsNil)
+	c.Assert(connection.UserFromID, Equals, userFrom.ID)
+	c.Assert(connection.UserToID, Equals, userTo.ID)
+	c.Assert(connection.Type, Equals, "friend")
+	c.Assert(connection.Enabled, Equals, true)
+}
+
+func (s *ConnectionSuite) TestCreateFollowConnection(c *C) {
+	accounts := CorrectDeploy(1, 0, 1, 2, 0, false, true)
+	application := accounts[0].Applications[0]
+	userFrom := application.Users[0]
+	userTo := application.Users[1]
+
+	LoginApplicationUser(accounts[0].ID, application.ID, userFrom)
+
+	payload := fmt.Sprintf(
+		`{"user_to_id":%d}`,
+		userTo.ID,
+	)
+
+	routeName := "createFollowConnectionAlias"
+	route := getComposedRoute(routeName)
+	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
+	c.Assert(err, IsNil)
+
+	c.Assert(code, Equals, http.StatusCreated)
+	c.Assert(body, Not(Equals), "")
+
+	connection := &entity.Connection{}
+	er := json.Unmarshal([]byte(body), connection)
+	c.Assert(er, IsNil)
+	c.Assert(connection.UserFromID, Equals, userFrom.ID)
+	c.Assert(connection.UserToID, Equals, userTo.ID)
+	c.Assert(connection.Type, Equals, "follow")
+	c.Assert(connection.Enabled, Equals, true)
+}
+
 func (s *ConnectionSuite) TestCreateConnectionWithCustomIDs_OK(c *C) {
 	c.Skip("we should implement a different logic here, as it's hard to reuse the same field for int and string and then int again in Go")
 

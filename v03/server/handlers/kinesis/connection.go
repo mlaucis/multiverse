@@ -84,6 +84,14 @@ func (conn *connection) CurrentUserFriends(ctx *context.Context) (err []errors.E
 	return []errors.Error{errmsg.ErrServerNotImplementedYet}
 }
 
+func (conn *connection) CreateFriend(*context.Context) []errors.Error {
+	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+}
+
+func (conn *connection) CreateFollow(*context.Context) []errors.Error {
+	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+}
+
 // NewConnectionWithApplicationUser returns a new connection handler
 func NewConnectionWithApplicationUser(storage, permaStorage core.Connection, readAppUser core.ApplicationUser) handlers.Connection {
 	return &connection{

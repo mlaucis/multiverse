@@ -348,6 +348,32 @@ func SetupRoutes() []*Route {
 			},
 		},
 		&Route{
+			Name:   "createFriendConnectionAlias",
+			Method: "PUT",
+			Path:   "/me/friends",
+			Handlers: []RouteFunc{
+				postgresConnectionHandler.CreateFriend,
+			},
+			Filters: []Filter{
+				RateLimitApplication,
+				ContextHasApplication(postgresApplicationHandler),
+				ContextHasApplicationUser(postgresApplicationUserHandler),
+			},
+		},
+		&Route{
+			Name:   "createFollowConnectionAlias",
+			Method: "PUT",
+			Path:   "/me/follow",
+			Handlers: []RouteFunc{
+				postgresConnectionHandler.CreateFollow,
+			},
+			Filters: []Filter{
+				RateLimitApplication,
+				ContextHasApplication(postgresApplicationHandler),
+				ContextHasApplicationUser(postgresApplicationUserHandler),
+			},
+		},
+		&Route{
 			Name:   "deleteConnection",
 			Method: "DELETE",
 			Path:   fmt.Sprintf("/me/connections/%s", applicationUserToID),
