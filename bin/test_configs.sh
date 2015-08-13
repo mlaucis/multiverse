@@ -2,7 +2,8 @@
 
 TEST_TARGET=${1}
 
-cd ${GOPATH}/src/github.com/tapglue/${TEST_TARGET}
+CWD=`pwd`
+
 cp cmd/${TEST_TARGET}/config.json_dist config.json
 
 sed -i "s/APP_ENV/test/g" config.json
@@ -20,8 +21,6 @@ else
     sed -i "s/REDIS_HOST/${WERCKER_REDIS_HOST}:${WERCKER_REDIS_PORT}/g" config.json
 fi
 sed -i "s/REDIS_DB_ID/0/g" config.json
-
-CWD=`pwd`
 
 declare -a VERSIONS=( "v02" "v03" )
 for VERSION in "${VERSIONS[@]}"
