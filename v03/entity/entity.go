@@ -36,6 +36,7 @@ type (
 		LastLogin        *time.Time `json:"last_login,omitempty"`
 		Activated        bool       `json:"activated,omitempty"`
 		Deleted          *bool      `json:"deleted,omitempty"`
+		SessionToken     string     `json:"session_token,omitempty"`
 	}
 
 	// Image structure
@@ -102,7 +103,6 @@ type (
 	ApplicationUser struct {
 		ID                   uint64              `json:"id"`
 		CustomID             string              `json:"custom_id,omitempty"`
-		SessionToken         string              `json:"-"`
 		SocialIDs            map[string]string   `json:"social_ids,omitempty"`
 		SocialConnectionsIDs map[string][]string `json:"social_connections_ids,omitempty"`
 		SocialConnectionType string              `json:"connection_type,omitempty"`
