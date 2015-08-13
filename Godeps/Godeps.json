@@ -1,17 +1,17 @@
 {
 	"ImportPath": "github.com/tapglue/backend",
-	"GoVersion": "devel",
+	"GoVersion": "go1.5rc1",
 	"Packages": [
 		"./..."
 	],
 	"Deps": [
 		{
 			"ImportPath": "github.com/garyburd/redigo/internal",
-			"Rev": "535138d7bcd717d6531c701ef5933d98b1866257"
+			"Rev": "1a6effc8b0a7bb1b21c683ea5645c4e0fb52f302"
 		},
 		{
 			"ImportPath": "github.com/garyburd/redigo/redis",
-			"Rev": "535138d7bcd717d6531c701ef5933d98b1866257"
+			"Rev": "1a6effc8b0a7bb1b21c683ea5645c4e0fb52f302"
 		},
 		{
 			"ImportPath": "github.com/gorilla/context",
@@ -19,26 +19,26 @@
 		},
 		{
 			"ImportPath": "github.com/gorilla/mux",
-			"Rev": "8096f47503459bcc74d1f4c487b7e6e42e5746b5"
+			"Rev": "b0b2bc47bcd1442dfc76e58ab649dea056461ac9"
 		},
 		{
 			"ImportPath": "github.com/jmoiron/sqlx",
-			"Comment": "sqlx-v1.1-17-gc06fc0c",
-			"Rev": "c06fc0ca86a92cca7ea9eb4333b095584e7746f3"
+			"Comment": "sqlx-v1.1-42-g344b1e9",
+			"Rev": "344b1e96d6e410a093b7bce40287731a49e253f6"
 		},
 		{
 			"ImportPath": "github.com/lib/pq",
-			"Comment": "go1.0-cutoff-47-g93e9980",
-			"Rev": "93e9980741c9e593411b94e07d5bad8cfb4809db"
+			"Comment": "go1.0-cutoff-59-gb269bd0",
+			"Rev": "b269bd035a727d6c1081f76e7a239a1b00674c40"
 		},
 		{
 			"ImportPath": "github.com/satori/go.uuid",
-			"Rev": "7c7f2020c4c9491594b85767967f4619c2fa75f9"
+			"Rev": "6b8e5b55d20d01ad47ecfe98e5171688397c61e9"
 		},
 		{
 			"ImportPath": "github.com/sendgridlabs/go-kinesis",
-			"Comment": "1.0.1-2-g9ed4b83",
-			"Rev": "9ed4b83e29f247a07183ffa59940a2f39ca05bc0"
+			"Comment": "1.0.1-12-gbf869db",
+			"Rev": "bf869db83dab314a449228e864d7779422e87c51"
 		},
 		{
 			"ImportPath": "github.com/sony/sonyflake",
@@ -50,20 +50,20 @@
 		},
 		{
 			"ImportPath": "github.com/yvasiyarov/gorelic",
-			"Comment": "v0.0.6-14-gb355764",
-			"Rev": "b355764846b999a8a73fc426304f669de56a1a6d"
+			"Comment": "v0.0.6-32-gd835cea",
+			"Rev": "d835cea68f58c5e4eed594ed7fbad5214bd0ced7"
 		},
 		{
 			"ImportPath": "github.com/yvasiyarov/newrelic_platform_go",
-			"Rev": "13d5af9721f4455a501db543c93827447089bab3"
+			"Rev": "db03d6dfd965ebc22dbfd910567c641b326ff055"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/pbkdf2",
-			"Rev": "c10c31b5e94b6f7a0283272dc2bb27163dcea24b"
+			"Rev": "83f1503f771a82af8a31f358eb825e9efb5dae6c"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/scrypt",
-			"Rev": "c10c31b5e94b6f7a0283272dc2bb27163dcea24b"
+			"Rev": "83f1503f771a82af8a31f358eb825e9efb5dae6c"
 		},
 		{
 			"ImportPath": "gopkg.in/bufio.v1",
@@ -72,7 +72,7 @@
 		},
 		{
 			"ImportPath": "gopkg.in/check.v1",
-			"Rev": "8d49746f13e4c654088c52685541fcf4cbc8fa59"
+			"Rev": "11d3bc7aa68e238947792f30573146a3231fc0f1"
 		},
 		{
 			"ImportPath": "gopkg.in/redis.v2",
