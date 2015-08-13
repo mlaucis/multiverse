@@ -17,6 +17,7 @@ dependencies:
     - /home/ubuntu/.gimme/versions/go1.4.2.linux.amd64/bin/go get github.com/tools/godep github.com/axw/gocov/gocov github.com/matm/gocov-html gopkg.in/check.v1
   cache_directories:
     - "~/.go_workspace"
+    - "/home/ubuntu/.gimme"
 database:
   override:
     - PGPASSWORD=unicode psql -U ubuntu -d circle_test -f v02/resources/db/pgsql.sql -h 127.0.0.1
