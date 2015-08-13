@@ -12,6 +12,9 @@ dependencies:
     - sudo -H pip install awscli
     - sudo chown -R ubuntu /home/ubuntu/.cache/
     - go get github.com/tools/godep github.com/axw/gocov/gocov github.com/matm/gocov-html gopkg.in/check.v1
+    - sudo curl -sL -o /usr/local/bin/gimme https://raw.githubusercontent.com/travis-ci/gimme/master/gimme
+    - sudo chmod +x /usr/local/bin/gimme
+    - eval "$(GIMME_GO_VERSION=1.4.2 gimme)"
   cache_directories:
     - "~/.go_workspace"
 database:

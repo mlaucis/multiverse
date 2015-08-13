@@ -37,12 +37,11 @@ func (appUser *applicationUser) Read(ctx *context.Context) (err []errors.Error) 
 	}
 
 	relation := make(chan *entity.Relation)
-	go func(relation chan *entity.Relation) {
-		user := ctx.Bag["applicationUser"].(*entity.ApplicationUser)
-		rel, _ := appUser.conn.Relation(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), user.ID, userID)
+	go func(relation chan *entity.Relation, accountID, applicationID int64, userFromID, userToID uint64) {
+		rel, _ := appUser.conn.Relation(accountID, applicationID, userFromID, userToID)
 
 		relation <- rel
-	}(relation)
+	}(relation, ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUser"].(*entity.ApplicationUser).ID, user.ID)
 
 	response.ComputeApplicationUserLastModified(ctx, user)
 
