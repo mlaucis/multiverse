@@ -17,6 +17,9 @@ type (
 		// UpdateCurrent handles requests to update the current user
 		UpdateCurrent(*context.Context) []errors.Error
 
+		// Delete handles requests to delete a user
+		Delete(*context.Context) []errors.Error
+
 		// DeleteCurrent handles requests to delete the current user
 		DeleteCurrent(*context.Context) []errors.Error
 

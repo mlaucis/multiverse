@@ -297,13 +297,21 @@ func (s *ApplicationUserSuite) TestUpdateUserMalformedPayloadFails(c *C) {
 }
 
 func (s *ApplicationUserSuite) TestDeleteUser_OK(c *C) {
-	accounts := CorrectDeploy(1, 0, 1, 1, 0, true, true)
+	accounts := CorrectDeploy(1, 0, 1, 3, 0, true, true)
 	application := accounts[0].Applications[0]
 	user := application.Users[0]
+	user2 := application.Users[1]
+	user3 := application.Users[2]
 
 	routeName := "deleteCurrentApplicationUser"
 	route := getComposedRoute(routeName)
 	code, _, err := runRequest(routeName, route, "", signApplicationRequest(application, user, true, true))
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusNoContent)
+
+	routeName = "deleteApplicationUser"
+	route = getComposedRoute(routeName, user3.ID)
+	code, _, err = runRequest(routeName, route, "", signApplicationRequest(application, user2, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusNoContent)
 }

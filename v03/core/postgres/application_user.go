@@ -182,12 +182,19 @@ func (au *applicationUser) Update(accountID, applicationID int64, existingUser, 
 	return au.Read(accountID, applicationID, existingUser.ID)
 }
 
-func (au *applicationUser) Delete(accountID, applicationID int64, applicationUser *entity.ApplicationUser) []errors.Error {
-	applicationUser.Enabled = false
-	*applicationUser.Deleted = true
-	_, err := au.Update(accountID, applicationID, *applicationUser, *applicationUser, false)
+func (au *applicationUser) Delete(accountID, applicationID int64, userID uint64) []errors.Error {
+	user, err := au.Read(accountID, applicationID, userID)
+	if err != nil {
+		return err
+	}
 
-	go au.destroyAllUserSession(accountID, applicationID, applicationUser)
+	user.Enabled = false
+	*user.Deleted = true
+	_, err = au.Update(accountID, applicationID, *user, *user, false)
+
+	if err == nil {
+		go au.destroyAllUserSession(accountID, applicationID, user)
+	}
 
 	return err
 }

@@ -281,6 +281,19 @@ func SetupRoutes() []*Route {
 			},
 		},
 		&Route{
+			Name:   "deleteApplicationUser",
+			Method: "DELETE",
+			Path:   fmt.Sprintf("/users/%s", applicationUserID),
+			Handlers: []RouteFunc{
+				postgresApplicationUserHandler.Delete,
+			},
+			Filters: []Filter{
+				RateLimitApplication,
+				ContextHasApplication(postgresApplicationHandler),
+				ContextHasApplicationUser(postgresApplicationUserHandler),
+			},
+		},
+		&Route{
 			Name:   "createApplicationUser",
 			Method: "POST",
 			Path:   "/users",

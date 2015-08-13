@@ -21,7 +21,7 @@ type (
 		Update(accountID, applicationID int64, existingUser, updatedUser entity.ApplicationUser, retrieve bool) (usr *entity.ApplicationUser, err []errors.Error)
 
 		// Delete deletes the user matching the IDs or an error
-		Delete(accountID, applicationID int64, appUser *entity.ApplicationUser) (err []errors.Error)
+		Delete(accountID, applicationID int64, userID uint64) (err []errors.Error)
 
 		// List returns all users from a certain account
 		List(accountID, applicationID int64) (users []*entity.ApplicationUser, err []errors.Error)

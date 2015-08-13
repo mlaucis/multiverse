@@ -114,11 +114,28 @@ func (appUser *applicationUser) UpdateCurrent(ctx *context.Context) (err []error
 	return
 }
 
+func (appUser *applicationUser) Delete(ctx *context.Context) (err []errors.Error) {
+	userID, er := strconv.ParseUint(ctx.Vars["applicationUserID"], 10, 64)
+	if er != nil {
+		return []errors.Error{errmsg.ErrApplicationUserIDInvalid}
+	}
+
+	if err = appUser.storage.Delete(
+		ctx.Bag["accountID"].(int64),
+		ctx.Bag["applicationID"].(int64),
+		userID); err != nil {
+		return
+	}
+
+	response.WriteResponse(ctx, "", http.StatusNoContent, 10)
+	return
+}
+
 func (appUser *applicationUser) DeleteCurrent(ctx *context.Context) (err []errors.Error) {
 	if err = appUser.storage.Delete(
 		ctx.Bag["accountID"].(int64),
 		ctx.Bag["applicationID"].(int64),
-		ctx.Bag["applicationUser"].(*entity.ApplicationUser)); err != nil {
+		ctx.Bag["applicationUser"].(*entity.ApplicationUser).ID); err != nil {
 		return
 	}
 
