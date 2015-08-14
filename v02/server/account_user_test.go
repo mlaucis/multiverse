@@ -1,3 +1,5 @@
+// +build !bench
+
 package server_test
 
 import (
