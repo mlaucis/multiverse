@@ -854,7 +854,7 @@ func (s *ConnectionSuite) TestUpdateConnection_OK(c *C) {
 // Test a correct updateConnection request
 func (s *ConnectionSuite) TestUpdateConnection_NotCrossUpdate(c *C) {
 	c.Skip("not available in 0.3")
-	account, err := AddCorrectAccount(true)
+	account, err := AddCorrectOrganization(true)
 	c.Assert(err, IsNil)
 
 	application, err := AddCorrectApplication(account.ID, true)
@@ -910,7 +910,7 @@ func (s *ConnectionSuite) TestUpdateConnection_WrongID(c *C) {
 // Test updateConnection request with an invalid name
 func (s *ConnectionSuite) TestUpdateConnection_WrongValue(c *C) {
 	c.Skip("skip because we now force things to be correct in the contexts")
-	account, err := AddCorrectAccount(true)
+	account, err := AddCorrectOrganization(true)
 	c.Assert(err, IsNil)
 
 	application, err := AddCorrectApplication(account.ID, true)

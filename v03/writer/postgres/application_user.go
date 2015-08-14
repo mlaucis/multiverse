@@ -14,9 +14,9 @@ func (p *pg) applicationUserUpdate(msg string) []errors.Error {
 		return []errors.Error{errBadInputJSON.UpdateInternalMessage(err.Error())}
 	}
 
-	existingApplicationUser, er := p.applicationUser.Read(updatedApplicationUser.AccountID, updatedApplicationUser.ApplicationID, updatedApplicationUser.ID)
+	existingApplicationUser, er := p.applicationUser.Read(updatedApplicationUser.OrgID, updatedApplicationUser.AppID, updatedApplicationUser.ID)
 
-	_, er = p.applicationUser.Update(updatedApplicationUser.AccountID, updatedApplicationUser.ApplicationID, *existingApplicationUser, updatedApplicationUser.ApplicationUser, false)
+	_, er = p.applicationUser.Update(updatedApplicationUser.OrgID, updatedApplicationUser.AppID, *existingApplicationUser, updatedApplicationUser.ApplicationUser, false)
 	return er
 }
 
@@ -27,5 +27,5 @@ func (p *pg) applicationUserDelete(msg string) []errors.Error {
 		return []errors.Error{errBadInputJSON.UpdateInternalMessage(err.Error())}
 	}
 
-	return p.applicationUser.Delete(applicationUser.AccountID, applicationUser.ApplicationID, &applicationUser.ApplicationUser)
+	return p.applicationUser.Delete(applicationUser.OrgID, applicationUser.AppID, &applicationUser.ApplicationUser)
 }

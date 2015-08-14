@@ -14,8 +14,8 @@ import (
 
 type (
 	accountUser struct {
-		writeStorage core.AccountUser
-		readStorage  core.AccountUser
+		writeStorage core.Member
+		readStorage  core.Member
 	}
 )
 
@@ -71,7 +71,7 @@ func (accUser *accountUser) PopulateContext(ctx *context.Context) (err []errors.
 }
 
 // NewAccountUser creates a new Account Route handler
-func NewAccountUser(writeStorage, readStorage core.AccountUser) handlers.AccountUser {
+func NewAccountUser(writeStorage, readStorage core.Member) handlers.Member {
 	return &accountUser{
 		writeStorage: writeStorage,
 		readStorage:  readStorage,

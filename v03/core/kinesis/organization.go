@@ -20,15 +20,15 @@ type (
 	}
 )
 
-func (a *account) Create(account *entity.Account, retrieve bool) (acc *entity.Account, err []errors.Error) {
+func (a *account) Create(account *entity.Organization, retrieve bool) (acc *entity.Organization, err []errors.Error) {
 	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
 }
 
-func (a *account) Read(accountID int64) (account *entity.Account, err []errors.Error) {
+func (a *account) Read(accountID int64) (account *entity.Organization, err []errors.Error) {
 	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
 }
 
-func (a *account) Update(existingAccount, updatedAccount entity.Account, retrieve bool) (*entity.Account, []errors.Error) {
+func (a *account) Update(existingAccount, updatedAccount entity.Organization, retrieve bool) (*entity.Organization, []errors.Error) {
 	data, er := json.Marshal(updatedAccount)
 	if er != nil {
 		return nil, []errors.Error{errors.NewInternalError(0, "error while updating the account (1)", er.Error())}
@@ -47,7 +47,7 @@ func (a *account) Update(existingAccount, updatedAccount entity.Account, retriev
 	return nil, nil
 }
 
-func (a *account) Delete(account *entity.Account) []errors.Error {
+func (a *account) Delete(account *entity.Organization) []errors.Error {
 	data, er := json.Marshal(account)
 	if er != nil {
 		return []errors.Error{errors.NewInternalError(0, "error while deleting the account (1)", er.Error())}
@@ -66,16 +66,16 @@ func (a *account) Exists(accountID int64) (bool, []errors.Error) {
 	return false, []errors.Error{errmsg.ErrServerInvalidHandler}
 }
 
-func (a *account) FindByKey(authKey string) (*entity.Account, []errors.Error) {
+func (a *account) FindByKey(authKey string) (*entity.Organization, []errors.Error) {
 	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
 }
 
-func (a *account) ReadByPublicID(id string) (*entity.Account, []errors.Error) {
+func (a *account) ReadByPublicID(id string) (*entity.Organization, []errors.Error) {
 	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
 }
 
 // NewAccount creates a new Account
-func NewAccount(storageClient kinesis.Client) core.Account {
+func NewAccount(storageClient kinesis.Client) core.Organization {
 	return &account{
 		storage: storageClient,
 		ksis:    storageClient.Datastore(),

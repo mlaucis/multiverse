@@ -115,7 +115,7 @@ func GenerateRandomSecureString(size int) string {
 }
 
 // GenerateAccountSecretKey returns a token for the specified application of an account
-func GenerateAccountSecretKey(account *entity.Account) string {
+func GenerateAccountSecretKey(account *entity.Organization) string {
 	// Generate a random salt for the token
 	keySalt := GenerateRandomSecureString(8)
 
@@ -138,7 +138,7 @@ func GenerateApplicationSecretKey(application *entity.Application) string {
 	hasher := md5.New()
 	hasher.Write([]byte(fmt.Sprintf(
 		"%d%s%s",
-		application.AccountID,
+		application.OrgID,
 		keySalt,
 		application.CreatedAt.Format(time.RFC3339),
 	)))
@@ -146,7 +146,7 @@ func GenerateApplicationSecretKey(application *entity.Application) string {
 }
 
 // GenerateAccountSessionID generated the session id for the specific
-func GenerateAccountSessionID(user *entity.AccountUser) string {
+func GenerateAccountSessionID(user *entity.Member) string {
 	return utils.Base64Encode(GenerateRandomString(20))
 }
 

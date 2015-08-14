@@ -25,8 +25,8 @@ func IsValidLoginPayload(loginPayload *entity.LoginPayload) []errors.Error {
 	}
 
 	if loginPayload.Username != "" {
-		if !StringLengthBetween(loginPayload.Username, accountUserNameMin, accountUserNameMax) {
-			return []errors.Error{errmsg.ErrAccountUserUsernameSize}
+		if !StringLengthBetween(loginPayload.Username, memberNameMin, memberNameMax) {
+			return []errors.Error{errmsg.ErrMemberUsernameSize}
 		}
 	}
 

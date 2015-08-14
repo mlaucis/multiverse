@@ -6,8 +6,8 @@ import (
 )
 
 type (
-	// AccountUser holds the account user routes
-	AccountUser interface {
+	// Member holds the account user routes
+	Member interface {
 		// Read handles requests to a single account user
 		Read(*context.Context) []errors.Error
 

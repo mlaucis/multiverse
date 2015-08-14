@@ -79,7 +79,7 @@ func (app *application) Create(application *entity.Application, retrieve bool) (
 
 	var applicationID int64
 	err = app.mainPg.
-		QueryRow(createApplicationEntryQuery, application.AccountID, applicationJSON).
+		QueryRow(createApplicationEntryQuery, application.OrgID, applicationJSON).
 		Scan(&applicationID)
 	if err != nil {
 		return nil, []errors.Error{errmsg.ErrInternalApplicationCreation.UpdateInternalMessage(err.Error())}
@@ -87,7 +87,7 @@ func (app *application) Create(application *entity.Application, retrieve bool) (
 	application.ID = applicationID
 
 	for idx := range createApplicationNamespaceQuery {
-		_, err = app.mainPg.Exec(fmt.Sprintf(createApplicationNamespaceQuery[idx], application.AccountID, application.ID))
+		_, err = app.mainPg.Exec(fmt.Sprintf(createApplicationNamespaceQuery[idx], application.OrgID, application.ID))
 		if err != nil {
 			// TODO rollback the creation from the field if we fail to create all the stuff here
 			// TODO learn transactions :)
@@ -99,7 +99,7 @@ func (app *application) Create(application *entity.Application, retrieve bool) (
 		return nil, nil
 	}
 
-	return app.Read(application.AccountID, applicationID)
+	return app.Read(application.OrgID, applicationID)
 }
 
 func (app *application) Read(accountID, applicationID int64) (*entity.Application, []errors.Error) {
@@ -140,7 +140,7 @@ func (app *application) Update(existingApplication, updatedApplication entity.Ap
 		return nil, []errors.Error{errmsg.ErrInternalApplicationUpdate.UpdateInternalMessage(err.Error())}
 	}
 
-	_, err = app.mainPg.Exec(updateApplicationEntryByIDQuery, applicationJSON, existingApplication.ID, existingApplication.AccountID)
+	_, err = app.mainPg.Exec(updateApplicationEntryByIDQuery, applicationJSON, existingApplication.ID, existingApplication.OrgID)
 	if err != nil {
 		return nil, []errors.Error{errmsg.ErrInternalApplicationUpdate.UpdateInternalMessage(err.Error())}
 	}
@@ -148,11 +148,11 @@ func (app *application) Update(existingApplication, updatedApplication entity.Ap
 	if !retrieve {
 		return nil, nil
 	}
-	return app.Read(existingApplication.AccountID, existingApplication.ID)
+	return app.Read(existingApplication.OrgID, existingApplication.ID)
 }
 
 func (app *application) Delete(application *entity.Application) []errors.Error {
-	_, err := app.mainPg.Exec(deleteApplicationEntryByIDQuery, application.ID, application.AccountID)
+	_, err := app.mainPg.Exec(deleteApplicationEntryByIDQuery, application.ID, application.OrgID)
 	if err != nil {
 		return []errors.Error{errmsg.ErrInternalApplicationDelete.UpdateInternalMessage(err.Error())}
 	}
@@ -233,7 +233,7 @@ func (app *application) FindByKey(applicationKey string) (*entity.Application, [
 		return nil, []errors.Error{errmsg.ErrInternalApplicationRead.UpdateInternalMessage(err.Error())}
 	}
 	application.ID = ID
-	application.AccountID = accountID
+	application.OrgID = accountID
 	application.Enabled = Enabled
 
 	return application, nil
@@ -260,7 +260,7 @@ func (app *application) FindByPublicID(publicID string) (*entity.Application, []
 		return nil, []errors.Error{errmsg.ErrInternalApplicationRead.UpdateInternalMessage(err.Error())}
 	}
 	application.ID = ID
-	application.AccountID = accountID
+	application.OrgID = accountID
 	application.Enabled = Enabled
 
 	return application, nil

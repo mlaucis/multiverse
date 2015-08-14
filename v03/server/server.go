@@ -38,8 +38,8 @@ const (
 )
 
 var (
-	postgresAccount, kinesisAccount                 core.Account
-	postgresAccountUser, kinesisAccountUser         core.AccountUser
+	postgresAccount, kinesisAccount                 core.Organization
+	postgresAccountUser, kinesisAccountUser         core.Member
 	postgresApplication, kinesisApplication         core.Application
 	postgresApplicationUser, kinesisApplicationUser core.ApplicationUser
 	postgresConnection, kinesisConnection           core.Connection
@@ -286,8 +286,8 @@ func Setup(v03KinesisClient v03_kinesis.Client, v03PostgresClient v03_postgres.C
 	kinesisConnection = v03_kinesis_core.NewConnection(v03KinesisClient)
 	kinesisEvent = v03_kinesis_core.NewEvent(v03KinesisClient)
 
-	postgresAccount = v03_postgres_core.NewAccount(v03PostgresClient)
-	postgresAccountUser = v03_postgres_core.NewAccountUser(v03PostgresClient)
+	postgresAccount = v03_postgres_core.NewOrganization(v03PostgresClient)
+	postgresAccountUser = v03_postgres_core.NewMember(v03PostgresClient)
 	postgresApplication = v03_postgres_core.NewApplication(v03PostgresClient)
 	postgresApplicationUser = v03_postgres_core.NewApplicationUser(v03PostgresClient)
 	postgresConnection = v03_postgres_core.NewConnection(v03PostgresClient)

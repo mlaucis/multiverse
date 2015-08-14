@@ -34,8 +34,8 @@ type (
 )
 
 const (
-	accountID           = "{accountID}"
-	accountUserID       = "{accountUserID}"
+	organizationID      = "{accountID}"
+	memberID            = "{accountUserID}"
 	applicationID       = "{applicationID}"
 	applicationUserID   = "{applicationUserID}"
 	applicationUserToID = "{applicationUserToID}"
@@ -43,8 +43,8 @@ const (
 )
 
 var (
-	postgresAccountHandler, kinesisAccountHandler                 handlers.Account
-	postgresAccountUserHandler, kinesisAccountUserHandler         handlers.AccountUser
+	postgresOrganizationHandler, kinesisOrganizationHandler       handlers.Organization
+	postgresMemberHandler, kinesisAccountUserHandler              handlers.Member
 	postgresApplicationHandler, kinesisApplicationHandler         handlers.Application
 	postgresApplicationUserHandler, kinesisApplicationUserHandler handlers.ApplicationUser
 	postgresConnectionHandler, kinesisConnectionHandler           handlers.Connection
@@ -73,8 +73,8 @@ func ReplaceTestEventIDPattern(pattern string) {
 func (r *Route) TestPattern() string {
 	pattern := r.RoutePattern()
 
-	pattern = strings.Replace(pattern, accountID, "%s", -1)
-	pattern = strings.Replace(pattern, accountUserID, "%s", -1)
+	pattern = strings.Replace(pattern, organizationID, "%s", -1)
+	pattern = strings.Replace(pattern, memberID, "%s", -1)
 	pattern = strings.Replace(pattern, applicationID, "%s", -1)
 	pattern = strings.Replace(pattern, applicationUserID, applicationUserIDPattern, -1)
 	pattern = strings.Replace(pattern, applicationUserToID, applicationUserIDPattern, -1)
@@ -107,15 +107,15 @@ func InitRouter(agent *gorelic.Agent, router *mux.Router, mainLogChan, errorLogC
 
 // InitHandlers handles the initialization of the route handlers
 func InitHandlers() {
-	kinesisAccountHandler = kinesis.NewAccount(kinesisAccount, postgresAccount)
+	kinesisOrganizationHandler = kinesis.NewAccount(kinesisAccount, postgresAccount)
 	kinesisAccountUserHandler = kinesis.NewAccountUser(kinesisAccountUser, postgresAccountUser)
 	kinesisApplicationHandler = kinesis.NewApplication(kinesisApplication, postgresApplication)
 	kinesisApplicationUserHandler = kinesis.NewApplicationUser(kinesisApplicationUser, postgresApplicationUser)
 	kinesisConnectionHandler = kinesis.NewConnectionWithApplicationUser(kinesisConnection, postgresConnection, postgresApplicationUser)
 	kinesisEventHandler = kinesis.NewEventWithApplicationUser(kinesisEvent, postgresEvent, postgresApplicationUser)
 
-	postgresAccountHandler = postgres.NewAccount(postgresAccount)
-	postgresAccountUserHandler = postgres.NewAccountUser(postgresAccountUser)
+	postgresOrganizationHandler = postgres.NewAccount(postgresAccount)
+	postgresMemberHandler = postgres.NewAccountUser(postgresAccountUser)
 	postgresApplicationHandler = postgres.NewApplication(postgresApplication)
 	postgresApplicationUserHandler = postgres.NewApplicationUser(postgresApplicationUser, postgresConnection)
 	postgresConnectionHandler = postgres.NewConnection(postgresConnection, postgresApplicationUser)

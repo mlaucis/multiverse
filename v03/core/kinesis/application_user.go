@@ -35,8 +35,8 @@ func (appu *applicationUser) ReadMultiple(accountID, applicationID int64, userID
 
 func (appu *applicationUser) Update(accountID, applicationID int64, existingUser, updatedUser entity.ApplicationUser, retrieve bool) (*entity.ApplicationUser, []errors.Error) {
 	user := entity.ApplicationUserWithIDs{}
-	user.AccountID = accountID
-	user.ApplicationID = applicationID
+	user.OrgID = accountID
+	user.AppID = applicationID
 	user.ApplicationUser = updatedUser
 	data, er := json.Marshal(user)
 	if er != nil {
@@ -58,8 +58,8 @@ func (appu *applicationUser) Update(accountID, applicationID int64, existingUser
 
 func (appu *applicationUser) Delete(accountID, applicationID int64, userID uint64) []errors.Error {
 	user := entity.ApplicationUserWithIDs{}
-	user.AccountID = accountID
-	user.ApplicationID = applicationID
+	user.OrgID = accountID
+	user.AppID = applicationID
 	user.ApplicationUser = entity.ApplicationUser{ID: userID}
 	data, er := json.Marshal(user)
 	if er != nil {

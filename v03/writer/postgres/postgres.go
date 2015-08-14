@@ -26,8 +26,8 @@ type (
 	pg struct {
 		ksis            ksis.Client
 		pg              postgres.Client
-		account         core.Account
-		accountUser     core.AccountUser
+		organization    core.Organization
+		member          core.Member
 		application     core.Application
 		applicationUser core.ApplicationUser
 		connection      core.Connection
@@ -167,15 +167,15 @@ func (p *pg) processMessages(output <-chan string, errs chan errors.Error, inter
 				var ers []errors.Error
 				switch channelName {
 				case ksis.StreamAccountUpdate:
-					ers = p.accountUpdate(msg)
+					ers = p.organizationUpdate(msg)
 				case ksis.StreamAccountDelete:
-					ers = p.accountDelete(msg)
+					ers = p.organizationDelete(msg)
 				case ksis.StreamAccountUserCreate:
-					ers = p.accountUserCreate(msg)
+					ers = p.memberCreate(msg)
 				case ksis.StreamAccountUserUpdate:
-					ers = p.accountUserUpdate(msg)
+					ers = p.memberUpdate(msg)
 				case ksis.StreamAccountUserDelete:
-					ers = p.accountUserDelete(msg)
+					ers = p.memberDelete(msg)
 				case ksis.StreamApplicationCreate:
 					ers = p.applicationCreate(msg)
 				case ksis.StreamApplicationUpdate:
@@ -230,8 +230,8 @@ func New(kinesis ksis.Client, pgsql postgres.Client) writer.Writer {
 	return &pg{
 		ksis:            kinesis,
 		pg:              pgsql,
-		account:         postgresCore.NewAccount(pgsql),
-		accountUser:     postgresCore.NewAccountUser(pgsql),
+		organization:    postgresCore.NewOrganization(pgsql),
+		member:          postgresCore.NewMember(pgsql),
 		application:     postgresCore.NewApplication(pgsql),
 		applicationUser: postgresCore.NewApplicationUser(pgsql),
 		connection:      postgresCore.NewConnection(pgsql),

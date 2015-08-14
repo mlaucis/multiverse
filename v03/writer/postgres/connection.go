@@ -14,7 +14,7 @@ func (p *pg) connectionCreate(msg string) []errors.Error {
 		return []errors.Error{errBadInputJSON.UpdateInternalMessage(err.Error())}
 	}
 
-	_, er := p.connection.Create(connection.AccountID, connection.ApplicationID, &connection.Connection, false)
+	_, er := p.connection.Create(connection.OrgID, connection.AppID, &connection.Connection, false)
 	return er
 }
 
@@ -25,7 +25,7 @@ func (p *pg) connectionConfirm(msg string) []errors.Error {
 		return []errors.Error{errBadInputJSON.UpdateInternalMessage(err.Error())}
 	}
 
-	_, er := p.connection.Confirm(connection.AccountID, connection.ApplicationID, &connection.Connection, false)
+	_, er := p.connection.Confirm(connection.OrgID, connection.AppID, &connection.Connection, false)
 	return er
 }
 
@@ -37,8 +37,8 @@ func (p *pg) connectionAutoConnect(msg string) []errors.Error {
 	}
 
 	_, er := p.connection.AutoConnectSocialFriends(
-		autoConnection.User.AccountID,
-		autoConnection.User.ApplicationID,
+		autoConnection.User.OrgID,
+		autoConnection.User.AppID,
 		&autoConnection.User.ApplicationUser,
 		autoConnection.Type,
 		autoConnection.OurStoredUsersIDs)
@@ -53,8 +53,8 @@ func (p *pg) connectionSocialConnect(msg string) []errors.Error {
 	}
 
 	_, er := p.connection.SocialConnect(
-		socialConnection.User.AccountID,
-		socialConnection.User.ApplicationID,
+		socialConnection.User.OrgID,
+		socialConnection.User.AppID,
 		&socialConnection.User.ApplicationUser,
 		socialConnection.Platform,
 		socialConnection.SocialFriendsIDs,
@@ -71,8 +71,8 @@ func (p *pg) connectionUpdate(msg string) []errors.Error {
 	}
 
 	existingConnection, er := p.connection.Read(
-		updatedConnection.AccountID,
-		updatedConnection.ApplicationID,
+		updatedConnection.OrgID,
+		updatedConnection.AppID,
 		updatedConnection.UserFromID,
 		updatedConnection.UserToID)
 	if er != nil {
@@ -80,8 +80,8 @@ func (p *pg) connectionUpdate(msg string) []errors.Error {
 	}
 
 	_, er = p.connection.Update(
-		updatedConnection.AccountID,
-		updatedConnection.ApplicationID,
+		updatedConnection.OrgID,
+		updatedConnection.AppID,
 		*existingConnection,
 		updatedConnection.Connection,
 		false)
@@ -95,5 +95,5 @@ func (p *pg) connectionDelete(msg string) []errors.Error {
 		return []errors.Error{errBadInputJSON.UpdateInternalMessage(err.Error())}
 	}
 
-	return p.connection.Delete(connection.AccountID, connection.ApplicationID, &connection.Connection)
+	return p.connection.Delete(connection.OrgID, connection.AppID, &connection.Connection)
 }

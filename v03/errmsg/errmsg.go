@@ -124,13 +124,13 @@ var (
 	// Account errors
 
 	ErrAccountDescriptionSize  = errors.New(http.StatusBadRequest, 6000, "account description must be between 0 and 100 characters", "", false)
-	ErrAccountIDIsAlreadySet   = errors.New(http.StatusBadRequest, 6001, "account id is already set", "", false)
-	ErrAccountIDZero           = errors.New(http.StatusBadRequest, 6002, "account id can't be 0", "", false)
-	ErrAccountMismatch         = errors.New(http.StatusBadRequest, 6003, "account mismatch", "", false)
+	ErrOrgIDIsAlreadySet       = errors.New(http.StatusBadRequest, 6001, "account id is already set", "", false)
+	ErrOrgIDZero               = errors.New(http.StatusBadRequest, 6002, "account id can't be 0", "", false)
+	ErrAccountMismatch         = errors.New(http.StatusBadRequest, 6003, "organization mismatch", "", false)
 	ErrAccountMissingInContext = errors.New(http.StatusInternalServerError, 6004, "missing account context", "", false)
 	ErrAccountNameSize         = errors.New(http.StatusBadRequest, 6005, "account name must be between 3 and 40 characters", "", false)
 	ErrAccountNotFound         = errors.New(http.StatusNotFound, 6006, "account not found", "", false)
-	ErrAccountTokenAlreadySet  = errors.New(http.StatusBadRequest, 6007, "account token is already set", "", false)
+	ErrOrgTokenAlreadySet      = errors.New(http.StatusBadRequest, 6007, "account token is already set", "", false)
 
 	// Internal account errors
 
@@ -141,14 +141,14 @@ var (
 
 	// Account user errors
 
-	ErrAccountUserEmailInvalid  = errors.New(http.StatusBadRequest, 7000, "user email is not valid", "", false)
-	ErrAccountUserFirstNameSize = errors.New(http.StatusBadRequest, 7001, "user first name must be between 2 and 40 characters", "", false)
-	ErrAccountUserLastNameSize  = errors.New(http.StatusBadRequest, 7002, "user last name must be between 2 and 40 characters", "", false)
-	ErrAccountUserMismatchErr   = errors.New(http.StatusConflict, 7003, "account user mismatch", "", false)
-	ErrAccountUserNotFound      = errors.New(http.StatusNotFound, 7004, "account user not found", "", false)
-	ErrAccountUserPasswordSize  = errors.New(http.StatusBadRequest, 7005, "user password must be between 4 and 60 characters", "", false)
-	ErrAccountUserURLInvalid    = errors.New(http.StatusBadRequest, 7006, "user url is not a valid url", "", false)
-	ErrAccountUserUsernameSize  = errors.New(http.StatusBadRequest, 7007, "user username must be between 2 and 40 characters", "", false)
+	ErrMemberEmailInvalid  = errors.New(http.StatusBadRequest, 7000, "user email is not valid", "", false)
+	ErrMemberFirstNameSize = errors.New(http.StatusBadRequest, 7001, "user first name must be between 2 and 40 characters", "", false)
+	ErrMemberLastNameSize  = errors.New(http.StatusBadRequest, 7002, "user last name must be between 2 and 40 characters", "", false)
+	ErrMemberMismatchErr   = errors.New(http.StatusConflict, 7003, "member mismatch", "", false)
+	ErrMemberNotFound      = errors.New(http.StatusNotFound, 7004, "member not found", "", false)
+	ErrMemberPasswordSize  = errors.New(http.StatusBadRequest, 7005, "user password must be between 4 and 60 characters", "", false)
+	ErrMemberURLInvalid    = errors.New(http.StatusBadRequest, 7006, "user url is not a valid url", "", false)
+	ErrMemberUsernameSize  = errors.New(http.StatusBadRequest, 7007, "user username must be between 2 and 40 characters", "", false)
 
 	// Internal account user errors
 

@@ -5,25 +5,25 @@ import "github.com/tapglue/backend/v03/entity"
 
 // Definition of test data
 var (
-	EmtpyAccount     = entity.Account{}
-	EmtpyAccountUser = entity.AccountUser{}
+	EmtpyAccount     = entity.Organization{}
+	EmtpyAccountUser = entity.Member{}
 	EmptyApplication = entity.Application{}
 	EmptyUser        = entity.ApplicationUser{}
 	EmptyEvent       = entity.Event{}
-	CorrectAccount   = entity.Account{
+	CorrectAccount   = entity.Organization{
 		Name:        "Demo",
 		Description: "This is a demo account",
 		Common: entity.Common{
 			Enabled: true,
 		},
 	}
-	CorrectAccountBig = entity.Account{
+	CorrectAccountBig = entity.Organization{
 		Name: "Demozdr;aryprawurpaiw;ayeaasjhdsakjdlksajdlsakjlsakdjsalkdjlkasfja;sjflsakfaf[wor3pouarjlkfhzslkfhasfha;fha;kfhaslkgjas;lfjajsdhals;jfasljfhals;fja;skfhas;lfjas;kfhaslkghas;kghaslkghaslfhdlsakjdaslfasjas;lgjsaljgajgasjgasgas;k'saldksa;gosaeugauypaotyaptua;otyqpotyapyrqyrapytalktypawrpauadadasasdads",
 		Common: entity.Common{
 			Enabled: true,
 		},
 	}
-	CorrectAccountUser = entity.AccountUser{
+	CorrectAccountUser = entity.Member{
 		UserCommon: entity.UserCommon{
 			Username:  "Demo User",
 			FirstName: "First name",

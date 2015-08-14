@@ -47,8 +47,8 @@ func NewContext(
 	return ctx, nil
 }
 
-// ContextHasAccount populates the context with the account information
-func ContextHasAccount(handler handlers.Account) Filter {
+// ContextHasOrganization populates the context with the account information
+func ContextHasOrganization(handler handlers.Organization) Filter {
 	return func(ctx *context.Context) []errors.Error {
 		if err := v02_request_validator.VerifyAccount(ctx); err != nil {
 			return err
@@ -60,8 +60,8 @@ func ContextHasAccount(handler handlers.Account) Filter {
 	}
 }
 
-// ContextHasAccountUser populates the context with the account user information
-func ContextHasAccountUser(handler handlers.AccountUser) Filter {
+// ContextHasMember populates the context with the account user information
+func ContextHasMember(handler handlers.Member) Filter {
 	return func(ctx *context.Context) []errors.Error {
 		if err := v02_request_validator.VerifyAccountUser(ctx); err != nil {
 			return err
@@ -73,8 +73,8 @@ func ContextHasAccountUser(handler handlers.AccountUser) Filter {
 	}
 }
 
-// ContextHasAccountApplication populates the context with the application information from ID
-func ContextHasAccountApplication(handler handlers.Application) Filter {
+// ContextHasOrganizationApplication populates the context with the application information from ID
+func ContextHasOrganizationApplication(handler handlers.Application) Filter {
 	return func(ctx *context.Context) []errors.Error {
 		if err := v02_request_validator.VerifyAccountUser(ctx); err != nil {
 			return err

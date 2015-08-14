@@ -38,8 +38,8 @@ func Test(t *testing.T) {
 
 type (
 	ServerSuite          struct{}
-	AccountSuite         struct{}
-	AccountUserSuite     struct{}
+	OrganizationSuite    struct{}
+	MemberSuite          struct{}
 	ApplicationSuite     struct{}
 	ApplicationUserSuite struct{}
 	ConnectionSuite      struct{}
@@ -48,8 +48,8 @@ type (
 
 var (
 	_ = Suite(&ServerSuite{})
-	_ = Suite(&AccountSuite{})
-	_ = Suite(&AccountUserSuite{})
+	_ = Suite(&OrganizationSuite{})
+	_ = Suite(&MemberSuite{})
 	_ = Suite(&ApplicationSuite{})
 	_ = Suite(&ApplicationUserSuite{})
 	_ = Suite(&ConnectionSuite{})
@@ -64,8 +64,8 @@ var (
 	mainLogChan        = make(chan *logger.LogMsg)
 	errorLogChan       = make(chan *logger.LogMsg)
 
-	coreAcc     core.Account
-	coreAccUser core.AccountUser
+	coreAcc     core.Organization
+	coreAccUser core.Member
 	coreApp     core.Application
 	coreAppUser core.ApplicationUser
 	coreConn    core.Connection
@@ -130,8 +130,8 @@ func init() {
 	redigoRateLimitPool = v03_redis.NewRedigoPool(conf.Redis.Hosts[0], "")
 	applicationRateLimiter := ratelimiter_redis.NewLimiter(redigoRateLimitPool, "ratelimiter.app.")
 
-	coreAcc = v03_postgres_core.NewAccount(v03PostgresClient)
-	coreAccUser = v03_postgres_core.NewAccountUser(v03PostgresClient)
+	coreAcc = v03_postgres_core.NewOrganization(v03PostgresClient)
+	coreAccUser = v03_postgres_core.NewMember(v03PostgresClient)
 	coreApp = v03_postgres_core.NewApplication(v03PostgresClient)
 	coreAppUser = v03_postgres_core.NewApplicationUser(v03PostgresClient)
 	coreConn = v03_postgres_core.NewConnection(v03PostgresClient)
@@ -158,13 +158,13 @@ func (s *ServerSuite) SetUpSuite(c *C) {
 	}
 }
 
-func (s *AccountSuite) SetUpSuite(c *C) {
+func (s *OrganizationSuite) SetUpSuite(c *C) {
 	if *quickBenchmark {
 		c.Skip("Running in quick benchmark mode")
 	}
 }
 
-func (s *AccountUserSuite) SetUpSuite(c *C) {
+func (s *MemberSuite) SetUpSuite(c *C) {
 	if *quickBenchmark {
 		c.Skip("Running in quick benchmark mode")
 	}
@@ -197,7 +197,7 @@ func (s *EventSuite) SetUpSuite(c *C) {
 // Test POST common without CLHeader
 func (s *ServerSuite) TestValidatePostCommon_NoCLHeader(c *C) {
 	payload := "{demo}"
-	routeName := "createAccount"
+	routeName := "createOrganization"
 	requestRoute := getRoute(routeName)
 	routePath := requestRoute.RoutePattern()
 
@@ -223,7 +223,7 @@ func (s *ServerSuite) TestValidatePostCommon_NoCLHeader(c *C) {
 // Test POST common with CLHeader
 func (s *ServerSuite) TestValidatePostCommon_CLHeader(c *C) {
 	payload := "{demo}"
-	routeName := "createAccount"
+	routeName := "createOrganization"
 	requestRoute := getRoute(routeName)
 	routePath := requestRoute.RoutePattern()
 
@@ -253,7 +253,7 @@ func (s *ServerSuite) TestValidatePutCommon_CLHeader(c *C) {
 	c.Skip("needs a better implementation")
 
 	payload := "{demo}"
-	routeName := "updateAccount"
+	routeName := "updateOrganization"
 	requestRoute := getRoute(routeName)
 	routePath := getComposedRoute(routeName, 0)
 
@@ -275,7 +275,7 @@ func (s *ServerSuite) TestValidatePutCommon_CLHeader(c *C) {
 	m.ServeHTTP(w, req)
 
 	c.Assert(w.Code, Equals, http.StatusBadRequest)
-	c.Assert(w.Body.String(), Equals, "400 accountId is not set or the value is incorrect")
+	c.Assert(w.Body.String(), Equals, "400 organizationId is not set or the value is incorrect")
 }
 
 // Test PUT common without CLHeader
@@ -283,7 +283,7 @@ func (s *ServerSuite) TestValidatePutCommon_NoCLHeader(c *C) {
 	c.Skip("this needs a better implementation now that contexts are in place")
 
 	payload := "{demo}"
-	routeName := "updateAccount"
+	routeName := "updateOrganization"
 	requestRoute := getRoute(routeName)
 	routePath := getComposedRoute(routeName, 0)
 
@@ -311,7 +311,7 @@ func (s *ServerSuite) TestValidateDeleteCommon_CLHeader(c *C) {
 	c.Skip("needs a better implementation")
 
 	payload := "{demo}"
-	routeName := "deleteAccount"
+	routeName := "deleteOrganization"
 	requestRoute := getRoute(routeName)
 	routePath := getComposedRoute(routeName, 0)
 
@@ -333,14 +333,14 @@ func (s *ServerSuite) TestValidateDeleteCommon_CLHeader(c *C) {
 	m.ServeHTTP(w, req)
 
 	c.Assert(w.Code, Equals, http.StatusBadRequest)
-	c.Assert(w.Body.String(), Equals, "400 accountId is not set or the value is incorrect")
+	c.Assert(w.Body.String(), Equals, "400 organizationId is not set or the value is incorrect")
 }
 
 // Test DELETE common without CLHeader
 func (s *ServerSuite) TestValidateDeleteCommon_NoCLHeader(c *C) {
 	c.Skip("skip due to context refactoring")
 	payload := ""
-	routeName := "deleteAccount"
+	routeName := "deleteOrganization"
 	requestRoute := getRoute(routeName)
 	routePath := getComposedRoute(routeName, 1)
 
@@ -364,8 +364,8 @@ func (s *ServerSuite) TestValidateDeleteCommon_NoCLHeader(c *C) {
 }
 
 func (s *ServerSuite) TestRateLimit(c *C) {
-	accounts := CorrectDeploy(1, 0, 1, 1, 0, false, true)
-	application := accounts[0].Applications[0]
+	organizations := CorrectDeploy(1, 0, 1, 1, 0, false, true)
+	application := organizations[0].Applications[0]
 	user := application.Users[0]
 
 	routeName := "getCurrentApplicationUser"
@@ -590,8 +590,8 @@ func runRequestWithHeaders(routeName, routePath, payload string, headerz, signFu
 	return w.Code, body, w.Header(), nil
 }
 
-// getAccountUserSessionToken retrieves the session token for a certain user
-func getAccountUserSessionToken(user *entity.AccountUser) string {
+// getMemberSessionToken retrieves the session token for a certain user
+func getMemberSessionToken(user *entity.Member) string {
 	sessionToken, err := coreAccUser.CreateSession(user)
 	if err != nil {
 		panic(err)
@@ -604,34 +604,34 @@ func nilSigner(*http.Request) {
 
 }
 
-func signAccountRequest(account *entity.Account, accountUser *entity.AccountUser, goodAccountToken, goodAccountUserToken bool) func(*http.Request) {
+func signOrganizationRequest(organization *entity.Organization, member *entity.Member, goodOrganizationToken, goodMemberToken bool) func(*http.Request) {
 	return func(r *http.Request) {
 		user := ""
 		pass := ""
 
-		if goodAccountToken && account != nil {
-			user = account.AuthToken
+		if goodOrganizationToken && organization != nil {
+			user = organization.AuthToken
 		}
-		if goodAccountToken && account == nil {
+		if goodOrganizationToken && organization == nil {
 			user = ""
 		}
-		if !goodAccountToken && account != nil {
-			user = account.AuthToken + "a"
+		if !goodOrganizationToken && organization != nil {
+			user = organization.AuthToken + "a"
 		}
-		if !goodAccountToken && account == nil {
+		if !goodOrganizationToken && organization == nil {
 			user = "a"
 		}
 
-		if goodAccountUserToken && accountUser != nil {
-			pass = accountUser.SessionToken
+		if goodMemberToken && member != nil {
+			pass = member.SessionToken
 		}
-		if goodAccountUserToken && accountUser == nil {
+		if goodMemberToken && member == nil {
 			pass = ""
 		}
-		if !goodAccountUserToken && accountUser != nil {
-			pass = accountUser.SessionToken + "a"
+		if !goodMemberToken && member != nil {
+			pass = member.SessionToken + "a"
 		}
-		if !goodAccountUserToken && accountUser == nil {
+		if !goodMemberToken && member == nil {
 			pass = "a"
 		}
 

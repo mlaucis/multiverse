@@ -18,24 +18,24 @@ import (
 
 type (
 	accountUser struct {
-		storage core.AccountUser
+		storage core.Member
 	}
 )
 
 func (accUser *accountUser) Read(ctx *context.Context) (err []errors.Error) {
 	// TODO This one read only the current account user maybe we want to have something to read any account user?
-	accountUser := ctx.Bag["accountUser"].(*entity.AccountUser)
-	response.SanitizeAccountUser(accountUser)
-	response.ComputeAccountUserLastModified(ctx, accountUser)
+	accountUser := ctx.Bag["accountUser"].(*entity.Member)
+	response.SanitizeMember(accountUser)
+	response.ComputeMemberLastModified(ctx, accountUser)
 	response.WriteResponse(ctx, accountUser, http.StatusOK, 10)
 	return
 }
 
 func (accUser *accountUser) Update(ctx *context.Context) (err []errors.Error) {
-	accountUser := *(ctx.Bag["accountUser"].(*entity.AccountUser))
+	accountUser := *(ctx.Bag["accountUser"].(*entity.Member))
 
 	if accountUser.PublicID != ctx.Vars["accountUserID"] {
-		return []errors.Error{errmsg.ErrAccountUserMismatchErr}
+		return []errors.Error{errmsg.ErrMemberMismatchErr}
 	}
 
 	if er := json.Unmarshal(ctx.Body, &accountUser); er != nil {
@@ -43,13 +43,13 @@ func (accUser *accountUser) Update(ctx *context.Context) (err []errors.Error) {
 	}
 
 	accountUser.ID = ctx.Bag["accountUserID"].(int64)
-	accountUser.AccountID = ctx.Bag["accountID"].(int64)
+	accountUser.OrgID = ctx.Bag["accountID"].(int64)
 
-	if err = validator.UpdateAccountUser(accUser.storage, ctx.Bag["accountUser"].(*entity.AccountUser), &accountUser); err != nil {
+	if err = validator.UpdateMember(accUser.storage, ctx.Bag["accountUser"].(*entity.Member), &accountUser); err != nil {
 		return
 	}
 
-	updatedAccountUser, err := accUser.storage.Update(*(ctx.Bag["accountUser"].(*entity.AccountUser)), accountUser, true)
+	updatedAccountUser, err := accUser.storage.Update(*(ctx.Bag["accountUser"].(*entity.Member)), accountUser, true)
 	if err != nil {
 		return
 	}
@@ -78,16 +78,16 @@ func (accUser *accountUser) Delete(ctx *context.Context) (err []errors.Error) {
 }
 
 func (accUser *accountUser) Create(ctx *context.Context) (err []errors.Error) {
-	var accountUser = &entity.AccountUser{}
+	var accountUser = &entity.Member{}
 
 	if err := json.Unmarshal(ctx.Body, accountUser); err != nil {
 		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(err.Error())}
 	}
 
-	accountUser.AccountID = ctx.Bag["accountID"].(int64)
-	accountUser.PublicAccountID = ctx.Bag["account"].(*entity.Account).PublicID
+	accountUser.OrgID = ctx.Bag["accountID"].(int64)
+	accountUser.PublicAccountID = ctx.Bag["account"].(*entity.Organization).PublicID
 
-	if err = validator.CreateAccountUser(accUser.storage, accountUser); err != nil {
+	if err = validator.CreateMember(accUser.storage, accountUser); err != nil {
 		return
 	}
 
@@ -103,7 +103,7 @@ func (accUser *accountUser) Create(ctx *context.Context) (err []errors.Error) {
 
 func (accUser *accountUser) List(ctx *context.Context) (err []errors.Error) {
 	var (
-		accountUsers []*entity.AccountUser
+		accountUsers []*entity.Member
 	)
 
 	if accountUsers, err = accUser.storage.List(ctx.Bag["accountID"].(int64)); err != nil {
@@ -111,16 +111,16 @@ func (accUser *accountUser) List(ctx *context.Context) (err []errors.Error) {
 	}
 
 	for _, accountUser := range accountUsers {
-		response.SanitizeAccountUser(accountUser)
+		response.SanitizeMember(accountUser)
 	}
 
 	resp := &struct {
-		AccountUsers []*entity.AccountUser `json:"accountUsers"`
+		AccountUsers []*entity.Member `json:"accountUsers"`
 	}{
 		AccountUsers: accountUsers,
 	}
 
-	response.ComputeAccountUsersLastModified(ctx, resp.AccountUsers)
+	response.ComputeMembersLastModified(ctx, resp.AccountUsers)
 
 	response.WriteResponse(ctx, resp, http.StatusOK, 10)
 	return
@@ -129,8 +129,8 @@ func (accUser *accountUser) List(ctx *context.Context) (err []errors.Error) {
 func (accUser *accountUser) Login(ctx *context.Context) (err []errors.Error) {
 	var (
 		loginPayload = &entity.LoginPayload{}
-		account      *entity.Account
-		user         *entity.AccountUser
+		account      *entity.Organization
+		user         *entity.Member
 		sessionToken string
 		er           error
 	)
@@ -158,10 +158,10 @@ func (accUser *accountUser) Login(ctx *context.Context) (err []errors.Error) {
 	}
 
 	if account == nil || user == nil || !user.Enabled {
-		return []errors.Error{errmsg.ErrAccountUserNotFound}
+		return []errors.Error{errmsg.ErrMemberNotFound}
 	}
 
-	if err = validator.AccountUserCredentialsValid(loginPayload.Password, user); err != nil {
+	if err = validator.MemberCredentialsValid(loginPayload.Password, user); err != nil {
 		return
 	}
 
@@ -207,7 +207,7 @@ func (accUser *accountUser) RefreshSession(ctx *context.Context) (err []errors.E
 		return []errors.Error{errmsg.ErrAuthSessionTokenMismatch}
 	}
 
-	if sessionToken, err = accUser.storage.RefreshSession(ctx.SessionToken, ctx.Bag["accountUser"].(*entity.AccountUser)); err != nil {
+	if sessionToken, err = accUser.storage.RefreshSession(ctx.SessionToken, ctx.Bag["accountUser"].(*entity.Member)); err != nil {
 		return
 	}
 
@@ -218,7 +218,7 @@ func (accUser *accountUser) RefreshSession(ctx *context.Context) (err []errors.E
 }
 
 func (accUser *accountUser) Logout(ctx *context.Context) (err []errors.Error) {
-	if err = accUser.storage.DestroySession(ctx.SessionToken, ctx.Bag["accountUser"].(*entity.AccountUser)); err != nil {
+	if err = accUser.storage.DestroySession(ctx.SessionToken, ctx.Bag["accountUser"].(*entity.Member)); err != nil {
 		return
 	}
 
@@ -234,7 +234,7 @@ func (accUser *accountUser) PopulateContext(ctx *context.Context) (err []errors.
 	}
 	accountUser, err := accUser.storage.FindBySession(pass)
 	if accountUser == nil {
-		return []errors.Error{errmsg.ErrAccountUserNotFound}
+		return []errors.Error{errmsg.ErrMemberNotFound}
 	}
 	if err == nil {
 		ctx.Bag["accountUser"] = accountUser
@@ -245,7 +245,7 @@ func (accUser *accountUser) PopulateContext(ctx *context.Context) (err []errors.
 }
 
 // NewAccountUser creates a new Account Route handler
-func NewAccountUser(storage core.AccountUser) handlers.AccountUser {
+func NewAccountUser(storage core.Member) handlers.Member {
 	return &accountUser{
 		storage: storage,
 	}

@@ -6,8 +6,8 @@ import (
 )
 
 type (
-	// Account holds the account routes
-	Account interface {
+	// Organization holds the account routes
+	Organization interface {
 		// Read handles requests to a single account
 		Read(*context.Context) []errors.Error
 

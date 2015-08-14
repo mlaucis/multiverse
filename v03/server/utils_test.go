@@ -26,7 +26,7 @@ func (s AppUserByID) Less(i, j int) bool {
 }
 
 // AddCorrectAccount creates a correct account
-func AddCorrectAccount(fetchAccount bool) (*entity.Account, errors.Error) {
+func AddCorrectOrganization(fetchAccount bool) (*entity.Organization, errors.Error) {
 	account, err := coreAcc.Create(&fixtures.CorrectAccount, fetchAccount)
 	if err != nil {
 		return nil, err[0]
@@ -36,9 +36,9 @@ func AddCorrectAccount(fetchAccount bool) (*entity.Account, errors.Error) {
 }
 
 // AddCorrectAccountUser creates a correct account user
-func AddCorrectAccountUser(accountID int64, fetchUser bool) (*entity.AccountUser, errors.Error) {
+func AddCorrectMember(accountID int64, fetchUser bool) (*entity.Member, errors.Error) {
 	accountUserWithAccountID := fixtures.CorrectAccountUser
-	accountUserWithAccountID.AccountID = accountID
+	accountUserWithAccountID.OrgID = accountID
 	accountUser, err := coreAccUser.Create(&accountUserWithAccountID, fetchUser)
 	if err != nil {
 		return nil, err[0]
@@ -50,7 +50,7 @@ func AddCorrectAccountUser(accountID int64, fetchUser bool) (*entity.AccountUser
 // AddCorrectApplication creates a correct application
 func AddCorrectApplication(accountID int64, fetchApplication bool) (*entity.Application, errors.Error) {
 	applicationWithAccountID := fixtures.CorrectApplication
-	applicationWithAccountID.AccountID = accountID
+	applicationWithAccountID.OrgID = accountID
 	application, err := coreApp.Create(&applicationWithAccountID, fetchApplication)
 	if err != nil {
 		return nil, err[0]
@@ -119,26 +119,26 @@ func UpdateUser(accountID, applicationID int64, user entity.ApplicationUser) {
 }
 
 // CorrectAccount returns a correct account
-func CorrectAccount() *entity.Account {
+func CorrectOrganization() *entity.Organization {
 	account := fixtures.CorrectAccount
 	return &account
 }
 
 // CorrectAccountUser returns a correct account user
-func CorrectAccountUser() *entity.AccountUser {
+func CorrectMember() *entity.Member {
 	accountUser := fixtures.CorrectAccountUser
 	return &accountUser
 }
 
 // CorrectUserWithDefaults returns a new user entity with prepoulated defaults
-func CorrectAccountUserWithDefaults(accountID, userNumber int64) *entity.AccountUser {
-	user := CorrectAccountUser()
-	user.AccountID = accountID
-	user.Username = fmt.Sprintf("acc-%d-user-%d", user.AccountID, userNumber)
-	user.Email = fmt.Sprintf("acc-%d-user-%d@tapglue-test.com", user.AccountID, userNumber)
-	user.Password = fmt.Sprintf("password-acc-%d-user-%d", user.AccountID, userNumber)
-	user.FirstName = fmt.Sprintf("acc-%d-user-%d-first-name", user.AccountID, userNumber)
-	user.LastName = fmt.Sprintf("acc-%d-user-%d-last-name", user.AccountID, userNumber)
+func CorrectAccountUserWithDefaults(accountID, userNumber int64) *entity.Member {
+	user := CorrectMember()
+	user.OrgID = accountID
+	user.Username = fmt.Sprintf("acc-%d-user-%d", user.OrgID, userNumber)
+	user.Email = fmt.Sprintf("acc-%d-user-%d@tapglue-test.com", user.OrgID, userNumber)
+	user.Password = fmt.Sprintf("password-acc-%d-user-%d", user.OrgID, userNumber)
+	user.FirstName = fmt.Sprintf("acc-%d-user-%d-first-name", user.OrgID, userNumber)
+	user.LastName = fmt.Sprintf("acc-%d-user-%d-last-name", user.OrgID, userNumber)
 
 	return user
 }
@@ -186,11 +186,11 @@ func CorrectEvent(applicationID int64) *entity.Event {
 	return event
 }
 
-func AddCorrectAccounts(numberOfAccounts int) []*entity.Account {
+func AddCorrectAccounts(numberOfAccounts int) []*entity.Organization {
 	var err []errors.Error
-	result := make([]*entity.Account, numberOfAccounts)
+	result := make([]*entity.Organization, numberOfAccounts)
 	for i := 0; i < numberOfAccounts; i++ {
-		account := CorrectAccount()
+		account := CorrectOrganization()
 		account.Name = fmt.Sprintf("acc-%d", i+1)
 		account.Description = fmt.Sprintf("acc description %d", i+1)
 		result[i], err = coreAcc.Create(account, true)
@@ -202,9 +202,9 @@ func AddCorrectAccounts(numberOfAccounts int) []*entity.Account {
 	return result
 }
 
-func AddCorrectAccountUsers(account *entity.Account, numberOfAccountUsersPerAccount int) []*entity.AccountUser {
+func AddCorrectAccountUsers(account *entity.Organization, numberOfAccountUsersPerAccount int) []*entity.Member {
 	var err []errors.Error
-	result := make([]*entity.AccountUser, numberOfAccountUsersPerAccount)
+	result := make([]*entity.Member, numberOfAccountUsersPerAccount)
 	for i := 0; i < numberOfAccountUsersPerAccount; i++ {
 		accountUser := CorrectAccountUserWithDefaults(account.ID, int64(i+1))
 		accountUser.PublicAccountID = account.PublicID
@@ -220,7 +220,7 @@ func AddCorrectAccountUsers(account *entity.Account, numberOfAccountUsersPerAcco
 	return result
 }
 
-func LoginAccountUser(user *entity.AccountUser) {
+func LoginMember(user *entity.Member) {
 	sessionToken, err := coreAccUser.CreateSession(user)
 	if err != nil {
 		panic(err[0].InternalErrorWithLocation())
@@ -234,19 +234,19 @@ func LoginAccountUser(user *entity.AccountUser) {
 	}
 }
 
-func LoginAccountUsers(users []*entity.AccountUser) {
+func LoginMembers(users []*entity.Member) {
 	for idx := range users {
-		LoginAccountUser(users[idx])
+		LoginMember(users[idx])
 	}
 }
 
-func AddCorrectApplications(account *entity.Account, numberOfApplicationsPerAccount int) []*entity.Application {
+func AddCorrectApplications(account *entity.Organization, numberOfApplicationsPerAccount int) []*entity.Application {
 	var err []errors.Error
 	result := make([]*entity.Application, numberOfApplicationsPerAccount)
 	for i := 0; i < numberOfApplicationsPerAccount; i++ {
 		application := CorrectApplication()
-		application.AccountID = account.ID
-		application.PublicAccountID = account.PublicID
+		application.OrgID = account.ID
+		application.PublicOrgID = account.PublicID
 		application.Name = fmt.Sprintf("acc-%d-app-%d", account.ID, i+1)
 		application.Description = fmt.Sprintf("acc %d app %d", account.ID, i+1)
 		result[i], err = coreApp.Create(application, true)
@@ -468,30 +468,35 @@ func AddCorrectUserEvents(accountID, applicationID int64, user *entity.Applicati
 	return result
 }
 
-func CorrectDeploy(numberOfAccounts, numberOfAccountUsersPerAccount, numberOfApplicationsPerAccount, numberOfUsersPerApplication, numberOfEventsPerUser int, hookUpUsers, loginUsers bool) []*entity.Account {
-	accounts := AddCorrectAccounts(numberOfAccounts)
+func CorrectDeploy(
+	numberOfOrganizations, numberOfMembersPerOrganization,
+	numberOfApplicationsPerOrganization,
+	numberOfUsersPerApplication, numberOfEventsPerUser int,
+	hookUpUsers, loginUsers bool) []*entity.Organization {
 
-	for i := 0; i < numberOfAccounts; i++ {
-		accounts[i].Users = AddCorrectAccountUsers(accounts[i], numberOfAccountUsersPerAccount)
+	organizations := AddCorrectAccounts(numberOfOrganizations)
+
+	for i := 0; i < numberOfOrganizations; i++ {
+		organizations[i].Members = AddCorrectAccountUsers(organizations[i], numberOfMembersPerOrganization)
 		if loginUsers {
-			LoginAccountUsers(accounts[i].Users)
+			LoginMembers(organizations[i].Members)
 		}
 
-		accounts[i].Applications = AddCorrectApplications(accounts[i], numberOfApplicationsPerAccount)
+		organizations[i].Applications = AddCorrectApplications(organizations[i], numberOfApplicationsPerOrganization)
 
-		for j := 0; j < numberOfApplicationsPerAccount; j++ {
-			accounts[i].Applications[j].Users = AddCorrectApplicationUsers(accounts[i].ID, accounts[i].Applications[j], numberOfUsersPerApplication, hookUpUsers)
+		for j := 0; j < numberOfApplicationsPerOrganization; j++ {
+			organizations[i].Applications[j].Users = AddCorrectApplicationUsers(organizations[i].ID, organizations[i].Applications[j], numberOfUsersPerApplication, hookUpUsers)
 			if loginUsers {
-				LoginUsers(accounts[i].ID, accounts[i].Applications[j].ID, accounts[i].Applications[j].Users)
+				LoginUsers(organizations[i].ID, organizations[i].Applications[j].ID, organizations[i].Applications[j].Users)
 			}
 
 			for k := 0; k < numberOfUsersPerApplication; k++ {
-				accounts[i].Applications[j].Users[k].Events = AddCorrectUserEvents(accounts[i].ID, accounts[i].Applications[j].ID, accounts[i].Applications[j].Users[k], numberOfEventsPerUser)
+				organizations[i].Applications[j].Users[k].Events = AddCorrectUserEvents(organizations[i].ID, organizations[i].Applications[j].ID, organizations[i].Applications[j].Users[k], numberOfEventsPerUser)
 			}
 		}
 	}
 
-	return accounts
+	return organizations
 }
 
 func testBootup(conf *config.Postgres) {

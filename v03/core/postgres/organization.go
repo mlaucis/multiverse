@@ -31,7 +31,7 @@ const (
 	deleteAccountByIDQuery       = `DELETE FROM tg.accounts WHERE id = $1`
 )
 
-func (a *account) Create(account *entity.Account, retrieve bool) (*entity.Account, []errors.Error) {
+func (a *account) Create(account *entity.Organization, retrieve bool) (*entity.Organization, []errors.Error) {
 	account.PublicID = storageHelper.GenerateUUIDV5(storageHelper.OIDUUIDNamespace, storageHelper.GenerateRandomString(20))
 	account.Enabled = true
 	timeNow := time.Now()
@@ -58,7 +58,7 @@ func (a *account) Create(account *entity.Account, retrieve bool) (*entity.Accoun
 	return a.Read(createdAccountID)
 }
 
-func (a *account) Read(accountID int64) (*entity.Account, []errors.Error) {
+func (a *account) Read(accountID int64) (*entity.Organization, []errors.Error) {
 	var JSONData string
 	err := a.pg.SlaveDatastore(-1).
 		QueryRow(selectAccountByIDQuery, accountID).
@@ -70,7 +70,7 @@ func (a *account) Read(accountID int64) (*entity.Account, []errors.Error) {
 		return nil, []errors.Error{errmsg.ErrInternalAccountRead.UpdateInternalMessage(err.Error())}
 	}
 
-	acc := &entity.Account{}
+	acc := &entity.Organization{}
 	err = json.Unmarshal([]byte(JSONData), acc)
 	if err != nil {
 		return nil, []errors.Error{errmsg.ErrInternalAccountRead.UpdateInternalMessage(err.Error())}
@@ -80,7 +80,7 @@ func (a *account) Read(accountID int64) (*entity.Account, []errors.Error) {
 	return acc, nil
 }
 
-func (a *account) Update(existingAccount, updatedAccount entity.Account, retrieve bool) (*entity.Account, []errors.Error) {
+func (a *account) Update(existingAccount, updatedAccount entity.Organization, retrieve bool) (*entity.Organization, []errors.Error) {
 	if updatedAccount.AuthToken == "" {
 		updatedAccount.AuthToken = existingAccount.AuthToken
 	}
@@ -103,7 +103,7 @@ func (a *account) Update(existingAccount, updatedAccount entity.Account, retriev
 	return a.Read(existingAccount.ID)
 }
 
-func (a *account) Delete(account *entity.Account) []errors.Error {
+func (a *account) Delete(account *entity.Organization) []errors.Error {
 	_, err := a.mainPg.Exec(deleteAccountByIDQuery, account.ID)
 	if err != nil {
 		return []errors.Error{errmsg.ErrInternalAccountDelete.UpdateInternalMessage(err.Error())}
@@ -122,7 +122,7 @@ func (a *account) Exists(accountID int64) (bool, []errors.Error) {
 	return true, nil
 }
 
-func (a *account) FindByKey(authKey string) (*entity.Account, []errors.Error) {
+func (a *account) FindByKey(authKey string) (*entity.Organization, []errors.Error) {
 	var (
 		ID       int64
 		JSONData string
@@ -136,7 +136,7 @@ func (a *account) FindByKey(authKey string) (*entity.Account, []errors.Error) {
 		}
 		return nil, []errors.Error{errmsg.ErrInternalAccountRead.UpdateInternalMessage(err.Error())}
 	}
-	account := &entity.Account{}
+	account := &entity.Organization{}
 	err = json.Unmarshal([]byte(JSONData), account)
 	if err != nil {
 		return nil, []errors.Error{errmsg.ErrInternalAccountRead.UpdateInternalMessage(err.Error())}
@@ -146,7 +146,7 @@ func (a *account) FindByKey(authKey string) (*entity.Account, []errors.Error) {
 	return account, nil
 }
 
-func (a *account) ReadByPublicID(id string) (*entity.Account, []errors.Error) {
+func (a *account) ReadByPublicID(id string) (*entity.Organization, []errors.Error) {
 	var (
 		ID       int64
 		JSONData string
@@ -160,7 +160,7 @@ func (a *account) ReadByPublicID(id string) (*entity.Account, []errors.Error) {
 		}
 		return nil, []errors.Error{errmsg.ErrInternalAccountRead.UpdateInternalMessage(err.Error())}
 	}
-	account := &entity.Account{}
+	account := &entity.Organization{}
 	err = json.Unmarshal([]byte(JSONData), account)
 	if err != nil {
 		return nil, []errors.Error{errmsg.ErrInternalAccountRead.UpdateInternalMessage(err.Error())}
@@ -170,8 +170,8 @@ func (a *account) ReadByPublicID(id string) (*entity.Account, []errors.Error) {
 	return account, nil
 }
 
-// NewAccount returns a new account handler with PostgreSQL as storage driver
-func NewAccount(pgsql postgres.Client) core.Account {
+// NewOrganization returns a new account handler with PostgreSQL as storage driver
+func NewOrganization(pgsql postgres.Client) core.Organization {
 	return &account{
 		pg:     pgsql,
 		mainPg: pgsql.MainDatastore(),

@@ -14,8 +14,8 @@ import (
 
 type (
 	account struct {
-		writeStorage core.Account
-		readStorage  core.Account
+		writeStorage core.Organization
+		readStorage  core.Organization
 	}
 )
 
@@ -28,11 +28,11 @@ func (acc *account) Update(ctx *context.Context) (err []errors.Error) {
 }
 
 func (acc *account) Delete(ctx *context.Context) (err []errors.Error) {
-	if ctx.Bag["account"].(*entity.Account).PublicID != ctx.Vars["accountID"] {
+	if ctx.Bag["account"].(*entity.Organization).PublicID != ctx.Vars["accountID"] {
 		return []errors.Error{errmsg.ErrAccountMismatch}
 	}
 
-	if err = acc.writeStorage.Delete(ctx.Bag["account"].(*entity.Account)); err != nil {
+	if err = acc.writeStorage.Delete(ctx.Bag["account"].(*entity.Organization)); err != nil {
 		return err
 	}
 
@@ -49,7 +49,7 @@ func (acc *account) PopulateContext(ctx *context.Context) (err []errors.Error) {
 }
 
 // NewAccount returns a new account handler tweaked specifically for Kinesis
-func NewAccount(writeStorage, readStorage core.Account) handlers.Account {
+func NewAccount(writeStorage, readStorage core.Organization) handlers.Organization {
 	return &account{
 		writeStorage: writeStorage,
 		readStorage:  readStorage,

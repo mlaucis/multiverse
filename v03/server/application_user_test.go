@@ -1249,7 +1249,7 @@ func (s *ApplicationUserSuite) TestCreateUserAutoBindSocialAccounts(c *C) {
 	application := accounts[0].Applications[0]
 	user1 := application.Users[0]
 
-	user2 := CorrectUserWithDefaults(application.AccountID, application.ID, 2)
+	user2 := CorrectUserWithDefaults(application.OrgID, application.ID, 2)
 	user2.Enabled = true
 	user2.Activated = true
 	user2.SocialConnectionsIDs = map[string][]string{
