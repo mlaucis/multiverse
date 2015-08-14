@@ -33,3 +33,5 @@ csr
 cert
 *.iml
 .idea
+
+terraform/*.tfvars
