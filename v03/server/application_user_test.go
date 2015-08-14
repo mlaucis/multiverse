@@ -86,6 +86,7 @@ func (s *ApplicationUserSuite) TestCreateUser_OK(c *C) {
 	c.Assert(er, IsNil)
 	c.Assert(receivedUser.ID, Not(Equals), 0)
 	c.Assert(receivedUser.Username, Equals, user.Username)
+	c.Assert(receivedUser.SessionToken, Not(Equals), "")
 }
 
 func (s *ApplicationUserSuite) TestCreateUserBareDetailsOK(c *C) {
@@ -152,7 +153,6 @@ func (s *ApplicationUserSuite) TestCreateAndLoginUser_OK(c *C) {
 
 	routeName := "createApplicationUser"
 	route := getComposedRoute(routeName)
-	route += "?withLogin=true"
 	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, nil, true, true))
 	c.Assert(err, IsNil)
 
@@ -188,12 +188,9 @@ func (s *ApplicationUserSuite) TestCreateAndLoginExistingUser_OK(c *C) {
 
 	routeName := "createApplicationUser"
 	route := getComposedRoute(routeName)
-	route += "?withLogin=true"
 	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, nil, true, true))
 	c.Assert(err, IsNil)
-
 	c.Assert(code, Equals, http.StatusCreated)
-
 	c.Assert(body, Not(Equals), "")
 
 	receivedUser := &struct {
@@ -300,13 +297,21 @@ func (s *ApplicationUserSuite) TestUpdateUserMalformedPayloadFails(c *C) {
 }
 
 func (s *ApplicationUserSuite) TestDeleteUser_OK(c *C) {
-	accounts := CorrectDeploy(1, 0, 1, 1, 0, true, true)
+	accounts := CorrectDeploy(1, 0, 1, 3, 0, true, true)
 	application := accounts[0].Applications[0]
 	user := application.Users[0]
+	user2 := application.Users[1]
+	user3 := application.Users[2]
 
 	routeName := "deleteCurrentApplicationUser"
 	route := getComposedRoute(routeName)
 	code, _, err := runRequest(routeName, route, "", signApplicationRequest(application, user, true, true))
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusNoContent)
+
+	routeName = "deleteApplicationUser"
+	route = getComposedRoute(routeName, user3.ID)
+	code, _, err = runRequest(routeName, route, "", signApplicationRequest(application, user2, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusNoContent)
 }
@@ -408,17 +413,13 @@ func (s *ApplicationUserSuite) TestLoginUserWorks(c *C) {
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
-	c.Assert(strings.Contains(body, "user_name"), Not(Equals), true)
-	c.Assert(strings.Contains(body, "password"), Not(Equals), true)
 
-	sessionToken := struct {
-		UserID uint64 `json:"id"`
-		Token  string `json:"session_token"`
-	}{}
-	er := json.Unmarshal([]byte(body), &sessionToken)
+	receivedUser := &entity.ApplicationUser{}
+	er := json.Unmarshal([]byte(body), receivedUser)
 	c.Assert(er, IsNil)
-	c.Assert(sessionToken.UserID, Equals, user.ID)
-	c.Assert(sessionToken.Token, Not(Equals), "")
+	c.Assert(receivedUser.ID, Equals, user.ID)
+	c.Assert(receivedUser.SessionToken, Not(Equals), "")
+	c.Assert(receivedUser.Email, Equals, user.Email)
 }
 
 func (s *ApplicationUserSuite) TestLoginUserWorksWithUsernameOrEmail(c *C) {
@@ -483,7 +484,6 @@ func (s *ApplicationUserSuite) TestLoginUserWithDetails(c *C) {
 
 	routeName := "loginApplicationUser"
 	route := getComposedRoute(routeName)
-	route += "?withUserDetails=true"
 	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, nil, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusCreated)
@@ -498,6 +498,7 @@ func (s *ApplicationUserSuite) TestLoginUserWithDetails(c *C) {
 	c.Assert(sessionToken.ID, Equals, user.ID)
 	c.Assert(sessionToken.Token, Not(Equals), "")
 	c.Assert(sessionToken.Email, Equals, user.Email)
+	c.Assert(sessionToken.Password, Equals, "")
 }
 
 func (s *ApplicationUserSuite) TestRefreshSessionOnOriginalTokenFailsAfterDoubleUserLogin(c *C) {

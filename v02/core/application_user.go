@@ -58,7 +58,5 @@ type (
 
 		// Search finds the users matching the search term
 		Search(accountID, applicationID int64, searchTerm string) (user []*entity.ApplicationUser, err []errors.Error)
-
-		FindByCustomID(accountID, applicationID int64, customID string) (*entity.ApplicationUser, []errors.Error)
 	}
 )

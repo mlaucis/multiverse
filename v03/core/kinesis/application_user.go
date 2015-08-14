@@ -56,17 +56,17 @@ func (appu *applicationUser) Update(accountID, applicationID int64, existingUser
 	return nil, nil
 }
 
-func (appu *applicationUser) Delete(accountID, applicationID int64, applicationUser *entity.ApplicationUser) []errors.Error {
+func (appu *applicationUser) Delete(accountID, applicationID int64, userID uint64) []errors.Error {
 	user := entity.ApplicationUserWithIDs{}
 	user.AccountID = accountID
 	user.ApplicationID = applicationID
-	user.ApplicationUser = *applicationUser
+	user.ApplicationUser = entity.ApplicationUser{ID: userID}
 	data, er := json.Marshal(user)
 	if er != nil {
 		return []errors.Error{errors.NewInternalError(0, "error while deleting the user (1)", er.Error())}
 	}
 
-	partitionKey := fmt.Sprintf("application-user-delete-%d-%d-%s", accountID, applicationID, applicationUser.ID)
+	partitionKey := fmt.Sprintf("application-user-delete-%d-%d-%d", accountID, applicationID, userID)
 	_, err := appu.storage.PackAndPutRecord(kinesis.StreamApplicationUserDelete, partitionKey, data)
 	if err != nil {
 		return []errors.Error{err}
@@ -120,10 +120,6 @@ func (appu *applicationUser) FindBySession(accountID, applicationID int64, sessi
 }
 
 func (appu *applicationUser) Search(accountID, applicationID int64, searchTerm string) ([]*entity.ApplicationUser, []errors.Error) {
-	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
-}
-
-func (appu *applicationUser) FindByCustomID(accountID, applicationID int64, customID string) (*entity.ApplicationUser, []errors.Error) {
 	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
 }
 

@@ -28,9 +28,9 @@ func (conn *connection) Update(ctx *context.Context) (err []errors.Error) {
 	accountID := ctx.Bag["accountID"].(int64)
 	applicationID := ctx.Bag["applicationID"].(int64)
 
-	userToID, err := conn.determineTGUserID(accountID, applicationID, ctx.Vars["userToId"])
-	if err != nil {
-		return
+	userToID, er := strconv.ParseUint(ctx.Vars["userToID"], 10, 64)
+	if er != nil {
+		return []errors.Error{errmsg.ErrApplicationUserIDInvalid}
 	}
 
 	existingConnection, err := conn.storage.Read(accountID, applicationID, userFromID, userToID)
@@ -69,9 +69,9 @@ func (conn *connection) Delete(ctx *context.Context) (err []errors.Error) {
 
 	userFromID := ctx.Bag["applicationUserID"].(uint64)
 
-	userToID, err := conn.determineTGUserID(accountID, applicationID, ctx.Vars["applicationUserToID"])
-	if err != nil {
-		return
+	userToID, er := strconv.ParseUint(ctx.Vars["applicationUserToID"], 10, 64)
+	if er != nil {
+		return []errors.Error{errmsg.ErrApplicationUserIDInvalid}
 	}
 
 	connection, err := conn.storage.Read(accountID, applicationID, userFromID, userToID)
@@ -93,42 +93,20 @@ func (conn *connection) Create(ctx *context.Context) (err []errors.Error) {
 		connection = &entity.Connection{}
 		er         error
 	)
-	connection.Enabled = true
 
 	if er = json.Unmarshal(ctx.Body, connection); er != nil {
 		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
 	}
 
-	receivedEnabled := connection.Enabled
-
-	accountID := ctx.Bag["accountID"].(int64)
-	applicationID := ctx.Bag["applicationID"].(int64)
-	connection.UserFromID = ctx.Bag["applicationUserID"].(uint64)
-
-	if err = validator.CreateConnection(conn.appUser, accountID, applicationID, connection); err != nil {
-		return
-	}
-
-	if connection, err = conn.storage.Create(accountID, applicationID, connection, true); err != nil {
-		return
-	}
-
-	if receivedEnabled {
-		if connection, err = conn.storage.Confirm(accountID, applicationID, connection, true); err != nil {
-			return
-		}
-	}
-
-	response.WriteResponse(ctx, connection, http.StatusCreated, 0)
-	return
+	return conn.doCreateConnection(ctx, connection)
 }
 
 func (conn *connection) List(ctx *context.Context) (err []errors.Error) {
 	accountID := ctx.Bag["accountID"].(int64)
 	applicationID := ctx.Bag["applicationID"].(int64)
-	userID, err := conn.determineTGUserID(accountID, applicationID, ctx.Vars["applicationUserID"])
-	if err != nil {
-		return
+	userID, er := strconv.ParseUint(ctx.Vars["applicationUserID"], 10, 64)
+	if er != nil {
+		return []errors.Error{errmsg.ErrApplicationUserIDInvalid}
 	}
 
 	exists, err := conn.appUser.ExistsByID(accountID, applicationID, userID)
@@ -200,9 +178,9 @@ func (conn *connection) CurrentUserList(ctx *context.Context) (err []errors.Erro
 func (conn *connection) FollowedByList(ctx *context.Context) (err []errors.Error) {
 	accountID := ctx.Bag["accountID"].(int64)
 	applicationID := ctx.Bag["applicationID"].(int64)
-	userID, err := conn.determineTGUserID(accountID, applicationID, ctx.Vars["applicationUserID"])
-	if err != nil {
-		return
+	userID, er := strconv.ParseUint(ctx.Vars["applicationUserID"], 10, 64)
+	if er != nil {
+		return []errors.Error{errmsg.ErrApplicationUserIDInvalid}
 	}
 
 	exists, err := conn.appUser.ExistsByID(accountID, applicationID, userID)
@@ -360,9 +338,9 @@ func (conn *connection) CreateSocial(ctx *context.Context) (err []errors.Error) 
 func (conn *connection) Friends(ctx *context.Context) (err []errors.Error) {
 	accountID := ctx.Bag["accountID"].(int64)
 	applicationID := ctx.Bag["applicationID"].(int64)
-	userID, err := conn.determineTGUserID(accountID, applicationID, ctx.Vars["applicationUserID"])
-	if err != nil {
-		return
+	userID, er := strconv.ParseUint(ctx.Vars["applicationUserID"], 10, 64)
+	if er != nil {
+		return []errors.Error{errmsg.ErrApplicationUserIDInvalid}
 	}
 
 	exists, err := conn.appUser.ExistsByID(accountID, applicationID, userID)
@@ -425,21 +403,74 @@ func (conn *connection) CurrentUserFriends(ctx *context.Context) (err []errors.E
 	return
 }
 
-func (conn *connection) determineTGUserID(accountID, applicationID int64, userID string) (uint64, []errors.Error) {
-	id, er := strconv.ParseUint(userID, 10, 64)
-	if er == nil {
-		// Ho* Lee SH*T, there has to be a better way to do this
-		if id > 27246450442288181 {
-			return id, nil
+func (conn *connection) CreateFriend(ctx *context.Context) []errors.Error {
+	var (
+		connection = &entity.Connection{}
+		er         error
+	)
+	connection.Enabled = true
+
+	if er = json.Unmarshal(ctx.Body, connection); er != nil {
+		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
+	}
+
+	connection.Type = "friend"
+	return conn.doCreateConnection(ctx, connection)
+}
+
+func (conn *connection) CreateFollow(ctx *context.Context) []errors.Error {
+	var (
+		connection = &entity.Connection{}
+		er         error
+	)
+	connection.Enabled = true
+
+	if er = json.Unmarshal(ctx.Body, connection); er != nil {
+		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
+	}
+
+	connection.Type = "follow"
+	return conn.doCreateConnection(ctx, connection)
+}
+
+func (conn *connection) doCreateConnection(ctx *context.Context, connection *entity.Connection) []errors.Error {
+	accountID := ctx.Bag["accountID"].(int64)
+	applicationID := ctx.Bag["applicationID"].(int64)
+	connection.UserFromID = ctx.Bag["applicationUserID"].(uint64)
+
+	receivedEnabled := connection.Enabled
+	connection.Enabled = true
+
+	if exists, err := conn.storage.Exists(
+		accountID, applicationID,
+		connection.UserFromID, connection.UserToID, connection.Type); exists || err != nil {
+		if exists {
+			response.WriteResponse(ctx, "", http.StatusNoContent, 0)
+			return nil
+		}
+
+		return err
+	}
+
+	err := validator.CreateConnection(conn.appUser, accountID, applicationID, connection)
+	if err != nil {
+		return err
+	}
+
+	connection, err = conn.storage.Create(accountID, applicationID, connection, true)
+	if err != nil {
+		return err
+	}
+
+	if receivedEnabled {
+		connection, err = conn.storage.Confirm(accountID, applicationID, connection, true)
+		if err != nil {
+			return err
 		}
 	}
 
-	user, err := conn.appUser.FindByCustomID(accountID, applicationID, userID)
-	if err != nil {
-		return 0, err
-	}
-
-	return user.ID, nil
+	response.WriteResponse(ctx, connection, http.StatusCreated, 0)
+	return nil
 }
 
 // NewConnection initializes a new connection with an application user

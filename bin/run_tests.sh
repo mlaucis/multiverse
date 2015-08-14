@@ -22,8 +22,10 @@ for VERSION in "${VERSIONS[@]}"
 do
     cd ${CWD}/${VERSION}/server
 
+    rm c.out output.log
+
     echo "Testing github.com/tapglue/backend/${VERSION}/server"
-    gocov test -race -tags ${TEST_TARGET} -check.v -coverpkg=github.com/tapglue/backend/${VERSION}/core/${TEST_TARGET},github.com/tapglue/backend/${VERSION}/server/handlers/${TEST_TARGET},github.com/tapglue/backend/${VERSION}/storage/${TEST_TARGET},github.com/tapglue/backend/${VERSION}/validator,github.com/tapglue/backend/${VERSION}/server/response,github.com/tapglue/backend/${VERSION}/errmsg,github.com/tapglue/backend/${VERSION}/storage/helper github.com/tapglue/backend/${VERSION}/server > coverage_server_${VERSION}_${TEST_TARGET}.json 2> output.log
+    go test -race -coverprofile=c.out -tags ${TEST_TARGET} -check.v -coverpkg=github.com/tapglue/backend/${VERSION}/core/${TEST_TARGET},github.com/tapglue/backend/${VERSION}/server/handlers/${TEST_TARGET},github.com/tapglue/backend/${VERSION}/storage/${TEST_TARGET},github.com/tapglue/backend/${VERSION}/validator,github.com/tapglue/backend/${VERSION}/server/response,github.com/tapglue/backend/${VERSION}/errmsg,github.com/tapglue/backend/${VERSION}/storage/helper github.com/tapglue/backend/${VERSION}/server 2> output.log
 
     # Check if the exit code was good or not
     if [ $? != 0 ]
@@ -33,6 +35,8 @@ do
     fi
 
     cat output.log
+
+    gocov convert c.out | gocov annotate - > coverage_server_${VERSION}_${TEST_TARGET}.json
 
     # Check for race conditions as we don't have a proper exit code for them from the tool
     cat output.log | grep 'WARNING: DATA RACE' > /dev/null

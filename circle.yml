@@ -11,12 +11,13 @@ dependencies:
     - sudo chown -R ubuntu /home/ubuntu/.cache/
     - sudo -H pip install awscli
     - sudo chown -R ubuntu /home/ubuntu/.cache/
-    - go get github.com/tools/godep github.com/axw/gocov/gocov github.com/matm/gocov-html gopkg.in/check.v1
     - sudo curl -sL -o /usr/local/bin/gimme https://raw.githubusercontent.com/travis-ci/gimme/master/gimme
     - sudo chmod +x /usr/local/bin/gimme
     - eval "$(GIMME_GO_VERSION=1.4.2 gimme)"
+    - /home/ubuntu/.gimme/versions/go1.4.2.linux.amd64/bin/go get github.com/tools/godep github.com/axw/gocov/gocov github.com/matm/gocov-html gopkg.in/check.v1
   cache_directories:
     - "~/.go_workspace"
+    - "/home/ubuntu/.gimme"
 database:
   override:
     - PGPASSWORD=unicode psql -U ubuntu -d circle_test -f v02/resources/db/pgsql.sql -h 127.0.0.1

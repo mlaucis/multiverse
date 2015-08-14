@@ -7,7 +7,6 @@ import (
 	"sort"
 
 	"github.com/tapglue/backend/v02/entity"
-	"github.com/tapglue/backend/v02/server"
 
 	. "gopkg.in/check.v1"
 )
@@ -908,28 +907,6 @@ func (s *ConnectionSuite) TestDeleteConnection_OK(c *C) {
 
 	routeName := "deleteConnection"
 	route := getComposedRoute(routeName, userTo.ID)
-	code, _, err := runRequest(routeName, route, "", signApplicationRequest(application, userFrom, true, true))
-	c.Assert(err, IsNil)
-
-	c.Assert(err, IsNil)
-	c.Assert(code, Equals, http.StatusNoContent)
-}
-
-func (s *ConnectionSuite) TestDeleteConnectionWithCustomID_OK(c *C) {
-	accounts := CorrectDeploy(1, 0, 1, 2, 0, true, true)
-	application := accounts[0].Applications[0]
-	userFrom := application.Users[0]
-	userTo := application.Users[1]
-
-	// we need to overwrite the pattern for now
-	server.ReplaceTestApplicationUserIDPattern("%s")
-	defer func() {
-		// restore the pattern
-		server.ReplaceTestApplicationUserIDPattern("%d")
-	}()
-
-	routeName := "deleteConnection"
-	route := getComposedRoute(routeName, userTo.CustomID)
 	code, _, err := runRequest(routeName, route, "", signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
 

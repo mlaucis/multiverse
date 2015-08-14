@@ -23,6 +23,9 @@ type (
 		// Delete handles requests to delete a single event
 		Delete(*context.Context) []errors.Error
 
+		// CurrentUserDelete handles requests to delete a single event from a user
+		CurrentUserDelete(*context.Context) []errors.Error
+
 		// List handles requests to retrieve a users events
 		List(*context.Context) []errors.Error
 

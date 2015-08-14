@@ -9,6 +9,8 @@ import (
 	"github.com/tapglue/backend/v03/entity"
 	"github.com/tapglue/backend/v03/errmsg"
 
+	"strings"
+
 	. "gopkg.in/check.v1"
 )
 
@@ -45,6 +47,7 @@ func (s *AccountUserSuite) TestCreateAccountUser_OK(c *C) {
 	account := CorrectDeploy(1, 0, 0, 0, 0, false, true)[0]
 	accountUser := CorrectAccountUser()
 	accountUser.Username += "-asdafasdasda"
+	accountUser.Email = account.PublicID + "." + accountUser.Email
 
 	payload := fmt.Sprintf(
 		`{"user_name":%q, "password":%q, "first_name": %q, "last_name": %q, "email": %q}`,
@@ -52,7 +55,7 @@ func (s *AccountUserSuite) TestCreateAccountUser_OK(c *C) {
 		accountUser.Password,
 		accountUser.FirstName,
 		accountUser.LastName,
-		account.PublicID+"."+accountUser.Email,
+		accountUser.Email,
 	)
 
 	routeName := "createAccountUser"
@@ -61,6 +64,7 @@ func (s *AccountUserSuite) TestCreateAccountUser_OK(c *C) {
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
+	c.Assert(strings.Contains(body, "created_at"), Equals, true)
 
 	receivedAccountUser := &entity.AccountUser{}
 	er := json.Unmarshal([]byte(body), receivedAccountUser)
@@ -70,6 +74,7 @@ func (s *AccountUserSuite) TestCreateAccountUser_OK(c *C) {
 	}
 	c.Assert(receivedAccountUser.ID, Not(Equals), "")
 	c.Assert(receivedAccountUser.Username, Equals, accountUser.Username)
+	c.Assert(receivedAccountUser.Email, Equals, accountUser.Email)
 	c.Assert(receivedAccountUser.Enabled, Equals, true)
 	c.Assert(receivedAccountUser.Password, Equals, "")
 }
@@ -98,6 +103,7 @@ func (s *AccountUserSuite) TestUpdateAccountUser_OK(c *C) {
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
+	c.Assert(strings.Contains(body, "created_at"), Equals, true)
 
 	receivedAccountUser := &entity.AccountUser{}
 	er := json.Unmarshal([]byte(body), receivedAccountUser)
@@ -106,6 +112,7 @@ func (s *AccountUserSuite) TestUpdateAccountUser_OK(c *C) {
 		c.Fail()
 	}
 	c.Assert(receivedAccountUser.Username, Equals, accountUser.Username)
+	c.Assert(receivedAccountUser.Email, Equals, accountUser.Email)
 	c.Assert(receivedAccountUser.Enabled, Equals, true)
 	c.Assert(receivedAccountUser.Password, Equals, "")
 }
@@ -255,16 +262,16 @@ func (s *AccountUserSuite) TestGetAccountUser_OK(c *C) {
 	routeName := "getAccountUser"
 	route := getComposedRoute(routeName, account.PublicID, accountUser.PublicID)
 	code, body, err := runRequest(routeName, route, "", signAccountRequest(account, accountUser, true, true))
-
 	c.Assert(code, Equals, http.StatusOK)
-
 	c.Assert(body, Not(Equals), "")
+	c.Assert(strings.Contains(body, "created_at"), Equals, true)
 
 	receivedAccountUser := &entity.AccountUser{}
 	er := json.Unmarshal([]byte(body), receivedAccountUser)
 	c.Assert(er, IsNil)
 	c.Assert(receivedAccountUser.PublicID, Equals, accountUser.PublicID)
 	c.Assert(receivedAccountUser.Username, Equals, accountUser.Username)
+	c.Assert(receivedAccountUser.Email, Equals, accountUser.Email)
 	c.Assert(receivedAccountUser.Enabled, Equals, true)
 	c.Assert(receivedAccountUser.Password, Equals, "")
 }

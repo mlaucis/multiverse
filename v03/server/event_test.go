@@ -240,34 +240,24 @@ func (s *EventSuite) TestUpdateEvent_WrongValue(c *C) {
 
 // Test a correct deleteEvent request
 func (s *EventSuite) TestDeleteEvent_OK(c *C) {
-	accounts := CorrectDeploy(1, 0, 1, 1, 1, true, true)
+	accounts := CorrectDeploy(1, 0, 1, 2, 2, true, true)
 	application := accounts[0].Applications[0]
 	user := application.Users[0]
+	user2 := application.Users[1]
 	event := user.Events[0]
+	event2 := user2.Events[1]
 
 	routeName := "deleteCurrentUserEvent"
 	route := getComposedRoute(routeName, event.ID)
 	code, _, err := runRequest(routeName, route, "", signApplicationRequest(application, user, true, true))
 	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusNoContent)
 
+	routeName = "deleteEvent"
+	route = getComposedRoute(routeName, user2.ID, event2.ID)
+	code, _, err = runRequest(routeName, route, "", signApplicationRequest(application, user, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusNoContent)
-}
-
-// Test deleteEvent request with a wrong id
-func (s *EventSuite) TestDeleteEvent_WrongID(c *C) {
-	accounts := CorrectDeploy(1, 0, 1, 1, 1, true, true)
-	application := accounts[0].Applications[0]
-	user := application.Users[0]
-	event := user.Events[0]
-
-	routeName := "deleteCurrentUserEvent"
-	route := getComposedRoute(routeName, event.ID+1)
-	code, _, err := runRequest(routeName, route, "", signApplicationRequest(application, user, true, true))
-	c.Assert(err, IsNil)
-
-	c.Assert(err, IsNil)
-	c.Assert(code, Equals, http.StatusNotFound)
 }
 
 func (s *EventSuite) TestDeleteEventMalformedIDFails(c *C) {

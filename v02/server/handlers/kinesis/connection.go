@@ -27,13 +27,11 @@ func (conn *connection) Update(ctx *context.Context) (err []errors.Error) {
 func (conn *connection) Delete(ctx *context.Context) (err []errors.Error) {
 	accountID := ctx.Bag["accountID"].(int64)
 	applicationID := ctx.Bag["applicationID"].(int64)
-
 	userFromID := ctx.Bag["applicationUserID"].(uint64)
-	userToCustomID := ctx.Vars["applicationUserToID"]
 
-	userToID, err := conn.determineTGUserID(accountID, applicationID, userToCustomID)
-	if err != nil {
-		return
+	userToID, er := strconv.ParseUint(ctx.Vars["applicationUserToID"], 10, 64)
+	if er != nil {
+		return []errors.Error{errmsg.ErrApplicationUserIDInvalid}
 	}
 
 	connection, err := conn.readStorage.Read(accountID, applicationID, userFromID, userToID)
@@ -84,23 +82,6 @@ func (conn *connection) Friends(ctx *context.Context) (err []errors.Error) {
 
 func (conn *connection) CurrentUserFriends(ctx *context.Context) (err []errors.Error) {
 	return []errors.Error{errmsg.ErrServerNotImplementedYet}
-}
-
-func (conn *connection) determineTGUserID(accountID, applicationID int64, userID string) (uint64, []errors.Error) {
-	id, er := strconv.ParseUint(userID, 10, 64)
-	if er == nil {
-		// TODO There has to be a better way to do this, no? no? But otherwise, how should we detect if the incoming id is a custom ID or not??
-		if id > 27246450442288181 {
-			return id, nil
-		}
-	}
-
-	user, err := conn.readAppUser.FindByCustomID(accountID, applicationID, userID)
-	if err != nil {
-		return 0, err
-	}
-
-	return user.ID, nil
 }
 
 // NewConnectionWithApplicationUser returns a new connection handler

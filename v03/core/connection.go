@@ -49,5 +49,8 @@ type (
 
 		// Relation returns the relation between two users
 		Relation(accountID, applicationID int64, userFromID, userToID uint64) (*entity.Relation, []errors.Error)
+
+		// Exists checks if a connection exists between two users
+		Exists(accountID, applicationID int64, userFromID, userToID uint64, connType string) (bool, []errors.Error)
 	}
 )

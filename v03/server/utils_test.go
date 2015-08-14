@@ -136,7 +136,7 @@ func CorrectAccountUserWithDefaults(accountID, userNumber int64) *entity.Account
 	user.AccountID = accountID
 	user.Username = fmt.Sprintf("acc-%d-user-%d", user.AccountID, userNumber)
 	user.Email = fmt.Sprintf("acc-%d-user-%d@tapglue-test.com", user.AccountID, userNumber)
-	user.Password = fmt.Sprintf("acc-%d-user-%d", user.AccountID, userNumber)
+	user.Password = fmt.Sprintf("password-acc-%d-user-%d", user.AccountID, userNumber)
 	user.FirstName = fmt.Sprintf("acc-%d-user-%d-first-name", user.AccountID, userNumber)
 	user.LastName = fmt.Sprintf("acc-%d-user-%d-last-name", user.AccountID, userNumber)
 
@@ -165,7 +165,7 @@ func CorrectUserWithDefaults(accountID, applicationID, userNumber int64) *entity
 	user.ID = userID
 	user.Username = fmt.Sprintf("acc-%d-app-%d-user-%d", accountID, applicationID, userNumber)
 	user.Email = fmt.Sprintf("acc-%d-app-%d-user-%d@tapglue-test.com", accountID, applicationID, userNumber)
-	user.Password = fmt.Sprintf("acc-%d-app-%d-user-%d", accountID, applicationID, userNumber)
+	user.Password = fmt.Sprintf("password-acc-%d-app-%d-user-%d", accountID, applicationID, userNumber)
 	user.FirstName = fmt.Sprintf("acc-%d-app-%d-user-%d-first-name", accountID, applicationID, userNumber)
 	user.LastName = fmt.Sprintf("acc-%d-app-%d-user-%d-last-name", accountID, applicationID, userNumber)
 	user.CustomID = fmt.Sprintf("acc-%d-app-%d-user-%d-custom-id", accountID, applicationID, userNumber)

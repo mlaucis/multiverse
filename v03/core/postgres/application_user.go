@@ -33,7 +33,6 @@ const (
 	listApplicationUsersByUserIDsQuery       = `SELECT json_data FROM app_%d_%d.users WHERE (json_data->>'id')::BIGINT = ANY(%s) AND json_data @> '{"enabled": true, "deleted": false}'`
 	selectApplicationUserByEmailQuery        = `SELECT json_data, last_read FROM app_%d_%d.users WHERE json_data @> json_build_object('email', $1::text, 'enabled', true, 'deleted', false)::jsonb LIMIT 1`
 	selectApplicationUserByUsernameQuery     = `SELECT json_data, last_read FROM app_%d_%d.users WHERE json_data @> json_build_object('user_name', $1::text, 'enabled', true, 'deleted', false)::jsonb LIMIT 1`
-	selectApplicationUserByCustomIDQuery     = `SELECT json_data, last_read FROM app_%d_%d.users WHERE json_data @> json_build_object('custom_id', $1::text, 'enabled', true, 'deleted', false)::jsonb LIMIT 1`
 	createApplicationUserSessionQuery        = `INSERT INTO app_%d_%d.sessions(user_id, session_id) VALUES($1, $2)`
 	selectApplicationUserSessionQuery        = `SELECT session_id FROM app_%d_%d.sessions WHERE user_id = $1 AND enabled = TRUE LIMIT 1`
 	selectApplicationUserBySessionQuery      = `SELECT user_id FROM app_%d_%d.sessions WHERE session_id = $1 AND enabled = TRUE LIMIT 1`
@@ -183,12 +182,19 @@ func (au *applicationUser) Update(accountID, applicationID int64, existingUser, 
 	return au.Read(accountID, applicationID, existingUser.ID)
 }
 
-func (au *applicationUser) Delete(accountID, applicationID int64, applicationUser *entity.ApplicationUser) []errors.Error {
-	applicationUser.Enabled = false
-	*applicationUser.Deleted = true
-	_, err := au.Update(accountID, applicationID, *applicationUser, *applicationUser, false)
+func (au *applicationUser) Delete(accountID, applicationID int64, userID uint64) []errors.Error {
+	user, err := au.Read(accountID, applicationID, userID)
+	if err != nil {
+		return err
+	}
 
-	go au.destroyAllUserSession(accountID, applicationID, applicationUser)
+	user.Enabled = false
+	*user.Deleted = true
+	_, err = au.Update(accountID, applicationID, *user, *user, false)
+
+	if err == nil {
+		go au.destroyAllUserSession(accountID, applicationID, user)
+	}
 
 	return err
 }
@@ -419,30 +425,6 @@ func (au *applicationUser) Search(accountID, applicationID int64, searchTerm str
 	}
 
 	return users, nil
-}
-
-func (au *applicationUser) FindByCustomID(accountID, applicationID int64, customID string) (*entity.ApplicationUser, []errors.Error) {
-	var (
-		JSONData string
-		lastRead time.Time
-	)
-	err := au.pg.SlaveDatastore(-1).
-		QueryRow(appSchema(selectApplicationUserByCustomIDQuery, accountID, applicationID), customID).
-		Scan(&JSONData, &lastRead)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, []errors.Error{errmsg.ErrApplicationUserNotFound.SetCurrentLocation()}
-		}
-		return nil, []errors.Error{errmsg.ErrInternalApplicationUserRead.UpdateInternalMessage(err.Error())}
-	}
-	user := &entity.ApplicationUser{}
-	err = json.Unmarshal([]byte(JSONData), user)
-	if err != nil {
-		return nil, []errors.Error{errmsg.ErrInternalApplicationUserRead.UpdateInternalMessage(err.Error())}
-	}
-	user.LastRead = &lastRead
-
-	return user, nil
 }
 
 func (au *applicationUser) destroyAllUserSession(accountID, applicationID int64, user *entity.ApplicationUser) []errors.Error {
