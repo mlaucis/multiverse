@@ -64,6 +64,8 @@ const dash byte = '-'
 // UUID v1/v2 storage.
 var (
 	storageMutex  sync.Mutex
+	storageOnce   sync.Once
+	epochFunc     = unixTimeFunc
 	clockSequence uint16
 	lastTime      uint64
 	hardwareAddr  [6]byte
@@ -77,32 +79,40 @@ var (
 	byteGroups = []int{8, 4, 4, 4, 12}
 )
 
-// Epoch calculation function
-var epochFunc func() uint64
-
-// Initialize storage
-func init() {
+func initClockSequence() {
 	buf := make([]byte, 2)
-	rand.Read(buf)
+	safeRandom(buf)
 	clockSequence = binary.BigEndian.Uint16(buf)
+}
 
-	// Initialize hardwareAddr randomly in case
-	// of real network interfaces absence
-	rand.Read(hardwareAddr[:])
-
-	// Set multicast bit as recommended in RFC 4122
-	hardwareAddr[0] |= 0x01
-
+func initHardwareAddr() {
 	interfaces, err := net.Interfaces()
 	if err == nil {
 		for _, iface := range interfaces {
 			if len(iface.HardwareAddr) >= 6 {
 				copy(hardwareAddr[:], iface.HardwareAddr)
-				break
+				return
 			}
 		}
 	}
-	epochFunc = unixTimeFunc
+
+	// Initialize hardwareAddr randomly in case
+	// of real network interfaces absence
+	safeRandom(hardwareAddr[:])
+
+	// Set multicast bit as recommended in RFC 4122
+	hardwareAddr[0] |= 0x01
+}
+
+func initStorage() {
+	initClockSequence()
+	initHardwareAddr()
+}
+
+func safeRandom(dest []byte) {
+	if _, err := rand.Read(dest); err != nil {
+		panic(err)
+	}
 }
 
 // Returns difference in 100-nanosecond intervals between
@@ -289,6 +299,16 @@ func FromBytes(input []byte) (u UUID, err error) {
 	return
 }
 
+// FromBytesOrNil returns UUID converted from raw byte slice input.
+// Same behavior as FromBytes, but returns a Nil UUID on error.
+func FromBytesOrNil(input []byte) UUID {
+	uuid, err := FromBytes(input)
+	if err != nil {
+		return Nil
+	}
+	return uuid
+}
+
 // FromString returns UUID parsed from string input.
 // Input is expected in a form accepted by UnmarshalText.
 func FromString(input string) (u UUID, err error) {
@@ -296,9 +316,21 @@ func FromString(input string) (u UUID, err error) {
 	return
 }
 
+// FromStringOrNil returns UUID parsed from string input.
+// Same behavior as FromString, but returns a Nil UUID on error.
+func FromStringOrNil(input string) UUID {
+	uuid, err := FromString(input)
+	if err != nil {
+		return Nil
+	}
+	return uuid
+}
+
 // Returns UUID v1/v2 storage state.
-// Returns epoch timestamp and clock sequence.
-func getStorage() (uint64, uint16) {
+// Returns epoch timestamp, clock sequence, and hardware address.
+func getStorage() (uint64, uint16, []byte) {
+	storageOnce.Do(initStorage)
+
 	storageMutex.Lock()
 	defer storageMutex.Unlock()
 
@@ -310,21 +342,21 @@ func getStorage() (uint64, uint16) {
 	}
 	lastTime = timeNow
 
-	return timeNow, clockSequence
+	return timeNow, clockSequence, hardwareAddr[:]
 }
 
 // NewV1 returns UUID based on current timestamp and MAC address.
 func NewV1() UUID {
 	u := UUID{}
 
-	timeNow, clockSeq := getStorage()
+	timeNow, clockSeq, hardwareAddr := getStorage()
 
 	binary.BigEndian.PutUint32(u[0:], uint32(timeNow))
 	binary.BigEndian.PutUint16(u[4:], uint16(timeNow>>32))
 	binary.BigEndian.PutUint16(u[6:], uint16(timeNow>>48))
 	binary.BigEndian.PutUint16(u[8:], clockSeq)
 
-	copy(u[10:], hardwareAddr[:])
+	copy(u[10:], hardwareAddr)
 
 	u.SetVersion(1)
 	u.SetVariant()
@@ -336,6 +368,8 @@ func NewV1() UUID {
 func NewV2(domain byte) UUID {
 	u := UUID{}
 
+	timeNow, clockSeq, hardwareAddr := getStorage()
+
 	switch domain {
 	case DomainPerson:
 		binary.BigEndian.PutUint32(u[0:], posixUID)
@@ -343,14 +377,12 @@ func NewV2(domain byte) UUID {
 		binary.BigEndian.PutUint32(u[0:], posixGID)
 	}
 
-	timeNow, clockSeq := getStorage()
-
 	binary.BigEndian.PutUint16(u[4:], uint16(timeNow>>32))
 	binary.BigEndian.PutUint16(u[6:], uint16(timeNow>>48))
 	binary.BigEndian.PutUint16(u[8:], clockSeq)
 	u[9] = domain
 
-	copy(u[10:], hardwareAddr[:])
+	copy(u[10:], hardwareAddr)
 
 	u.SetVersion(2)
 	u.SetVariant()
@@ -370,7 +402,7 @@ func NewV3(ns UUID, name string) UUID {
 // NewV4 returns random generated UUID.
 func NewV4() UUID {
 	u := UUID{}
-	rand.Read(u[:])
+	safeRandom(u[:])
 	u.SetVersion(4)
 	u.SetVariant()
 
