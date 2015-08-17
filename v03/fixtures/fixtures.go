@@ -10,7 +10,7 @@ var (
 	EmptyApplication = entity.Application{}
 	EmptyUser        = entity.ApplicationUser{}
 	EmptyEvent       = entity.Event{}
-	CorrectAccount   = entity.Organization{
+	CorrectOrganization = entity.Organization{
 		Name:        "Demo",
 		Description: "This is a demo account",
 		Common: entity.Common{
@@ -23,7 +23,7 @@ var (
 			Enabled: true,
 		},
 	}
-	CorrectAccountUser = entity.Member{
+	CorrectMember = entity.Member{
 		UserCommon: entity.UserCommon{
 			Username:  "Demo User",
 			FirstName: "First name",
