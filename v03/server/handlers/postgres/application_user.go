@@ -52,11 +52,11 @@ func (appUser *applicationUser) Read(ctx *context.Context) (err []errors.Error) 
 	if rel := <-relation; rel != nil {
 		user.IsFriends = rel.IsFriends
 		user.IsFollower = rel.IsFollower
-		user.IsFollowing = rel.IsFollowing
+		user.IsFollowed = rel.IsFollowed
 	} else {
 		user.IsFriends = entity.PFalse
 		user.IsFollower = entity.PFalse
-		user.IsFollowing = entity.PFalse
+		user.IsFollowed = entity.PFalse
 	}
 
 	response.WriteResponse(ctx, user, http.StatusOK, 10)
@@ -69,7 +69,7 @@ func (appUser *applicationUser) ReadCurrent(ctx *context.Context) (err []errors.
 	user.Deleted = nil
 	user.IsFriends = entity.PFalse
 	user.IsFollower = entity.PFalse
-	user.IsFollowing = entity.PFalse
+	user.IsFollowed = entity.PFalse
 
 	response.ComputeApplicationUserLastModified(ctx, user)
 
