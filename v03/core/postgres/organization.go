@@ -15,12 +15,10 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-type (
-	account struct {
-		pg     postgres.Client
-		mainPg *sqlx.DB
-	}
-)
+type organization struct {
+	pg     postgres.Client
+	mainPg *sqlx.DB
+}
 
 const (
 	createAccountQuery           = `INSERT INTO tg.accounts(json_data) VALUES ($1) RETURNING id`
@@ -31,7 +29,7 @@ const (
 	deleteAccountByIDQuery       = `DELETE FROM tg.accounts WHERE id = $1`
 )
 
-func (a *account) Create(account *entity.Organization, retrieve bool) (*entity.Organization, []errors.Error) {
+func (org *organization) Create(account *entity.Organization, retrieve bool) (*entity.Organization, []errors.Error) {
 	account.PublicID = storageHelper.GenerateUUIDV5(storageHelper.OIDUUIDNamespace, storageHelper.GenerateRandomString(20))
 	account.Enabled = true
 	timeNow := time.Now()
@@ -44,7 +42,7 @@ func (a *account) Create(account *entity.Organization, retrieve bool) (*entity.O
 	}
 
 	var createdAccountID int64
-	err = a.mainPg.
+	err = org.mainPg.
 		QueryRow(createAccountQuery, string(accountJSON)).
 		Scan(&createdAccountID)
 	if err != nil {
@@ -55,12 +53,12 @@ func (a *account) Create(account *entity.Organization, retrieve bool) (*entity.O
 		return nil, nil
 	}
 
-	return a.Read(createdAccountID)
+	return org.Read(createdAccountID)
 }
 
-func (a *account) Read(accountID int64) (*entity.Organization, []errors.Error) {
+func (org *organization) Read(accountID int64) (*entity.Organization, []errors.Error) {
 	var JSONData string
-	err := a.pg.SlaveDatastore(-1).
+	err := org.pg.SlaveDatastore(-1).
 		QueryRow(selectAccountByIDQuery, accountID).
 		Scan(&JSONData)
 	if err != nil {
@@ -80,7 +78,7 @@ func (a *account) Read(accountID int64) (*entity.Organization, []errors.Error) {
 	return acc, nil
 }
 
-func (a *account) Update(existingAccount, updatedAccount entity.Organization, retrieve bool) (*entity.Organization, []errors.Error) {
+func (org *organization) Update(existingAccount, updatedAccount entity.Organization, retrieve bool) (*entity.Organization, []errors.Error) {
 	if updatedAccount.AuthToken == "" {
 		updatedAccount.AuthToken = existingAccount.AuthToken
 	}
@@ -91,7 +89,7 @@ func (a *account) Update(existingAccount, updatedAccount entity.Organization, re
 		return nil, []errors.Error{errmsg.ErrInternalAccountUpdate.UpdateInternalMessage(err.Error())}
 	}
 
-	_, err = a.mainPg.Exec(updateAccountByIDQuery, string(accountJSON), existingAccount.ID)
+	_, err = org.mainPg.Exec(updateAccountByIDQuery, string(accountJSON), existingAccount.ID)
 	if err != nil {
 		return nil, []errors.Error{errmsg.ErrInternalAccountUpdate.UpdateInternalMessage(err.Error())}
 	}
@@ -100,20 +98,20 @@ func (a *account) Update(existingAccount, updatedAccount entity.Organization, re
 		return nil, nil
 	}
 
-	return a.Read(existingAccount.ID)
+	return org.Read(existingAccount.ID)
 }
 
-func (a *account) Delete(account *entity.Organization) []errors.Error {
-	_, err := a.mainPg.Exec(deleteAccountByIDQuery, account.ID)
+func (org *organization) Delete(account *entity.Organization) []errors.Error {
+	_, err := org.mainPg.Exec(deleteAccountByIDQuery, account.ID)
 	if err != nil {
 		return []errors.Error{errmsg.ErrInternalAccountDelete.UpdateInternalMessage(err.Error())}
 	}
 	return nil
 }
 
-func (a *account) Exists(accountID int64) (bool, []errors.Error) {
+func (org *organization) Exists(accountID int64) (bool, []errors.Error) {
 	var JSONData string
-	err := a.pg.SlaveDatastore(-1).
+	err := org.pg.SlaveDatastore(-1).
 		QueryRow(selectAccountByIDQuery, accountID).
 		Scan(&JSONData)
 	if err != nil {
@@ -122,12 +120,12 @@ func (a *account) Exists(accountID int64) (bool, []errors.Error) {
 	return true, nil
 }
 
-func (a *account) FindByKey(authKey string) (*entity.Organization, []errors.Error) {
+func (org *organization) FindByKey(authKey string) (*entity.Organization, []errors.Error) {
 	var (
 		ID       int64
 		JSONData string
 	)
-	err := a.pg.SlaveDatastore(-1).
+	err := org.pg.SlaveDatastore(-1).
 		QueryRow(selectAccountByKeyQuery, authKey).
 		Scan(&ID, &JSONData)
 	if err != nil {
@@ -146,12 +144,12 @@ func (a *account) FindByKey(authKey string) (*entity.Organization, []errors.Erro
 	return account, nil
 }
 
-func (a *account) ReadByPublicID(id string) (*entity.Organization, []errors.Error) {
+func (org *organization) ReadByPublicID(id string) (*entity.Organization, []errors.Error) {
 	var (
 		ID       int64
 		JSONData string
 	)
-	err := a.pg.SlaveDatastore(-1).
+	err := org.pg.SlaveDatastore(-1).
 		QueryRow(selectAccountByPublicIDQuery, id).
 		Scan(&ID, &JSONData)
 	if err != nil {
@@ -172,7 +170,7 @@ func (a *account) ReadByPublicID(id string) (*entity.Organization, []errors.Erro
 
 // NewOrganization returns a new account handler with PostgreSQL as storage driver
 func NewOrganization(pgsql postgres.Client) core.Organization {
-	return &account{
+	return &organization{
 		pg:     pgsql,
 		mainPg: pgsql.MainDatastore(),
 	}

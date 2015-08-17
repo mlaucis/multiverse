@@ -13,12 +13,10 @@ import (
 	ksis "github.com/sendgridlabs/go-kinesis"
 )
 
-type (
-	application struct {
-		storage kinesis.Client
-		ksis    *ksis.Kinesis
-	}
-)
+type application struct {
+	storage kinesis.Client
+	ksis    *ksis.Kinesis
+}
 
 func (app *application) Create(application *entity.Application, retrieve bool) (*entity.Application, []errors.Error) {
 	data, er := json.Marshal(application)

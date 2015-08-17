@@ -16,13 +16,11 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-type (
-	connection struct {
-		pg      postgres.Client
-		mainPg  *sqlx.DB
-		appUser core.ApplicationUser
-	}
-)
+type connection struct {
+	pg      postgres.Client
+	mainPg  *sqlx.DB
+	appUser core.ApplicationUser
+}
 
 const (
 	createConnectionQuery              = `INSERT INTO app_%d_%d.connections(json_data) VALUES ($1)`

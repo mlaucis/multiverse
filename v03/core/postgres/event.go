@@ -16,13 +16,11 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-type (
-	event struct {
-		pg     postgres.Client
-		mainPg *sqlx.DB
-		c      core.Connection
-	}
-)
+type event struct {
+	pg     postgres.Client
+	mainPg *sqlx.DB
+	c      core.Connection
+}
 
 const (
 	createEventQuery = `INSERT INTO app_%d_%d.events(json_data, geo)

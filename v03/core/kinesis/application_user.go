@@ -13,13 +13,11 @@ import (
 	ksis "github.com/sendgridlabs/go-kinesis"
 )
 
-type (
-	applicationUser struct {
-		c       core.Connection
-		storage kinesis.Client
-		ksis    *ksis.Kinesis
-	}
-)
+type applicationUser struct {
+	c       core.Connection
+	storage kinesis.Client
+	ksis    *ksis.Kinesis
+}
 
 func (appu *applicationUser) Create(accountID, applicationID int64, user *entity.ApplicationUser, retrieve bool) (usr *entity.ApplicationUser, err []errors.Error) {
 	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}

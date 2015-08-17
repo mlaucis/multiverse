@@ -15,11 +15,9 @@ import (
 	"github.com/tapglue/backend/v03/validator"
 )
 
-type (
-	organization struct {
-		storage core.Organization
-	}
-)
+type organization struct {
+	storage core.Organization
+}
 
 func (org *organization) Read(ctx *context.Context) (err []errors.Error) {
 	if ctx.Bag["account"] == nil {

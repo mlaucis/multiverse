@@ -15,12 +15,10 @@ import (
 	"github.com/tapglue/backend/v03/validator"
 )
 
-type (
-	connection struct {
-		appUser core.ApplicationUser
-		storage core.Connection
-	}
-)
+type connection struct {
+	appUser core.ApplicationUser
+	storage core.Connection
+}
 
 func (conn *connection) Update(ctx *context.Context) (err []errors.Error) {
 	userFromID := ctx.Bag["applicationUserID"].(uint64)

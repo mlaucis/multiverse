@@ -22,18 +22,16 @@ import (
 // TODO Does it make sense to have something different? Investigate how this will behave in production
 const maxEntriesPerStream = 50
 
-type (
-	pg struct {
-		ksis            ksis.Client
-		pg              postgres.Client
-		organization    core.Organization
-		member          core.Member
-		application     core.Application
-		applicationUser core.ApplicationUser
-		connection      core.Connection
-		event           core.Event
-	}
-)
+type pg struct {
+	ksis            ksis.Client
+	pg              postgres.Client
+	organization    core.Organization
+	member          core.Member
+	application     core.Application
+	applicationUser core.ApplicationUser
+	connection      core.Connection
+	event           core.Event
+}
 
 const (
 	getConsumerPositionQuery    = `SELECT consumer_position FROM tg.consumers WHERE consumer_name='distributor'`

@@ -15,12 +15,10 @@ import (
 	"github.com/tapglue/backend/v03/validator"
 )
 
-type (
-	applicationUser struct {
-		writeStorage core.ApplicationUser
-		readStorage  core.ApplicationUser
-	}
-)
+type applicationUser struct {
+	writeStorage core.ApplicationUser
+	readStorage  core.ApplicationUser
+}
 
 func (appUser *applicationUser) Read(ctx *context.Context) (err []errors.Error) {
 	return []errors.Error{errmsg.ErrServerNotImplementedYet}

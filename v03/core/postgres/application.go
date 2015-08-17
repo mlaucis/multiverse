@@ -16,12 +16,10 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-type (
-	application struct {
-		pg     postgres.Client
-		mainPg *sqlx.DB
-	}
-)
+type application struct {
+	pg     postgres.Client
+	mainPg *sqlx.DB
+}
 
 const (
 	createApplicationEntryQuery            = `INSERT INTO tg.applications (account_id, json_data) VALUES($1, $2) RETURNING id`
@@ -33,24 +31,23 @@ const (
 	listApplicationsEntryByAccountIDQuery  = `SELECT id, json_data, enabled FROM tg.applications where account_id = $1 and enabled = 1`
 )
 
-var (
-	createApplicationNamespaceQuery = []string{
-		`CREATE SCHEMA app_%d_%d`,
-		`CREATE TABLE app_%d_%d.users
+var createApplicationNamespaceQuery = []string{
+	`CREATE SCHEMA app_%d_%d`,
+	`CREATE TABLE app_%d_%d.users
 	(
 		json_data JSONB NOT NULL,
 		last_read TIMESTAMP DEFAULT '2015-05-01 01:23:45' NOT NULL
 	)`,
-		`CREATE TABLE app_%d_%d.events
+	`CREATE TABLE app_%d_%d.events
 	(
 		json_data JSONB NOT NULL,
 		geo GEOMETRY(POINT, 4326)
 	)`,
-		`CREATE TABLE app_%d_%d.connections
+	`CREATE TABLE app_%d_%d.connections
 	(
 		json_data JSONB NOT NULL
 	)`,
-		`CREATE TABLE app_%d_%d.sessions
+	`CREATE TABLE app_%d_%d.sessions
 	(
 		user_id BIGINT NOT NULL,
 		session_id VARCHAR(40) NOT NULL,
@@ -58,12 +55,11 @@ var (
 		enabled BOOL DEFAULT TRUE NOT NULL
 	)`,
 
-		`CREATE INDEX ON app_%d_%d.users USING GIN (json_data jsonb_path_ops)`,
-		`CREATE INDEX ON app_%d_%d.connections USING GIN (json_data jsonb_path_ops)`,
-		`CREATE INDEX ON app_%d_%d.events USING GIN (json_data jsonb_path_ops)`,
-		`CREATE INDEX ON app_%d_%d.events USING GIST (geo)`,
-	}
-)
+	`CREATE INDEX ON app_%d_%d.users USING GIN (json_data jsonb_path_ops)`,
+	`CREATE INDEX ON app_%d_%d.connections USING GIN (json_data jsonb_path_ops)`,
+	`CREATE INDEX ON app_%d_%d.events USING GIN (json_data jsonb_path_ops)`,
+	`CREATE INDEX ON app_%d_%d.events USING GIST (geo)`,
+}
 
 func (app *application) Create(application *entity.Application, retrieve bool) (*entity.Application, []errors.Error) {
 	application.PublicID = storageHelper.GenerateUUIDV5(storageHelper.OIDUUIDNamespace, storageHelper.GenerateRandomString(20))

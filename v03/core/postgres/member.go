@@ -16,13 +16,11 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-type (
-	accountUser struct {
-		pg     postgres.Client
-		mainPg *sqlx.DB
-		a      core.Organization
-	}
-)
+type member struct {
+	pg     postgres.Client
+	mainPg *sqlx.DB
+	org    core.Organization
+}
 
 const (
 	createAccountUserQuery           = `INSERT INTO tg.account_users(account_id, json_data) VALUES($1, $2) RETURNING id`
@@ -41,7 +39,7 @@ const (
 	destroyAccountUserSessionsQuery  = `DELETE FROM tg.account_user_sessions WHERE account_id = $1 AND account_user_id = $2`
 )
 
-func (au *accountUser) Create(accountUser *entity.Member, retrieve bool) (*entity.Member, []errors.Error) {
+func (mem *member) Create(accountUser *entity.Member, retrieve bool) (*entity.Member, []errors.Error) {
 	accountUser.PublicID = storageHelper.GenerateUUIDV5(storageHelper.OIDUUIDNamespace, storageHelper.GenerateRandomString(20))
 	accountUser.Password = storageHelper.EncryptPassword(accountUser.Password)
 	accountUser.Enabled = true
@@ -54,7 +52,7 @@ func (au *accountUser) Create(accountUser *entity.Member, retrieve bool) (*entit
 	}
 
 	var accountUserID int64
-	err = au.mainPg.
+	err = mem.mainPg.
 		QueryRow(createAccountUserQuery, accountUser.OrgID, string(accountUserJSON)).
 		Scan(&accountUserID)
 	if err != nil {
@@ -64,12 +62,12 @@ func (au *accountUser) Create(accountUser *entity.Member, retrieve bool) (*entit
 	if !retrieve {
 		return nil, nil
 	}
-	return au.Read(accountUser.OrgID, accountUserID)
+	return mem.Read(accountUser.OrgID, accountUserID)
 }
 
-func (au *accountUser) Read(accountID, accountUserID int64) (accountUser *entity.Member, er []errors.Error) {
+func (mem *member) Read(accountID, accountUserID int64) (accountUser *entity.Member, er []errors.Error) {
 	var JSONData string
-	err := au.pg.SlaveDatastore(-1).
+	err := mem.pg.SlaveDatastore(-1).
 		QueryRow(selectAccountUserByIDQuery, accountUserID, accountID).
 		Scan(&JSONData)
 	if err != nil {
@@ -90,7 +88,7 @@ func (au *accountUser) Read(accountID, accountUserID int64) (accountUser *entity
 	return accountUser, nil
 }
 
-func (au *accountUser) Update(existingAccountUser, updatedAccountUser entity.Member, retrieve bool) (*entity.Member, []errors.Error) {
+func (mem *member) Update(existingAccountUser, updatedAccountUser entity.Member, retrieve bool) (*entity.Member, []errors.Error) {
 	if updatedAccountUser.Password == "" {
 		updatedAccountUser.Password = existingAccountUser.Password
 	} else if updatedAccountUser.Password != existingAccountUser.Password {
@@ -104,7 +102,7 @@ func (au *accountUser) Update(existingAccountUser, updatedAccountUser entity.Mem
 		return nil, []errors.Error{errmsg.ErrInternalAccountUserUpdate.UpdateInternalMessage(err.Error())}
 	}
 
-	_, err = au.mainPg.
+	_, err = mem.mainPg.
 		Exec(updateAccountUserByIDQuery, string(accountUserJSON), existingAccountUser.ID, existingAccountUser.OrgID)
 	if err != nil {
 		return nil, []errors.Error{errmsg.ErrInternalAccountUserUpdate.UpdateInternalMessage(err.Error())}
@@ -114,22 +112,22 @@ func (au *accountUser) Update(existingAccountUser, updatedAccountUser entity.Mem
 		return nil, nil
 	}
 
-	return au.Read(existingAccountUser.OrgID, existingAccountUser.ID)
+	return mem.Read(existingAccountUser.OrgID, existingAccountUser.ID)
 }
 
-func (au *accountUser) Delete(accountUser *entity.Member) []errors.Error {
-	user, err := au.Read(accountUser.OrgID, accountUser.ID)
+func (mem *member) Delete(accountUser *entity.Member) []errors.Error {
+	user, err := mem.Read(accountUser.OrgID, accountUser.ID)
 	if err != nil {
 		return err
 	}
 	user.Enabled = false
 
-	_, err = au.Update(*user, *user, false)
+	_, err = mem.Update(*user, *user, false)
 	if err != nil {
 		return err
 	}
 
-	_, er := au.mainPg.Exec(destroyAccountUserSessionsQuery, user.OrgID, user.ID)
+	_, er := mem.mainPg.Exec(destroyAccountUserSessionsQuery, user.OrgID, user.ID)
 	if er != nil {
 		return []errors.Error{errmsg.ErrInternalAccountUserSessionDelete.UpdateInternalMessage(er.Error())}
 	}
@@ -137,10 +135,10 @@ func (au *accountUser) Delete(accountUser *entity.Member) []errors.Error {
 	return nil
 }
 
-func (au *accountUser) List(accountID int64) (accountUsers []*entity.Member, er []errors.Error) {
+func (mem *member) List(accountID int64) (accountUsers []*entity.Member, er []errors.Error) {
 	accountUsers = []*entity.Member{}
 
-	rows, err := au.pg.SlaveDatastore(-1).
+	rows, err := mem.pg.SlaveDatastore(-1).
 		Query(listAccountUsersByAccountIDQuery, accountID)
 	if err != nil {
 		return accountUsers, []errors.Error{errmsg.ErrInternalAccountUserList.UpdateInternalMessage(err.Error())}
@@ -168,9 +166,9 @@ func (au *accountUser) List(accountID int64) (accountUsers []*entity.Member, er 
 	return accountUsers, nil
 }
 
-func (au *accountUser) CreateSession(user *entity.Member) (string, []errors.Error) {
+func (mem *member) CreateSession(user *entity.Member) (string, []errors.Error) {
 	sessionToken := storageHelper.GenerateAccountSessionID(user)
-	_, err := au.mainPg.Exec(createAccountUserSessionQuery, user.OrgID, user.ID, sessionToken)
+	_, err := mem.mainPg.Exec(createAccountUserSessionQuery, user.OrgID, user.ID, sessionToken)
 	if err != nil {
 		return "", []errors.Error{errmsg.ErrInternalAccountUserSessionCreation.UpdateInternalMessage(err.Error())}
 	}
@@ -178,9 +176,9 @@ func (au *accountUser) CreateSession(user *entity.Member) (string, []errors.Erro
 	return sessionToken, nil
 }
 
-func (au *accountUser) RefreshSession(sessionToken string, user *entity.Member) (string, []errors.Error) {
+func (mem *member) RefreshSession(sessionToken string, user *entity.Member) (string, []errors.Error) {
 	updatedSessionToken := storageHelper.GenerateAccountSessionID(user)
-	_, err := au.mainPg.Exec(updateAccountUserSessionQuery, sessionToken, user.OrgID, user.ID, updatedSessionToken)
+	_, err := mem.mainPg.Exec(updateAccountUserSessionQuery, sessionToken, user.OrgID, user.ID, updatedSessionToken)
 	if err != nil {
 		return "", []errors.Error{errmsg.ErrInternalAccountUserSessionUpdate.UpdateInternalMessage(err.Error())}
 	}
@@ -188,8 +186,8 @@ func (au *accountUser) RefreshSession(sessionToken string, user *entity.Member) 
 	return updatedSessionToken, nil
 }
 
-func (au *accountUser) DestroySession(sessionToken string, user *entity.Member) []errors.Error {
-	_, err := au.mainPg.Exec(destroyAccountUserSessionQuery, user.OrgID, user.ID, sessionToken)
+func (mem *member) DestroySession(sessionToken string, user *entity.Member) []errors.Error {
+	_, err := mem.mainPg.Exec(destroyAccountUserSessionQuery, user.OrgID, user.ID, sessionToken)
 	if err != nil {
 		return []errors.Error{errmsg.ErrInternalAccountUserSessionDelete.UpdateInternalMessage(err.Error())}
 	}
@@ -197,8 +195,8 @@ func (au *accountUser) DestroySession(sessionToken string, user *entity.Member) 
 	return nil
 }
 
-func (au *accountUser) GetSession(user *entity.Member) (string, []errors.Error) {
-	rows, err := au.pg.SlaveDatastore(-1).
+func (mem *member) GetSession(user *entity.Member) (string, []errors.Error) {
+	rows, err := mem.pg.SlaveDatastore(-1).
 		Query(selectAccountUserSessionQuery, user.OrgID, user.ID)
 	if err != nil {
 		return "", []errors.Error{errmsg.ErrInternalAccountUserSessionRead.UpdateInternalMessage(err.Error())}
@@ -220,12 +218,12 @@ func (au *accountUser) GetSession(user *entity.Member) (string, []errors.Error) 
 	return sessions[rand.Intn(len(sessions))], nil
 }
 
-func (au *accountUser) FindByEmail(email string) (*entity.Organization, *entity.Member, []errors.Error) {
+func (mem *member) FindByEmail(email string) (*entity.Organization, *entity.Member, []errors.Error) {
 	var (
 		ID       int64
 		JSONData string
 	)
-	err := au.pg.SlaveDatastore(-1).
+	err := mem.pg.SlaveDatastore(-1).
 		QueryRow(selectAccountUserByEmailQuery, email).
 		Scan(&ID, &JSONData)
 	if err != nil {
@@ -241,7 +239,7 @@ func (au *accountUser) FindByEmail(email string) (*entity.Organization, *entity.
 	}
 	accountUser.ID = ID
 
-	account, er := au.a.ReadByPublicID(accountUser.PublicAccountID)
+	account, er := mem.org.ReadByPublicID(accountUser.PublicAccountID)
 	if er != nil {
 		return nil, nil, er
 	}
@@ -250,12 +248,12 @@ func (au *accountUser) FindByEmail(email string) (*entity.Organization, *entity.
 	return account, accountUser, nil
 }
 
-func (au *accountUser) ExistsByEmail(email string) (bool, []errors.Error) {
+func (mem *member) ExistsByEmail(email string) (bool, []errors.Error) {
 	var (
 		ID       int64
 		JSONData string
 	)
-	err := au.pg.SlaveDatastore(-1).
+	err := mem.pg.SlaveDatastore(-1).
 		QueryRow(selectAccountUserByEmailQuery, email).
 		Scan(&ID, &JSONData)
 	if err == sql.ErrNoRows {
@@ -267,12 +265,12 @@ func (au *accountUser) ExistsByEmail(email string) (bool, []errors.Error) {
 	return true, nil
 }
 
-func (au *accountUser) FindByUsername(username string) (*entity.Organization, *entity.Member, []errors.Error) {
+func (mem *member) FindByUsername(username string) (*entity.Organization, *entity.Member, []errors.Error) {
 	var (
 		ID       int64
 		JSONData string
 	)
-	err := au.pg.SlaveDatastore(-1).
+	err := mem.pg.SlaveDatastore(-1).
 		QueryRow(selectAccountUserByUsernameQuery, username).
 		Scan(&ID, &JSONData)
 	if err != nil {
@@ -288,7 +286,7 @@ func (au *accountUser) FindByUsername(username string) (*entity.Organization, *e
 	}
 	accountUser.ID = ID
 
-	account, er := au.a.ReadByPublicID(accountUser.PublicAccountID)
+	account, er := mem.org.ReadByPublicID(accountUser.PublicAccountID)
 	if er != nil {
 		return nil, nil, er
 	}
@@ -297,12 +295,12 @@ func (au *accountUser) FindByUsername(username string) (*entity.Organization, *e
 	return account, accountUser, nil
 }
 
-func (au *accountUser) ExistsByUsername(username string) (bool, []errors.Error) {
+func (mem *member) ExistsByUsername(username string) (bool, []errors.Error) {
 	var (
 		ID       int64
 		JSONData string
 	)
-	err := au.pg.SlaveDatastore(-1).
+	err := mem.pg.SlaveDatastore(-1).
 		QueryRow(selectAccountUserByUsernameQuery, username).
 		Scan(&ID, &JSONData)
 	if err == sql.ErrNoRows {
@@ -314,12 +312,12 @@ func (au *accountUser) ExistsByUsername(username string) (bool, []errors.Error) 
 	return true, nil
 }
 
-func (au *accountUser) ExistsByID(accountID, accountUserID int64) (bool, []errors.Error) {
+func (mem *member) ExistsByID(accountID, accountUserID int64) (bool, []errors.Error) {
 	var (
 		ID       int64
 		JSONData string
 	)
-	err := au.pg.SlaveDatastore(-1).
+	err := mem.pg.SlaveDatastore(-1).
 		QueryRow(selectAccountUserByIDQuery, accountUserID, accountID).
 		Scan(&ID, &JSONData)
 	if err == sql.ErrNoRows {
@@ -331,10 +329,10 @@ func (au *accountUser) ExistsByID(accountID, accountUserID int64) (bool, []error
 	return true, nil
 }
 
-func (au *accountUser) FindBySession(sessionKey string) (*entity.Member, []errors.Error) {
+func (mem *member) FindBySession(sessionKey string) (*entity.Member, []errors.Error) {
 	var accountID, accountUserID int64
 
-	err := au.pg.SlaveDatastore(-1).
+	err := mem.pg.SlaveDatastore(-1).
 		QueryRow(selectAccountUserBySessionQuery, sessionKey).
 		Scan(&accountID, &accountUserID)
 	if err == sql.ErrNoRows {
@@ -347,7 +345,7 @@ func (au *accountUser) FindBySession(sessionKey string) (*entity.Member, []error
 		return nil, []errors.Error{errmsg.ErrInternalAccountUserRead.UpdateInternalMessage(err.Error())}
 	}
 
-	accountUser, er := au.Read(accountID, accountUserID)
+	accountUser, er := mem.Read(accountID, accountUserID)
 	if er != nil {
 		return nil, er
 	}
@@ -358,13 +356,13 @@ func (au *accountUser) FindBySession(sessionKey string) (*entity.Member, []error
 	return accountUser, nil
 }
 
-func (au *accountUser) FindByPublicID(accountID int64, publicID string) (*entity.Member, []errors.Error) {
+func (mem *member) FindByPublicID(accountID int64, publicID string) (*entity.Member, []errors.Error) {
 	var (
 		accountUserID int64
 		JSONData      string
 	)
 
-	err := au.pg.SlaveDatastore(-1).
+	err := mem.pg.SlaveDatastore(-1).
 		QueryRow(selectAccountUserByPublicIDQuery, accountID, publicID).
 		Scan(&accountUserID, &JSONData)
 	if err != nil {
@@ -386,18 +384,18 @@ func (au *accountUser) FindByPublicID(accountID int64, publicID string) (*entity
 
 // NewMember returns a new account user handler with PostgreSQL as storage driver
 func NewMember(pgsql postgres.Client) core.Member {
-	return &accountUser{
+	return &member{
 		pg:     pgsql,
 		mainPg: pgsql.MainDatastore(),
-		a:      NewOrganization(pgsql),
+		org:    NewOrganization(pgsql),
 	}
 }
 
-// NewAccountUserWithAccount returns a new account user handler with PostgreSQL as storage driver
-func NewAccountUserWithAccount(pgsql postgres.Client, account core.Organization) core.Member {
-	return &accountUser{
+// NewMemeberWithOrganization returns a new account user handler with PostgreSQL as storage driver
+func NewMemeberWithOrganization(pgsql postgres.Client, account core.Organization) core.Member {
+	return &member{
 		pg:     pgsql,
 		mainPg: pgsql.MainDatastore(),
-		a:      account,
+		org:    account,
 	}
 }

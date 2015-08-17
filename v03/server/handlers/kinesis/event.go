@@ -17,13 +17,11 @@ import (
 	"github.com/tapglue/backend/v03/validator"
 )
 
-type (
-	event struct {
-		readAppUser  core.ApplicationUser
-		writeStorage core.Event
-		readStorage  core.Event
-	}
-)
+type event struct {
+	readAppUser  core.ApplicationUser
+	writeStorage core.Event
+	readStorage  core.Event
+}
 
 func (evt *event) CurrentUserRead(ctx *context.Context) (err []errors.Error) {
 	return []errors.Error{errmsg.ErrServerNotImplementedYet}

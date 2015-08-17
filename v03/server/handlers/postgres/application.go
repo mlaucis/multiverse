@@ -15,11 +15,9 @@ import (
 	"github.com/tapglue/backend/v03/validator"
 )
 
-type (
-	application struct {
-		storage core.Application
-	}
-)
+type application struct {
+	storage core.Application
+}
 
 func (app *application) Read(ctx *context.Context) (err []errors.Error) {
 	// TODO This one read only the current application maybe we want to have something to read any application?

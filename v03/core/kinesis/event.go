@@ -13,12 +13,10 @@ import (
 	ksis "github.com/sendgridlabs/go-kinesis"
 )
 
-type (
-	event struct {
-		storage kinesis.Client
-		ksis    *ksis.Kinesis
-	}
-)
+type event struct {
+	storage kinesis.Client
+	ksis    *ksis.Kinesis
+}
 
 func (e *event) Create(accountID, applicationID int64, currentUserID uint64, event *entity.Event, retrieve bool) (*entity.Event, []errors.Error) {
 	if event.ID == 0 {

@@ -16,11 +16,9 @@ import (
 	"github.com/tapglue/backend/v03/validator"
 )
 
-type (
-	member struct {
-		storage core.Member
-	}
-)
+type member struct {
+	storage core.Member
+}
 
 func (user *member) Read(ctx *context.Context) (err []errors.Error) {
 	// TODO This one read only the current account user maybe we want to have something to read any account user?
@@ -130,7 +128,7 @@ func (user *member) Login(ctx *context.Context) (err []errors.Error) {
 	var (
 		loginPayload = &entity.LoginPayload{}
 		account      *entity.Organization
-		usr         *entity.Member
+		usr          *entity.Member
 		sessionToken string
 		er           error
 	)

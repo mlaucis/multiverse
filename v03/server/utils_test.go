@@ -11,9 +11,7 @@ import (
 	"github.com/tapglue/backend/v03/fixtures"
 )
 
-type (
-	AppUserByID []*entity.ApplicationUser
-)
+type AppUserByID []*entity.ApplicationUser
 
 func (s AppUserByID) Len() int {
 	return len(s)

@@ -13,12 +13,10 @@ import (
 	ksis "github.com/sendgridlabs/go-kinesis"
 )
 
-type (
-	connection struct {
-		storage kinesis.Client
-		ksis    *ksis.Kinesis
-	}
-)
+type connection struct {
+	storage kinesis.Client
+	ksis    *ksis.Kinesis
+}
 
 func (c *connection) Create(accountID, applicationID int64, conn *entity.Connection, retrieve bool) (*entity.Connection, []errors.Error) {
 	con := entity.ConnectionWithIDs{}

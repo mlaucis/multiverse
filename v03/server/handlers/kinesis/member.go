@@ -12,12 +12,10 @@ import (
 	"github.com/tapglue/backend/v03/validator"
 )
 
-type (
-	member struct {
-		writeStorage core.Member
-		readStorage  core.Member
-	}
-)
+type member struct {
+	writeStorage core.Member
+	readStorage  core.Member
+}
 
 func (user *member) Read(ctx *context.Context) (err []errors.Error) {
 	return []errors.Error{errmsg.ErrServerNotImplementedYet}

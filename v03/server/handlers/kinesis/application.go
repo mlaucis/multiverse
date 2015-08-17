@@ -12,12 +12,10 @@ import (
 	"github.com/tapglue/backend/v03/server/response"
 )
 
-type (
-	application struct {
-		writeStorage core.Application
-		readStorage  core.Application
-	}
-)
+type application struct {
+	writeStorage core.Application
+	readStorage  core.Application
+}
 
 func (app *application) Read(ctx *context.Context) (err []errors.Error) {
 	return []errors.Error{errmsg.ErrServerNotImplementedYet}

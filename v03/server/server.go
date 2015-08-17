@@ -21,13 +21,11 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type (
-	errorResponse struct {
-		Code             int    `json:"code"`
-		Message          string `json:"message"`
-		DocumentationURL string `json:"documentation_url,omitempty"`
-	}
-)
+type errorResponse struct {
+	Code             int    `json:"code"`
+	Message          string `json:"message"`
+	DocumentationURL string `json:"documentation_url,omitempty"`
+}
 
 const (
 	// APIVersion holds which API Version does this module holds
@@ -38,7 +36,7 @@ const (
 )
 
 var (
-	postgresOrganization, kinesisOrganization core.Organization
+	postgresOrganization, kinesisOrganization       core.Organization
 	postgresAccountUser, kinesisAccountUser         core.Member
 	postgresApplication, kinesisApplication         core.Application
 	postgresApplicationUser, kinesisApplicationUser core.ApplicationUser
