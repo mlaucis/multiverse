@@ -397,7 +397,7 @@ func (c *connection) Relation(accountID, applicationID int64, userFromID, userTo
 
 	rel := &entity.Relation{
 		IsFriends:   entity.PFalse,
-		IsFollowing: entity.PFalse,
+		IsFollowed: entity.PFalse,
 		IsFollower:  entity.PFalse,
 	}
 	var (
@@ -415,7 +415,7 @@ func (c *connection) Relation(accountID, applicationID int64, userFromID, userTo
 		}
 
 		if relationFrom == userFromID && relationTo == userToID && relationType == "follow" {
-			rel.IsFollowing = entity.PTrue
+			rel.IsFollowed = entity.PTrue
 		}
 
 		if relationFrom == userToID && relationTo == userFromID && relationType == "follow" {

@@ -138,9 +138,9 @@ type (
 
 	// Relation holds the relation between two users
 	Relation struct {
-		IsFriends   *bool `json:"is_friends,omitempty"`
-		IsFollower  *bool `json:"is_follower,omitempty"`
-		IsFollowing *bool `json:"is_following,omitempty"`
+		IsFriends  *bool `json:"is_friends,omitempty"`
+		IsFollower *bool `json:"is_follower,omitempty"`
+		IsFollowed *bool `json:"is_followed,omitempty"`
 	}
 
 	// Device structure
