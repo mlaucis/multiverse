@@ -16,12 +16,12 @@ import (
 )
 
 type (
-	account struct {
+	organization struct {
 		storage core.Organization
 	}
 )
 
-func (acc *account) Read(ctx *context.Context) (err []errors.Error) {
+func (org *organization) Read(ctx *context.Context) (err []errors.Error) {
 	if ctx.Bag["account"] == nil {
 		return []errors.Error{errmsg.ErrAccountMissingInContext}
 	}
@@ -36,7 +36,7 @@ func (acc *account) Read(ctx *context.Context) (err []errors.Error) {
 	return
 }
 
-func (acc *account) Update(ctx *context.Context) (err []errors.Error) {
+func (org *organization) Update(ctx *context.Context) (err []errors.Error) {
 	account := *(ctx.Bag["account"].(*entity.Organization))
 
 	if account.PublicID != ctx.Vars["accountID"] {
@@ -53,7 +53,7 @@ func (acc *account) Update(ctx *context.Context) (err []errors.Error) {
 		return err
 	}
 
-	updatedAccount, err := acc.storage.Update(*(ctx.Bag["account"].(*entity.Organization)), account, true)
+	updatedAccount, err := org.storage.Update(*(ctx.Bag["account"].(*entity.Organization)), account, true)
 	if err != nil {
 		return err
 	}
@@ -62,12 +62,12 @@ func (acc *account) Update(ctx *context.Context) (err []errors.Error) {
 	return nil
 }
 
-func (acc *account) Delete(ctx *context.Context) (err []errors.Error) {
+func (org *organization) Delete(ctx *context.Context) (err []errors.Error) {
 	if ctx.Bag["account"].(*entity.Organization).PublicID != ctx.Vars["accountID"] {
 		return []errors.Error{errmsg.ErrAccountMismatch}
 	}
 
-	if err = acc.storage.Delete(ctx.Bag["account"].(*entity.Organization)); err != nil {
+	if err = org.storage.Delete(ctx.Bag["account"].(*entity.Organization)); err != nil {
 		return err
 	}
 
@@ -75,7 +75,7 @@ func (acc *account) Delete(ctx *context.Context) (err []errors.Error) {
 	return nil
 }
 
-func (acc *account) Create(ctx *context.Context) (err []errors.Error) {
+func (org *organization) Create(ctx *context.Context) (err []errors.Error) {
 	var account = &entity.Organization{}
 
 	if er := json.Unmarshal(ctx.Body, account); er != nil {
@@ -86,7 +86,7 @@ func (acc *account) Create(ctx *context.Context) (err []errors.Error) {
 		return
 	}
 
-	if account, err = acc.storage.Create(account, true); err != nil {
+	if account, err = org.storage.Create(account, true); err != nil {
 		return
 	}
 
@@ -94,12 +94,12 @@ func (acc *account) Create(ctx *context.Context) (err []errors.Error) {
 	return
 }
 
-func (acc *account) PopulateContext(ctx *context.Context) (err []errors.Error) {
+func (org *organization) PopulateContext(ctx *context.Context) (err []errors.Error) {
 	user, pass, ok := ctx.BasicAuth()
 	if !ok {
 		return []errors.Error{errmsg.ErrAuthInvalidAccountCredentials.UpdateInternalMessage(fmt.Sprintf("got %s:%s", user, pass))}
 	}
-	account, err := acc.storage.FindByKey(user)
+	account, err := org.storage.FindByKey(user)
 	if account == nil {
 		return []errors.Error{errmsg.ErrAccountNotFound}
 	}
@@ -111,8 +111,8 @@ func (acc *account) PopulateContext(ctx *context.Context) (err []errors.Error) {
 }
 
 // NewAccount returns a new account handler tweaked specifically for Kinesis
-func NewAccount(datastore core.Organization) handlers.Organization {
-	return &account{
+func NewOrganization(datastore core.Organization) handlers.Organization {
+	return &organization{
 		storage: datastore,
 	}
 }

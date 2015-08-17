@@ -107,15 +107,15 @@ func InitRouter(agent *gorelic.Agent, router *mux.Router, mainLogChan, errorLogC
 
 // InitHandlers handles the initialization of the route handlers
 func InitHandlers() {
-	kinesisOrganizationHandler = kinesis.NewAccount(kinesisAccount, postgresAccount)
-	kinesisAccountUserHandler = kinesis.NewAccountUser(kinesisAccountUser, postgresAccountUser)
+	kinesisOrganizationHandler = kinesis.NewOrganization(kinesisOrganization, postgresOrganization)
+	kinesisAccountUserHandler = kinesis.NewMember(kinesisAccountUser, postgresAccountUser)
 	kinesisApplicationHandler = kinesis.NewApplication(kinesisApplication, postgresApplication)
 	kinesisApplicationUserHandler = kinesis.NewApplicationUser(kinesisApplicationUser, postgresApplicationUser)
 	kinesisConnectionHandler = kinesis.NewConnectionWithApplicationUser(kinesisConnection, postgresConnection, postgresApplicationUser)
 	kinesisEventHandler = kinesis.NewEventWithApplicationUser(kinesisEvent, postgresEvent, postgresApplicationUser)
 
-	postgresOrganizationHandler = postgres.NewAccount(postgresAccount)
-	postgresMemberHandler = postgres.NewAccountUser(postgresAccountUser)
+	postgresOrganizationHandler = postgres.NewOrganization(postgresOrganization)
+	postgresMemberHandler = postgres.NewMember(postgresAccountUser)
 	postgresApplicationHandler = postgres.NewApplication(postgresApplication)
 	postgresApplicationUserHandler = postgres.NewApplicationUser(postgresApplicationUser, postgresConnection)
 	postgresConnectionHandler = postgres.NewConnection(postgresConnection, postgresApplicationUser)

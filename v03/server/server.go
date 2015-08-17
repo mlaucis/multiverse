@@ -38,7 +38,7 @@ const (
 )
 
 var (
-	postgresAccount, kinesisAccount                 core.Organization
+	postgresOrganization, kinesisOrganization core.Organization
 	postgresAccountUser, kinesisAccountUser         core.Member
 	postgresApplication, kinesisApplication         core.Application
 	postgresApplicationUser, kinesisApplicationUser core.ApplicationUser
@@ -279,14 +279,14 @@ func Setup(v03KinesisClient v03_kinesis.Client, v03PostgresClient v03_postgres.C
 		panic("You must first initialize the rate limiter")
 	}
 
-	kinesisAccount = v03_kinesis_core.NewAccount(v03KinesisClient)
+	kinesisOrganization = v03_kinesis_core.NewAccount(v03KinesisClient)
 	kinesisAccountUser = v03_kinesis_core.NewAccountUser(v03KinesisClient)
 	kinesisApplication = v03_kinesis_core.NewApplication(v03KinesisClient)
 	kinesisApplicationUser = v03_kinesis_core.NewApplicationUser(v03KinesisClient)
 	kinesisConnection = v03_kinesis_core.NewConnection(v03KinesisClient)
 	kinesisEvent = v03_kinesis_core.NewEvent(v03KinesisClient)
 
-	postgresAccount = v03_postgres_core.NewOrganization(v03PostgresClient)
+	postgresOrganization = v03_postgres_core.NewOrganization(v03PostgresClient)
 	postgresAccountUser = v03_postgres_core.NewMember(v03PostgresClient)
 	postgresApplication = v03_postgres_core.NewApplication(v03PostgresClient)
 	postgresApplicationUser = v03_postgres_core.NewApplicationUser(v03PostgresClient)
