@@ -7,41 +7,41 @@ import (
 	"github.com/tapglue/backend/v03/entity"
 )
 
-// ComputeAccountLastModified computes the last-modified information for the account
-func ComputeAccountLastModified(ctx *context.Context, account *entity.Account) {
-	ctx.Bag["Last-Modified"] = account.UpdatedAt.Format(http.TimeFormat)
+// ComputeOrganizationLastModified computes the last-modified information for the account
+func ComputeOrganizationLastModified(ctx *context.Context, organization *entity.Organization) {
+	ctx.Bag["Last-Modified"] = organization.UpdatedAt.Format(http.TimeFormat)
 }
 
-// ComputeAccountsLastModified computes the last-modified information for a list of accounts
-func ComputeAccountsLastModified(ctx *context.Context, accounts []*entity.Account) {
-	if len(accounts) == 0 {
+// ComputeOrganizationsLastModified computes the last-modified information for a list of accounts
+func ComputeOrganizationsLastModified(ctx *context.Context, organizations []*entity.Organization) {
+	if len(organizations) == 0 {
 		ctx.Bag["Last-Modified"] = ctx.StartTime.Format(http.TimeFormat)
 		return
 	}
-	highTime := accounts[0].UpdatedAt
-	for idx := range accounts {
-		if accounts[idx].UpdatedAt.After(*highTime) {
-			highTime = accounts[idx].UpdatedAt
+	highTime := organizations[0].UpdatedAt
+	for idx := range organizations {
+		if organizations[idx].UpdatedAt.After(*highTime) {
+			highTime = organizations[idx].UpdatedAt
 		}
 	}
 	ctx.Bag["Last-Modified"] = highTime.Format(http.TimeFormat)
 }
 
-// ComputeAccountUserLastModified computes the last-modified information for the account user
-func ComputeAccountUserLastModified(ctx *context.Context, user *entity.AccountUser) {
-	ctx.Bag["Last-Modified"] = user.UpdatedAt.Format(http.TimeFormat)
+// ComputeMemberLastModified computes the last-modified information for the account user
+func ComputeMemberLastModified(ctx *context.Context, member *entity.Member) {
+	ctx.Bag["Last-Modified"] = member.UpdatedAt.Format(http.TimeFormat)
 }
 
-// ComputeAccountUsersLastModified computes the last-modified information for a list of account users
-func ComputeAccountUsersLastModified(ctx *context.Context, users []*entity.AccountUser) {
-	if len(users) == 0 {
+// ComputeMembersLastModified computes the last-modified information for a list of account users
+func ComputeMembersLastModified(ctx *context.Context, members []*entity.Member) {
+	if len(members) == 0 {
 		ctx.Bag["Last-Modified"] = ctx.StartTime.Format(http.TimeFormat)
 		return
 	}
-	highTime := users[0].UpdatedAt
-	for idx := range users {
-		if users[idx].UpdatedAt.After(*highTime) {
-			highTime = users[idx].UpdatedAt
+	highTime := members[0].UpdatedAt
+	for idx := range members {
+		if members[idx].UpdatedAt.After(*highTime) {
+			highTime = members[idx].UpdatedAt
 		}
 	}
 	ctx.Bag["Last-Modified"] = highTime.Format(http.TimeFormat)

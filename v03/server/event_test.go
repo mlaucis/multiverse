@@ -507,7 +507,7 @@ func (s *EventSuite) TestGetObjectEvents(c *C) {
 	user2 := application.Users[1]
 
 	routeName := "getObjectEventList"
-	route := getComposedRoute(routeName, application.AccountID, application.ID, user1.Events[0].Object.ID)
+	route := getComposedRoute(routeName, application.OrgID, application.ID, user1.Events[0].Object.ID)
 	code, body, err := runRequest(routeName, route, "", signApplicationRequest(application, user1, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusOK)

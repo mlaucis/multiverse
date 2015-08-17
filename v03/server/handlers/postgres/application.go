@@ -15,11 +15,9 @@ import (
 	"github.com/tapglue/backend/v03/validator"
 )
 
-type (
-	application struct {
-		storage core.Application
-	}
-)
+type application struct {
+	storage core.Application
+}
 
 func (app *application) Read(ctx *context.Context) (err []errors.Error) {
 	// TODO This one read only the current application maybe we want to have something to read any application?
@@ -35,8 +33,8 @@ func (app *application) Update(ctx *context.Context) (err []errors.Error) {
 	}
 
 	application.ID = ctx.Bag["applicationID"].(int64)
-	application.AccountID = ctx.Bag["accountID"].(int64)
-	application.PublicID = ctx.Bag["account"].(*entity.Account).PublicID
+	application.OrgID = ctx.Bag["accountID"].(int64)
+	application.PublicID = ctx.Bag["account"].(*entity.Organization).PublicID
 
 	if err = validator.UpdateApplication(ctx.Bag["application"].(*entity.Application), &application); err != nil {
 		return
@@ -69,8 +67,8 @@ func (app *application) Create(ctx *context.Context) (err []errors.Error) {
 		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
 	}
 
-	application.AccountID = ctx.Bag["accountID"].(int64)
-	application.PublicAccountID = ctx.Bag["account"].(*entity.Account).PublicID
+	application.OrgID = ctx.Bag["accountID"].(int64)
+	application.PublicOrgID = ctx.Bag["account"].(*entity.Organization).PublicID
 
 	if err = validator.CreateApplication(application); err != nil {
 		return
@@ -112,7 +110,7 @@ func (app *application) PopulateContext(ctx *context.Context) (err []errors.Erro
 	}
 	ctx.Bag["application"], err = app.storage.FindByKey(user)
 	if err == nil {
-		ctx.Bag["accountID"] = ctx.Bag["application"].(*entity.Application).AccountID
+		ctx.Bag["accountID"] = ctx.Bag["application"].(*entity.Application).OrgID
 		ctx.Bag["applicationID"] = ctx.Bag["application"].(*entity.Application).ID
 	}
 	return
@@ -130,7 +128,7 @@ func (app *application) PopulateContextFromID(ctx *context.Context) (err []error
 			return []errors.Error{errmsg.ErrApplicationNotFound}
 		}
 
-		ctx.Bag["accountID"] = ctx.Bag["application"].(*entity.Application).AccountID
+		ctx.Bag["accountID"] = ctx.Bag["application"].(*entity.Application).OrgID
 		ctx.Bag["applicationID"] = ctx.Bag["application"].(*entity.Application).ID
 	}
 	return

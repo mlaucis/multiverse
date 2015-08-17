@@ -13,12 +13,10 @@ import (
 	ksis "github.com/sendgridlabs/go-kinesis"
 )
 
-type (
-	application struct {
-		storage kinesis.Client
-		ksis    *ksis.Kinesis
-	}
-)
+type application struct {
+	storage kinesis.Client
+	ksis    *ksis.Kinesis
+}
 
 func (app *application) Create(application *entity.Application, retrieve bool) (*entity.Application, []errors.Error) {
 	data, er := json.Marshal(application)
@@ -26,7 +24,7 @@ func (app *application) Create(application *entity.Application, retrieve bool) (
 		return nil, []errors.Error{errors.NewInternalError(0, "error while creating the application (1)", er.Error())}
 	}
 
-	partitionKey := fmt.Sprintf("application-create-%d", application.AccountID)
+	partitionKey := fmt.Sprintf("application-create-%d", application.OrgID)
 	_, err := app.storage.PackAndPutRecord(kinesis.StreamApplicationCreate, partitionKey, data)
 	if err != nil {
 		return nil, []errors.Error{err}
@@ -49,7 +47,7 @@ func (app *application) Update(existingApplication, updatedApplication entity.Ap
 		return nil, []errors.Error{errors.NewInternalError(0, "error while updating the application (1)", er.Error())}
 	}
 
-	partitionKey := fmt.Sprintf("application-update-%d-%d", updatedApplication.AccountID, updatedApplication.ID)
+	partitionKey := fmt.Sprintf("application-update-%d-%d", updatedApplication.OrgID, updatedApplication.ID)
 	_, err := app.storage.PackAndPutRecord(kinesis.StreamApplicationUpdate, partitionKey, data)
 	if err != nil {
 		return nil, []errors.Error{err}
@@ -68,7 +66,7 @@ func (app *application) Delete(application *entity.Application) []errors.Error {
 		return []errors.Error{errors.NewInternalError(0, "error while deleting the application (1)", er.Error())}
 	}
 
-	partitionKey := fmt.Sprintf("application-delete-%d-%d", application.AccountID, application.ID)
+	partitionKey := fmt.Sprintf("application-delete-%d-%d", application.OrgID, application.ID)
 	_, err := app.storage.PackAndPutRecord(kinesis.StreamApplicationDelete, partitionKey, data)
 	if err != nil {
 		return []errors.Error{err}

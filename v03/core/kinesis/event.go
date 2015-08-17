@@ -13,20 +13,18 @@ import (
 	ksis "github.com/sendgridlabs/go-kinesis"
 )
 
-type (
-	event struct {
-		storage kinesis.Client
-		ksis    *ksis.Kinesis
-	}
-)
+type event struct {
+	storage kinesis.Client
+	ksis    *ksis.Kinesis
+}
 
 func (e *event) Create(accountID, applicationID int64, currentUserID uint64, event *entity.Event, retrieve bool) (*entity.Event, []errors.Error) {
 	if event.ID == 0 {
 		return nil, []errors.Error{errmsg.ErrInternalEventMissingID}
 	}
 	evt := entity.EventWithIDs{}
-	evt.AccountID = accountID
-	evt.ApplicationID = applicationID
+	evt.OrgID = accountID
+	evt.AppID = applicationID
 	event.Enabled = true
 	evt.Event = *event
 	data, er := json.Marshal(evt)
@@ -53,8 +51,8 @@ func (e *event) Read(accountID, applicationID int64, userID, eventID uint64) (ev
 
 func (e *event) Update(accountID, applicationID int64, currentUserID uint64, existingEvent, updatedEvent entity.Event, retrieve bool) (*entity.Event, []errors.Error) {
 	evt := entity.EventWithIDs{}
-	evt.AccountID = accountID
-	evt.ApplicationID = applicationID
+	evt.OrgID = accountID
+	evt.AppID = applicationID
 	evt.Event = updatedEvent
 	data, er := json.Marshal(evt)
 	if er != nil {
@@ -76,8 +74,8 @@ func (e *event) Update(accountID, applicationID int64, currentUserID uint64, exi
 
 func (e *event) Delete(accountID, applicationID int64, userID, eventID uint64) []errors.Error {
 	evt := entity.EventWithIDs{}
-	evt.AccountID = accountID
-	evt.ApplicationID = applicationID
+	evt.OrgID = accountID
+	evt.AppID = applicationID
 	evt.ID = eventID
 	evt.UserID = userID
 	data, er := json.Marshal(evt)

@@ -15,29 +15,27 @@ import (
 	"github.com/tapglue/backend/v03/validator"
 )
 
-type (
-	account struct {
-		storage core.Account
-	}
-)
+type organization struct {
+	storage core.Organization
+}
 
-func (acc *account) Read(ctx *context.Context) (err []errors.Error) {
+func (org *organization) Read(ctx *context.Context) (err []errors.Error) {
 	if ctx.Bag["account"] == nil {
 		return []errors.Error{errmsg.ErrAccountMissingInContext}
 	}
 
-	if ctx.Bag["account"].(*entity.Account).PublicID != ctx.Vars["accountID"] {
+	if ctx.Bag["account"].(*entity.Organization).PublicID != ctx.Vars["accountID"] {
 		return []errors.Error{errmsg.ErrAccountMismatch}
 	}
 
-	response.ComputeAccountLastModified(ctx, ctx.Bag["account"].(*entity.Account))
+	response.ComputeOrganizationLastModified(ctx, ctx.Bag["account"].(*entity.Organization))
 
-	response.WriteResponse(ctx, ctx.Bag["account"].(*entity.Account), http.StatusOK, 10)
+	response.WriteResponse(ctx, ctx.Bag["account"].(*entity.Organization), http.StatusOK, 10)
 	return
 }
 
-func (acc *account) Update(ctx *context.Context) (err []errors.Error) {
-	account := *(ctx.Bag["account"].(*entity.Account))
+func (org *organization) Update(ctx *context.Context) (err []errors.Error) {
+	account := *(ctx.Bag["account"].(*entity.Organization))
 
 	if account.PublicID != ctx.Vars["accountID"] {
 		return []errors.Error{errmsg.ErrAccountMismatch}
@@ -49,11 +47,11 @@ func (acc *account) Update(ctx *context.Context) (err []errors.Error) {
 
 	account.ID = ctx.Bag["accountID"].(int64)
 
-	if err := validator.UpdateAccount(ctx.Bag["account"].(*entity.Account), &account); err != nil {
+	if err := validator.UpdateOrganization(ctx.Bag["account"].(*entity.Organization), &account); err != nil {
 		return err
 	}
 
-	updatedAccount, err := acc.storage.Update(*(ctx.Bag["account"].(*entity.Account)), account, true)
+	updatedAccount, err := org.storage.Update(*(ctx.Bag["account"].(*entity.Organization)), account, true)
 	if err != nil {
 		return err
 	}
@@ -62,12 +60,12 @@ func (acc *account) Update(ctx *context.Context) (err []errors.Error) {
 	return nil
 }
 
-func (acc *account) Delete(ctx *context.Context) (err []errors.Error) {
-	if ctx.Bag["account"].(*entity.Account).PublicID != ctx.Vars["accountID"] {
+func (org *organization) Delete(ctx *context.Context) (err []errors.Error) {
+	if ctx.Bag["account"].(*entity.Organization).PublicID != ctx.Vars["accountID"] {
 		return []errors.Error{errmsg.ErrAccountMismatch}
 	}
 
-	if err = acc.storage.Delete(ctx.Bag["account"].(*entity.Account)); err != nil {
+	if err = org.storage.Delete(ctx.Bag["account"].(*entity.Organization)); err != nil {
 		return err
 	}
 
@@ -75,18 +73,18 @@ func (acc *account) Delete(ctx *context.Context) (err []errors.Error) {
 	return nil
 }
 
-func (acc *account) Create(ctx *context.Context) (err []errors.Error) {
-	var account = &entity.Account{}
+func (org *organization) Create(ctx *context.Context) (err []errors.Error) {
+	var account = &entity.Organization{}
 
 	if er := json.Unmarshal(ctx.Body, account); er != nil {
 		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
 	}
 
-	if err = validator.CreateAccount(account); err != nil {
+	if err = validator.CreateOrganization(account); err != nil {
 		return
 	}
 
-	if account, err = acc.storage.Create(account, true); err != nil {
+	if account, err = org.storage.Create(account, true); err != nil {
 		return
 	}
 
@@ -94,12 +92,12 @@ func (acc *account) Create(ctx *context.Context) (err []errors.Error) {
 	return
 }
 
-func (acc *account) PopulateContext(ctx *context.Context) (err []errors.Error) {
+func (org *organization) PopulateContext(ctx *context.Context) (err []errors.Error) {
 	user, pass, ok := ctx.BasicAuth()
 	if !ok {
 		return []errors.Error{errmsg.ErrAuthInvalidAccountCredentials.UpdateInternalMessage(fmt.Sprintf("got %s:%s", user, pass))}
 	}
-	account, err := acc.storage.FindByKey(user)
+	account, err := org.storage.FindByKey(user)
 	if account == nil {
 		return []errors.Error{errmsg.ErrAccountNotFound}
 	}
@@ -111,8 +109,8 @@ func (acc *account) PopulateContext(ctx *context.Context) (err []errors.Error) {
 }
 
 // NewAccount returns a new account handler tweaked specifically for Kinesis
-func NewAccount(datastore core.Account) handlers.Account {
-	return &account{
+func NewOrganization(datastore core.Organization) handlers.Organization {
+	return &organization{
 		storage: datastore,
 	}
 }

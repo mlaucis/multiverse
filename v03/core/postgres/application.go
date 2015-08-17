@@ -16,12 +16,10 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-type (
-	application struct {
-		pg     postgres.Client
-		mainPg *sqlx.DB
-	}
-)
+type application struct {
+	pg     postgres.Client
+	mainPg *sqlx.DB
+}
 
 const (
 	createApplicationEntryQuery            = `INSERT INTO tg.applications (account_id, json_data) VALUES($1, $2) RETURNING id`
@@ -33,24 +31,23 @@ const (
 	listApplicationsEntryByAccountIDQuery  = `SELECT id, json_data, enabled FROM tg.applications where account_id = $1 and enabled = 1`
 )
 
-var (
-	createApplicationNamespaceQuery = []string{
-		`CREATE SCHEMA app_%d_%d`,
-		`CREATE TABLE app_%d_%d.users
+var createApplicationNamespaceQuery = []string{
+	`CREATE SCHEMA app_%d_%d`,
+	`CREATE TABLE app_%d_%d.users
 	(
 		json_data JSONB NOT NULL,
 		last_read TIMESTAMP DEFAULT '2015-05-01 01:23:45' NOT NULL
 	)`,
-		`CREATE TABLE app_%d_%d.events
+	`CREATE TABLE app_%d_%d.events
 	(
 		json_data JSONB NOT NULL,
 		geo GEOMETRY(POINT, 4326)
 	)`,
-		`CREATE TABLE app_%d_%d.connections
+	`CREATE TABLE app_%d_%d.connections
 	(
 		json_data JSONB NOT NULL
 	)`,
-		`CREATE TABLE app_%d_%d.sessions
+	`CREATE TABLE app_%d_%d.sessions
 	(
 		user_id BIGINT NOT NULL,
 		session_id VARCHAR(40) NOT NULL,
@@ -58,12 +55,11 @@ var (
 		enabled BOOL DEFAULT TRUE NOT NULL
 	)`,
 
-		`CREATE INDEX ON app_%d_%d.users USING GIN (json_data jsonb_path_ops)`,
-		`CREATE INDEX ON app_%d_%d.connections USING GIN (json_data jsonb_path_ops)`,
-		`CREATE INDEX ON app_%d_%d.events USING GIN (json_data jsonb_path_ops)`,
-		`CREATE INDEX ON app_%d_%d.events USING GIST (geo)`,
-	}
-)
+	`CREATE INDEX ON app_%d_%d.users USING GIN (json_data jsonb_path_ops)`,
+	`CREATE INDEX ON app_%d_%d.connections USING GIN (json_data jsonb_path_ops)`,
+	`CREATE INDEX ON app_%d_%d.events USING GIN (json_data jsonb_path_ops)`,
+	`CREATE INDEX ON app_%d_%d.events USING GIST (geo)`,
+}
 
 func (app *application) Create(application *entity.Application, retrieve bool) (*entity.Application, []errors.Error) {
 	application.PublicID = storageHelper.GenerateUUIDV5(storageHelper.OIDUUIDNamespace, storageHelper.GenerateRandomString(20))
@@ -79,7 +75,7 @@ func (app *application) Create(application *entity.Application, retrieve bool) (
 
 	var applicationID int64
 	err = app.mainPg.
-		QueryRow(createApplicationEntryQuery, application.AccountID, applicationJSON).
+		QueryRow(createApplicationEntryQuery, application.OrgID, applicationJSON).
 		Scan(&applicationID)
 	if err != nil {
 		return nil, []errors.Error{errmsg.ErrInternalApplicationCreation.UpdateInternalMessage(err.Error())}
@@ -87,7 +83,7 @@ func (app *application) Create(application *entity.Application, retrieve bool) (
 	application.ID = applicationID
 
 	for idx := range createApplicationNamespaceQuery {
-		_, err = app.mainPg.Exec(fmt.Sprintf(createApplicationNamespaceQuery[idx], application.AccountID, application.ID))
+		_, err = app.mainPg.Exec(fmt.Sprintf(createApplicationNamespaceQuery[idx], application.OrgID, application.ID))
 		if err != nil {
 			// TODO rollback the creation from the field if we fail to create all the stuff here
 			// TODO learn transactions :)
@@ -99,7 +95,7 @@ func (app *application) Create(application *entity.Application, retrieve bool) (
 		return nil, nil
 	}
 
-	return app.Read(application.AccountID, applicationID)
+	return app.Read(application.OrgID, applicationID)
 }
 
 func (app *application) Read(accountID, applicationID int64) (*entity.Application, []errors.Error) {
@@ -140,7 +136,7 @@ func (app *application) Update(existingApplication, updatedApplication entity.Ap
 		return nil, []errors.Error{errmsg.ErrInternalApplicationUpdate.UpdateInternalMessage(err.Error())}
 	}
 
-	_, err = app.mainPg.Exec(updateApplicationEntryByIDQuery, applicationJSON, existingApplication.ID, existingApplication.AccountID)
+	_, err = app.mainPg.Exec(updateApplicationEntryByIDQuery, applicationJSON, existingApplication.ID, existingApplication.OrgID)
 	if err != nil {
 		return nil, []errors.Error{errmsg.ErrInternalApplicationUpdate.UpdateInternalMessage(err.Error())}
 	}
@@ -148,11 +144,11 @@ func (app *application) Update(existingApplication, updatedApplication entity.Ap
 	if !retrieve {
 		return nil, nil
 	}
-	return app.Read(existingApplication.AccountID, existingApplication.ID)
+	return app.Read(existingApplication.OrgID, existingApplication.ID)
 }
 
 func (app *application) Delete(application *entity.Application) []errors.Error {
-	_, err := app.mainPg.Exec(deleteApplicationEntryByIDQuery, application.ID, application.AccountID)
+	_, err := app.mainPg.Exec(deleteApplicationEntryByIDQuery, application.ID, application.OrgID)
 	if err != nil {
 		return []errors.Error{errmsg.ErrInternalApplicationDelete.UpdateInternalMessage(err.Error())}
 	}
@@ -233,7 +229,7 @@ func (app *application) FindByKey(applicationKey string) (*entity.Application, [
 		return nil, []errors.Error{errmsg.ErrInternalApplicationRead.UpdateInternalMessage(err.Error())}
 	}
 	application.ID = ID
-	application.AccountID = accountID
+	application.OrgID = accountID
 	application.Enabled = Enabled
 
 	return application, nil
@@ -260,7 +256,7 @@ func (app *application) FindByPublicID(publicID string) (*entity.Application, []
 		return nil, []errors.Error{errmsg.ErrInternalApplicationRead.UpdateInternalMessage(err.Error())}
 	}
 	application.ID = ID
-	application.AccountID = accountID
+	application.OrgID = accountID
 	application.Enabled = Enabled
 
 	return application, nil

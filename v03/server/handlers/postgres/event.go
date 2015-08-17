@@ -17,12 +17,10 @@ import (
 	"github.com/tapglue/backend/v03/validator"
 )
 
-type (
-	event struct {
-		appUser core.ApplicationUser
-		storage core.Event
-	}
-)
+type event struct {
+	appUser core.ApplicationUser
+	storage core.Event
+}
 
 func (evt *event) CurrentUserRead(ctx *context.Context) (err []errors.Error) {
 	var event = &entity.Event{}

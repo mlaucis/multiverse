@@ -28,8 +28,8 @@ func CreateApplication(application *entity.Application) (errs []errors.Error) {
 		errs = append(errs, errmsg.ErrApplicationIDIsAlreadySet)
 	}
 
-	if application.AccountID == 0 {
-		errs = append(errs, errmsg.ErrAccountIDZero)
+	if application.OrgID == 0 {
+		errs = append(errs, errmsg.ErrOrgIDZero)
 	}
 
 	if application.URL != "" && !IsValidURL(application.URL, true) {

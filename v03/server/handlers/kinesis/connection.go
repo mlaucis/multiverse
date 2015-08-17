@@ -12,13 +12,11 @@ import (
 	"github.com/tapglue/backend/v03/server/response"
 )
 
-type (
-	connection struct {
-		readAppUser  core.ApplicationUser
-		writeStorage core.Connection
-		readStorage  core.Connection
-	}
-)
+type connection struct {
+	readAppUser  core.ApplicationUser
+	writeStorage core.Connection
+	readStorage  core.Connection
+}
 
 func (conn *connection) Update(ctx *context.Context) (err []errors.Error) {
 	return []errors.Error{errmsg.ErrServerNotImplementedYet}

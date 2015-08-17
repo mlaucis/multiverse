@@ -8,142 +8,142 @@ import "fmt"
 // SetupRoutes returns the initialized routes
 func SetupRoutes() []*Route {
 	routes := []*Route{
-		// Account
+		// Organization
 		&Route{
-			Name:   "getAccount",
+			Name:   "getOrganization",
 			Method: "GET",
-			Path:   fmt.Sprintf("/accounts/%s", accountID),
+			Path:   fmt.Sprintf("/organizations/%s", organizationID),
 			Handlers: []RouteFunc{
-				postgresAccountHandler.Read,
+				postgresOrganizationHandler.Read,
 			},
 			Filters: []Filter{
-				ContextHasAccount(postgresAccountHandler),
+				ContextHasOrganization(postgresOrganizationHandler),
 			},
 		},
 		&Route{
-			Name:   "updateAccount",
+			Name:   "updateOrganization",
 			Method: "PUT",
-			Path:   fmt.Sprintf("/accounts/%s", accountID),
+			Path:   fmt.Sprintf("/organizations/%s", organizationID),
 			Handlers: []RouteFunc{
-				postgresAccountHandler.Update,
+				postgresOrganizationHandler.Update,
 			},
 			Filters: []Filter{
-				ContextHasAccount(postgresAccountHandler),
+				ContextHasOrganization(postgresOrganizationHandler),
 			},
 		},
 		&Route{
-			Name:   "deleteAccount",
+			Name:   "deleteOrganization",
 			Method: "DELETE",
-			Path:   fmt.Sprintf("/accounts/%s", accountID),
+			Path:   fmt.Sprintf("/organizations/%s", organizationID),
 			Handlers: []RouteFunc{
-				postgresAccountHandler.Delete,
+				postgresOrganizationHandler.Delete,
 			},
 			Filters: []Filter{
-				ContextHasAccount(postgresAccountHandler),
+				ContextHasOrganization(postgresOrganizationHandler),
 			},
 		},
 		&Route{
-			Name:   "createAccount",
+			Name:   "createOrganization",
 			Method: "POST",
-			Path:   "/accounts",
+			Path:   "/organizations",
 			Handlers: []RouteFunc{
-				postgresAccountHandler.Create,
+				postgresOrganizationHandler.Create,
 			},
 		},
 	}
 
-	// AccountUser
+	// Member
 	routes = append(routes,
 		&Route{
-			Name:   "getAccountUser",
+			Name:   "getMember",
 			Method: "GET",
-			Path:   fmt.Sprintf("/accounts/%s/users/%s", accountID, accountUserID),
+			Path:   fmt.Sprintf("/organization/%s/members/%s", organizationID, memberID),
 			Handlers: []RouteFunc{
-				postgresAccountUserHandler.Read,
+				postgresMemberHandler.Read,
 			},
 			Filters: []Filter{
-				ContextHasAccount(postgresAccountHandler),
-				ContextHasAccountUser(postgresAccountUserHandler),
+				ContextHasOrganization(postgresOrganizationHandler),
+				ContextHasMember(postgresMemberHandler),
 			},
 		},
 		&Route{
-			Name:   "updateAccountUser",
+			Name:   "updateMember",
 			Method: "PUT",
-			Path:   fmt.Sprintf("/accounts/%s/users/%s", accountID, accountUserID),
+			Path:   fmt.Sprintf("/organizations/%s/members/%s", organizationID, memberID),
 			Handlers: []RouteFunc{
-				postgresAccountUserHandler.Update,
+				postgresMemberHandler.Update,
 			},
 			Filters: []Filter{
-				ContextHasAccount(postgresAccountHandler),
-				ContextHasAccountUser(postgresAccountUserHandler),
+				ContextHasOrganization(postgresOrganizationHandler),
+				ContextHasMember(postgresMemberHandler),
 			},
 		},
 		&Route{
-			Name:   "deleteAccountUser",
+			Name:   "deleteMember",
 			Method: "DELETE",
-			Path:   fmt.Sprintf("/accounts/%s/users/%s", accountID, accountUserID),
+			Path:   fmt.Sprintf("/organizations/%s/members/%s", organizationID, memberID),
 			Handlers: []RouteFunc{
-				postgresAccountUserHandler.Delete,
+				postgresMemberHandler.Delete,
 			},
 			Filters: []Filter{
-				ContextHasAccount(postgresAccountHandler),
-				ContextHasAccountUser(postgresAccountUserHandler),
+				ContextHasOrganization(postgresOrganizationHandler),
+				ContextHasMember(postgresMemberHandler),
 			},
 		},
 		&Route{
-			Name:   "createAccountUser",
+			Name:   "createMember",
 			Method: "POST",
-			Path:   fmt.Sprintf("/accounts/%s/users", accountID),
+			Path:   fmt.Sprintf("/organizations/%s/members", organizationID),
 			Handlers: []RouteFunc{
-				postgresAccountUserHandler.Create,
+				postgresMemberHandler.Create,
 			},
 			Filters: []Filter{
-				ContextHasAccount(postgresAccountHandler),
+				ContextHasOrganization(postgresOrganizationHandler),
 			},
 		},
 		&Route{
-			Name:   "getAccountUserList",
+			Name:   "getMemberList",
 			Method: "GET",
-			Path:   fmt.Sprintf("/accounts/%s/users", accountID),
+			Path:   fmt.Sprintf("/organizations/%s/members", organizationID),
 			Handlers: []RouteFunc{
-				postgresAccountUserHandler.List,
+				postgresMemberHandler.List,
 			},
 			Filters: []Filter{
-				ContextHasAccount(postgresAccountHandler),
-				ContextHasAccountUser(postgresAccountUserHandler),
+				ContextHasOrganization(postgresOrganizationHandler),
+				ContextHasMember(postgresMemberHandler),
 			},
 		},
 		&Route{
-			Name:   "loginAccountUser",
+			Name:   "loginMember",
 			Method: "POST",
-			Path:   "/accounts/users/login",
+			Path:   "/organizations/members/login",
 			Handlers: []RouteFunc{
-				postgresAccountUserHandler.Login,
+				postgresMemberHandler.Login,
 			},
 			Filters: []Filter{},
 		},
 		&Route{
-			Name:   "refreshAccountUserSession",
+			Name:   "refreshMemberSession",
 			Method: "POST",
-			Path:   fmt.Sprintf("/accounts/%s/users/%s/refresh", accountID, accountUserID),
+			Path:   fmt.Sprintf("/organization/%s/members/%s/refresh", organizationID, memberID),
 			Handlers: []RouteFunc{
-				postgresAccountUserHandler.RefreshSession,
+				postgresMemberHandler.RefreshSession,
 			},
 			Filters: []Filter{
-				ContextHasAccount(postgresAccountHandler),
-				ContextHasAccountUser(postgresAccountUserHandler),
+				ContextHasOrganization(postgresOrganizationHandler),
+				ContextHasMember(postgresMemberHandler),
 			},
 		},
 		&Route{
-			Name:   "logoutAccountUser",
+			Name:   "logoutMember",
 			Method: "DELETE",
-			Path:   fmt.Sprintf("/accounts/%s/users/%s/logout", accountID, accountUserID),
+			Path:   fmt.Sprintf("/organizations/%s/members/%s/logout", organizationID, memberID),
 			Handlers: []RouteFunc{
-				postgresAccountUserHandler.Logout,
+				postgresMemberHandler.Logout,
 			},
 			Filters: []Filter{
-				ContextHasAccount(postgresAccountHandler),
-				ContextHasAccountUser(postgresAccountUserHandler),
+				ContextHasOrganization(postgresOrganizationHandler),
+				ContextHasMember(postgresMemberHandler),
 			},
 		})
 
@@ -152,64 +152,64 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "getApplications",
 			Method: "GET",
-			Path:   fmt.Sprintf("/accounts/%s/applications", accountID),
+			Path:   fmt.Sprintf("/organizations/%s/applications", organizationID),
 			Handlers: []RouteFunc{
 				postgresApplicationHandler.List,
 			},
 			Filters: []Filter{
-				ContextHasAccount(postgresAccountHandler),
-				ContextHasAccountUser(postgresAccountUserHandler),
+				ContextHasOrganization(postgresOrganizationHandler),
+				ContextHasMember(postgresMemberHandler),
 			},
 		},
 		&Route{
 			Name:   "getApplication",
 			Method: "GET",
-			Path:   fmt.Sprintf("/accounts/%s/applications/%s", accountID, applicationID),
+			Path:   fmt.Sprintf("/organizations/%s/applications/%s", organizationID, applicationID),
 			Handlers: []RouteFunc{
 				postgresApplicationHandler.Read,
 			},
 			Filters: []Filter{
-				ContextHasAccount(postgresAccountHandler),
-				ContextHasAccountUser(postgresAccountUserHandler),
-				ContextHasAccountApplication(postgresApplicationHandler),
+				ContextHasOrganization(postgresOrganizationHandler),
+				ContextHasMember(postgresMemberHandler),
+				ContextHasOrganizationApplication(postgresApplicationHandler),
 			},
 		},
 		&Route{
 			Name:   "updateApplication",
 			Method: "PUT",
-			Path:   fmt.Sprintf("/accounts/%s/applications/%s", accountID, applicationID),
+			Path:   fmt.Sprintf("/organizations/%s/applications/%s", organizationID, applicationID),
 			Handlers: []RouteFunc{
 				postgresApplicationHandler.Update,
 			},
 			Filters: []Filter{
-				ContextHasAccount(postgresAccountHandler),
-				ContextHasAccountUser(postgresAccountUserHandler),
-				ContextHasAccountApplication(postgresApplicationHandler),
+				ContextHasOrganization(postgresOrganizationHandler),
+				ContextHasMember(postgresMemberHandler),
+				ContextHasOrganizationApplication(postgresApplicationHandler),
 			},
 		},
 		&Route{
 			Name:   "deleteApplication",
 			Method: "DELETE",
-			Path:   fmt.Sprintf("/accounts/%s/applications/%s", accountID, applicationID),
+			Path:   fmt.Sprintf("/organizations/%s/applications/%s", organizationID, applicationID),
 			Handlers: []RouteFunc{
 				postgresApplicationHandler.Delete,
 			},
 			Filters: []Filter{
-				ContextHasAccount(postgresAccountHandler),
-				ContextHasAccountUser(postgresAccountUserHandler),
-				ContextHasAccountApplication(postgresApplicationHandler),
+				ContextHasOrganization(postgresOrganizationHandler),
+				ContextHasMember(postgresMemberHandler),
+				ContextHasOrganizationApplication(postgresApplicationHandler),
 			},
 		},
 		&Route{
 			Name:   "createApplication",
 			Method: "POST",
-			Path:   fmt.Sprintf("/accounts/%s/applications", accountID),
+			Path:   fmt.Sprintf("/organizations/%s/applications", organizationID),
 			Handlers: []RouteFunc{
 				postgresApplicationHandler.Create,
 			},
 			Filters: []Filter{
-				ContextHasAccount(postgresAccountHandler),
-				ContextHasAccountUser(postgresAccountUserHandler),
+				ContextHasOrganization(postgresOrganizationHandler),
+				ContextHasMember(postgresMemberHandler),
 			},
 		})
 

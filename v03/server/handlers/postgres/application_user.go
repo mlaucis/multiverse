@@ -18,12 +18,10 @@ import (
 	"github.com/tapglue/backend/v03/validator"
 )
 
-type (
-	applicationUser struct {
-		storage core.ApplicationUser
-		conn    core.Connection
-	}
-)
+type applicationUser struct {
+	storage core.ApplicationUser
+	conn    core.Connection
+}
 
 func (appUser *applicationUser) Read(ctx *context.Context) (err []errors.Error) {
 	userID, er := strconv.ParseUint(ctx.Vars["applicationUserID"], 10, 64)

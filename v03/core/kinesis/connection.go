@@ -13,17 +13,15 @@ import (
 	ksis "github.com/sendgridlabs/go-kinesis"
 )
 
-type (
-	connection struct {
-		storage kinesis.Client
-		ksis    *ksis.Kinesis
-	}
-)
+type connection struct {
+	storage kinesis.Client
+	ksis    *ksis.Kinesis
+}
 
 func (c *connection) Create(accountID, applicationID int64, conn *entity.Connection, retrieve bool) (*entity.Connection, []errors.Error) {
 	con := entity.ConnectionWithIDs{}
-	con.AccountID = accountID
-	con.ApplicationID = applicationID
+	con.OrgID = accountID
+	con.AppID = applicationID
 	con.Connection = *conn
 	data, er := json.Marshal(con)
 	if er != nil {
@@ -49,8 +47,8 @@ func (c *connection) Read(accountID, applicationID int64, userFromID, userToID u
 
 func (c *connection) Update(accountID, applicationID int64, existingConnection, updatedConnection entity.Connection, retrieve bool) (*entity.Connection, []errors.Error) {
 	con := entity.ConnectionWithIDs{}
-	con.AccountID = accountID
-	con.ApplicationID = applicationID
+	con.OrgID = accountID
+	con.AppID = applicationID
 	con.Connection = updatedConnection
 	data, er := json.Marshal(con)
 	if er != nil {
@@ -72,8 +70,8 @@ func (c *connection) Update(accountID, applicationID int64, existingConnection, 
 
 func (c *connection) Delete(accountID, applicationID int64, connection *entity.Connection) []errors.Error {
 	con := entity.ConnectionWithIDs{}
-	con.AccountID = accountID
-	con.ApplicationID = applicationID
+	con.OrgID = accountID
+	con.AppID = applicationID
 	con.Connection = *connection
 	data, er := json.Marshal(con)
 	if er != nil {
@@ -107,8 +105,8 @@ func (c *connection) FriendsAndFollowing(accountID, applicationID int64, userID 
 
 func (c *connection) Confirm(accountID, applicationID int64, connection *entity.Connection, retrieve bool) (*entity.Connection, []errors.Error) {
 	con := entity.ConnectionWithIDs{}
-	con.AccountID = accountID
-	con.ApplicationID = applicationID
+	con.OrgID = accountID
+	con.AppID = applicationID
 	con.Connection = *connection
 	data, er := json.Marshal(con)
 	if er != nil {
@@ -142,8 +140,8 @@ func (c *connection) SocialConnect(accountID, applicationID int64, user *entity.
 		Type:             connectionType,
 		SocialFriendsIDs: socialFriendsIDs,
 	}
-	msg.User.AccountID = accountID
-	msg.User.ApplicationID = applicationID
+	msg.User.OrgID = accountID
+	msg.User.AppID = applicationID
 	msg.User.ApplicationUser = *user
 	data, er := json.Marshal(msg)
 	if er != nil {
@@ -164,8 +162,8 @@ func (c *connection) AutoConnectSocialFriends(accountID, applicationID int64, us
 		Type:              connectionType,
 		OurStoredUsersIDs: ourStoredUsersIDs,
 	}
-	msg.User.AccountID = accountID
-	msg.User.ApplicationID = applicationID
+	msg.User.OrgID = accountID
+	msg.User.AppID = applicationID
 	msg.User.ApplicationUser = *user
 	data, er := json.Marshal(msg)
 	if er != nil {

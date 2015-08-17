@@ -14,7 +14,7 @@ func (p *pg) eventCreate(msg string) []errors.Error {
 		return []errors.Error{errBadInputJSON.UpdateInternalMessage(err.Error())}
 	}
 
-	_, er := p.event.Create(event.AccountID, event.ApplicationID, event.CurrentUserID, &event.Event, false)
+	_, er := p.event.Create(event.OrgID, event.AppID, event.CurrentUserID, &event.Event, false)
 	return er
 }
 
@@ -26,8 +26,8 @@ func (p *pg) eventUpdate(msg string) []errors.Error {
 	}
 
 	existingEvent, er := p.event.Read(
-		updatedEvent.AccountID,
-		updatedEvent.ApplicationID,
+		updatedEvent.OrgID,
+		updatedEvent.AppID,
 		updatedEvent.CurrentUserID,
 		updatedEvent.UserID,
 		updatedEvent.ID)
@@ -36,8 +36,8 @@ func (p *pg) eventUpdate(msg string) []errors.Error {
 	}
 
 	_, er = p.event.Update(
-		updatedEvent.AccountID,
-		updatedEvent.ApplicationID,
+		updatedEvent.OrgID,
+		updatedEvent.AppID,
 		updatedEvent.CurrentUserID,
 		*existingEvent,
 		updatedEvent.Event,
@@ -52,5 +52,5 @@ func (p *pg) eventDelete(msg string) []errors.Error {
 		return []errors.Error{errBadInputJSON.UpdateInternalMessage(err.Error())}
 	}
 
-	return p.event.Delete(event.AccountID, event.ApplicationID, event.CurrentUserID, &event.Event)
+	return p.event.Delete(event.OrgID, event.AppID, event.CurrentUserID, &event.Event)
 }

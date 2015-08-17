@@ -6,13 +6,13 @@ import (
 )
 
 type (
-	// AccAppIDs holds the account and application IDs
-	AccAppIDs struct {
-		AccountID           int64  `json:"acc_id,omitempty"`
-		ApplicationID       int64  `json:"app_id,omitempty"`
-		PublicAccountID     string `json:"pub_acc_id,omitempty"`
-		PublicApplicationID string `json:"pub_app_id,omitempty"`
-		CurrentUserID       uint64 `json:"current_user_id,omitempty"`
+	// OrgAppIDs holds the account and application IDs
+	OrgAppIDs struct {
+		OrgID         int64  `json:"acc_id,omitempty"`
+		AppID         int64  `json:"app_id,omitempty"`
+		PublicOrgID   string `json:"pub_acc_id,omitempty"`
+		PublicAppID   string `json:"pub_app_id,omitempty"`
+		CurrentUserID uint64 `json:"current_user_id,omitempty"`
 	}
 
 	// Common holds common used fields
@@ -62,22 +62,22 @@ type (
 		Images map[string]*Image `json:"images,omitempty"`
 	}
 
-	// Account structure
-	Account struct {
+	// Organization structure
+	Organization struct {
 		ID           int64          `json:"-"`
 		PublicID     string         `json:"id"`
 		Name         string         `json:"name"`
 		Description  string         `json:"description"`
 		AuthToken    string         `json:"token"`
-		Users        []*AccountUser `json:"-"`
+		Members      []*Member      `json:"-"`
 		Applications []*Application `json:"-"`
 		Common
 	}
 
-	// AccountUser structure
-	AccountUser struct {
+	// Member structure
+	Member struct {
 		ID              int64  `json:"-"`
-		AccountID       int64  `json:"-"`
+		OrgID           int64  `json:"-"`
 		PublicID        string `json:"id"`
 		PublicAccountID string `json:"account_id"`
 		SessionToken    string `json:"-"`
@@ -87,15 +87,15 @@ type (
 
 	// Application structure
 	Application struct {
-		ID              int64              `json:"-"`
-		AccountID       int64              `json:"-"`
-		PublicID        string             `json:"id"`
-		PublicAccountID string             `json:"account_id"`
-		AuthToken       string             `json:"token"`
-		Name            string             `json:"name"`
-		Description     string             `json:"description"`
-		URL             string             `json:"url"`
-		Users           []*ApplicationUser `json:"-"`
+		ID          int64              `json:"-"`
+		OrgID       int64              `json:"-"`
+		PublicID    string             `json:"id"`
+		PublicOrgID string             `json:"account_id"`
+		AuthToken   string             `json:"token"`
+		Name        string             `json:"name"`
+		Description string             `json:"description"`
+		URL         string             `json:"url"`
+		Users       []*ApplicationUser `json:"-"`
 		Common
 	}
 
@@ -117,7 +117,7 @@ type (
 
 	// ApplicationUserWithIDs holds the application user structure with the added account and application ids
 	ApplicationUserWithIDs struct {
-		AccAppIDs
+		OrgAppIDs
 		ApplicationUser
 	}
 
@@ -132,7 +132,7 @@ type (
 
 	// ConnectionWithIDs holds the connection structure with the added account and application ids
 	ConnectionWithIDs struct {
-		AccAppIDs
+		OrgAppIDs
 		Connection
 	}
 
@@ -193,7 +193,7 @@ type (
 
 	// EventWithIDs holds the event structure with the added account and application ids
 	EventWithIDs struct {
-		AccAppIDs
+		OrgAppIDs
 		Event
 	}
 

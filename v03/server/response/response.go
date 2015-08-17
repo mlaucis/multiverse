@@ -26,9 +26,7 @@ const (
 	appRateLimitSeconds int64 = 60
 )
 
-var (
-	currentRevision, currentHostname string
-)
+var currentRevision, currentHostname string
 
 // CORSHandler handles the OPTIONS requests to all defined paths
 func CORSHandler(ctx *context.Context) []errors.Error {

@@ -15,19 +15,19 @@ import (
 
 // Test createApplication request with a wrong key
 func (s *ApplicationSuite) TestCreateApplication_WrongKey(c *C) {
-	account, err := AddCorrectAccount(true)
+	account, err := AddCorrectOrganization(true)
 	c.Assert(err, IsNil)
 
-	accountUser, err := AddCorrectAccountUser(account.ID, true)
+	accountUser, err := AddCorrectMember(account.ID, true)
 	c.Assert(err, IsNil)
 
-	LoginAccountUser(accountUser)
+	LoginMember(accountUser)
 
 	payload := "{namae:''}"
 
 	routeName := "createApplication"
 	route := getComposedRoute(routeName, account.PublicID)
-	code, body, err := runRequest(routeName, route, payload, signAccountRequest(account, accountUser, true, true))
+	code, body, err := runRequest(routeName, route, payload, signOrganizationRequest(account, accountUser, true, true))
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusBadRequest)
@@ -36,19 +36,19 @@ func (s *ApplicationSuite) TestCreateApplication_WrongKey(c *C) {
 
 // Test createApplication request with an wrong name
 func (s *ApplicationSuite) TestCreateApplication_WrongValue(c *C) {
-	account, err := AddCorrectAccount(true)
+	account, err := AddCorrectOrganization(true)
 	c.Assert(err, IsNil)
 
-	accountUser, err := AddCorrectAccountUser(account.ID, true)
+	accountUser, err := AddCorrectMember(account.ID, true)
 	c.Assert(err, IsNil)
 
-	LoginAccountUser(accountUser)
+	LoginMember(accountUser)
 
 	payload := `{"name":""}`
 
 	routeName := "createApplication"
 	route := getComposedRoute(routeName, account.PublicID)
-	code, body, err := runRequest(routeName, route, payload, signAccountRequest(account, accountUser, true, true))
+	code, body, err := runRequest(routeName, route, payload, signOrganizationRequest(account, accountUser, true, true))
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusBadRequest)
@@ -57,13 +57,13 @@ func (s *ApplicationSuite) TestCreateApplication_WrongValue(c *C) {
 
 // Test a correct createApplication request
 func (s *ApplicationSuite) TestCreateApplication_OK(c *C) {
-	account, err := AddCorrectAccount(true)
+	account, err := AddCorrectOrganization(true)
 	c.Assert(err, IsNil)
 
-	accountUser, err := AddCorrectAccountUser(account.ID, true)
+	accountUser, err := AddCorrectMember(account.ID, true)
 	c.Assert(err, IsNil)
 
-	LoginAccountUser(accountUser)
+	LoginMember(accountUser)
 
 	application := CorrectApplication()
 
@@ -77,7 +77,7 @@ func (s *ApplicationSuite) TestCreateApplication_OK(c *C) {
 
 	routeName := "createApplication"
 	route := getComposedRoute(routeName, account.PublicID)
-	code, body, err := runRequest(routeName, route, payload, signAccountRequest(account, accountUser, true, true))
+	code, body, err := runRequest(routeName, route, payload, signOrganizationRequest(account, accountUser, true, true))
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusCreated)
@@ -99,13 +99,13 @@ func (s *ApplicationSuite) TestCreateApplication_OK(c *C) {
 
 // Test a correct updateApplication request
 func (s *ApplicationSuite) TestUpdateApplication_OK(c *C) {
-	account, err := AddCorrectAccount(true)
+	account, err := AddCorrectOrganization(true)
 	c.Assert(err, IsNil)
 
-	accountUser, err := AddCorrectAccountUser(account.ID, true)
+	accountUser, err := AddCorrectMember(account.ID, true)
 	c.Assert(err, IsNil)
 
-	LoginAccountUser(accountUser)
+	LoginMember(accountUser)
 
 	application, err := AddCorrectApplication(account.ID, true)
 	c.Assert(err, IsNil)
@@ -118,7 +118,7 @@ func (s *ApplicationSuite) TestUpdateApplication_OK(c *C) {
 
 	routeName := "updateApplication"
 	route := getComposedRoute(routeName, account.PublicID, application.PublicID)
-	code, body, err := runRequest(routeName, route, payload, signAccountRequest(account, accountUser, true, true))
+	code, body, err := runRequest(routeName, route, payload, signOrganizationRequest(account, accountUser, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
@@ -137,16 +137,16 @@ func (s *ApplicationSuite) TestUpdateApplication_OK(c *C) {
 
 // Test a correct updateApplication request with a wrong id
 func (s *ApplicationSuite) TestUpdateApplication_WrongID(c *C) {
-	account, err := AddCorrectAccount(true)
+	account, err := AddCorrectOrganization(true)
 	c.Assert(err, IsNil)
 
-	accountUser, err := AddCorrectAccountUser(account.ID, true)
+	accountUser, err := AddCorrectMember(account.ID, true)
 	c.Assert(err, IsNil)
 
 	application, err := AddCorrectApplication(account.ID, true)
 	c.Assert(err, IsNil)
 
-	application.PublicAccountID = account.PublicID
+	application.PublicOrgID = account.PublicID
 
 	payload := fmt.Sprintf(
 		`{"name":"%s", "description":"i changed the description", "url": "%s", "enabled": true}`,
@@ -156,24 +156,24 @@ func (s *ApplicationSuite) TestUpdateApplication_WrongID(c *C) {
 	c.Assert(err, IsNil)
 
 	routeName := "updateApplication"
-	route := getComposedRoute(routeName, application.PublicAccountID, application.PublicID+"a")
-	code, _, er := runRequest(routeName, route, payload, signAccountRequest(account, accountUser, true, true))
+	route := getComposedRoute(routeName, application.PublicOrgID, application.PublicID+"a")
+	code, _, er := runRequest(routeName, route, payload, signOrganizationRequest(account, accountUser, true, true))
 	c.Assert(er, IsNil)
 	c.Assert(code, Equals, http.StatusNotFound)
 }
 
 // Test a correct updateApplication request with an invalid description
 func (s *ApplicationSuite) TestUpdateApplication_WrongValue(c *C) {
-	account, err := AddCorrectAccount(true)
+	account, err := AddCorrectOrganization(true)
 	c.Assert(err, IsNil)
 
-	accountUser, err := AddCorrectAccountUser(account.ID, true)
+	accountUser, err := AddCorrectMember(account.ID, true)
 	c.Assert(err, IsNil)
 
 	application, err := AddCorrectApplication(account.ID, true)
 	c.Assert(err, IsNil)
 
-	application.PublicAccountID = account.PublicID
+	application.PublicOrgID = account.PublicID
 
 	payload := fmt.Sprintf(
 		`{"name":"%s", "description":"", "url": "%s", "enabled": true}`,
@@ -183,8 +183,8 @@ func (s *ApplicationSuite) TestUpdateApplication_WrongValue(c *C) {
 	c.Assert(err, IsNil)
 
 	routeName := "updateApplication"
-	route := getComposedRoute(routeName, application.PublicAccountID, application.PublicID)
-	code, _, err := runRequest(routeName, route, payload, signAccountRequest(account, accountUser, true, true))
+	route := getComposedRoute(routeName, application.PublicOrgID, application.PublicID)
+	code, _, err := runRequest(routeName, route, payload, signOrganizationRequest(account, accountUser, true, true))
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusNotFound)
@@ -192,16 +192,16 @@ func (s *ApplicationSuite) TestUpdateApplication_WrongValue(c *C) {
 
 // Test a correct updateApplication request with a wrong token
 func (s *ApplicationSuite) TestUpdateApplication_WrongToken(c *C) {
-	account, err := AddCorrectAccount(true)
+	account, err := AddCorrectOrganization(true)
 	c.Assert(err, IsNil)
 
-	accountUser, err := AddCorrectAccountUser(account.ID, true)
+	accountUser, err := AddCorrectMember(account.ID, true)
 	c.Assert(err, IsNil)
 
 	correctApplication, err := AddCorrectApplication(account.ID, true)
 	c.Assert(err, IsNil)
 
-	correctApplication.PublicAccountID = account.PublicID
+	correctApplication.PublicOrgID = account.PublicID
 
 	payload := fmt.Sprintf(
 		`{"name":"%s", "description":"i changed the description", "url": "%s", "enabled": true}`,
@@ -210,34 +210,34 @@ func (s *ApplicationSuite) TestUpdateApplication_WrongToken(c *C) {
 	)
 	c.Assert(err, IsNil)
 
-	sessionToken, er := utils.Base64Decode(getAccountUserSessionToken(accountUser))
+	sessionToken, er := utils.Base64Decode(getMemberSessionToken(accountUser))
 	c.Assert(er, IsNil)
 
 	sessionToken = utils.Base64Encode(sessionToken + "a")
 
 	routeName := "updateApplication"
-	route := getComposedRoute(routeName, correctApplication.PublicAccountID, correctApplication.PublicID)
-	code, _, err := runRequest(routeName, route, payload, signAccountRequest(account, accountUser, false, true))
+	route := getComposedRoute(routeName, correctApplication.PublicOrgID, correctApplication.PublicID)
+	code, _, err := runRequest(routeName, route, payload, signOrganizationRequest(account, accountUser, false, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusNotFound)
 }
 
 // Test a correct deleteApplication request
 func (s *ApplicationSuite) TestDeleteApplication_OK(c *C) {
-	account, err := AddCorrectAccount(true)
+	account, err := AddCorrectOrganization(true)
 	c.Assert(err, IsNil)
 
-	accountUser, err := AddCorrectAccountUser(account.ID, true)
+	accountUser, err := AddCorrectMember(account.ID, true)
 	c.Assert(err, IsNil)
 
-	LoginAccountUser(accountUser)
+	LoginMember(accountUser)
 
 	application, err := AddCorrectApplication(account.ID, true)
 	c.Assert(err, IsNil)
 
 	routeName := "deleteApplication"
 	route := getComposedRoute(routeName, account.PublicID, application.PublicID)
-	code, _, err := runRequest(routeName, route, "", signAccountRequest(account, accountUser, true, true))
+	code, _, err := runRequest(routeName, route, "", signOrganizationRequest(account, accountUser, true, true))
 
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusNoContent)
@@ -245,20 +245,20 @@ func (s *ApplicationSuite) TestDeleteApplication_OK(c *C) {
 
 // Test a correct deleteApplication request with a wrong id
 func (s *ApplicationSuite) TestDeleteApplication_WrongID(c *C) {
-	account, err := AddCorrectAccount(true)
+	account, err := AddCorrectOrganization(true)
 	c.Assert(err, IsNil)
 
-	accountUser, err := AddCorrectAccountUser(account.ID, true)
+	accountUser, err := AddCorrectMember(account.ID, true)
 	c.Assert(err, IsNil)
 
-	LoginAccountUser(accountUser)
+	LoginMember(accountUser)
 
 	application, err := AddCorrectApplication(account.ID, true)
 	c.Assert(err, IsNil)
 
 	routeName := "deleteApplication"
 	route := getComposedRoute(routeName, account.PublicID, application.PublicID+"1")
-	code, _, err := runRequest(routeName, route, "", signAccountRequest(account, accountUser, true, true))
+	code, _, err := runRequest(routeName, route, "", signOrganizationRequest(account, accountUser, true, true))
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusNotFound)
@@ -266,23 +266,23 @@ func (s *ApplicationSuite) TestDeleteApplication_WrongID(c *C) {
 
 // Test a correct deleteApplication request with a wrong token
 func (s *ApplicationSuite) TestDeleteApplication_WrongToken(c *C) {
-	account, err := AddCorrectAccount(true)
+	account, err := AddCorrectOrganization(true)
 	c.Assert(err, IsNil)
 
-	accountUser, err := AddCorrectAccountUser(account.ID, true)
+	accountUser, err := AddCorrectMember(account.ID, true)
 	c.Assert(err, IsNil)
 
 	application, err := AddCorrectApplication(account.ID, true)
 	c.Assert(err, IsNil)
 
-	sessionToken, er := utils.Base64Decode(getAccountUserSessionToken(accountUser))
+	sessionToken, er := utils.Base64Decode(getMemberSessionToken(accountUser))
 	c.Assert(er, IsNil)
 
 	sessionToken = utils.Base64Encode(sessionToken + "a")
 
 	routeName := "deleteApplication"
 	route := getComposedRoute(routeName, account.PublicID, application.PublicID+"1")
-	code, _, err := runRequest(routeName, route, "", signAccountRequest(account, accountUser, true, true))
+	code, _, err := runRequest(routeName, route, "", signOrganizationRequest(account, accountUser, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusNotFound)
 }
@@ -291,12 +291,12 @@ func (s *ApplicationSuite) TestDeleteApplication_WrongToken(c *C) {
 func (s *ApplicationSuite) TestGetApplication_OK(c *C) {
 	accounts := CorrectDeploy(1, 1, 1, 0, 0, false, true)
 	account := accounts[0]
-	accountUser := account.Users[0]
+	accountUser := account.Members[0]
 	application := account.Applications[rand.Intn(1)]
 
 	routeName := "getApplication"
 	route := getComposedRoute(routeName, account.PublicID, application.PublicID)
-	code, body, err := runRequest(routeName, route, "", signAccountRequest(account, accountUser, true, true))
+	code, body, err := runRequest(routeName, route, "", signOrganizationRequest(account, accountUser, true, true))
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusOK)
@@ -314,20 +314,20 @@ func (s *ApplicationSuite) TestGetApplication_OK(c *C) {
 
 // Test a correct getApplication request with a wrong id
 func (s *ApplicationSuite) TestGetApplication_WrongID(c *C) {
-	account, err := AddCorrectAccount(true)
+	account, err := AddCorrectOrganization(true)
 	c.Assert(err, IsNil)
 
-	accountUser, err := AddCorrectAccountUser(account.ID, true)
+	accountUser, err := AddCorrectMember(account.ID, true)
 	c.Assert(err, IsNil)
 
-	LoginAccountUser(accountUser)
+	LoginMember(accountUser)
 
 	application, err := AddCorrectApplication(account.ID, true)
 	c.Assert(err, IsNil)
 
 	routeName := "getApplication"
 	route := getComposedRoute(routeName, account.PublicID, application.PublicID+"a")
-	code, _, err := runRequest(routeName, route, "", signAccountRequest(account, accountUser, true, true))
+	code, _, err := runRequest(routeName, route, "", signOrganizationRequest(account, accountUser, true, true))
 	c.Assert(err, IsNil)
 
 	c.Assert(code, Equals, http.StatusNotFound)
@@ -335,20 +335,20 @@ func (s *ApplicationSuite) TestGetApplication_WrongID(c *C) {
 
 // Test a correct getApplication request with a wrong token
 func (s *ApplicationSuite) TestGetApplication_WrongToken(c *C) {
-	account, err := AddCorrectAccount(true)
+	account, err := AddCorrectOrganization(true)
 	c.Assert(err, IsNil)
 
-	accountUser, err := AddCorrectAccountUser(account.ID, true)
+	accountUser, err := AddCorrectMember(account.ID, true)
 	c.Assert(err, IsNil)
 
 	application, err := AddCorrectApplication(account.ID, true)
 	c.Assert(err, IsNil)
 
-	LoginAccountUser(accountUser)
+	LoginMember(accountUser)
 
 	routeName := "getApplication"
 	route := getComposedRoute(routeName, account.PublicID, application.PublicID)
-	code, _, err := runRequest(routeName, route, "", signAccountRequest(account, accountUser, true, false))
+	code, _, err := runRequest(routeName, route, "", signOrganizationRequest(account, accountUser, true, false))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusNotFound)
 }
@@ -356,12 +356,12 @@ func (s *ApplicationSuite) TestGetApplication_WrongToken(c *C) {
 func (s *ApplicationSuite) TestGetApplicationListWorks(c *C) {
 	accounts := CorrectDeploy(2, 1, 1, 0, 0, false, true)
 	account := accounts[0]
-	accountUser := account.Users[0]
+	accountUser := account.Members[0]
 	application := account.Applications[0]
 
 	routeName := "getApplications"
 	route := getComposedRoute(routeName, account.PublicID)
-	code, body, err := runRequest(routeName, route, "", signAccountRequest(account, accountUser, true, true))
+	code, body, err := runRequest(routeName, route, "", signOrganizationRequest(account, accountUser, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusOK)
 	c.Assert(body, Not(Equals), "")
@@ -381,7 +381,7 @@ func (s *ApplicationSuite) TestGetApplicationListWorks(c *C) {
 func (s *ApplicationSuite) TestApplicationMalformedPayloadsFails(c *C) {
 	accounts := CorrectDeploy(1, 1, 1, 0, 0, false, true)
 	account := accounts[0]
-	accountUser := account.Users[0]
+	accountUser := account.Members[0]
 	application := account.Applications[0]
 
 	scenarios := []struct {
@@ -401,7 +401,7 @@ func (s *ApplicationSuite) TestApplicationMalformedPayloadsFails(c *C) {
 	}
 
 	for idx := range scenarios {
-		code, body, err := runRequest(scenarios[idx].RouteName, scenarios[idx].Route, scenarios[idx].Payload, signAccountRequest(account, accountUser, true, true))
+		code, body, err := runRequest(scenarios[idx].RouteName, scenarios[idx].Route, scenarios[idx].Payload, signOrganizationRequest(account, accountUser, true, true))
 		c.Logf("pass: %d", idx)
 		c.Assert(err, IsNil)
 		c.Assert(code, Equals, scenarios[idx].StatusCode)
