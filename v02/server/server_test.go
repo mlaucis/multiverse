@@ -127,8 +127,8 @@ func init() {
 
 	v02PostgresClient = v02_postgres.New(conf.Postgres)
 
-	redigoRateLimitPool = v02_redis.NewRedigoPool(conf.Redis.Hosts[0], "")
-	applicationRateLimiter := ratelimiter_redis.NewLimiter(redigoRateLimitPool, "ratelimiter.app.")
+	redigoRateLimitPool = v02_redis.NewRedigoPool(conf.RateLimiter.Hosts[0], "")
+	applicationRateLimiter := ratelimiter_redis.NewLimiter(redigoRateLimitPool, "ratelimiter:app:")
 
 	coreAcc = v02_postgres_core.NewAccount(v02PostgresClient)
 	coreAccUser = v02_postgres_core.NewAccountUser(v02PostgresClient)

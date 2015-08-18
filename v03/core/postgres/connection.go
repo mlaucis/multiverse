@@ -394,9 +394,9 @@ func (c *connection) Relation(accountID, applicationID int64, userFromID, userTo
 	defer relations.Close()
 
 	rel := &entity.Relation{
-		IsFriends:   entity.PFalse,
+		IsFriends:  entity.PFalse,
 		IsFollowed: entity.PFalse,
-		IsFollower:  entity.PFalse,
+		IsFollower: entity.PFalse,
 	}
 	var (
 		relationFrom, relationTo uint64

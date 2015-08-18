@@ -5,7 +5,15 @@
 	"json_logs": true,
 	"use_syslog": true,
 	"use_ssl": false,
-	"redis": {
+	"cache_app": {
+		"hosts": [
+			"REDIS_HOST"
+		],
+		"password": "",
+		"db": REDIS_DB_ID,
+		"pool_size": 30
+	},
+	"rate_limiter": {
 		"hosts": [
 			"REDIS_HOST"
 		],

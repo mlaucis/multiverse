@@ -20,10 +20,10 @@ import (
 	v02_server "github.com/tapglue/backend/v02/server"
 	v02_kinesis "github.com/tapglue/backend/v02/storage/kinesis"
 	v02_postgres "github.com/tapglue/backend/v02/storage/postgres"
-	v03_redis "github.com/tapglue/backend/v02/storage/redis"
 	v03_server "github.com/tapglue/backend/v03/server"
 	v03_kinesis "github.com/tapglue/backend/v03/storage/kinesis"
 	v03_postgres "github.com/tapglue/backend/v03/storage/postgres"
+	v03_redis "github.com/tapglue/backend/v03/storage/redis"
 
 	redigo "github.com/garyburd/redigo/redis"
 	"github.com/gorilla/mux"
@@ -226,8 +226,8 @@ func Setup(conf *config.Config, revision, hostname string) {
 	currentRevision = revision
 	currentHostname = hostname
 
-	rateLimiterPool = v03_redis.NewRedigoPool(conf.Redis.Hosts[0], "")
-	applicationRateLimiter := ratelimiter_redis.NewLimiter(rateLimiterPool, "ratelimiter.app.")
+	rateLimiterPool = v03_redis.NewRedigoPool(conf.RateLimiter)
+	applicationRateLimiter := ratelimiter_redis.NewLimiter(rateLimiterPool, "ratelimiter:app:")
 	v02_server.SetupRateLimit(applicationRateLimiter)
 	v03_server.SetupRateLimit(applicationRateLimiter)
 
@@ -264,7 +264,9 @@ func Setup(conf *config.Config, revision, hostname string) {
 
 	SetupFlakes(v03PostgresClient.SlaveDatastore(-1))
 
+	v03AppCache := v03_redis.NewRedigoPool(conf.CacheApp)
+
 	v02_server.Setup(v02KinesisClient, v02PostgresClient, currentRevision, currentHostname)
-	v03_server.Setup(v03KinesisClient, v03PostgresClient, currentRevision, currentHostname)
+	v03_server.Setup(v03KinesisClient, v03PostgresClient, v03AppCache, currentRevision, currentHostname)
 
 }

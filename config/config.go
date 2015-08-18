@@ -53,7 +53,8 @@ type (
 		SkipSecurity   bool      `json:"skip_security"`
 		JSONLogs       bool      `json:"json_logs"`
 		ListenHostPort string    `json:"listenHost"`
-		Redis          *Redis    `json:"redis"`
+		CacheApp       *Redis    `json:"cache_app"`
+		RateLimiter    *Redis    `json:"rate_limiter"`
 		Kinesis        *Kinesis  `json:"kinesis"`
 		Postgres       *Postgres `json:"postgres"`
 	}
@@ -72,8 +73,11 @@ func defaultConfig() *Config {
 	cfg.JSONLogs = false
 	cfg.ListenHostPort = ":8082"
 
-	cfg.Redis = &Redis{}
-	cfg.Redis.Hosts = append(cfg.Redis.Hosts, "127.0.0.1:6379")
+	cfg.RateLimiter = &Redis{}
+	cfg.RateLimiter.Hosts = append(cfg.RateLimiter.Hosts, "127.0.0.1:6379")
+
+	cfg.CacheApp = &Redis{}
+	cfg.CacheApp.Hosts = append(cfg.CacheApp.Hosts, "127.0.0.1:6379")
 
 	cfg.Kinesis = &Kinesis{}
 	cfg.Kinesis.AuthKey = ""

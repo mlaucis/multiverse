@@ -28,6 +28,7 @@ test:
     - ./bin/test_configs.sh intaker
   override:
     - ./bin/run_tests.sh intaker postgres
+    - ./bin/run_tests.sh intaker redis
     - ./bin/run_tests.sh intaker kinesis
     - ./bin/run_tests.sh distributor postgres
   post:
@@ -36,6 +37,7 @@ deployment:
   s3:
     branch: master
     commands:
+      - ./bin/make_release.sh intaker redis
       - ./bin/make_release.sh intaker postgres
       - ./bin/make_release.sh intaker kinesis
       - ./bin/make_release.sh distributor postgres

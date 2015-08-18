@@ -46,7 +46,7 @@ func (org *organization) PopulateContext(ctx *context.Context) (err []errors.Err
 	return []errors.Error{errmsg.ErrServerNotImplementedYet}
 }
 
-// NewAccount returns a new account handler tweaked specifically for Kinesis
+// NewOrganization returns a new account handler tweaked specifically for Kinesis
 func NewOrganization(writeStorage, readStorage core.Organization) handlers.Organization {
 	return &organization{
 		writeStorage: writeStorage,

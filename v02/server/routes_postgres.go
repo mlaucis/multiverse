@@ -1,5 +1,5 @@
 // +build !kinesis
-// +build postgres
+// +build postgres redis
 
 package server
 

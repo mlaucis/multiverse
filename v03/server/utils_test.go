@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"runtime"
+	"sync"
 	"time"
 
 	"github.com/tapglue/backend/config"
@@ -11,7 +12,6 @@ import (
 	"github.com/tapglue/backend/tgflake"
 	"github.com/tapglue/backend/v03/entity"
 	"github.com/tapglue/backend/v03/fixtures"
-	"sync"
 )
 
 type AppUserByID []*entity.ApplicationUser
@@ -251,6 +251,10 @@ func AddCorrectApplications(org *entity.Organization, numberOfApplicationsPerOrg
 		application.Name = fmt.Sprintf("acc-%d-app-%d", org.ID, i+1)
 		application.Description = fmt.Sprintf("acc %d app %d", org.ID, i+1)
 		result[i], err = coreApp.Create(application, true)
+		if err != nil {
+			panic(err)
+		}
+		_, err := coreAppRedis.Create(application, false)
 		if err != nil {
 			panic(err)
 		}
@@ -636,4 +640,9 @@ func testBootup(conf *config.Postgres) {
 	}
 
 	tgflake.RemoveAllFlakes()
+
+	conn := rateLimitPool.Get()
+	defer conn.Close()
+	conn.Do("EVAL", "return redis.call('del', unpack(redis.call('keys', ARGV[1])))", 0, "test:*")
+	conn.Do("EVAL", "return redis.call('del', unpack(redis.call('keys', ARGV[1])))", 0, "applications:*")
 }

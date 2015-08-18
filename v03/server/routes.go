@@ -10,6 +10,7 @@ import (
 	"github.com/tapglue/backend/v03/server/handlers"
 	"github.com/tapglue/backend/v03/server/handlers/kinesis"
 	"github.com/tapglue/backend/v03/server/handlers/postgres"
+	"github.com/tapglue/backend/v03/server/handlers/redis"
 	"github.com/tapglue/backend/v03/server/response"
 
 	"github.com/gorilla/mux"
@@ -43,12 +44,12 @@ const (
 )
 
 var (
-	postgresOrganizationHandler, kinesisOrganizationHandler       handlers.Organization
-	postgresMemberHandler, kinesisAccountUserHandler              handlers.Member
-	postgresApplicationHandler, kinesisApplicationHandler         handlers.Application
-	postgresApplicationUserHandler, kinesisApplicationUserHandler handlers.ApplicationUser
-	postgresConnectionHandler, kinesisConnectionHandler           handlers.Connection
-	postgresEventHandler, kinesisEventHandler                     handlers.Event
+	postgresOrganizationHandler, kinesisOrganizationHandler                        handlers.Organization
+	postgresMemberHandler, kinesisAccountUserHandler                               handlers.Member
+	postgresApplicationHandler, kinesisApplicationHandler, redisApplicationHandler handlers.Application
+	postgresApplicationUserHandler, kinesisApplicationUserHandler                  handlers.ApplicationUser
+	postgresConnectionHandler, kinesisConnectionHandler                            handlers.Connection
+	postgresEventHandler, kinesisEventHandler                                      handlers.Event
 
 	applicationUserIDPattern = "%d"
 	eventIDPattern           = "%d"
@@ -120,6 +121,8 @@ func InitHandlers() {
 	postgresApplicationUserHandler = postgres.NewApplicationUser(postgresApplicationUser, postgresConnection)
 	postgresConnectionHandler = postgres.NewConnection(postgresConnection, postgresApplicationUser)
 	postgresEventHandler = postgres.NewEvent(postgresEvent, postgresApplicationUser)
+
+	redisApplicationHandler = redis.NewApplication(redisApplication, postgresApplication)
 }
 
 // VersionHandler returns the current version status
