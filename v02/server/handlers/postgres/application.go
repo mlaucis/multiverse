@@ -22,6 +22,7 @@ type (
 )
 
 func (app *application) Read(ctx *context.Context) (err []errors.Error) {
+	return []errors.Error{errmsg.ErrServerAPIVersionRemoved}
 	// TODO This one read only the current application maybe we want to have something to read any application?
 	response.ComputeApplicationLastModified(ctx, ctx.Bag["application"].(*entity.Application))
 	response.WriteResponse(ctx, ctx.Bag["application"].(*entity.Application), http.StatusOK, 10)
@@ -29,6 +30,7 @@ func (app *application) Read(ctx *context.Context) (err []errors.Error) {
 }
 
 func (app *application) Update(ctx *context.Context) (err []errors.Error) {
+	return []errors.Error{errmsg.ErrServerAPIVersionRemoved}
 	application := *(ctx.Bag["application"].(*entity.Application))
 	if er := json.Unmarshal(ctx.Body, &application); er != nil {
 		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
@@ -52,6 +54,7 @@ func (app *application) Update(ctx *context.Context) (err []errors.Error) {
 }
 
 func (app *application) Delete(ctx *context.Context) (err []errors.Error) {
+	return []errors.Error{errmsg.ErrServerAPIVersionRemoved}
 	if err = app.storage.Delete(ctx.Bag["application"].(*entity.Application)); err != nil {
 		return
 	}
@@ -61,6 +64,7 @@ func (app *application) Delete(ctx *context.Context) (err []errors.Error) {
 }
 
 func (app *application) Create(ctx *context.Context) (err []errors.Error) {
+	return []errors.Error{errmsg.ErrServerAPIVersionRemoved}
 	var (
 		application = &entity.Application{}
 	)
@@ -85,6 +89,7 @@ func (app *application) Create(ctx *context.Context) (err []errors.Error) {
 }
 
 func (app *application) List(ctx *context.Context) (err []errors.Error) {
+	return []errors.Error{errmsg.ErrServerAPIVersionRemoved}
 	var (
 		applications []*entity.Application
 	)

@@ -208,6 +208,7 @@ func (s *ServerSuite) TestValidatePostCommon_NoCLHeader(c *C) {
 
 // Test POST common with CLHeader
 func (s *ServerSuite) TestValidatePostCommon_CLHeader(c *C) {
+	c.Skip("deprecated api version")
 	payload := "{demo}"
 	routeName := "createAccount"
 	requestRoute := getRoute(routeName)

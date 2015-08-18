@@ -111,7 +111,7 @@ var (
 
 	// Server response errors
 
-	ErrServerRespMissingLastModifiedHeader = errors.New(http.StatusInternalServerError, 5013, "something went wrong", "", false)
+	ErrServerAPIVersionRemoved = errors.New(http.StatusGone, 5014, "the requested API version has been removed", "", false)
 
 	// Misc errors
 

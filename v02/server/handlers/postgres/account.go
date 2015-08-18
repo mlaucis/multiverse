@@ -22,6 +22,7 @@ type (
 )
 
 func (acc *account) Read(ctx *context.Context) (err []errors.Error) {
+	return []errors.Error{errmsg.ErrServerAPIVersionRemoved}
 	if ctx.Bag["account"] == nil {
 		return []errors.Error{errmsg.ErrAccountMissingInContext}
 	}
@@ -37,6 +38,7 @@ func (acc *account) Read(ctx *context.Context) (err []errors.Error) {
 }
 
 func (acc *account) Update(ctx *context.Context) (err []errors.Error) {
+	return []errors.Error{errmsg.ErrServerAPIVersionRemoved}
 	account := *(ctx.Bag["account"].(*entity.Account))
 
 	if account.PublicID != ctx.Vars["accountID"] {
@@ -63,6 +65,7 @@ func (acc *account) Update(ctx *context.Context) (err []errors.Error) {
 }
 
 func (acc *account) Delete(ctx *context.Context) (err []errors.Error) {
+	return []errors.Error{errmsg.ErrServerAPIVersionRemoved}
 	if ctx.Bag["account"].(*entity.Account).PublicID != ctx.Vars["accountID"] {
 		return []errors.Error{errmsg.ErrAccountMismatch}
 	}
@@ -76,6 +79,7 @@ func (acc *account) Delete(ctx *context.Context) (err []errors.Error) {
 }
 
 func (acc *account) Create(ctx *context.Context) (err []errors.Error) {
+	return []errors.Error{errmsg.ErrServerAPIVersionRemoved}
 	var account = &entity.Account{}
 
 	if er := json.Unmarshal(ctx.Body, account); er != nil {
