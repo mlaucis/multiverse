@@ -14,6 +14,7 @@ import (
 	v03_kinesis_core "github.com/tapglue/backend/v03/core/kinesis"
 	v03_postgres_core "github.com/tapglue/backend/v03/core/postgres"
 	v03_redis_core "github.com/tapglue/backend/v03/core/redis"
+	"github.com/tapglue/backend/v03/entity"
 	"github.com/tapglue/backend/v03/errmsg"
 	"github.com/tapglue/backend/v03/server/response"
 	v03_kinesis "github.com/tapglue/backend/v03/storage/kinesis"
@@ -33,8 +34,9 @@ const (
 	// APIVersion holds which API Version does this module holds
 	APIVersion = "0.3"
 
-	appRateLimit        int64 = 1000
-	appRateLimitSeconds int64 = 60
+	appRateLimitProduction int64 = 10000
+	appRateLimitStaging    int64 = 100
+	appRateLimitSeconds    int64 = 60
 )
 
 var (
@@ -162,22 +164,22 @@ func GetRoute(routeName string) *Route {
 	panic(fmt.Sprintf("route %q not found", routeName))
 }
 
-// RateLimitApplication takes care of appling the rate limits for the application
+// RateLimitApplication takes care of app the rate limits for the application
 func RateLimitApplication(ctx *context.Context) []errors.Error {
 	if ctx.SkipSecurity {
 		return nil
 	}
 
-	hash, _, ok := ctx.BasicAuth()
-	if !ok {
-		return []errors.Error{errors.NewBadRequestError(2300, "something went wrong with the authentication", "something went wrong with the authentication")}
+	appRateLimit := appRateLimitStaging
+	if ctx.Bag["application"].(*entity.Application).InProduction {
+		appRateLimit = appRateLimitProduction
 	}
 
-	hash = fmt.Sprintf("%s:%s", hash, ctx.R.Method)
+	hash := ctx.Bag["application"].(*entity.Application).AuthToken
 
 	limit, refreshTime, err := appRateLimiter.Request(&limiter.Limitee{hash, appRateLimit, appRateLimitSeconds})
 	if err != nil {
-		return []errors.Error{errors.NewInternalError(0, "something went wrong", err.Error())}
+		return []errors.Error{errmsg.ErrServerInternalError.UpdateInternalMessage(err.Error())}
 	}
 
 	ctx.Bag["rateLimit.enabled"] = true
@@ -291,14 +293,14 @@ func Setup(
 	kinesisConnection = v03_kinesis_core.NewConnection(v03KinesisClient)
 	kinesisEvent = v03_kinesis_core.NewEvent(v03KinesisClient)
 
+	redisApplication = v03_redis_core.NewApplication(appCache)
+
 	postgresOrganization = v03_postgres_core.NewOrganization(v03PostgresClient)
 	postgresAccountUser = v03_postgres_core.NewMember(v03PostgresClient)
-	postgresApplication = v03_postgres_core.NewApplication(v03PostgresClient)
+	postgresApplication = v03_postgres_core.NewApplication(v03PostgresClient, redisApplication)
 	postgresApplicationUser = v03_postgres_core.NewApplicationUser(v03PostgresClient)
 	postgresConnection = v03_postgres_core.NewConnection(v03PostgresClient)
 	postgresEvent = v03_postgres_core.NewEvent(v03PostgresClient)
-
-	redisApplication = v03_redis_core.NewApplication(appCache)
 
 	if revision == "" {
 		panic("omfg missing revision")

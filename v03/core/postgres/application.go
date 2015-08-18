@@ -19,6 +19,7 @@ import (
 type application struct {
 	pg     postgres.Client
 	mainPg *sqlx.DB
+	redis  core.Application
 }
 
 const (
@@ -142,6 +143,8 @@ func (app *application) Update(existingApplication, updatedApplication entity.Ap
 		return nil, []errors.Error{errmsg.ErrInternalApplicationUpdate.UpdateInternalMessage(err.Error())}
 	}
 
+	go app.redis.Update(existingApplication, updatedApplication, false)
+
 	if !retrieve {
 		return nil, nil
 	}
@@ -264,9 +267,10 @@ func (app *application) FindByPublicID(publicID string) (*entity.Application, []
 }
 
 // NewApplication returns a new application handler with PostgreSQL as storage driver
-func NewApplication(pgsql postgres.Client) core.Application {
+func NewApplication(pgsql postgres.Client, redis core.Application) core.Application {
 	return &application{
 		pg:     pgsql,
 		mainPg: pgsql.MainDatastore(),
+		redis:  redis,
 	}
 }

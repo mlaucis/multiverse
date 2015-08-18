@@ -120,6 +120,7 @@ var (
 	ErrServerInvalidHandler            = errors.New(http.StatusInternalServerError, 5502, "something went wrong", "handler used in wrong context", false)
 	ErrServerUnsportedHandlerOperation = errors.New(http.StatusInternalServerError, 5503, "something went wrong", "handler does not support operation", false)
 	ErrServerInternalError             = errors.New(http.StatusInternalServerError, 5504, "something went wrong", "", false)
+	ErrTooManyRequests                 = errors.New(429, 5505, "Too Many Requests", "over quota", false)
 
 	// Account errors
 

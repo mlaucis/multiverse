@@ -94,6 +94,7 @@ type (
 		Name            string             `json:"name"`
 		Description     string             `json:"description"`
 		URL             string             `json:"url"`
+		InProduction    bool               `json:"in_production"`
 		Users           []*ApplicationUser `json:"-"`
 		Common
 	}

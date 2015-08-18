@@ -52,7 +52,35 @@ func (app *application) Read(orgID, applicationID int64) (*entity.Application, [
 }
 
 func (app *application) Update(existingApplication, updatedApplication entity.Application, retrieve bool) (*entity.Application, []errors.Error) {
-	return nil, []errors.Error{errmsg.ErrServerNotImplementedYet}
+	conn := app.storage.Get()
+	defer conn.Close()
+
+	if updatedApplication.AuthToken == "" {
+		updatedApplication.AuthToken = existingApplication.AuthToken
+	}
+
+	a := struct {
+		entity.OrgAppIDs
+		entity.Application
+	}{}
+	a.Application = updatedApplication
+	a.OrgAppIDs.OrgID = updatedApplication.OrgID
+	a.AppID = updatedApplication.ID
+
+	ap, err := json.Marshal(a)
+	if err != nil {
+		return nil, []errors.Error{errmsg.ErrInternalApplicationCreation.UpdateInternalMessage(err.Error())}
+	}
+
+	if _, err := conn.Do("SET", redisAppKey+updatedApplication.AuthToken, ap); err != nil {
+		return nil, []errors.Error{errmsg.ErrInternalApplicationCreation.UpdateInternalMessage(err.Error())}
+	}
+
+	if !retrieve {
+		return nil, nil
+	}
+
+	return app.Read(updatedApplication.OrgID, updatedApplication.ID)
 }
 
 func (app *application) Delete(application *entity.Application) []errors.Error {
