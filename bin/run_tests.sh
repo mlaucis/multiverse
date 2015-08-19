@@ -3,11 +3,11 @@
 TEST_COMPONENT=${1}
 TEST_TARGET=${2}
 
-export PATH=/home/ubuntu/.gimme/versions/go1.4.2.linux.amd64/bin:${PATH}
+export PATH=/home/ubuntu/.gimme/versions/go1.5.linux.amd64/bin:${PATH}
 export GOPATH=`godep path`:${GOPATH}
 REVISION=`git rev-parse HEAD`
 
-go build -ldflags "-X main.currentRevision ${REVISION}" -tags ${TEST_TARGET} -o ${TEST_COMPONENT}_${TEST_TARGET}_${CIRCLE_BUILD_NUM} cmd/${TEST_COMPONENT}/${TEST_COMPONENT}.go
+go build -ldflags "-X main.currentRevision=${REVISION}" -tags ${TEST_TARGET} -o ${TEST_COMPONENT}_${TEST_TARGET}_${CIRCLE_BUILD_NUM} cmd/${TEST_COMPONENT}/${TEST_COMPONENT}.go
 
 if [ "${TEST_COMPONENT}" == "distributor" ]
 then
