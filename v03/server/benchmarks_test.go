@@ -7,8 +7,9 @@ import (
 	"flag"
 	"log"
 
-	. "gopkg.in/check.v1"
 	"os"
+
+	. "gopkg.in/check.v1"
 )
 
 var (

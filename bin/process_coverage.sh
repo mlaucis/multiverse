@@ -1,16 +1,21 @@
 #!/bin/bash
 
 export GOPATH=`godep path`:${GOPATH}
-declare -a targets=("postgres" "kinesis")
+declare -a TEST_TARGETS=("postgres" "kinesis", "redis")
 
 CWD=`pwd`
 
-for target in "${targets[@]}"
+for TEST_TARGET in "${TEST_TARGETS[@]}"
 do
 
     declare -a VERSIONS=( "v02" "v03" )
     for VERSION in "${VERSIONS[@]}"
     do
+        if [ ${TEST_TARGET} == "redis" ] && [ ${VERSION} == "v02" ]
+        then
+            continue
+        fi
+
         cd ${CWD}/${VERSION}/server
 
         sed -i -e 's|'$WORKSPACE'/||g' coverage_server_${VERSION}_${TEST_TARGET}.json

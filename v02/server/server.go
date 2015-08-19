@@ -173,7 +173,7 @@ func RateLimitApplication(ctx *context.Context) []errors.Error {
 		return []errors.Error{errors.NewBadRequestError(2300, "something went wrong with the authentication", "something went wrong with the authentication")}
 	}
 
-	hash = fmt.Sprintf("%s.%s", hash, ctx.R.Method)
+	hash = fmt.Sprintf("%s:%s", hash, ctx.R.Method)
 
 	limit, refreshTime, err := appRateLimiter.Request(&limiter.Limitee{hash, appRateLimit, appRateLimitSeconds})
 	if err != nil {

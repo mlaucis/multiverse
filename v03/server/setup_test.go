@@ -19,6 +19,7 @@ import (
 	. "github.com/tapglue/backend/utils"
 	"github.com/tapglue/backend/v03/core"
 	v03_postgres_core "github.com/tapglue/backend/v03/core/postgres"
+	v03_redis_core "github.com/tapglue/backend/v03/core/redis"
 	"github.com/tapglue/backend/v03/entity"
 	"github.com/tapglue/backend/v03/server"
 	v03_kinesis "github.com/tapglue/backend/v03/storage/kinesis"
@@ -64,18 +65,18 @@ var (
 	mainLogChan        = make(chan *logger.LogMsg)
 	errorLogChan       = make(chan *logger.LogMsg)
 
-	coreAcc     core.Organization
-	coreAccUser core.Member
-	coreApp     core.Application
-	coreAppUser core.ApplicationUser
-	coreConn    core.Connection
-	coreEvt     core.Event
+	coreAcc               core.Organization
+	coreAccUser           core.Member
+	coreApp, coreAppRedis core.Application
+	coreAppUser           core.ApplicationUser
+	coreConn              core.Connection
+	coreEvt               core.Event
 
 	v03KinesisClient  v03_kinesis.Client
 	v03PostgresClient v03_postgres.Client
 
-	nilTime             *time.Time
-	redigoRateLimitPool *redigo.Pool
+	nilTime       *time.Time
+	rateLimitPool *redigo.Pool
 )
 
 func init() {
@@ -127,18 +128,21 @@ func init() {
 
 	v03PostgresClient = v03_postgres.New(conf.Postgres)
 
-	redigoRateLimitPool = v03_redis.NewRedigoPool(conf.Redis.Hosts[0], "")
-	applicationRateLimiter := ratelimiter_redis.NewLimiter(redigoRateLimitPool, "ratelimiter.app.")
+	rateLimitPool = v03_redis.NewRedigoPool(conf.RateLimiter)
+	applicationRateLimiter := ratelimiter_redis.NewLimiter(rateLimitPool, "test:ratelimiter:app:")
+
+	appCache := v03_redis.NewRedigoPool(conf.CacheApp)
 
 	coreAcc = v03_postgres_core.NewOrganization(v03PostgresClient)
 	coreAccUser = v03_postgres_core.NewMember(v03PostgresClient)
 	coreApp = v03_postgres_core.NewApplication(v03PostgresClient)
+	coreAppRedis = v03_redis_core.NewApplication(appCache)
 	coreAppUser = v03_postgres_core.NewApplicationUser(v03PostgresClient)
 	coreConn = v03_postgres_core.NewConnection(v03PostgresClient)
 	coreEvt = v03_postgres_core.NewEvent(v03PostgresClient)
 
 	server.SetupRateLimit(applicationRateLimiter)
-	server.Setup(v03KinesisClient, v03PostgresClient, "HEAD", "CI-Machine")
+	server.Setup(v03KinesisClient, v03PostgresClient, appCache, "HEAD", "CI-Machine")
 
 	testBootup(conf.Postgres)
 

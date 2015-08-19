@@ -1,5 +1,6 @@
-// +build kinesis
-// +build !postgres
+// +build !kinesis
+// +build !postgres !bench
+// +build redis
 
 package server
 
@@ -36,7 +37,7 @@ func SetupRoutes() []*Route {
 			Method: "DELETE",
 			Path:   fmt.Sprintf("/organizations/%s", organizationID),
 			Handlers: []RouteFunc{
-				kinesisOrganizationHandler.Delete,
+				postgresOrganizationHandler.Delete,
 			},
 			Filters: []Filter{
 				ContextHasOrganization(postgresOrganizationHandler),
@@ -192,7 +193,7 @@ func SetupRoutes() []*Route {
 			Method: "DELETE",
 			Path:   fmt.Sprintf("/organizations/%s/applications/%s", organizationID, applicationID),
 			Handlers: []RouteFunc{
-				kinesisApplicationHandler.Delete,
+				postgresApplicationHandler.Delete,
 			},
 			Filters: []Filter{
 				ContextHasOrganization(postgresOrganizationHandler),
@@ -259,7 +260,7 @@ func SetupRoutes() []*Route {
 			Method: "PUT",
 			Path:   "/me",
 			Handlers: []RouteFunc{
-				kinesisApplicationUserHandler.UpdateCurrent,
+				postgresApplicationUserHandler.UpdateCurrent,
 			},
 			Filters: []Filter{
 				RateLimitApplication,
@@ -272,7 +273,7 @@ func SetupRoutes() []*Route {
 			Method: "DELETE",
 			Path:   "/me",
 			Handlers: []RouteFunc{
-				kinesisApplicationUserHandler.DeleteCurrent,
+				postgresApplicationUserHandler.DeleteCurrent,
 			},
 			Filters: []Filter{
 				RateLimitApplication,
@@ -285,7 +286,7 @@ func SetupRoutes() []*Route {
 			Method: "DELETE",
 			Path:   fmt.Sprintf("/users/%s", applicationUserID),
 			Handlers: []RouteFunc{
-				kinesisApplicationUserHandler.Delete,
+				postgresApplicationUserHandler.Delete,
 			},
 			Filters: []Filter{
 				RateLimitApplication,
@@ -391,7 +392,7 @@ func SetupRoutes() []*Route {
 			Method: "DELETE",
 			Path:   fmt.Sprintf("/me/connections/%s", applicationUserToID),
 			Handlers: []RouteFunc{
-				kinesisConnectionHandler.Delete,
+				postgresConnectionHandler.Delete,
 			},
 			Filters: []Filter{
 				RateLimitApplication,
@@ -511,7 +512,7 @@ func SetupRoutes() []*Route {
 			Method: "PUT",
 			Path:   fmt.Sprintf("/users/%s/events/%s", applicationUserID, eventID),
 			Handlers: []RouteFunc{
-				kinesisEventHandler.Update,
+				postgresEventHandler.Update,
 			},
 			Filters: []Filter{
 				RateLimitApplication,
@@ -524,7 +525,7 @@ func SetupRoutes() []*Route {
 			Method: "PUT",
 			Path:   fmt.Sprintf("/me/events/%s", eventID),
 			Handlers: []RouteFunc{
-				kinesisEventHandler.CurrentUserUpdate,
+				postgresEventHandler.CurrentUserUpdate,
 			},
 			Filters: []Filter{
 				RateLimitApplication,
@@ -537,7 +538,7 @@ func SetupRoutes() []*Route {
 			Method: "DELETE",
 			Path:   fmt.Sprintf("/users/%s/events/%s", applicationUserID, eventID),
 			Handlers: []RouteFunc{
-				kinesisEventHandler.Delete,
+				postgresEventHandler.Delete,
 			},
 			Filters: []Filter{
 				RateLimitApplication,
@@ -550,7 +551,7 @@ func SetupRoutes() []*Route {
 			Method: "DELETE",
 			Path:   fmt.Sprintf("/me/events/%s", eventID),
 			Handlers: []RouteFunc{
-				kinesisEventHandler.CurrentUserDelete,
+				postgresEventHandler.CurrentUserDelete,
 			},
 			Filters: []Filter{
 				RateLimitApplication,
@@ -563,7 +564,7 @@ func SetupRoutes() []*Route {
 			Method: "POST",
 			Path:   fmt.Sprintf("/users/%s/events", applicationUserID),
 			Handlers: []RouteFunc{
-				kinesisEventHandler.Create,
+				postgresEventHandler.Create,
 			},
 			Filters: []Filter{
 				RateLimitApplication,
@@ -576,7 +577,7 @@ func SetupRoutes() []*Route {
 			Method: "POST",
 			Path:   "/me/events",
 			Handlers: []RouteFunc{
-				kinesisEventHandler.CurrentUserCreate,
+				postgresEventHandler.CurrentUserCreate,
 			},
 			Filters: []Filter{
 				RateLimitApplication,

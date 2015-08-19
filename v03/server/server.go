@@ -13,11 +13,13 @@ import (
 	"github.com/tapglue/backend/v03/core"
 	v03_kinesis_core "github.com/tapglue/backend/v03/core/kinesis"
 	v03_postgres_core "github.com/tapglue/backend/v03/core/postgres"
+	v03_redis_core "github.com/tapglue/backend/v03/core/redis"
 	"github.com/tapglue/backend/v03/errmsg"
 	"github.com/tapglue/backend/v03/server/response"
 	v03_kinesis "github.com/tapglue/backend/v03/storage/kinesis"
 	v03_postgres "github.com/tapglue/backend/v03/storage/postgres"
 
+	"github.com/garyburd/redigo/redis"
 	"github.com/gorilla/mux"
 )
 
@@ -36,12 +38,12 @@ const (
 )
 
 var (
-	postgresOrganization, kinesisOrganization       core.Organization
-	postgresAccountUser, kinesisAccountUser         core.Member
-	postgresApplication, kinesisApplication         core.Application
-	postgresApplicationUser, kinesisApplicationUser core.ApplicationUser
-	postgresConnection, kinesisConnection           core.Connection
-	postgresEvent, kinesisEvent                     core.Event
+	postgresOrganization, kinesisOrganization                 core.Organization
+	postgresAccountUser, kinesisAccountUser                   core.Member
+	postgresApplication, kinesisApplication, redisApplication core.Application
+	postgresApplicationUser, kinesisApplicationUser           core.ApplicationUser
+	postgresConnection, kinesisConnection                     core.Connection
+	postgresEvent, kinesisEvent                               core.Event
 
 	appRateLimiter limiter.Limiter
 )
@@ -171,7 +173,7 @@ func RateLimitApplication(ctx *context.Context) []errors.Error {
 		return []errors.Error{errors.NewBadRequestError(2300, "something went wrong with the authentication", "something went wrong with the authentication")}
 	}
 
-	hash = fmt.Sprintf("%s.%s", hash, ctx.R.Method)
+	hash = fmt.Sprintf("%s:%s", hash, ctx.R.Method)
 
 	limit, refreshTime, err := appRateLimiter.Request(&limiter.Limitee{hash, appRateLimit, appRateLimitSeconds})
 	if err != nil {
@@ -272,7 +274,12 @@ func SetupRateLimit(applicationRateLimiter limiter.Limiter) {
 
 // Setup initializes the route handlers
 // Must be called after initializing the cores
-func Setup(v03KinesisClient v03_kinesis.Client, v03PostgresClient v03_postgres.Client, revision, hostname string) {
+func Setup(
+	v03KinesisClient v03_kinesis.Client,
+	v03PostgresClient v03_postgres.Client,
+	appCache *redis.Pool,
+	revision, hostname string) {
+
 	if appRateLimiter == nil {
 		panic("You must first initialize the rate limiter")
 	}
@@ -290,6 +297,8 @@ func Setup(v03KinesisClient v03_kinesis.Client, v03PostgresClient v03_postgres.C
 	postgresApplicationUser = v03_postgres_core.NewApplicationUser(v03PostgresClient)
 	postgresConnection = v03_postgres_core.NewConnection(v03PostgresClient)
 	postgresEvent = v03_postgres_core.NewEvent(v03PostgresClient)
+
+	redisApplication = v03_redis_core.NewApplication(appCache)
 
 	if revision == "" {
 		panic("omfg missing revision")

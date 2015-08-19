@@ -5,11 +5,11 @@ import "github.com/tapglue/backend/v03/entity"
 
 // Definition of test data
 var (
-	EmtpyAccount     = entity.Organization{}
-	EmtpyAccountUser = entity.Member{}
-	EmptyApplication = entity.Application{}
-	EmptyUser        = entity.ApplicationUser{}
-	EmptyEvent       = entity.Event{}
+	EmtpyAccount        = entity.Organization{}
+	EmtpyAccountUser    = entity.Member{}
+	EmptyApplication    = entity.Application{}
+	EmptyUser           = entity.ApplicationUser{}
+	EmptyEvent          = entity.Event{}
 	CorrectOrganization = entity.Organization{
 		Name:        "Demo",
 		Description: "This is a demo account",

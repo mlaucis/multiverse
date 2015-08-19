@@ -12,13 +12,13 @@ import (
 
 	"github.com/tapglue/backend/limiter"
 
-	red "github.com/garyburd/redigo/redis"
+	"github.com/garyburd/redigo/redis"
 )
 
 type (
 	rateLimiter struct {
 		bucket   string
-		connPool *red.Pool
+		connPool *redis.Pool
 	}
 )
 
@@ -57,7 +57,7 @@ func (rateLimiter *rateLimiter) Request(limitee *limiter.Limitee) (int64, time.T
 	return 0, errTime, errors.New("something went wrong")
 }
 
-func (rateLimiter *rateLimiter) decrement(conn red.Conn, limitee *limiter.Limitee, value int64) (int64, time.Time, error) {
+func (rateLimiter *rateLimiter) decrement(conn redis.Conn, limitee *limiter.Limitee, value int64) (int64, time.Time, error) {
 	hash := rateLimiter.bucket + limitee.Hash
 	expiry, err := conn.Do("TTL", hash)
 	if err != nil {
@@ -72,7 +72,7 @@ func (rateLimiter *rateLimiter) decrement(conn red.Conn, limitee *limiter.Limite
 	return value - 1, time.Now().Add(time.Duration(expiry.(int64)) * time.Second), nil
 }
 
-func (rateLimiter *rateLimiter) create(conn red.Conn, limitee *limiter.Limitee) (int64, time.Time, error) {
+func (rateLimiter *rateLimiter) create(conn redis.Conn, limitee *limiter.Limitee) (int64, time.Time, error) {
 	hash := rateLimiter.bucket + limitee.Hash
 	limit := limitee.Limit
 	response, err := conn.Do("SET", hash, limit, "EX", limitee.WindowSize, "NX")
@@ -88,7 +88,7 @@ func (rateLimiter *rateLimiter) create(conn red.Conn, limitee *limiter.Limitee) 
 	return limit - 1, time.Now().Add(time.Duration(limitee.WindowSize) * time.Second), nil
 }
 
-func (rateLimiter *rateLimiter) expiresIn(conn red.Conn, limitee *limiter.Limitee) (int64, time.Time, error) {
+func (rateLimiter *rateLimiter) expiresIn(conn redis.Conn, limitee *limiter.Limitee) (int64, time.Time, error) {
 	hash := rateLimiter.bucket + limitee.Hash
 	expiry, err := conn.Do("TTL", hash)
 	if err != nil {
@@ -99,7 +99,7 @@ func (rateLimiter *rateLimiter) expiresIn(conn red.Conn, limitee *limiter.Limite
 }
 
 // NewLimiter creates a new Limiter implementation using Redis
-func NewLimiter(connPool *red.Pool, bucketName string) limiter.Limiter {
+func NewLimiter(connPool *redis.Pool, bucketName string) limiter.Limiter {
 	return &rateLimiter{
 		bucket:   bucketName,
 		connPool: connPool,

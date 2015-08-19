@@ -20,6 +20,11 @@ CWD=`pwd`
 declare -a VERSIONS=( "v02" "v03" )
 for VERSION in "${VERSIONS[@]}"
 do
+    if [ ${TEST_TARGET} == "redis" ] && [ ${VERSION} == "v02" ]
+    then
+        continue
+    fi
+
     cd ${CWD}/${VERSION}/server
 
     rm c.out output.log
