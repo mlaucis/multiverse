@@ -133,7 +133,7 @@ resource "aws_security_group" "frontend-ssh" {
   }
 
   tags {
-    Name = "SSH from Bastion to Backend"
+    Name = "SSH from Bastion to Frontend"
   }
 }
 
@@ -155,7 +155,7 @@ resource "aws_elb" "frontend" {
     lb_port           = 80
     lb_protocol       = "http"
 
-    instance_port     = 8083
+    instance_port     = 80
     instance_protocol = "http"
   }
 

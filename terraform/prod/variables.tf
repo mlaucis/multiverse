@@ -6,6 +6,38 @@ variable "private-s3" {
   default = "com.amazonaws.eu-central-1.s3"
 }
 
+variable "ami_frontend" {
+  default = "ami-94e5e389"
+}
+
+variable "ami_backend" {
+  default = "ami-94e5e389"
+}
+
+variable "ami_corporate" {
+  default = "ami-90e5e38d"
+}
+
+variable "ami_bastion" {
+  default = "ami-94e5e389"
+}
+
+variable "ami_nat" {
+  default = "ami-cb7de3bc"
+}
+
+variable "cloudflare_email" {
+  default = "tools@tapglue.com"
+}
+
+variable "cloudflare_token" {
+  default = "8495c1d8eadae7413a79f74fa3bd3116c8c1b"
+}
+
+variable "cloudflare_domain" {
+  default = "tapglue.com"
+}
+
 variable "zone-a" {
   default = "eu-central-1a"
 }
@@ -30,18 +62,26 @@ variable "nat-size" {
   default = "m1.small"
 }
 
-variable "aws_key_path" {
-  default = ""
+variable "iam_profile_backend" {
+  default = "prod-backend"
 }
 
-variable "aws_key_name" {
-  default = "demoterra"
+variable "iam_role_backend" {
+  default = "prod-backend"
 }
 
-variable "aws_nat_ami" {
-  default = "ami-cb7de3bc"
+variable "iam_profile_frontend" {
+  default = "prod-frontend"
 }
 
-variable "aws_ubuntu_ami" {
-  default = "ami-7e6b3f09"
+variable "iam_role_frontend" {
+  default = "prod-frontend"
+}
+
+variable "iam_profile_corporate" {
+  default = "prod-corporate"
+}
+
+variable "iam_role_corporate" {
+  default = "prod-corporate"
 }

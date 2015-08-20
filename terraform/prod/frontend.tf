@@ -133,7 +133,7 @@ resource "aws_security_group" "frontend-ssh" {
   }
 
   tags {
-    Name = "SSH from Bastion to Backend"
+    Name = "SSH from Bastion to Frontend"
   }
 }
 

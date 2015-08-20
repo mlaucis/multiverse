@@ -69,10 +69,9 @@ resource "aws_security_group" "to-nat" {
 
 # Instance
 resource "aws_instance" "nat" {
-  ami                         = "${var.aws_nat_ami}"
+  ami                         = "${var.ami_nat}"
   availability_zone           = "${var.zone-nat}"
   instance_type               = "${var.nat-size}"
-  key_name                    = "${var.aws_key_name}"
   security_groups             = [
     "${aws_security_group.from-nat.id}"]
   subnet_id                   = "${aws_subnet.public-a.id}"

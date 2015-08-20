@@ -2,11 +2,12 @@ resource "aws_launch_configuration" "backend" {
   depends_on                  = [
     "aws_security_group.backend-ssh"]
 
-  image_id                    = "${var.aws_ubuntu_ami}"
+  image_id                    = "${var.ami_backend}"
   instance_type               = "t2.micro"
   associate_public_ip_address = false
   enable_monitoring           = false
   ebs_optimized               = false
+  iam_instance_profile        = "${aws_iam_instance_profile.backend.name}"
 
   lifecycle {
     create_before_destroy = true
@@ -25,8 +26,8 @@ resource "aws_autoscaling_group" "backend" {
     "${aws_subnet.backend-a.id}",
     "${aws_subnet.backend-b.id}"]
   name                      = "backend"
-  max_size                  = 0
-  min_size                  = 0
+  max_size                  = 1
+  min_size                  = 1
   health_check_type         = "EC2"
   health_check_grace_period = 60
   force_delete              = false
@@ -49,8 +50,8 @@ resource "aws_autoscaling_group" "backend" {
   }
 
   tag {
-    key                 = "channel"
-    value               = "beta"
+    key                 = "installer_channel"
+    value               = "prod"
     propagate_at_launch = true
   }
 }
