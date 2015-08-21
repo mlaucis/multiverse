@@ -410,3 +410,34 @@ func (s *ApplicationSuite) TestApplicationMalformedPayloadsFails(c *C) {
 		c.Assert(body, Equals, scenarios[idx].ResponseBody)
 	}
 }
+
+func (s *ApplicationSuite) TestUpdateApplicationState(c *C) {
+	account := CorrectDeploy(1, 1, 1, 0, 0, false, true)[0]
+	accountUser := account.Members[0]
+	application := account.Applications[0]
+
+	payload := fmt.Sprintf(
+		`{"name":"%s", "description":"i changed the description", "url": "%s", "enabled": true, "in_production": true}`,
+		application.Name,
+		application.URL,
+	)
+
+	routeName := "updateApplication"
+	route := getComposedRoute(routeName, account.PublicID, application.PublicID)
+	code, body, err := runRequest(routeName, route, payload, signOrganizationRequest(account, accountUser, true, true))
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusCreated)
+	c.Assert(body, Not(Equals), "")
+
+	receivedApplication := &entity.Application{}
+	er := json.Unmarshal([]byte(body), receivedApplication)
+	c.Assert(er, IsNil)
+	if receivedApplication.PublicID == "" {
+		c.Fail()
+	}
+
+	c.Assert(receivedApplication.Name, Equals, application.Name)
+	c.Assert(receivedApplication.URL, Equals, application.URL)
+	c.Assert(receivedApplication.Enabled, Equals, true)
+	c.Assert(receivedApplication.InProduction, Equals, true)
+}

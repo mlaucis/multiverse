@@ -13,6 +13,7 @@ import (
 	"github.com/tapglue/backend/v02/core"
 	v02_kinesis_core "github.com/tapglue/backend/v02/core/kinesis"
 	v02_postgres_core "github.com/tapglue/backend/v02/core/postgres"
+	"github.com/tapglue/backend/v02/entity"
 	"github.com/tapglue/backend/v02/errmsg"
 	"github.com/tapglue/backend/v02/server/response"
 	v02_kinesis "github.com/tapglue/backend/v02/storage/kinesis"
@@ -33,8 +34,9 @@ const (
 	// APIVersion holds which API Version does this module holds
 	APIVersion = "0.2"
 
-	appRateLimit        int64 = 1000
-	appRateLimitSeconds int64 = 60
+	appRateLimitProduction int64 = 10000
+	appRateLimitStaging    int64 = 100
+	appRateLimitSeconds    int64 = 60
 )
 
 var (
@@ -162,22 +164,22 @@ func GetRoute(routeName string) *Route {
 	panic(fmt.Sprintf("route %q not found", routeName))
 }
 
-// RateLimitApplication takes care of appling the rate limits for the application
+// RateLimitApplication takes care of app the rate limits for the application
 func RateLimitApplication(ctx *context.Context) []errors.Error {
 	if ctx.SkipSecurity {
 		return nil
 	}
 
-	hash, _, ok := ctx.BasicAuth()
-	if !ok {
-		return []errors.Error{errors.NewBadRequestError(2300, "something went wrong with the authentication", "something went wrong with the authentication")}
+	appRateLimit := appRateLimitStaging
+	if ctx.Bag["application"].(*entity.Application).InProduction {
+		appRateLimit = appRateLimitProduction
 	}
 
-	hash = fmt.Sprintf("%s:%s", hash, ctx.R.Method)
+	hash := ctx.Bag["application"].(*entity.Application).AuthToken
 
 	limit, refreshTime, err := appRateLimiter.Request(&limiter.Limitee{hash, appRateLimit, appRateLimitSeconds})
 	if err != nil {
-		return []errors.Error{errors.NewInternalError(0, "something went wrong", err.Error())}
+		return []errors.Error{errmsg.ErrServerInternalError.UpdateInternalMessage(err.Error())}
 	}
 
 	ctx.Bag["rateLimit.enabled"] = true
@@ -185,7 +187,7 @@ func RateLimitApplication(ctx *context.Context) []errors.Error {
 	ctx.Bag["rateLimit.refreshTime"] = refreshTime
 
 	if limit == 0 {
-		return []errors.Error{errors.New(429, 0, "Too Many Requests", "over quota", false)}
+		return []errors.Error{errmsg.ErrTooManyRequests}
 	}
 
 	return nil

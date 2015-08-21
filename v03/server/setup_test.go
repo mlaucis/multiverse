@@ -133,9 +133,11 @@ func init() {
 
 	appCache := v03_redis.NewRedigoPool(conf.CacheApp)
 
+	redisApplication := v03_redis_core.NewApplication(appCache)
+
 	coreAcc = v03_postgres_core.NewOrganization(v03PostgresClient)
 	coreAccUser = v03_postgres_core.NewMember(v03PostgresClient)
-	coreApp = v03_postgres_core.NewApplication(v03PostgresClient)
+	coreApp = v03_postgres_core.NewApplication(v03PostgresClient, redisApplication)
 	coreAppRedis = v03_redis_core.NewApplication(appCache)
 	coreAppUser = v03_postgres_core.NewApplicationUser(v03PostgresClient)
 	coreConn = v03_postgres_core.NewConnection(v03PostgresClient)

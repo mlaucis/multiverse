@@ -223,8 +223,8 @@ func SetupRoutes() []*Route {
 				postgresApplicationUserHandler.Search,
 			},
 			Filters: []Filter{
-				RateLimitApplication,
 				ContextHasApplication(postgresApplicationHandler),
+				RateLimitApplication,
 				ContextHasApplicationUser(postgresApplicationUserHandler),
 			},
 		},
@@ -236,8 +236,8 @@ func SetupRoutes() []*Route {
 				postgresApplicationUserHandler.Read,
 			},
 			Filters: []Filter{
-				RateLimitApplication,
 				ContextHasApplication(postgresApplicationHandler),
+				RateLimitApplication,
 				ContextHasApplicationUser(postgresApplicationUserHandler),
 			},
 		},
@@ -249,8 +249,8 @@ func SetupRoutes() []*Route {
 				postgresApplicationUserHandler.ReadCurrent,
 			},
 			Filters: []Filter{
-				RateLimitApplication,
 				ContextHasApplication(postgresApplicationHandler),
+				RateLimitApplication,
 				ContextHasApplicationUser(postgresApplicationUserHandler),
 			},
 		},
@@ -262,8 +262,8 @@ func SetupRoutes() []*Route {
 				kinesisApplicationUserHandler.UpdateCurrent,
 			},
 			Filters: []Filter{
-				RateLimitApplication,
 				ContextHasApplication(postgresApplicationHandler),
+				RateLimitApplication,
 				ContextHasApplicationUser(postgresApplicationUserHandler),
 			},
 		},
@@ -275,8 +275,8 @@ func SetupRoutes() []*Route {
 				kinesisApplicationUserHandler.DeleteCurrent,
 			},
 			Filters: []Filter{
-				RateLimitApplication,
 				ContextHasApplication(postgresApplicationHandler),
+				RateLimitApplication,
 				ContextHasApplicationUser(postgresApplicationUserHandler),
 			},
 		},
@@ -288,8 +288,8 @@ func SetupRoutes() []*Route {
 				postgresApplicationUserHandler.Create,
 			},
 			Filters: []Filter{
-				RateLimitApplication,
 				ContextHasApplication(postgresApplicationHandler),
+				RateLimitApplication,
 			},
 		},
 		&Route{
@@ -300,8 +300,8 @@ func SetupRoutes() []*Route {
 				postgresApplicationUserHandler.Login,
 			},
 			Filters: []Filter{
-				RateLimitApplication,
 				ContextHasApplication(postgresApplicationHandler),
+				RateLimitApplication,
 			},
 		},
 		&Route{
@@ -312,8 +312,8 @@ func SetupRoutes() []*Route {
 				postgresApplicationUserHandler.RefreshSession,
 			},
 			Filters: []Filter{
-				RateLimitApplication,
 				ContextHasApplication(postgresApplicationHandler),
+				RateLimitApplication,
 				ContextHasApplicationUser(postgresApplicationUserHandler),
 			},
 		},
@@ -325,8 +325,8 @@ func SetupRoutes() []*Route {
 				postgresApplicationUserHandler.Logout,
 			},
 			Filters: []Filter{
-				RateLimitApplication,
 				ContextHasApplication(postgresApplicationHandler),
+				RateLimitApplication,
 				ContextHasApplicationUser(postgresApplicationUserHandler),
 			},
 		},
@@ -342,8 +342,8 @@ func SetupRoutes() []*Route {
 				postgresConnectionHandler.Create,
 			},
 			Filters: []Filter{
-				RateLimitApplication,
 				ContextHasApplication(postgresApplicationHandler),
+				RateLimitApplication,
 				ContextHasApplicationUser(postgresApplicationUserHandler),
 			},
 		},
@@ -355,8 +355,8 @@ func SetupRoutes() []*Route {
 				kinesisConnectionHandler.Delete,
 			},
 			Filters: []Filter{
-				RateLimitApplication,
 				ContextHasApplication(postgresApplicationHandler),
+				RateLimitApplication,
 				ContextHasApplicationUser(postgresApplicationUserHandler),
 			},
 		},
@@ -369,8 +369,8 @@ func SetupRoutes() []*Route {
 				postgresConnectionHandler.Confirm,
 			},
 			Filters: []Filter{
-				RateLimitApplication,
 				ContextHasApplication(postgresApplicationHandler),
+				RateLimitApplication,
 				ContextHasApplicationUser(postgresApplicationUserHandler),
 			},
 		},
@@ -382,8 +382,8 @@ func SetupRoutes() []*Route {
 				postgresConnectionHandler.CreateSocial,
 			},
 			Filters: []Filter{
-				RateLimitApplication,
 				ContextHasApplication(postgresApplicationHandler),
+				RateLimitApplication,
 				ContextHasApplicationUser(postgresApplicationUserHandler),
 			},
 		},
@@ -395,8 +395,8 @@ func SetupRoutes() []*Route {
 				postgresConnectionHandler.List,
 			},
 			Filters: []Filter{
-				RateLimitApplication,
 				ContextHasApplication(postgresApplicationHandler),
+				RateLimitApplication,
 				ContextHasApplicationUser(postgresApplicationUserHandler),
 			},
 		},
@@ -408,8 +408,8 @@ func SetupRoutes() []*Route {
 				postgresConnectionHandler.CurrentUserList,
 			},
 			Filters: []Filter{
-				RateLimitApplication,
 				ContextHasApplication(postgresApplicationHandler),
+				RateLimitApplication,
 				ContextHasApplicationUser(postgresApplicationUserHandler),
 			},
 		},
@@ -421,8 +421,8 @@ func SetupRoutes() []*Route {
 				postgresConnectionHandler.FollowedByList,
 			},
 			Filters: []Filter{
-				RateLimitApplication,
 				ContextHasApplication(postgresApplicationHandler),
+				RateLimitApplication,
 				ContextHasApplicationUser(postgresApplicationUserHandler),
 			},
 		},
@@ -434,8 +434,8 @@ func SetupRoutes() []*Route {
 				postgresConnectionHandler.CurrentUserFollowedByList,
 			},
 			Filters: []Filter{
-				RateLimitApplication,
 				ContextHasApplication(postgresApplicationHandler),
+				RateLimitApplication,
 				ContextHasApplicationUser(postgresApplicationUserHandler),
 			},
 		},
@@ -447,8 +447,8 @@ func SetupRoutes() []*Route {
 				postgresConnectionHandler.Friends,
 			},
 			Filters: []Filter{
-				RateLimitApplication,
 				ContextHasApplication(postgresApplicationHandler),
+				RateLimitApplication,
 				ContextHasApplicationUser(postgresApplicationUserHandler),
 			},
 		},
@@ -460,8 +460,8 @@ func SetupRoutes() []*Route {
 				postgresConnectionHandler.CurrentUserFriends,
 			},
 			Filters: []Filter{
-				RateLimitApplication,
 				ContextHasApplication(postgresApplicationHandler),
+				RateLimitApplication,
 				ContextHasApplicationUser(postgresApplicationUserHandler),
 			},
 		})
@@ -477,8 +477,8 @@ func SetupRoutes() []*Route {
 				kinesisEventHandler.Update,
 			},
 			Filters: []Filter{
-				RateLimitApplication,
 				ContextHasApplication(postgresApplicationHandler),
+				RateLimitApplication,
 				ContextHasApplicationUser(postgresApplicationUserHandler),
 			},
 		},
@@ -490,8 +490,8 @@ func SetupRoutes() []*Route {
 				kinesisEventHandler.CurrentUserUpdate,
 			},
 			Filters: []Filter{
-				RateLimitApplication,
 				ContextHasApplication(postgresApplicationHandler),
+				RateLimitApplication,
 				ContextHasApplicationUser(postgresApplicationUserHandler),
 			},
 		},
@@ -503,8 +503,8 @@ func SetupRoutes() []*Route {
 				kinesisEventHandler.Delete,
 			},
 			Filters: []Filter{
-				RateLimitApplication,
 				ContextHasApplication(postgresApplicationHandler),
+				RateLimitApplication,
 				ContextHasApplicationUser(postgresApplicationUserHandler),
 			},
 		},
@@ -516,8 +516,8 @@ func SetupRoutes() []*Route {
 				kinesisEventHandler.Delete,
 			},
 			Filters: []Filter{
-				RateLimitApplication,
 				ContextHasApplication(postgresApplicationHandler),
+				RateLimitApplication,
 				ContextHasApplicationUser(postgresApplicationUserHandler),
 			},
 		},
@@ -529,8 +529,8 @@ func SetupRoutes() []*Route {
 				kinesisEventHandler.Create,
 			},
 			Filters: []Filter{
-				RateLimitApplication,
 				ContextHasApplication(postgresApplicationHandler),
+				RateLimitApplication,
 				ContextHasApplicationUser(postgresApplicationUserHandler),
 			},
 		},
@@ -542,8 +542,8 @@ func SetupRoutes() []*Route {
 				kinesisEventHandler.CurrentUserCreate,
 			},
 			Filters: []Filter{
-				RateLimitApplication,
 				ContextHasApplication(postgresApplicationHandler),
+				RateLimitApplication,
 				ContextHasApplicationUser(postgresApplicationUserHandler),
 			},
 		},
@@ -555,8 +555,8 @@ func SetupRoutes() []*Route {
 				postgresEventHandler.Read,
 			},
 			Filters: []Filter{
-				RateLimitApplication,
 				ContextHasApplication(postgresApplicationHandler),
+				RateLimitApplication,
 				ContextHasApplicationUser(postgresApplicationUserHandler),
 			},
 		},
@@ -569,8 +569,8 @@ func SetupRoutes() []*Route {
 				postgresEventHandler.CurrentUserRead,
 			},
 			Filters: []Filter{
-				RateLimitApplication,
 				ContextHasApplication(postgresApplicationHandler),
+				RateLimitApplication,
 				ContextHasApplicationUser(postgresApplicationUserHandler),
 			},
 		},
@@ -582,8 +582,8 @@ func SetupRoutes() []*Route {
 				postgresEventHandler.List,
 			},
 			Filters: []Filter{
-				RateLimitApplication,
 				ContextHasApplication(postgresApplicationHandler),
+				RateLimitApplication,
 				ContextHasApplicationUser(postgresApplicationUserHandler),
 			},
 		},
@@ -595,8 +595,8 @@ func SetupRoutes() []*Route {
 				postgresEventHandler.CurrentUserList,
 			},
 			Filters: []Filter{
-				RateLimitApplication,
 				ContextHasApplication(postgresApplicationHandler),
+				RateLimitApplication,
 				ContextHasApplicationUser(postgresApplicationUserHandler),
 			},
 		},
@@ -608,8 +608,8 @@ func SetupRoutes() []*Route {
 				postgresEventHandler.Feed,
 			},
 			Filters: []Filter{
-				RateLimitApplication,
 				ContextHasApplication(postgresApplicationHandler),
+				RateLimitApplication,
 				ContextHasApplicationUser(postgresApplicationUserHandler),
 			},
 		},
@@ -621,8 +621,8 @@ func SetupRoutes() []*Route {
 				postgresEventHandler.UnreadFeedCount,
 			},
 			Filters: []Filter{
-				RateLimitApplication,
 				ContextHasApplication(postgresApplicationHandler),
+				RateLimitApplication,
 				ContextHasApplicationUser(postgresApplicationUserHandler),
 			},
 		},
@@ -634,8 +634,8 @@ func SetupRoutes() []*Route {
 				postgresEventHandler.UnreadFeed,
 			},
 			Filters: []Filter{
-				RateLimitApplication,
 				ContextHasApplication(postgresApplicationHandler),
+				RateLimitApplication,
 				ContextHasApplicationUser(postgresApplicationUserHandler),
 			},
 		},
@@ -648,8 +648,8 @@ func SetupRoutes() []*Route {
 				postgresEventHandler.Search,
 			},
 			Filters: []Filter{
-				RateLimitApplication,
 				ContextHasApplication(postgresApplicationHandler),
+				RateLimitApplication,
 				ContextHasApplicationUser(postgresApplicationUserHandler),
 			},
 		},

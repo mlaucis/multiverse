@@ -87,15 +87,16 @@ type (
 
 	// Application structure
 	Application struct {
-		ID          int64              `json:"-"`
-		OrgID       int64              `json:"-"`
-		PublicID    string             `json:"id"`
-		PublicOrgID string             `json:"account_id"`
-		AuthToken   string             `json:"token"`
-		Name        string             `json:"name"`
-		Description string             `json:"description"`
-		URL         string             `json:"url"`
-		Users       []*ApplicationUser `json:"-"`
+		ID           int64              `json:"-"`
+		OrgID        int64              `json:"-"`
+		PublicID     string             `json:"id"`
+		PublicOrgID  string             `json:"account_id"`
+		AuthToken    string             `json:"token"`
+		Name         string             `json:"name"`
+		Description  string             `json:"description"`
+		URL          string             `json:"url"`
+		InProduction bool               `json:"in_production"`
+		Users        []*ApplicationUser `json:"-"`
 		Common
 	}
 
