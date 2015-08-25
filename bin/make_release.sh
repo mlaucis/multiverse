@@ -9,7 +9,7 @@ finalReleasesFilename='releases.json'
 
 if [ ${finalComponentName} == "corporate" ]
 then
-    if [ ${finalReleaseTarget} == "style" ]
+    if [ ${finalReleaseTarget} == "styleguide" ]
     then
         finalArtifactName='./style'
     fi
