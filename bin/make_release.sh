@@ -3,12 +3,21 @@
 finalComponentName=${1}
 finalReleaseTarget=${2}
 
-finalExecName=${finalComponentName}_${finalReleaseTarget}_${CIRCLE_BUILD_NUM}
 finalArchiveName=${finalComponentName}_${finalReleaseTarget}.${CIRCLE_BUILD_NUM}.tar.gz
 finalS3Location=s3://tapglue-builds/${finalComponentName}/${finalReleaseTarget}
-finalReleasesFilename=releases.json
+finalReleasesFilename='releases.json'
 
-tar -czf ${finalArchiveName} ${finalExecName}
+if [ ${finalComponentName} == "corporate" ]
+then
+    if [ ${finalReleaseTarget} == "style" ]
+    then
+        finalArtifactName='./style'
+    fi
+else
+    finalArtifactName=${finalComponentName}_${finalReleaseTarget}_${CIRCLE_BUILD_NUM}
+fi
+
+tar -czf ${finalArchiveName} ${finalArtifactName}
 cp ${finalArchiveName} ${CIRCLE_ARTIFACTS}/
 aws s3 cp ${finalArchiveName} ${finalS3Location}/
 aws s3 cp ${finalS3Location}/${finalReleasesFilename} ${CIRCLE_ARTIFACTS}/${finalReleasesFilename}

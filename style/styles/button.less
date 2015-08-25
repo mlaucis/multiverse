@@ -1,0 +1,65 @@
+.btn(@color) {
+  background: darken(@color, 5%);
+  border: none;
+  border-radius: .3rem;
+  box-shadow: none;
+  color: #fff;
+  cursor: pointer;
+  font-size: 1.4rem;
+  font-weight: 700;
+  padding: 0.8rem 4rem;
+  text-transform: uppercase;
+  transition: all 0.15s ease;
+
+  &:focus {
+    outline: none;
+  }
+
+  .no-touch &:hover {
+    background: lighten(@color, 5%);
+  }
+}
+
+.btn-outline(@color) {
+  background: transparent;
+  box-shadow: inset 0 0 0 2px darken(@color2, 5%);
+  color: darken(@color2, 5%);
+
+  .no-touch &:hover {
+    color: #fff;
+    background: darken(@color, 5%);
+    box-shadow: inset 0 0 0 2px darken(@color, 5%);
+  }
+}
+
+.btn-alert {
+  .btn(@color3);
+
+  &.outline {
+    .btn-outline(@color3);
+  }
+}
+
+.btn-close {
+  .btn(@color5);
+
+  &.outline {
+    .btn-outline(@color5);
+  }
+}
+
+.btn-default {
+  .btn(@color2);
+
+  &.outline {
+    .btn-outline(@color2);
+  }
+}
+
+.btn-success {
+  .btn(@color1);
+
+  &.outline {
+    .btn-outline(@color1);
+  }
+}
