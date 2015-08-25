@@ -30,6 +30,8 @@ resource "aws_security_group" "from-nat" {
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = [
+      "${aws_subnet.corporate-a.cidr_block}",
+      "${aws_subnet.corporate-b.cidr_block}",
       "${aws_subnet.frontend-a.cidr_block}",
       "${aws_subnet.frontend-b.cidr_block}",
       "${aws_subnet.backend-a.cidr_block}",

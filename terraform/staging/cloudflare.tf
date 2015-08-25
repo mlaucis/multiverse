@@ -18,3 +18,12 @@ resource "cloudflare_record" "dashboard-staging" {
   type = "CNAME"
   ttl = 1
 }
+
+resource "cloudflare_record" "styleguide-staging" {
+  domain = "${var.cloudflare_domain}"
+  name = "styleguide-staging"
+  value = "${aws_elb.corporate.dns_name}"
+  type = "CNAME"
+  ttl = 1
+}
+

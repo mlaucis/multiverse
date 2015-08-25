@@ -18,3 +18,12 @@ resource "cloudflare_record" "dashboard-prod" {
   type = "CNAME"
   ttl = 1
 }
+
+resource "cloudflare_record" "styleguide-prod" {
+  domain = "${var.cloudflare_domain}"
+  name = "styleguide-prod"
+  value = "${aws_elb.corporate.dns_name}"
+  type = "CNAME"
+  ttl = 1
+}
+

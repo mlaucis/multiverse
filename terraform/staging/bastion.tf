@@ -1,4 +1,3 @@
-# Bastion instance
 resource "aws_security_group" "bastion" {
   vpc_id      = "${aws_vpc.staging.id}"
   name        = "bastion"
@@ -17,44 +16,14 @@ resource "aws_security_group" "bastion" {
     to_port     = 22
     protocol    = "tcp"
     cidr_blocks = [
-      "${aws_subnet.public-a.cidr_block}"]
-  }
-  egress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = [
-      "${aws_subnet.public-b.cidr_block}"]
-  }
-
-  egress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = [
-      "${aws_subnet.frontend-a.cidr_block}"]
-  }
-  egress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = [
-      "${aws_subnet.frontend-b.cidr_block}"]
-  }
-
-  egress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = [
-      "${aws_subnet.backend-a.cidr_block}"]
-  }
-  egress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = [
-      "${aws_subnet.backend-b.cidr_block}"]
+      "${aws_subnet.public-a.cidr_block}",
+      "${aws_subnet.public-b.cidr_block}",
+      "${aws_subnet.frontend-a.cidr_block}",
+      "${aws_subnet.frontend-b.cidr_block}",
+      "${aws_subnet.backend-a.cidr_block}",
+      "${aws_subnet.backend-b.cidr_block}",
+      "${aws_subnet.corporate-a.cidr_block}",
+      "${aws_subnet.corporate-b.cidr_block}"]
   }
 
   tags {

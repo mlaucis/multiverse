@@ -1,3 +1,39 @@
+resource "aws_subnet" "corporate-a" {
+  vpc_id                  = "${aws_vpc.staging.id}"
+  map_public_ip_on_launch = false
+
+  cidr_block              = "10.0.44.0/24"
+  availability_zone       = "${var.zone-a}"
+
+  tags {
+    Name = "Corporate A"
+  }
+}
+
+resource "aws_subnet" "corporate-b" {
+  vpc_id                  = "${aws_vpc.staging.id}"
+  map_public_ip_on_launch = false
+
+  cidr_block              = "10.0.45.0/24"
+  availability_zone       = "${var.zone-b}"
+
+  tags {
+    Name = "Corporate B"
+  }
+}
+
+# Routing tables
+resource "aws_route_table_association" "corporate-a" {
+  subnet_id      = "${aws_subnet.corporate-a.id}"
+  route_table_id = "${aws_route_table.to-nat.id}"
+}
+
+resource "aws_route_table_association" "corporate-b" {
+  subnet_id      = "${aws_subnet.corporate-b.id}"
+  route_table_id = "${aws_route_table.to-nat.id}"
+}
+
+# Security groups
 resource "aws_security_group" "corporate-ssh" {
   vpc_id      = "${aws_vpc.staging.id}"
   name        = "corporate-ssh"
@@ -127,7 +163,7 @@ resource "aws_elb" "corporate" {
     healthy_threshold   = 2
     unhealthy_threshold = 2
     timeout             = 2
-    target              = "TCP:80"
+    target              = "HTTP:80/"
     interval            = 5
   }
 

@@ -43,28 +43,9 @@ resource "aws_security_group" "rds_db" {
     to_port     = 5432
     protocol    = "tcp"
     cidr_blocks = [
-      "${aws_subnet.frontend-a.cidr_block}"]
-  }
-  ingress {
-    from_port   = 5432
-    to_port     = 5432
-    protocol    = "tcp"
-    cidr_blocks = [
-      "${aws_subnet.frontend-b.cidr_block}"]
-  }
-
-  ingress {
-    from_port   = 5432
-    to_port     = 5432
-    protocol    = "tcp"
-    cidr_blocks = [
-      "${aws_subnet.backend-a.cidr_block}"]
-  }
-  ingress {
-    from_port   = 5432
-    to_port     = 5432
-    protocol    = "tcp"
-    cidr_blocks = [
+      "${aws_subnet.frontend-a.cidr_block}",
+      "${aws_subnet.frontend-b.cidr_block}",
+      "${aws_subnet.backend-a.cidr_block}",
       "${aws_subnet.backend-b.cidr_block}"]
   }
 
@@ -73,28 +54,9 @@ resource "aws_security_group" "rds_db" {
     to_port     = 5432
     protocol    = "tcp"
     cidr_blocks = [
-      "${aws_subnet.frontend-a.cidr_block}"]
-  }
-  egress {
-    from_port   = 5432
-    to_port     = 5432
-    protocol    = "tcp"
-    cidr_blocks = [
-      "${aws_subnet.frontend-b.cidr_block}"]
-  }
-
-  egress {
-    from_port   = 5432
-    to_port     = 5432
-    protocol    = "tcp"
-    cidr_blocks = [
-      "${aws_subnet.backend-a.cidr_block}"]
-  }
-  egress {
-    from_port   = 5432
-    to_port     = 5432
-    protocol    = "tcp"
-    cidr_blocks = [
+      "${aws_subnet.frontend-a.cidr_block}",
+      "${aws_subnet.frontend-b.cidr_block}",
+      "${aws_subnet.backend-a.cidr_block}",
       "${aws_subnet.backend-b.cidr_block}"]
   }
 

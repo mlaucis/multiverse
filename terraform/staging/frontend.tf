@@ -155,7 +155,7 @@ resource "aws_elb" "frontend" {
     lb_port           = 80
     lb_protocol       = "http"
 
-    instance_port     = 80
+    instance_port     = 8083
     instance_protocol = "http"
   }
 
