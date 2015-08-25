@@ -41,3 +41,4 @@ deployment:
       - ./bin/make_release.sh intaker postgres
       - ./bin/make_release.sh intaker kinesis
       - ./bin/make_release.sh distributor postgres
+      - ./bin/make_release.sh corporate styleguide
