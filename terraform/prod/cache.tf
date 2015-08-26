@@ -8,28 +8,9 @@ resource "aws_security_group" "ec-redis" {
     to_port     = 6379
     protocol    = "tcp"
     cidr_blocks = [
-      "${aws_subnet.frontend-a.cidr_block}"]
-  }
-  ingress {
-    from_port   = 6379
-    to_port     = 6379
-    protocol    = "tcp"
-    cidr_blocks = [
-      "${aws_subnet.frontend-b.cidr_block}"]
-  }
-
-  ingress {
-    from_port   = 6379
-    to_port     = 6379
-    protocol    = "tcp"
-    cidr_blocks = [
-      "${aws_subnet.backend-a.cidr_block}"]
-  }
-  ingress {
-    from_port   = 6379
-    to_port     = 6379
-    protocol    = "tcp"
-    cidr_blocks = [
+      "${aws_subnet.frontend-a.cidr_block}",
+      "${aws_subnet.frontend-b.cidr_block}",
+      "${aws_subnet.backend-a.cidr_block}",
       "${aws_subnet.backend-b.cidr_block}"]
   }
 
@@ -38,28 +19,9 @@ resource "aws_security_group" "ec-redis" {
     to_port     = 6379
     protocol    = "tcp"
     cidr_blocks = [
-      "${aws_subnet.frontend-a.cidr_block}"]
-  }
-  egress {
-    from_port   = 6379
-    to_port     = 6379
-    protocol    = "tcp"
-    cidr_blocks = [
-      "${aws_subnet.frontend-b.cidr_block}"]
-  }
-
-  egress {
-    from_port   = 6379
-    to_port     = 6379
-    protocol    = "tcp"
-    cidr_blocks = [
-      "${aws_subnet.backend-a.cidr_block}"]
-  }
-  egress {
-    from_port   = 6379
-    to_port     = 6379
-    protocol    = "tcp"
-    cidr_blocks = [
+      "${aws_subnet.frontend-a.cidr_block}",
+      "${aws_subnet.frontend-b.cidr_block}",
+      "${aws_subnet.backend-a.cidr_block}",
       "${aws_subnet.backend-b.cidr_block}"]
   }
 
@@ -102,6 +64,7 @@ resource "aws_elasticache_subnet_group" "rate-limiter" {
     "${aws_subnet.frontend-b.id}"]
 }
 
+/**/
 resource "aws_elasticache_cluster" "rate-limiter" {
   depends_on           = [
     "aws_elasticache_subnet_group.rate-limiter"]
@@ -117,3 +80,4 @@ resource "aws_elasticache_cluster" "rate-limiter" {
   security_group_ids   = [
     "${aws_security_group.ec-redis.id}"]
 }
+/**/

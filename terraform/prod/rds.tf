@@ -43,28 +43,9 @@ resource "aws_security_group" "rds_db" {
     to_port     = 5432
     protocol    = "tcp"
     cidr_blocks = [
-      "${aws_subnet.frontend-a.cidr_block}"]
-  }
-  ingress {
-    from_port   = 5432
-    to_port     = 5432
-    protocol    = "tcp"
-    cidr_blocks = [
-      "${aws_subnet.frontend-b.cidr_block}"]
-  }
-
-  ingress {
-    from_port   = 5432
-    to_port     = 5432
-    protocol    = "tcp"
-    cidr_blocks = [
-      "${aws_subnet.backend-a.cidr_block}"]
-  }
-  ingress {
-    from_port   = 5432
-    to_port     = 5432
-    protocol    = "tcp"
-    cidr_blocks = [
+      "${aws_subnet.frontend-a.cidr_block}",
+      "${aws_subnet.frontend-b.cidr_block}",
+      "${aws_subnet.backend-a.cidr_block}",
       "${aws_subnet.backend-b.cidr_block}"]
   }
 
@@ -73,28 +54,9 @@ resource "aws_security_group" "rds_db" {
     to_port     = 5432
     protocol    = "tcp"
     cidr_blocks = [
-      "${aws_subnet.frontend-a.cidr_block}"]
-  }
-  egress {
-    from_port   = 5432
-    to_port     = 5432
-    protocol    = "tcp"
-    cidr_blocks = [
-      "${aws_subnet.frontend-b.cidr_block}"]
-  }
-
-  egress {
-    from_port   = 5432
-    to_port     = 5432
-    protocol    = "tcp"
-    cidr_blocks = [
-      "${aws_subnet.backend-a.cidr_block}"]
-  }
-  egress {
-    from_port   = 5432
-    to_port     = 5432
-    protocol    = "tcp"
-    cidr_blocks = [
+      "${aws_subnet.frontend-a.cidr_block}",
+      "${aws_subnet.frontend-b.cidr_block}",
+      "${aws_subnet.backend-a.cidr_block}",
       "${aws_subnet.backend-b.cidr_block}"]
   }
 
@@ -134,20 +96,19 @@ resource "aws_security_group" "rds_ec2" {
 # Database master
 resource "aws_db_instance" "master" {
   identifier              = "tapglue-master"
-  storage_type            = "standard"
   # change this to io1 if you want to use provisioned iops for production
+  storage_type            = "standard"
   #iops = 3000 # this should give us a boost in performance for production
   allocated_storage       = "10"
   engine                  = "postgres"
   engine_version          = "9.4.4"
   instance_class          = "db.t2.micro"
-  storage_encrypted       = false
   # if you want to change to true, see the list of instance types that support storage encryption: http://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Overview.Encryption.html#d0e10116
+  storage_encrypted       = false
   name                    = "tapglue_prod"
   username                = "tapglue"
   password                = "demopasswd"
-  # this should be true for production
-  multi_az                = false
+  multi_az                = false # this should be true for production
   publicly_accessible     = false
   vpc_security_group_ids  = [
     "${aws_security_group.rds_db.id}"]
@@ -160,20 +121,19 @@ resource "aws_db_instance" "master" {
 # Database slaves
 resource "aws_db_instance" "slave1" {
   identifier              = "slave1"
-  storage_type            = "gp2"
   # change this to io1 if you want to use provisioned iops for production
+  storage_type            = "gp2"
   #iops = 3000 # this should give us a boost in performance for production
   allocated_storage       = "10"
   engine                  = "postgres"
   engine_version          = "9.4.4"
   instance_class          = "db.t2.micro"
-  storage_encrypted       = false
   # if you want to change to true, see the list of instance types that support storage encryption: http://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Overview.Encryption.html#d0e10116
+  storage_encrypted       = false
   name                    = "tapglue_prod"
   username                = "tapglue"
   password                = "demopasswd"
-  multi_az                = false
-  # this should be true for production
+  multi_az                = false # this should be true for production
   publicly_accessible     = false
   replicate_source_db     = "${aws_db_instance.master.identifier}"
   vpc_security_group_ids  = [

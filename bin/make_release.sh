@@ -11,6 +11,7 @@ if [ ${finalComponentName} == "corporate" ]
 then
     if [ ${finalReleaseTarget} == "styleguide" ]
     then
+        cp ./terraform/nginx/styleguide ./style/styleguide.nginx
         finalArtifactName='./style'
     fi
 else

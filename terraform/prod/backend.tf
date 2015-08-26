@@ -36,7 +36,7 @@ resource "aws_route_table_association" "backend-b" {
 # Security groups
 resource "aws_security_group" "backend-ssh" {
   vpc_id      = "${aws_vpc.prod.id}"
-  name        = "backend-a-ssh"
+  name        = "backend-ssh"
   description = "Allow SSH traffic from the Bastion host"
 
   ingress {

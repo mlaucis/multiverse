@@ -1,0 +1,13 @@
+server {
+    listen 80;
+
+    server_name styleguide.tapglue.com styleguide-staging.tapglue.com;
+
+    root /home/tapglue/releases/corporate/styleguide/style;
+
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+}
