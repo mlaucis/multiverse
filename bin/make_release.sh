@@ -3,6 +3,8 @@
 finalComponentName=${1}
 finalReleaseTarget=${2}
 
+CWD=`pwd`
+
 finalArchiveName=${finalComponentName}_${finalReleaseTarget}.${CIRCLE_BUILD_NUM}.tar.gz
 finalS3Location=s3://tapglue-builds/${finalComponentName}/${finalReleaseTarget}
 finalReleasesFilename='releases.json'
@@ -11,8 +13,8 @@ if [ ${finalComponentName} == "corporate" ]
 then
     if [ ${finalReleaseTarget} == "styleguide" ]
     then
-        cp ./terraform/nginx/styleguide ./style/styleguide.nginx
-        finalArtifactName='./style'
+        cp ${CWD}/terraform/nginx/styleguide ${CWD}/style/styleguide.nginx
+        finalArtifactName="${CWD}/style"
     fi
 else
     finalArtifactName=${finalComponentName}_${finalReleaseTarget}_${CIRCLE_BUILD_NUM}
