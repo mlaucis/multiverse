@@ -28,8 +28,8 @@ resource "aws_autoscaling_group" "frontend" {
     "${aws_subnet.frontend-a.id}",
     "${aws_subnet.frontend-b.id}"]
   name                      = "frontend"
-  max_size                  = 0
-  min_size                  = 0
+  max_size                  = 1
+  min_size                  = 1
   health_check_type         = "EC2"
   health_check_grace_period = 30
   force_delete              = false
@@ -49,7 +49,7 @@ resource "aws_autoscaling_group" "frontend" {
 
   tag {
     key                 = "intaker_target"
-    value               = "postgres"
+    value               = "redis"
     propagate_at_launch = true
   }
 

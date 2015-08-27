@@ -32,7 +32,7 @@ aws s3 cp s3://tapglue-builds/intaker/${INTAKER_DEPLOY_TARGET}/config.json ./
 
 tar -zxvf intaker_${INTAKER_DEPLOY_TARGET}.${releaseVersion}.tar.gz
 
-echo '#!/bin/bash
+echo '#!/usr/bin/env bash
 
 exec 1> >(logger -t $(basename ${0})) 2>&1
 

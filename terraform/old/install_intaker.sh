@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 mkdir -p ~/releases/
 
 aws s3 cp s3://tapglue-builds/intaker/postgres/releases.json ~/releases/
