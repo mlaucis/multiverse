@@ -1,0 +1,525 @@
+// Styleguide
+@import '../../../style/styles/button.less';
+@import '../../../style/styles/colors.less';
+
+// Dimensions
+@header-height: 8rem;
+@side-width: 22rem;
+
+// Foundations
+*, h1, h2, h3 {
+  font-family: 'Lato', sans-serif;
+}
+
+a   {
+  color: @tpgl-green;
+  transition: all 0.15s ease;
+
+  &:hover {
+    color: darken(@tpgl-green, 5%);
+     text-decoration: none;
+  }
+
+  &.inactive {
+    cursor: default;
+    opacity: 0.6;
+    pointer-events: none;
+  }
+}
+
+form {
+  input:not([type=submit]) {
+    background: none;
+    border: 0;
+    border-bottom: 1px solid @tpgl-grey;
+    color: darken(@tpgl-blue, 5%);
+    display: block;
+    font-size: 1.6rem;
+    padding: 1rem;
+    width: 100%;
+
+
+    &:focus {
+      outline: none;
+
+      ~ .bar {
+        &:before, &:after {
+          background: @tpgl-blue;
+          width: 50%;
+        }
+      }
+
+
+      &:invalid {
+        ~ .bar {
+          &:before, &:after {
+            background: @tpgl-red;
+            width: 50%;
+          }
+        }
+
+        ~ .help {
+          color: @tpgl-red;
+          opacity: 1;
+        }
+      }
+
+      &:valid {
+        ~ .bar {
+          &:before, &:after {
+            background: @tpgl-green;
+          }
+        }
+      }
+    }
+  }
+
+  label {
+    display: none;
+  }
+
+  .actions {
+    text-align: right;
+
+    button {
+      margin-right: 1rem;
+    }
+  }
+
+  .bar {
+    display: block;
+    position: relative;
+    width: 100%;
+
+    &:before, &:after {
+      content: '';
+      height: 0.2rem;
+      width: 0;
+      bottom: 0;
+      position: absolute;
+      transition: 0.15s ease all;
+    }
+
+    &:before {
+      left: 50%;
+    }
+
+    &:after {
+      right: 50%;
+    }
+  }
+
+  .group {
+    position: relative;
+  }
+
+  .help {
+    font-size: 1.2rem;
+    opacity: 0;
+    padding: 0.8rem;
+    transition: 0.15s all ease;
+  }
+}
+
+p {
+  font-size: 1.6rem;
+}
+
+body, html {
+  color: darken(@tpgl-blue, 5%);
+  font-size: 62.5%;
+}
+
+h1 {
+  font-size: 4rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 1rem 0rem 4rem 0rem;
+}
+
+h2 {
+  font-size: 2.4rem;
+  font-weight: 300;
+  margin: 1rem 0rem 3rem 0rem;
+}
+
+h3 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 0.1rem;
+  margin: 1rem 0rem 1.5rem 0rem;
+  text-transform: uppercase;
+}
+
+table {
+  font-size: 1.4rem;
+  margin: 2rem 0rem;
+  width: 100%;
+
+  thead {
+    border-bottom: 2px solid @tpgl-grey;
+
+    tr th {
+      font-weight: 300;
+
+      &.actions {
+        text-align: right;
+      }
+    }
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid lighten(@tpgl-grey, 5%);
+
+      td {
+        &.actions {
+          text-align: right;
+          padding: 1rem 0rem;
+          width: 15rem;
+
+          button {
+            margin-left: 1rem;
+          }
+        }
+
+        &.status {
+          width: 8rem;
+        }
+
+        form {
+          padding: 2rem 0rem;
+        }
+      }
+    }
+  }
+}
+
+ul {
+  li {
+    list-style-type: none;
+  }
+}
+
+// Layout
+html {
+  height: 100%;
+}
+
+body {
+  background: #f5f7f7;
+  height: 100%;
+}
+
+@g1: rgb(89, 126, 135);
+@g2: rgb(102, 185, 157);
+@g3: darken(@tpgl-green, 5%);
+@g4: @tpgl-green;
+
+.auth {
+  background: @tpgl-green;
+  background-image: linear-gradient(180deg, @g1, @tpgl-green 80%);
+  height: 100%;
+  padding: 2rem 12rem 0rem 12rem;
+
+  .form-group {
+    background: #fff;
+    border-radius: 0.3rem;
+    margin: 0rem 0rem 2rem 0rem;
+    padding: 3rem 2rem 0.5rem 2rem;
+  }
+
+  .logo {
+    display: inline-block;
+    width: 22rem;
+
+    svg {
+      fill: #fff;
+      height: 100%;
+      width: 100%;
+    }
+  }
+
+  header {
+    padding-top: 3rem;
+
+    nav {
+      display: flex;
+      float: right;
+      height: 5.5rem;
+
+      ul {
+        align-items: flex-end;
+        display: flex;
+
+        li {
+          font-size: 1.4rem;
+          font-weight: 300;
+          margin-left: 7rem;
+          text-transform: uppercase;
+
+          a {
+             color: @tpgl-grey;
+
+             &:hover {
+               color: lighten(@tpgl-grey, 5%);
+             }
+          }
+        }
+      }
+    }
+  }
+
+  p {
+    font-size: 1.4rem;
+    margin: 1rem 1rem 2rem 0rem;
+    text-align: right;
+  }
+
+  section {
+    margin: 0 auto;
+    margin-top: 10%;
+    width: 40rem;
+  }
+}
+
+.console {
+  height: 100%;
+}
+
+.page-header.navbar {
+  .page-logo {
+    background: @tpgl-green;
+    height: @header-height;
+    padding: 1.6rem;
+
+    @media (min-width: 992px) {
+      width: @side-width;
+    }
+
+    div.icon {
+      display: block;
+
+      svg {
+        fill: #fff;
+        height: 100%;
+        width: 100%;
+        z-index: 9999;
+      }
+    }
+  }
+
+  .page-top {
+    background: @tpgl-blue;
+    box-shadow: 0 0.1rem 0.1rem darken(@tpgl-blue, 5%);
+    height: @header-height;
+
+    nav {
+      height: 100%;
+
+      .profile {
+        float: right;
+
+        a {
+          align-items: center;
+          background: darken(@tpgl-blue, 5%);
+          border: none;
+          color: @tpgl-grey;
+          display: flex;
+          font-size: 1.6rem;
+          height: @header-height;
+          margin: 0;
+          padding: 0rem 2rem;
+          text-transform: uppercase;
+
+          &:active, &:focus {
+            outline: none;
+          }
+
+          &:hover {
+            background: lighten(@tpgl-blue, 5%);
+          }
+
+          span.glyphicon {
+            font-size: 1.6rem;
+            margin-left: 1rem;
+            padding: 0;
+          }
+        }
+      }
+    }
+  }
+}
+
+.page-header-fixed .page-container {
+  background: @tpgl-blue;
+  margin-top: @header-height;
+}
+
+.page-container .page-sidebar {
+  width: @side-width;
+
+  li a {
+    align-items: center;
+    color: @tpgl-grey;
+    display: flex;
+    min-height: 0;
+    padding: 2rem;
+    text-align: left;
+
+    &:hover {
+      background: lighten(@tpgl-blue, 5%);
+    }
+
+    &.active {
+      background: darken(@tpgl-blue, 5%);
+    }
+
+    img {
+      margin-right: 1rem;
+    }
+  }
+}
+
+.page-container .page-content {
+  background: #f5f7f7;
+  margin-left: @side-width;
+}
+
+// Components
+
+.app .description {
+  height: 10rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dashboard-stat {
+  border: 0.1rem solid darken(@tpgl-green, 5%);
+  color: darken(@tpgl-green, 5%);
+  transition: 0.15s all ease;
+
+  &:hover {
+    border-color: lighten(@tpgl-green, 5%);
+    color: lighten(@tpgl-green, 5%);
+  }
+}
+
+.card() {
+  background: #fff;
+  border: 1px solid #dcdddd;
+  margin: 0;
+  margin-bottom: 3rem;
+  min-height: 22rem;
+}
+
+.note {
+  .card();
+
+  padding: 2rem;
+  position: relative;
+
+  &::before {
+    bottom: 0;
+    content: '';
+    left: 0;
+    position: absolute;
+    top: 0;
+    width: 1rem;
+  }
+
+  &.embedded .actions {
+    text-align: left;
+  }
+
+  .actions {
+    padding: 2rem 0rem 1rem 0rem;
+    text-align: right;
+
+    button {
+      margin-left: 1rem;
+    }
+  }
+}
+.note.note-alert {
+  .card();
+
+  &::before {
+    background: @tpgl-red;
+  }
+}
+
+.note.note-success {
+  .card();
+
+  &::before {
+    background: @tpgl-green;
+  }
+}
+
+.portlet.light {
+  .card();
+
+  .portlet-title {
+    border: none;
+    margin: 0;
+    min-height: 0;
+
+    h3 {
+      float: left;
+    }
+
+
+    .actions {
+      padding: 0;
+      transition: 15s all ease;
+
+      &.hide {
+        display: none;
+      }
+
+      button {
+        margin-left: 1rem;
+      }
+    }
+  }
+}
+
+.tiles .tile {
+  background-color: darken(@tpgl-green, 5%);
+  border: none;
+  color: #fff;
+  height: auto;
+  min-height: 12rem;
+  text-align: center;
+
+  &:hover {
+    background-color: @tpgl-green;
+    border: none;
+    color: #fff;
+
+    .visual {
+      color: lighten(@tpgl-green, 5%);
+    }
+  }
+
+  .tile-body {
+    span.fa {
+      display: block;
+      font-size: 5rem;
+      line-height: 5rem;
+      margin-top: 2rem;
+      text-align: center;
+    }
+  }
+
+  .tile-object {
+    font-weight: 700;
+    vertical-align: middle;
+  }
+
+  .visual {
+    color: @tpgl-green;
+    transition: all 0.15s ease;
+  }
+}

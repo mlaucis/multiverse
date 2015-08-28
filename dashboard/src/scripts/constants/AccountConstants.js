@@ -1,0 +1,21 @@
+import keyMirror from 'react/lib/keyMirror'
+
+export default keyMirror({
+  ACCOUNT_KEY: null,
+  ACCOUNT_REQUEST: null,
+  ACCOUNT_SUCCESS: null,
+  ACCOUNT_FAILURE: null,
+  ACCOUNT_CREATE_REQUEST: null,
+  ACCOUNT_CREATE_SUCCESS: null,
+  ACCOUNT_CREATE_FAILURE: null,
+  ACCOUNTUSER_CREATE_REQUEST: null,
+  ACCOUNTUSER_CREATE_SUCCESS: null,
+  ACCOUNTUSER_CREATE_FAILURE: null,
+  LOGIN_REQUEST: null,
+  LOGIN_SUCCESS: null,
+  LOGIN_FAILURE: null,
+  LOGOUT_REQUEST: null,
+  LOGOUT_SUCCESS: null,
+  LOGOUT_FAILURE: null,
+  USER_KEY: null
+})

@@ -1,0 +1,81 @@
+{
+  "author": "TapGlue Team",
+  "name": "tapglue-dashboard",
+  "description": "Management Dashboard for users of tapglue.com .",
+  "homepage": "https://dashboard.tapglue.com",
+  "license": "ISC",
+  "main": "index.js",
+  "version": "0.1.0",
+  "bugs": {
+    "url": "https://github.com/tapglue/backend/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tapglue/backend.git"
+  },
+  "dependencies": {
+    "fixed-data-table": "^0.4.1",
+    "flux": "^2.0.3",
+    "humps": "^0.6.0",
+    "react": "^0.13.3",
+    "react-router": "^0.13.3",
+    "whatwg-fetch": "^0.9.0"
+  },
+  "devDependencies": {
+    "autoprefixer-core": "^5.2.1",
+    "babel-core": "^5.8.19",
+    "babel-eslint": "^3.1.23",
+    "babel-jest": "^5.3.0",
+    "babel-loader": "^5.3.2",
+    "bootstrap": "^3.3.5",
+    "bootstrap-switch": "^3.3.2",
+    "browser-sync": "^2.8.1",
+    "css-loader": "^0.15.6",
+    "eslint": "^0.24.0",
+    "eslint-loader": "^0.14.2",
+    "eslint-plugin-react": "^2.6.4",
+    "file-loader": "^0.8.4",
+    "gulp": "^3.9.0",
+    "gulp-eslint": "^0.15.0",
+    "gulp-load-plugins": "^0.10.0",
+    "gulp-util": "^3.0.6",
+    "jest-cli": "^0.4.15",
+    "jquery": "^1.11.2",
+    "jquery-uniform": "^1.7.5",
+    "jquery.cookie": "^1.4.1",
+    "less": "^2.5.1",
+    "less-loader": "^2.2.0",
+    "node-static": "^0.7.7",
+    "normalize.css": "^3.0.3",
+    "postcss-loader": "^0.5.1",
+    "react-tools": "^0.13.3",
+    "style-loader": "^0.12.3",
+    "url-loader": "^0.5.6",
+    "webpack": "^1.10.5"
+  },
+  "scripts": {
+    "bundle": "webpack --config webpack.production.js",
+    "clean": "rm -rf build",
+    "serve": "gulp serve",
+    "test": "jest",
+    "watch": "gulp sync"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "jsx"
+    ],
+    "scriptPreprocessor": "<rootDir>/node_modules/babel-jest",
+    "setupEnvScriptFile": "<rootDir>/src/scripts/helpers/test-setup.js",
+    "testFileExtensions": [
+      "js",
+      "jsx"
+    ],
+    "testPathDirs": [
+      "src"
+    ],
+    "unmockedModulePathPatterns": [
+      "react"
+    ]
+  }
+}

@@ -1,0 +1,13 @@
+server {
+    listen 80;
+
+    server_name dashboard.tapglue.com dashboard-staging.tapglue.com;
+
+    root /home/tapglue/releases/corporate/dashboard/build;
+
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}

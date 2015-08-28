@@ -19,7 +19,7 @@ logger -t ${INSTALLER_COMPONENT}_installer got INSTALLER_CAHNNEL: ${INSTALLER_CH
 
 mkdir -p ~/releases/${INSTALLER_COMPONENT}/
 
-declare -a INSTALLER_TARGETS=( "styleguide" )
+declare -a INSTALLER_TARGETS=( "styleguide" "dashboard" )
 for INSTALLER_TARGET in "${INSTALLER_TARGETS[@]}"
 do
     cd ~/releases/${INSTALLER_COMPONENT}
@@ -27,7 +27,13 @@ do
     cd ~/releases/${INSTALLER_COMPONENT}/${INSTALLER_TARGET}
 
     # Wipe existing installation, if any (how? why?)
-    rm -rf style
+    if [ "${INSTALLER_TARGET}" == "styleguide" ]
+    then
+        rm -rf style
+    elif [ "${INSTALLER_TARGET}" == "dashboard" ]
+    then
+        rm -rf build
+    fi
 
     aws s3 cp s3://tapglue-builds/${INSTALLER_COMPONENT}/${INSTALLER_TARGET}/releases.json ./
     releaseVersion=`cat ./releases.json | python -c 'import sys,json;data=json.loads(sys.stdin.read()); print data["current_release"]'`
@@ -36,9 +42,17 @@ do
 
     tar -zxvf ${INSTALLER_COMPONENT}_${INSTALLER_TARGET}.${releaseVersion}.tar.gz
 
-    mv ./style/styleguide.nginx /etc/nginx/sites-available/styleguide
+    if [ "${INSTALLER_TARGET}" == "styleguide" ]
+    then
+        DIR="style"
+    elif [ "${INSTALLER_TARGET}" == "dashboard" ]
+    then
+        DIR="build"
+    fi
 
-    ln -nfs /etc/nginx/sites-available/styleguide /etc/nginx/sites-enabled/styleguide
+    mv ./${DIR}/${INSTALLER_TARGET}.nginx /etc/nginx/sites-available/${INSTALLER_TARGET}
+
+    ln -nfs /etc/nginx/sites-available/${INSTALLER_TARGET} /etc/nginx/sites-enabled/${INSTALLER_TARGET}
 
     logger -t ${INSTALLER_COMPONENT}_installer deployed ${INSTALLER_COMPONENT}_${INSTALLER_TARGET}_${releaseVersion}
 

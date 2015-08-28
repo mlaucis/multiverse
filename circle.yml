@@ -3,6 +3,9 @@ machine:
     - docker
     - redis
     - postgresql
+  node:
+    version:
+      0.10.39
 dependencies:
   pre:
     - echo "" > ~/.gitconfig
@@ -15,6 +18,7 @@ dependencies:
     - sudo chmod +x /usr/local/bin/gimme
     - eval "$(GIMME_GO_VERSION=1.5 gimme)"
     - /home/ubuntu/.gimme/versions/go1.5.linux.amd64/bin/go get github.com/tools/godep github.com/axw/gocov/gocov github.com/matm/gocov-html gopkg.in/check.v1
+    - cd dashboard && npm install
   cache_directories:
     - "~/.go_workspace"
     - "/home/ubuntu/.gimme"
@@ -31,8 +35,10 @@ test:
     - ./bin/run_tests.sh intaker redis
     - ./bin/run_tests.sh intaker kinesis
     - ./bin/run_tests.sh distributor postgres
+    - cd dashboard && npm run test
   post:
     - ./bin/process_coverage.sh
+    - ./bin/make_release.sh corporate dashboard
 deployment:
   s3:
     branch: master

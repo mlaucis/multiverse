@@ -1,0 +1,19 @@
+import keyMirror from 'react/lib/keyMirror'
+
+export default keyMirror({
+  MEMBER_REQUEST: null,
+  MEMBER_SUCCESS: null,
+  MEMBER_FAILURE: null,
+  MEMBERS_REQUEST: null,
+  MEMBERS_SUCCESS: null,
+  MEMBERS_FAILURE: null,
+  MEMBER_CREATE_REQUEST: null,
+  MEMBER_CREATE_SUCCESS: null,
+  MEMBER_CREATE_FAILURE: null,
+  MEMBER_DELETE_REQUEST: null,
+  MEMBER_DELETE_SUCCESS: null,
+  MEMBER_DELETE_FAILURE: null,
+  MEMBER_INVITE_REQUEST: null,
+  MEMBER_INVITE_SUCCESS: null,
+  MEMBER_INVITE_FAILURE: null
+})
