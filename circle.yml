@@ -10,17 +10,10 @@ dependencies:
   pre:
     - echo "" > ~/.gitconfig
   override:
-    - docker run -d -t -p 4567:4567 dlsniper/kinesalite:1.8.0
-    - sudo chown -R ubuntu /home/ubuntu/.cache/
-    - sudo -H pip install awscli
-    - sudo chown -R ubuntu /home/ubuntu/.cache/
-    - sudo curl -sL -o /usr/local/bin/gimme https://raw.githubusercontent.com/travis-ci/gimme/master/gimme
-    - sudo chmod +x /usr/local/bin/gimme
-    - eval "$(GIMME_GO_VERSION=1.5 gimme)"
-    - /home/ubuntu/.gimme/versions/go1.5.linux.amd64/bin/go get github.com/tools/godep github.com/axw/gocov/gocov github.com/matm/gocov-html gopkg.in/check.v1
-    - cd dashboard && npm install
+    - ./bin/install_dependencies.sh
   cache_directories:
     - "~/.go_workspace"
+    - "~/.backend_npm_modules"
     - "/home/ubuntu/.gimme"
 database:
   override:
