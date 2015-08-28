@@ -6,10 +6,10 @@ var nodeStatic = require('node-static')
 var plugins = require('gulp-load-plugins')()
 var webpack = require('webpack')
 
-gulp.task('build', [ 'bundle' ])
+gulp.task('build', [ 'bundle', 'favicon' ])
 
 gulp.task('bundle', function(cb) {
-  var config = require('./webpack.config.js')
+  var config = require('./webpack.production.js')
   var bundler = webpack(config)
 
   bundler.run(reportBundle(cb))
@@ -22,8 +22,15 @@ gulp.task('bundle:watch', function(cb) {
   bundler.watch(200, reportBundle(cb))
 })
 
+gulp.task('favicon', function () {
+  gulp
+    .src('./src/icons/favicon.png')
+    .pipe(gulp.dest('./build'))
+})
+
 gulp.task('lint', function() {
-  return gulp.src([ 'src/**/*.js*' ])
+  return gulp
+    .src([ 'src/**/*.js*' ])
     .pipe(plugins.eslint())
     .pipe(plugins.eslint.format())
     .pipe(plugins.eslint.failOnError())

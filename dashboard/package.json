@@ -54,7 +54,7 @@
     "webpack": "^1.10.5"
   },
   "scripts": {
-    "bundle": "webpack --config webpack.production.js",
+    "bundle": "gulp build",
     "clean": "rm -rf build",
     "serve": "gulp serve",
     "test": "jest",
