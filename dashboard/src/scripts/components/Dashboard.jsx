@@ -5,8 +5,6 @@ import ApplicationStore from '../stores/ApplicationStore'
 import { requestApps } from '../actions/ConsoleActionCreator'
 import { requestMemberInvite } from '../actions/ConsoleActionCreator'
 
-import { App } from './Apps'
-
 class InviteDeveloper extends Component {
   constructor() {
     super()
@@ -34,38 +32,35 @@ class InviteDeveloper extends Component {
 
   viewDefault() {
     return (
-      <div className='portlet light'>
-        <h3>
-            Send an Invitation Email
-        </h3>
-        <div className='portlet-body'>
-          <form onSubmit={this.handleSubmit}>
-            <div className='group'>
-              <input
-                id='developer-email'
-                placeholder='Email Address'
-                ref='email'
-                required
-                type='email'/>
-              <span className='bar'></span>
-              <span
-                className='help'>
-                Valid email in the form of member@company.org
-              </span>
-              <label htmlFor='developer-email'>Email Address</label>
-            </div>
-            <div className='actions'>
-              <input className='btn-default' type='submit' value='Invite'/>
-            </div>
-          </form>
-        </div>
+      <div className='card invite-developer'>
+        <h3>Get your team on board</h3>
+        <p>Invite a developer or others who should help integrate Tapglue into your app.</p>
+        <form onSubmit={this.handleSubmit}>
+          <div className='left'>
+            <input
+              id='developer-email'
+              placeholder='Email Address'
+              ref='email'
+              required
+              type='email'/>
+            <span className='bar'></span>
+            <span
+              className='help'>
+              Valid email in the form of member@company.org
+            </span>
+            <label htmlFor='developer-email'>Email Address</label>
+          </div>
+          <div className='right'>
+            <input className='btn-default' type='submit' value='Invite'/>
+          </div>
+        </form>
       </div>
     )
   }
 
   viewSuccess() {
     return (
-      <div className='note note-block note-success'>
+      <div className='card invite-developer note note-block note-success'>
         <h2>Your invite is out!</h2>
         <p>
           We sent an invite to your team member with detailed instructions how
@@ -101,28 +96,18 @@ class InviteDeveloper extends Component {
 
 class IntegrationResource extends Component {
   static propTypes = {
-    double: PropTypes.bool,
     icon: PropTypes.string.isRequired,
     link: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired
   }
 
   render() {
-    let c = 'tile tpgl-green'
-    let iconClass = `fa fa-${this.props.icon}`
-
-    if (this.props.double) {
-      c += ' double'
-    }
+    let iconClass = `glyphicon glyphicon-${this.props.icon}`
 
     return (
-      <a className={c} href={this.props.link}>
-        <div className='tile-body'>
-          <span className={iconClass}></span>
-        </div>
-        <div className='tile-object'>
-          {this.props.name}
-        </div>
+      <a className='btn-secondary outline resource' href={this.props.link}>
+        <span className={iconClass}></span>
+        <span>{this.props.name}</span>
       </a>
     )
   }
@@ -130,25 +115,44 @@ class IntegrationResource extends Component {
 
 class ProductResource extends Component {
   static propTypes = {
-    children: PropTypes.node.isRequired,
-    icon: PropTypes.string.isRequired,
+    category: PropTypes.string.isRequired,
     link: PropTypes.string.isRequired,
     title: PropTypes.string.isRequired
   }
 
   render() {
-    let iconClass = `glyphicon glyphicon-${this.props.icon}`
-
     return (
-      <a className='dashboard-stat tpgl-green' href={this.props.link}>
-        <div className='visual'>
-          <i className={iconClass}/>
+      <div className='product-resource'>
+        <h4>{this.props.category}</h4>
+        <a href={this.props.link}>{this.props.title}</a>
+      </div>
+    )
+  }
+}
+
+class TestingApp extends Component {
+  static propTypes = {
+    app: PropTypes.object.isRequired
+  }
+
+  render() {
+    return (
+      <div className='row testing-app'>
+        <div className='col-md-6'>
+          <div className='card'>
+            <h2>Instant API Access</h2>
+            <p>{this.props.app.description}</p>
+          </div>
         </div>
-        <div className='details'>
-          <div className='number'>{this.props.title}</div>
-          <div className='desc'>{this.props.children}</div>
+        <div className='col-md-6'>
+          <div className='card extra'>
+            <p>
+              <span>API TOKEN:</span>
+              <span className='token'>{this.props.app.token}</span>
+            </p>
+          </div>
         </div>
-      </a>
+      </div>
     )
   }
 }
@@ -190,74 +194,52 @@ export default class Dashboard extends Component {
   }
   render() {
     let app = this.state.app ? (
-      <App actions={false} app={this.state.app}/>
+      <TestingApp app={this.state.app}/>
     ) : (
       <div></div>
     )
 
     return (
-      <div>
-        <h1>Welcome to Tapglue, {this.state.user.firstName}</h1>
-        <div className='row'>
-          <div className='col-md-6'>
-            <h2>Manage your App</h2>
-            {app}
-          </div>
-          <div className='col-md-6'>
-            <h2>Invite your Team</h2>
-            <InviteDeveloper/>
+      <div className='home'>
+        <div className='row teaser'>
+          <h1>Welcome to Tapglue, {this.state.user.firstName}!</h1>
+          <p>Integrating Tapglue into your app is a matter of a few hours.</p>
+          <p>Jump straight into it with these helpful resources.</p>
+          <div className='resources'>
+            <IntegrationResource
+              icon='file'
+              link='#'
+              name='API Docs'/>
+            <IntegrationResource
+              icon='file'
+              link='#'
+              name='iOS Guide'/>
+            <IntegrationResource
+              icon='file'
+              link='#'
+              name='iOS SDK'/>
           </div>
         </div>
+        {app}
         <div className='row'>
-          <div className='col-md-12'>
-            <div className='portlet light'>
-              <h2>Product</h2>
-              <div className='row'>
-                <div className='col-md-4'>
-                  <ProductResource
-                    icon='check'
-                    link='#'
-                    title='Product'>
-                    <strong>Success</strong> Guide
-                  </ProductResource>
-                </div>
-                <div className='col-md-4'>
-                  <ProductResource
-                    icon='repeat'
-                    link='#'
-                    title='Solving'>
-                    the <strong>Empty Room</strong> Problem
-                  </ProductResource>
-                </div>
-                <div className='col-md-4'>
-                  <ProductResource
-                    icon='list-alt'
-                    link='#'
-                    title='Seven Ways'>
-                    <strong>Activity Feeds</strong> will boost your App
-                  </ProductResource>
-                </div>
-              </div>
-              <h2>Integration</h2>
-              <div className='tiles'>
-                <IntegrationResource
-                  icon='rocket'
-                  link='#'
-                  name='Getting Started'/>
-                <IntegrationResource
-                  icon='bars'
-                  link='#'
-                  name='API Reference'/>
-                <IntegrationResource
-                  double={true}
-                  icon='apple'
-                  link='#'
-                  name='iOS Integration Guide & SDK'/>
-                <IntegrationResource
-                  icon='code'
-                  link='#'
-                  name='Examples'/>
-              </div>
+          <div className='col-md-6'>
+            <InviteDeveloper/>
+          </div>
+          <div className='col-md-6'>
+            <div className='card'>
+              <h3>Product Resources</h3>
+              <ProductResource
+                category='guide'
+                link='#'
+                title='Launching a Social Activity Feed'/>
+              <ProductResource
+                category='blogpost'
+                link='#'
+                title='How to solve the Empty Room Problem'/>
+              <ProductResource
+                category='blogpost'
+                link='#'
+                title='7 Reasons Why Your App Needs an Activity Feed'/>
             </div>
           </div>
         </div>

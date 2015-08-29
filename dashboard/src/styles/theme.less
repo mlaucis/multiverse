@@ -212,9 +212,10 @@ body {
 }
 
 @g1: rgb(89, 126, 135);
-@g2: rgb(102, 185, 157);
-@g3: darken(@tpgl-green, 5%);
-@g4: @tpgl-green;
+
+.apps {
+  padding: 2.5rem 2rem 1rem 2rem;
+}
 
 .auth {
   background: @tpgl-green;
@@ -289,7 +290,6 @@ body {
 
 .page-header.navbar {
   .page-logo {
-    background: @tpgl-green;
     height: @header-height;
     padding: 1.6rem;
 
@@ -384,6 +384,162 @@ body {
 .page-container .page-content {
   background: #f5f7f7;
   margin-left: @side-width;
+  padding: 0;
+}
+
+.home {
+  .product-resource {
+    margin-bottom: 2rem;
+
+    a {
+      color: rgb(144, 144, 144);
+      font-size: 1.8rem;
+
+      &:hover {
+        color: @tpgl-green;
+      }
+    }
+  }
+
+  .row {
+    background: #fff;
+    border-bottom: 1px solid #dcdddd;
+    margin: 0;
+
+    .col-md-6 {
+      padding: 0;
+    }
+
+    .card {
+      padding: 4rem 5rem;
+
+      &:first-of-type {
+        border-right: 1px solid #dcdddd;
+        padding-right: 4rem;
+      }
+
+      &:last-of-type {
+        padding-left: 4rem;
+      }
+
+      h3 {
+        font-size: 2.4rem;
+        text-transform: none;
+      }
+
+      h4 {
+        font-size: 1.2rem;
+        font-weight: 400;
+        margin: 0;
+        text-transform: uppercase;
+      }
+    }
+  }
+
+  p {
+    color: rgb(144, 144, 144);
+    font-size: 1.6rem;
+  }
+}
+
+.home .teaser {
+  background: @tpgl-green;
+  color: #fff;
+  padding: 5rem 0rem;
+  text-align: center;
+
+  h1 {
+    font-weight: 300;
+    margin: 0rem 0rem 2.5rem 0rem;
+  }
+
+  p {
+    color: #fff;
+    margin: 0;
+  }
+
+  .resources {
+    display: block;
+    margin-top: 4rem;
+
+    .resource {
+      box-shadow: inset 0 0 0 0.1rem #fff;
+      color: #fff;
+      display: inline-block;
+      font-weight: 300;
+      padding: 1.5rem 3.5rem;
+      text-transform: none;
+
+      &:focus {
+        text-decoration: none;
+      }
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.3);
+      }
+
+      &:not(last-of-type) {
+        margin-right: 2rem;
+      }
+
+      .glyphicon {
+        margin-right: 0.6rem;
+      }
+    }
+  }
+}
+
+.home .testing-app {
+  h2 {
+    font-weight: 400;
+    margin: 0rem 0rem 1rem 0rem;
+  }
+
+  .copy {
+    text-align: right;
+  }
+
+  .card {
+    &:first-of-type {
+      border: 0;
+    }
+
+    &.extra {
+      align-items: center;
+      display: flex;
+      padding-top: 6rem;
+    }
+  }
+
+  .token {
+    background: rgb(247, 247, 247);
+    border: 1px solid rgb(176, 176, 176);
+    border-radius: 0.3rem;
+    font-weight: 300;
+    margin-left: 1.5rem;
+    padding: 0.8rem 5.5rem;
+  }
+}
+
+.invite-developer {
+  min-height: 32rem !important;
+
+  form {
+    align-items: center;
+    display: flex;
+    margin-bottom: 3rem;
+    margin-top: 6rem;
+  }
+
+  .left {
+    width: 70%;
+  }
+
+  .right {
+    display: flex;
+    justify-content: flex-end;
+    width: 30%;
+  }
 }
 
 // Components
@@ -407,15 +563,14 @@ body {
 
 .card() {
   background: #fff;
-  border: 1px solid #dcdddd;
   margin: 0;
-  margin-bottom: 3rem;
   min-height: 22rem;
 }
 
 .note {
   .card();
 
+  border: 0;
   padding: 2rem;
   position: relative;
 
