@@ -6,6 +6,7 @@ import AccountStore from '../../stores/AccountStore'
 import { requestAccount } from '../../actions/ConsoleActionCreator'
 import { requestAccountCreate } from '../../actions/ConsoleActionCreator'
 import { requestAccountUserCreate } from '../../actions/ConsoleActionCreator'
+import { requestAppCreate } from '../../actions/ConsoleActionCreator'
 import { requestLogin } from '../../actions/ConsoleActionCreator'
 
 class SignupForm extends Component {
@@ -130,10 +131,20 @@ export default class Signup extends Component {
   }
 
   handleSubmit = (values) => {
+    let router = this.context.router
+
     requestAccountCreate(values).then( account => {
       requestAccountUserCreate(values, account.id).then( () => {
         requestLogin(values.email, values.password).then( (user) => {
-          requestAccount(user)
+          requestAccount(user).then( () => {
+            requestAppCreate(
+              'Testing Application',
+              'This is your first app. Use its API token for testing.',
+              AccountStore.user,
+            ).then( () => {
+              router.transitionTo('DASHBOARD')
+            })
+          })
         })
       })
     })
@@ -149,10 +160,6 @@ export default class Signup extends Component {
 
   _onChange = () => {
     this.setState(this.getState())
-
-    if (AccountStore.isAuthenticated) {
-      this.context.router.transitionTo('DASHBOARD')
-    }
   }
 
   render() {

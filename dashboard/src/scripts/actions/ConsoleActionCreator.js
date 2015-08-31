@@ -18,7 +18,7 @@ export function requestAccount(user) {
     request: AccountConstants.ACCOUNT_REQUEST,
     success: AccountConstants.ACCOUNT_SUCCESS,
     failure: AccountConstants.ACCOUNT_FAILURE
-  })
+  }, { user: user })
 }
 
 export function requestAccountCreate(vals) {
@@ -69,7 +69,7 @@ export function requestApps(user) {
 }
 
 export function requestAppCreate(name, description, user) {
-  dispatchAsync(appCreate(name, description, user), {
+  return dispatchAsync(appCreate(name, description, user), {
     request: ApplicationConstants.APP_CREATE_REQUEST,
     success: ApplicationConstants.APP_CREATE_SUCCESS,
     failure: ApplicationConstants.APP_CREATE_FAILURE
