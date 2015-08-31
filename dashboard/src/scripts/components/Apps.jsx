@@ -409,7 +409,7 @@ export default class Apps extends Component {
     }
 
     return (
-      <div>
+      <div className='apps'>
         {appRows}
         {( () => {
           if (!createAppended) {
