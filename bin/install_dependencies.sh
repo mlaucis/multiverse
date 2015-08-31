@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 export PATH=/home/ubuntu/.gimme/versions/go1.5.linux.amd64/bin:${PATH}
-export GOPATH=`godep path`:${GOPATH}
 CWD=`pwd`
 
 echo "Installing Kinesalite"
