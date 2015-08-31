@@ -27,8 +27,7 @@ class MemberStore extends EventEmitter {
     }
 
     return members.filter( member => {
-      // return member.enabled
-      return true
+      return member.enabled
     }).sort( (left, right) => {
       let a = new Date(left.createdAt)
       let b = new Date(right.createdAt)

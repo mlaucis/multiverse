@@ -38,6 +38,8 @@ class MemberForm extends Component {
   }
 
   render() {
+    let submitClass = this.props.submitClass ?
+      `btn-${this.props.submitClass}` : 'btn-default'
     let errors = this.props.errors.map( error => {
       return (
         <div className='alert alert-danger' key={error.code}>
@@ -58,7 +60,9 @@ class MemberForm extends Component {
             ref='email'
             type='email'/>
           <span className='bar'></span>
-          <span className='help'>A valid email address in the form of member@org.com</span>
+          <span className='help'>
+            A valid email address in the form of member@org.com
+          </span>
           <label htmlFor='member-email'>Email</label>
         </div>
         <div className='group'>
@@ -100,7 +104,10 @@ class MemberForm extends Component {
             type='button'>
             Close
           </button>
-          <input className={this.props.submitClass ? `btn-${this.props.submitClass}` : 'btn-default'} type='submit' value={this.props.submitLabel}/>
+          <input
+            className={submitClass}
+            type='submit'
+            value={this.props.submitLabel}/>
         </div>
       </form>
     )
@@ -140,9 +147,13 @@ class Member extends Component {
   viewDefault() {
     let member = this.props.member
     let status = member.enabled ? (
-      <button className='btn-success small' disabled><span className='glyphicon glyphicon-ok'></span></button>
+      <button className='btn-success small' disabled>
+        <span className='glyphicon glyphicon-ok'></span>
+      </button>
     ) : (
-      <button className='btn-alert small' disabled><span className='glyphicon glyphicon-remove'></span></button>
+      <button className='btn-alert small' disabled>
+        <span className='glyphicon glyphicon-remove'></span>
+      </button>
     )
 
     return (

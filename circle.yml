@@ -28,6 +28,7 @@ test:
     - ./bin/run_tests.sh intaker redis
     - ./bin/run_tests.sh intaker kinesis
     - ./bin/run_tests.sh distributor postgres
+    - cd dashboard && npm run lint
     - cd dashboard && npm run test
   post:
     - ./bin/process_coverage.sh

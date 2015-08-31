@@ -9,6 +9,8 @@ export function dispatch(type, action = {}) {
 export function dispatchAsync(promise, types, action = {}) {
   const { request, success, failure } = types
 
+  console.log(request)
+
   // FIXME(xla) Understand why the extra dispatch of request can lead to
   //            invariant violations in the Dispatcher.
   // dispatch(request, action)
