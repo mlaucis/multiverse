@@ -24,11 +24,11 @@ go get github.com/tools/godep github.com/axw/gocov/gocov github.com/matm/gocov-h
 
 echo "Installing dashboard dependencies"
 cd dashboard
-BACKEND_NPM_MODULES=~/.backend_npm_modules
-if [ -d "${BACKEND_NPM_MODULES}" ]; then
-  cp -R ${BACKEND_NPM_MODULES} node_modules
-fi
+#BACKEND_NPM_MODULES=~/.backend_npm_modules
+#if [ -d "${BACKEND_NPM_MODULES}" ]; then
+#  cp -R ${BACKEND_NPM_MODULES} node_modules
+#fi
 
 npm install
 
-cp -R node_modules ${BACKEND_NPM_MODULES}
+#cp -R node_modules ${BACKEND_NPM_MODULES}
