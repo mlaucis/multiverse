@@ -235,9 +235,10 @@ func healthCheckHandler(ctx *context.Context) {
 
 	// Check Rate-Limiter
 	rlConn := rateLimiterPool.Get()
-	if rlConn.Err() != nil {
+	if err := rlConn.Err(); err != nil {
 		response.Healthy = false
 		response.Services.RateLimiter = false
+		ctx.LogError(err)
 	} else if rlConn != nil {
 		rlConn.Close()
 	}
