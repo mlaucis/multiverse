@@ -11,6 +11,14 @@ resource "cloudflare_record" "api-prod" {
   ttl = 1
 }
 
+resource "cloudflare_record" "website-prod" {
+  domain = "${var.cloudflare_domain}"
+  name = "website-prod"
+  value = "${aws_elb.corporate.dns_name}"
+  type = "CNAME"
+  ttl = 1
+}
+
 resource "cloudflare_record" "dashboard-prod" {
   domain = "${var.cloudflare_domain}"
   name = "dashboard-prod"

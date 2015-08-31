@@ -1,38 +1,49 @@
-/** /
-resource "aws_route53_delegation_set" "prod" {
-  reference_name = "custom"
-}
-
-resource "aws_route53_zone" "prod" {
-  name = "prod.tapglue.com"
-  delegation_set_id = "${aws_route53_delegation_set.prod.id}"
+resource "aws_route53_zone" "tapglue-internal" {
+  name    = "tapglue.int"
+  vpc_id  = "${aws_vpc.staging.id}"
+  comment = "Internal staging zone"
 
   tags {
-    Environment = "prod"
+    Environment = "staging"
   }
 }
 
-resource "aws_route53_record" "api-prod" {
-  zone_id = "${aws_route53_zone.prod.zone_id}"
-  name    = "api.prod.tapglue.com"
-  type    = "A"
+resource "aws_route53_record" "db-master" {
+  zone_id = "${aws_route53_zone.tapglue-internal.zone_id}"
+  name    = "db-master"
+  type    = "CNAME"
 
-  alias {
-    name                   = "${aws_elb.frontend.dns_name}"
-    zone_id                = "${aws_elb.frontend.zone_id}"
-    evaluate_target_health = true
-  }
+  ttl     = "5"
+  records = [
+    "${aws_db_instance.master.address}"]
 }
 
-resource "aws_route53_record" "dashboard-prod" {
-  zone_id = "${aws_route53_zone.prod.zone_id}"
-  name    = "dashboard.prod.tapglue.com"
-  type    = "A"
+resource "aws_route53_record" "db-slave1" {
+  zone_id = "${aws_route53_zone.tapglue-internal.zone_id}"
+  name    = "db-slave1"
+  type    = "CNAME"
 
-  alias {
-    name                   = "${aws_elb.corporate.dns_name}"
-    zone_id                = "${aws_elb.corporate.zone_id}"
-    evaluate_target_health = true
-  }
+  ttl     = "5"
+  records = [
+    "${aws_db_instance.master.address}"]
 }
-/**/
+
+resource "aws_route53_record" "rate-limiter" {
+  zone_id = "${aws_route53_zone.tapglue-internal.zone_id}"
+  name    = "rate-limiter"
+  type    = "CNAME"
+
+  ttl     = "5"
+  records = [
+    "${aws_elasticache_cluster.rate-limiter.cache_nodes.0.address}"]
+}
+
+resource "aws_route53_record" "cache-app" {
+  zone_id = "${aws_route53_zone.tapglue-internal.zone_id}"
+  name    = "cache-app"
+  type    = "CNAME"
+
+  ttl     = "5"
+  records = [
+    "${aws_elasticache_cluster.rate-limiter.cache_nodes.0.address}"]
+}
