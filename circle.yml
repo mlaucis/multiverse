@@ -13,7 +13,6 @@ dependencies:
     - ./bin/install_dependencies.sh
   cache_directories:
     - "~/.go_workspace"
-    - "~/.backend_npm_modules"
     - "/home/ubuntu/.gimme"
 database:
   override:
