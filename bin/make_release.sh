@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 finalComponentName=${1}
 finalReleaseTarget=${2}

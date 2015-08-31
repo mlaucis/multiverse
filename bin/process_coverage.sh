@@ -1,7 +1,33 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 export GOPATH=`godep path`:${GOPATH}
 declare -a TEST_TARGETS=("postgres" "kinesis", "redis")
+TEST_COMPONENT="intaker"
+
+if [ ${CIRCLE_BRANCH} == "master" ]
+then
+    declare -A BUILD_MATRIX=( \
+        ["intaker_postgres_v02"]=true \
+        ["intaker_postgres_v03"]=true \
+        ["intaker_redis_v02"]=false \
+        ["intaker_redis_v03"]=true \
+        ["intaker_kinesis_v02"]=true \
+        ["intaker_kinesis_v03"]=true \
+        ["distributor_postgres_v02"]=false \
+        ["distributor_postgres_v03"]=false \
+    )
+else
+    declare -A BUILD_MATRIX=( \
+        ["intaker_postgres_v02"]=false \
+        ["intaker_postgres_v03"]=false \
+        ["intaker_redis_v02"]=false \
+        ["intaker_redis_v03"]=false \
+        ["intaker_kinesis_v02"]=false \
+        ["intaker_kinesis_v03"]=true \
+        ["distributor_postgres_v02"]=false \
+        ["distributor_postgres_v03"]=false \
+    )
+fi
 
 CWD=`pwd`
 
@@ -11,7 +37,8 @@ do
     declare -a VERSIONS=( "v02" "v03" )
     for VERSION in "${VERSIONS[@]}"
     do
-        if [ ${TEST_TARGET} == "redis" ] && [ ${VERSION} == "v02" ]
+        CURRENT_TEST_KEY="${TEST_COMPONENT}_${TEST_TARGET}_${VERSION}"
+        if [ "${BUILD_MATRIX[${CURRENT_TEST_KEY}]}" == false ]
         then
             continue
         fi

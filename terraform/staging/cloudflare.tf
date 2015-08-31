@@ -13,7 +13,7 @@ resource "cloudflare_record" "api-staging" {
 
 resource "cloudflare_record" "dashboard-staging" {
   domain = "${var.cloudflare_domain}"
-  name = "console-staging"
+  name = "dashboard-staging"
   value = "${aws_elb.corporate.dns_name}"
   type = "CNAME"
   ttl = 1

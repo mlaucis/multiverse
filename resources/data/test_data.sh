@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 curl -i -H "Content-Type: application/json" -d '{"name":"New Account", "description":"Description of the account"}' localhost:8082/0.1/accounts
 curl -i -H "Content-Type: application/json" -H "Authorization: Bearer token_1_TmV3IEFjY291bnQ=" -d '{"user_name":"User name", "first_name": "Demo", "last_name": "User", "password":"hmac(256)", "email":"de@m.o"}' localhost:8082/0.1/account/1/users
 curl -i -H "Content-Type: application/json" -H "Authorization: Bearer token_1_TmV3IEFjY291bnQ=" -d '{"key": "hmac(256)", "name":"New App","description":"awesomeness"}' localhost:8082/0.1/account/1/applications
