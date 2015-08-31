@@ -151,7 +151,7 @@ export default class Signup extends Component {
     this.setState(this.getState())
 
     if (AccountStore.isAuthenticated) {
-      this.context.router.transitionTo('ONBOARDING')
+      this.context.router.transitionTo('DASHBOARD')
     }
   }
 
