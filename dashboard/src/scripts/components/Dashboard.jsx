@@ -34,7 +34,8 @@ class InviteDeveloper extends Component {
     return (
       <div className='card invite-developer'>
         <h3>Get your team on board</h3>
-        <p>Invite a developer or others who should help integrate Tapglue into your app.</p>
+        <p>Invite a developer or others who should help integrate Tapglue
+          into your app.</p>
         <form onSubmit={this.handleSubmit}>
           <div className='left'>
             <input
