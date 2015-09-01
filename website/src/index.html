@@ -16,6 +16,7 @@
 
         <!-- Stylesheets -->
         <link rel="stylesheet" href="css/style.css"/>
+        <link rel="stylesheet" href="css/button.css"/>
         <link rel="stylesheet" href="css/skel.css"/>
 
 
@@ -57,6 +58,7 @@
 
         <!-- Header -->
         <header id="header">
+          <div class='inner'>
             <h1>
                 <a href="//www.tapglue.com">
                   <svg viewBox="0 0 2267 645" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">
@@ -116,17 +118,17 @@
                     </ul>
                 </nav>
             </div>
-
+          </div>
         </header>
 
         <!-- Banner -->
         <section id="banner">
-          <div id='banner-content'>
+          <div class='content'>
             <h2>Skyrocket Your App Engagement</h2>
             <p>Tapglue is the easiest way to foster engagement and boost loyalty by making your app social.</p>
             <ul class="actions">
                 <li>
-                    <a href="#" onclick="requestAccess(); return false;" class="button big">Get Started For Free</a>
+                    <a href="//dashboard.tapglue.com/signup" class="btn-alert">Get Started For Free</a>
                 </li>
             </ul>
           </div>
@@ -134,9 +136,11 @@
 
         <!-- Map -->
         <section id='mission'>
-          <h3>Bring the power of social networks to any app</h3>
-          <p>Network effects make the most successful products sticky and viral. With the Tapglue Platform you can benefit from them without investing in development for months.</p>
-          <p>Use Tapglue’s API and SDKs to build a social community into your app within hours. Make users stick with your app. Increase retention, engagement and virality.</p>
+          <div class='content'>
+            <h3>Bring the power of social networks to any app</h3>
+            <p>Network effects make the most successful products sticky and viral. With the Tapglue Platform you can benefit from them without investing in development for months.</p>
+            <p>Use Tapglue’s API and SDKs to build a social community into your app within hours. Make users stick with your app. Increase retention, engagement and virality.</p>
+          </div>
         </section>
 
         <!-- Features -->
@@ -146,21 +150,21 @@
             <p class='type'>news feed</p>
             <h2>Plug & Play Social Feeds</h2>
             <p>Build user-powered news feeds, notifications or activity feeds into your product in no time. We thought of everything and handle all the heavy lifting for you.</p>
-            <a href='#'>learn more</a>
+            <a class='btn-default dimmed' href='#'>learn more</a>
             <div class='clearfix'></div>
           </div>
           <div class='feature small first'>
             <img src='/img/features/users.png'/>
             <p class='type'>users</p>
             <h2>Integrate Profiles</h2>
-            <a href='#'>discover</a>
+            <a class='btn-default dimmed' href='#'>discover</a>
             <div class='clearfix'></div>
           </div>
           <div class='feature small'>
             <img src='/img/features/friends.png'/>
             <p class='type'>connections</p>
             <h2>Friends & Followers</h2>
-            <a href='#'>discover</a>
+            <a class='btn-default dimmed' href='#'>discover</a>
             <div class='clearfix'></div>
           </div>
           <div class='clearfix'></div>
@@ -241,7 +245,7 @@
               <p class='type'>Get Started</p>
               <h2>Create an account, it's free!</h2>
               <p>Jump straight in and build social components to boost your app.</p>
-              <a href='#'>Get started for free</a>
+              <a class='btn-alert' href='#'>Get started for free</a>
             </div>
           </div>
           <div class='documentation'>
@@ -249,7 +253,7 @@
               <p class='type'>Documentation</p>
               <h2>Want to learn more?</h2>
               <p>Check out our docs and get to know the Tapglue Platform in-depth.</p>
-              <a href='#'>Documentation</a>
+              <a class='btn-alert' href='#'>Documentation</a>
             </div>
           </div>
         </section>
@@ -262,8 +266,8 @@
               <div class='8u'>
                 <input name="email" id="subscribe-email" value="" placeholder="Enter your email" type="email" required />
               </div>
-              <div class='4u'>
-                <input value="Subscribe" type="submit" />
+              <div class='4u submit'>
+                <button class='btn-alert' type="submit">Subscribe</button>
               </div>
               <div class="success-feedback"></div>
             </form>

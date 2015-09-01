@@ -968,9 +968,6 @@ input[type="button"]:disabled,
 
 body.landing #header {
     background-color: transparent;
-    left: 0;
-    position: absolute;
-    top: 0;
 }
 #header {
     background-color: #383b43;
@@ -978,11 +975,20 @@ body.landing #header {
     cursor: default;
     font-size: 1.1em;
     height: 6em;
+    left: 0;
     line-height: 6em;
-    padding: 5rem 12rem 0rem 12rem;
+    position: absolute;
+    top: 0;
     width: 100%;
     z-index: 10000;
 }
+
+#header .inner {
+  margin: 0 auto;
+  max-width: 120rem;
+  padding: 4rem 0;
+}
+
 #header h1 {
   color: #ffffff;
   display: inline-block;
@@ -1187,12 +1193,12 @@ body.landing #header {
 /* Banner */
 
 #banner {
-  background: rgb(114, 224, 174);
-  background-image: linear-gradient(180deg, rgb(90, 125, 135), rgb(113, 221, 173));
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  background:
+    url('../img/banner/screens.png') no-repeat bottom right,
+    linear-gradient(180deg, rgb(90, 125, 135), rgb(113, 221, 173)),
+    rgb(114, 224, 174);
   color: #ffffff;
+  padding: 25rem 0 20rem 0;
 }
 #banner:last-child {
     margin-bottom: 0;
@@ -1209,11 +1215,14 @@ body.landing #header {
     font-weight: 300;
     line-height: 1.5em;
     margin: 0;
-    width: 60rem;
+    width: 70rem;
 }
-#banner-content {
-  background: url('../img/banner/screens.png') no-repeat bottom right;
-  padding: 25rem 12rem 14rem 12rem;
+#banner ul.actions {
+  margin: 6rem 0 0 0;
+}
+#banner .content {
+  margin: 0 auto;
+  max-width: 120rem;
 }
 
 /* Bannergreen */
@@ -1246,7 +1255,12 @@ body.landing #header {
 /* Network */
 #mission {
   background: url('../img/mission/network.png') no-repeat top right;
-  padding: 15.5rem 12rem;
+  padding: 15.5rem 0;
+}
+
+#mission .content {
+  margin: 0 auto;
+  max-width: 120rem;
 }
 
 #mission h3 {
@@ -1358,6 +1372,7 @@ body.landing #header {
 
 #benefits .row {
   margin: 0;
+  padding: 0;
 }
 
 #testimonial {
@@ -1367,7 +1382,12 @@ body.landing #header {
 #testimonial .content {
   margin: 0 auto;
   padding: 10rem 0;
-  width: 130rem;
+  width: 120rem;
+}
+
+#testimonial .content .row {
+  margin: 0;
+  padding: 0;
 }
 
 #get-started .signup {
@@ -1447,6 +1467,14 @@ body.landing #header {
   font-weight: 300;
   margin-bottom: 1.5rem;
   width: 60rem;
+}
+
+#newsletter div.submit {
+  text-align: right;
+}
+
+#newsletter button[type=submit] {
+  padding: 1.5rem 4.5rem;
 }
 
 /* Wrapper */
