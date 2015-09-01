@@ -1,0 +1,13 @@
+server {
+    listen 80;
+
+    server_name www.tapglue.com tapglue.com website-staging.tapglue.com;
+
+    root /home/tapglue/releases/corporate/website/build;
+
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}
