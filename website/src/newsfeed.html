@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <!-- Meta -->
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title>Tapglue | The social layer for apps</title>
+        <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+        <meta name="description" content="Tapglue enables mobile developers to create social products. Faster. Simpler." />
+        <meta name="keywords" content="news feed activity stream newsfeed social graph friends follower app mobile retention engagement marketing community virality network layer api ios android" />
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <!-- Icons -->
+        <link rel="apple-touch-icon" href="apple-touch-icon.png">
+        <link rel="icon" type="image/png" href="img/icons/favicon.png"/>
+
+        <!-- Stylesheets -->
+        <link rel="stylesheet" href="css/skel.css"/>
+        <link rel="stylesheet" href="css/style.min.css"/>
+
+        <!-- Modernizr -->
+        <script src="js/vendor/modernizr-2.8.3-respond-1.4.2.min.js"></script>
+
+        <!-- JQuery -->
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+        <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.11.3.min.js"><\/script>')</script>
+
+        <!-- Typed.js -->
+        <script src="js/vendor/typed.min.js"></script>
+        <script>
+        // Typed.js effect
+        $(function(){
+          $(".element").typed({
+            strings: ["news feeds", "notifications", "activity feeds"],
+            loop: true,
+            showCursor: true,
+            cursorChar: "|",
+            contentType: 'html',
+            typeSpeed: 50,
+            // startDelay: 3000,
+            backSpeed: 30,
+            backDelay: 3000
+          });
+        });
+        </script>
+
+        <!-- Skel -->
+        <script src="js/vendor/skel.min.js"></script>
+        <script src="js/vendor/skel-layers.min.js"></script>
+        <script src="js/init.js"></script>
+
+        <!-- Segment -->
+        <script src="js/analytics.js"></script>
+
+    </head>
+    <body class="landing">
+
+        <!-- Request-Access Layer -->
+        <div class="request-access">
+            <div class="overlay" onclick="hideRequestAccess()"></div>
+            <div class="form-layer">
+                <form onsubmit="requestSubmit(); return false;">
+                    <h1>Request Beta Access</h1>
+
+                    <h2>We're glad that you are interested in Tapglue. Just fill out the form and we'll be in touch soon.</h2>
+
+                    <div class="success-request"></div>
+                    <input name="email" type="email" placeholder="Email" required>
+                    <input name="name" type="text" placeholder="Name" required>
+                    <input name="companyname" type="text" placeholder="Company Name" required>
+                    <input type="submit" value="Request Access">
+                </form>
+            </div>
+        </div>
+
+        <!-- Header -->
+        <header id="header">
+            <h1>
+                <a href="//www.tapglue.com">
+                    <img src="img/logos/logo_wide_white.png" width="200px" height="62px" alt="Tapglue"/>
+                </a>
+            </h1>
+
+            <!-- Navigation -->
+            <nav id="nav" class="navgreen">
+                <ul>
+                    <li><a class="has-submenu">Product</a>
+                        <ul class="submenu shadow-2">
+                            <li><a href="/news-feed/">News Feed</a></li>
+                            <li><a href="/user-profiles/">Users</a></li>
+                            <li><a href="/social-graph/">Friends</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="//developers.tapglue.com">Docs</a></li>
+                    <li><a href="/blog/">Blog</a></li>
+                    <li><a href="/about-us/">About us</a></li>
+                    <li><a href="//beta.tapglue.com" class="login">Login</a></li>
+                    <li><a href="#" onclick="requestAccess(); return false;" class="signup">Signup</a></li>
+                </ul>
+            </nav>
+
+            <!-- Navigation Scroll -->
+            <div class="menu">
+                <h1>
+                    <a href="//www.tapglue.com">
+                        <img src="img/logos/logo_wide_white.png" width="150px" alt="Tapglue"/>
+                    </a>
+                </h1>
+
+                <!-- Navigation -->
+                <nav id="nav">
+                    <ul>
+                        <li><a class="has-submenu">Product</a>
+                            <ul class="submenu shadow-2">
+                                <li><a href="/news-feed/">News Feed</a></li>
+                                <li><a href="/user-profiles/">Users</a></li>
+                                <li><a href="/social-graph/">Friends</a></li>
+                            </ul>
+                        </li>
+                        <li><a href="//developers.tapglue.com">Docs</a></li>
+                        <li><a href="/blog/">Blog</a></li>
+                        <li><a href="/about-us/">About us</a></li>
+                        <li><a href="//beta.tapglue.com" class="login">Login</a></li>
+                        <li><a href="#" onclick="requestAccess(); return false;" class="signup">Signup</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Banner -->
+        <section id="bannergreen">
+            <h2>Build social <i class="element typingtext"></i> in hours</h2>
+            <div class="row 25%">
+                <div class="3u -3u -2u(medium) -3u(small) -3u(xsmall)"><i class="iphone"></i></div>
+                <div class="2u 3u(large) 4u(medium) 6u(small) 12u(xsmall)">
+                  <div class="iphone-selector-ct">
+                      <div class="iphone-selector active" id="newsBackground"><span class="iphone-selector-inner">News</span></div>
+                      <div class="iphone-selector" id="sportsBackground"><span class="iphone-selector-inner">Sports</span></div>
+                      <div class="iphone-selector" id="marketBackground"><span class="iphone-selector-inner">Entertainment</span></div>
+                      <div class="iphone-selector" id="gamesBackground"><span class="iphone-selector-inner">Food</span></div>
+                  </div>
+                  <div class="signup-button">
+                    <a href="#" onclick="requestAccess(); return false;" class="button bigwhite">GET EARLY ACCESS</a>
+                  </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features -->
+        <section id="two" class="wrapper style2 special">
+            <div class="container">
+                <div class="row 75% features">
+                    <div class ="2u 4u(small)">
+                        <i class="icon medium rounded fa-tablet"></i>
+                    </div>
+                    <div class ="4u 8u$(small)">
+                        <h3>Fully Customizable UI</h3>
+                        <p>Create whatever style is  suitable for your app.</p>
+                    </div>
+                    <div class ="2u 4u(small)">
+                        <i class="icon medium rounded fa-code"></i>
+                    </div>
+                    <div class ="4u$ 8u$(small)">
+                        <h3>SDK &amp; RESTful API</h3>
+                        <p>Choose the integration type that fits best for you.</p>
+                    </div>
+                    <div class ="12u placeholder-s">
+                    </div>
+                    <div class ="2u 4u(small)">
+                        <i class="icon medium rounded fa-lock"></i>
+                    </div>
+                    <div class ="4u 8u$(small)">
+                        <h3>Security</h3>
+                        <p>Secure communication and authentication via HTTPS.</p>
+                    </div>
+                    <div class ="2u 4u(small)">
+                        <i class="icon medium rounded fa-check-circle"></i>
+                    </div>
+                    <div class ="4u$ 8u$(small)">
+                        <h3>Easy Integration</h3>
+                        <p>Launch your news feed in just a few hours.</p>
+                    </div>
+                    <div class ="12u placeholder-s">
+                    </div>
+                    <div class ="2u 4u(small)">
+                        <i class="icon medium rounded fa-photo"></i>
+                    </div>
+                    <div class ="4u 8u$(small)">
+                        <h3>Content Flexibility</h3>
+                        <p>Easily use the content you already have in your app.</p>
+                    </div>
+                    <div class ="2u 4u(small)">
+                        <i class="icon medium rounded fa-retweet"></i>
+                    </div>
+                    <div class ="4u$ 8u$(small)">
+                        <h3>Deep Linking</h3>
+                        <p>Always send the user to the right place.</p>
+                    </div>
+                    <div class ="12u placeholder-s">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tabs -->
+        <section id="one" class="wrapper style1 special">
+            <div class="container">
+                <header class="major">
+                    <h2>Integrating a social news feed can <br>boost your apps’ success!</h2>
+                </header>
+                <section id="generic-tabs">
+                    <ul id="tabs">
+                        <li>
+                            <a title="Home" href="#first-tab">Retention</a>
+                        </li>
+                        <li>
+                            <a title="Photos" href="#second-tab">Engagement</a>
+                        </li>
+                        <li>
+                            <a title="About" href="#third-tab">Virality</a>
+                        </li>
+                        <li>
+                            <a title="Contact" href="#fourth-tab">Monetization</a>
+                        </li>
+                    </ul>
+                    <div id="first-tab" class="row tab-content">
+                            <section class="4u 12u$(medium)">
+                                <img src="img/tabs/retention.svg" width="300px">
+                            </section>
+                            <section class="8u$ 12u$(medium)">
+                                <h2>Make use of the ultimate retention driver: friends activity</h2>
+                                <p>Products with the best retention have an <strong>inherent trigger</strong> that makes users come back. One of the most important triggers is the activity of friends. Checking what connections are up to can become a <strong>powerful habit</strong> very quickly. That’s why a social news feed can change the way users perceive an app. It shifts the focus away from the individual user towards a more network-centric experience.
+                                <br> <br>
+                                News feeds make the interactions of connections in a user’s network visible. This makes them act as powerful retention triggers. A news feed therefore is the perfect basis to leverage <strong>notifications</strong> - no matter if they are transmitted through app icon badges, push notifications or emails.</p>
+                            </section>
+                    </div>
+
+                    <div id="second-tab" class="row tab-content">
+                            <section class="4u 12u$(medium)">
+                                <img src="img/tabs/engagement.svg" width="300px">
+                            </section>
+                            <section class="8u$ 12u$(medium)">
+                                <h2>News feeds make users view more, stay longer and consume more</h2>
+                                <p>Leveraging the mechanics of a news feed can not only increase your session <strong>frequency</strong> (retention). It can also increases the <strong>quality</strong> of sessions by improving metrics like session length, screen views, likes, shares, etc.
+                                <br> <br>
+                                <strong>Recommendations</strong> of friends or people with the same interest are the most trustworthy source. By letting your users passively do recommendations you increase <strong>relevance</strong> and the <strong>trust</strong> in your product - no matter if it’s liking an article, favoriting a product or recommending a restaurant.</p>
+                            </section>
+                    </div>
+
+                    <div id="third-tab" class="row tab-content">
+                            <section class="4u 12u$(medium)">
+                                <img src="img/tabs/virality.svg" width="300px">
+                            </section>
+                            <section class="8u$ 12u$(medium)">
+                                <h2>Leverage network effects to grow your user base and become more viral</h2>
+                                <p>The reason why social networks grow so much faster is simple: A user’s benefit increases with the number of friends connections he has. Only if this assumption is true for a product, it can grow through viral effects sustainably. The user has to have a <strong>motivation to invite others</strong> to the product. Most apps lack such a motivation.
+
+                                <br> <br>
+                                The only way to make product truly viral is to create a social graph around it and implement features that demonstrate <strong>the benefit of this social graph</strong>. The news feed is perfect for that. It lets users consume what their friends are liking, sharing, posting, commenting, rating or adding. The more of those interactions a user sees, the higher the benefit. <strong>Inviting others</strong> to the product becomes a natural thing and not an incentivized behavior the app owner has to advertise for. </p>
+                            </section>
+                    </div>
+                    <div id="fourth-tab" class="row tab-content">
+                            <section class="4u 12u$(small)">
+                                <img src="img/tabs/monetization.svg" width="300px">
+                            </section>
+                            <section class="8u$ 12u$(small)">
+                                <h2>Network effects will help you to monetize your product</h2>
+                                <p>Every activity or feature that increases the growth and retention of your user base will have a <strong>positive impact on your monetization</strong> - no matter if it’s an eCommerce app or if you monetize through ads, in-app purchases or subscriptions. Growing your use base faster by retaining new users better and making use of friends invites, will increase the basis of users that you reach. Increasing your revenues will follow.
+                                <br> <br>
+                                Besides this a news feed and the underlying social graph will open excellent new ways to monetize through advertising. Not only <strong>will your users be more valuable</strong> because they have a true connection to your product. The news feed also provides you with an immensely valuable placement to display high-quality <strong>native advertisements</strong>, which have less implication on the user experience and a much better performance than common ads. </p>
+                            </section>
+                    </div>
+                </section>
+            </div>
+        </section>
+
+        <!-- Newsletter -->
+        <section id="three" class="wrapper style3 special">
+            <div class="container">
+                <div class="newsletterBox">
+                    <img src="img/logos/logo_wide_white.png" width="240px" alt="Tapglue"/>
+                    <h2>WEEKLY</h2>
+                </div>
+            </div>
+            <div class="container 75%">
+                <div class ="newsgreen">
+                    <p>Get the best resources to build a successful app straight to your inbox every week.</p>
+                </div>
+                <div class ="newsform">
+                    <form id='subscribe-form' method='post' action='https://tapglue.curated.co/email_subscribers' onsubmit="newsletterSubmit();return false;">
+                        <div class="row uniform aligner">
+                            <div class="6u 6u(medium) 12u$(small)">
+                            <input name="email" id="subscribe-email" value="" placeholder="Enter your email" type="email" required>
+                            </div>
+                            <div class="3u$ 5u$(medium) 12u$(small)">
+                                <ul class="actions">
+                                    <li><input id="submitButton" value="Subscribe" class="button bigwhite" type="submit"></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="success-feedback">
+                        </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer id="footer">
+            <div class="container">
+                <section class="links">
+                    <div class="row">
+                        <section class="4u 12u$(medium) 12u$(xsmall)">
+                           <ul class="copyright">
+                                <li><img src="img/logos/logo_wide_white.png" width="180px" alt="Tapglue"/></li>
+                                <li>&copy; Tapglue. All rights reserved.</li>
+                            </ul>
+                        </section>
+                        <section class="2u 6u(medium) 6u(xsmall) -4u(xsmall)">
+                            <h3>Product</h3>
+                            <ul class="unstyled">
+                                <li><a href="/news-feed/">News Feed</a></li>
+                                <li><a href="/user-profiles/">Users</a></li>
+                                <li><a href="/social-graph/">Friends</a></li>
+                            </ul>
+                        </section>
+                        <section class="2u 6u$(medium) 6u$(xsmall) -4u(xsmall)">
+                            <h3>Developers</h3>
+                            <ul class="unstyled">
+                                <li><a href="//developers.tapglue.com">Getting Started</a></li>
+                                <li><a href="//developers.tapglue.com/docs/overview">Docs</a></li>
+                                <li><a href="//developers.tapglue.com/page/ios-guide">iOS Guide</a></li>
+                            </ul>
+                        </section>
+                        <section class="2u 6u(medium) 6u(xsmall) -4u(xsmall)">
+                            <h3>Resources</h3>
+                            <ul class="unstyled">
+                                <li><a href="//weekly.tapglue.com">Newsletter</a></li>
+                                <li><a href="/blog/">Blog</a></li>
+                            </ul>
+                        </section>
+                        <section class="2u 6u(medium) 6u(xsmall) -4u(xsmall)">
+                            <h3>Company</h3>
+                            <ul class="unstyled">
+                                <li><a href="/about-us/">About us</a></li>
+                            </ul>
+                        </section>
+                    </div>
+                </section>
+                <ul class="copyright">
+                    <ul class="icons">
+                        <li>
+                            <a href="//twitter.com/tapglue" class="icon social fa-twitter"><span class="label">Twitter</span></a>
+                            <a href="//github.com/tapglue" class="icon social fa-github"><span class="label">Github</span></a>
+                            <a href="/blog/" class="icon social fa-rss"><span class="label">Blog</span></a>
+                            <a href="//weekly.tapglue.com" class="icon social fa-newspaper-o"><span class="label">Newsletter</span></a>
+                        </li>
+                    </ul>
+                </ul>
+            </div>
+        </footer>
+
+        <!-- Custom Scripts -->
+        <!-- Plugins -->
+        <script async src="js/plugins.min.js"></script>
+
+        <!-- Page Tracking -->
+        <script type="text/javascript">
+        function trackPage(){
+            analytics.page("News Feed")
+            analytics.identify()
+        }
+        window.onload = trackPage;
+       </script>
+    </body>
+</html>

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset
+      xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+            http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+
+<url>
+  <loc>https://www.tapglue.com/</loc>
+  <lastmod>2015-06-27T20:02:40+00:00</lastmod>
+</url>
+<url>
+  <loc>https://www.tapglue.com/news-feed/</loc>
+  <lastmod>2015-06-27T20:02:40+00:00</lastmod>
+</url>
+<url>
+  <loc>https://www.tapglue.com/user-profiles/</loc>
+  <lastmod>2015-06-27T20:02:40+00:00</lastmod>
+</url>
+<url>
+  <loc>https://www.tapglue.com/social-graph/</loc>
+  <lastmod>2015-06-27T20:02:40+00:00</lastmod>
+</url>
+<url>
+  <loc>https://www.tapglue.com/blog/</loc>
+</url>
+<url>
+  <loc>https://www.tapglue.com/about-us/</loc>
+  <lastmod>2015-06-27T20:02:40+00:00</lastmod>
+</url>
+<url>
+  <loc>https://www.tapglue.com/blog/tapglue-ios-sdk/</loc>
+</url>
+<url>
+  <loc>https://www.tapglue.com/blog/author/onur/</loc>
+</url>
+<url>
+  <loc>https://www.tapglue.com/blog/tag/tapglue-news/</loc>
+</url>
+<url>
+  <loc>https://www.tapglue.com/blog/tag/engineering/</loc>
+</url>
+<url>
+  <loc>https://www.tapglue.com/blog/10-top-mobile-influencers/</loc>
+</url>
+<url>
+  <loc>https://www.tapglue.com/blog/author/norman-wiese/</loc>
+</url>
+<url>
+  <loc>https://www.tapglue.com/blog/tag/product/</loc>
+</url>
+<url>
+  <loc>https://www.tapglue.com/blog/why-your-mobile-app-needs-a-social-activity-feed/</loc>
+</url>
+<url>
+  <loc>https://www.tapglue.com/blog/tag/growth/</loc>
+</url>
+<url>
+  <loc>https://www.tapglue.com/blog/why-we-are-building-tapglue/</loc>
+</url>
+</urlset>
