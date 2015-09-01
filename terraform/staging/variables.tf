@@ -26,18 +26,6 @@ variable "ami_nat" {
   default = "ami-cb7de3bc"
 }
 
-variable "cloudflare_email" {
-  default = "tools@tapglue.com"
-}
-
-variable "cloudflare_token" {
-  default = "8495c1d8eadae7413a79f74fa3bd3116c8c1b"
-}
-
-variable "cloudflare_domain" {
-  default = "tapglue.com"
-}
-
 variable "zone-a" {
   default = "eu-west-1a"
 }
@@ -84,4 +72,28 @@ variable "iam_profile_corporate" {
 
 variable "iam_role_corporate" {
   default = "staging-corporate"
+}
+
+variable "cloudflare_email" {
+  default = "tools@tapglue.com"
+}
+
+variable "cloudflare_token" {
+  default = "8495c1d8eadae7413a79f74fa3bd3116c8c1b"
+}
+
+variable "cloudflare_domain" {
+  default = "tapglue.com"
+}
+
+variable "rds_db_name" {
+  default = "tapglue"
+}
+
+variable "rds_username" {
+  default = "tapglue"
+}
+
+variable "rds_password" {
+  default = "gFthJy858iXOIA3IM0GARIuFYdIWkeCHJc0vto"
 }

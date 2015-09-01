@@ -105,9 +105,9 @@ resource "aws_db_instance" "master" {
   instance_class          = "db.t2.micro"
   # if you want to change to true, see the list of instance types that support storage encryption: http://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Overview.Encryption.html#d0e10116
   storage_encrypted       = false
-  name                    = "tapglue_prod"
-  username                = "tapglue"
-  password                = "demopasswd"
+  name                    = "${var.rds_db_name}"
+  username                = "${var.rds_username}"
+  password                = "${var.rds_password}"
   multi_az                = false # this should be true for production
   publicly_accessible     = false
   vpc_security_group_ids  = [
@@ -130,9 +130,9 @@ resource "aws_db_instance" "slave1" {
   instance_class          = "db.t2.micro"
   # if you want to change to true, see the list of instance types that support storage encryption: http://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Overview.Encryption.html#d0e10116
   storage_encrypted       = false
-  name                    = "tapglue_prod"
-  username                = "tapglue"
-  password                = "demopasswd"
+  name                    = "${var.rds_db_name}"
+  username                = "${var.rds_username}"
+  password                = "${var.rds_password}"
   multi_az                = false # this should be true for production
   publicly_accessible     = false
   replicate_source_db     = "${aws_db_instance.master.identifier}"
