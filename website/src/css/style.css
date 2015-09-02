@@ -966,182 +966,65 @@ input[type="button"]:disabled,
 }
 /* Header */
 
-body.landing {
+body.home {
   font-size: 62.5%;
 }
-body.landing #header {
-    background-color: transparent;
-    left: 0;
-    position: absolute;
-    top: 0;
+
+#header {
+  width: 100%;
 }
-body.landing #header .inner {
+#header .inner {
   margin: 0 auto;
   max-width: 120rem;
   padding: 4rem 0;
 }
-body.landing #header h1 {
-  color: #ffffff;
-  display: inline-block;
-  left: 0;
-  margin: 0;
-  position: relative;
-  width: 22rem;
-}
-body.landing #header h1 a:hover {
-  text-decoration: none;
-}
-body.landing #header h1 a svg {
-  fill: #fff;
-  height: 100%;
-  width: 100%;
-}
-body.landing #header nav {
-  float: right;
-  position: relative;
-  right: 0;
-}
-body.landing #header nav > ul > li {
-  font-size: 1.4rem;
-  font-weight: 300;
-  letter-spacing: 0.1rem;
-  line-height: 5rem;
-  margin: 0;
-  min-width: inherit;
-  text-transform: uppercase;
-}
-body.landing #header nav > ul > li:not(.btn) {
-  margin-right: 5rem;
-}
-body.landing #header nav > ul > li.btn {
-  margin-left: 1rem;
-}
-body.landing #header nav > ul > li a {
-  color: rgba(255, 255, 255, 0.8);
-  height: auto;
-  line-height: normal;
-  text-decoration: none;
-  transition: 0.15s all ease;
-}
-body.landing #header nav > ul > li a:hover {
-  color: rgba(255, 255, 255, 1);
-}
-body.landing #header .submenu {
-  margin: 0;
-}
-body.landing #header .submenu li {
-  padding: 1rem 3rem 1rem 1rem;
-}
-
-#header {
-    background-color: #383b43;
-    color: #ffffff;
-    cursor: default;
-    font-size: 1.1em;
-    height: 6em;
-    line-height: 6em;
-    width: 100%;
-    z-index: 10000;
-}
-
 #header h1 {
-  color: #ffffff;
-  height: inherit;
-  left: 3em;
-  line-height: inherit;
-  margin: 20px 0px;
-  padding: 0;
-  position: absolute;
+  display: inline-block;
+  width: 22rem;
 }
 #header h1 a {
   font-size: 1.25em;
 }
+#header h1 a:hover {
+  text-decoration: none;
+}
+#header h1 a svg {
+  fill: rgb(63, 91, 96);
+  height: 100%;
+  width: 100%;
+}
 
 #header nav {
-    height: inherit;
-    line-height: inherit;
-    position: absolute;
-    right: 0.8em;
-    vertical-align: middle;
-}
-#header nav > ul {
-    list-style: none;
-    margin: 0;
-    padding-left: 0;
+  float: right;
 }
 #header nav > ul > li {
-    display: inline-block;
-    padding-left: 0;
-    color: rgba(255, 255, 255, 0.8);
-    float: left;
-    min-width: 100px;
-    text-align: center;
-    margin: 0px 0.1em;
-    transition: color 0.25s ease 0s;
+  display: inline-block;
+  float: left;
+  font-size: 1.4rem;
+  font-weight: 300;
+  letter-spacing: 0.1rem;
+  line-height: 6rem;
+  position: relative;
+  text-transform: uppercase;
 }
-.greenheader {
-    color: #fff !important;
+#header nav > ul > li:not(.btn) {
+  margin-right: 5rem;
+}
+#header nav > ul > li.btn {
+  margin-left: 1rem;
 }
 #header nav > ul > li a {
-    -moz-transition: color 0.2s ease-in-out;
-    -webkit-transition: color 0.2s ease-in-out;
-    -o-transition: color 0.2s ease-in-out;
-    -ms-transition: color 0.2s ease-in-out;
-    transition: color 0.2s ease-in-out;
-    display: inline-block;
-    text-decoration: none;
-    color: rgba(255, 255, 255, 0.8);
+  color: rgba(63, 91, 96, 0.8);
+  text-decoration: none;
+  transition: all 0.15s ease;
 }
 #header nav > ul > li a:hover {
-    color: #ffffff;
+  color: rgba(63, 91, 96, 1);
 }
-#header nav > ul > li:first-child {
-    margin-left: 0;
-    margin-right: 1em;
+#header nav > ul > li a.btn-default:hover {
+  color: rgba(255, 255, 255, 1);
 }
-#header nav > ul > li .signup {
-    -moz-transition: color 0.2s ease-in-out;
-    -webkit-transition: color 0.2s ease-in-out;
-    -o-transition: color 0.2s ease-in-out;
-    -ms-transition: color 0.2s ease-in-out;
-    transition: color 0.2s ease-in-out;
-    background: #6EE0AD;
-    color: rgba(255, 255, 255, 1);
-    display: inline-block;
-    text-decoration: none;
-    font-family: 'Lato', sans-serif;
-    width: 80px;
-    height: 40px;
-    border: 1px solid #6EE0AD;
-    border-radius: 3px;
-    line-height: 40px;
-}
-#header nav > ul > li .signup:hover {
-    color: rgba(0, 0, 0, 0.7);
-    background: #fff;
-    border: 1px solid transparent;
-}
-#header nav > ul > li .login {
-    -moz-transition: color 0.2s ease-in-out;
-    -webkit-transition: color 0.2s ease-in-out;
-    -o-transition: color 0.2s ease-in-out;
-    -ms-transition: color 0.2s ease-in-out;
-    transition: color 0.2s ease-in-out;
-    color: rgba(255, 255, 255, 1);
-    display: inline-block;
-    text-decoration: none;
-    font-family: 'Lato', sans-serif;
-    width: 80px;
-    height: 40px;
-    border: 1px solid #FFF;
-    border-radius: 3px;
-    line-height: 40px;
-    margin-left: 30px;
-}
-#header nav > ul > li .login:hover {
-    color: rgba(0, 0, 0, 0.7);
-    background: #fff;
-}
+
 #header nav > ul > li > ul > li a {
     color: rgba(30, 40, 50, 0.8) !important;
 }
@@ -1173,81 +1056,80 @@ body.landing #header .submenu li {
 #header nav ul li:hover .has-submenu:after {
     opacity: 1;
 }
-#header nav ul li:hover > a {
-    transition: background ease .5s;
+#header .has-submenu:after {
+  /* borders to make down arrow */
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-top: 6px solid rgb(63, 91, 96);
+  content: "";
+  left: 0.5rem;
+  opacity: .7;
+  position: relative;
+  top: 1.2rem;
+  transition: all 0.15s ease;
 }
-.submenu {
-    position: absolute;
-    left: -9999px;
-    margin-top: -20px;
-    margin-left: 15px;
-}
-.has-submenu:after {
-    position: relative;
-    content: "";
-    top: 14px;
-    margin: 0 -5px 4px 8px;
-    /* borders to make down arrow */
-
-    border-left: 7px solid transparent;
-    border-right: 7px solid transparent;
-    border-top: 6px solid #fff;
-    opacity: .7;
-    transition: all ease .3s;
-}
-.has-submenu {
+#header .has-submenu {
     cursor: default;
 }
-.submenu li {
-    white-space: nowrap;
-    background: rgba(255, 255, 255, 1);
-    position: relative;
-    text-align: left;
-    border-top: .1em solid rgb(235, 235, 235);
-    border-left: .4em solid rgb(235, 235, 235);
-    border-right: .1em solid rgb(235, 235, 235);
+#header .submenu {
+  left: -9999px;
+  margin: 0;
+  position: absolute;
 }
-.submenu li a {
+#header .submenu li {
+  background: rgba(255, 255, 255, 1);
+  border-top: .1em solid rgb(235, 235, 235);
+  border-left: .4em solid rgb(235, 235, 235);
+  border-right: .1em solid rgb(235, 235, 235);
+  padding: 1rem 3rem 1rem 1rem;
+  position: relative;
+  text-align: left;
+  white-space: nowrap;
+}
+#header .submenu li a {
     color: rgba(30, 40, 50, 0.8);
     width: 6em;
     padding: .7em .4em;
 }
-.submenu > li:first-of-type {
+#header .submenu > li:first-of-type {
     border-radius: 3px 3px 0 0;
 }
-.submenu > li:last-of-type {
+#header .submenu > li:last-of-type {
     border-radius: 0 0 3px 3px;
     border-bottom: .1em solid rgb(235, 235, 235);
 }
-.submenu a {
+#header .submenu a {
     border-radius: 5px;
     transition: background ease .3s;
 }
-.submenu li:hover {
+#header .submenu li:hover {
     border-left: .4em solid #6EDFAB;
     background-color: rgb(245, 245, 245);
-}
-.navgreen .submenu li:hover {
-    border-left: .4em solid #6EDFAB;
-}
-.navgreen > ul > li .signup {
-    border: 1px solid #fff !important;
 }
 #header nav > ul > li > ul > li:hover a {
     color: rgba(20, 20, 20, 1) !important;
 
 }
-#header .container {
-    position: relative;
-}
-#header .container h1 {
-    left: 0;
-}
-#header .container nav {
-    right: 0;
-}
-/* Banner */
 
+body.landing #header {
+  left: 0;
+  position: absolute;
+  top: 0;
+}
+body.landing #header h1 a svg {
+  fill: rgba(255, 255, 255, 1);
+}
+body.landing #header nav > ul > li a {
+  color: rgba(255, 255, 255, 0.8);
+}
+body.landing #header nav > ul > li a:hover {
+  color: rgba(255, 255, 255, 1);
+}
+body.landing #header .has-submenu:after {
+  border-top-color: rgba(255, 255, 255, 0.8);
+}
+
+/* Banner */
 #banner {
   background:
     linear-gradient(180deg, rgb(90, 125, 135), rgb(113, 221, 173)),
