@@ -1003,16 +1003,23 @@ body.landing #header nav {
 }
 body.landing #header nav > ul > li {
   font-size: 1.4rem;
+  font-weight: 300;
   letter-spacing: 0.1rem;
   line-height: 5rem;
   margin: 0;
+  min-width: inherit;
   text-transform: uppercase;
 }
-body.landing #header nav > ul > li:not(:first-child) {
-  margin-left: 3rem;
+body.landing #header nav > ul > li:not(.btn) {
+  margin-right: 5rem;
+}
+body.landing #header nav > ul > li.btn {
+  margin-left: 1rem;
 }
 body.landing #header nav > ul > li a {
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.8);
+  height: auto;
+  line-height: normal;
   text-decoration: none;
   transition: 0.15s all ease;
 }
