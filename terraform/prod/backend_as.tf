@@ -26,7 +26,7 @@ resource "aws_autoscaling_group" "backend" {
     "${aws_subnet.backend-a.id}",
     "${aws_subnet.backend-b.id}"]
   name                      = "backend"
-  max_size                  = 0
+  max_size                  = 10
   min_size                  = 0
   health_check_type         = "EC2"
   health_check_grace_period = 60

@@ -16,9 +16,11 @@ resource "aws_internet_gateway" "default" {
   vpc_id = "${aws_vpc.prod.id}"
 }
 
+/*
 resource "aws_vpc_endpoint" "private-s3" {
   vpc_id          = "${aws_vpc.prod.id}"
   service_name    = "${var.private-s3}"
   route_table_ids = [
     "${aws_route_table.to-nat.id}"]
 }
+*/

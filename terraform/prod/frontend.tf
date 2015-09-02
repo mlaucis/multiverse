@@ -139,7 +139,7 @@ resource "aws_security_group" "frontend-ssh" {
 
 # ELB
 resource "aws_elb" "frontend" {
-  name                        = "frontend"
+  name                        = "frontend-prod"
   cross_zone_load_balancing   = true
   idle_timeout                = 300
   connection_draining         = true
