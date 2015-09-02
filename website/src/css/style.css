@@ -1390,6 +1390,30 @@ body.landing #header {
   padding: 0;
 }
 
+#testimonial .potraits {
+  padding: 0;
+}
+
+#testimonial .potrait {
+  cursor: pointer;
+  display: inline-block;
+  padding: 0;
+  transition: 0.15s all ease;
+}
+
+#testimonial .potrait:not(:first-of-type) {
+  margin-left: 2rem;
+}
+
+#testimonial .potrait.inactive {
+  opacity: 0.6;
+}
+
+#testimonial .statement h5 {
+  font-size: 1.6rem;
+  margin: 0;
+}
+
 #get-started .signup {
   background: rgb(90, 130, 137);
   display: inline-block;
