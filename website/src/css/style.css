@@ -966,6 +966,9 @@ input[type="button"]:disabled,
 }
 /* Header */
 
+body.landing {
+  font-size: 62.5%;
+}
 body.landing #header {
     background-color: transparent;
     left: 0;
@@ -1323,6 +1326,7 @@ body.landing #header .submenu li {
   color: rgb(144, 144, 144);
   font-size: 1.7rem;
   font-weight: 300;
+  line-height: 2.4rem;
   margin-bottom: 1.5rem;
   width: 60rem;
 }
@@ -1355,8 +1359,9 @@ body.landing #header .submenu li {
 }
 #features .feature p {
   color: #fff;
-  font-size: 1.7rem;
+  font-size: 1.6rem;
   font-weight: 300;
+  line-height: 2.4rem;
 }
 #features .feature.big {
   border-right: 0.4rem solid rgba(255, 255, 255, 0.4);
@@ -1385,7 +1390,7 @@ body.landing #header .submenu li {
 #benefits .content {
   background: url('../img/benefits/feed.png') no-repeat bottom right;
   margin: 0 auto;
-  padding: 8rem 0rem;
+  padding: 10rem 0rem;
   width: 120rem;
 }
 
@@ -1399,6 +1404,7 @@ body.landing #header .submenu li {
   color: rgba(255, 255, 255, 0.6);
   font-size: 1.7rem;
   font-weight: 300;
+  line-height: 2.4rem;
 }
 
 #benefits .content .icon {
@@ -1458,9 +1464,28 @@ body.landing #header .submenu li {
   opacity: 0.4;
 }
 
+#testimonial .statement blockquote {
+  border: 0;
+  font-size: 2.4rem;
+  font-weight: 300;
+  line-height: 1.4em;
+  padding: 0;
+}
+#testimonial .statement blockquote:before {
+  content: '"';
+}
+#testimonial .statement blockquote:after {
+  content: '"';
+}
+
 #testimonial .statement h5 {
   font-size: 1.6rem;
   margin: 0;
+}
+
+#testimonial .statement span {
+  color: rgb(144, 144, 144);
+  font-size: 1.6rem;
 }
 
 #get-started .signup {
@@ -1538,6 +1563,7 @@ body.landing #header .submenu li {
   color: rgb(144, 144, 144);
   font-size: 1.7rem;
   font-weight: 300;
+  line-height: 1.4em;
   margin-bottom: 1.5rem;
   width: 60rem;
 }
