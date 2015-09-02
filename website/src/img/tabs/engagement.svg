@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="200px" height="200px" viewBox="0 0 200 200" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">
+    <!-- Generator: Sketch 3.3.2 (12043) - http://www.bohemiancoding.com/sketch -->
+    <title>Feed Box - Engagement</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <path id="path-1" d="M100.2625,198.529167 C45.4416667,198.529167 1,154.0875 1,99.2625 C1,44.4416667 45.4416667,0 100.2625,0 C155.0875,0 199.529167,44.4416667 199.529167,99.2625 C199.529167,154.0875 155.0875,198.529167 100.2625,198.529167 Z"></path>
+    </defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" sketch:type="MSPage">
+        <g id="Feed-Box---Engagement" sketch:type="MSArtboardGroup">
+            <path d="M100.2625,198.529167 C45.4416667,198.529167 1,154.0875 1,99.2625 C1,44.4416667 45.4416667,0 100.2625,0 C155.0875,0 199.529167,44.4416667 199.529167,99.2625 C199.529167,154.0875 155.0875,198.529167 100.2625,198.529167 Z" id="Icon-Background" fill="#70CBA1" sketch:type="MSShapeGroup"></path>
+            <mask id="mask-2" sketch:name="Mask" fill="white">
+                <use xlink:href="#path-1"></use>
+            </mask>
+            <use id="Mask" fill="#70CBA1" sketch:type="MSShapeGroup" xlink:href="#path-1"></use>
+            <path d="M199.225877,107.08017 L126.215729,34.0700218 L64.0877917,140.233499 L120.350077,196.495784 C163.064142,187.71814 195.765316,151.503695 199.225877,107.08017 Z" id="Shadow" fill="#72B596" sketch:type="MSShapeGroup" mask="url(#mask-2)"></path>
+            <g id="Phone" sketch:type="MSLayerGroup" mask="url(#mask-2)">
+                <g transform="translate(61.000000, 32.000000)" id="Group">
+                    <g>
+                        <g id="Phone" fill="#A1A1A1" sketch:type="MSShapeGroup">
+                            <path d="M61.2,0 L6.8,0 C3.06,0 0,3.09375 0,6.875 L0,103.125 C0,106.90625 3.06,110 6.8,110 L61.2,110 C64.94,110 68,106.90625 68,103.125 L68,6.875 C68,3.09375 64.94,0 61.2,0 L61.2,0 Z" id="Shape"></path>
+                        </g>
+                        <g id="Screen_1_" transform="translate(6.412245, 6.875000)" fill="#75AACE" sketch:type="MSShapeGroup">
+                            <rect id="Rectangle-path" x="0.387755102" y="0" width="54.4" height="82.5"></rect>
+                        </g>
+                        <g id="Detail_1_" transform="translate(30.600000, 96.250000)" fill="#344E5F" sketch:type="MSShapeGroup">
+                            <g id="Group">
+                                <ellipse id="Oval" cx="3.4" cy="3.4375" rx="3.4" ry="3.4375"></ellipse>
+                            </g>
+                        </g>
+                    </g>
+                </g>
+            </g>
+            <circle id="Oval-33" stroke="#6692B1" stroke-width="3" sketch:type="MSShapeGroup" mask="url(#mask-2)" cx="96.5" cy="82.5" r="11.5"></circle>
+            <g id="Hand" sketch:type="MSLayerGroup" mask="url(#mask-2)">
+                <g transform="translate(90.000000, 79.000000)" sketch:type="MSShapeGroup">
+                    <path d="M47.627907,44.9742871 L47.627907,40.3700692 C47.627907,37.2812432 45.1181549,34.7658514 42.0222187,34.7658514 L38.3498743,34.7658514 C35.252176,34.7658514 32.744186,37.2749452 32.744186,40.3700692 L32.744186,44.9742871 L32,44.9742871 L32,103.44086 L51.4782609,103.44086 C51.4782609,103.44086 64,89.8504856 64,76.4255438 L64,44.9750693 L64,40.8708515 C64,38.6083357 62.1614835,36.7658514 59.8935585,36.7658514 L53.2227206,36.7658514 C50.9562433,36.7658514 49.1162791,38.6037226 49.1162791,40.8708515 L49.1162791,44.9742871 L47.627907,44.9742871 L47.627907,44.9742871 Z M0,7.45181613 C0,3.33629172 3.3401975,0 7.44186047,0 C11.5518865,0 14.8837209,3.32533103 14.8837209,7.45181613 L14.8837209,44.9742871 L0,44.9742871 L0,7.45181613 Z M16.372093,39.3700692 C16.372093,36.2749452 18.880083,33.7658514 21.9777813,33.7658514 L25.6501257,33.7658514 C28.7460618,33.7658514 31.255814,36.2812432 31.255814,39.3700692 L31.255814,44.9742871 L16.372093,44.9742871 L16.372093,39.3700692 Z M32,44.9742871 L0,44.9742871 L0,76.4255438 C0,89.8504856 12.5217391,103.44086 12.5217391,103.44086 L32,103.44086 L32,44.9742871 Z" id="Rectangle-62" fill="#FFFFFF"></path>
+                    <rect id="Rectangle-66" fill="#777777" x="0" y="103.44086" width="64" height="26.5591398"></rect>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

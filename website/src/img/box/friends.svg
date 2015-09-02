@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="200px" height="200px" viewBox="0 0 200 200" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">
+    <!-- Generator: Sketch 3.3.2 (12043) - http://www.bohemiancoding.com/sketch -->
+    <title>Home Pillars - Friends</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" sketch:type="MSPage">
+        <g id="Home-Pillars---Friends" sketch:type="MSArtboardGroup">
+            <circle id="Icon-Backgrond" fill="#70CBA1" sketch:type="MSShapeGroup" cx="100" cy="100" r="100"></circle>
+            <path d="M196.578766,126.029229 L133.691557,63.1420197 L61.9286275,134.904949 L124.100324,197.076646 C159.322454,188.361281 187.182925,160.977818 196.578766,126.029229 Z" id="Rectangle-84" fill="#72B596" sketch:type="MSShapeGroup"></path>
+            <g id="Globe" sketch:type="MSLayerGroup" transform="translate(43.000000, 44.000000)">
+                <ellipse id="Oval-51" stroke="#FFFFFF" stroke-width="2" fill="#70CBA1" sketch:type="MSShapeGroup" cx="56.7564103" cy="56.8047465" rx="50.1794872" ry="50.2222222"></ellipse>
+                <path d="M55.9850427,107.603955 C67.7417157,107.603955 76.8931624,84.7058543 76.8931624,56.5446962 C76.8931624,28.383538 67.7417157,5.48543689 55.9850427,5.48543689 C44.2283697,5.48543689 35.0769231,28.383538 35.0769231,56.5446962 C35.0769231,84.7058543 44.2283697,107.603955 55.9850427,107.603955 L55.9850427,107.603955 Z M55.9850427,105.929881 C45.5710233,105.929881 36.7495726,83.8574729 36.7495726,56.5446962 C36.7495726,29.2319194 45.5710233,7.15951097 55.9850427,7.15951097 C66.3990622,7.15951097 75.2205128,29.2319194 75.2205128,56.5446962 C75.2205128,83.8574729 66.3990622,105.929881 55.9850427,105.929881 L55.9850427,105.929881 Z" id="Shape" fill="#FFFFFF" sketch:type="MSShapeGroup"></path>
+                <path d="M107.512393,56.032722 C107.512393,44.2660366 84.6337765,35.1067961 56.4965812,35.1067961 C28.3593859,35.1067961 5.48076923,44.2660366 5.48076923,56.032722 C5.48076923,67.7994075 28.3593859,76.958648 56.4965812,76.958648 C84.6337765,76.958648 107.512393,67.7994075 107.512393,56.032722 L107.512393,56.032722 Z M105.839744,56.032722 C105.839744,66.4556105 83.7861169,75.2845739 56.4965812,75.2845739 C29.2070455,75.2845739 7.1534188,66.4556105 7.1534188,56.032722 C7.1534188,45.6098336 29.2070455,36.7808702 56.4965812,36.7808702 C83.7861169,36.7808702 105.839744,45.6098336 105.839744,56.032722 L105.839744,56.032722 Z" id="Shape" fill="#FFFFFF" sketch:type="MSShapeGroup"></path>
+                <path d="M55.5012108,57.223265 L7.83141026,57.223265 L6.57692308,57.223265 L6.57692308,55.5491909 L7.83141026,55.5491909 L55.5012108,55.5491909 L55.5012108,7.87939037 L55.5012108,6.62490319 L57.1752849,6.62490319 L57.1752849,7.87939037 L57.1752849,55.5491909 L104.845085,55.5491909 L106.099573,55.5491909 L106.099573,57.223265 L104.845085,57.223265 L57.1752849,57.223265 L57.1752849,104.893066 L57.1752849,106.147553 L55.5012108,106.147553 L55.5012108,104.893066 L55.5012108,57.223265 Z" id="Shape" fill="#FFFFFF" sketch:type="MSShapeGroup"></path>
+                <path d="M56.6048642,57.8368205 L22.897225,91.5444597 L22.0101686,92.4315161 L20.8264194,91.247767 L21.7134758,90.3607106 L55.4211151,56.6530714 L21.7134758,22.9454321 L20.8264194,22.0583757 L22.0101686,20.8746266 L22.897225,21.761683 L56.6048642,55.4693222 L90.3125034,21.761683 L91.1995598,20.8746266 L92.383309,22.0583757 L91.4962526,22.9454321 L57.7886133,56.6530714 L91.4962526,90.3607106 L92.383309,91.247767 L91.1995598,92.4315161 L90.3125034,91.5444597 L56.6048642,57.8368205 Z" id="Shape-Copy-2" fill="#FFFFFF" sketch:type="MSShapeGroup"></path>
+                <ellipse id="Oval-54" fill="#969696" sketch:type="MSShapeGroup" cx="20.1042735" cy="20.1213952" rx="5.8542735" ry="5.85925926"></ellipse>
+                <ellipse id="Oval-54-Copy" fill="#DCDCDC" sketch:type="MSShapeGroup" cx="56.2773504" cy="5.85925926" rx="5.8542735" ry="5.85925926"></ellipse>
+                <ellipse id="Oval-54-Copy-5" fill="#DCDCDC" sketch:type="MSShapeGroup" cx="56.8700855" cy="106.722222" rx="5.8542735" ry="5.85925926"></ellipse>
+                <ellipse id="Oval-54-Copy-2" fill="#969696" sketch:type="MSShapeGroup" cx="92.4504274" cy="20.1213952" rx="5.8542735" ry="5.85925926"></ellipse>
+                <ellipse id="Oval-54-Copy-8" fill="#FFFFFF" sketch:type="MSShapeGroup" cx="56.4519231" cy="56.5" rx="2.74038462" ry="2.74271845"></ellipse>
+                <ellipse id="Oval-54-Copy-3" fill="#DCDCDC" sketch:type="MSShapeGroup" cx="107.049573" cy="56.0814815" rx="5.8542735" ry="5.85925926"></ellipse>
+                <ellipse id="Oval-54-Copy-4" fill="#DCDCDC" sketch:type="MSShapeGroup" cx="5.8542735" cy="56.0814815" rx="5.8542735" ry="5.85925926"></ellipse>
+                <ellipse id="Oval-54-Copy-6" fill="#8E8E8E" sketch:type="MSShapeGroup" cx="20.1042735" cy="92.5291622" rx="5.8542735" ry="5.85925926"></ellipse>
+                <ellipse id="Oval-54-Copy-7" fill="#969696" sketch:type="MSShapeGroup" cx="91.9957265" cy="92.0740741" rx="5.8542735" ry="5.85925926"></ellipse>
+            </g>
+        </g>
+    </g>
+</svg>

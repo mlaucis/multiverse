@@ -1,0 +1,45 @@
+{
+  "author": "Tapglue Team",
+  "name": "tapglue-webiste",
+  "description": "Main ",
+  "homepage": "https://dashboard.tapglue.com",
+  "license": "ISC",
+  "main": "index.js",
+  "version": "0.1.0",
+  "bugs": {
+    "url": "https://github.com/tapglue/backend/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tapglue/backend.git"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "autoprefixer-core": "^5.2.1",
+    "browser-sync": "^2.8.1",
+    "css-loader": "^0.15.6",
+    "file-loader": "^0.8.4",
+    "gulp": "^3.9.0",
+    "gulp-eslint": "^0.15.0",
+    "gulp-load-plugins": "^0.10.0",
+    "gulp-util": "^3.0.6",
+    "jquery": "^1.11.2",
+    "jquery-uniform": "^1.7.5",
+    "jquery.cookie": "^1.4.1",
+    "less": "^2.5.1",
+    "less-loader": "^2.2.0",
+    "node-static": "^0.7.7",
+    "postcss-loader": "^0.5.1",
+    "style-loader": "^0.12.3",
+    "url-loader": "^0.5.6",
+    "webpack": "^1.10.5"
+  },
+  "scripts": {
+    "bundle": "gulp build",
+    "clean": "rm -rf build",
+    "lint": "gulp lint",
+    "serve": "gulp serve",
+    "test": "jest",
+    "watch": "gulp sync"
+  }
+}

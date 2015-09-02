@@ -1,0 +1,103 @@
+server {
+      listen 80;
+      server_name blog.tapglue.com blog-staging;
+
+    location / {
+      access_log off;
+      proxy_pass http://127.0.0.1:8080;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header Host $host;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+}
+
+server {
+    listen 80;
+
+    server_name www.tapglue.com tapglue.com website-staging.tapglue.com;
+
+    rewrite ^([^.]*[^/])$ $1/ permanent;
+
+    root /home/tapglue/releases/corporate/website/build;
+
+    index index.html;
+
+    location ~ "\.git(?:$|/|attributes$|ignore$|modules$)" {
+        return 404;
+    }
+
+    location ~* (.*)/(css|img|js|fonts)/(.*)$ {
+        try_files $uri /$2/$3 =404;
+    }
+
+    location /news-feed {
+        rewrite $(.*)$ /news-feed/ permanent;
+    }
+
+    location /newsfeed.html {
+        rewrite $(.*)$ /news-feed/ permanent;
+    }
+
+    location /news-feed/ {
+        try_files /newsfeed.html =404;
+    }
+
+    location /users.html {
+        rewrite $(.*)$ /user-profiles/ permanent;
+    }
+
+    location /user-profiles/ {
+        try_files /users.html =404;
+    }
+
+    location /social-graph {
+        rewrite $(.*)$ /social-graph/ permanent;
+    }
+
+    location /friends.html {
+        rewrite $(.*)$ /social-graph/ permanent;
+    }
+
+    location /social-graph/ {
+        try_files /friends.html =404;
+    }
+
+    location /about-us {
+        rewrite $(.*)$ /about-us/ permanent;
+    }
+
+    location /about.html {
+        rewrite $(.*)$ /about-us/ permanent;
+    }
+
+    location /about-us/ {
+        try_files /about.html =404;
+    }
+
+
+    location ^~ /blog {
+        proxy_pass http://127.0.0.1:8080;
+
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+        proxy_redirect off;
+    }
+
+    location ~ [^/]\.php(/|$) {
+        fastcgi_split_path_info ^(.+?\.php)(/.*)$;
+        if (!-f "/var/www/mailer/$fastcgi_script_name") {
+            return 404;
+        }
+
+        fastcgi_pass unix:/var/run/php5-fpm.sock;
+        fastcgi_index index.php;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME "/var/www/mailer/$fastcgi_script_name";
+    }
+
+    location / {
+        index index.html;
+    }
+}

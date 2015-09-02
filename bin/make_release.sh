@@ -19,13 +19,13 @@ then
         cp ${CWD}/terraform/nginx/corporate/styleguide ${CWD}/style/styleguide.nginx
         tarDir=${CWD}
         finalArtifactName=style
-    elif [ ${finalReleaseTarget} == "dashboard" ]
+    elif [ ${finalReleaseTarget} == "dashboard" ] || [ ${finalReleaseTarget} == "website" ]
     then
-        cd ${CWD}/dashboard
+        cd ${CWD}/${finalReleaseTarget}
         npm run clean
         npm run bundle
-        cp ${CWD}/terraform/nginx/corporate/dashboard ${CWD}/dashboard/build/dashboard.nginx
-        tarDir=${CWD}/dashboard
+        cp ${CWD}/terraform/nginx/corporate/${finalReleaseTarget} ${CWD}/${finalReleaseTarget}/build/${finalReleaseTarget}.nginx
+        tarDir=${CWD}/${finalReleaseTarget}
         finalArtifactName=build
     fi
 fi

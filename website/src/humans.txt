@@ -1,0 +1,15 @@
+# TEAM
+
+	Norman Wiese -- CEO -- @NormanWiese
+	Onur Akpolat -- CTO -- @onurakpolat
+	Florin Patan -- Senior Engineer -- @dlsniper
+
+# THANKS
+
+    	All our supporters.
+
+# TECHNOLOGY COLOPHON
+
+    	HTML5, CSS3
+    	React, jQuery, Modernizr
+	Go, Redis, Postgres, 

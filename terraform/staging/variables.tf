@@ -15,7 +15,7 @@ variable "ami_backend" {
 }
 
 variable "ami_corporate" {
-  default = "ami-3c08534b"
+  default = "ami-1f634468"
 }
 
 variable "ami_bastion" {

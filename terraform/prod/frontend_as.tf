@@ -58,6 +58,12 @@ resource "aws_autoscaling_group" "frontend" {
     value               = "prod"
     propagate_at_launch = true
   }
+
+  tag {
+    key                 = "Name"
+    value               = "frontend"
+    propagate_at_launch = true
+  }
 }
 
 # Policies

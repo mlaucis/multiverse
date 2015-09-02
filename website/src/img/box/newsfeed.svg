@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="200px" height="200px" viewBox="0 0 200 200" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">
+    <!-- Generator: Sketch 3.3.2 (12043) - http://www.bohemiancoding.com/sketch -->
+    <title>Home Pillars - News Feed</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" sketch:type="MSPage">
+        <g id="Home-Pillars---News-Feed" sketch:type="MSArtboardGroup">
+            <circle id="Icon-Backgrond" fill="#70CBA1" sketch:type="MSShapeGroup" cx="100" cy="100" r="100"></circle>
+            <path d="M199.550748,109.54108 L150.352002,60.3423339 L130.608451,75.6277146 L130.608451,75.6277146 L114.372204,59.3914675 L48.8395744,75.3162338 L69.7575213,96.2341807 L48.8395744,107.316234 L66.6598301,125.136489 L66.6598301,125.136489 L48.3230701,139.332738 L108.623675,199.633343 C156.666291,195.529801 195.015211,157.459152 199.550748,109.54108 Z" id="Rectangle-82" fill="#72B596" sketch:type="MSShapeGroup"></path>
+            <g id="Rectangle-72-+-Rectangle-72-Copy-+-Rectangle-72-Copy-2" sketch:type="MSLayerGroup" transform="translate(48.000000, 59.000000)" fill="#FFFFFF">
+                <rect id="Rectangle-72" sketch:type="MSShapeGroup" x="0" y="0" width="103.73248" height="17.4300003" rx="4"></rect>
+                <rect id="Rectangle-72-Copy" sketch:type="MSShapeGroup" x="0" y="32" width="103.73248" height="17.4300003" rx="4"></rect>
+                <rect id="Rectangle-72-Copy-2" sketch:type="MSShapeGroup" x="0" y="64.9585673" width="103.73248" height="17.4300003" rx="4"></rect>
+            </g>
+        </g>
+    </g>
+</svg>

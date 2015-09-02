@@ -19,7 +19,7 @@ logger -t ${INSTALLER_COMPONENT}_installer got INSTALLER_CAHNNEL: ${INSTALLER_CH
 
 mkdir -p ~/releases/${INSTALLER_COMPONENT}/
 
-declare -a INSTALLER_TARGETS=( "styleguide" "dashboard" )
+declare -a INSTALLER_TARGETS=( "styleguide" "dashboard" "website" )
 for INSTALLER_TARGET in "${INSTALLER_TARGETS[@]}"
 do
     cd ~/releases/${INSTALLER_COMPONENT}
@@ -30,7 +30,7 @@ do
     if [ "${INSTALLER_TARGET}" == "styleguide" ]
     then
         rm -rf style
-    elif [ "${INSTALLER_TARGET}" == "dashboard" ]
+    elif [ "${INSTALLER_TARGET}" == "dashboard" ] || [ "${INSTALLER_TARGET}" == "website" ]
     then
         rm -rf build
     fi
@@ -45,7 +45,7 @@ do
     if [ "${INSTALLER_TARGET}" == "styleguide" ]
     then
         DIR="style"
-    elif [ "${INSTALLER_TARGET}" == "dashboard" ]
+    elif [ "${INSTALLER_TARGET}" == "dashboard" ] || [ "${INSTALLER_TARGET}" == "website" ]
     then
         DIR="build"
     fi
@@ -59,6 +59,10 @@ do
     rm -f ${INSTALLER_COMPONENT}_${INSTALLER_TARGET}.${releaseVersion}.tar.gz
 
 done
+
+# start the blog
+cd /var/www/blog
+npm start --production 2>&1 | logger &
 
 # Once everything is done we can start nginx again
 sudo service nginx start
