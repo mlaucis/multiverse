@@ -31,7 +31,6 @@ test:
     - cd dashboard && npm run test
   post:
     - ./bin/process_coverage.sh
-    - ./bin/make_release.sh corporate website
 deployment:
   s3:
     branch: master
@@ -42,3 +41,4 @@ deployment:
       - ./bin/make_release.sh distributor postgres
       - ./bin/make_release.sh corporate styleguide
       - ./bin/make_release.sh corporate dashboard
+      - ./bin/make_release.sh corporate website
