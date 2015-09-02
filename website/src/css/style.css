@@ -1273,7 +1273,7 @@ body.landing #header .submenu li {
 }
 #banner .inner {
   background: url('../img/banner/screens.png') no-repeat bottom right;
-  background-size: 45%;
+  background-size: 60rem;
   padding: 25rem 0 20rem 0;
 }
 
@@ -1306,8 +1306,8 @@ body.landing #header .submenu li {
 
 /* Network */
 #mission {
-  background: url('../img/mission/network.png') no-repeat top right;
-  background-size: 30%;
+  background: url('../img/mission/network.png') no-repeat bottom right;
+  background-size: 40rem;
   padding: 15.5rem 0;
 }
 
@@ -1390,7 +1390,7 @@ body.landing #header .submenu li {
 
 #benefits .content {
   background: url('../img/benefits/feed.png') no-repeat bottom right;
-  background-size: 35%;
+  background-size: 40rem;
   margin: 0 auto;
   padding: 10rem 0rem;
   width: 120rem;
@@ -1532,7 +1532,7 @@ body.landing #header .submenu li {
 
 #newsletter {
   background: url('../img/newsletter/background.png') no-repeat right center;
-  background-size: 45%;
+  background-size: 55rem;
   margin: 0 auto;
   padding: 7.5rem 0;
   width: 120rem
