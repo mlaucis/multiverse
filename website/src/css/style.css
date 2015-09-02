@@ -1682,6 +1682,7 @@ body.landing #header .submenu li {
 #footer li {
   color: rgba(255, 255, 255, 0.4);
   font-size: 1.6rem;
+  margin-bottom: 2rem;
   transition: 0.15s all ease;
 }
 #footer a:hover {
