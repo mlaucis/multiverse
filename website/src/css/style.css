@@ -1240,11 +1240,9 @@ body.landing #header .submenu li {
 
 #banner {
   background:
-    url('../img/banner/screens.png') no-repeat bottom right,
     linear-gradient(180deg, rgb(90, 125, 135), rgb(113, 221, 173)),
     rgb(114, 224, 174);
   color: #ffffff;
-  padding: 25rem 0 20rem 0;
 }
 #banner:last-child {
     margin-bottom: 0;
@@ -1269,6 +1267,11 @@ body.landing #header .submenu li {
 #banner .content {
   margin: 0 auto;
   max-width: 120rem;
+}
+#banner .inner {
+  background: url('../img/banner/screens.png') no-repeat bottom right;
+  background-size: 45%;
+  padding: 25rem 0 20rem 0;
 }
 
 /* Bannergreen */
@@ -1452,7 +1455,7 @@ body.landing #header .submenu li {
 }
 
 #testimonial .potrait.inactive {
-  opacity: 0.6;
+  opacity: 0.4;
 }
 
 #testimonial .statement h5 {
