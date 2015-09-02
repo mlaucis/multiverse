@@ -22,12 +22,12 @@ test:
     - mkdir -p /home/ubuntu/.go_workspace/src/github.com/tapglue
     - ln -nfs /home/ubuntu/backend /home/ubuntu/.go_workspace/src/github.com/tapglue/backend
     - ./bin/test_configs.sh intaker
+    - cd dashboard && npm run lint
   override:
     - ./bin/run_tests.sh intaker postgres
     - ./bin/run_tests.sh intaker redis
     - ./bin/run_tests.sh intaker kinesis
     - ./bin/run_tests.sh distributor postgres
-    - cd dashboard && npm run lint
     - cd dashboard && npm run test
   post:
     - ./bin/process_coverage.sh
