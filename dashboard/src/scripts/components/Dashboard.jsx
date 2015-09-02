@@ -194,6 +194,8 @@ export default class Dashboard extends Component {
     this.setState(this.getState())
   }
   render() {
+    let reasonHref = 'http://www.tapglue.com/blog/' +
+      'why-your-mobile-app-needs-a-social-activity-feed/'
     let app = this.state.app ? (
       <TestingApp app={this.state.app}/>
     ) : (
@@ -239,7 +241,7 @@ export default class Dashboard extends Component {
                 title='How to solve the Empty Room Problem'/>
               <ProductResource
                 category='blogpost'
-                link='http://www.tapglue.com/blog/why-your-mobile-app-needs-a-social-activity-feed/'
+                link={reasonHref}
                 title='7 Reasons Why Your App Needs an Activity Feed'/>
             </div>
           </div>
