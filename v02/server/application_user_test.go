@@ -202,7 +202,7 @@ func (s *ApplicationUserSuite) TestCreateAndLoginExistingUser_OK(c *C) {
 	}{}
 	er := json.Unmarshal([]byte(body), receivedUser)
 	c.Assert(er, IsNil)
-	c.Assert(receivedUser.ID, Not(Equals), 0)
+	c.Assert(receivedUser.ID, Equals, user.ID)
 	c.Assert(receivedUser.Username, Equals, user.Username)
 	c.Assert(receivedUser.SessionToken, Not(Equals), "")
 }

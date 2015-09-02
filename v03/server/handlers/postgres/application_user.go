@@ -225,7 +225,7 @@ func (appUser *applicationUser) Login(ctx *context.Context) (err []errors.Error)
 		}
 	}
 
-	if user == nil || !user.Enabled {
+	if user == nil || !user.Enabled || user.Deleted == entity.PFalse {
 		return []errors.Error{errmsg.ErrApplicationUserNotFound}
 	}
 
