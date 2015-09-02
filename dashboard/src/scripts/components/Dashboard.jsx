@@ -209,15 +209,15 @@ export default class Dashboard extends Component {
           <div className='resources'>
             <IntegrationResource
               icon='file'
-              link='#'
+              link='https://developers.tapglue.com'
               name='API Docs'/>
             <IntegrationResource
               icon='file'
-              link='#'
+              link='https://developers.tapglue.com/page/ios-guide'
               name='iOS Guide'/>
             <IntegrationResource
               icon='file'
-              link='#'
+              link='https://github.com/tapglue/ios_sdk#tapglue-ios-sdk'
               name='iOS SDK'/>
           </div>
         </div>
@@ -235,11 +235,11 @@ export default class Dashboard extends Component {
                 title='Launching a Social Activity Feed'/>
               <ProductResource
                 category='blogpost'
-                link='#'
+                link='http://www.tapglue.com/blog/empty-room-problem/'
                 title='How to solve the Empty Room Problem'/>
               <ProductResource
                 category='blogpost'
-                link='#'
+                link='http://www.tapglue.com/blog/why-your-mobile-app-needs-a-social-activity-feed/'
                 title='7 Reasons Why Your App Needs an Activity Feed'/>
             </div>
           </div>

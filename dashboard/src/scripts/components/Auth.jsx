@@ -9,20 +9,21 @@ export default class Auth extends Component {
   render() {
     return (
       <section className='auth'>
-        <header>
-        <div className='logo'>
-          <Logo/>
+        <div className='inner'>
+          <header>
+            <div className='logo'>
+              <Logo/>
+            </div>
+            <nav>
+              <ul>
+                <li><a href='//developers.tapglue.com'>Docs</a></li>
+                <li><a href='//tapglue.com/blog'>Blog</a></li>
+                <li><a href='//tapglue.com/about-us'>About Us</a></li>
+              </ul>
+            </nav>
+          </header>
+          <RouteHandler/>
         </div>
-        <nav>
-          <ul>
-            <li><a href='#'>Product</a></li>
-            <li><a href='#'>Docs</a></li>
-            <li><a href='#'>Blog</a></li>
-            <li><a href='#'>About Us</a></li>
-          </ul>
-        </nav>
-        </header>
-        <RouteHandler/>
       </section>
     )
   }
