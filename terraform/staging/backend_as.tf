@@ -54,6 +54,12 @@ resource "aws_autoscaling_group" "backend" {
     value               = "beta"
     propagate_at_launch = true
   }
+
+  tag {
+    key                 = "Name"
+    value               = "backend"
+    propagate_at_launch = true
+  }
 }
 
 # Policies

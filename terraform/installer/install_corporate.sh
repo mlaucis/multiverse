@@ -60,5 +60,9 @@ do
 
 done
 
+# start the blog
+cd /var/www/blog
+npm start --production 2>&1 | logger &
+
 # Once everything is done we can start nginx again
 sudo service nginx start
