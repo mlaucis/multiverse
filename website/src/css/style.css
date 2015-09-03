@@ -3379,17 +3379,16 @@ div.pricing {
 div.pricing h3 {
   color: rgb(63, 91, 96);
   font-size: 2.4rem;
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 2rem 0;
 }
 
 div.pricing h4 {
   color: rgba(106, 106, 106, 1);
-  margin: 1.4em 0 -1.4em 0;
 }
 
 div.pricing p {
     font-weight: 300;
-    font-size: 1.6rem;
+    font-size: 1.8rem;
     line-height: 2rem;
     margin: 0 0 2rem 0;
 }
@@ -3402,7 +3401,8 @@ div.pricing p {
 }
 
 .center {
-  margin: 0 auto 2rem auto;
+  margin: 2rem auto;
+  text-align: left;
   width: 90%;
 }
 
@@ -3411,9 +3411,9 @@ div.pricing p {
 }
 
 .pricingFeatureIcon {
-    font-size: 1.2em;
     color: rgba(161,211,169,1);
-    margin: 0 .8em;
+    font-size: 1.4rem;
+    margin: 0 1rem 0 0;
     vertical-align: middle;
 }
 
@@ -3463,9 +3463,8 @@ div.pricing .btn-alert {
 /* Tooltip */
 
 .tooltip {
-    color: rgba(192,192,192,0.5);
-    font-weight: 300;
-    margin-left: .4em;
+  color: rgba(192,192,192,0.5);
+  font-weight: 300;
 }
 
 .tooltip:hover {
@@ -3474,11 +3473,13 @@ div.pricing .btn-alert {
 
 .comingsoon {
   margin: 3rem 0;
+  text-align: left;
 }
-.comingsoon h4 {
-    color: rgba(192,192,192,1);
-    font-size: 1.6rem;
-    font-weight: 300;
+
+div.pricing section.plan h4 {
+  color: rgba(192,192,192,1);
+  font-size: 1.6rem;
+  font-weight: 300;
 }
 
 /* Add this attribute to the element that needs a tooltip */
