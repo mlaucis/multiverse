@@ -11,7 +11,7 @@
 		breakpoints: {
 			global: {
 				href: 'css/style.css',
-				containers: 1400,
+				containers: 1200,
 				grid: { gutters: ['4em', 0] }
 			},
 			xlarge: {
