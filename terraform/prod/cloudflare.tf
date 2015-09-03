@@ -21,7 +21,7 @@ resource "cloudflare_record" "website-prod" {
 
 resource "cloudflare_record" "dashboard-prod" {
   domain = "${var.cloudflare_domain}"
-  name = "dashboard-prod"
+  name = "dashboard"
   value = "${aws_elb.corporate.dns_name}"
   type = "CNAME"
   ttl = 1
@@ -29,7 +29,7 @@ resource "cloudflare_record" "dashboard-prod" {
 
 resource "cloudflare_record" "styleguide-prod" {
   domain = "${var.cloudflare_domain}"
-  name = "styleguide-prod"
+  name = "styleguide"
   value = "${aws_elb.corporate.dns_name}"
   type = "CNAME"
   ttl = 1

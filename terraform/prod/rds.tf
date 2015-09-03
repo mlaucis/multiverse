@@ -122,7 +122,7 @@ resource "aws_db_instance" "master" {
 resource "aws_db_instance" "slave1" {
   identifier              = "slave1"
   # change this to io1 if you want to use provisioned iops for production
-  storage_type            = "gp2"
+  storage_type            = "standard"
   #iops = 3000 # this should give us a boost in performance for production
   allocated_storage       = "10"
   engine                  = "postgres"

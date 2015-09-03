@@ -15,7 +15,7 @@ variable "ami_backend" {
 }
 
 variable "ami_corporate" {
-  default = "ami-90e5e38d"
+  default = "ami-aa3031b7"
 }
 
 variable "ami_bastion" {
@@ -23,7 +23,7 @@ variable "ami_bastion" {
 }
 
 variable "ami_nat" {
-  default = "ami-cb7de3bc"
+  default = "ami-1e073a03"
 }
 
 variable "zone-a" {
@@ -47,7 +47,7 @@ variable "bastion-size" {
 }
 
 variable "nat-size" {
-  default = "m1.small"
+  default = "t2.small"
 }
 
 variable "iam_profile_backend" {

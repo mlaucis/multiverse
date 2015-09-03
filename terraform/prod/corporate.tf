@@ -139,7 +139,7 @@ resource "aws_security_group" "corporate-elb-vpc" {
 
 # ELB
 resource "aws_elb" "corporate" {
-  name                        = "corporate"
+  name                        = "corporate-prod"
   cross_zone_load_balancing   = true
   idle_timeout                = 300
   connection_draining         = true
