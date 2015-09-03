@@ -3373,7 +3373,7 @@ body.pricing {
 }
 
 div.pricing {
-  margin: 0 0 5rem 0;
+  margin-bottom: 5rem;
 }
 
 div.pricing h3 {
@@ -3400,14 +3400,15 @@ div.pricing p {
     text-align: left;
 }
 
-.center {
+div.pricing .center {
   margin: 2rem auto;
   text-align: left;
-  width: 90%;
+  width: 75%;
 }
 
-.growth .center {
-  width: 70%;
+div.pricing .center p {
+  margin: 2rem 0 4rem 0;
+  text-align: left;
 }
 
 .pricingFeatureIcon {
@@ -3445,15 +3446,15 @@ div.pricing p {
     margin-left: -4em;
 }
 
-div.pricing section.plan {
+div.pricing .plan {
   background: #fff;
   border: 0.2rem solid rgba(228, 228, 228, 1);
   border-radius: 0.3rem;
-  padding: 2rem 0rem 4rem 0rem;
+  padding: 2rem 0rem;
 }
 
-div.pricing section.tier {
-  min-height: 65rem;
+div.pricing .tier {
+  min-height: 62rem;
 }
 
 div.pricing .btn-alert {
@@ -3476,7 +3477,7 @@ div.pricing .btn-alert {
   text-align: left;
 }
 
-div.pricing section.plan h4 {
+div.pricing .plan h4 {
   color: rgba(192,192,192,1);
   font-size: 1.6rem;
   font-weight: 300;
