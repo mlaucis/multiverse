@@ -3450,11 +3450,12 @@ div.pricing .plan {
   background: #fff;
   border: 0.2rem solid rgba(228, 228, 228, 1);
   border-radius: 0.3rem;
-  padding: 2rem 0rem;
+  padding: 2rem 0rem 4rem 0rem;
 }
 
 div.pricing .tier {
   min-height: 62rem;
+  padding-bottom: 2rem;
 }
 
 div.pricing .btn-alert {
