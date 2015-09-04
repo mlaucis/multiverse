@@ -3397,25 +3397,51 @@ div.pricing p {
     margin: 0;
 }
 
-.pricingFeature {
-    display: block;
-    font-size: 1.6rem;
-    margin: 1rem 0;
-    text-align: left;
+a.pricingFeature {
+  font-size: 1.6rem;
+  margin: 1rem 0;
 }
 
-.pricingFeature a:hover {
+a.pricingFeature:hover {
   text-decoration: none;
 }
 
-div.pricing .center {
+div.pricing .features {
+  display: inline-block;
+  list-style-type: none;
   margin: 3rem auto;
   text-align: left;
-  width: 75%;
+}
+
+div.pricing .features:last-of-type {
+  margin: 0 auto;
+}
+
+div.pricing .features li:not(:last-of-type) {
+  margin-bottom: 1rem;
 }
 
 div.pricing .center p {
   margin: 2rem 0 4rem 0;
+  text-align: left;
+}
+
+div.pricing .feature .vertical {
+  align-items: center;
+  display: flex;
+}
+
+div.pricing .feature .features {
+  display: block;
+  margin: 0;
+  padding: 0;
+}
+
+div.pricing .feature p {
+  margin: 0;
+}
+
+div.pricing .feature .left {
   text-align: left;
 }
 
@@ -3468,11 +3494,15 @@ div.pricing .plan.feature {
   padding: 4rem 0 2rem 0;
 }
 div.pricing .plan.feature h3 {
-  margin: 1.5rem 0 2rem 0;
+  margin: 0;
 }
 div.pricing .plan.feature section:nth-child(2) p {
   margin-bottom: 2rem;
   text-align: left;
+}
+
+div.pricing .plan.feature.free section p {
+  margin: 0;
 }
 
 div.pricing .plan {
