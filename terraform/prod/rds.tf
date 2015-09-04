@@ -117,12 +117,12 @@ resource "aws_db_instance" "master" {
   backup_window           = "04:00-04:30"
   maintenance_window      = "sat:05:00-sat:06:30"
 }
-/**/
+/** /
 # Database slaves
 resource "aws_db_instance" "slave1" {
   identifier              = "slave1"
   # change this to io1 if you want to use provisioned iops for production
-  storage_type            = "standard"
+  storage_type            = "gp2"
   #iops = 3000 # this should give us a boost in performance for production
   allocated_storage       = "10"
   engine                  = "postgres"
@@ -133,7 +133,7 @@ resource "aws_db_instance" "slave1" {
   name                    = "${var.rds_db_name}"
   username                = "${var.rds_username}"
   password                = "${var.rds_password}"
-  multi_az                = false # this should be true for production
+  multi_az                = false
   publicly_accessible     = false
   replicate_source_db     = "${aws_db_instance.master.identifier}"
   vpc_security_group_ids  = [

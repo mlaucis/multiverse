@@ -133,7 +133,7 @@ resource "aws_db_instance" "slave1" {
   name                    = "${var.rds_db_name}"
   username                = "${var.rds_username}"
   password                = "${var.rds_password}"
-  multi_az                = false # this should be true for production
+  multi_az                = false
   publicly_accessible     = false
   replicate_source_db     = "${aws_db_instance.master.identifier}"
   vpc_security_group_ids  = [
