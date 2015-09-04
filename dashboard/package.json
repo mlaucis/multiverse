@@ -39,6 +39,7 @@
     "gulp-eslint": "^0.15.0",
     "gulp-load-plugins": "^0.10.0",
     "gulp-util": "^3.0.6",
+    "html-webpack-plugin": "^1.6.1",
     "jest-cli": "^0.4.15",
     "jquery": "^1.11.2",
     "jquery-uniform": "^1.7.5",

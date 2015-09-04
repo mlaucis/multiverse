@@ -1,6 +1,7 @@
 'use strict'
 
 var path = require('path')
+var HtmlWebpackPlugin = require('html-webpack-plugin')
 
 module.exports = {
   bail: false,
@@ -9,8 +10,7 @@ module.exports = {
   debug: true,
   devtool: '#inline-source-map',
   entry: {
-    javascript: './scripts/Main.jsx',
-    html: './index.html'
+    javascript: './scripts/Main.jsx'
   },
   module: {
     loaders: [
@@ -71,6 +71,12 @@ module.exports = {
     publicPath: './',
     sourcePrefix: ' '
   },
+  plugins: [
+    new HtmlWebpackPlugin({
+      segmentKey: 'rSmARbqP6YYZvT5VBEG5W7SykB1hDxJm',
+      template: './src/index.html'
+    })
+  ],
   resolve: {
     extensions: [ '', '.js', '.jsx' ]
   },

@@ -3,6 +3,7 @@
 var autoprefixer = require('autoprefixer-core');
 var path = require('path');
 var webpack = require('webpack');
+var HtmlWebpackPlugin = require('html-webpack-plugin')
 
 module.exports = {
   bail: false,
@@ -71,14 +72,20 @@ module.exports = {
     publicPath: './',
     sourcePrefix: ' '
   },
-  plugins: [new webpack.optimize.UglifyJsPlugin({
-    compress: {
-      warnings: false
-    },
-    mangle: true,
-    minimize: true,
-    sourceMap: false
-  })],
+  plugins: [
+    new HtmlWebpackPlugin({
+      segmentKey: 'New9ADhDv3J4ipQ3OrfsoWo9DMlVCIxO',
+      template: './src/index.html'
+    }),
+    new webpack.optimize.UglifyJsPlugin({
+      compress: {
+        warnings: false
+      },
+      mangle: true,
+      minimize: true,
+      sourceMap: false
+    })
+  ],
   postcss: [
     autoprefixer({
       browsers: ['last 2 versions']
