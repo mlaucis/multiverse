@@ -3420,15 +3420,15 @@ div.pricing .center p {
 }
 
 .pricingFeatureIcon {
-    color: rgba(161,211,169,1);
-    font-size: 1.4rem;
-    margin: 0 1rem 0 0;
-    vertical-align: middle;
+  color: rgba(161,211,169,1);
+  font-size: 1.6rem;
+  margin: 0 1rem 0 0;
+  vertical-align: middle;
+  width: 1.6rem;
 }
 
 .pricingNA {
-    color: rgba(192,192,192,1);
-    font-weight: 300;
+  color: rgba(192,192,192,1);
 }
 
 .pricingNA a {
@@ -3436,12 +3436,14 @@ div.pricing .center p {
 }
 
 .pricingNASoon {
-    color: rgba(192,192,192,1);
-    font-weight: 400;
+  color: rgba(192,192,192,1);
+  font-weight: 400;
+  opacity: 0;
 }
 
 .pricingNASoon a {
   color: rgba(192,192,192,1);
+  cursor: default;
 }
 
 .price {
@@ -3462,6 +3464,17 @@ div.pricing .center p {
     margin-left: -4em;
 }
 
+div.pricing .plan.feature {
+  padding: 4rem 0 2rem 0;
+}
+div.pricing .plan.feature h3 {
+  margin: 1.5rem 0 2rem 0;
+}
+div.pricing .plan.feature section:nth-child(2) p {
+  margin-bottom: 2rem;
+  text-align: left;
+}
+
 div.pricing .plan {
   background: #fff;
   border: 0.2rem solid rgba(228, 228, 228, 1);
@@ -3475,6 +3488,10 @@ div.pricing .plan .row {
 
 div.pricing .btn-alert {
   display: inline-block;
+}
+
+.comingsoon .pricingFeature a {
+  color: rgba(192,192,192,1);
 }
 
 /* Tooltip */
