@@ -161,6 +161,9 @@ func (au *applicationUser) Update(accountID, applicationID int64, existingUser, 
 	}
 	timeNow := time.Now()
 	updatedUser.UpdatedAt = &timeNow
+	if updatedUser.Deleted == nil {
+		updatedUser.Deleted = entity.PFalse
+	}
 
 	userJSON, err := json.Marshal(updatedUser)
 	if err != nil {

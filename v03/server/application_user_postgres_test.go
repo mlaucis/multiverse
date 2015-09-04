@@ -489,3 +489,104 @@ func (s *ApplicationUserSuite) TestDeleteOnEventsOnUserDeleteWorks(c *C) {
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusNoContent)
 }
+
+func (s *ApplicationUserSuite) TestCreateAndLoginExistingUserTwice_OK(c *C) {
+	accounts := CorrectDeploy(1, 0, 1, 0, 0, false, false)
+	application := accounts[0].Applications[0]
+
+	user := CorrectUser()
+
+	payload := fmt.Sprintf(
+		`{"user_name": %q, "first_name": %q, "last_name": %q,  "email": %q,  "url": %q,  "password": %q}`,
+		user.Username,
+		user.FirstName,
+		user.LastName,
+		user.Email,
+		user.URL,
+		user.Password,
+	)
+
+	routeName := "createApplicationUser"
+	route := getComposedRoute(routeName)
+	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, nil, true, true))
+	c.Assert(err, IsNil)
+
+	c.Assert(code, Equals, http.StatusCreated)
+
+	c.Assert(body, Not(Equals), "")
+
+	receivedUser := &struct {
+		entity.ApplicationUser
+		SessionToken string `json:"session_token"`
+	}{}
+	er := json.Unmarshal([]byte(body), receivedUser)
+	c.Assert(er, IsNil)
+	c.Assert(receivedUser.ID, Not(Equals), 0)
+	c.Assert(receivedUser.Username, Equals, user.Username)
+	c.Assert(receivedUser.SessionToken, Not(Equals), "")
+
+	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, nil, true, true))
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusCreated)
+	c.Assert(body, Not(Equals), "")
+
+	receivedUser1 := &struct {
+		entity.ApplicationUser
+		SessionToken string `json:"session_token"`
+	}{}
+	er = json.Unmarshal([]byte(body), receivedUser1)
+	c.Assert(er, IsNil)
+	c.Assert(receivedUser1.ID, Equals, receivedUser.ID)
+	c.Assert(receivedUser1.Username, Equals, receivedUser.Username)
+	c.Assert(receivedUser1.SessionToken, Not(Equals), "")
+}
+
+func (s *ApplicationUserSuite) TestCreateAndLoginExistingUserTwiceDifferentPasswordFails(c *C) {
+	accounts := CorrectDeploy(1, 0, 1, 0, 0, false, false)
+	application := accounts[0].Applications[0]
+
+	user := CorrectUser()
+
+	payload := fmt.Sprintf(
+		`{"user_name": %q, "first_name": %q, "last_name": %q,  "email": %q,  "url": %q,  "password": %q}`,
+		user.Username,
+		user.FirstName,
+		user.LastName,
+		user.Email,
+		user.URL,
+		user.Password,
+	)
+
+	routeName := "createApplicationUser"
+	route := getComposedRoute(routeName)
+	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, nil, true, true))
+	c.Assert(err, IsNil)
+
+	c.Assert(code, Equals, http.StatusCreated)
+
+	c.Assert(body, Not(Equals), "")
+
+	receivedUser := &struct {
+		entity.ApplicationUser
+		SessionToken string `json:"session_token"`
+	}{}
+	er := json.Unmarshal([]byte(body), receivedUser)
+	c.Assert(er, IsNil)
+	c.Assert(receivedUser.ID, Not(Equals), 0)
+	c.Assert(receivedUser.Username, Equals, user.Username)
+	c.Assert(receivedUser.SessionToken, Not(Equals), "")
+
+	payload = fmt.Sprintf(
+		`{"user_name": %q, "first_name": %q, "last_name": %q,  "email": %q,  "url": %q,  "password": %q}`,
+		user.Username,
+		user.FirstName,
+		user.LastName,
+		user.Email,
+		user.URL,
+		user.Password+"as",
+	)
+
+	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, nil, true, true))
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusBadRequest)
+}

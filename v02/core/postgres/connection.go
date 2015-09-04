@@ -32,7 +32,7 @@ const (
 	followersQuery                     = `SELECT json_data FROM app_%d_%d.connections WHERE json_data @> json_build_object('user_to_id', $1::BIGINT, 'type', 'follow', 'enabled', TRUE)::JSONB`
 	friendConnectionsQuery             = `SELECT json_data FROM app_%d_%d.connections WHERE json_data @> json_build_object('user_to_id', $1::BIGINT, 'type', 'friend', 'enabled', TRUE)::JSONB`
 	friendAndFollowingConnectionsQuery = `SELECT json_data FROM app_%d_%d.connections WHERE json_data @> json_build_object('user_from_id', $1::BIGINT, 'enabled', TRUE)::JSONB`
-	listUsersBySocialIDQuery           = `SELECT json_data FROM app_%d_%d.users WHERE json_data @> '{"enabled": true, "deleted": false}' AND (%s)`
+	listUsersBySocialIDQuery           = `SELECT json_data FROM app_%d_%d.users WHERE json_data @> '{"enabled": true}' AND (%s)`
 
 	getUsersRelationQuery = `SELECT
   json_data ->> 'user_from_id' AS "from",
