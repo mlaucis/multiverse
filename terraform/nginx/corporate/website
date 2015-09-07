@@ -30,11 +30,11 @@ server {
         try_files $uri /$2/$3 =404;
     }
 
-    location /news-feed {
+    location /newsfeed.html {
         rewrite $(.*)$ /news-feed/ permanent;
     }
 
-    location /newsfeed.html {
+    location /news-feed {
         rewrite $(.*)$ /news-feed/ permanent;
     }
 
@@ -43,30 +43,34 @@ server {
     }
 
     location /users.html {
-        rewrite $(.*)$ /user-profiles/ permanent;
+        rewrite $(.*)$ /users/ permanent;
     }
 
-    location /user-profiles/ {
+    location /users {
+        rewrite $(.*)$ /users/ permanent;
+    }
+
+    location /users/ {
         try_files /users.html =404;
     }
 
-    location /social-graph {
-        rewrite $(.*)$ /social-graph/ permanent;
+    location /connections.html {
+        rewrite $(.*)$ /connections/ permanent;
     }
 
-    location /friends.html {
-        rewrite $(.*)$ /social-graph/ permanent;
+    location /connections {
+        rewrite $(.*)$ /connections/ permanent;
     }
 
-    location /social-graph/ {
-        try_files /friends.html =404;
-    }
-
-    location /about-us {
-        rewrite $(.*)$ /about-us/ permanent;
+    location /connections/ {
+        try_files /connections.html =404;
     }
 
     location /about.html {
+        rewrite $(.*)$ /about-us/ permanent;
+    }
+
+    location /about-us {
         rewrite $(.*)$ /about-us/ permanent;
     }
 
@@ -79,6 +83,10 @@ server {
     }
 
     location /pricing {
+        rewrite $(.*)$ /pricing/ permanent;
+    }
+
+    location /pricing/ {
         try_files /pricing.html =404;
     }
 
