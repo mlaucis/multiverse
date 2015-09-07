@@ -7,7 +7,7 @@
   cursor: pointer;
   font-size: 1.4rem;
   font-weight: 400;
-  padding: 0.8em 3em;
+  padding: 1.1em 3em;
   text-transform: uppercase;
   transition: all 0.15s ease;
 }
@@ -26,18 +26,11 @@
 .btn-alert:hover {
   background: #f86578;
   color: #fff;
-  text-decoration: none;
 }
 .btn-alert.block {
   display: block;
   padding: 1.2rem 4rem;
   width: 100%;
-}
-.btn-alert.dimmed {
-  background: rgba(247, 77, 98, 0.6);
-}
-.btn-alert.dimmed:hover {
-  background: #f74d62;
 }
 .btn-alert.outline {
   background: transparent;
@@ -57,7 +50,7 @@
 }
 .btn-alert.small {
   font-size: 1rem;
-  padding: 0.8em 1.4em 0.7em 1.4em;
+  padding: 0.8rem 1.4rem 0.7rem 1.4rem;
 }
 .btn-alert .sub {
   font-weight: 300;
@@ -72,7 +65,7 @@
   cursor: pointer;
   font-size: 1.4rem;
   font-weight: 400;
-  padding: 0.8em 3em;
+  padding: 1.1em 3em;
   text-transform: uppercase;
   transition: all 0.15s ease;
 }
@@ -91,18 +84,11 @@
 .btn-close:hover {
   background: #9d9d9d;
   color: #fff;
-  text-decoration: none;
 }
 .btn-close.block {
   display: block;
   padding: 1.2rem 4rem;
   width: 100%;
-}
-.btn-close.dimmed {
-  background: rgba(144, 144, 144, 0.6);
-}
-.btn-close.dimmed:hover {
-  background: #909090;
 }
 .btn-close.outline {
   background: transparent;
@@ -122,7 +108,7 @@
 }
 .btn-close.small {
   font-size: 1rem;
-  padding: 0.8em 1.4em 0.7em 1.4em;
+  padding: 0.8rem 1.4rem 0.7rem 1.4rem;
 }
 .btn-close .sub {
   font-weight: 300;
@@ -137,7 +123,7 @@
   cursor: pointer;
   font-size: 1.4rem;
   font-weight: 400;
-  padding: 0.8em 3em;
+  padding: 1.1em 3em;
   text-transform: uppercase;
   transition: all 0.15s ease;
 }
@@ -156,18 +142,11 @@
 .btn-default:hover {
   background: #496a6f;
   color: #fff;
-  text-decoration: none;
 }
 .btn-default.block {
   display: block;
   padding: 1.2rem 4rem;
   width: 100%;
-}
-.btn-default.dimmed {
-  background: rgba(63, 91, 96, 0.6);
-}
-.btn-default.dimmed:hover {
-  background: #3f5b60;
 }
 .btn-default.outline {
   background: transparent;
@@ -187,7 +166,7 @@
 }
 .btn-default.small {
   font-size: 1rem;
-  padding: 0.8em 1.4em 0.7em 1.4em;
+  padding: 0.8rem 1.4rem 0.7rem 1.4rem;
 }
 .btn-default .sub {
   font-weight: 300;
@@ -202,7 +181,7 @@
   cursor: pointer;
   font-size: 1.4rem;
   font-weight: 400;
-  padding: 0.8em 3em;
+  padding: 1.1em 3em;
   text-transform: uppercase;
   transition: all 0.15s ease;
 }
@@ -221,18 +200,11 @@
 .btn-secondary:hover {
   background: #eef2f3;
   color: #fff;
-  text-decoration: none;
 }
 .btn-secondary.block {
   display: block;
   padding: 1.2rem 4rem;
   width: 100%;
-}
-.btn-secondary.dimmed {
-  background: rgba(223, 230, 233, 0.6);
-}
-.btn-secondary.dimmed:hover {
-  background: #dfe6e9;
 }
 .btn-secondary.outline {
   background: transparent;
@@ -252,7 +224,7 @@
 }
 .btn-secondary.small {
   font-size: 1rem;
-  padding: 0.8em 1.4em 0.7em 1.4em;
+  padding: 0.8rem 1.4rem 0.7rem 1.4rem;
 }
 .btn-secondary .sub {
   font-weight: 300;
@@ -267,7 +239,7 @@
   cursor: pointer;
   font-size: 1.4rem;
   font-weight: 400;
-  padding: 0.8em 3em;
+  padding: 1.1em 3em;
   text-transform: uppercase;
   transition: all 0.15s ease;
 }
@@ -286,18 +258,11 @@
 .btn-success:hover {
   background: #87e5ba;
   color: #fff;
-  text-decoration: none;
 }
 .btn-success.block {
   display: block;
   padding: 1.2rem 4rem;
   width: 100%;
-}
-.btn-success.dimmed {
-  background: rgba(114, 224, 174, 0.6);
-}
-.btn-success.dimmed:hover {
-  background: #72e0ae;
 }
 .btn-success.outline {
   background: transparent;
@@ -317,7 +282,7 @@
 }
 .btn-success.small {
   font-size: 1rem;
-  padding: 0.8em 1.4em 0.7em 1.4em;
+  padding: 0.8rem 1.4rem 0.7rem 1.4rem;
 }
 .btn-success .sub {
   font-weight: 300;

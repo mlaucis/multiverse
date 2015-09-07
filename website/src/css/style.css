@@ -1275,7 +1275,7 @@ body.landing #header .has-submenu:after {
 #benefits .container {
   background: url('../img/benefits/feed.png') no-repeat bottom right;
   background-size: 40rem;
-  padding: 10rem 0rem;
+  padding: 8rem 0rem;
 }
 
 #benefits h3 {
