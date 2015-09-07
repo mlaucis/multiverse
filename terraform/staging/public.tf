@@ -1,6 +1,6 @@
 # Public instances
 resource "aws_subnet" "public-a" {
-  vpc_id                  = "${aws_vpc.staging.id}"
+  vpc_id                  = "${aws_vpc.tapglue.id}"
   map_public_ip_on_launch = true
 
   cidr_block              = "10.0.0.0/22"
@@ -12,7 +12,7 @@ resource "aws_subnet" "public-a" {
 }
 
 resource "aws_subnet" "public-b" {
-  vpc_id                  = "${aws_vpc.staging.id}"
+  vpc_id                  = "${aws_vpc.tapglue.id}"
   map_public_ip_on_launch = true
 
   cidr_block              = "10.0.4.0/22"
@@ -24,7 +24,7 @@ resource "aws_subnet" "public-b" {
 }
 
 resource "aws_route_table" "public" {
-  vpc_id = "${aws_vpc.staging.id}"
+  vpc_id = "${aws_vpc.tapglue.id}"
 
   route {
     cidr_block = "0.0.0.0/0"

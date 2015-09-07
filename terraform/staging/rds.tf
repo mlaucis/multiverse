@@ -1,5 +1,5 @@
 resource "aws_subnet" "rds-a" {
-  vpc_id                  = "${aws_vpc.staging.id}"
+  vpc_id                  = "${aws_vpc.tapglue.id}"
   map_public_ip_on_launch = false
 
   cidr_block              = "10.0.36.0/22"
@@ -11,7 +11,7 @@ resource "aws_subnet" "rds-a" {
 }
 
 resource "aws_subnet" "rds-b" {
-  vpc_id                  = "${aws_vpc.staging.id}"
+  vpc_id                  = "${aws_vpc.tapglue.id}"
   map_public_ip_on_launch = false
 
   cidr_block              = "10.0.40.0/22"
@@ -36,7 +36,7 @@ resource "aws_security_group" "rds_db" {
     "aws_db_subnet_group.staging"]
   name        = "RDS incoming traffic"
   description = "Allow traffic on postgres port only"
-  vpc_id      = "${aws_vpc.staging.id}"
+  vpc_id      = "${aws_vpc.tapglue.id}"
 
   ingress {
     from_port   = 5432
@@ -70,7 +70,7 @@ resource "aws_security_group" "rds_ec2" {
     "aws_db_subnet_group.staging"]
   name        = "RDS outgoing traffic"
   description = "Allow traffic to postgres port only"
-  vpc_id      = "${aws_vpc.staging.id}"
+  vpc_id      = "${aws_vpc.tapglue.id}"
 
   egress {
     from_port       = 5432

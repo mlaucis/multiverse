@@ -1,6 +1,6 @@
 resource "aws_route53_zone" "tapglue-internal" {
   name    = "tapglue.int"
-  vpc_id  = "${aws_vpc.prod.id}"
+  vpc_id  = "${aws_vpc.tapglue.id}"
   comment = "Internal prod zone"
 
   tags {

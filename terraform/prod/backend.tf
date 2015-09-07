@@ -1,5 +1,5 @@
 resource "aws_subnet" "backend-a" {
-  vpc_id                  = "${aws_vpc.prod.id}"
+  vpc_id                  = "${aws_vpc.tapglue.id}"
   map_public_ip_on_launch = false
 
   cidr_block              = "10.0.24.0/22"
@@ -11,7 +11,7 @@ resource "aws_subnet" "backend-a" {
 }
 
 resource "aws_subnet" "backend-b" {
-  vpc_id                  = "${aws_vpc.prod.id}"
+  vpc_id                  = "${aws_vpc.tapglue.id}"
   map_public_ip_on_launch = false
 
   cidr_block              = "10.0.28.0/22"
@@ -35,7 +35,7 @@ resource "aws_route_table_association" "backend-b" {
 
 # Security groups
 resource "aws_security_group" "backend-ssh" {
-  vpc_id      = "${aws_vpc.prod.id}"
+  vpc_id      = "${aws_vpc.tapglue.id}"
   name        = "backend-ssh"
   description = "Allow SSH traffic from the Bastion host"
 
