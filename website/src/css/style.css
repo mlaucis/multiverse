@@ -1360,14 +1360,14 @@ body.landing #header .has-submenu:after {
 #get-started .signup {
   background: rgb(90, 130, 137);
 }
+#get-started .documentation {
+  background: rgb(121, 199, 170);
+}
 
 #get-started .inner {
   margin: 0 auto;
   padding: 10rem 0;
   width: 50rem;
-}
-#get-started .documentation {
-  background: rgb(113, 221, 173);
 }
 
 #get-started .btn-alert {
