@@ -48,6 +48,7 @@ class TrackingStore extends EventStore {
           firstName: action.firstName,
           lastName: action.lastName,
           organizationId: action.accountId,
+          plan: action.plan,
           success: false
         })
 
@@ -60,6 +61,7 @@ class TrackingStore extends EventStore {
           lastName: action.lastName,
           memberId: action.response.id,
           organizationId: action.accountId,
+          plan: action.plan,
           success: true
         })
 

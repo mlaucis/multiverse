@@ -21,10 +21,11 @@ export function requestAccount(user) {
   }, { user: user })
 }
 
-export function requestAccountCreate(vals) {
+export function requestAccountCreate(vals, plan) {
   return dispatchAsync(accountCreate(
     vals.accountName,
-    vals.accountDescription
+    vals.accountDescription,
+    plan
   ), {
     request: AccountConstants.ACCOUNT_CREATE_REQUEST,
     success: AccountConstants.ACCOUNT_CREATE_SUCCESS,
@@ -32,7 +33,7 @@ export function requestAccountCreate(vals) {
   })
 }
 
-export function requestAccountUserCreate(vals, accountID) {
+export function requestAccountUserCreate(vals, accountID, plan) {
   return dispatchAsync(accountUserCreate(
     vals.email,
     vals.password,
@@ -48,7 +49,8 @@ export function requestAccountUserCreate(vals, accountID) {
     email: vals.email,
     firstName: vals.firstName,
     lastName: vals.lastName,
-    password: vals.password
+    password: vals.password,
+    plan: plan
   })
 }
 

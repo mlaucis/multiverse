@@ -4,10 +4,13 @@ export function accountGet(user) {
   return request('get', `/accounts/${user.accountId}`)
 }
 
-export function accountCreate(name, description) {
+export function accountCreate(name, description, plan) {
   return request('post', '/accounts', {
     name: name,
-    description: description
+    description: description,
+    metadata: {
+      plan: plan
+    }
   })
 }
 

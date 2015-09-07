@@ -131,10 +131,11 @@ export default class Signup extends Component {
   }
 
   handleSubmit = (values) => {
+    let plan = this.props.query.plan || 'free'
     let router = this.context.router
 
-    requestAccountCreate(values).then( account => {
-      requestAccountUserCreate(values, account.id).then( () => {
+    requestAccountCreate(values, plan).then( account => {
+      requestAccountUserCreate(values, account.id, plan).then( () => {
         requestLogin(values.email, values.password).then( (user) => {
           requestAccount(user).then( () => {
             requestAppCreate(

@@ -19,7 +19,8 @@ describe('TrackingStore', () => {
     id: 1234,
     firstName: 'cat',
     lastName: 'nyn',
-    password: '4321'
+    password: '4321',
+    plan: 'growth'
   }
 
   Object.defineProperty(window, 'analytics', { value: { track: trackMock } })
@@ -46,6 +47,7 @@ describe('TrackingStore', () => {
       firstName: user.firstName,
       lastName: user.lastName,
       organizationId: user.accountId,
+      plan: user.plan,
       success: false
     })
   })
@@ -64,6 +66,7 @@ describe('TrackingStore', () => {
       lastName: user.lastName,
       memberId: user.id,
       organizationId: user.accountId,
+      plan: user.plan,
       success: true
     })
   })
