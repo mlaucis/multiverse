@@ -170,12 +170,13 @@ func healthCheckHandler(ctx *context.Context) {
 	// TODO make the checks return which service fails (useful if the health-check service knows how to read our response)
 
 	response := struct {
-		Healthy  bool `json:"healty"`
+		Healthy  bool `json:"healthy"`
 		Services struct {
 			Kinesis        bool   `json:"kinesis"`
 			PostgresMaster bool   `json:"postgres_master"`
 			PostgresSlaves []bool `json:"postgres_slaves"`
 			RateLimiter    bool   `json:"rate_limiter"`
+			AppCache       bool   `json:"app_cache"`
 		} `json:"services"`
 	}{
 		Healthy: true,
@@ -184,11 +185,13 @@ func healthCheckHandler(ctx *context.Context) {
 			PostgresMaster bool   `json:"postgres_master"`
 			PostgresSlaves []bool `json:"postgres_slaves"`
 			RateLimiter    bool   `json:"rate_limiter"`
+			AppCache       bool   `json:"app_cache"`
 		}{
 			Kinesis:        true,
 			PostgresMaster: true,
 			PostgresSlaves: make([]bool, rawPostgresClient.SlaveCount()),
 			RateLimiter:    true,
+			AppCache:       true,
 		},
 	}
 
@@ -241,5 +244,15 @@ func healthCheckHandler(ctx *context.Context) {
 		ctx.LogError(err)
 	} else if rlConn != nil {
 		rlConn.Close()
+	}
+
+	// Check AppCache
+	acConn := appCachePool.Get()
+	if err := acConn.Err(); err != nil {
+		response.Healthy = false
+		response.Services.AppCache = false
+		ctx.LogError(err)
+	} else if acConn != nil {
+		acConn.Close()
 	}
 }

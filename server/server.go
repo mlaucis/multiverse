@@ -46,9 +46,9 @@ var (
 	currentRevision = ""
 	currentHostname = ""
 
-	rawKinesisClient  v03_kinesis.Client
-	rawPostgresClient v03_postgres.Client
-	rateLimiterPool   *redigo.Pool
+	rawKinesisClient              v03_kinesis.Client
+	rawPostgresClient             v03_postgres.Client
+	rateLimiterPool, appCachePool *redigo.Pool
 )
 
 // WriteCommonHeaders will add the corresponding cache headers based on the time supplied (in seconds)
@@ -264,9 +264,9 @@ func Setup(conf *config.Config, revision, hostname string) {
 
 	SetupFlakes(v03PostgresClient.SlaveDatastore(-1))
 
-	v03AppCache := v03_redis.NewRedigoPool(conf.CacheApp)
+	appCachePool = v03_redis.NewRedigoPool(conf.CacheApp)
 
 	v02_server.Setup(v02KinesisClient, v02PostgresClient, currentRevision, currentHostname)
-	v03_server.Setup(v03KinesisClient, v03PostgresClient, v03AppCache, currentRevision, currentHostname)
+	v03_server.Setup(v03KinesisClient, v03PostgresClient, appCachePool, currentRevision, currentHostname)
 
 }
