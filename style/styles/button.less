@@ -9,7 +9,7 @@
   cursor: pointer;
   font-size: 1.4rem;
   font-weight: 400;
-  padding: 1.1em 3em;
+  padding: 0.8em 2.5em;
   text-transform: uppercase;
   transition: all 0.15s ease;
 
@@ -31,12 +31,25 @@
   &:hover {
     background: lighten(@color, 5%);
     color: #fff;
+    text-decoration: none;
+  }
+
+  &.big {
+    padding: 1.1em 3em;
   }
 
   &.block {
     display: block;
     padding: 1.2rem 4rem;
     width: 100%;
+  }
+
+  &.dimmed {
+    background: lighten(@color, 5%);
+
+    &:hover {
+      background: darken(@color, 5%);
+    }
   }
 
   &.outline {

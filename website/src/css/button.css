@@ -7,7 +7,7 @@
   cursor: pointer;
   font-size: 1.4rem;
   font-weight: 400;
-  padding: 1.1em 3em;
+  padding: 0.8em 2.5em;
   text-transform: uppercase;
   transition: all 0.15s ease;
 }
@@ -26,11 +26,21 @@
 .btn-alert:hover {
   background: #f86578;
   color: #fff;
+  text-decoration: none;
+}
+.btn-alert.big {
+  padding: 1.1em 3em;
 }
 .btn-alert.block {
   display: block;
   padding: 1.2rem 4rem;
   width: 100%;
+}
+.btn-alert.dimmed {
+  background: #f86578;
+}
+.btn-alert.dimmed:hover {
+  background: #f6354c;
 }
 .btn-alert.outline {
   background: transparent;
@@ -65,7 +75,7 @@
   cursor: pointer;
   font-size: 1.4rem;
   font-weight: 400;
-  padding: 1.1em 3em;
+  padding: 0.8em 2.5em;
   text-transform: uppercase;
   transition: all 0.15s ease;
 }
@@ -84,11 +94,21 @@
 .btn-close:hover {
   background: #9d9d9d;
   color: #fff;
+  text-decoration: none;
+}
+.btn-close.big {
+  padding: 1.1em 3em;
 }
 .btn-close.block {
   display: block;
   padding: 1.2rem 4rem;
   width: 100%;
+}
+.btn-close.dimmed {
+  background: #9d9d9d;
+}
+.btn-close.dimmed:hover {
+  background: #838383;
 }
 .btn-close.outline {
   background: transparent;
@@ -123,7 +143,7 @@
   cursor: pointer;
   font-size: 1.4rem;
   font-weight: 400;
-  padding: 1.1em 3em;
+  padding: 0.8em 2.5em;
   text-transform: uppercase;
   transition: all 0.15s ease;
 }
@@ -142,11 +162,21 @@
 .btn-default:hover {
   background: #496a6f;
   color: #fff;
+  text-decoration: none;
+}
+.btn-default.big {
+  padding: 1.1em 3em;
 }
 .btn-default.block {
   display: block;
   padding: 1.2rem 4rem;
   width: 100%;
+}
+.btn-default.dimmed {
+  background: #496a6f;
+}
+.btn-default.dimmed:hover {
+  background: #354c51;
 }
 .btn-default.outline {
   background: transparent;
@@ -181,7 +211,7 @@
   cursor: pointer;
   font-size: 1.4rem;
   font-weight: 400;
-  padding: 1.1em 3em;
+  padding: 0.8em 2.5em;
   text-transform: uppercase;
   transition: all 0.15s ease;
 }
@@ -200,11 +230,21 @@
 .btn-secondary:hover {
   background: #eef2f3;
   color: #fff;
+  text-decoration: none;
+}
+.btn-secondary.big {
+  padding: 1.1em 3em;
 }
 .btn-secondary.block {
   display: block;
   padding: 1.2rem 4rem;
   width: 100%;
+}
+.btn-secondary.dimmed {
+  background: #eef2f3;
+}
+.btn-secondary.dimmed:hover {
+  background: #d0dadf;
 }
 .btn-secondary.outline {
   background: transparent;
@@ -239,7 +279,7 @@
   cursor: pointer;
   font-size: 1.4rem;
   font-weight: 400;
-  padding: 1.1em 3em;
+  padding: 0.8em 2.5em;
   text-transform: uppercase;
   transition: all 0.15s ease;
 }
@@ -258,11 +298,21 @@
 .btn-success:hover {
   background: #87e5ba;
   color: #fff;
+  text-decoration: none;
+}
+.btn-success.big {
+  padding: 1.1em 3em;
 }
 .btn-success.block {
   display: block;
   padding: 1.2rem 4rem;
   width: 100%;
+}
+.btn-success.dimmed {
+  background: #87e5ba;
+}
+.btn-success.dimmed:hover {
+  background: #5ddba2;
 }
 .btn-success.outline {
   background: transparent;

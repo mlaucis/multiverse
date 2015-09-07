@@ -1399,10 +1399,6 @@ body.landing #header .has-submenu:after {
   padding: 4rem 0;
 }
 
-#newsletter form div input[type=submit] {
-  float: right;
-}
-
 #newsletter h3 {
   color: rgb(46, 46, 46);
   margin-bottom: 1.5rem;
@@ -1417,10 +1413,6 @@ body.landing #header .has-submenu:after {
   line-height: 1.4em;
   margin-bottom: 1.5rem;
   width: 60rem;
-}
-
-#newsletter button[type=submit] {
-  padding: 1.5rem 4.5rem;
 }
 
 /* Wrapper */
