@@ -1,5 +1,5 @@
 (function($) {
-  var $potraits = $('.potraits div.potrait');
+  var $potraits = $('.portraits div.portrait');
   var $statements = $('.statements div.statement');
   var quoteTimer;
   var startRotation = function () {

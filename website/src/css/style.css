@@ -1166,10 +1166,6 @@ body.landing #header .has-submenu:after {
 #banner ul.actions {
   margin: 6rem 0 0 0;
 }
-#banner .content {
-  margin: 0 auto;
-  max-width: 120rem;
-}
 #banner .inner {
   background: url('../img/banner/screens.png') no-repeat bottom right;
   background-size: 60rem;
@@ -1210,11 +1206,6 @@ body.landing #header .has-submenu:after {
   padding: 15.5rem 0;
 }
 
-#mission .content {
-  margin: 0 auto;
-  max-width: 120rem;
-}
-
 #mission h3 {
   color: rgb(46, 46, 46);
   margin-bottom: 1.5rem;
@@ -1236,14 +1227,6 @@ body.landing #header .has-submenu:after {
   background: rgb(121, 199, 170);
 }
 
-#features .clearfix {
-  clear: both;
-}
-
-#features .feature img {
-  float: left;
-  margin-right: 4rem;
-}
 #features .feature h2 {
   color: #fff;
   font-size: 4rem;
@@ -1264,60 +1247,44 @@ body.landing #header .has-submenu:after {
   line-height: 2.4rem;
 }
 #features .feature.big {
-  border-right: 0.4rem solid rgba(255, 255, 255, 0.4);
-  float: left;
-  padding: 12rem 4rem 12rem 12rem;
-  width: 66%;
+  padding: 12rem 0;
 }
 #features .feature.small {
-  float: right;
   letter-spacing: 0.1rem;
   padding: 6rem 1rem 6rem 5rem;
-  width: 34%;
-}
-#features .feature.small.first {
-  border-bottom: 0.4rem solid rgba(255, 255, 255, 0.4);
 }
 #features .feature.small h2 {
   font-size: 2.4rem;
   line-height: 2rem;
+}
+#features .feature.small .icon img {
+  width: 10rem;
+}
+#features .icon {
+  text-align: right;
+}
+#features .icon img {
+  max-width: none;
+  width: 20rem;
 }
 
 #benefits {
   background: rgb(90, 130, 137);
 }
 
-#benefits .content {
+#benefits .container {
   background: url('../img/benefits/feed.png') no-repeat bottom right;
   background-size: 40rem;
-  margin: 0 auto;
   padding: 10rem 0rem;
-  width: 120rem;
 }
 
-#benefits .content h3 {
+#benefits h3 {
   color: #fff;
   font-size: 2.4rem;
   font-weight: 400;
 }
 
-#benefits .content p {
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 1.7rem;
-  font-weight: 300;
-  line-height: 2.4rem;
-}
-
-#benefits .content .icon {
-  padding: 2rem 0rem;
-  text-align: center;
-}
-
-#benefits .content .benefit {
-  padding: 0 0 0 2rem;
-}
-
-#benefits .content .benefit h4 {
+#benefits h4 {
   color: #fff;
   font-size: 1.7rem;
   font-weight: 300;
@@ -1326,42 +1293,43 @@ body.landing #header .has-submenu:after {
   text-transform: uppercase;
 }
 
-#benefits .row {
-  margin: 0;
-  padding: 0;
+#benefits p {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1.7rem;
+  font-weight: 300;
+  line-height: 2.4rem;
+}
+
+#benefits .icon {
+  padding: 2rem 0rem;
+  text-align: center;
+}
+
+#benefits .icon img {
+  width: 6.2rem;
+}
+
+#benefits .benefit {
+  padding: 0 0 0 2rem;
 }
 
 #testimonial {
   background: rgb(241, 244, 245);
-}
-
-#testimonial .content {
-  margin: 0 auto;
   padding: 10rem 0;
-  width: 120rem;
 }
 
-#testimonial .content .row {
-  margin: 0;
-  padding: 0;
-}
-
-#testimonial .potraits {
-  padding: 0;
-}
-
-#testimonial .potrait {
+#testimonial .portrait {
   cursor: pointer;
   display: inline-block;
   padding: 0;
   transition: 0.15s all ease;
 }
 
-#testimonial .potrait:not(:first-of-type) {
-  margin-left: 2rem;
+#testimonial .portrait:not(:first-of-type) {
+  margin-left: 1rem;
 }
 
-#testimonial .potrait.inactive {
+#testimonial .portrait.inactive {
   opacity: 0.4;
 }
 
@@ -1391,17 +1359,19 @@ body.landing #header .has-submenu:after {
 
 #get-started .signup {
   background: rgb(90, 130, 137);
-  display: inline-block;
-  float: left;
-  padding: 10rem 0;
-  width: 50%;
 }
 
+#get-started .inner {
+  margin: 0 auto;
+  padding: 10rem 0;
+  width: 50rem;
+}
 #get-started .documentation {
   background: rgb(113, 221, 173);
+}
+
+#get-started .btn-alert {
   display: inline-block;
-  padding: 10rem 0;
-  width: 50%;
 }
 
 #get-started h2 {
@@ -1415,7 +1385,6 @@ body.landing #header .has-submenu:after {
   color: #fff;
   font-size: 1.6rem;
   margin-bottom: 0;
-  margin-top: 3rem;
   text-transform: uppercase;
 }
 #get-started p {
@@ -1424,30 +1393,10 @@ body.landing #header .has-submenu:after {
   font-weight: 300;
 }
 
-#get-started .content {
-  margin: 0 auto;
-  width: 50rem;
-}
-
-#newsletter {
+#newsletter .container {
   background: url('../img/newsletter/background.png') no-repeat right center;
   background-size: 55rem;
-  margin: 0 auto;
-  padding: 7.5rem 0;
-  width: 120rem
-}
-
-#newsletter .content {
-  margin: 0;
-  padding: 0;
-}
-
-#newsletter form {
-  margin: 0;
-}
-
-#newsletter form div {
-  padding: 0;
+  padding: 4rem 0;
 }
 
 #newsletter form div input[type=submit] {
@@ -1468,10 +1417,6 @@ body.landing #header .has-submenu:after {
   line-height: 1.4em;
   margin-bottom: 1.5rem;
   width: 60rem;
-}
-
-#newsletter div.submit {
-  text-align: right;
 }
 
 #newsletter button[type=submit] {
