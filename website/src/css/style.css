@@ -970,9 +970,7 @@ body.reset {
 #header {
   width: 100%;
 }
-#header .inner {
-  margin: 0 auto;
-  max-width: 120rem;
+#header .container {
   padding: 4rem 0;
 }
 #header h1 {
@@ -1005,7 +1003,7 @@ body.reset {
   text-transform: uppercase;
 }
 #header nav > ul > li:not(.btn) {
-  margin-right: 5rem;
+  margin-right: 3rem;
 }
 #header nav > ul > li.btn {
   margin-left: 1rem;
