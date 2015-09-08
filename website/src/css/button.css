@@ -28,13 +28,13 @@
   color: #fff;
   text-decoration: none;
 }
-.btn-alert.big {
-  padding: 1.1em 3em;
-}
 .btn-alert.block {
   display: block;
   padding: 1.2rem 4rem;
   width: 100%;
+}
+.btn-alert.big {
+  padding: 1.1em 3em;
 }
 .btn-alert.dimmed {
   background: #f86578;
@@ -96,13 +96,13 @@
   color: #fff;
   text-decoration: none;
 }
-.btn-close.big {
-  padding: 1.1em 3em;
-}
 .btn-close.block {
   display: block;
   padding: 1.2rem 4rem;
   width: 100%;
+}
+.btn-close.big {
+  padding: 1.1em 3em;
 }
 .btn-close.dimmed {
   background: #9d9d9d;
@@ -164,13 +164,13 @@
   color: #fff;
   text-decoration: none;
 }
-.btn-default.big {
-  padding: 1.1em 3em;
-}
 .btn-default.block {
   display: block;
   padding: 1.2rem 4rem;
   width: 100%;
+}
+.btn-default.big {
+  padding: 1.1em 3em;
 }
 .btn-default.dimmed {
   background: #496a6f;
@@ -232,13 +232,13 @@
   color: #fff;
   text-decoration: none;
 }
-.btn-secondary.big {
-  padding: 1.1em 3em;
-}
 .btn-secondary.block {
   display: block;
   padding: 1.2rem 4rem;
   width: 100%;
+}
+.btn-secondary.big {
+  padding: 1.1em 3em;
 }
 .btn-secondary.dimmed {
   background: #eef2f3;
@@ -300,13 +300,13 @@
   color: #fff;
   text-decoration: none;
 }
-.btn-success.big {
-  padding: 1.1em 3em;
-}
 .btn-success.block {
   display: block;
   padding: 1.2rem 4rem;
   width: 100%;
+}
+.btn-success.big {
+  padding: 1.1em 3em;
 }
 .btn-success.dimmed {
   background: #87e5ba;
