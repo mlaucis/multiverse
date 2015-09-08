@@ -75,12 +75,16 @@ h6 a {
     text-decoration: none;
 }
 h2 {
-    font-size: 1.75em;
-    line-height: 1.5em;
+  color: #ffffff;
+  font-size: 4rem;
+  font-weight: 400;
+  line-height: 1.2em;
 }
 h3 {
-    font-size: 1.6em;
-    line-height: 1.5em;
+  color: rgb(46, 46, 46);
+  margin-bottom: 1.5rem;
+  font-size: 2.4rem;
+  font-weight: 400;
 }
 h4 {
     font-size: 1.1em;
@@ -163,10 +167,9 @@ img {
 
 
 /* Section/Article */
-
-section.special,
-article.special {
-    text-align: center;
+article.special,
+section.special {
+  text-align: center;
 }
 header p {
     color: #858585;
@@ -198,7 +201,8 @@ header.major h2 {
   color: rgb(63, 91, 96);
   font-size: 4rem;
   font-weight: 400;
-  margin-bottom: 2rem;
+  line-height: 1.5em;
+  margin-bottom: 4rem;
 }
 header.major h3 {
     font-size: 2em;
@@ -211,11 +215,8 @@ header.major p {
     line-height: 1.4em;
 }
 .benefits h3 {
-    font-size: 2.4em;
-    text-align: left;
-    line-height: 1.4em;
-    margin-bottom: 0.8em;
-    margin-top:
+  font-size: 2.4rem;
+  text-align: left;
 }
 .benefits p {
     color: #858585;
@@ -238,12 +239,7 @@ header.major p {
 .features {
     color: #858585;
     margin-left: 0;
-}
-.features h3 {
-    font-size: 1.6em;
     text-align: left;
-    line-height: 1.6em;
-    margin-bottom: 0;
 }
 .features p {
     font-size: 1.6em;
@@ -1179,18 +1175,14 @@ body.landing #header .has-submenu:after {
     background-position: center center;
     background-size: cover;
     color: #ffffff;
-    padding: 2em 0 .1em;
+    padding: 20rem 0 0 0;
     text-align: center;
 }
 #bannergreen:last-child {
     margin-bottom: 0;
 }
 #bannergreen h2 {
-    color: #ffffff;
-    font-size: 4.2em;
-    line-height: 1.25em;
-    margin: 1.2em 0 0.5em 0;
-    padding: 0;
+    margin: 0 0 5rem 0;
 }
 #bannergreen p {
     font-size: 1.8em;
@@ -3007,7 +2999,7 @@ body.landing #header .has-submenu:after {
     font-size: 3em;
 }
 #generic-tabs h2 {
-    color: #474747;
+    color: rgb(46, 46, 46);
     text-align: left;
 }
 #generic-tabs p {
