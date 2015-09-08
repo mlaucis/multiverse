@@ -29,7 +29,7 @@
 				containers: '90%!'
 			},
 			small: {
-				media: '(max-width: 736px)',
+				media: '(max-width: 750px)',
 				href: 'css/style-small.css',
 				containers: '90%!',
 			},
