@@ -1,3 +1,15 @@
+function extractReferrer() {
+  var referrer = document.referrer.split('/')[2]
+
+  if (referrer && referrer !== 'www.tapglue.com') {
+    Cookies.set('originalReferrer', referrer, {
+      domain: '.tapglue.com',
+      expires: 7,
+      path: '/'
+    });
+  }
+}
+
 (function($) {
   var $potraits = $('.portraits div.portrait');
   var $statements = $('.statements div.statement');
@@ -33,4 +45,5 @@
   $statements.not(':first').hide();
 
   startRotation();
+  extractReferrer();
 })(jQuery);

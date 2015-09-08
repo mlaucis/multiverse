@@ -4,11 +4,12 @@ export function accountGet(user) {
   return request('get', `/accounts/${user.accountId}`)
 }
 
-export function accountCreate(name, description, plan) {
+export function accountCreate(name, description, plan, originalReferrer) {
   return request('post', '/accounts', {
     name: name,
     description: description,
     metadata: {
+      originalReferrer: originalReferrer,
       plan: plan
     }
   })
