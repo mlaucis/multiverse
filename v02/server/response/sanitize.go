@@ -12,8 +12,6 @@ func SanitizeAccountUser(user *entity.AccountUser) {
 func SanitizeApplicationUsers(users []*entity.ApplicationUser) {
 	for idx := range users {
 		users[idx].Password = ""
-		users[idx].Enabled = false
-		users[idx].Activated = false
 		users[idx].Deleted = nil
 		users[idx].Email = ""
 		users[idx].CreatedAt, users[idx].UpdatedAt, users[idx].LastLogin, users[idx].LastRead = nil, nil, nil, nil
@@ -24,9 +22,7 @@ func SanitizeApplicationUsers(users []*entity.ApplicationUser) {
 func SanitizeApplicationUsersMap(users map[string]*entity.ApplicationUser) {
 	for idx := range users {
 		users[idx].Password = ""
-		users[idx].Enabled = false
 		users[idx].Deleted = nil
-		users[idx].Activated = false
 		users[idx].Email = ""
 		users[idx].CreatedAt, users[idx].UpdatedAt, users[idx].LastLogin, users[idx].LastRead = nil, nil, nil, nil
 	}
