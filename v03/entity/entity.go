@@ -52,7 +52,7 @@ type (
 		ID           string            `json:"id"`
 		Type         string            `json:"type"`
 		URL          string            `json:"url,omitempty"`
-		DisplayNames map[string]string `json:"display_names"` // ["en"=>"article", "de"=>"artikel"]
+		DisplayNames map[string]string `json:"display_names,omitempty"` // ["en"=>"article", "de"=>"artikel"]
 	}
 
 	// Participant structure
