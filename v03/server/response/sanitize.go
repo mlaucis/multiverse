@@ -8,6 +8,12 @@ func SanitizeMember(member *entity.Member) {
 	member.Deleted = nil
 }
 
+// SanitizeApplicationUser will sanitize the application user for usage via the API
+func SanitizeApplicationUser(user *entity.ApplicationUser) {
+	user.Password = ""
+	user.Deleted = nil
+}
+
 // SanitizeApplicationUsers sanitize a slice of application users
 func SanitizeApplicationUsers(users []*entity.ApplicationUser) {
 	for idx := range users {
