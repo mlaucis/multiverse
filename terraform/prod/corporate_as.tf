@@ -15,6 +15,7 @@ resource "aws_launch_configuration" "corporate" {
   }
 
   security_groups             = [
+    "${aws_security_group.rds_corp_ec2.id}",
     "${aws_security_group.corporate-elb-vpc.id}",
     "${aws_security_group.corporate-ssh.id}",
     "${aws_security_group.to-nat.id}"]

@@ -102,7 +102,7 @@ resource "aws_db_instance" "master" {
   allocated_storage       = "10"
   engine                  = "postgres"
   engine_version          = "9.4.4"
-  instance_class          = "db.t2.micro"
+  instance_class          = "db.t2.small"
   # if you want to change to true, see the list of instance types that support storage encryption: http://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Overview.Encryption.html#d0e10116
   storage_encrypted       = false
   name                    = "${var.rds_db_name}"
