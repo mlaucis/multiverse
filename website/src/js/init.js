@@ -47,12 +47,12 @@
 					breakpoints: 'medium',
 					height: '4em',
 					html: '<span class="toggle" data-action="toggleLayer" data-args="navPanel"></span>',
-					position: 'top-left',
+					position: 'top-right',
 					side: 'top',
 					width: '6em'
 				},
 				navPanel: {
-				        animation: 'pushX',
+	        animation: 'pushX',
 					breakpoints: 'medium',
 					clickToHide: true,
 					height: '100%',
