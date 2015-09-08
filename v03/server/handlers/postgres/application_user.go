@@ -178,7 +178,7 @@ func (appUser *applicationUser) Create(ctx *context.Context) (err []errors.Error
 		return
 	}
 
-	user.Password = ""
+	response.SanitizeApplicationUser(user)
 	user.SessionToken = sessionToken
 
 	ctx.W.Header().Set("Location", fmt.Sprintf("https://api.tapglue.com/0.3/users/%d", user.ID))

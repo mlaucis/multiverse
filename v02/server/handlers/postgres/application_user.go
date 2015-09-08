@@ -169,7 +169,7 @@ func (appUser *applicationUser) Create(ctx *context.Context) (err []errors.Error
 		}
 	}
 
-	user.Password = ""
+	response.SanitizeApplicationUser(user)
 
 	result := struct {
 		entity.ApplicationUser
