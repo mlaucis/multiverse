@@ -1686,3 +1686,46 @@ func (s *ConnectionSuite) TestCreateSocialConnectionFriendFollowsAlreadyConnecte
 	c.Assert(connectedUsers.Users[0].ID, Equals, userFrom.ID)
 	c.Assert(connectedUsers.Users[1].ID, Equals, user4.ID)
 }
+
+func (s *ConnectionSuite) TestGetConnectionsCount(c *C) {
+	accounts := CorrectDeploy(1, 0, 1, 10, 0, true, true)
+	application := accounts[0].Applications[0]
+	user := application.Users[0]
+	userFriend := application.Users[9]
+
+	payload := fmt.Sprintf(
+		`{"user_to_id":%d}`,
+		userFriend.ID,
+	)
+
+	routeName := "createFriendConnectionAlias"
+	route := getComposedRoute(routeName)
+	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, user, true, true))
+	c.Assert(err, IsNil)
+
+	c.Assert(code, Equals, http.StatusCreated)
+	c.Assert(body, Not(Equals), "")
+
+	connection := &entity.Connection{}
+	er := json.Unmarshal([]byte(body), connection)
+	c.Assert(er, IsNil)
+	c.Assert(connection.UserFromID, Equals, user.ID)
+	c.Assert(connection.UserToID, Equals, userFriend.ID)
+	c.Assert(connection.Type, Equals, "friend")
+	c.Assert(connection.Enabled, Equals, true)
+
+	routeName = "getCurrentApplicationUser"
+	route = getComposedRoute(routeName)
+	code, body, err = runRequest(routeName, route, "", signApplicationRequest(application, user, true, true))
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusOK)
+	c.Assert(body, Not(Equals), "")
+
+	receivedUser := &entity.ApplicationUser{}
+	er = json.Unmarshal([]byte(body), receivedUser)
+	c.Assert(er, IsNil)
+	c.Assert(receivedUser.Username, Equals, user.Username)
+	c.Assert(receivedUser.FriendCount, Equals, int64(1))
+	c.Assert(receivedUser.FollowerCount, Equals, int64(1))
+	c.Assert(receivedUser.FollowedCount, Equals, int64(3))
+}

@@ -34,6 +34,7 @@ func (appUser *applicationUser) Read(ctx *context.Context) (err []errors.Error) 
 		return err
 	}
 
+	// maybe not the most efficient way to do it?
 	relation := make(chan *entity.Relation)
 	go func(relation chan *entity.Relation, accountID, applicationID int64, userFromID, userToID uint64) {
 		rel, _ := appUser.conn.Relation(accountID, applicationID, userFromID, userToID)

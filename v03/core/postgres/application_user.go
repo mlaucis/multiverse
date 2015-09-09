@@ -38,6 +38,14 @@ const (
 	destroyApplicationUserSessionQuery       = `UPDATE app_%d_%d.sessions SET enabled = FALSE WHERE user_id = $1 AND session_id = $2`
 	destroyAllApplicationUserSessionQuery    = `UPDATE app_%d_%d.sessions SET enabled = FALSE WHERE user_id = $1`
 	searchApplicationUsersQuery              = `SELECT json_data FROM app_%d_%d.users WHERE ((json_data->>'user_name' ILIKE $1) OR (json_data->>'email' ILIKE $1) OR (json_data->>'first_name' ILIKE $1) OR (json_data->>'last_name' ILIKE $1)) AND json_data @> '{"enabled": true, "deleted": false}' LIMIT 50`
+
+	selectApplicationUserCountsQuery = `SELECT
+  (SELECT count(*) FROM app_%d_%d.connections
+    WHERE json_data @> json_build_object('user_from_id', $1::BIGINT, 'enabled', TRUE, 'type', 'friend')::JSONB) AS "friends",
+  (SELECT count(*) FROM app_%d_%d.connections
+    WHERE json_data @> json_build_object('user_to_id', $1::BIGINT, 'enabled', TRUE, 'type', 'follow')::JSONB) AS "follower",
+  (SELECT count(*) FROM app_%d_%d.connections
+    WHERE json_data @> json_build_object('user_from_id', $1::BIGINT, 'enabled', TRUE, 'type', 'follow')::JSONB) AS "followed"`
 )
 
 func (au *applicationUser) Create(accountID, applicationID int64, user *entity.ApplicationUser, retrieve bool) (*entity.ApplicationUser, []errors.Error) {
@@ -105,6 +113,13 @@ func (au *applicationUser) Read(accountID, applicationID int64, userID uint64) (
 		return nil, []errors.Error{errmsg.ErrInternalApplicationUserRead.UpdateInternalMessage(err.Error())}
 	}
 	applicationUser.LastRead = &lastRead
+
+	err = au.pg.SlaveDatastore(-1).
+		QueryRow(appSchemaWithParams(selectApplicationUserCountsQuery, accountID, applicationID, accountID, applicationID, accountID, applicationID), userID).
+		Scan(&applicationUser.FriendCount, &applicationUser.FollowerCount, &applicationUser.FollowedCount)
+	if err != nil {
+		return nil, []errors.Error{errmsg.ErrInternalApplicationUserRead.UpdateInternalMessage(err.Error())}
+	}
 
 	return applicationUser, nil
 }
