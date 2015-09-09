@@ -1168,12 +1168,12 @@ body.landing #header .has-submenu:after {
 /* Bannergreen */
 
 #bannergreen {
-    background: rgba(110, 224, 173, 1);
-    background-position: center center;
-    background-size: cover;
-    color: #ffffff;
-    padding: 20rem 0 0 0;
-    text-align: center;
+  background:
+    linear-gradient(180deg, rgb(90, 125, 135), rgb(113, 221, 173)),
+    rgb(114, 224, 174);
+  color: #ffffff;
+  padding: 20rem 0 0 0;
+  text-align: center;
 }
 #bannergreen:last-child {
     margin-bottom: 0;
