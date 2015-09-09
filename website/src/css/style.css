@@ -1124,10 +1124,10 @@ body.landing #header nav > ul > li a:hover {
   color: rgba(255, 255, 255, 1);
 }
 body.landing #header nav > ul > li a.btn-default {
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+  border: 0.1rem solid rgba(255, 255, 255, 0.6);
 }
 body.landing #header nav > ul > li a.btn-default:hover {
-  box-shadow: none;
+  border: 0.1rem solid rgba(255, 255, 255, 0);
 }
 body.landing #header .has-submenu:after {
   border-top-color: rgba(255, 255, 255, 0.8);
@@ -1168,12 +1168,12 @@ body.landing #header .has-submenu:after {
 /* Bannergreen */
 
 #bannergreen {
-    background: rgba(110, 224, 173, 1);
-    background-position: center center;
-    background-size: cover;
-    color: #ffffff;
-    padding: 20rem 0 0 0;
-    text-align: center;
+  background:
+    linear-gradient(180deg, rgb(90, 125, 135), rgb(113, 221, 173)),
+    rgb(114, 224, 174);
+  color: #ffffff;
+  padding: 20rem 0 0 0;
+  text-align: center;
 }
 #bannergreen:last-child {
     margin-bottom: 0;
@@ -2587,36 +2587,40 @@ body.landing #header .has-submenu:after {
 #navPanel {
     background: #444;
     line-height: 3em;
-    padding: 1.5em;
 }
 #navPanel ul > li{
-    white-space: nowrap;
+    border-left: .4em solid transparent;
     border-top: solid 2px #ecf0f1;
     display: block;
-    text-decoration: none;
-    font-weight: 400;
     font-size: 1em;
-    border-left: .4em solid transparent;
+    font-weight: 400;
+    padding: 0 0 0 1rem;
+    text-align: left;
+    text-decoration: none;
+    white-space: nowrap;
 }
 #navPanel ul > li:hover{
     cursor: pointer;
-    border-left: .4em solid #6EDFAB;
     background-color: rgb(245, 245, 245);
+    border-left: .4em solid #6EDFAB;
 }
 #navPanel ul > li:hover a{
     color: rgba(20, 20, 20, 1)
 }
 #navPanel ul > li > a{
     color: #858585;
-    text-decoration: none;
-    margin: 0;
-    padding: .6em 8em 0 .6em;
+    font-size: 1.8rem;
     line-height: 1.2em;
+    margin: 0;
+    text-decoration: none;
+}
+#navPanel a.btn-default:not(:last-of-type) {
+  margin-bottom: 1rem;
 }
 #navPanel ul{
-    line-height: 50px;
+    line-height: 5rem;
     text-align: center;
-    margin: 0 auto;
+    padding: 0;
 }
 #navPanel > a.signup:hover {
     margin-bottom: 0;
@@ -2666,7 +2670,6 @@ body.landing #header .has-submenu:after {
 }
 #navPanel ul > li:first-child {
     border-top: 0;
-    margin-top: 3em;
 }
 .abouttext p{
     font-size: 1.5em !important;

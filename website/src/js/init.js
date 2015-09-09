@@ -24,7 +24,7 @@
 				viewport: { scalable: false }
 			},
 			medium: {
-				media: '(max-width: 980px)',
+				media: '(max-width: 1024px)',
 				href: 'css/style-medium.css',
 				containers: '90%!'
 			},
@@ -61,18 +61,19 @@
 					orientation: 'vertical',
 					position: 'top-left',
 					side: 'left',
-					width: 250,
+					width: 200,
 					html: 	'<ul>' +
 							'<li><a href="/">Home</a></li>' +
-        						'<li><a href="/news-feed/">News Feed</a></li>' +
-        						'<li><a href="/user-profiles/">Users</a></li>' +
-        						'<li><a href="/social-graph/">Friends</a></li>' +
-        						'<li><a href="//developers.tapglue.com">Docs</a></li>' +
-        						'<li><a href="/blog/">Blog</a></li>' +
-        						'<li><a href="/about-us/">About us</a></li>' +
-        					'</ul>' +
-        						'<a href="//beta.tapglue.com" class="login">Login</a>' +
-        						'<a href="#" onclick="requestAccess(); return false;" class="signup">Signup</a>'
+  						'<li><a href="/news-feed/">News Feed</a></li>' +
+  						'<li><a href="/users/">Users</a></li>' +
+  						'<li><a href="/connections/">Connections</a></li>' +
+							'<li><a href="/pricing">Pricing</a></li>' +
+  						'<li><a href="//developers.tapglue.com">Docs</a></li>' +
+  						'<li><a href="/blog/">Blog</a></li>' +
+  						'<li><a href="/about-us/">About us</a></li>' +
+  					'</ul>' +
+						'<a href="//dashboard.tapglue.com/login" class="btn-default block">Login</a>' +
+						'<a href="//dashboard.tapglue.com/signup" class="btn-default block">Signup</a>'
 				}
 			}
 		}
