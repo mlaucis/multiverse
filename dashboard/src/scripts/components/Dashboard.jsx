@@ -215,7 +215,7 @@ export default class Dashboard extends Component {
               name='API Docs'/>
             <IntegrationResource
               icon='file'
-              link='https://developers.tapglue.com/page/ios-guide'
+              link='https://developers.tapglue.com/docs/ios'
               name='iOS Guide'/>
             <IntegrationResource
               icon='file'
