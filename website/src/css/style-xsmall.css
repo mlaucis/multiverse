@@ -140,6 +140,10 @@
 	margin-top: 2rem;
 }
 
+div.pricing .plan.feature section:nth-child(2) ul.features {
+	margin: 2rem 0;
+}
+
 .placeholder {
 	margin: 1em 0;
 }
