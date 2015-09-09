@@ -1,7 +1,7 @@
 function extractReferrer() {
   var referrer = document.referrer.split('/')[2]
 
-  if (referrer && referrer !== 'www.tapglue.com') {
+  if (referrer && !referrer.match('tapglue.com^')) {
     Cookies.set('originalReferrer', referrer, {
       domain: '.tapglue.com',
       expires: 7,
