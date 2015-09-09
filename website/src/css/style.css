@@ -1133,7 +1133,7 @@ body.landing #header nav > ul > li a.btn-default {
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.6);
 }
 body.landing #header nav > ul > li a.btn-default:hover {
-  box-shadow: inset 0 0 0 1px rgb(63, 91, 96);
+  box-shadow: none;
 }
 body.landing #header .has-submenu:after {
   border-top-color: rgba(255, 255, 255, 0.8);
