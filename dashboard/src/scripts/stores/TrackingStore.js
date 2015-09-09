@@ -22,12 +22,11 @@ class TrackingStore extends EventStore {
 
       window.analytics.identify(user.id, {
         company: {
-          createdAd: account.createdAt.getTime(),
+          createdAd: Date.parse(account.createdAt),
           id: account.id,
           name: account.name,
           plan: plan
         },
-        createdAd: user.createdAd.getTime(),
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
