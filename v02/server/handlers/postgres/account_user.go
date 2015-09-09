@@ -95,9 +95,24 @@ func (accUser *accountUser) Create(ctx *context.Context) (err []errors.Error) {
 		return
 	}
 
-	accountUser.Password = ""
+	sessionToken := ""
+	if sessionToken, err = accUser.storage.CreateSession(accountUser); err != nil {
+		return
+	}
 
-	response.WriteResponse(ctx, accountUser, http.StatusCreated, 0)
+	response.SanitizeAccountUser(accountUser)
+
+	rsp := struct {
+		entity.AccountUser
+		AccountToken string `json:"account_token"`
+		Token        string `json:"token"`
+	}{
+		AccountUser:  *accountUser,
+		Token:        sessionToken,
+		AccountToken: ctx.Bag["account"].(*entity.Account).AuthToken,
+	}
+
+	response.WriteResponse(ctx, rsp, http.StatusCreated, 0)
 	return
 }
 
@@ -173,18 +188,14 @@ func (accUser *accountUser) Login(ctx *context.Context) (err []errors.Error) {
 	user.LastLogin = &timeNow
 	_, err = accUser.storage.Update(*user, *user, false)
 
+	response.SanitizeAccountUser(user)
+
 	response.WriteResponse(ctx, struct {
-		ID           string `json:"id"`
-		AccountID    string `json:"account_id"`
+		entity.AccountUser
 		AccountToken string `json:"account_token"`
 		Token        string `json:"token"`
-		FirstName    string `json:"first_name"`
-		LastName     string `json:"last_name"`
 	}{
-		ID:           user.PublicID,
-		AccountID:    user.PublicAccountID,
-		FirstName:    user.FirstName,
-		LastName:     user.LastName,
+		AccountUser:  *user,
 		AccountToken: account.AuthToken,
 		Token:        sessionToken,
 	}, http.StatusCreated, 0)
