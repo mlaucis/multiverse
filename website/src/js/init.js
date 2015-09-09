@@ -10,17 +10,17 @@
 		reset: 'full',
 		breakpoints: {
 			global: {
-				grid: { gutters: [ '4rem', '0' ] }
+				grid: { gutters: [ '4rem', '0' ] },
+				containers: 1200
 			},
 			xlarge: {
 				media: '(max-width: 1680px)',
-				href: 'css/style-xlarge.css',
-				containers: 1200
+				href: 'css/style-xlarge.css'
 			},
 			large: {
 				media: '(max-width: 1280px)',
 				href: 'css/style-large.css',
-				containers: 960,
+				containers: '90%!',
 				viewport: { scalable: false }
 			},
 			medium: {
@@ -29,7 +29,7 @@
 				containers: '90%!'
 			},
 			small: {
-				media: '(max-width: 736px)',
+				media: '(max-width: 768px)',
 				href: 'css/style-small.css',
 				containers: '90%!',
 			},
@@ -47,12 +47,12 @@
 					breakpoints: 'medium',
 					height: '4em',
 					html: '<span class="toggle" data-action="toggleLayer" data-args="navPanel"></span>',
-					position: 'top-left',
+					position: 'top-right',
 					side: 'top',
 					width: '6em'
 				},
 				navPanel: {
-				        animation: 'pushX',
+	        animation: 'pushX',
 					breakpoints: 'medium',
 					clickToHide: true,
 					height: '100%',

@@ -62,12 +62,83 @@
 		padding: 0;
 	}
 
-/* Banner */
-
-	#banner {
-		padding: 8em 2em 8em;
-	}
 /* Others */
+#header .inner {
+	margin: 0 auto;
+	padding: 2rem 0;
+	width: 90%;
+}
+#banner .inner {
+	background: none;
+	padding: 15rem 0 5rem 0;
+}
+
+#mission {
+  background: url('../img/mission/network-small.png') no-repeat bottom left;
+	background-size: 50rem;
+	padding: 3rem 0 30rem 0;
+}
+
+#features .feature.big .icon img,
+#features .feature.small .icon img {
+	width: 8rem;
+}
+
+#features .feature.big {
+	padding: 3rem 0;
+}
+#features .feature.small {
+	padding: 3rem 0;
+}
+
+#features .feature p.type {
+	margin: 0;
+}
+
+#benefits .container {
+	background-size: 30rem;
+	padding: 3rem 0 50rem 0;
+}
+
+#testimonial {
+	padding: 3rem 0;
+}
+
+#testimonial .portraits {
+	margin-bottom: 3rem;
+}
+#testimonial .portrait {
+	width: 10rem;
+}
+
+#get-started .inner {
+	width: 90%;
+}
+
+#get-started a {
+	text-align: center;
+}
+#get-started p {
+	line-height: 1.5em;
+}
+
+#newsletter .container {
+	background: url('../img/newsletter/background.png') no-repeat bottom center;
+	background-size: 50rem;
+	padding: 3rem 0 20rem 0;
+}
+#newsletter .btn-alert {
+	margin-top: 1rem;
+	width: 100%;
+}
+
+#footer {
+	padding: 0;
+}
+
+#footer .icons {
+	margin-top: 2rem;
+}
 
 .placeholder {
 	margin: 1em 0;

@@ -970,9 +970,7 @@ body.reset {
 #header {
   width: 100%;
 }
-#header .inner {
-  margin: 0 auto;
-  max-width: 120rem;
+#header .container {
   padding: 4rem 0;
 }
 #header h1 {
@@ -1005,7 +1003,7 @@ body.reset {
   text-transform: uppercase;
 }
 #header nav > ul > li:not(.btn) {
-  margin-right: 5rem;
+  margin-right: 3rem;
 }
 #header nav > ul > li.btn {
   margin-left: 1rem;
@@ -1157,7 +1155,6 @@ body.landing #header .has-submenu:after {
     font-weight: 300;
     line-height: 1.5em;
     margin: 0;
-    width: 70rem;
 }
 #banner ul.actions {
   margin: 6rem 0 0 0;
@@ -1211,7 +1208,6 @@ body.landing #header .has-submenu:after {
   font-weight: 300;
   line-height: 2.4rem;
   margin-bottom: 1.5rem;
-  width: 60rem;
 }
 
 /* Features */
@@ -1404,7 +1400,6 @@ body.landing #header .has-submenu:after {
   font-weight: 300;
   line-height: 1.4em;
   margin-bottom: 1.5rem;
-  width: 60rem;
 }
 
 /* Wrapper */
@@ -1545,10 +1540,6 @@ body.landing #header .has-submenu:after {
 }
 #footer .copyright a {
     color: #858585;
-}
-#footer .copyright .row {
-  margin: 0 auto;
-  width: 120rem;
 }
 #footer .icons {
     text-align: right;
