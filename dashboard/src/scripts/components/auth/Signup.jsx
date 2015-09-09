@@ -8,6 +8,7 @@ import { requestAccountCreate } from '../../actions/ConsoleActionCreator'
 import { requestAccountUserCreate } from '../../actions/ConsoleActionCreator'
 import { requestAppCreate } from '../../actions/ConsoleActionCreator'
 import { requestLogin } from '../../actions/ConsoleActionCreator'
+import { consumeReferrerCookie } from '../../utils/AuthUtils'
 
 class SignupForm extends Component {
   static propTypes = {
@@ -133,11 +134,16 @@ export default class Signup extends Component {
   handleSubmit = (values) => {
     let plan = this.props.query.plan || 'free'
     let router = this.context.router
+    let originalReferrer = consumeReferrerCookie()
 
-    requestAccountCreate(values, plan).then( account => {
-      requestAccountUserCreate(values, account.id, plan).then( () => {
-        requestLogin(values.email, values.password).then( (user) => {
-          requestAccount(user).then( () => {
+    requestAccountCreate(values, plan, originalReferrer)
+    .then( account => {
+      requestAccountUserCreate(values, account.id, plan, document.referrer)
+      .then( () => {
+        requestLogin(values.email, values.password)
+        .then( (user) => {
+          requestAccount(user)
+          .then( () => {
             requestAppCreate(
               'Testing Application',
               'This is your first app. Use its API token for testing.',

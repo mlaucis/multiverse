@@ -62,6 +62,7 @@ class TrackingStore extends EventStore {
           memberId: action.response.id,
           organizationId: action.accountId,
           plan: action.plan,
+          referrer: action.referrer,
           success: true
         })
 
