@@ -69,20 +69,20 @@
 
 .btn-outline(@color) {
   background: transparent;
-  box-shadow: inset 0 0 0 2px darken(@tpgl-blue, 5%);
+  border: 0.2rem solid darken(@tpgl-blue, 5%);
   color: darken(@tpgl-blue, 5%);
 
   &:hover {
     color: #fff;
     background: darken(@color, 5%);
-    box-shadow: inset 0 0 0 2px darken(@color, 5%);
+    border: 0.2rem solid darken(@color, 5%);
   }
 
   &.small {
-    box-shadow: inset 0 0 0 1px darken(@tpgl-blue, 5%);
+    border: 0.1rem solid darken(@tpgl-blue, 5%);
 
     &:hover {
-      box-shadow: inset 0 0 0 1px darken(@color, 5%);
+      border: 0.1rem solid darken(@color, 5%);
     }
   }
 }
