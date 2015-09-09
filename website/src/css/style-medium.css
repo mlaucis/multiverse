@@ -197,3 +197,7 @@
 .pricingText {
 	margin: 1em 4em;
 }
+
+#testimonial .portrait {
+	width: 15rem;
+}

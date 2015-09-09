@@ -24,7 +24,7 @@
 				viewport: { scalable: false }
 			},
 			medium: {
-				media: '(max-width: 980px)',
+				media: '(max-width: 1024px)',
 				href: 'css/style-medium.css',
 				containers: '90%!'
 			},
