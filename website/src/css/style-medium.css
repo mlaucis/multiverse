@@ -138,14 +138,18 @@
 
 /* Footer */
 
-	#footer .copyright {
-		margin-top: 0;
-		text-align: center;
-	}
 
-	#footer .icons {
-		text-align: center;
-	}
+#footer .icons {
+	margin-top: 2rem;
+}
+#footer .copyright {
+	margin-top: 0;
+	text-align: center;
+}
+
+#footer .icons {
+	text-align: center;
+}
 
 .iphone {
     margin-left: -80px;

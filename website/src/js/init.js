@@ -10,17 +10,17 @@
 		reset: 'full',
 		breakpoints: {
 			global: {
-				grid: { gutters: [ '4rem', '0' ] }
+				grid: { gutters: [ '4rem', '0' ] },
+				containers: 1200
 			},
 			xlarge: {
 				media: '(max-width: 1680px)',
-				href: 'css/style-xlarge.css',
-				containers: 1200
+				href: 'css/style-xlarge.css'
 			},
 			large: {
 				media: '(max-width: 1280px)',
 				href: 'css/style-large.css',
-				containers: 960,
+				containers: '90%!',
 				viewport: { scalable: false }
 			},
 			medium: {
