@@ -3,11 +3,9 @@ import React, { Component, PropTypes, findDOMNode } from 'react'
 import { Link } from 'react-router'
 
 import AccountStore from '../../stores/AccountStore'
-import { requestAccount } from '../../actions/ConsoleActionCreator'
 import { requestAccountCreate } from '../../actions/ConsoleActionCreator'
 import { requestAccountUserCreate } from '../../actions/ConsoleActionCreator'
 import { requestAppCreate } from '../../actions/ConsoleActionCreator'
-import { requestLogin } from '../../actions/ConsoleActionCreator'
 import { consumeReferrerCookie } from '../../utils/AuthUtils'
 
 class SignupForm extends Component {
