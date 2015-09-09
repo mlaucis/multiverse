@@ -165,11 +165,6 @@ class Member extends Component {
         <td className='actions'>
           <button
             className='btn-default outline small'
-            onClick={this.toggleEdit}>
-            Edit
-          </button>
-          <button
-            className='btn-default outline small'
             onClick={this.toggleDelete}>
             Delete
           </button>
