@@ -18,22 +18,22 @@ class TrackingStore extends EventStore {
     if (AccountStore.account && AccountStore.user) {
       let account = AccountStore.account
       let user = AccountStore.user
-      let plan = account.metadata ? (account.metadata.pan || 'free') : 'free'
 
       let payload = {
         company: {
           createdAt: Date.parse(account.createdAt),
           id: account.id,
-          name: account.name,
-          plan: plan
+          name: account.name
         },
         createdAt: Date.parse(user.createdAt),
         email: user.email,
         firstName: user.firstName,
-        lastName: user.lastName,
-        plan: plan
+        lastName: user.lastName
       }
 
+      if (account.metadata && account.metadata.plan) {
+        payload.company.plan = account.metadata.plan
+      }
       if (user.metadata && user.metadata.originalReferrer) {
         payload.originalReferrer = user.metadata.originalReferrer
       }
@@ -68,7 +68,6 @@ class TrackingStore extends EventStore {
           firstName: action.firstName,
           lastName: action.lastName,
           organizationId: action.accountId,
-          plan: action.plan,
           success: false
         })
 
@@ -82,7 +81,6 @@ class TrackingStore extends EventStore {
           memberId: action.response.id,
           organizationId: action.accountId,
           originalReferrer: action.originalReferrer,
-          plan: action.plan,
           referrer: action.referrer,
           success: true
         })

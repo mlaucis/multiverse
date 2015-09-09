@@ -37,7 +37,6 @@ export function requestAccountCreate(vals, plan, originalReferrer) {
 export function requestAccountUserCreate(
   vals,
   accountID,
-  plan,
   originalReferrer,
   referrer
 ) {
@@ -60,7 +59,6 @@ export function requestAccountUserCreate(
     lastName: vals.lastName,
     password: vals.password,
     originalReferrer: originalReferrer,
-    plan: plan,
     referrer: referrer
   })
 }

@@ -141,22 +141,15 @@ export default class Signup extends Component {
       requestAccountUserCreate(
         values,
         account.id,
-        plan,
         originalReferrer,
         document.referrer
       ).then( () => {
-        requestLogin(values.email, values.password)
-        .then( (user) => {
-          requestAccount(user)
-          .then( () => {
-            requestAppCreate(
-              'Testing Application',
-              'This is your first app. Use its API token for testing.',
-              AccountStore.user,
-            ).then( () => {
-              router.transitionTo('DASHBOARD')
-            })
-          })
+        requestAppCreate(
+          'Testing Application',
+          'This is your first app. Use its API token for testing.',
+          AccountStore.user,
+        ).then( () => {
+          router.transitionTo('DASHBOARD')
         })
       })
     })
