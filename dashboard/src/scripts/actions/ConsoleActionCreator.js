@@ -34,13 +34,21 @@ export function requestAccountCreate(vals, plan, originalReferrer) {
   })
 }
 
-export function requestAccountUserCreate(vals, accountID, plan, referrer) {
+export function requestAccountUserCreate(
+  vals,
+  accountID,
+  plan,
+  originalReferrer,
+  referrer
+) {
   return dispatchAsync(accountUserCreate(
     vals.email,
     vals.password,
     vals.firstName,
     vals.lastName,
-    accountID
+    accountID,
+    originalReferrer,
+    referrer
   ), {
     request: AccountConstants.ACCOUNTUSER_CREATE_REQUEST,
     success: AccountConstants.ACCOUNTUSER_CREATE_SUCCESS,
@@ -51,8 +59,9 @@ export function requestAccountUserCreate(vals, accountID, plan, referrer) {
     firstName: vals.firstName,
     lastName: vals.lastName,
     password: vals.password,
+    originalReferrer: originalReferrer,
     plan: plan,
-    referrer
+    referrer: referrer
   })
 }
 

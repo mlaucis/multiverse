@@ -15,23 +15,33 @@ class TrackingStore extends EventStore {
   }
 
   identify() {
-    if (AccountStore.isAuthenticated) {
+    if (AccountStore.account && AccountStore.user) {
       let account = AccountStore.account
       let user = AccountStore.user
       let plan = account.metadata ? (account.metadata.pan || 'free') : 'free'
 
-      window.analytics.identify(user.id, {
+      let payload = {
         company: {
-          createdAd: Date.parse(account.createdAt),
+          createdAt: Date.parse(account.createdAt),
           id: account.id,
           name: account.name,
           plan: plan
         },
+        createdAt: Date.parse(user.createdAt),
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
         plan: plan
-      })
+      }
+
+      if (user.metadata && user.metadata.originalReferrer) {
+        payload.originalReferrer = user.metadata.originalReferrer
+      }
+      if (user.metadata && user.metadata.referrer) {
+        payload.referrer = user.metadata.referrer
+      }
+
+      window.analytics.identify(user.id, payload)
     }
   }
 
@@ -71,6 +81,7 @@ class TrackingStore extends EventStore {
           lastName: action.lastName,
           memberId: action.response.id,
           organizationId: action.accountId,
+          originalReferrer: action.originalReferrer,
           plan: action.plan,
           referrer: action.referrer,
           success: true

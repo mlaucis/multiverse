@@ -20,14 +20,20 @@ export function accountUserCreate(
   password,
   firstName,
   lastName,
-  accountID
+  accountID,
+  originalReferrer,
+  referrer
 ) {
   return request('post', `/accounts/${accountID}/users`, {
     email: email,
     userName: email,
     firstName: firstName,
     lastName: lastName,
-    password: password
+    password: password,
+    metadata: {
+      originalReferrer: originalReferrer,
+      referrer: referrer
+    }
   })
 }
 

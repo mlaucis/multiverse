@@ -138,8 +138,13 @@ export default class Signup extends Component {
 
     requestAccountCreate(values, plan, originalReferrer)
     .then( account => {
-      requestAccountUserCreate(values, account.id, plan, document.referrer)
-      .then( () => {
+      requestAccountUserCreate(
+        values,
+        account.id,
+        plan,
+        originalReferrer,
+        document.referrer
+      ).then( () => {
         requestLogin(values.email, values.password)
         .then( (user) => {
           requestAccount(user)
