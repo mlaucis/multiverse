@@ -18,12 +18,20 @@ class TrackingStore extends EventStore {
     if (AccountStore.isAuthenticated) {
       let account = AccountStore.account
       let user = AccountStore.user
+      let plan = account.metadata ? (account.metadata.pan || 'free') : 'free'
 
       window.analytics.identify(user.id, {
-        company: account.name,
+        company: {
+          createdAd: account.createdAt.getTime(),
+          id: account.id,
+          name: account.name,
+          plan: plan
+        },
+        createdAd: user.createdAd.getTime(),
         email: user.email,
         firstName: user.firstName,
-        lastName: user.lastName
+        lastName: user.lastName,
+        plan: plan
       })
     }
   }
