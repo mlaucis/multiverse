@@ -16,9 +16,12 @@ class TrackingStore extends EventStore {
 
   identify() {
     if (AccountStore.isAuthenticated) {
+      let account = AccountStore.account
       let user = AccountStore.user
 
       window.analytics.identify(user.id, {
+        company: account.name,
+        email: user.email,
         firstName: user.firstName,
         lastName: user.lastName
       })
