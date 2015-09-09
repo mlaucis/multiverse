@@ -1,3 +1,21 @@
+function adjustPricing($) {
+  var c = Cookies.get('originalReferrer');
+  var re = /producthunt.com$/;
+
+  if (c && !re.test(c)) {
+    return
+  }
+
+  $('div.tier div.price').each(function() {
+    var $el = $(this);
+    var price = Math.floor(parseInt($el.text()) * 0.75);
+
+    $el.addClass('discount');
+    $el.after('<div class="price">' + price + '</div>');
+    $el.after('<div class="priceMonth">-25% Product Hunt Discount</div>');
+  });
+}
+
 function extractReferrer() {
   var referrer = document.referrer.split('/')[2]
 
@@ -44,6 +62,7 @@ function extractReferrer() {
   $potraits.not(':first').addClass('inactive');
   $statements.not(':first').hide();
 
+  adjustPricing($);
   startRotation();
   extractReferrer();
 })(jQuery);

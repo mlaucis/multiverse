@@ -3400,6 +3400,13 @@ div.pricing .feature .left {
     line-height: 1em;
     margin: 4rem 0 0.5rem 0;
 }
+.price.discount {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+.price:before {
+  content: '$';
+}
 
 .priceMonth {
     color: rgba(106,106,106,1);
