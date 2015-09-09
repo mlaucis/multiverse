@@ -148,6 +148,7 @@ export default class Signup extends Component {
           'Testing Application',
           'This is your first app. Use its API token for testing.',
           AccountStore.user,
+          false
         ).then( () => {
           router.transitionTo('DASHBOARD')
         })

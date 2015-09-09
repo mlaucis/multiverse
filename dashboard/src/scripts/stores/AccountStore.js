@@ -90,8 +90,6 @@ class AccountStore extends EventEmitter {
   }
 
   _handleActions = (action) => {
-    console.log(action.type)
-    console.log(action.response)
     switch (action.type) {
       case AccountConstants.ACCOUNT_SUCCESS:
         this.setAccount(action.response)

@@ -79,12 +79,12 @@ export function requestApps(user) {
   })
 }
 
-export function requestAppCreate(name, description, user) {
+export function requestAppCreate(name, description, user, manual) {
   return dispatchAsync(appCreate(name, description, user), {
     request: ApplicationConstants.APP_CREATE_REQUEST,
     success: ApplicationConstants.APP_CREATE_SUCCESS,
     failure: ApplicationConstants.APP_CREATE_FAILURE
-  }, { name: name, description: description })
+  }, { name: name, description: description, manual: manual })
 }
 
 export function requestAppDelete(id, user) {

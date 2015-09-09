@@ -124,7 +124,7 @@ class TrackingStore extends EventStore {
           eventId: 7,
           appName: action.name,
           appDescription: action.description,
-          manually: true,
+          manually: action.manual,
           success: false
         })
 
@@ -135,7 +135,7 @@ class TrackingStore extends EventStore {
           appId: action.response.id,
           appName: action.name,
           appDescription: action.description,
-          manually: true,
+          manually: action.manual,
           success: true
         })
 

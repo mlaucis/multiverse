@@ -352,7 +352,7 @@ export default class Apps extends Component {
   }
 
   handleCreate = (name, description) => {
-    requestAppCreate(name, description, AccountStore.user)
+    requestAppCreate(name, description, AccountStore.user, true)
   }
 
   render() {
