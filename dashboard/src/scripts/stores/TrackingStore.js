@@ -68,6 +68,8 @@ class TrackingStore extends EventStore {
           firstName: action.firstName,
           lastName: action.lastName,
           organizationId: action.accountId,
+          originalReferrer: action.originalReferrer,
+          referrer: action.referrer,
           success: false
         })
 

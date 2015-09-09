@@ -13,14 +13,17 @@ describe('TrackingStore', () => {
     id: 54321,
     name: 'Yo'
   }
+  let meta = {
+    originalReferrer: 'twitter.com',
+    referrer: 'lolcat.biz'
+  }
   let user = {
     accountId: 123,
     email: 'nyn@cat.biz',
     id: 1234,
     firstName: 'cat',
     lastName: 'nyn',
-    password: '4321',
-    plan: 'growth'
+    password: '4321'
   }
 
   Object.defineProperty(window, 'analytics', { value: { track: trackMock } })
@@ -38,6 +41,8 @@ describe('TrackingStore', () => {
   it('tracks ACCOUNTUSER_CREATE_FAILURE', () => {
     callback({
       type: AccountConstants.ACCOUNTUSER_CREATE_FAILURE,
+      originalReferrer: meta.originalReferrer,
+      referrer: meta.referrer,
       ...user
     })
 
@@ -47,7 +52,8 @@ describe('TrackingStore', () => {
       firstName: user.firstName,
       lastName: user.lastName,
       organizationId: user.accountId,
-      plan: user.plan,
+      originalReferrer: meta.originalReferrer,
+      referrer: meta.referrer,
       success: false
     })
   })
@@ -56,6 +62,8 @@ describe('TrackingStore', () => {
     callback({
       type: AccountConstants.ACCOUNTUSER_CREATE_SUCCESS,
       response: { id: user.id },
+      originalReferrer: meta.originalReferrer,
+      referrer: meta.referrer,
       ...user
     })
 
@@ -66,7 +74,8 @@ describe('TrackingStore', () => {
       lastName: user.lastName,
       memberId: user.id,
       organizationId: user.accountId,
-      plan: user.plan,
+      originalReferrer: meta.originalReferrer,
+      referrer: meta.referrer,
       success: true
     })
   })
@@ -125,7 +134,8 @@ describe('TrackingStore', () => {
     callback({
       type: ApplicationConstants.APP_CREATE_FAILURE,
       name: app.name,
-      description: app.description
+      description: app.description,
+      manual: true
     })
 
     expect(trackMock).lastCalledWith('Application created', {
@@ -142,7 +152,8 @@ describe('TrackingStore', () => {
       type: ApplicationConstants.APP_CREATE_SUCCESS,
       response: { id: app.id },
       name: app.name,
-      description: app.description
+      description: app.description,
+      manual: true
     })
 
     expect(trackMock).lastCalledWith('Application created', {
@@ -160,7 +171,8 @@ describe('TrackingStore', () => {
       type: ApplicationConstants.APP_EDIT_FAILURE,
       description: app.description,
       id: app.id,
-      name: app.name
+      name: app.name,
+      manual: true
     })
 
     expect(trackMock).lastCalledWith('Application edited', {
@@ -178,7 +190,8 @@ describe('TrackingStore', () => {
       type: ApplicationConstants.APP_EDIT_SUCCESS,
       description: app.description,
       id: app.id,
-      name: app.name
+      name: app.name,
+      manual: true
     })
 
     expect(trackMock).lastCalledWith('Application edited', {
