@@ -153,6 +153,7 @@ func GetRouter(
 	router := mux.NewRouter().StrictSlash(true)
 
 	v02_server.InitRouter(agent, router, mainLogChan, errorLogChan, environment, skipSecurityChecks, debugMode)
+	v03_server.InitRouter(agent, router, mainLogChan, errorLogChan, environment, skipSecurityChecks, debugMode)
 
 	for idx := range generalRoutes {
 		router.
