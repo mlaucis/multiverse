@@ -3,7 +3,7 @@
 TEST_COMPONENT=${1}
 TEST_TARGET=${2}
 
-export PATH=/home/ubuntu/.gimme/versions/go1.5.linux.amd64/bin:${PATH}
+export PATH=/home/ubuntu/.gimme/versions/go1.5.1.linux.amd64/bin:${PATH}
 export GOPATH=`godep path`:${GOPATH}
 REVISION=`git rev-parse HEAD`
 
