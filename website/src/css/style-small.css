@@ -85,25 +85,7 @@
 	margin: 0 0;
 }
 
-.features p {
-		font-size: 1.25em;
-}
-
 /* Tabs */
-
-    #generic-tabs h1 {
-        font-size: 1.8em;
-    }
-    #generic-tabs h1.callout {
-        font-size: 2em;
-    }
-    #generic-tabs ul li a {
-        font-size: 1.2em;
-    }
-    #generic-tabs p {
-        font-size: 1.2em;
-    }
-
  .gallery .quote {
     font-size: 2em;
 

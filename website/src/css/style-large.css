@@ -8,6 +8,7 @@
   padding: 12rem 0;
 }
 
-.iphone-selector {
-    margin-left: 35px;
+.iphone-selector,
+.signup-button {
+  margin-left: 3.5rem;
 }

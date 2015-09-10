@@ -30,9 +30,9 @@ select,
 textarea {
     color: #444;
     font-family: 'Lato', Helvetica, sans-serif;
-    font-size: 13pt;
+    font-size: 1.8rem;
     font-weight: 400;
-    line-height: 1.65em;
+    line-height: 1.5em;
 }
 a {
     color: #383b43;
@@ -237,23 +237,17 @@ header.major p {
     padding-left: 150px;
 }
 .features {
-    color: #858585;
-    margin-left: 0;
-    text-align: left;
+  color: #858585;
+  padding: 5rem 0 0 0;
 }
 .features p {
-    font-size: 1.6em;
-    font-weight: 300;
-    text-align: left;
-    line-height: 1.4em;
-    margin-bottom: 1em;
-    color: #858585;
+    font-size: 1.8rem;
+    line-height: 1.5em;
+    margin-bottom: 3rem;
 }
 .features img {
-    float: left;
-    width: 100px;
-    margin: 5px 50px 80px 80px;
-    vertical-align: middle;
+  float: right;
+  width: 6rem;
 }
 .features .features-right {
     float: right;
@@ -2417,7 +2411,7 @@ body.landing #header .has-submenu:after {
     background-size: cover;
     display: inline-block;
     height: 569px;
-    margin-bottom: -1rem;
+    margin-bottom: -0.5rem;
     padding: 7rem 1.5rem 0 1.5rem;
     position: relative;
     width: 315px;
@@ -2926,10 +2920,10 @@ body.landing #header .has-submenu:after {
 #generic-tabs ul li a {
     text-align: center;
     display: block;
-    font-size: 1.6em;
+    font-size: 1.8rem;
     text-decoration: none;
     padding: 1.2em .6em;
-    line-height: 1.6em;
+    line-height: 1.5em;
     color: #858585;
 }
 /*Active tab styles*/
@@ -2950,7 +2944,7 @@ body.landing #header .has-submenu:after {
     background: #FFFFFF;
     padding: 3em 2em;
     border-radius: 0 0 4px 4px;
-    min-height: 620px;
+    min-height: 40rem;
 }
 #generic-tabs .tab-content h1 {
     margin-top: 0;
@@ -2964,14 +2958,14 @@ body.landing #header .has-submenu:after {
 #generic-tabs h1.callout {
     font-size: 3em;
 }
-#generic-tabs h2 {
-    color: rgb(46, 46, 46);
-    text-align: left;
+#generic-tabs h3 {
+  line-height: 1.5em;
+  margin-bottom: 3rem;
+  text-align: left;
 }
 #generic-tabs p {
-    font-size: 1.4em;
-    line-height: 1.6em;
-    font-weight: 300;
+    font-size: 1.8rem;
+    line-height: 1.5em;
     text-align: left;
     color: #858585;
     margin-bottom: 0;
@@ -2979,11 +2973,6 @@ body.landing #header .has-submenu:after {
 #generic-tabs img {
     margin-top: 7em;
     margin-left: -2em;
-}
-#generic-tabs ul li a {
-    font-size: 1.4em;
-    padding: 1.2em .4em;
-    line-height: 16px;
 }
 /* Placeholders */
 .placeholder {
@@ -3037,17 +3026,14 @@ body.landing #header .has-submenu:after {
     vertical-align: middle;
 }
 .newsgreen p {
-    font-size: 1.8em;
-    font-weight: 300;
-    line-height: 1.4em;
-    margin-top: 2em;
+    font-size: 1.8rem;
+    line-height: 1.5em;
+    margin-top: 2rem;
 }
 .newsform form{
     margin-bottom: 0;
 }
 .newsform input[type="email"]{
-    font-weight: 300;
-    font-size: 1.2em;
 }
 .freeprice{
     margin-top: -.8em;

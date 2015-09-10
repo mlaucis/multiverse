@@ -12,27 +12,11 @@
 		font-size: 12pt;
 	}
 
-	header.major h2 {
-		font-size: 2.25em;
-	}
-
-	header.major p {
-		font-size: 1.4em;
-	}
-
 	.benefits h3 {
 		font-size: 2em;
 	}
 
 	.benefits p {
-		font-size: 1.4em;
-	}
-
-	.features h3 {
-		font-size: 1.4em;
-	}
-
-	.features p {
 		font-size: 1.4em;
 	}
 
@@ -51,10 +35,6 @@
 	#bannergreen {
 		padding: 12rem 0 0 0;
 	}
-
-		#bannergreen h2 {
-			font-size: 2.25em;
-		}
 
 		#bannergreen p {
 			font-size: 1.25em;
@@ -150,30 +130,11 @@
 .iphone {
     margin-left: -80px;
 }
-.iphone-selector {
-    margin-left: 55px;
+.iphone-selector,
+.signup-button {
 }
 
 /* Tabs */
-
-    #generic-tabs h1 {
-        font-size: 2em;
-    }
-    #generic-tabs h1.callout {
-        font-size: 3em;
-    }
-    #generic-tabs p {
-        font-size: 1.3em;
-        line-height: 1.3em;
-    }
-    #generic-tabs ul li a {
-        font-size: 1.4em;
-        padding: 1.2em .4em;
-    }
-    #generic-tabs img {
-    margin: 0 0 .4em -.8em;
-}
-
 .gallery .quote {
     font-size: 1.8em;
 }
