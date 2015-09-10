@@ -2412,66 +2412,36 @@ body.landing #header .has-submenu:after {
 }
 /* iPhone */
 .iphone {
-    background-image: url(../img/screens/news.png);
+    background-image: url(../img/screens/phone@2x.png);
     background-position: center center;
     background-size: cover;
     display: inline-block;
-    width: 18em;
-    height: 32em;
-    border-radius: 1.6em 1.6em 0 0;
-    border: 1px solid #FFFFFF;
-    border-width: 4em 1.4em 0 1.4em;
-    box-shadow: 0 .3em #D2D7D8;
+    height: 569px;
+    margin-bottom: -1rem;
+    padding: 7rem 1.5rem 0 1.5rem;
     position: relative;
-    margin-bottom: -0.3em;
+    width: 315px;
 }
-/*.iphone {
-    background-image: url(../img/screens/fitness.png);
-    background-position: center center;
-    background-size: cover;
-    display: inline-block;
-    width: 18em;
-    height: 34.8em;
-    border-radius: 1.6em;
-    border: 1px solid #ECF0F1;
-    border-width: 4em 1.4em;
-    box-shadow: 0 .6em #D2D7D8;
-    position: relative;
-}*/
-.iphone:before {
-    content: "";
-    width: 50px;
-    height: 5px;
-    background: #5C5C5C;
-    position: absolute;
-    z-index: 9999;
-    top: -30px;
-    margin: 0 auto;
-    border-radius: 10px;
-    left: 69px;
-    left: 41%;
+.iphone .screen {
+  background-position: center top;
+  background-size: cover;
+  border: 2px solid #666;
+  border-bottom: 0;
+  height: 100%;
+  margin: 0 auto;
+  width: 100%;
 }
-/*.iphone:after {
-    content: "";
-    border-radius: 50%;
-    bottom: -46px;
-    position: absolute;
-    border: 4px solid #D5D5D5;
-    width: 30px;
-    height: 30px;
-    left: 43%;
-}*/
-.iphone#newsBackground-display {
-    background-image: url('../img/screens/news.png') !important;
+.iphone#newsBackground-display .screen {
+  background-image: url(../img/screens/NewsFeed_News@2x.jpg);
 }
-.iphone#gamesBackground-display {
-    background-image: url('../img/screens/food.png') !important;
+.iphone#gamesBackground-display .screen {
+    background-image: url('../img/screens/NewsFeed_Food@2x.jpg');
 }
-.iphone#marketBackground-display {
-    background-image: url('../img/screens/entertainment.png') !important;
+.iphone#marketBackground-display .screen {
+    background-image: url('../img/screens/NewsFeed_Entertainment@2x.jpg');
 }
-.iphone#sportsBackground-display {
-    background-image: url('../img/screens/fitness.png') !important;
+.iphone#sportsBackground-display .screen {
+    background-image: url('../img/screens/NewsFeed_Sports@2x.jpg');
 }
 .iphone-selector-ct {
     color: black;
@@ -2487,10 +2457,10 @@ body.landing #header .has-submenu:after {
     margin-left: 0px;
 }
 .iphone-selector:first-child {
-    border-radius: 6px 6px 0 0;
+    border-radius: 3px 3px 0 0;
 }
 .iphone-selector:last-child {
-    border-radius: 0 0 6px 6px;
+    border-radius: 0 0 3px 3px;
     border-bottom: none;
 }
 .iphone-selector:hover {
@@ -2502,9 +2472,9 @@ body.landing #header .has-submenu:after {
 }
 .iphone-selector.active:before {
     content: '';
-    width: 35px;
-    height: 35px;
-    top: 10px;
+    width: 25px;
+    height: 25px;
+    top: 15px;
     position: absolute;
     left: -10px;
     background: white;
@@ -2515,7 +2485,7 @@ body.landing #header .has-submenu:after {
     font-weight: 300;
     background: transparent;
     position: relative;
-    font-size: 1.6em;
+    font-size: 1.8rem;
     line-height: 1.2em;
     color: #858585;
     text-align: left;
@@ -3207,7 +3177,7 @@ body.landing #header .has-submenu:after {
 }*/
 
 .signup-button {
-  margin: 3em 0 2.4em -2em;
+  margin: 3rem 0 0 0;
 }
 
 /* Team Images */
