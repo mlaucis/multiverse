@@ -127,7 +127,7 @@ func VersionHandler(ctx *context.Context) []errors.Error {
 	resp := struct {
 		Version string `json:"version"`
 		Status  string `json:"status"`
-	}{APIVersion, "current"}
+	}{APIVersion, "deprecated"}
 	response.WriteResponse(ctx, resp, 200, 86400)
 	return nil
 }
