@@ -2,7 +2,7 @@ function adjustPricing($) {
   var c = Cookies.get('originalReferrer');
   var re = /producthunt.com$/;
 
-  if (c && !re.test(c)) {
+  if (!c || !re.test(c)) {
     return
   }
 
@@ -17,15 +17,18 @@ function adjustPricing($) {
 }
 
 function extractReferrer() {
-  var referrer = document.referrer.split('/')[2]
+  var referrer = document.referrer.split('/')[2];
+  var exclude = /tapglue.com$/;
 
-  if (referrer && !referrer.match('tapglue.com$')) {
-    Cookies.set('originalReferrer', referrer, {
-      domain: '.tapglue.com',
-      expires: 7,
-      path: '/'
-    });
+  if (!referrer || !exclude.test(referrer)) {
+    return
   }
+
+  Cookies.set('originalReferrer', referrer, {
+    domain: '.tapglue.com',
+    expires: 7,
+    path: '/'
+  });
 }
 
 (function($) {
