@@ -20,7 +20,7 @@ function extractReferrer() {
   var referrer = document.referrer.split('/')[2];
   var exclude = /tapglue.com$/;
 
-  if (!referrer || !exclude.test(referrer)) {
+  if (!referrer || exclude.test(referrer)) {
     return
   }
 
