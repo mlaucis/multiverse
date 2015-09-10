@@ -2431,14 +2431,14 @@ body.landing #header .has-submenu:after {
   margin: 0 auto;
   width: 100%;
 }
-.iphone#newsBackground-display .screen {
-  background-image: url(../img/screens/NewsFeed_News@2x.jpg);
-}
-.iphone#gamesBackground-display .screen {
-    background-image: url('../img/screens/NewsFeed_Food@2x.jpg');
-}
-.iphone#marketBackground-display .screen {
+.iphone#entertainmentBackground-display .screen {
     background-image: url('../img/screens/NewsFeed_Entertainment@2x.jpg');
+}
+.iphone#newsBackground-display .screen {
+  background-image: url('../img/screens/NewsFeed_News@2x.jpg');
+}
+.iphone#foodBackground-display .screen {
+    background-image: url('../img/screens/NewsFeed_Food@2x.jpg');
 }
 .iphone#sportsBackground-display .screen {
     background-image: url('../img/screens/NewsFeed_Sports@2x.jpg');
