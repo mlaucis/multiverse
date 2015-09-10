@@ -4,6 +4,7 @@ import AccountStore from '../stores/AccountStore'
 import ApplicationStore from '../stores/ApplicationStore'
 import { requestApps } from '../actions/ConsoleActionCreator'
 import { requestMemberInvite } from '../actions/ConsoleActionCreator'
+import { setReadmeToken } from '../utils/CookieUtils'
 
 class InviteDeveloper extends Component {
   constructor() {
@@ -134,6 +135,10 @@ class ProductResource extends Component {
 class TestingApp extends Component {
   static propTypes = {
     app: PropTypes.object.isRequired
+  }
+
+  componentDidMount() {
+    setReadmeToken(this.props.app.token)
   }
 
   render() {

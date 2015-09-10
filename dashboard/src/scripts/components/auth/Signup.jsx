@@ -6,7 +6,7 @@ import AccountStore from '../../stores/AccountStore'
 import { requestAccountCreate } from '../../actions/ConsoleActionCreator'
 import { requestAccountUserCreate } from '../../actions/ConsoleActionCreator'
 import { requestAppCreate } from '../../actions/ConsoleActionCreator'
-import { consumeReferrerCookie } from '../../utils/AuthUtils'
+import { consumeReferrerCookie } from '../../utils/CookieUtils'
 
 class SignupForm extends Component {
   static propTypes = {
