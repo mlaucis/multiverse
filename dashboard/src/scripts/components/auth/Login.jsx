@@ -109,10 +109,6 @@ export default class Login extends Component {
   }
 
   render() {
-    return (
-      <section className='login'>
-        <LoginForm errors={this.state.errors}/>
-      </section>
-    )
+    return <LoginForm errors={this.state.errors}/>
   }
 }

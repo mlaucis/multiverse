@@ -167,10 +167,6 @@ export default class Signup extends Component {
   }
 
   render() {
-    return (
-      <section className='signup'>
-        <SignupForm errors={this.state.errors} submit={this.handleSubmit}/>
-      </section>
-    )
+    return <SignupForm errors={this.state.errors} submit={this.handleSubmit}/>
   }
 }
