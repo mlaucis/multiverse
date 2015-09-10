@@ -6,7 +6,7 @@ resource "aws_launch_configuration" "frontend" {
   image_id                    = "${var.ami_frontend}"
   instance_type               = "t2.small"
   associate_public_ip_address = false
-  enable_monitoring           = false
+  enable_monitoring           = true
   ebs_optimized               = false
   iam_instance_profile        = "${aws_iam_instance_profile.frontend.name}"
 

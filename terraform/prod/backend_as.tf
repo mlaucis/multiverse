@@ -5,7 +5,7 @@ resource "aws_launch_configuration" "backend" {
   image_id                    = "${var.ami_backend}"
   instance_type               = "t2.micro"
   associate_public_ip_address = false
-  enable_monitoring           = false
+  enable_monitoring           = true
   ebs_optimized               = false
   iam_instance_profile        = "${aws_iam_instance_profile.backend.name}"
 
