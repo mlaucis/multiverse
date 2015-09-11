@@ -5,7 +5,7 @@ provider "cloudflare" {
 
 resource "cloudflare_record" "api-prod" {
   domain = "${var.cloudflare_domain}"
-  name = "api-prod"
+  name = "api"
   value = "${aws_elb.frontend.dns_name}"
   type = "CNAME"
   ttl = 1
