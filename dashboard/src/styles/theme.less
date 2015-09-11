@@ -223,46 +223,6 @@ body {
   background-image: linear-gradient(180deg, @g1, @tpgl-green 80%);
   min-height: 100%;
 
-  nav {
-    ul {
-      li {
-        line-height: 6rem;
-        text-transform: uppercase;
-        word-spacing: normal;
-
-        @media only screen and (max-width: 375px) {
-          margin-right: 1rem;
-        }
-
-        &.actions {
-          a:first-of-type {
-            margin-right: 1rem;
-          }
-        }
-
-        a {
-          color: fade(@tpgl-white, 80%);
-          font-size: 1.4rem;
-          letter-spacing: 0.1rem;
-
-           &:hover {
-             color: rgba(255, 255, 255, 1);
-           }
-
-           &.btn-default.outline.white {
-             border-color: fade(@tpgl-white, 60%);
-             color: fade(@tpgl-white, 80%);
-
-             &:hover {
-               border-color: fade(@tpgl-white, 0%);
-               color: @tpgl-white;
-             }
-           }
-        }
-      }
-    }
-  }
-
   p {
     font-size: 1.4rem;
     margin: 1rem 1rem 2rem 0rem;
@@ -272,7 +232,7 @@ body {
   > .grid {
     margin: 0 auto;
     max-width: 120rem;
-    min-height: 70rem;
+    min-height: 60rem;
     padding-top: 4rem;
   }
 
@@ -283,16 +243,11 @@ body {
     padding: 3rem 2rem 0.5rem 2rem;
   }
 
-  .logo {
-    .icon {
-      display: flex;
-      justify-content: center;
-    }
-
+  .page-logo {
     svg {
-      fill: #fff;
+      fill: @tpgl-white;
       height: 6rem;
-      width: 22rem
+      width: 22rem;
     }
   }
 }
