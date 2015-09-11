@@ -3,10 +3,10 @@ import 'whatwg-fetch'
 
 import AccountStore from '../stores/AccountStore'
 
-let _base = 'https://api.tapglue.com/0.2'
+let _base = 'https://api.tapglue.com/0.3'
 
 if (window.location.hostname === 'localhost') {
-  _base = 'http://localhost:8083/0.2'
+  _base = 'http://localhost:8083/0.3'
 }
 
 export function request(method, url, body) {

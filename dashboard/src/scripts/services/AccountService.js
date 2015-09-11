@@ -1,11 +1,11 @@
 import { request } from '../utils/APIUtils'
 
 export function accountGet(user) {
-  return request('get', `/accounts/${user.accountId}`)
+  return request('get', `/organizations/${user.accountId}`)
 }
 
 export function accountCreate(name, description, plan, originalReferrer) {
-  return request('post', '/accounts', {
+  return request('post', '/organizations', {
     name: name,
     description: description,
     metadata: {
@@ -24,7 +24,7 @@ export function accountUserCreate(
   originalReferrer,
   referrer
 ) {
-  return request('post', `/accounts/${accountID}/users`, {
+  return request('post', `/organizations/${accountID}/members`, {
     email: email,
     userName: email,
     firstName: firstName,
@@ -38,14 +38,14 @@ export function accountUserCreate(
 }
 
 export function login(email, password) {
-  return request('post', '/accounts/users/login', {
+  return request('post', '/organizations/members/login', {
     email: email,
     password: password
   })
 }
 
 export function logout(user) {
-  let url = `/accounts/${user.accountId}/users/${user.id}/logout`
+  let url = `/organizations/${user.accountId}/members/${user.id}/logout`
 
   return request('delete', url)
 }

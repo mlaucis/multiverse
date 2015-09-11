@@ -1,11 +1,11 @@
 import { request } from '../utils/APIUtils'
 
 export function member(id, user) {
-  return request('get', `/accounts/${user.accountId}/users/${id}`)
+  return request('get', `/organizations/${user.accountId}/members/${id}`)
 }
 
 export function memberDelete(id, user) {
-  return request('delete', `/accounts/${user.accountId}/users/${id}`)
+  return request('delete', `/organizations/${user.accountId}/members/${id}`)
 }
 
 export function memberUpdate(
@@ -16,7 +16,7 @@ export function memberUpdate(
   id,
   accountID
 ) {
-  return request('put', `/accounts/${accountID}/users/${id}`, {
+  return request('put', `/organizations/${accountID}/members/${id}`, {
     email: email,
     userName: email,
     firstName: firstName,
@@ -26,5 +26,5 @@ export function memberUpdate(
 }
 
 export function members(user) {
-  return request('get', `/accounts/${user.accountId}/users`)
+  return request('get', `/organizations/${user.accountId}/members`)
 }
