@@ -26,6 +26,7 @@
     background: darken(@color, 5%);
     color: #fff;
     outline: none;
+    text-decoration: none;
   }
 
   &:hover {
@@ -57,7 +58,7 @@
   }
 
   &.small {
-    font-size: 1rem;
+    font-size: 1.2rem;
     padding: 0.8rem 1.4rem 0.7rem 1.4rem;
   }
 
@@ -72,6 +73,10 @@
   border: 0.2rem solid darken(@tpgl-blue, 5%);
   color: darken(@tpgl-blue, 5%);
 
+  &:focus {
+    background: transparent;
+  }
+
   &:hover {
     color: #fff;
     background: darken(@color, 5%);
@@ -84,6 +89,11 @@
     &:hover {
       border: 0.1rem solid darken(@color, 5%);
     }
+  }
+
+  &.white {
+    border-color: @tpgl-white;
+    color: @tpgl-white;
   }
 }
 

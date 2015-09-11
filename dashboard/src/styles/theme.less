@@ -1,6 +1,7 @@
 // Styleguide
 @import '../../../style/styles/button.less';
 @import '../../../style/styles/colors.less';
+@import '~reflex-grid/less/reflex.less';
 
 // Dimensions
 @header-height: 8rem;
@@ -220,56 +221,43 @@ body {
 .auth {
   background: @tpgl-green;
   background-image: linear-gradient(180deg, @g1, @tpgl-green 80%);
-  height: 100%;
+  min-height: 100%;
 
-  .inner {
-    margin: 0 auto;
-    padding: 2rem 0;
-    width: 120rem;
-  }
-  .form-group {
-    background: #fff;
-    border-radius: 0.3rem;
-    margin: 0rem 0rem 2rem 0rem;
-    padding: 3rem 2rem 0.5rem 2rem;
-  }
+  nav {
+    ul {
+      li {
+        line-height: 6rem;
+        text-transform: uppercase;
+        word-spacing: normal;
 
-  .logo {
-    display: inline-block;
-    width: 22rem;
+        @media only screen and (max-width: 375px) {
+          margin-right: 1rem;
+        }
 
-    svg {
-      fill: #fff;
-      height: 100%;
-      width: 100%;
-    }
-  }
+        &.actions {
+          a:first-of-type {
+            margin-right: 1rem;
+          }
+        }
 
-  header {
-    padding-top: 3rem;
-
-    nav {
-      display: flex;
-      float: right;
-      height: 5.5rem;
-
-      ul {
-        align-items: flex-end;
-        display: flex;
-
-        li {
+        a {
+          color: fade(@tpgl-white, 80%);
           font-size: 1.4rem;
-          font-weight: 300;
-          margin-left: 7rem;
-          text-transform: uppercase;
+          letter-spacing: 0.1rem;
 
-          a {
-             color: @tpgl-grey;
+           &:hover {
+             color: rgba(255, 255, 255, 1);
+           }
+
+           &.btn-default.outline.white {
+             border-color: fade(@tpgl-white, 60%);
+             color: fade(@tpgl-white, 80%);
 
              &:hover {
-               color: lighten(@tpgl-grey, 5%);
+               border-color: fade(@tpgl-white, 0%);
+               color: @tpgl-white;
              }
-          }
+           }
         }
       }
     }
@@ -281,10 +269,31 @@ body {
     text-align: right;
   }
 
-  section {
+  > .grid {
     margin: 0 auto;
-    margin-top: 10%;
-    width: 40rem;
+    max-width: 120rem;
+    min-height: 70rem;
+    padding-top: 4rem;
+  }
+
+  .form-group {
+    background: #fff;
+    border-radius: 0.3rem;
+    margin: 0rem 0rem 2rem 0rem;
+    padding: 3rem 2rem 0.5rem 2rem;
+  }
+
+  .logo {
+    .icon {
+      display: flex;
+      justify-content: center;
+    }
+
+    svg {
+      fill: #fff;
+      height: 6rem;
+      width: 22rem
+    }
   }
 }
 
