@@ -210,9 +210,8 @@ header.major h3 {
     margin-bottom: 0.5em;
 }
 header.major p {
-    font-size: 1.9em;
-    font-weight: 300;
-    line-height: 1.4em;
+    font-size: 1.8rem;
+    line-height: 1.5em;
 }
 .benefits h3 {
   font-size: 2.4rem;
@@ -220,11 +219,11 @@ header.major p {
 }
 .benefits p {
     color: #858585;
-    font-size: 1.9em;
+    font-size: 1.8rem;
     font-weight: 300;
     text-align: left;
-    line-height: 1.6em;
-    margin-bottom: 1em;
+    line-height: 1.5em;
+    margin-bottom: 1rem;
 }
 .benefits img {
     float: left;
