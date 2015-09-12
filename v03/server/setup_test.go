@@ -106,24 +106,16 @@ func init() {
 		go logger.TGSilentLog(errorLogChan)
 	}
 
-	if conf.Environment == "prod" {
-		v03KinesisClient = v03_kinesis.New(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Environment)
+	if conf.Kinesis.Endpoint != "" {
+		v03KinesisClient = v03_kinesis.NewWithEndpoint(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Kinesis.Endpoint, conf.Environment, "test")
 	} else {
-		if conf.Kinesis.Endpoint != "" {
-			v03KinesisClient = v03_kinesis.NewTest(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Kinesis.Endpoint, conf.Environment)
-		} else {
-			v03KinesisClient = v03_kinesis.New(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Environment)
-		}
+		panic("config kinesis endpoint not found")
 	}
 
-	//v02KinesisClient.SetupStreams(v02_kinesis.Streams)
-	switch conf.Environment {
-	case "dev":
-		v03KinesisClient.SetupStreams([]string{v03_kinesis.PackedStreamNameDev})
-	case "test":
-		v03KinesisClient.SetupStreams([]string{v03_kinesis.PackedStreamNameTest})
-	case "prod":
-		v03KinesisClient.SetupStreams([]string{v03_kinesis.PackedStreamNameProduction})
+	if err := v03KinesisClient.SetupStreams([]string{"test"}); err != nil {
+		if err.Error() != "Stream test under account 000000000000 already exists. (ResourceInUseException)" {
+			panic(err)
+		}
 	}
 
 	v03PostgresClient = v03_postgres.New(conf.Postgres)

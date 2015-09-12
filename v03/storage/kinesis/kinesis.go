@@ -80,10 +80,6 @@ const (
 	StreamEventCreate             = "v03_event_create"
 	StreamEventUpdate             = "v03_event_update"
 	StreamEventDelete             = "v03_event_delete"
-
-	PackedStreamNameDev        = "dev"
-	PackedStreamNameTest       = "test"
-	PackedStreamNameProduction = "production"
 )
 
 var (
@@ -345,19 +341,8 @@ func (c *cli) Datastore() *gksis.Kinesis {
 }
 
 // New returns a new Kinesis client
-func New(authKey, secretKey, region, env string) Client {
+func New(authKey, secretKey, region, env, packedStreamName string) Client {
 	auth := gksis.NewAuth(authKey, secretKey)
-
-	packedStreamName := "dev"
-
-	switch env {
-	case "dev":
-		packedStreamName = PackedStreamNameDev
-	case "test":
-		packedStreamName = PackedStreamNameTest
-	case "prod":
-		packedStreamName = PackedStreamNameProduction
-	}
 
 	return &cli{
 		kinesis:          gksis.New(auth, region),
@@ -365,20 +350,9 @@ func New(authKey, secretKey, region, env string) Client {
 	}
 }
 
-// NewTest returns a new testing-enabled client
-func NewTest(authKey, secretKey, region, endpoint, env string) Client {
+// NewWithEndpoint returns a new testing-enabled client
+func NewWithEndpoint(authKey, secretKey, region, endpoint, env, packedStreamName string) Client {
 	auth := gksis.NewAuth(authKey, secretKey)
-
-	packedStreamName := "dev"
-
-	switch env {
-	case "dev":
-		packedStreamName = PackedStreamNameDev
-	case "test":
-		packedStreamName = PackedStreamNameTest
-	case "prod":
-		packedStreamName = PackedStreamNameProduction
-	}
 
 	return &cli{
 		kinesis:          gksis.NewWithEndpoint(auth, region, endpoint),

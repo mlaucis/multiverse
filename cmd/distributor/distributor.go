@@ -5,8 +5,12 @@
 package main
 
 import (
+	"crypto/rand"
+	"crypto/tls"
+	"crypto/x509"
 	_ "expvar"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"log/syslog"
@@ -17,13 +21,13 @@ import (
 	"runtime"
 	"time"
 
-	"crypto/rand"
-	"crypto/tls"
-	"crypto/x509"
-
 	"github.com/tapglue/backend/config"
 	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/logger"
+	v02_kinesis "github.com/tapglue/backend/v02/storage/kinesis"
+	v02_postgres "github.com/tapglue/backend/v02/storage/postgres"
+	v02_writer "github.com/tapglue/backend/v02/writer"
+	v02_writer_postgres "github.com/tapglue/backend/v02/writer/postgres"
 	v03_kinesis "github.com/tapglue/backend/v03/storage/kinesis"
 	v03_postgres "github.com/tapglue/backend/v03/storage/postgres"
 	v03_redis "github.com/tapglue/backend/v03/storage/redis"
@@ -42,14 +46,24 @@ var (
 	currentRevision string
 
 	consumerTarget = flag.String("target", "", "Select the target of the consumer to be launched. Currently supported: postgres")
-	myConsumer     v03_writer.Writer
-	pgConsumer     v03_writer.Writer
+	v02PgConsumer  v02_writer.Writer
+	v03PgConsumer  v03_writer.Writer
 
 	mainLogChan  = make(chan *logger.LogMsg, 100000)
 	errorLogChan = make(chan *logger.LogMsg, 100000)
+
+	hostname, hostnameErr = os.Hostname()
+
+	pg   v03_postgres.Client
+	ksis v03_kinesis.Client
 )
 
 func init() {
+	if hostnameErr != nil {
+		fmt.Println("failed to fetch the hostname")
+		panic(hostnameErr)
+	}
+
 	startTime = time.Now()
 
 	// Use all available CPU's
@@ -78,21 +92,37 @@ func init() {
 
 	errors.Init(conf.Environment != "prod")
 
-	var v03KinesisClient v03_kinesis.Client
+	var v02KinesisClient v02_kinesis.Client
 	if conf.Environment == "prod" {
-		v03KinesisClient = v03_kinesis.New(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Environment)
+		v02KinesisClient = v02_kinesis.New(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Environment, conf.Kinesis.StreamName)
 	} else {
 		if conf.Kinesis.Endpoint != "" {
-			v03KinesisClient = v03_kinesis.NewTest(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Kinesis.Endpoint, conf.Environment)
+			v02KinesisClient = v02_kinesis.NewTest(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Kinesis.Endpoint, conf.Environment, conf.Kinesis.StreamName)
 		} else {
-			v03KinesisClient = v03_kinesis.New(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Environment)
+			v02KinesisClient = v02_kinesis.New(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Environment, conf.Kinesis.StreamName)
+		}
+	}
+
+	v02PgClient := v02_postgres.New(conf.Postgres)
+	v02PgConsumer = v02_writer_postgres.New(v02KinesisClient, v02PgClient)
+
+	var v03KinesisClient v03_kinesis.Client
+	if conf.Environment == "prod" {
+		v03KinesisClient = v03_kinesis.New(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Environment, conf.Kinesis.StreamName)
+	} else {
+		if conf.Kinesis.Endpoint != "" {
+			v03KinesisClient = v03_kinesis.NewWithEndpoint(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Kinesis.Endpoint, conf.Environment, conf.Kinesis.StreamName)
+		} else {
+			v03KinesisClient = v03_kinesis.New(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Environment, conf.Kinesis.StreamName)
 		}
 	}
 
 	v03PgClient := v03_postgres.New(conf.Postgres)
 	v03RedisClient := v03_redis.NewRedigoPool(conf.CacheApp)
+	v03PgConsumer = v03_writer_postgres.New(v03KinesisClient, v03PgClient, v03RedisClient)
 
-	pgConsumer = v03_writer_postgres.New(v03KinesisClient, v03PgClient, v03RedisClient)
+	pg = v03PgClient
+	ksis = v03KinesisClient
 }
 
 func main() {
@@ -103,10 +133,7 @@ func main() {
 		os.Exit(64)
 	}
 
-	switch *consumerTarget {
-	case "postgres":
-		myConsumer = pgConsumer
-	default:
+	if *consumerTarget != "postgres" {
 		flag.PrintDefaults()
 		os.Exit(64)
 	}
@@ -168,7 +195,7 @@ func main() {
 	}()
 
 	for {
-		myConsumer.Execute(conf.Environment, mainLogChan, errorLogChan)
+		execute(conf.Kinesis.StreamName, mainLogChan, errorLogChan)
 	}
 }
 

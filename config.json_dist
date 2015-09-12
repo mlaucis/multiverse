@@ -25,7 +25,8 @@
 		"auth_key": "AWS_AUTH_KEY",
 		"secret_key": "AWS_SECRET_KEY",
 		"region": "AWS_REGION",
-		"endpoint": "AWS_ENDPOINT"
+		"endpoint": "AWS_ENDPOINT",
+		"stream_name": "KINESIS_STREAM_NAME"
 	},
 	"postgres": {
 		"database": "PG_DATABASE",
