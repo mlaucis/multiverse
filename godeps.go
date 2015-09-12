@@ -7,6 +7,7 @@ import (
 	_ "github.com/tapglue/backend/server"
 	_ "github.com/tapglue/backend/utils"
 	_ "github.com/tapglue/backend/v02/server"
+	_ "github.com/tapglue/backend/v03/server"
 )
 
 func main() {

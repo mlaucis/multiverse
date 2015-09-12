@@ -28,7 +28,6 @@ import (
 	redigo "github.com/garyburd/redigo/redis"
 	"github.com/gorilla/mux"
 	"github.com/jmoiron/sqlx"
-	"github.com/yvasiyarov/gorelic"
 )
 
 type (
@@ -146,14 +145,13 @@ func NewContext(
 
 // GetRouter creates the router
 func GetRouter(
-	agent *gorelic.Agent,
 	environment string,
 	debugMode, skipSecurityChecks bool,
 ) (*mux.Router, chan *logger.LogMsg, chan *logger.LogMsg, error) {
 	router := mux.NewRouter().StrictSlash(true)
 
-	v02_server.InitRouter(agent, router, mainLogChan, errorLogChan, environment, skipSecurityChecks, debugMode)
-	v03_server.InitRouter(agent, router, mainLogChan, errorLogChan, environment, skipSecurityChecks, debugMode)
+	v02_server.InitRouter(router, mainLogChan, errorLogChan, environment, skipSecurityChecks, debugMode)
+	v03_server.InitRouter(router, mainLogChan, errorLogChan, environment, skipSecurityChecks, debugMode)
 
 	for idx := range generalRoutes {
 		router.

@@ -22,8 +22,6 @@ import (
 	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/logger"
 	"github.com/tapglue/backend/server"
-
-	"github.com/yvasiyarov/gorelic"
 )
 
 const (
@@ -91,18 +89,10 @@ func main() {
 
 	server.Setup(conf, currentRevision, currentHostname)
 
-	agent := gorelic.NewAgent()
-	agent.NewrelicName = "Intaker"
-	agent.NewrelicLicense = "24f345545c02907b32909bd9f818b29c63bbc5c1"
-
 	// Get router
-	router, mainLogChan, errorLogChan, err := server.GetRouter(agent, conf.Environment, conf.Environment != "prod", conf.SkipSecurity)
+	router, mainLogChan, errorLogChan, err := server.GetRouter(conf.Environment, conf.Environment != "prod", conf.SkipSecurity)
 	if err != nil {
 		panic(err)
-	}
-
-	if conf.Environment == "prod" {
-		agent.Run()
 	}
 
 	if conf.JSONLogs {

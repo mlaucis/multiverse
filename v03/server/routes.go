@@ -1,7 +1,6 @@
 package server
 
 import (
-	"net/http"
 	"strings"
 
 	"github.com/tapglue/backend/context"
@@ -14,7 +13,6 @@ import (
 	"github.com/tapglue/backend/v03/server/response"
 
 	"github.com/gorilla/mux"
-	"github.com/yvasiyarov/gorelic"
 )
 
 type (
@@ -88,13 +86,13 @@ func (r *Route) TestPattern() string {
 var Routes []*Route
 
 // InitRouter initializes the router with this modules routes
-func InitRouter(agent *gorelic.Agent, router *mux.Router, mainLogChan, errorLogChan chan *logger.LogMsg, env string, skipSecurity, debug bool) {
+func InitRouter(router *mux.Router, mainLogChan, errorLogChan chan *logger.LogMsg, env string, skipSecurity, debug bool) {
 	for _, route := range Routes {
 		router.
 			Methods(route.Method).
 			Path("/" + APIVersion + route.Path).
 			Name(route.Name).
-			HandlerFunc(http.HandlerFunc(agent.WrapHTTPHandler(CustomHandler(route, mainLogChan, errorLogChan, env, skipSecurity, debug)).ServeHTTP))
+			HandlerFunc(CustomHandler(route, mainLogChan, errorLogChan, env, skipSecurity, debug))
 	}
 
 	for _, route := range Routes {
@@ -102,7 +100,7 @@ func InitRouter(agent *gorelic.Agent, router *mux.Router, mainLogChan, errorLogC
 			Methods("OPTIONS").
 			Path("/" + APIVersion + route.Path).
 			Name(route.Name + "-options").
-			HandlerFunc(http.HandlerFunc(agent.WrapHTTPHandler(CustomOptionsHandler(route, mainLogChan, errorLogChan, env, skipSecurity, debug)).ServeHTTP))
+			HandlerFunc(CustomOptionsHandler(route, mainLogChan, errorLogChan, env, skipSecurity, debug))
 	}
 }
 

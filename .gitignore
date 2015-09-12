@@ -29,9 +29,8 @@ config.json
 backend
 *.rdb
 *.aof
-csr
-cert
-*.iml
-.idea
+
+.idea/workspace.xml
+.idea/shelf/
 
 terraform/*.tfvars
