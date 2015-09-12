@@ -108,7 +108,8 @@ resource "aws_db_instance" "master" {
   name                    = "${var.rds_db_name}"
   username                = "${var.rds_username}"
   password                = "${var.rds_password}"
-  multi_az                = true # this should be true for production
+  multi_az                = true
+  # this should be true for production
   publicly_accessible     = false
   vpc_security_group_ids  = [
     "${aws_security_group.rds_db.id}"]
