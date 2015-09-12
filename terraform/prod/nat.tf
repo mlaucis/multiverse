@@ -1,5 +1,5 @@
 resource "aws_route_table" "to-nat" {
-  vpc_id = "${aws_vpc.prod.id}"
+  vpc_id = "${aws_vpc.tapglue.id}"
 
   route {
     cidr_block  = "0.0.0.0/0"
@@ -13,7 +13,7 @@ resource "aws_route_table" "to-nat" {
 
 # Security groups
 resource "aws_security_group" "from-nat" {
-  vpc_id      = "${aws_vpc.prod.id}"
+  vpc_id      = "${aws_vpc.tapglue.id}"
   name        = "from-nat"
   description = "Allow services from the private subnet through NAT"
 
@@ -44,7 +44,7 @@ resource "aws_security_group" "from-nat" {
 }
 
 resource "aws_security_group" "to-nat" {
-  vpc_id      = "${aws_vpc.prod.id}"
+  vpc_id      = "${aws_vpc.tapglue.id}"
   name        = "to-nat"
   description = "Allow services from the private subnet through NAT"
 

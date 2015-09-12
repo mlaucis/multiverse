@@ -2,7 +2,7 @@
 resource "aws_flow_log" "staging-flow-log" {
   log_group_name = "flow-log"
   iam_role_arn   = "${aws_iam_role.staging-flow-log.arn}"
-  vpc_id         = "${aws_vpc.staging.id}"
+  vpc_id         = "${aws_vpc.tapglue.id}"
   traffic_type   = "ALL"
 }
 

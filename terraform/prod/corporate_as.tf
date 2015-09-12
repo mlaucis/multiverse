@@ -15,6 +15,7 @@ resource "aws_launch_configuration" "corporate" {
   }
 
   security_groups             = [
+    "${aws_security_group.rds_corp_ec2.id}",
     "${aws_security_group.corporate-elb-vpc.id}",
     "${aws_security_group.corporate-ssh.id}",
     "${aws_security_group.to-nat.id}"]
@@ -27,7 +28,7 @@ resource "aws_autoscaling_group" "corporate" {
     "${aws_subnet.corporate-b.id}"]
   name                      = "corporate"
   max_size                  = 10
-  min_size                  = 3
+  min_size                  = 1
   health_check_type         = "ELB"
   health_check_grace_period = 60
   force_delete              = false

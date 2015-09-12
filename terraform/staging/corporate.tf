@@ -1,5 +1,5 @@
 resource "aws_subnet" "corporate-a" {
-  vpc_id                  = "${aws_vpc.staging.id}"
+  vpc_id                  = "${aws_vpc.tapglue.id}"
   map_public_ip_on_launch = false
 
   cidr_block              = "10.0.44.0/24"
@@ -11,7 +11,7 @@ resource "aws_subnet" "corporate-a" {
 }
 
 resource "aws_subnet" "corporate-b" {
-  vpc_id                  = "${aws_vpc.staging.id}"
+  vpc_id                  = "${aws_vpc.tapglue.id}"
   map_public_ip_on_launch = false
 
   cidr_block              = "10.0.45.0/24"
@@ -35,7 +35,7 @@ resource "aws_route_table_association" "corporate-b" {
 
 # Security groups
 resource "aws_security_group" "corporate-ssh" {
-  vpc_id      = "${aws_vpc.staging.id}"
+  vpc_id      = "${aws_vpc.tapglue.id}"
   name        = "corporate-ssh"
   description = "Allow SSH traffic from the Bastion host"
 
@@ -61,7 +61,7 @@ resource "aws_security_group" "corporate-ssh" {
 }
 
 resource "aws_security_group" "corporate-elb-inet" {
-  vpc_id      = "${aws_vpc.staging.id}"
+  vpc_id      = "${aws_vpc.tapglue.id}"
   name        = "corporate-elb-inet"
   description = "Allow Internet traffic to and from ELB"
 
@@ -87,7 +87,7 @@ resource "aws_security_group" "corporate-elb-inet" {
 }
 
 resource "aws_security_group" "corporate-elb-ec2" {
-  vpc_id      = "${aws_vpc.staging.id}"
+  vpc_id      = "${aws_vpc.tapglue.id}"
   name        = "corporate-elb-ec2"
   description = "Allow Traffic from ELB to EC2"
 
@@ -112,7 +112,7 @@ resource "aws_security_group" "corporate-elb-ec2" {
 }
 
 resource "aws_security_group" "corporate-elb-vpc" {
-  vpc_id      = "${aws_vpc.staging.id}"
+  vpc_id      = "${aws_vpc.tapglue.id}"
   name        = "corporate-elb"
   description = "Allow EC2 traffic to and from the ELB"
 

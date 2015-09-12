@@ -1,5 +1,5 @@
 resource "aws_subnet" "frontend-a" {
-  vpc_id                  = "${aws_vpc.staging.id}"
+  vpc_id                  = "${aws_vpc.tapglue.id}"
   map_public_ip_on_launch = false
 
   cidr_block              = "10.0.12.0/22"
@@ -11,7 +11,7 @@ resource "aws_subnet" "frontend-a" {
 }
 
 resource "aws_subnet" "frontend-b" {
-  vpc_id                  = "${aws_vpc.staging.id}"
+  vpc_id                  = "${aws_vpc.tapglue.id}"
   map_public_ip_on_launch = false
 
   cidr_block              = "10.0.16.0/22"
@@ -35,7 +35,7 @@ resource "aws_route_table_association" "frontend-b" {
 
 # Security groups
 resource "aws_security_group" "frontend-elb-inet" {
-  vpc_id      = "${aws_vpc.staging.id}"
+  vpc_id      = "${aws_vpc.tapglue.id}"
   name        = "frontend-elb-inet"
   description = "Allow Internet traffic to and from ELB"
 
@@ -61,7 +61,7 @@ resource "aws_security_group" "frontend-elb-inet" {
 }
 
 resource "aws_security_group" "frontend-elb-vpc" {
-  vpc_id      = "${aws_vpc.staging.id}"
+  vpc_id      = "${aws_vpc.tapglue.id}"
   name        = "frontend-elb"
   description = "Allow EC2 traffic to and from the ELB"
 
@@ -87,7 +87,7 @@ resource "aws_security_group" "frontend-elb-vpc" {
 }
 
 resource "aws_security_group" "frontend-elb-ec2" {
-  vpc_id      = "${aws_vpc.staging.id}"
+  vpc_id      = "${aws_vpc.tapglue.id}"
   name        = "frontend-elb-ec2"
   description = "Allow Traffic from ELB to EC2"
 
@@ -112,7 +112,7 @@ resource "aws_security_group" "frontend-elb-ec2" {
 }
 
 resource "aws_security_group" "frontend-ssh" {
-  vpc_id      = "${aws_vpc.staging.id}"
+  vpc_id      = "${aws_vpc.tapglue.id}"
   name        = "frontend-ssh"
   description = "Allow SSH traffic from the Bastion host"
 

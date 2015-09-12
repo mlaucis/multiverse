@@ -15,7 +15,7 @@ variable "ami_backend" {
 }
 
 variable "ami_corporate" {
-  default = "ami-aa3031b7"
+  default = "ami-4c6c6c51"
 }
 
 variable "ami_bastion" {
@@ -96,4 +96,16 @@ variable "rds_username" {
 
 variable "rds_password" {
   default = "gFthJy858iXOIA3IM0GARIuFYdIWkeCHJc0vto"
+}
+
+variable "rds_corp_db_name" {
+  default = "tapglue"
+}
+
+variable "rds_corp_username" {
+  default = "tapglue"
+}
+
+variable "rds_corp_password" {
+  default = "AFsswsOUf6sdPnBt4T7RwFYbirr4N7fdFDz8bf"
 }

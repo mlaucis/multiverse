@@ -1,5 +1,5 @@
 resource "aws_subnet" "rds-a" {
-  vpc_id                  = "${aws_vpc.prod.id}"
+  vpc_id                  = "${aws_vpc.tapglue.id}"
   map_public_ip_on_launch = false
 
   cidr_block              = "10.0.36.0/22"
@@ -11,7 +11,7 @@ resource "aws_subnet" "rds-a" {
 }
 
 resource "aws_subnet" "rds-b" {
-  vpc_id                  = "${aws_vpc.prod.id}"
+  vpc_id                  = "${aws_vpc.tapglue.id}"
   map_public_ip_on_launch = false
 
   cidr_block              = "10.0.40.0/22"
@@ -36,7 +36,7 @@ resource "aws_security_group" "rds_db" {
     "aws_db_subnet_group.prod"]
   name        = "RDS incoming traffic"
   description = "Allow traffic on postgres port only"
-  vpc_id      = "${aws_vpc.prod.id}"
+  vpc_id      = "${aws_vpc.tapglue.id}"
 
   ingress {
     from_port   = 5432
@@ -70,7 +70,7 @@ resource "aws_security_group" "rds_ec2" {
     "aws_db_subnet_group.prod"]
   name        = "RDS outgoing traffic"
   description = "Allow traffic to postgres port only"
-  vpc_id      = "${aws_vpc.prod.id}"
+  vpc_id      = "${aws_vpc.tapglue.id}"
 
   egress {
     from_port       = 5432
@@ -99,30 +99,31 @@ resource "aws_db_instance" "master" {
   # change this to io1 if you want to use provisioned iops for production
   storage_type            = "standard"
   #iops = 3000 # this should give us a boost in performance for production
-  allocated_storage       = "10"
+  allocated_storage       = "100"
   engine                  = "postgres"
   engine_version          = "9.4.4"
-  instance_class          = "db.t2.micro"
+  instance_class          = "db.r3.large"
   # if you want to change to true, see the list of instance types that support storage encryption: http://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Overview.Encryption.html#d0e10116
-  storage_encrypted       = false
+  storage_encrypted       = true
   name                    = "${var.rds_db_name}"
   username                = "${var.rds_username}"
   password                = "${var.rds_password}"
-  multi_az                = false # this should be true for production
+  multi_az                = true
+  # this should be true for production
   publicly_accessible     = false
   vpc_security_group_ids  = [
     "${aws_security_group.rds_db.id}"]
   db_subnet_group_name    = "${aws_db_subnet_group.prod.id}"
-  backup_retention_period = 7
+  backup_retention_period = 30
   backup_window           = "04:00-04:30"
   maintenance_window      = "sat:05:00-sat:06:30"
 }
-/**/
+/** /
 # Database slaves
 resource "aws_db_instance" "slave1" {
   identifier              = "slave1"
   # change this to io1 if you want to use provisioned iops for production
-  storage_type            = "standard"
+  storage_type            = "gp2"
   #iops = 3000 # this should give us a boost in performance for production
   allocated_storage       = "10"
   engine                  = "postgres"
@@ -133,7 +134,7 @@ resource "aws_db_instance" "slave1" {
   name                    = "${var.rds_db_name}"
   username                = "${var.rds_username}"
   password                = "${var.rds_password}"
-  multi_az                = false # this should be true for production
+  multi_az                = false
   publicly_accessible     = false
   replicate_source_db     = "${aws_db_instance.master.identifier}"
   vpc_security_group_ids  = [

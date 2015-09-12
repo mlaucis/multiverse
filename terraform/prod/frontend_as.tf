@@ -6,7 +6,7 @@ resource "aws_launch_configuration" "frontend" {
   image_id                    = "${var.ami_frontend}"
   instance_type               = "t2.small"
   associate_public_ip_address = false
-  enable_monitoring           = false
+  enable_monitoring           = true
   ebs_optimized               = false
   iam_instance_profile        = "${aws_iam_instance_profile.frontend.name}"
 
@@ -28,9 +28,9 @@ resource "aws_autoscaling_group" "frontend" {
     "${aws_subnet.frontend-a.id}",
     "${aws_subnet.frontend-b.id}"]
   name                      = "frontend"
-  max_size                  = 2
+  max_size                  = 25
   min_size                  = 1
-  health_check_type         = "EC2"
+  health_check_type         = "ELB"
   health_check_grace_period = 30
   force_delete              = false
   launch_configuration      = "${aws_launch_configuration.frontend.name}"
@@ -49,7 +49,7 @@ resource "aws_autoscaling_group" "frontend" {
 
   tag {
     key                 = "intaker_target"
-    value               = "redis"
+    value               = "kinesis"
     propagate_at_launch = true
   }
 

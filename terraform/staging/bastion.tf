@@ -1,5 +1,5 @@
 resource "aws_security_group" "bastion" {
-  vpc_id      = "${aws_vpc.staging.id}"
+  vpc_id      = "${aws_vpc.tapglue.id}"
   name        = "bastion"
   description = "Allow SSH traffic from the internet"
 

@@ -5,7 +5,7 @@ resource "aws_launch_configuration" "backend" {
   image_id                    = "${var.ami_backend}"
   instance_type               = "t2.micro"
   associate_public_ip_address = false
-  enable_monitoring           = false
+  enable_monitoring           = true
   ebs_optimized               = false
   iam_instance_profile        = "${aws_iam_instance_profile.backend.name}"
 
@@ -26,8 +26,8 @@ resource "aws_autoscaling_group" "backend" {
     "${aws_subnet.backend-a.id}",
     "${aws_subnet.backend-b.id}"]
   name                      = "backend"
-  max_size                  = 10
-  min_size                  = 0
+  max_size                  = 1
+  min_size                  = 1
   health_check_type         = "EC2"
   health_check_grace_period = 60
   force_delete              = false

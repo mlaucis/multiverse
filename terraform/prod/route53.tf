@@ -1,6 +1,6 @@
 resource "aws_route53_zone" "tapglue-internal" {
   name    = "tapglue.int"
-  vpc_id  = "${aws_vpc.prod.id}"
+  vpc_id  = "${aws_vpc.tapglue.id}"
   comment = "Internal prod zone"
 
   tags {
@@ -27,6 +27,28 @@ resource "aws_route53_record" "db-slave1" {
   records = [
     "${aws_db_instance.master.address}"]
 }
+
+/*
+resource "aws_route53_record" "db-corp-master" {
+  zone_id = "${aws_route53_zone.tapglue-internal.zone_id}"
+  name    = "db-corp-master"
+  type    = "CNAME"
+
+  ttl     = "5"
+  records = [
+    "${aws_db_instance.corp-master.address}"]
+}
+
+resource "aws_route53_record" "db-corp-slave1" {
+  zone_id = "${aws_route53_zone.tapglue-internal.zone_id}"
+  name    = "db-corp-slave1"
+  type    = "CNAME"
+
+  ttl     = "5"
+  records = [
+    "${aws_db_instance.corp-master.address}"]
+}
+*/
 
 resource "aws_route53_record" "rate-limiter" {
   zone_id = "${aws_route53_zone.tapglue-internal.zone_id}"

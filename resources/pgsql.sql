@@ -12,6 +12,7 @@ CREATE FUNCTION exec(TEXT)
   RETURNS TEXT LANGUAGE plpgsql VOLATILE AS $f$ BEGIN EXECUTE $1;
   RETURN $1;
 END; $f$;
+
 SELECT exec('ALTER TABLE ' || quote_ident(s.nspname) || '.' || quote_ident(s.relname) || ' OWNER TO rds_superuser')
 FROM (
   SELECT
@@ -20,7 +21,7 @@ FROM (
   FROM pg_class c JOIN pg_namespace n ON (c.relnamespace = n.oid)
   WHERE nspname IN ('tiger', 'topology') AND
         relkind IN ('r', 'S', 'v')
-  ORDER BY relkind = 'S');
+  ORDER BY relkind = 'S') AS "s";
 
 
 CREATE SCHEMA tg;

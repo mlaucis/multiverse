@@ -1,5 +1,5 @@
 resource "aws_security_group" "ec-redis" {
-  vpc_id      = "${aws_vpc.prod.id}"
+  vpc_id      = "${aws_vpc.tapglue.id}"
   name        = "ec-redis"
   description = "Redis cache EC2 incoming traffic"
 
@@ -31,7 +31,7 @@ resource "aws_security_group" "ec-redis" {
 }
 
 resource "aws_security_group" "ec-redis-ec2" {
-  vpc_id      = "${aws_vpc.prod.id}"
+  vpc_id      = "${aws_vpc.tapglue.id}"
   name        = "ec-redis-ec2"
   description = "Redis cache EC2 outgoing traffic"
 

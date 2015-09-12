@@ -61,7 +61,7 @@ resource "aws_autoscaling_group" "frontend" {
 
   tag {
     key                 = "Name"
-    value               = "corporate"
+    value               = "frontend"
     propagate_at_launch = true
   }
 }
