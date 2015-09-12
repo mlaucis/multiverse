@@ -237,27 +237,20 @@ func Setup(conf *config.Config, revision, hostname string) {
 		v03KinesisClient v03_kinesis.Client
 	)
 	if conf.Environment == "prod" {
-		v02KinesisClient = v02_kinesis.New(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Environment)
-		v03KinesisClient = v03_kinesis.New(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Environment)
+		v02KinesisClient = v02_kinesis.New(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Environment, conf.Kinesis.StreamName)
+		v03KinesisClient = v03_kinesis.New(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Environment, conf.Kinesis.StreamName)
 	} else {
 		if conf.Kinesis.Endpoint != "" {
-			v02KinesisClient = v02_kinesis.NewTest(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Kinesis.Endpoint, conf.Environment)
-			v03KinesisClient = v03_kinesis.NewTest(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Kinesis.Endpoint, conf.Environment)
+			v02KinesisClient = v02_kinesis.NewTest(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Kinesis.Endpoint, conf.Environment, conf.Kinesis.StreamName)
+			v03KinesisClient = v03_kinesis.NewWithEndpoint(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Kinesis.Endpoint, conf.Environment, conf.Kinesis.StreamName)
 		} else {
-			v02KinesisClient = v02_kinesis.New(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Environment)
-			v03KinesisClient = v03_kinesis.New(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Environment)
+			v02KinesisClient = v02_kinesis.New(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Environment, conf.Kinesis.StreamName)
+			v03KinesisClient = v03_kinesis.New(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Environment, conf.Kinesis.StreamName)
 		}
 	}
 	rawKinesisClient = v03KinesisClient
 
-	switch conf.Environment {
-	case "dev":
-		v03KinesisClient.SetupStreams([]string{v03_kinesis.PackedStreamNameDev})
-	case "test":
-		v03KinesisClient.SetupStreams([]string{v03_kinesis.PackedStreamNameTest})
-	case "prod":
-		v03KinesisClient.SetupStreams([]string{v03_kinesis.PackedStreamNameProduction})
-	}
+	v03KinesisClient.SetupStreams([]string{conf.Kinesis.StreamName})
 
 	v02PostgresClient := v02_postgres.New(conf.Postgres)
 	v03PostgresClient := v03_postgres.New(conf.Postgres)

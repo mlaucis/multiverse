@@ -23,10 +23,11 @@ type (
 
 	// Kinesis structure
 	Kinesis struct {
-		AuthKey   string `json:"auth_key"`
-		SecretKey string `json:"secret_key"`
-		Region    string `json:"region"`
-		Endpoint  string `json:"endpoint"`
+		AuthKey    string `json:"auth_key"`
+		SecretKey  string `json:"secret_key"`
+		Region     string `json:"region"`
+		Endpoint   string `json:"endpoint"`
+		StreamName string `json:"stream_name"`
 	}
 
 	// PostgresDB structure

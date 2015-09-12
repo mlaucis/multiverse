@@ -53,11 +53,20 @@ CWD=`pwd`
 CURRENT_BUILD_KEY="${TEST_COMPONENT}_${TEST_TARGET}"
 if [ "${BUILD_MATRIX[${CURRENT_BUILD_KEY}]}" == true ]
 then
-    go build \
-        -ldflags "-X main.currentRevision=${REVISION}" \
-        -tags ${TEST_TARGET} \
-        -o ${TEST_COMPONENT}_${TEST_TARGET}_${CIRCLE_BUILD_NUM} \
-        cmd/${TEST_COMPONENT}/${TEST_COMPONENT}.go
+    if [ "${TEST_COMPONENT}" == "distributor" ]
+    then
+        go build \
+            -ldflags "-X main.currentRevision=${REVISION}" \
+            -tags ${TEST_TARGET} \
+            -o ${TEST_COMPONENT}_${TEST_TARGET}_${CIRCLE_BUILD_NUM} \
+            cmd/${TEST_COMPONENT}/${TEST_COMPONENT}.go cmd/${TEST_COMPONENT}/executor.go
+    else
+        go build \
+            -ldflags "-X main.currentRevision=${REVISION}" \
+            -tags ${TEST_TARGET} \
+            -o ${TEST_COMPONENT}_${TEST_TARGET}_${CIRCLE_BUILD_NUM} \
+            cmd/${TEST_COMPONENT}/${TEST_COMPONENT}.go
+    fi
 fi
 
 for VERSION in "${VERSIONS[@]}"

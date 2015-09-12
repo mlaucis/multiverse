@@ -105,25 +105,11 @@ func init() {
 		go logger.TGSilentLog(errorLogChan)
 	}
 
-	if conf.Environment == "prod" {
-		v02KinesisClient = v02_kinesis.New(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Environment)
-	} else {
-		if conf.Kinesis.Endpoint != "" {
-			v02KinesisClient = v02_kinesis.NewTest(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Kinesis.Endpoint, conf.Environment)
-		} else {
-			v02KinesisClient = v02_kinesis.New(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Environment)
-		}
+	if conf.Kinesis.Endpoint != "" {
+		v02KinesisClient = v02_kinesis.NewTest(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Kinesis.Endpoint, conf.Environment, "test")
 	}
 
-	//v02KinesisClient.SetupStreams(v02_kinesis.Streams)
-	switch conf.Environment {
-	case "dev":
-		v02KinesisClient.SetupStreams([]string{v02_kinesis.PackedStreamNameDev})
-	case "test":
-		v02KinesisClient.SetupStreams([]string{v02_kinesis.PackedStreamNameTest})
-	case "prod":
-		v02KinesisClient.SetupStreams([]string{v02_kinesis.PackedStreamNameProduction})
-	}
+	v02KinesisClient.SetupStreams([]string{"test"})
 
 	v02PostgresClient = v02_postgres.New(conf.Postgres)
 

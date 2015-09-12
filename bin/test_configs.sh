@@ -21,6 +21,7 @@ else
     sed -i "s/REDIS_HOST/${WERCKER_REDIS_HOST}:${WERCKER_REDIS_PORT}/g" config.json
 fi
 sed -i "s/REDIS_DB_ID/0/g" config.json
+sed -i "s/KINESIS_STREAM_NAME/test/g" config.json
 
 declare -a VERSIONS=( "v02" "v03" )
 for VERSION in "${VERSIONS[@]}"
