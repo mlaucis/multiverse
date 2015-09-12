@@ -49,7 +49,7 @@ resource "aws_autoscaling_group" "frontend" {
 
   tag {
     key                 = "intaker_target"
-    value               = "postgres"
+    value               = "kinesis"
     propagate_at_launch = true
   }
 
