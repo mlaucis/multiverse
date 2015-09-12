@@ -27,5 +27,5 @@ func (p *pg) applicationUserDelete(msg string) []errors.Error {
 		return []errors.Error{errBadInputJSON.UpdateInternalMessage(err.Error())}
 	}
 
-	return p.applicationUser.Delete(applicationUser.OrgID, applicationUser.AppID, &applicationUser.ApplicationUser)
+	return p.applicationUser.Delete(applicationUser.OrgID, applicationUser.AppID, applicationUser.ID)
 }
