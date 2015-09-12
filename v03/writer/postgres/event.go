@@ -28,7 +28,6 @@ func (p *pg) eventUpdate(msg string) []errors.Error {
 	existingEvent, er := p.event.Read(
 		updatedEvent.OrgID,
 		updatedEvent.AppID,
-		updatedEvent.CurrentUserID,
 		updatedEvent.UserID,
 		updatedEvent.ID)
 	if er != nil {
@@ -52,5 +51,5 @@ func (p *pg) eventDelete(msg string) []errors.Error {
 		return []errors.Error{errBadInputJSON.UpdateInternalMessage(err.Error())}
 	}
 
-	return p.event.Delete(event.OrgID, event.AppID, event.CurrentUserID, &event.Event)
+	return p.event.Delete(event.OrgID, event.AppID, event.CurrentUserID, event.ID)
 }

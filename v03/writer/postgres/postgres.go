@@ -13,9 +13,12 @@ import (
 	"github.com/tapglue/backend/logger"
 	"github.com/tapglue/backend/v03/core"
 	postgresCore "github.com/tapglue/backend/v03/core/postgres"
+	redisCore "github.com/tapglue/backend/v03/core/redis"
 	ksis "github.com/tapglue/backend/v03/storage/kinesis"
 	"github.com/tapglue/backend/v03/storage/postgres"
 	"github.com/tapglue/backend/v03/writer"
+
+	"github.com/garyburd/redigo/redis"
 )
 
 // This allows us to process at most x number of entries per stream
@@ -25,6 +28,7 @@ const maxEntriesPerStream = 50
 type pg struct {
 	ksis            ksis.Client
 	pg              postgres.Client
+	red             core.Application
 	organization    core.Organization
 	member          core.Member
 	application     core.Application
@@ -224,13 +228,16 @@ func (p *pg) processMessages(output <-chan string, errs chan errors.Error, inter
 }
 
 // New will return a new PosgreSQL writer
-func New(kinesis ksis.Client, pgsql postgres.Client) writer.Writer {
+func New(kinesis ksis.Client, pgsql postgres.Client, red *redis.Pool) writer.Writer {
+	redisClient := redisCore.NewApplication(red)
+
 	return &pg{
 		ksis:            kinesis,
 		pg:              pgsql,
+		red:             redisClient,
 		organization:    postgresCore.NewOrganization(pgsql),
 		member:          postgresCore.NewMember(pgsql),
-		application:     postgresCore.NewApplication(pgsql),
+		application:     postgresCore.NewApplication(pgsql, redisClient),
 		applicationUser: postgresCore.NewApplicationUser(pgsql),
 		connection:      postgresCore.NewConnection(pgsql),
 		event:           postgresCore.NewEvent(pgsql),

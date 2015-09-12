@@ -24,10 +24,11 @@ import (
 	"github.com/tapglue/backend/config"
 	"github.com/tapglue/backend/errors"
 	"github.com/tapglue/backend/logger"
-	v02_kinesis "github.com/tapglue/backend/v02/storage/kinesis"
-	v02_postgres "github.com/tapglue/backend/v02/storage/postgres"
-	"github.com/tapglue/backend/v02/writer"
-	"github.com/tapglue/backend/v02/writer/postgres"
+	v03_kinesis "github.com/tapglue/backend/v03/storage/kinesis"
+	v03_postgres "github.com/tapglue/backend/v03/storage/postgres"
+	v03_redis "github.com/tapglue/backend/v03/storage/redis"
+	v03_writer "github.com/tapglue/backend/v03/writer"
+	v03_writer_postgres "github.com/tapglue/backend/v03/writer/postgres"
 )
 
 const (
@@ -41,8 +42,8 @@ var (
 	currentRevision string
 
 	consumerTarget = flag.String("target", "", "Select the target of the consumer to be launched. Currently supported: postgres")
-	myConsumer     writer.Writer
-	pgConsumer     writer.Writer
+	myConsumer     v03_writer.Writer
+	pgConsumer     v03_writer.Writer
 
 	mainLogChan  = make(chan *logger.LogMsg, 100000)
 	errorLogChan = make(chan *logger.LogMsg, 100000)
@@ -77,20 +78,21 @@ func init() {
 
 	errors.Init(conf.Environment != "prod")
 
-	var v02KinesisClient v02_kinesis.Client
+	var v03KinesisClient v03_kinesis.Client
 	if conf.Environment == "prod" {
-		v02KinesisClient = v02_kinesis.New(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Environment)
+		v03KinesisClient = v03_kinesis.New(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Environment)
 	} else {
 		if conf.Kinesis.Endpoint != "" {
-			v02KinesisClient = v02_kinesis.NewTest(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Kinesis.Endpoint, conf.Environment)
+			v03KinesisClient = v03_kinesis.NewTest(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Kinesis.Endpoint, conf.Environment)
 		} else {
-			v02KinesisClient = v02_kinesis.New(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Environment)
+			v03KinesisClient = v03_kinesis.New(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Environment)
 		}
 	}
 
-	v02PgClient := v02_postgres.New(conf.Postgres)
+	v03PgClient := v03_postgres.New(conf.Postgres)
+	v03RedisClient := v03_redis.NewRedigoPool(conf.CacheApp)
 
-	pgConsumer = postgres.New(v02KinesisClient, v02PgClient)
+	pgConsumer = v03_writer_postgres.New(v03KinesisClient, v03PgClient, v03RedisClient)
 }
 
 func main() {
