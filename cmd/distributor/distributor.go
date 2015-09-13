@@ -177,20 +177,12 @@ func main() {
 	}
 
 	go func() {
-		if conf.Environment == "prod" {
-			if conf.UseSSL {
-				log.Printf("Starting SSL server at \"%s\" in %s", conf.ListenHostPort, time.Now().Sub(startTime))
-			} else {
-				log.Printf("Starting NORMAL server at \"%s\" in %s", conf.ListenHostPort, time.Now().Sub(startTime))
-			}
+		if conf.UseSSL {
+			log.Printf("Starting SSL server at \"%s\" in %s", conf.ListenHostPort, time.Now().Sub(startTime))
+			log.Fatal(server.ListenAndServeTLS("./self.crt", "./self.key"))
 		} else {
-			if conf.UseSSL {
-				log.Printf("Starting SSL server at \"%s\" in %s", conf.ListenHostPort, time.Now().Sub(startTime))
-				log.Fatal(server.ListenAndServeTLS("./cert/STAR_tapglue_com.pem", "./cert/STAR_tapglue_com.key"))
-			} else {
-				log.Printf("Starting NORMAL server at \"%s\" in %s", conf.ListenHostPort, time.Now().Sub(startTime))
-				log.Fatal(server.ListenAndServe())
-			}
+			log.Printf("Starting NORMAL server at \"%s\" in %s", conf.ListenHostPort, time.Now().Sub(startTime))
+			log.Fatal(server.ListenAndServe())
 		}
 	}()
 
@@ -219,16 +211,31 @@ func configTLS() *tls.Config {
 	TLSConfig.MinVersion = tls.VersionTLS10
 	TLSConfig.SessionTicketsDisabled = false
 	TLSConfig.InsecureSkipVerify = false
-	TLSConfig.ClientAuth = tls.VerifyClientCertIfGiven
+	TLSConfig.ClientAuth = tls.RequireAndVerifyClientCert
 	TLSConfig.PreferServerCipherSuites = true
 	TLSConfig.ClientSessionCache = tls.NewLRUClientSessionCache(1000)
-	TLSConfig.RootCAs = loadCertificates()
+	//TLSConfig.RootCAs = loadCertificates()
+	TLSConfig.ClientCAs = loadClientCertificates()
 
 	return TLSConfig
 }
 
 func loadCertificates() *x509.CertPool {
-	pem, err := ioutil.ReadFile("./cert/STAR_tapglue_com.ca-bundle")
+	pem, err := ioutil.ReadFile("./root-ca.pem")
+	if err != nil {
+		panic(err)
+	}
+
+	rootCertPool := x509.NewCertPool()
+	if !rootCertPool.AppendCertsFromPEM(pem) {
+		panic("Failed appending certs")
+	}
+
+	return rootCertPool
+}
+
+func loadClientCertificates() *x509.CertPool {
+	pem, err := ioutil.ReadFile("./origin-pull-ca.pem")
 	if err != nil {
 		panic(err)
 	}

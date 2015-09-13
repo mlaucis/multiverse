@@ -1,5 +1,12 @@
 server {
-    listen 80;
+    listen 443 ssl;
+    listen [::]:443 ssl;
+
+    ssl_certificate /home/tapglue/ssl/self.crt;
+    ssl_certificate_key /home/tapglue/ssl/self.key;
+
+    #ssl_client_certificate /home/tapglue/ssl/origin-pull-ca.pem;
+    #ssl_verify_client on;
 
     server_name styleguide.tapglue.com styleguide-staging.tapglue.com;
 
