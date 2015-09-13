@@ -1,18 +1,12 @@
 server {
-      listen 80;
-      server_name blog.tapglue.com blog-staging;
+    listen 443 ssl;
+    listen [::]:443 ssl;
 
-    location / {
-      access_log off;
-      proxy_pass http://127.0.0.1:8080;
-      proxy_set_header X-Real-IP $remote_addr;
-      proxy_set_header Host $host;
-      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    }
-}
+    ssl_certificate /home/tapglue/ssl/self.crt;
+    ssl_certificate_key /home/tapglue/ssl/self.key;
 
-server {
-    listen 80;
+    #ssl_client_certificate /home/tapglue/ssl/origin-pull-ca.pem;
+    #ssl_verify_client on;
 
     server_name www.tapglue.com tapglue.com website-staging.tapglue.com;
 

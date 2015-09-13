@@ -73,9 +73,25 @@ resource "aws_security_group" "corporate-elb-inet" {
       "0.0.0.0/0"]
   }
 
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = [
+      "0.0.0.0/0"]
+  }
+
   egress {
     from_port   = 80
     to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = [
+      "0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 443
+    to_port     = 443
     protocol    = "tcp"
     cidr_blocks = [
       "0.0.0.0/0"]
@@ -98,9 +114,24 @@ resource "aws_security_group" "corporate-elb-ec2" {
     self      = true
   }
 
+  ingress {
+    from_port = 443
+    to_port   = 443
+    protocol  = "tcp"
+    self      = true
+  }
+
   egress {
     from_port       = 80
     to_port         = 80
+    protocol        = "tcp"
+    security_groups = [
+      "${aws_security_group.corporate-elb-vpc.id}"]
+  }
+
+  egress {
+    from_port       = 443
+    to_port         = 443
     protocol        = "tcp"
     security_groups = [
       "${aws_security_group.corporate-elb-vpc.id}"]
@@ -117,16 +148,16 @@ resource "aws_security_group" "corporate-elb-vpc" {
   description = "Allow EC2 traffic to and from the ELB"
 
   ingress {
-    from_port   = 80
-    to_port     = 80
+    from_port   = 443
+    to_port     = 443
     protocol    = "tcp"
     cidr_blocks = [
       "0.0.0.0/0"]
   }
 
   egress {
-    from_port   = 80
-    to_port     = 80
+    from_port   = 443
+    to_port     = 443
     protocol    = "tcp"
     cidr_blocks = [
       "0.0.0.0/0"]
@@ -152,11 +183,13 @@ resource "aws_elb" "corporate" {
     "${aws_security_group.corporate-elb-ec2.id}"]
 
   listener {
-    lb_port           = 80
-    lb_protocol       = "http"
+    lb_port           = 443
+    lb_protocol       = "https"
 
-    instance_port     = 80
-    instance_protocol = "http"
+    instance_port     = 443
+    instance_protocol = "https"
+
+    ssl_certificate_id = "${aws_iam_server_certificate.self-signed.arn}"
   }
 
   health_check {

@@ -40,16 +40,16 @@ resource "aws_security_group" "frontend-elb-inet" {
   description = "Allow Internet traffic to and from ELB"
 
   ingress {
-    from_port   = 80
-    to_port     = 80
+    from_port   = 443
+    to_port     = 443
     protocol    = "tcp"
     cidr_blocks = [
       "0.0.0.0/0"]
   }
 
   egress {
-    from_port   = 80
-    to_port     = 80
+    from_port   = 443
+    to_port     = 443
     protocol    = "tcp"
     cidr_blocks = [
       "0.0.0.0/0"]
@@ -152,18 +152,20 @@ resource "aws_elb" "frontend" {
     "${aws_security_group.frontend-elb-ec2.id}"]
 
   listener {
-    lb_port           = 80
-    lb_protocol       = "http"
+    lb_port           = 443
+    lb_protocol       = "https"
 
     instance_port     = 8083
-    instance_protocol = "http"
+    instance_protocol = "https"
+
+    ssl_certificate_id = "${aws_iam_server_certificate.self-signed.arn}"
   }
 
   health_check {
     healthy_threshold   = 2
     unhealthy_threshold = 2
     timeout             = 2
-    target              = "HTTP:8083/health-45016490610398192"
+    target              = "HTTPS:8083/health-45016490610398192"
     interval            = 5
   }
 
