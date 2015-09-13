@@ -148,7 +148,8 @@ resource "aws_elb" "frontend" {
     "${aws_subnet.public-a.id}",
     "${aws_subnet.public-b.id}"]
   security_groups             = [
-    "${aws_security_group.frontend-elb-inet.id}",
+#    "${aws_security_group.frontend-elb-inet.id}",
+    "${aws_security_group.cloudflare-ips.id}",
     "${aws_security_group.frontend-elb-ec2.id}"]
 
   listener {

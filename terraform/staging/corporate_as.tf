@@ -26,9 +26,9 @@ resource "aws_autoscaling_group" "corporate" {
     "${aws_subnet.corporate-a.id}",
     "${aws_subnet.corporate-b.id}"]
   name                      = "corporate"
-  max_size                  = 2
+  max_size                  = 1
   min_size                  = 1
-  health_check_type         = "ELB"
+  health_check_type         = "EC2"
   health_check_grace_period = 60
   force_delete              = false
   launch_configuration      = "${aws_launch_configuration.corporate.name}"
