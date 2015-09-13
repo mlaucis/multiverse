@@ -148,6 +148,22 @@ resource "aws_security_group" "corporate-elb-vpc" {
   description = "Allow EC2 traffic to and from the ELB"
 
   ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = [
+      "0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = [
+      "0.0.0.0/0"]
+  }
+
+  ingress {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
@@ -181,6 +197,14 @@ resource "aws_elb" "corporate" {
   security_groups             = [
     "${aws_security_group.corporate-elb-inet.id}",
     "${aws_security_group.corporate-elb-ec2.id}"]
+
+  listener {
+    lb_port           = 80
+    lb_protocol       = "http"
+
+    instance_port     = 80
+    instance_protocol = "http"
+  }
 
   listener {
     lb_port           = 443
