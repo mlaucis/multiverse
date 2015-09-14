@@ -12,11 +12,11 @@ declare -a VERSIONS=( "v02" "v03" )
 if [ ${CIRCLE_BRANCH} == "master" ]
 then
     declare -A TEST_MATRIX=( \
-        ["intaker_postgres_v02"]=true \
+        ["intaker_postgres_v02"]=false \
         ["intaker_postgres_v03"]=true \
         ["intaker_redis_v02"]=false \
         ["intaker_redis_v03"]=true \
-        ["intaker_kinesis_v02"]=true \
+        ["intaker_kinesis_v02"]=false \
         ["intaker_kinesis_v03"]=true \
         ["distributor_postgres_v02"]=false \
         ["distributor_postgres_v03"]=false \
@@ -30,11 +30,11 @@ then
     )
 else
     declare -A TEST_MATRIX=( \
-        ["intaker_postgres_v02"]=true \
+        ["intaker_postgres_v02"]=false \
         ["intaker_postgres_v03"]=true \
         ["intaker_redis_v02"]=false \
         ["intaker_redis_v03"]=false \
-        ["intaker_kinesis_v02"]=true \
+        ["intaker_kinesis_v02"]=false \
         ["intaker_kinesis_v03"]=true \
         ["distributor_postgres_v02"]=false \
         ["distributor_postgres_v03"]=false \
