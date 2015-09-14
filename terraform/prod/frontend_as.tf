@@ -4,7 +4,7 @@ resource "aws_launch_configuration" "frontend" {
     "aws_security_group.frontend-ssh"]
 
   image_id                    = "${var.ami_frontend}"
-  instance_type               = "t2.small"
+  instance_type               = "c4.large"
   associate_public_ip_address = false
   enable_monitoring           = true
   ebs_optimized               = false
@@ -28,8 +28,8 @@ resource "aws_autoscaling_group" "frontend" {
     "${aws_subnet.frontend-a.id}",
     "${aws_subnet.frontend-b.id}"]
   name                      = "frontend"
-  max_size                  = 25
-  min_size                  = 1
+  max_size                  = 30
+  min_size                  = 2
   health_check_type         = "ELB"
   health_check_grace_period = 30
   force_delete              = false
