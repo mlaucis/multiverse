@@ -199,21 +199,21 @@ func (s *ServerSuite) TestRateLimitStaging(c *C) {
 	c.Assert(body, Not(Equals), "")
 	remaining, er := strconv.Atoi(headers.Get("X-RateLimit-Remaining"))
 	c.Assert(er, IsNil)
-	c.Assert(remaining, Equals, 99)
+	c.Assert(remaining, Equals, 9)
 
 	receivedUser := &entity.ApplicationUser{}
 	er = json.Unmarshal([]byte(body), receivedUser)
 	c.Assert(er, IsNil)
 	c.Assert(receivedUser.Username, Equals, user.Username)
 
-	for i := 2; i <= 100; i++ {
+	for i := 2; i <= 10; i++ {
 		code, body, headers, err := runRequestWithHeaders(routeName, route, "", func(*http.Request) {}, signApplicationRequest(application, user, true, true))
 		c.Assert(err, IsNil)
 		c.Assert(code, Equals, http.StatusOK)
 		c.Assert(body, Not(Equals), "")
 		remaining, er := strconv.Atoi(headers.Get("X-RateLimit-Remaining"))
 		c.Assert(er, IsNil)
-		c.Assert(remaining, Equals, 100-i+1)
+		c.Assert(remaining, Equals, 10-i+1)
 	}
 
 	code, body, headers, err = runRequestWithHeaders(routeName, route, "", func(*http.Request) {}, signApplicationRequest(application, user, true, true))
@@ -263,21 +263,21 @@ func (s *ServerSuite) TestRateLimitProduction(c *C) {
 	c.Assert(body, Not(Equals), "")
 	remaining, er := strconv.Atoi(headers.Get("X-RateLimit-Remaining"))
 	c.Assert(er, IsNil)
-	c.Assert(remaining, Equals, 9999)
+	c.Assert(remaining, Equals, 49)
 
 	receivedUser := &entity.ApplicationUser{}
 	er = json.Unmarshal([]byte(body), receivedUser)
 	c.Assert(er, IsNil)
 	c.Assert(receivedUser.Username, Equals, user.Username)
 
-	for i := 2; i <= 10000; i++ {
+	for i := 2; i <= 50; i++ {
 		code, body, headers, err := runRequestWithHeaders(routeName, route, "", func(*http.Request) {}, signApplicationRequest(application, user, true, true))
 		c.Assert(err, IsNil)
 		c.Assert(code, Equals, http.StatusOK)
 		c.Assert(body, Not(Equals), "")
 		remaining, er := strconv.Atoi(headers.Get("X-RateLimit-Remaining"))
 		c.Assert(er, IsNil)
-		c.Assert(remaining, Equals, 10000-i+1)
+		c.Assert(remaining, Equals, 50-i+1)
 	}
 
 	code, body, headers, err = runRequestWithHeaders(routeName, route, "", func(*http.Request) {}, signApplicationRequest(application, user, true, true))

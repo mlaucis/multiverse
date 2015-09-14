@@ -4,6 +4,7 @@ package server
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/tapglue/backend/context"
@@ -30,14 +31,8 @@ type errorResponse struct {
 	DocumentationURL string `json:"documentation_url,omitempty"`
 }
 
-const (
-	// APIVersion holds which API Version does this module holds
-	APIVersion = "0.3"
-
-	appRateLimitProduction int64 = 10000
-	appRateLimitStaging    int64 = 100
-	appRateLimitSeconds    int64 = 60
-)
+// APIVersion holds which API Version does this module holds
+const APIVersion = "0.3"
 
 var (
 	postgresOrganization, kinesisOrganization                 core.Organization
@@ -48,7 +43,18 @@ var (
 	postgresEvent, kinesisEvent                               core.Event
 
 	appRateLimiter limiter.Limiter
+
+	appRateLimitProduction int64 = 10000
+	appRateLimitStaging    int64 = 100
+	appRateLimitSeconds    int64 = 60
 )
+
+func init() {
+	if os.Getenv("CI") == "true" {
+		appRateLimitProduction = 50
+		appRateLimitStaging    = 10
+	}
+}
 
 // ValidateGetCommon runs a series of predefined, common, tests for GET requests
 func ValidateGetCommon(ctx *context.Context) (err []errors.Error) {
