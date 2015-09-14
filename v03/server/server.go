@@ -44,7 +44,7 @@ var (
 
 	appRateLimiter limiter.Limiter
 
-	appRateLimitProduction int64 = 10000
+	appRateLimitProduction int64 = 20000
 	appRateLimitStaging    int64 = 100
 	appRateLimitSeconds    int64 = 60
 )
