@@ -213,7 +213,7 @@ resource "aws_elb" "corporate" {
     instance_port     = 443
     instance_protocol = "https"
 
-    ssl_certificate_id = "${aws_iam_server_certificate.self-signed.arn}"
+    ssl_certificate_id = "${aws_iam_server_certificate.self-signed-staging.arn}"
   }
 
   health_check {

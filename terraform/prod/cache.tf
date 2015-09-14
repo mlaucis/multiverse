@@ -64,14 +64,13 @@ resource "aws_elasticache_subnet_group" "rate-limiter" {
     "${aws_subnet.frontend-b.id}"]
 }
 
-/**/
 resource "aws_elasticache_cluster" "rate-limiter" {
   depends_on           = [
     "aws_elasticache_subnet_group.rate-limiter"]
   cluster_id           = "rate-limiter"
   engine               = "redis"
   engine_version       = "2.8.21"
-  node_type            = "cache.t2.micro"
+  node_type            = "cache.r3.large"
   port                 = 6379
   num_cache_nodes      = 1
   parameter_group_name = "default.redis2.8"
@@ -80,4 +79,3 @@ resource "aws_elasticache_cluster" "rate-limiter" {
   security_group_ids   = [
     "${aws_security_group.ec-redis.id}"]
 }
-/**/

@@ -3,7 +3,7 @@ resource "aws_launch_configuration" "backend" {
     "aws_security_group.backend-ssh"]
 
   image_id                    = "${var.ami_backend}"
-  instance_type               = "t2.micro"
+  instance_type               = "c4.large"
   associate_public_ip_address = false
   enable_monitoring           = true
   ebs_optimized               = false
