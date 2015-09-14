@@ -35,9 +35,7 @@ done
 for STATIC_COMPONENT in "${STATIC_COMPONENTS[@]}"
 do
     cd ${CWD}/${STATIC_COMPONENT}
-    cp -R node_modules /home/ubuntu/
-    cp -R node_modules/.* /home/ubuntu/node_modules/
-    mv /home/ubuntu/node_modules /home/ubuntu/.${STATIC_COMPONENT}_node_modules
+    cp -R node_modules /home/ubuntu/.${STATIC_COMPONENT}_node_modules
 done
 
 if [ "$FAIL" == "0" ];
