@@ -97,7 +97,7 @@ resource "aws_security_group" "rds_ec2" {
 resource "aws_db_instance" "master" {
   identifier              = "tapglue-master"
   # change this to io1 if you want to use provisioned iops for production
-  storage_type            = "standard"
+  storage_type            = "gp2"
   #iops = 3000 # this should give us a boost in performance for production
   allocated_storage       = "100"
   engine                  = "postgres"
