@@ -40,13 +40,13 @@ export default class Sidebar extends Component {
             {sections}
             <li>
               <a className='inactive' href='#'>
-                <img src={require('../../icons/Sidebar_Analytics.png')}/>
+                <img src={require('../../icons/Sidebar_Icon_Analytics.svg')}/>
                 <span className='title'>Analytics</span>
               </a>
             </li>
             <li>
               <a className='inactive' href='#'>
-                <img src={require('../../icons/Sidebar_Settings.png')}/>
+                <img src={require('../../icons/Sidebar_Icon_Settings.svg')}/>
                 <span className='title'>Settings</span>
               </a>
             </li>
