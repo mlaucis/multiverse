@@ -168,7 +168,7 @@ func GenerateEncryptedPassword(password, salt, time string) string {
 
 // EncryptPassword will encrypt a string with the password encryption algorithm
 func EncryptPassword(password string) string {
-	salt := GenerateRandomString(saltLength)
+	salt := GenerateRandomSecureString(saltLength)
 	timestamp := time.Now().Format(time.RFC3339)
 	encryptedPassword := GenerateEncryptedPassword(password, salt, timestamp)
 
@@ -187,7 +187,7 @@ func GenerateStrongEncryptedPassword(password, salt, time string) (string, error
 
 // StrongEncryptPassword packs the super secure password in a database format
 func StrongEncryptPassword(password string) (string, error) {
-	salt := GenerateRandomString(saltLength)
+	salt := GenerateRandomSecureString(saltLength)
 	timestamp := time.Now().Format(time.RFC3339)
 	encryptedPassword, err := GenerateStrongEncryptedPassword(password, salt, timestamp)
 	if err != nil {
