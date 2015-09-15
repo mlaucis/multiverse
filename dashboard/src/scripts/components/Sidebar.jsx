@@ -14,7 +14,7 @@ export default class Sidebar extends Component {
   render() {
     let router = this.context.router
     let sections = this.props.sections.map( (section) => {
-      let icon = require(`../../icons/Sidebar_${section.icon}.png`)
+      let icon = require(`../../icons/Sidebar_Icon_${section.icon}.svg`)
       let c = ''
 
       if (router.isActive(section.route, section.params)) {
