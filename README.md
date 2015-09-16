@@ -130,3 +130,15 @@ python sqlmap.py -u "http://127.0.0.1:8083/0.2/user/db9617bf-275e-521a-88c3-b6ef
 Bad keywords:
 
 - google wfuzz: https://wfuzz.googlecode.com/svn/trunk/wordlist/Injections/SQL.txt
+
+### SSH Tunneling to the database
+
+Replace:
+- `BASTION_IP` with the IP of the Bastion host
+- `PRIVATE_IP` with the IP of the private host
+- `DB_IP` with the IP of the database
+
+The command:
+```bash
+ssh -A user@BASTION_IP -L 54321:localhost:54320 ssh -L 54320:PRIVATE_IP:5432 DB_IP cat -
+```
