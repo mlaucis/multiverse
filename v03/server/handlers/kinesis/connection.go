@@ -7,6 +7,7 @@ import (
 	"github.com/tapglue/multiverse/context"
 	"github.com/tapglue/multiverse/errors"
 	"github.com/tapglue/multiverse/v03/core"
+	"github.com/tapglue/multiverse/v03/entity"
 	"github.com/tapglue/multiverse/v03/errmsg"
 	"github.com/tapglue/multiverse/v03/server/handlers"
 	"github.com/tapglue/multiverse/v03/server/response"
@@ -88,6 +89,10 @@ func (conn *connection) CreateFriend(*context.Context) []errors.Error {
 
 func (conn *connection) CreateFollow(*context.Context) []errors.Error {
 	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+}
+
+func (conn *connection) CreateAutoConnectionEvent(ctx *context.Context, connection *entity.Connection) (*entity.Event, []errors.Error) {
+	return nil, []errors.Error{errmsg.ErrServerNotImplementedYet}
 }
 
 // NewConnectionWithApplicationUser returns a new connection handler

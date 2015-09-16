@@ -7,6 +7,7 @@ import (
 
 	"github.com/tapglue/multiverse/context"
 	"github.com/tapglue/multiverse/errors"
+	"github.com/tapglue/multiverse/tgflake"
 	"github.com/tapglue/multiverse/v03/core"
 	"github.com/tapglue/multiverse/v03/entity"
 	"github.com/tapglue/multiverse/v03/errmsg"
@@ -18,6 +19,7 @@ import (
 type connection struct {
 	appUser core.ApplicationUser
 	storage core.Connection
+	event   core.Event
 }
 
 func (conn *connection) Update(ctx *context.Context) (err []errors.Error) {
@@ -319,6 +321,10 @@ func (conn *connection) CreateSocial(ctx *context.Context) (err []errors.Error) 
 		return
 	}
 
+	if ctx.Query.Get("with_event") == "true" {
+		go conn.CreateAutoConnectionEvents(ctx, user, users, request.ConnectionType)
+	}
+
 	response.SanitizeApplicationUsers(users)
 
 	resp := struct {
@@ -460,6 +466,10 @@ func (conn *connection) doCreateConnection(ctx *context.Context, connection *ent
 		return err
 	}
 
+	if ctx.Query.Get("with_event") == "true" {
+		go conn.CreateAutoConnectionEvent(ctx, connection)
+	}
+
 	if receivedEnabled {
 		connection, err = conn.storage.Confirm(accountID, applicationID, connection, true)
 		if err != nil {
@@ -471,10 +481,60 @@ func (conn *connection) doCreateConnection(ctx *context.Context, connection *ent
 	return nil
 }
 
+func (conn *connection) CreateAutoConnectionEvent(ctx *context.Context, connection *entity.Connection) (*entity.Event, []errors.Error) {
+	event := &entity.Event{
+		UserID:     connection.UserFromID,
+		Type:       "tg_" + connection.Type,
+		Visibility: entity.EventPrivate,
+		Target: &entity.Object{
+			ID:   strconv.FormatUint(connection.UserToID, 10),
+			Type: "tg_user",
+		},
+	}
+
+	var err error
+	event.ID, err = tgflake.FlakeNextID(ctx.Bag["applicationID"].(int64), "events")
+	if err != nil {
+		return nil, []errors.Error{errmsg.ErrServerInternalError.UpdateInternalMessage(err.Error())}
+	}
+
+	accountID := ctx.Bag["accountID"].(int64)
+	applicationID := ctx.Bag["applicationID"].(int64)
+
+	return conn.event.Create(accountID, applicationID, connection.UserFromID, event, false)
+}
+
+func (conn *connection) CreateAutoConnectionEvents(
+	ctx *context.Context,
+	user *entity.ApplicationUser, users []*entity.ApplicationUser,
+	connectionType string) ([]*entity.Event, []errors.Error) {
+
+	events := []*entity.Event{}
+	errs := []errors.Error{}
+	for idx := range users {
+		connection := &entity.Connection{
+			UserFromID: user.ID,
+			UserToID:   users[idx].ID,
+			Type:       connectionType,
+			Common: entity.Common{
+				Enabled: true,
+			},
+		}
+
+		evt, err := conn.CreateAutoConnectionEvent(ctx, connection)
+
+		events = append(events, evt)
+		errs = append(errs, err...)
+	}
+
+	return events, errs
+}
+
 // NewConnection initializes a new connection with an application user
-func NewConnection(storage core.Connection, appUser core.ApplicationUser) handlers.Connection {
+func NewConnection(storage core.Connection, appUser core.ApplicationUser, evt core.Event) handlers.Connection {
 	return &connection{
 		storage: storage,
 		appUser: appUser,
+		event:   evt,
 	}
 }

@@ -1729,3 +1729,118 @@ func (s *ConnectionSuite) TestGetConnectionsCount(c *C) {
 	c.Assert(receivedUser.FollowerCount, Equals, int64(1))
 	c.Assert(receivedUser.FollowedCount, Equals, int64(3))
 }
+
+func (s *ConnectionSuite) TestCreateConnectionWithEvent(c *C) {
+	accounts := CorrectDeploy(1, 0, 1, 2, 0, false, true)
+	application := accounts[0].Applications[0]
+	userFrom := application.Users[0]
+	userTo := application.Users[1]
+
+	LoginApplicationUser(accounts[0].ID, application.ID, userFrom)
+
+	payload := fmt.Sprintf(
+		`{"user_from_id":%d, "user_to_id":%d, "type": "friend"}`,
+		userFrom.ID,
+		userTo.ID,
+	)
+
+	routeName := "createConnection"
+	route := getComposedRoute(routeName) + "?with_event=true"
+	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
+	c.Assert(err, IsNil)
+
+	c.Assert(code, Equals, http.StatusCreated)
+	c.Assert(body, Not(Equals), "")
+
+	connection := &entity.Connection{}
+	er := json.Unmarshal([]byte(body), connection)
+	c.Assert(er, IsNil)
+	c.Assert(connection.UserFromID, Equals, userFrom.ID)
+	c.Assert(connection.UserToID, Equals, userTo.ID)
+	c.Assert(connection.Type, Equals, "friend")
+	c.Assert(connection.Enabled, Equals, true)
+
+	routeName = "getFeed"
+	route = getComposedRoute(routeName)
+	code, body, err = runRequest(routeName, route, "", signApplicationRequest(application, userTo, true, true))
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusOK)
+	c.Assert(body, Not(Equals), "")
+
+	response := struct {
+		Count  int                               `json:"unread_events_count"`
+		Events []entity.Event                    `json:"events"`
+		Users  map[string]entity.ApplicationUser `json:"users"`
+	}{}
+	er = json.Unmarshal([]byte(body), &response)
+	c.Assert(er, IsNil)
+
+	c.Assert(response.Count, Equals, 1)
+	c.Assert(len(response.Events), Equals, 1)
+	c.Assert(len(response.Users), Equals, 1)
+	c.Assert(response.Events[0].Type, Equals, "tg_friend")
+}
+
+func (s *ConnectionSuite) TestCreateSocialConnectionWithEvent(c *C) {
+	accounts := CorrectDeploy(1, 0, 1, 5, 0, false, true)
+	account := accounts[0]
+	application := account.Applications[0]
+
+	userFrom := application.Users[0]
+	user2 := application.Users[1]
+	user4 := application.Users[3]
+
+	payload, er := json.Marshal(struct {
+		UserFromID     string   `json:"platform_user_id"`
+		SocialPlatform string   `json:"platform"`
+		ConnectionsIDs []string `json:"connection_ids"`
+		Type           string   `json:"type"`
+	}{
+		UserFromID:     userFrom.SocialIDs["facebook"],
+		SocialPlatform: "facebook",
+		ConnectionsIDs: []string{
+			user2.SocialIDs["facebook"],
+			user4.SocialIDs["facebook"],
+		},
+		Type: "friend",
+	})
+	c.Assert(er, IsNil)
+
+	routeName := "createSocialConnections"
+	route := getComposedRoute(routeName) + "?with_event=true"
+	code, body, err := runRequest(routeName, route, string(payload), signApplicationRequest(application, userFrom, true, true))
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusCreated)
+	c.Assert(body, Not(Equals), "")
+	c.Assert(body, Not(Equals), "[]\n")
+
+	connectedUsers := struct {
+		Users      []*entity.ApplicationUser `json:"users"`
+		UsersCount int                       `json:"users_count"`
+	}{}
+	er = json.Unmarshal([]byte(body), &connectedUsers)
+	c.Assert(er, IsNil)
+	c.Assert(connectedUsers.UsersCount, Equals, 2)
+	c.Assert(connectedUsers.Users[0].ID, Equals, user2.ID)
+	c.Assert(connectedUsers.Users[1].ID, Equals, user4.ID)
+
+	routeName = "getFeed"
+	route = getComposedRoute(routeName)
+	code, body, err = runRequest(routeName, route, "", signApplicationRequest(application, user2, true, true))
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusOK)
+	c.Assert(body, Not(Equals), "")
+
+	response := struct {
+		Count  int                               `json:"unread_events_count"`
+		Events []entity.Event                    `json:"events"`
+		Users  map[string]entity.ApplicationUser `json:"users"`
+	}{}
+	er = json.Unmarshal([]byte(body), &response)
+	c.Assert(er, IsNil)
+
+	c.Assert(response.Count, Equals, 1)
+	c.Assert(len(response.Events), Equals, 1)
+	c.Assert(len(response.Users), Equals, 1)
+	c.Assert(response.Events[0].Type, Equals, "tg_friend")
+}

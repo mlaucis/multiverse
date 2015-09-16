@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -54,7 +55,8 @@ const (
 	listEventsByUserFollowerIDQuery = `SELECT json_data
 		FROM app_%d_%d.events
 		WHERE (((%s) AND (json_data @> '{"visibility": 20}' OR json_data @> '{"visibility": 30}'))
-			OR (json_data @> '{"visibility": 40}' AND (json_data->>'user_id')::bigint != $1::bigint))
+			OR (json_data @> '{"visibility": 40}' AND (json_data->>'user_id')::BIGINT != $1::BIGINT)
+			OR (json_data->'target'->>'id') = $2::TEXT)
 			AND json_data @> '{"enabled": true}'
 		ORDER BY json_data->>'created_at' DESC LIMIT 200`
 
@@ -228,7 +230,7 @@ func (e *event) UserFeed(accountID, applicationID int64, user *entity.Applicatio
 	}
 
 	rows, err := e.pg.SlaveDatastore(-1).
-		Query(fmt.Sprintf(listEventsByUserFollowerIDQuery, accountID, applicationID, condition), user.ID)
+		Query(fmt.Sprintf(listEventsByUserFollowerIDQuery, accountID, applicationID, condition), user.ID, strconv.FormatUint(user.ID, 10))
 	if err != nil {
 		return 0, nil, []errors.Error{errmsg.ErrInternalEventsList.UpdateInternalMessage(err.Error())}
 	}
