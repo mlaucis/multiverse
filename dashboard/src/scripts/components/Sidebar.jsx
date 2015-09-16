@@ -34,25 +34,27 @@ export default class Sidebar extends Component {
     })
 
     return (
-      <div className="page-sidebar-wrapper">
-        <div className="page-sidebar navbar-collapse collapse">
-          <ul className="page-sidebar-menu page-sidebar-menu-hover-submenu">
-            {sections}
-            <li>
-              <a className='inactive' href='#'>
-                <img src={require('../../icons/Sidebar_Icon_Analytics.svg')}/>
-                <span className='title'>Analytics</span>
-              </a>
-            </li>
-            <li>
-              <a className='inactive' href='#'>
-                <img src={require('../../icons/Sidebar_Icon_Settings.svg')}/>
-                <span className='title'>Settings</span>
-              </a>
-            </li>
-          </ul>
-        </div>
-      </div>
+      <ul className='sidebar'>
+        {sections}
+        <li>
+          <a className='inactive' href='#'>
+            <img src={require('../../icons/Sidebar_Icon_Analytics.svg')}/>
+            <span className='title'>Analytics</span>
+          </a>
+        </li>
+        <li>
+          <a className='inactive' href='#'>
+            <img src={require('../../icons/Sidebar_Icon_Settings.svg')}/>
+            <span>Settings</span>
+          </a>
+        </li>
+        <li>
+          <Link to='AUTH_LOGOUT'>
+            <img src={require('../../icons/Sidebar_Icon_LogOut.svg')}/>
+            <span>Log out</span>
+          </Link>
+        </li>
+      </ul>
     )
   }
 }

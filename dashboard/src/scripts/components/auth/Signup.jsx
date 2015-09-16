@@ -28,48 +28,51 @@ class SignupForm extends Component {
 
   render() {
     let errors = this.props.errors.map( error => {
-      return <p key={error.code}>{error.message}</p>
+      return <p className='error' key={error.code}>{error.message}</p>
     })
 
     return (
       <form onSubmit={this.handleSubmit}>
-        {errors}
         <div className='form-group'>
+          <div className='group errors'>
+            {errors}
+          </div>
+          <div className='grid grid--justify-space-between'>
+            <div className='group grid__col-sm-6'>
+              <input id='firstName'
+                     name='firstName'
+                     placeholder='First Name'
+                     ref='firstName'
+                     type='text'
+                     required
+              />
+              <span className='bar'></span>
+              <span className='help'></span>
+              <label hmtlFor='firstName'>First Name</label>
+            </div>
+            <div className='group grid__col-sm-6'>
+              <input id='lastName'
+                     name='lastName'
+                     placeholder='Last Name'
+                     ref='lastName'
+                     type='text'
+                     required
+              />
+              <span className='bar'></span>
+              <span className='help'></span>
+              <label hmtlFor='lastName'>Last Name</label>
+            </div>
+          </div>
           <div className='group'>
             <input id='accountName'
                    name='accountName'
-                   placeholder='Organisation'
+                   placeholder='Company'
                    ref='accountName'
                    type='text'
-                   required
             />
             <span className='bar'></span>
             <span className='help'></span>
             <label hmtlFor='accountName'>Organisation</label>
-          </div>
-          <div className='group'>
-            <input id='firstName'
-                   name='firstName'
-                   placeholder='First Name'
-                   ref='firstName'
-                   type='text'
-                   required
-            />
-            <span className='bar'></span>
-            <span className='help'></span>
-            <label hmtlFor='firstName'>First Name</label>
-          </div>
-          <div className='group'>
-            <input id='lastName'
-                   name='lastName'
-                   placeholder='Last Name'
-                   ref='lastName'
-                   type='text'
-                   required
-            />
-            <span className='bar'></span>
-            <span className='help'></span>
-            <label hmtlFor='lastName'>Last Name</label>
           </div>
           <div className='group'>
             <input id='email'
@@ -133,6 +136,10 @@ export default class Signup extends Component {
     let plan = this.props.query.plan || 'free'
     let router = this.context.router
     let originalReferrer = consumeReferrerCookie()
+
+    if (values.accountName === '') {
+      values.accountName = values.email
+    }
 
     requestAccountCreate(values, plan, originalReferrer)
     .then( account => {

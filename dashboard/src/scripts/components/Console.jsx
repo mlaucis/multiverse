@@ -77,20 +77,13 @@ export default class Console extends Component {
     }
 
     return (
-      <section className='console'>
+      <section className='console grid'>
         <Header/>
-        <div className="clearfix"></div>
-        <div className="page-container">
+        <div className='sidebar-container grid__col-md-2 grid__col--bleed'>
           <Sidebar sections={sections}/>
-          <div className="page-content-wrapper">
-            <div className="page-content" style={style}>
-              <RouteHandler/>
-              <div className="clearfix"></div>
-            </div>
-            <div className="scroll-to-top">
-              <i className="glyphicon glyphicon-chevron-up"></i>
-            </div>
-          </div>
+        </div>
+        <div className="content grid__col-md-10 grid__col--bleed" style={style}>
+          <RouteHandler/>
         </div>
       </section>
     )

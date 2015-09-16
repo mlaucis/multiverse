@@ -1,16 +1,4 @@
-import 'bootstrap/dist/css/bootstrap.css'
-import 'bootstrap-switch/dist/css/bootstrap3/bootstrap-switch.css'
-import '../styles/components.css'
-import '../styles/layout.css'
 import '../styles/theme.less'
-
-global.jQuery = window.$ = window.jQuery = require('jquery')
-
-import 'jquery'
-import 'jquery.cookie'
-import 'jquery-uniform'
-import 'bootstrap'
-import 'bootstrap-switch'
 
 import React, { Component } from 'react'
 import Router from 'react-router'

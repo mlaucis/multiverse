@@ -37,8 +37,10 @@ class InviteDeveloper extends Component {
         <h3>Get your team on board</h3>
         <p>Invite a developer or others who should help integrate Tapglue
           into your app.</p>
-        <form onSubmit={this.handleSubmit}>
-          <div className='left'>
+        <form
+          className='grid grid--bleed grid--justify-space-between'
+          onSubmit={this.handleSubmit}>
+          <div className='grid__col-sm-8'>
             <input
               id='developer-email'
               placeholder='Email Address'
@@ -52,7 +54,7 @@ class InviteDeveloper extends Component {
             </span>
             <label htmlFor='developer-email'>Email Address</label>
           </div>
-          <div className='right'>
+          <div className='grid__col-sm-3'>
             <input className='btn-default' type='submit' value='Invite'/>
           </div>
         </form>
@@ -104,10 +106,12 @@ class IntegrationResource extends Component {
   }
 
   render() {
-    let iconClass = `glyphicon glyphicon-${this.props.icon}`
+    let iconClass = `fa fa-${this.props.icon}`
 
     return (
-      <a className='btn-secondary outline resource' href={this.props.link}>
+      <a
+        className='btn-secondary outline resource grid__col-xs-2'
+        href={this.props.link}>
         <span className={iconClass}></span>
         <span>{this.props.name}</span>
       </a>
@@ -143,19 +147,15 @@ class TestingApp extends Component {
 
   render() {
     return (
-      <div className='row testing-app'>
-        <div className='col-md-6'>
-          <div className='card'>
-            <h2>Instant API Access</h2>
-            <p>{this.props.app.description}</p>
-          </div>
+      <div className='grid testing-app'>
+        <div className='card grid__col-md-6'>
+          <h2>Instant API Access</h2>
+          <p>{this.props.app.description}</p>
         </div>
-        <div className='col-md-6'>
-          <div className='card extra'>
-            <p>
-              <span>API TOKEN:</span>
-              <span className='token'>{this.props.app.token}</span>
-            </p>
+        <div className='card grid__col-md-6'>
+          <div className='grid grid--align-center'>
+            <div className='grid__col-lg-3'><p>API TOKEN:</p></div>
+            <div className='token grid__col-lg-9'>{this.props.app.token}</div>
           </div>
         </div>
       </div>
@@ -208,32 +208,32 @@ export default class Dashboard extends Component {
     )
 
     return (
-      <div className='home'>
-        <div className='row teaser'>
+      <div className='home grid grid--bleed grid--align-content-start'>
+        <div className='teaser grid__col-12'>
           <h1>Welcome to Tapglue, {this.state.user.firstName}!</h1>
           <p>Integrating Tapglue into your app is a matter of a few hours.</p>
           <p>Jump straight into it with these helpful resources.</p>
-          <div className='resources'>
+          <div className='resources grid grid--justify-center'>
             <IntegrationResource
               icon='file'
               link='https://developers.tapglue.com'
               name='Docs'/>
             <IntegrationResource
-              icon='file'
+              icon='apple'
               link='https://developers.tapglue.com/docs/ios'
               name='iOS Guide'/>
             <IntegrationResource
-              icon='file'
+              icon='download'
               link='https://github.com/tapglue/ios_sdk#tapglue-ios-sdk'
               name='iOS SDK'/>
           </div>
         </div>
         {app}
-        <div className='row'>
-          <div className='col-md-6'>
+        <div className='grid'>
+          <div className='grid__col-md-6'>
             <InviteDeveloper/>
           </div>
-          <div className='col-md-6'>
+          <div className='grid__col-md-6'>
             <div className='card'>
               <h3>Product Resources</h3>
               <ProductResource

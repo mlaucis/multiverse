@@ -31,7 +31,11 @@ class AccountStore extends EventEmitter {
   }
 
   get errors() {
-    return this._errors
+    let errs = this._errors
+
+    this._errors = []
+
+    return errs
   }
 
   get isAuthenticated() {

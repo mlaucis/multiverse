@@ -190,17 +190,19 @@ export class App extends Component {
     let actionsClass = 'actions'
     if (!this.state.showActions) { actionsClass += ' hide' }
     let actions = (
-      <div className={actionsClass}>
-        <button
-          className='btn-default outline small'
-          onClick={this.toggleEdit}>
-          <span className='glyphicon glyphicon-pencil'></span>
-        </button>
-        <button
-          className='btn-default outline small'
-          onClick={this.toggleDelete}>
-          <span className='glyphicon glyphicon-trash'></span>
-        </button>
+      <div className='grid__col-3'>
+        <div className={actionsClass}>
+          <button
+            className='btn-default outline small'
+            onClick={this.toggleEdit}>
+            <span className='glyphicon glyphicon-pencil'></span>
+          </button>
+          <button
+            className='btn-default outline small'
+            onClick={this.toggleDelete}>
+            <span className='glyphicon glyphicon-trash'></span>
+          </button>
+        </div>
       </div>
     )
     let token = this.state.showToken ? (
@@ -231,11 +233,12 @@ export class App extends Component {
     )
 
     return (
-      <div className='portlet light app'
+      <div
+        className='app card grid__col-md-6'
         onMouseEnter={this.toggleActions}
         onMouseLeave={this.toggleActions}>
-        <div className='portlet-title'>
-          <h3>
+        <header className='grid grid--bleed'>
+          <h3 className='grid__col-9'>
             {app.name}
           </h3>
           {(() => {
@@ -243,22 +246,22 @@ export class App extends Component {
               return actions
             }
           })()}
-        </div>
+        </header>
         {( () => {
           if (this.state.showToken) {
             return (
-              <div className='portlet-body'>
+              <main>
                 {token}
-              </div>
+              </main>
             )
           } else {
             return (
-              <div className='portlet-body'>
+              <main>
                 <div className='description'>
                   <p>{app.description}</p>
                 </div>
                 {token}
-              </div>
+              </main>
             )
           }
         })()}
@@ -268,7 +271,7 @@ export class App extends Component {
 
   viewDelete() {
     return (
-      <div className='note note-block note-alert'>
+      <div className='grid__col-md-6 note note-block note-alert'>
         <h2
           className='alert-heading'>
           Do you really want to delete this app?
@@ -298,7 +301,7 @@ export class App extends Component {
 
   viewEdit() {
     return (
-      <div className='note note-block note-success'>
+      <div className='grid__col-md-6 note note-block note-success'>
         <AppForm
           description={this.props.app.description}
           name={this.props.app.name}
@@ -362,14 +365,10 @@ export default class Apps extends Component {
     let len = Math.round(apps.length / 2)
     let createAppended = false
     let createApp = (
-      <div className='col-md-6' key={createKey}>
-        <div className='portlet light'>
-          <div className='portlet-body'>
-            <AppForm
-              onSubmit={this.handleCreate}
-              submitLabel='Create'/>
-          </div>
-        </div>
+      <div className='card grid__col-sm-6' key={createKey}>
+        <AppForm
+          onSubmit={this.handleCreate}
+          submitLabel='Create'/>
       </div>
     )
 
@@ -377,19 +376,13 @@ export default class Apps extends Component {
       let [ a, b ] = apps
       let rowKey = `app-row-${i}`
       let pair = [(
-        <div className='col-md-6' key={a.id}>
-          <App actions={true} app={a}/>
-        </div>
+        <App actions={true} app={a} key={a.id}/>
       )]
 
       apps.shift()
 
       if (b) {
-        pair.push((
-          <div className='col-md-6' key={b.id}>
-            <App actions={true} app={b}/>
-          </div>
-        ))
+        pair.push(<App actions={true} app={b} key={b.id}/>)
 
         apps.shift()
       } else {
@@ -398,7 +391,7 @@ export default class Apps extends Component {
       }
 
       appRows.push((
-        <div className='row' key={rowKey}>
+        <div className='grid' key={rowKey}>
           {pair}
         </div>
       ))
@@ -414,7 +407,7 @@ export default class Apps extends Component {
         {( () => {
           if (!createAppended) {
             return (
-              <div className='row' key='create'>
+              <div className='grid'>
                 {createApp}
               </div>
             )

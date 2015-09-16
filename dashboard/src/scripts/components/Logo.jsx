@@ -5,7 +5,7 @@ import IconLogo from '../../icons/logo.svg?t=custom'
 export default class Logo extends Component {
   render() {
     return (
-      <div className="page-logo">
+      <div className="logo">
         {IconLogo}
       </div>
     )

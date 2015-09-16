@@ -311,26 +311,22 @@ export default class Members extends Component {
     })
 
     return (
-      <div>
-        <div className='row'>
-          <div className='col-md-12'>
-            <div className='portlet light'>
-              <div className='portlet-body'>
-                {head}
-                <table>
-                  <thead>
-                    <th>Status</th>
-                    <th>Email</th>
-                    <th>First Name</th>
-                    <th>Last Name</th>
-                    <th></th>
-                  </thead>
-                  <tbody>
-                    {members}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+      <div className='members'>
+        <div className='grid'>
+          <div className='card grid__col-12'>
+            {head}
+            <table>
+              <thead>
+                <th>Status</th>
+                <th>Email</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th></th>
+              </thead>
+              <tbody>
+                {members}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>

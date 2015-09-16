@@ -1,5 +1,4 @@
 import React, { Component } from 'react'
-import { Link } from 'react-router'
 
 import AccountStore from '../stores/AccountStore'
 
@@ -43,23 +42,10 @@ class Profile extends Component {
   render() {
     return (
       <div className='profile'>
-        <Link to='AUTH_LOGOUT'>
-          <span>
-            {this.state.user.firstName}
-          </span>
-          <span className="glyphicon glyphicon-log-out"></span>
-        </Link>
+        <span>
+          {this.state.user.firstName}
+        </span>
       </div>
-    )
-  }
-}
-
-class HeaderNav extends Component {
-  render() {
-    return (
-      <nav className='header-nav'>
-        <Profile/>
-      </nav>
     )
   }
 }
@@ -67,20 +53,16 @@ class HeaderNav extends Component {
 export default class Header extends Component {
   render() {
     return (
-      <div className="page-header navbar navbar-fixed-top">
-        <div className="page-header-inner">
+      <header className='grid'>
+        <div className='grid__col-md-2'>
           <Logo/>
-          <a
-            href='#'
-            className="menu-toggler responsive-toggler"
-            data-toggle="collapse"
-            data-target=".navbar-collapse">
-          </a>
-          <div className="page-top">
-            <HeaderNav/>
-          </div>
         </div>
-      </div>
+        <div className='grid__col-md-10 grid__col--bleed'>
+          <nav className='grid grid--justify-end'>
+            <Profile/>
+          </nav>
+        </div>
+      </header>
     )
   }
 }

@@ -29,8 +29,10 @@ export class LoginForm extends Component {
 
     return (
       <form onSubmit={this.handleSubmit}>
-        {errors}
         <div className='form-group'>
+          <div className='group errors'>
+            {errors}
+          </div>
           <div className='group'>
             <input id='email'
                    name='email'
