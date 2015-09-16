@@ -113,7 +113,7 @@
                       <div class="iphone-selector" id="sportsBackground"><span class="iphone-selector-inner">Sports</span></div>
                   </div>
                   <div class="signup-button">
-                    <a href="https://dashboard.tapglue.com/signup" class="btn-default big block">Get Started</a>
+                    <a href="https://dashboard.tapglue.com/signup" class="btn-alert big block">Get Started for free</a>
                   </div>
                 </div>
             </div>
@@ -126,14 +126,14 @@
                     <div class ="2u 4u(small)">
                         <img src='/icons/Benefits_Icon_CustomizableUI.svg' />
                     </div>
-                    <div class ="4u 8u$(small)">
+                    <div class ="3u 8u$(small)">
                         <h3>Fully Customizable UI</h3>
                         <p>Create whatever style is  suitable for your app.</p>
                     </div>
                     <div class ="2u 4u(small)">
                         <img src='/icons/Benefits_Icon_SDKandAPI.svg' />
                     </div>
-                    <div class ="4u$ 8u$(small)">
+                    <div class ="3u$ 8u$(small)">
                         <h3>SDK &amp; RESTful API</h3>
                         <p>Choose the integration type that fits best for you.</p>
                     </div>
@@ -142,14 +142,14 @@
                     <div class ="2u 4u(small)">
                         <img src='/icons/Benefits_Icon_Security.svg' />
                     </div>
-                    <div class ="4u 8u$(small)">
+                    <div class ="3u 8u$(small)">
                         <h3>Security</h3>
                         <p>Secure communication and authentication via HTTPS.</p>
                     </div>
                     <div class ="2u 4u(small)">
                         <img src='/icons/Benefits_Icon_EasyIntegration.svg' />
                     </div>
-                    <div class ="4u$ 8u$(small)">
+                    <div class ="3u$ 8u$(small)">
                         <h3>Easy Integration</h3>
                         <p>Launch your news feed in just a few hours.</p>
                     </div>
@@ -158,14 +158,14 @@
                     <div class ="2u 4u(small)">
                         <img src='/icons/Benefits_Icon_ContentFlexibility.svg' />
                     </div>
-                    <div class ="4u 8u$(small)">
+                    <div class ="3u 8u$(small)">
                         <h3>Content Flexibility</h3>
                         <p>Easily use the content you already have in your app.</p>
                     </div>
                     <div class ="2u 4u(small)">
                         <img src='/icons/Benefits_Icon_DeepLinking.svg' />
                     </div>
-                    <div class ="4u$ 8u$(small)">
+                    <div class ="3u$ 8u$(small)">
                         <h3>Deep Linking</h3>
                         <p>Always send the user to the right place.</p>
                     </div>
@@ -248,33 +248,26 @@
         </section>
 
         <!-- Newsletter -->
-        <section id="three" class="wrapper style3 special">
-            <div class="container">
-                <div class="newsletterBox">
-                    <img src="img/logos/logo_white@2x.png" width="240px" alt="Tapglue"/>
-                    <h2>WEEKLY</h2>
-                </div>
+        <section id='newsletter'>
+          <div class='container'>
+            <div class='row'>
+              <section class='6u 12u(small)'>
+                <h3>Become a mobile expert</h3>
+                <p>Product, Growth and Engineering - get the best hand-picked resources delivered straight to your inbox every week.</p>
+                <form method='post' action='https://tapglue.curated.co/email_subscribers' onsubmit="newsletterSubmit();return false;">
+                  <div class='row'>
+                    <section class='8u 12u(small)'>
+                      <input name="email" id="subscribe-email" value="" placeholder="Enter your email" type="email" required />
+                    </section>
+                    <section class='4u 12u(small)'>
+                      <button class='btn-alert big' type="submit">Subscribe</button>
+                    </section>
+                  </div>
+                  <div class="success-feedback"></div>
+                </form>
+              </section>
             </div>
-            <div class="container 75%">
-                <div class ="newsgreen">
-                    <p>Get the best resources to build a successful app straight to your inbox every week.</p>
-                </div>
-                <div class ="newsform">
-                    <form id='subscribe-form' method='post' action='https://tapglue.curated.co/email_subscribers' onsubmit="newsletterSubmit();return false;">
-                        <div class="row uniform aligner">
-                            <div class="6u 6u(medium) 12u$(small)">
-                            <input name="email" id="subscribe-email" value="" placeholder="Enter your email" type="email" required>
-                            </div>
-                            <div class="3u$ 5u$(medium) 12u$(small)">
-                                <ul class="actions">
-                                    <li><input id="submitButton" value="Subscribe" class="btn-default big" type="submit"></li>
-                                </ul>
-                            </div>
-                        </div>
-                        <div class="success-feedback">
-                        </div>
-                </div>
-            </div>
+          </div>
         </section>
 
         <footer id="footer">
@@ -308,6 +301,7 @@
                   <h3>Company</h3>
                   <ul class="unstyled">
                       <li><a href="/about-us/">About us</a></li>
+                      <li><a href="/imprint/">Imprint</a></li>
                   </ul>
               </section>
             </section>

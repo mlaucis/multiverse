@@ -12,3 +12,7 @@
 .signup-button {
   margin-left: 3.5rem;
 }
+
+#testimonial .portrait {
+  width: 16rem;
+}
