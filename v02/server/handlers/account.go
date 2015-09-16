@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"github.com/tapglue/backend/context"
-	"github.com/tapglue/backend/errors"
+	"github.com/tapglue/multiverse/context"
+	"github.com/tapglue/multiverse/errors"
 )
 
 type (

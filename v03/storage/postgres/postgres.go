@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"math/rand"
 
-	"github.com/tapglue/backend/config"
-	"github.com/tapglue/backend/errors"
+	"github.com/tapglue/multiverse/config"
+	"github.com/tapglue/multiverse/errors"
 
 	"github.com/jmoiron/sqlx"
 	// Well, we want to have PostgreSQL as database so we kinda need this..

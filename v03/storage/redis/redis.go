@@ -4,7 +4,7 @@ package redis
 import (
 	"time"
 
-	"github.com/tapglue/backend/config"
+	"github.com/tapglue/multiverse/config"
 
 	redigo "github.com/garyburd/redigo/redis"
 )

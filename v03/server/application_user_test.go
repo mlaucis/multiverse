@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/tapglue/backend/v03/entity"
+	"github.com/tapglue/multiverse/v03/entity"
 
 	. "gopkg.in/check.v1"
 )

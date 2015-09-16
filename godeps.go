@@ -2,12 +2,12 @@
 package main
 
 import (
-	_ "github.com/tapglue/backend/config"
-	_ "github.com/tapglue/backend/context"
-	_ "github.com/tapglue/backend/server"
-	_ "github.com/tapglue/backend/utils"
-	_ "github.com/tapglue/backend/v02/server"
-	_ "github.com/tapglue/backend/v03/server"
+	_ "github.com/tapglue/multiverse/config"
+	_ "github.com/tapglue/multiverse/context"
+	_ "github.com/tapglue/multiverse/server"
+	_ "github.com/tapglue/multiverse/utils"
+	_ "github.com/tapglue/multiverse/v02/server"
+	_ "github.com/tapglue/multiverse/v03/server"
 )
 
 func main() {

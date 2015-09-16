@@ -1,6 +1,6 @@
 package response
 
-import "github.com/tapglue/backend/v02/entity"
+import "github.com/tapglue/multiverse/v02/entity"
 
 // SanitizeAccountUser will sanitize the account user for usage via the API
 func SanitizeAccountUser(user *entity.AccountUser) {

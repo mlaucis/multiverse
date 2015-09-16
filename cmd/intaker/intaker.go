@@ -18,10 +18,10 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/tapglue/backend/config"
-	"github.com/tapglue/backend/errors"
-	"github.com/tapglue/backend/logger"
-	"github.com/tapglue/backend/server"
+	"github.com/tapglue/multiverse/config"
+	"github.com/tapglue/multiverse/errors"
+	"github.com/tapglue/multiverse/logger"
+	"github.com/tapglue/multiverse/server"
 )
 
 const (

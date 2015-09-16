@@ -3,14 +3,14 @@ package server
 import (
 	"strings"
 
-	"github.com/tapglue/backend/context"
-	"github.com/tapglue/backend/errors"
-	"github.com/tapglue/backend/logger"
-	"github.com/tapglue/backend/v03/server/handlers"
-	"github.com/tapglue/backend/v03/server/handlers/kinesis"
-	"github.com/tapglue/backend/v03/server/handlers/postgres"
-	"github.com/tapglue/backend/v03/server/handlers/redis"
-	"github.com/tapglue/backend/v03/server/response"
+	"github.com/tapglue/multiverse/context"
+	"github.com/tapglue/multiverse/errors"
+	"github.com/tapglue/multiverse/logger"
+	"github.com/tapglue/multiverse/v03/server/handlers"
+	"github.com/tapglue/multiverse/v03/server/handlers/kinesis"
+	"github.com/tapglue/multiverse/v03/server/handlers/postgres"
+	"github.com/tapglue/multiverse/v03/server/handlers/redis"
+	"github.com/tapglue/multiverse/v03/server/response"
 
 	"github.com/gorilla/mux"
 )

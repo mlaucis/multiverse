@@ -3,12 +3,12 @@ package validator
 import (
 	"strings"
 
-	"github.com/tapglue/backend/errors"
-	"github.com/tapglue/backend/utils"
-	"github.com/tapglue/backend/v02/core"
-	"github.com/tapglue/backend/v02/entity"
-	"github.com/tapglue/backend/v02/errmsg"
-	storageHelper "github.com/tapglue/backend/v02/storage/helper"
+	"github.com/tapglue/multiverse/errors"
+	"github.com/tapglue/multiverse/utils"
+	"github.com/tapglue/multiverse/v02/core"
+	"github.com/tapglue/multiverse/v02/entity"
+	"github.com/tapglue/multiverse/v02/errmsg"
+	storageHelper "github.com/tapglue/multiverse/v02/storage/helper"
 )
 
 const (

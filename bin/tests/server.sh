@@ -10,7 +10,7 @@ do
     declare -a VERSIONS=( "v02" "v03" )
     for VERSION in "${VERSIONS[@]}"
     do
-        cd ${GOPATH}/src/github.com/tapglue/backend/${VERSION}/server/
-        go test -race -tags ${TEST_TARGET} -check.v github.com/tapglue/backend/${VERSION}/server
+        cd ${GOPATH}/src/github.com/tapglue/multiverse/${VERSION}/server/
+        go test -race -tags ${TEST_TARGET} -check.v github.com/tapglue/multiverse/${VERSION}/server
     done
 done

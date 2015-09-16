@@ -3,8 +3,8 @@ package response
 import (
 	"net/http"
 
-	"github.com/tapglue/backend/context"
-	"github.com/tapglue/backend/v03/entity"
+	"github.com/tapglue/multiverse/context"
+	"github.com/tapglue/multiverse/v03/entity"
 )
 
 // ComputeOrganizationLastModified computes the last-modified information for the account

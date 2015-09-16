@@ -1,7 +1,7 @@
 // Package writer defines the interface that the various writers need to implement
 package writer
 
-import "github.com/tapglue/backend/errors"
+import "github.com/tapglue/multiverse/errors"
 
 // Writer interface defines the methods needed for a writer
 type Writer interface {

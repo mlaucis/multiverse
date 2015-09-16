@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/tapglue/backend/errors"
-	"github.com/tapglue/backend/utils"
+	"github.com/tapglue/multiverse/errors"
+	"github.com/tapglue/multiverse/utils"
 
 	gksis "github.com/sendgridlabs/go-kinesis"
 )

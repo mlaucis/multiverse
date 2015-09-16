@@ -7,11 +7,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/tapglue/backend/config"
-	"github.com/tapglue/backend/errors"
-	"github.com/tapglue/backend/tgflake"
-	"github.com/tapglue/backend/v03/entity"
-	"github.com/tapglue/backend/v03/fixtures"
+	"github.com/tapglue/multiverse/config"
+	"github.com/tapglue/multiverse/errors"
+	"github.com/tapglue/multiverse/tgflake"
+	"github.com/tapglue/multiverse/v03/entity"
+	"github.com/tapglue/multiverse/v03/fixtures"
 )
 
 type AppUserByID []*entity.ApplicationUser

@@ -5,7 +5,7 @@ import (
 	"net/mail"
 	"net/url"
 
-	"github.com/tapglue/backend/v03/entity"
+	"github.com/tapglue/multiverse/v03/entity"
 
 	"github.com/satori/go.uuid"
 )

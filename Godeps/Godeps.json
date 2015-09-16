@@ -1,5 +1,5 @@
 {
-	"ImportPath": "github.com/tapglue/backend",
+	"ImportPath": "github.com/tapglue/multiverse",
 	"GoVersion": "go1.5",
 	"Packages": [
 		"./..."

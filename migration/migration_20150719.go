@@ -12,11 +12,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tapglue/backend/config"
-	"github.com/tapglue/backend/errors"
-	"github.com/tapglue/backend/tgflake"
-	v02_server "github.com/tapglue/backend/v02/server"
-	v02_postgres "github.com/tapglue/backend/v02/storage/postgres"
+	"github.com/tapglue/multiverse/config"
+	"github.com/tapglue/multiverse/errors"
+	"github.com/tapglue/multiverse/tgflake"
+	v02_server "github.com/tapglue/multiverse/v02/server"
+	v02_postgres "github.com/tapglue/multiverse/v02/storage/postgres"
 
 	"github.com/jmoiron/sqlx"
 )

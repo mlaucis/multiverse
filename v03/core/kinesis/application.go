@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/tapglue/backend/errors"
-	"github.com/tapglue/backend/v03/core"
-	"github.com/tapglue/backend/v03/entity"
-	"github.com/tapglue/backend/v03/errmsg"
-	"github.com/tapglue/backend/v03/storage/kinesis"
+	"github.com/tapglue/multiverse/errors"
+	"github.com/tapglue/multiverse/v03/core"
+	"github.com/tapglue/multiverse/v03/entity"
+	"github.com/tapglue/multiverse/v03/errmsg"
+	"github.com/tapglue/multiverse/v03/storage/kinesis"
 
 	ksis "github.com/sendgridlabs/go-kinesis"
 )

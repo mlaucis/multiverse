@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-cd ${GOPATH}/src/github.com/tapglue/backend
+cd ${GOPATH}/src/github.com/tapglue/multiverse
 
 echo "Building the backend app"
 go build -o backend backend.go

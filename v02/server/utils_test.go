@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/tapglue/backend/config"
-	"github.com/tapglue/backend/errors"
-	"github.com/tapglue/backend/tgflake"
-	"github.com/tapglue/backend/v02/entity"
-	"github.com/tapglue/backend/v02/fixtures"
+	"github.com/tapglue/multiverse/config"
+	"github.com/tapglue/multiverse/errors"
+	"github.com/tapglue/multiverse/tgflake"
+	"github.com/tapglue/multiverse/v02/entity"
+	"github.com/tapglue/multiverse/v02/fixtures"
 )
 
 type (

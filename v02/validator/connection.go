@@ -1,10 +1,10 @@
 package validator
 
 import (
-	"github.com/tapglue/backend/errors"
-	"github.com/tapglue/backend/v02/core"
-	"github.com/tapglue/backend/v02/entity"
-	"github.com/tapglue/backend/v02/errmsg"
+	"github.com/tapglue/multiverse/errors"
+	"github.com/tapglue/multiverse/v02/core"
+	"github.com/tapglue/multiverse/v02/entity"
+	"github.com/tapglue/multiverse/v02/errmsg"
 )
 
 // CreateConnection validates a connection on create

@@ -4,7 +4,7 @@ package errmsg
 import (
 	"net/http"
 
-	"github.com/tapglue/backend/errors"
+	"github.com/tapglue/multiverse/errors"
 )
 
 // These are all the errors in the application, sorted alphabetically by their name

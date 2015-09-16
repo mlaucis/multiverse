@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/tapglue/backend/context"
+	"github.com/tapglue/multiverse/context"
 
 	"github.com/sendgridlabs/go-kinesis"
 )

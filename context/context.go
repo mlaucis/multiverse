@@ -8,9 +8,9 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/tapglue/backend/errors"
-	"github.com/tapglue/backend/logger"
-	"github.com/tapglue/backend/utils"
+	"github.com/tapglue/multiverse/errors"
+	"github.com/tapglue/multiverse/logger"
+	"github.com/tapglue/multiverse/utils"
 )
 
 type (
