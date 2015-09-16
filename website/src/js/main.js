@@ -12,7 +12,7 @@ function adjustPricing($) {
 
     $el.addClass('discount');
     $el.after('<div class="price">' + price + '</div>');
-    $el.after('<div class="priceMonth">-25% Product Hunt Discount (12months)</div>');
+    $el.after('<div class="priceMonth producthunt">-25% Product Hunt Discount (12months)</div>');
   });
 }
 

@@ -168,6 +168,7 @@
   display: block;
   padding: 1.2rem 4rem;
   width: 100%;
+  margin: auto;
 }
 .btn-default.big {
   padding: 1.1em 3em;

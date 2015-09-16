@@ -20,7 +20,6 @@
 			large: {
 				media: '(max-width: 1280px)',
 				href: 'css/style-large.css',
-				containers: '90%!',
 				viewport: { scalable: false }
 			},
 			medium: {
@@ -59,8 +58,8 @@
 					hidden: true,
 					html: '<div data-action="moveElement"></div>',
 					orientation: 'vertical',
-					position: 'top-left',
-					side: 'left',
+					position: 'top-right',
+					side: 'right',
 					width: 200,
 					html: 	'<ul>' +
 							'<li><a href="/">Home</a></li>' +
