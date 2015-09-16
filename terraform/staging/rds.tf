@@ -92,7 +92,7 @@ resource "aws_security_group" "rds_ec2" {
   }
 }
 
-/**/
+/** /
 # Database master
 resource "aws_db_instance" "master" {
   identifier              = "tapglue-master"
