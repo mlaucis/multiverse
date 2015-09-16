@@ -48,9 +48,9 @@ do
         sed -i -e 's|'$WORKSPACE'/||g' coverage_server_${VERSION}_${TEST_TARGET}.json
         cat coverage_server_${VERSION}_${TEST_TARGET}.json | gocov-html > coverage_server_${VERSION}_${TEST_TARGET}.html
         gocov-xml < coverage_server_${VERSION}_${TEST_TARGET}.json > coverage_server_${VERSION}_${TEST_TARGET}.xml
-        sed -i 's/\/home\/ubuntu\/backend\///g' coverage_server_${VERSION}_${TEST_TARGET}.html
+        sed -i 's/\/home\/ubuntu\/multiverse\///g' coverage_server_${VERSION}_${TEST_TARGET}.html
         mv coverage_server_${VERSION}_${TEST_TARGET}.html ${CIRCLE_ARTIFACTS}/
     done
 done
 
-rm -f /home/ubuntu/.go_workspace/src/github.com/tapglue/backend
+rm -f /home/ubuntu/.go_workspace/src/github.com/tapglue/multiverse

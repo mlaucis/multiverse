@@ -26,11 +26,11 @@ _testmain.go
 # Custom
 *.bak
 config.json
-backend
 *.rdb
 *.aof
 
 .idea/workspace.xml
 .idea/shelf/
+.idea/libraries/GOPATH_*
 
 terraform/*.tfvars

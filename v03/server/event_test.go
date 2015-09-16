@@ -12,8 +12,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/tapglue/backend/v03/entity"
-	"github.com/tapglue/backend/v03/server"
+	"github.com/tapglue/multiverse/v03/entity"
+	"github.com/tapglue/multiverse/v03/server"
 
 	"github.com/gorilla/mux"
 	. "gopkg.in/check.v1"

@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/tapglue/backend/utils"
-	"github.com/tapglue/backend/v02/entity"
-	"github.com/tapglue/backend/v02/errmsg"
+	"github.com/tapglue/multiverse/utils"
+	"github.com/tapglue/multiverse/v02/entity"
+	"github.com/tapglue/multiverse/v02/errmsg"
 
 	. "gopkg.in/check.v1"
 )

@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/tapglue/backend/limiter"
+	"github.com/tapglue/multiverse/limiter"
 
 	"github.com/garyburd/redigo/redis"
 )

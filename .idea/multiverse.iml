@@ -7,5 +7,6 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="GOPATH &lt;backend&gt;" level="project" />
     <orderEntry type="library" name="GOPATH &lt;backend&gt;" level="project" />
+    <orderEntry type="library" name="GOPATH &lt;multiverse&gt;" level="project" />
   </component>
 </module>

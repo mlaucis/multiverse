@@ -5,14 +5,14 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/tapglue/backend/context"
-	"github.com/tapglue/backend/errors"
-	"github.com/tapglue/backend/v02/core"
-	"github.com/tapglue/backend/v02/entity"
-	"github.com/tapglue/backend/v02/errmsg"
-	"github.com/tapglue/backend/v02/server/handlers"
-	"github.com/tapglue/backend/v02/server/response"
-	"github.com/tapglue/backend/v02/validator"
+	"github.com/tapglue/multiverse/context"
+	"github.com/tapglue/multiverse/errors"
+	"github.com/tapglue/multiverse/v02/core"
+	"github.com/tapglue/multiverse/v02/entity"
+	"github.com/tapglue/multiverse/v02/errmsg"
+	"github.com/tapglue/multiverse/v02/server/handlers"
+	"github.com/tapglue/multiverse/v02/server/response"
+	"github.com/tapglue/multiverse/v02/validator"
 )
 
 type (

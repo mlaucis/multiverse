@@ -4,13 +4,13 @@ package postgres
 import (
 	"net/http"
 
-	"github.com/tapglue/backend/errors"
-	"github.com/tapglue/backend/v03/core"
-	postgresCore "github.com/tapglue/backend/v03/core/postgres"
-	redisCore "github.com/tapglue/backend/v03/core/redis"
-	ksis "github.com/tapglue/backend/v03/storage/kinesis"
-	"github.com/tapglue/backend/v03/storage/postgres"
-	"github.com/tapglue/backend/v03/writer"
+	"github.com/tapglue/multiverse/errors"
+	"github.com/tapglue/multiverse/v03/core"
+	postgresCore "github.com/tapglue/multiverse/v03/core/postgres"
+	redisCore "github.com/tapglue/multiverse/v03/core/redis"
+	ksis "github.com/tapglue/multiverse/v03/storage/kinesis"
+	"github.com/tapglue/multiverse/v03/storage/postgres"
+	"github.com/tapglue/multiverse/v03/writer"
 
 	"github.com/garyburd/redigo/redis"
 )

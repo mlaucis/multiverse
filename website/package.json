@@ -7,11 +7,11 @@
   "main": "index.js",
   "version": "0.1.0",
   "bugs": {
-    "url": "https://github.com/tapglue/backend/issues"
+    "url": "https://github.com/tapglue/multiverse/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/tapglue/backend.git"
+    "url": "git+https://github.com/tapglue/multiverse.git"
   },
   "dependencies": {},
   "devDependencies": {

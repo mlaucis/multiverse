@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/tapglue/backend/utils"
-	"github.com/tapglue/backend/v03/entity"
-	"github.com/tapglue/backend/v03/errmsg"
+	"github.com/tapglue/multiverse/utils"
+	"github.com/tapglue/multiverse/v03/entity"
+	"github.com/tapglue/multiverse/v03/errmsg"
 
 	"strings"
 

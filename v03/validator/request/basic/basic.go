@@ -1,8 +1,8 @@
 package basic
 
 import (
-	"github.com/tapglue/backend/context"
-	"github.com/tapglue/backend/errors"
+	"github.com/tapglue/multiverse/context"
+	"github.com/tapglue/multiverse/errors"
 )
 
 // SignAccount checks that the current request is a signed account request

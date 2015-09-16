@@ -4,12 +4,12 @@ package postgres
 import (
 	"net/http"
 
-	"github.com/tapglue/backend/errors"
-	"github.com/tapglue/backend/v02/core"
-	postgresCore "github.com/tapglue/backend/v02/core/postgres"
-	ksis "github.com/tapglue/backend/v02/storage/kinesis"
-	"github.com/tapglue/backend/v02/storage/postgres"
-	"github.com/tapglue/backend/v02/writer"
+	"github.com/tapglue/multiverse/errors"
+	"github.com/tapglue/multiverse/v02/core"
+	postgresCore "github.com/tapglue/multiverse/v02/core/postgres"
+	ksis "github.com/tapglue/multiverse/v02/storage/kinesis"
+	"github.com/tapglue/multiverse/v02/storage/postgres"
+	"github.com/tapglue/multiverse/v02/writer"
 )
 
 type (

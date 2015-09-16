@@ -3,10 +3,10 @@ package redis
 import (
 	"encoding/json"
 
-	"github.com/tapglue/backend/errors"
-	"github.com/tapglue/backend/v03/core"
-	"github.com/tapglue/backend/v03/entity"
-	"github.com/tapglue/backend/v03/errmsg"
+	"github.com/tapglue/multiverse/errors"
+	"github.com/tapglue/multiverse/v03/core"
+	"github.com/tapglue/multiverse/v03/entity"
+	"github.com/tapglue/multiverse/v03/errmsg"
 
 	"github.com/garyburd/redigo/redis"
 )

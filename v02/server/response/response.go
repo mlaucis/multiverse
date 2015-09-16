@@ -12,10 +12,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tapglue/backend/context"
-	"github.com/tapglue/backend/errors"
-	"github.com/tapglue/backend/v02/entity"
-	"github.com/tapglue/backend/v02/errmsg"
+	"github.com/tapglue/multiverse/context"
+	"github.com/tapglue/multiverse/errors"
+	"github.com/tapglue/multiverse/v02/entity"
+	"github.com/tapglue/multiverse/v02/errmsg"
 )
 
 const (

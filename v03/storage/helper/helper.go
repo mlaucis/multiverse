@@ -10,8 +10,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/tapglue/backend/utils"
-	"github.com/tapglue/backend/v03/entity"
+	"github.com/tapglue/multiverse/utils"
+	"github.com/tapglue/multiverse/v03/entity"
 
 	"github.com/satori/go.uuid"
 	"golang.org/x/crypto/scrypt"

@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tapglue/backend/errors"
-	"github.com/tapglue/backend/logger"
+	"github.com/tapglue/multiverse/errors"
+	"github.com/tapglue/multiverse/logger"
 )
 
 // This allows us to process at most x number of entries per stream

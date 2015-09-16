@@ -3,8 +3,8 @@ package postgres
 import (
 	"encoding/json"
 
-	"github.com/tapglue/backend/errors"
-	"github.com/tapglue/backend/v03/entity"
+	"github.com/tapglue/multiverse/errors"
+	"github.com/tapglue/multiverse/v03/entity"
 )
 
 func (p *pg) applicationCreate(msg string) []errors.Error {

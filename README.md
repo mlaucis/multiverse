@@ -1,12 +1,12 @@
-# Tapglue backend
+# Tapglue multiverse
 
-This repository contains the implementation of tapglues backend.
+This repository contains the implementation of tapglues multiverse.
 
-[![Circle CI](https://circleci.com/gh/tapglue/backend.svg?style=svg&circle-token=22a2b029440b825d23a4f0118274af084da917b2)](https://circleci.com/gh/tapglue/backend)
+[![Circle CI](https://circleci.com/gh/tapglue/multiverse.svg?style=svg&circle-token=22a2b029440b825d23a4f0118274af084da917b2)](https://circleci.com/gh/tapglue/multiverse)
 
 ## Documentation
 
-See [Documentation](https://github.com/tapglue/backend/wiki) for entities, api design and more.
+See [Documentation](https://github.com/tapglue/multiverse/wiki) for entities, api design and more.
 
 ## System Requirements
 
@@ -22,9 +22,9 @@ Following steps are need to download and install this project.
 Download the git repository to get started.
 
 ```shell
-$ mkdir -p $GOPATH/src/github.com/tapglue/backend
-$ git clone https://github.com/tapglue/backend.git
-$ cd backend
+$ mkdir -p $GOPATH/src/github.com/tapglue/multiverse
+$ git clone git@github.com:tapglue/multiverse.git
+$ cd multiverse
 ```
 
 ### Dependencies
@@ -32,13 +32,13 @@ $ cd backend
 All dependecies should be fecthed correctly by running:
 
 ```shell
-$ go get github.com/tapglue/backend
+$ go get github.com/tapglue/multiverse
 ```
 
 or, if you cloned it locally in your GOPATH
 
 ```shell
-$ cd $GOPATH/src/github.com/tapglue/backend
+$ cd $GOPATH/src/github.com/tapglue/multiverse
 $ go get ./...
 ```
 
@@ -70,12 +70,14 @@ Configure the server including ports and database settings in the [config.json](
 ### Start server
 
 ```shell
-$ go run -race backend.go
+# obsolete, to be updated
+$ go run -race multi.go
 ```
 
 ## Tests
 
 ```shell
+# obsolete, to be updated
 $ cd core
 $ go test -check.v
 $ cd ../server
@@ -105,7 +107,7 @@ $ bin/ab/*.sh
 
 ## Code commit
 
-Before doing a commit, please run the following in the ```$GOPATH/src/github.com/tapglue/backend```
+Before doing a commit, please run the following in the ```$GOPATH/src/github.com/tapglue/multiverse```
 ```shell
 goimports -w ./.. && golint ./... && go vet ./...
 ```
