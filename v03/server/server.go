@@ -52,7 +52,7 @@ var (
 func init() {
 	if os.Getenv("CI") == "true" {
 		appRateLimitProduction = 50
-		appRateLimitStaging    = 10
+		appRateLimitStaging = 10
 	}
 }
 

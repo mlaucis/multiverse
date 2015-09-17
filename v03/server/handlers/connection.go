@@ -3,6 +3,7 @@ package handlers
 import (
 	"github.com/tapglue/multiverse/context"
 	"github.com/tapglue/multiverse/errors"
+	"github.com/tapglue/multiverse/v03/entity"
 )
 
 // Connection holds the routes for the connections
@@ -45,4 +46,7 @@ type Connection interface {
 
 	// CreateFollow is an alias for creating a follow connection type
 	CreateFollow(*context.Context) []errors.Error
+
+	// CreateAutoConnectionEvent will create an event automatically when a new connection is made
+	CreateAutoConnectionEvent(*context.Context, *entity.Connection) (*entity.Event, []errors.Error)
 }
