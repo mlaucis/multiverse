@@ -14,8 +14,26 @@ class SignupForm extends Component {
     submit: PropTypes.func.isRequired
   }
 
+  constructor() {
+    super()
+
+    this.state = { isSending: false }
+  }
+
+  componentWillReceiveProps(next) {
+    if (next.errors.length > 0) {
+      this.setState({ isSending: false })
+    }
+  }
+
   handleSubmit = (event) => {
     event.preventDefault()
+
+    if (this.state.isSending) {
+      return
+    }
+
+    this.setState({ isSending: true })
 
     this.props.submit({
       accountName: findDOMNode(this.refs.accountName).value,
@@ -30,6 +48,18 @@ class SignupForm extends Component {
     let errors = this.props.errors.map( error => {
       return <p className='error' key={error.code}>{error.message}</p>
     })
+    let action = this.state.isSending ? (
+      <input
+        className='btn-default block'
+        disabled
+        type='submit'
+        value='Sending...'/>
+    ) : (
+      <input
+        className='btn-default block'
+        type='submit'
+        value='Sign Up'/>
+    )
 
     return (
       <form onSubmit={this.handleSubmit}>
@@ -101,10 +131,7 @@ class SignupForm extends Component {
           <p>Already have an account? <Link to='AUTH_LOGIN'>Log In</Link></p>
         </div>
         <div className='actions'>
-          <input
-            className='btn-default block'
-            type='submit'
-            value='Sign Up'/>
+          {action}
         </div>
       </form>
     )
@@ -130,6 +157,18 @@ export default class Signup extends Component {
     return {
       errors: AccountStore.errors
     }
+  }
+
+  componentDidMount() {
+    AccountStore.addChangeListener(this._onChange)
+  }
+
+  componentWillUnmount() {
+    AccountStore.removeChangeListener(this._onChange)
+  }
+
+  _onChange = () => {
+    this.setState(this.getState())
   }
 
   handleSubmit = (values) => {
@@ -161,19 +200,11 @@ export default class Signup extends Component {
     })
   }
 
-  componentDidMount() {
-    AccountStore.addChangeListener(this._onChange)
-  }
-
-  componentWillUnmount() {
-    AccountStore.removeChangeListener(this._onChange)
-  }
-
-  _onChange = () => {
-    this.setState(this.getState())
-  }
-
   render() {
-    return <SignupForm errors={this.state.errors} submit={this.handleSubmit}/>
+    return (
+      <SignupForm
+        errors={this.state.errors}
+        submit={this.handleSubmit}/>
+    )
   }
 }
