@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/tapglue/multiverse/context"
 	"github.com/tapglue/multiverse/errors"
+	"github.com/tapglue/multiverse/v03/context"
 	"github.com/tapglue/multiverse/v03/core"
 	"github.com/tapglue/multiverse/v03/entity"
 	"github.com/tapglue/multiverse/v03/errmsg"
@@ -22,7 +22,7 @@ type member struct {
 
 func (user *member) Read(ctx *context.Context) (err []errors.Error) {
 	// TODO This one read only the current account user maybe we want to have something to read any account user?
-	accountUser := ctx.Bag["accountUser"].(*entity.Member)
+	accountUser := ctx.Member
 	response.SanitizeMember(accountUser)
 	response.ComputeMemberLastModified(ctx, accountUser)
 	response.WriteResponse(ctx, accountUser, http.StatusOK, 10)
@@ -30,7 +30,7 @@ func (user *member) Read(ctx *context.Context) (err []errors.Error) {
 }
 
 func (user *member) Update(ctx *context.Context) (err []errors.Error) {
-	accountUser := *(ctx.Bag["accountUser"].(*entity.Member))
+	accountUser := *ctx.Member
 
 	if accountUser.PublicID != ctx.Vars["accountUserID"] {
 		return []errors.Error{errmsg.ErrMemberMismatchErr}
@@ -40,14 +40,14 @@ func (user *member) Update(ctx *context.Context) (err []errors.Error) {
 		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
 	}
 
-	accountUser.ID = ctx.Bag["accountUserID"].(int64)
-	accountUser.OrgID = ctx.Bag["accountID"].(int64)
+	accountUser.ID = ctx.MemberID
+	accountUser.OrgID = ctx.OrganizationID
 
-	if err = validator.UpdateMember(user.storage, ctx.Bag["accountUser"].(*entity.Member), &accountUser); err != nil {
+	if err = validator.UpdateMember(user.storage, ctx.Member, &accountUser); err != nil {
 		return
 	}
 
-	updatedAccountUser, err := user.storage.Update(*(ctx.Bag["accountUser"].(*entity.Member)), accountUser, true)
+	updatedAccountUser, err := user.storage.Update(*ctx.Member, accountUser, true)
 	if err != nil {
 		return
 	}
@@ -62,7 +62,7 @@ func (user *member) Delete(ctx *context.Context) (err []errors.Error) {
 	if !validator.IsValidUUID5(accountUserID) {
 		return []errors.Error{errmsg.ErrApplicationUserIDInvalid}
 	}
-	accountUser, err := user.storage.FindByPublicID(ctx.Bag["accountID"].(int64), accountUserID)
+	accountUser, err := user.storage.FindByPublicID(ctx.OrganizationID, accountUserID)
 	if err != nil {
 		return
 	}
@@ -82,8 +82,8 @@ func (user *member) Create(ctx *context.Context) (err []errors.Error) {
 		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(err.Error())}
 	}
 
-	accountUser.OrgID = ctx.Bag["accountID"].(int64)
-	accountUser.PublicAccountID = ctx.Bag["account"].(*entity.Organization).PublicID
+	accountUser.OrgID = ctx.OrganizationID
+	accountUser.PublicAccountID = ctx.Organization.PublicID
 
 	if err = validator.CreateMember(user.storage, accountUser); err != nil {
 		return
@@ -107,7 +107,7 @@ func (user *member) Create(ctx *context.Context) (err []errors.Error) {
 	}{
 		Member:       *accountUser,
 		Token:        sessionToken,
-		AccountToken: ctx.Bag["account"].(*entity.Organization).AuthToken,
+		AccountToken: ctx.Organization.AuthToken,
 	}
 
 	response.WriteResponse(ctx, rsp, http.StatusCreated, 0)
@@ -119,7 +119,7 @@ func (user *member) List(ctx *context.Context) (err []errors.Error) {
 		accountUsers []*entity.Member
 	)
 
-	if accountUsers, err = user.storage.List(ctx.Bag["accountID"].(int64)); err != nil {
+	if accountUsers, err = user.storage.List(ctx.OrganizationID); err != nil {
 		return
 	}
 
@@ -216,7 +216,7 @@ func (user *member) RefreshSession(ctx *context.Context) (err []errors.Error) {
 		return []errors.Error{errmsg.ErrAuthSessionTokenMismatch}
 	}
 
-	if sessionToken, err = user.storage.RefreshSession(ctx.SessionToken, ctx.Bag["accountUser"].(*entity.Member)); err != nil {
+	if sessionToken, err = user.storage.RefreshSession(ctx.SessionToken, ctx.Member); err != nil {
 		return
 	}
 
@@ -227,7 +227,7 @@ func (user *member) RefreshSession(ctx *context.Context) (err []errors.Error) {
 }
 
 func (user *member) Logout(ctx *context.Context) (err []errors.Error) {
-	if err = user.storage.DestroySession(ctx.SessionToken, ctx.Bag["accountUser"].(*entity.Member)); err != nil {
+	if err = user.storage.DestroySession(ctx.SessionToken, ctx.Member); err != nil {
 		return
 	}
 
@@ -246,8 +246,8 @@ func (user *member) PopulateContext(ctx *context.Context) (err []errors.Error) {
 		return []errors.Error{errmsg.ErrMemberNotFound}
 	}
 	if err == nil {
-		ctx.Bag["accountUser"] = accountUser
-		ctx.Bag["accountUserID"] = accountUser.ID
+		ctx.Member = accountUser
+		ctx.MemberID = accountUser.ID
 		ctx.SessionToken = pass
 	}
 	return

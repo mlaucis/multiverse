@@ -3,10 +3,9 @@ package kinesis
 import (
 	"net/http"
 
-	"github.com/tapglue/multiverse/context"
 	"github.com/tapglue/multiverse/errors"
+	"github.com/tapglue/multiverse/v03/context"
 	"github.com/tapglue/multiverse/v03/core"
-	"github.com/tapglue/multiverse/v03/entity"
 	"github.com/tapglue/multiverse/v03/errmsg"
 	"github.com/tapglue/multiverse/v03/server/handlers"
 	"github.com/tapglue/multiverse/v03/server/response"
@@ -26,7 +25,7 @@ func (app *application) Update(ctx *context.Context) (err []errors.Error) {
 }
 
 func (app *application) Delete(ctx *context.Context) (err []errors.Error) {
-	if err = app.writeStorage.Delete(ctx.Bag["application"].(*entity.Application)); err != nil {
+	if err = app.writeStorage.Delete(ctx.Application); err != nil {
 		return
 	}
 

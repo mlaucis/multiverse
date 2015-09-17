@@ -7,15 +7,14 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/tapglue/multiverse/context"
 	"github.com/tapglue/multiverse/errors"
 	"github.com/tapglue/multiverse/limiter"
 	"github.com/tapglue/multiverse/logger"
+	"github.com/tapglue/multiverse/v03/context"
 	"github.com/tapglue/multiverse/v03/core"
 	v03_kinesis_core "github.com/tapglue/multiverse/v03/core/kinesis"
 	v03_postgres_core "github.com/tapglue/multiverse/v03/core/postgres"
 	v03_redis_core "github.com/tapglue/multiverse/v03/core/redis"
-	"github.com/tapglue/multiverse/v03/entity"
 	"github.com/tapglue/multiverse/v03/errmsg"
 	"github.com/tapglue/multiverse/v03/server/response"
 	v03_kinesis "github.com/tapglue/multiverse/v03/storage/kinesis"
@@ -177,11 +176,11 @@ func RateLimitApplication(ctx *context.Context) []errors.Error {
 	}
 
 	appRateLimit := appRateLimitStaging
-	if ctx.Bag["application"].(*entity.Application).InProduction {
+	if ctx.Application.InProduction {
 		appRateLimit = appRateLimitProduction
 	}
 
-	hash := ctx.Bag["application"].(*entity.Application).AuthToken
+	hash := ctx.Application.AuthToken
 
 	limit, refreshTime, err := appRateLimiter.Request(&limiter.Limitee{hash, appRateLimit, appRateLimitSeconds})
 	if err != nil {

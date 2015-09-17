@@ -4,12 +4,12 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/tapglue/multiverse/context"
 	"github.com/tapglue/multiverse/errors"
 	"github.com/tapglue/multiverse/logger"
 	"github.com/tapglue/multiverse/utils"
+	"github.com/tapglue/multiverse/v03/context"
 	"github.com/tapglue/multiverse/v03/server/handlers"
-	v02_request_validator "github.com/tapglue/multiverse/v03/validator/request"
+	v03_request_validator "github.com/tapglue/multiverse/v03/validator/request"
 )
 
 // NewContext creates a new context from the current request
@@ -50,7 +50,7 @@ func NewContext(
 // ContextHasOrganization populates the context with the account information
 func ContextHasOrganization(handler handlers.Organization) Filter {
 	return func(ctx *context.Context) []errors.Error {
-		if err := v02_request_validator.VerifyAccount(ctx); err != nil {
+		if err := v03_request_validator.VerifyAccount(ctx); err != nil {
 			return err
 		}
 		if err := handler.PopulateContext(ctx); err != nil {
@@ -63,7 +63,7 @@ func ContextHasOrganization(handler handlers.Organization) Filter {
 // ContextHasMember populates the context with the account user information
 func ContextHasMember(handler handlers.Member) Filter {
 	return func(ctx *context.Context) []errors.Error {
-		if err := v02_request_validator.VerifyAccountUser(ctx); err != nil {
+		if err := v03_request_validator.VerifyAccountUser(ctx); err != nil {
 			return err
 		}
 		if err := handler.PopulateContext(ctx); err != nil {
@@ -76,7 +76,7 @@ func ContextHasMember(handler handlers.Member) Filter {
 // ContextHasOrganizationApplication populates the context with the application information from ID
 func ContextHasOrganizationApplication(handler handlers.Application) Filter {
 	return func(ctx *context.Context) []errors.Error {
-		if err := v02_request_validator.VerifyAccountUser(ctx); err != nil {
+		if err := v03_request_validator.VerifyAccountUser(ctx); err != nil {
 			return err
 		}
 		if err := handler.PopulateContextFromID(ctx); err != nil {
@@ -89,7 +89,7 @@ func ContextHasOrganizationApplication(handler handlers.Application) Filter {
 // ContextHasApplication populates the context with the application information
 func ContextHasApplication(handler handlers.Application) Filter {
 	return func(ctx *context.Context) []errors.Error {
-		if err := v02_request_validator.VerifyApplication(ctx); err != nil {
+		if err := v03_request_validator.VerifyApplication(ctx); err != nil {
 			return err
 		}
 		if err := handler.PopulateContext(ctx); err != nil {
@@ -102,7 +102,7 @@ func ContextHasApplication(handler handlers.Application) Filter {
 // ContextHasApplicationUser populates the context with the application user information
 func ContextHasApplicationUser(handler handlers.ApplicationUser) Filter {
 	return func(ctx *context.Context) []errors.Error {
-		if err := v02_request_validator.VerifyApplicationUser(ctx); err != nil {
+		if err := v03_request_validator.VerifyApplicationUser(ctx); err != nil {
 			return err
 		}
 		if err := handler.PopulateContext(ctx); err != nil {

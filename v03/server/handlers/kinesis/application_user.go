@@ -5,10 +5,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/tapglue/multiverse/context"
 	"github.com/tapglue/multiverse/errors"
+	"github.com/tapglue/multiverse/v03/context"
 	"github.com/tapglue/multiverse/v03/core"
-	"github.com/tapglue/multiverse/v03/entity"
 	"github.com/tapglue/multiverse/v03/errmsg"
 	"github.com/tapglue/multiverse/v03/server/handlers"
 	"github.com/tapglue/multiverse/v03/server/response"
@@ -29,27 +28,27 @@ func (appUser *applicationUser) ReadCurrent(ctx *context.Context) (err []errors.
 }
 
 func (appUser *applicationUser) UpdateCurrent(ctx *context.Context) (err []errors.Error) {
-	user := *(ctx.Bag["applicationUser"].(*entity.ApplicationUser))
+	user := *ctx.ApplicationUser
 	var er error
 	if er = json.Unmarshal(ctx.Body, &user); er != nil {
 		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
 	}
 
-	user.ID = ctx.Bag["applicationUserID"].(uint64)
+	user.ID = ctx.ApplicationUserID
 
 	if err = validator.UpdateUser(
 		appUser.readStorage,
-		ctx.Bag["accountID"].(int64),
-		ctx.Bag["applicationID"].(int64),
-		ctx.Bag["applicationUser"].(*entity.ApplicationUser),
+		ctx.OrganizationID,
+		ctx.ApplicationID,
+		ctx.ApplicationUser,
 		&user); err != nil {
 		return
 	}
 
 	updatedUser, err := appUser.writeStorage.Update(
-		ctx.Bag["accountID"].(int64),
-		ctx.Bag["applicationID"].(int64),
-		*(ctx.Bag["applicationUser"].(*entity.ApplicationUser)),
+		ctx.OrganizationID,
+		ctx.ApplicationID,
+		*ctx.ApplicationUser,
 		user,
 		false)
 	if err != nil {
@@ -73,8 +72,8 @@ func (appUser *applicationUser) Delete(ctx *context.Context) (err []errors.Error
 	}
 
 	if err = appUser.writeStorage.Delete(
-		ctx.Bag["accountID"].(int64),
-		ctx.Bag["applicationID"].(int64),
+		ctx.OrganizationID,
+		ctx.ApplicationID,
 		userID); err != nil {
 		return
 	}
@@ -85,9 +84,9 @@ func (appUser *applicationUser) Delete(ctx *context.Context) (err []errors.Error
 
 func (appUser *applicationUser) DeleteCurrent(ctx *context.Context) (err []errors.Error) {
 	if err = appUser.writeStorage.Delete(
-		ctx.Bag["accountID"].(int64),
-		ctx.Bag["applicationID"].(int64),
-		ctx.Bag["applicationUser"].(*entity.ApplicationUser).ID); err != nil {
+		ctx.OrganizationID,
+		ctx.ApplicationID,
+		ctx.ApplicationUser.ID); err != nil {
 		return
 	}
 

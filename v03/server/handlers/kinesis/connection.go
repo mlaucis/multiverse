@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/tapglue/multiverse/context"
 	"github.com/tapglue/multiverse/errors"
+	"github.com/tapglue/multiverse/v03/context"
 	"github.com/tapglue/multiverse/v03/core"
 	"github.com/tapglue/multiverse/v03/entity"
 	"github.com/tapglue/multiverse/v03/errmsg"
@@ -24,9 +24,9 @@ func (conn *connection) Update(ctx *context.Context) (err []errors.Error) {
 }
 
 func (conn *connection) Delete(ctx *context.Context) (err []errors.Error) {
-	accountID := ctx.Bag["accountID"].(int64)
-	applicationID := ctx.Bag["applicationID"].(int64)
-	userFromID := ctx.Bag["applicationUserID"].(uint64)
+	accountID := ctx.OrganizationID
+	applicationID := ctx.ApplicationID
+	userFromID := ctx.ApplicationUserID
 
 	userToID, er := strconv.ParseUint(ctx.Vars["applicationUserToID"], 10, 64)
 	if er != nil {

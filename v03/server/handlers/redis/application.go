@@ -3,8 +3,8 @@ package redis
 import (
 	"fmt"
 
-	"github.com/tapglue/multiverse/context"
 	"github.com/tapglue/multiverse/errors"
+	"github.com/tapglue/multiverse/v03/context"
 	"github.com/tapglue/multiverse/v03/core"
 	"github.com/tapglue/multiverse/v03/entity"
 	"github.com/tapglue/multiverse/v03/errmsg"
@@ -40,18 +40,19 @@ func (app *application) PopulateContext(ctx *context.Context) (err []errors.Erro
 	if !ok {
 		return []errors.Error{errmsg.ErrAuthInvalidApplicationCredentials.UpdateInternalMessage(fmt.Sprintf("got %s:%s", user, pass))}
 	}
-	ctx.Bag["application"], err = app.storage.FindByKey(user)
+
+	ctx.Application, err = app.storage.FindByKey(user)
 	if err == nil {
-		ctx.Bag["accountID"] = ctx.Bag["application"].(*entity.Application).OrgID
-		ctx.Bag["applicationID"] = ctx.Bag["application"].(*entity.Application).ID
+		ctx.OrganizationID = ctx.Application.OrgID
+		ctx.ApplicationID = ctx.Application.ID
 	} else if err[0].Code() == errmsg.ErrApplicationNotFound.Code() {
-		ctx.Bag["application"], err = app.postgresStorage.FindByKey(user)
+		ctx.Application, err = app.postgresStorage.FindByKey(user)
 		if err == nil {
-			ctx.Bag["accountID"] = ctx.Bag["application"].(*entity.Application).OrgID
-			ctx.Bag["applicationID"] = ctx.Bag["application"].(*entity.Application).ID
+			ctx.OrganizationID = ctx.Application.OrgID
+			ctx.ApplicationID = ctx.Application.ID
 			go func(application *entity.Application) {
 				app.storage.Create(application, false)
-			}(ctx.Bag["application"].(*entity.Application))
+			}(ctx.Application)
 		}
 	}
 

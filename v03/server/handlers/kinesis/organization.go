@@ -3,10 +3,9 @@ package kinesis
 import (
 	"net/http"
 
-	"github.com/tapglue/multiverse/context"
 	"github.com/tapglue/multiverse/errors"
+	"github.com/tapglue/multiverse/v03/context"
 	"github.com/tapglue/multiverse/v03/core"
-	"github.com/tapglue/multiverse/v03/entity"
 	"github.com/tapglue/multiverse/v03/errmsg"
 	"github.com/tapglue/multiverse/v03/server/handlers"
 	"github.com/tapglue/multiverse/v03/server/response"
@@ -26,11 +25,11 @@ func (org *organization) Update(ctx *context.Context) (err []errors.Error) {
 }
 
 func (org *organization) Delete(ctx *context.Context) (err []errors.Error) {
-	if ctx.Bag["account"].(*entity.Organization).PublicID != ctx.Vars["accountID"] {
+	if ctx.Organization.PublicID != ctx.Vars["accountID"] {
 		return []errors.Error{errmsg.ErrAccountMismatch}
 	}
 
-	if err = org.writeStorage.Delete(ctx.Bag["account"].(*entity.Organization)); err != nil {
+	if err = org.writeStorage.Delete(ctx.Organization); err != nil {
 		return err
 	}
 

@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/tapglue/multiverse/context"
 	"github.com/tapglue/multiverse/errors"
 	"github.com/tapglue/multiverse/tgflake"
+	"github.com/tapglue/multiverse/v03/context"
 	"github.com/tapglue/multiverse/v03/core"
 	"github.com/tapglue/multiverse/v03/entity"
 	"github.com/tapglue/multiverse/v03/errmsg"
@@ -42,9 +42,9 @@ func (evt *event) CurrentUserUpdate(ctx *context.Context) (err []errors.Error) {
 	}
 
 	existingEvent, err := evt.readStorage.Read(
-		ctx.Bag["accountID"].(int64),
-		ctx.Bag["applicationID"].(int64),
-		ctx.Bag["applicationUserID"].(uint64),
+		ctx.OrganizationID,
+		ctx.ApplicationID,
+		ctx.ApplicationUserID,
 		eventID)
 	if err != nil {
 		return
@@ -56,16 +56,16 @@ func (evt *event) CurrentUserUpdate(ctx *context.Context) (err []errors.Error) {
 	}
 
 	event.ID = eventID
-	event.UserID = ctx.Bag["applicationUserID"].(uint64)
+	event.UserID = ctx.ApplicationUserID
 
 	if err = validator.UpdateEvent(existingEvent, &event); err != nil {
 		return
 	}
 
 	updatedEvent, err := evt.writeStorage.Update(
-		ctx.Bag["accountID"].(int64),
-		ctx.Bag["applicationID"].(int64),
-		ctx.Bag["applicationUserID"].(uint64),
+		ctx.OrganizationID,
+		ctx.ApplicationID,
+		ctx.ApplicationUserID,
 		*existingEvent,
 		event,
 		true)
@@ -78,8 +78,8 @@ func (evt *event) CurrentUserUpdate(ctx *context.Context) (err []errors.Error) {
 }
 
 func (evt *event) Delete(ctx *context.Context) (err []errors.Error) {
-	accountID := ctx.Bag["accountID"].(int64)
-	applicationID := ctx.Bag["applicationID"].(int64)
+	accountID := ctx.OrganizationID
+	applicationID := ctx.ApplicationID
 	userID, er := strconv.ParseUint(ctx.Vars["applicationUserID"], 10, 64)
 	if er != nil {
 		return []errors.Error{errmsg.ErrApplicationUserIDInvalid}
@@ -102,9 +102,9 @@ func (evt *event) Delete(ctx *context.Context) (err []errors.Error) {
 }
 
 func (evt *event) CurrentUserDelete(ctx *context.Context) (err []errors.Error) {
-	accountID := ctx.Bag["accountID"].(int64)
-	applicationID := ctx.Bag["applicationID"].(int64)
-	userID := ctx.Bag["applicationUserID"].(uint64)
+	accountID := ctx.OrganizationID
+	applicationID := ctx.ApplicationID
+	userID := ctx.ApplicationUserID
 	eventID, er := strconv.ParseUint(ctx.Vars["eventID"], 10, 64)
 	if er != nil {
 		return []errors.Error{errmsg.ErrEventIDInvalid}
@@ -148,28 +148,28 @@ func (evt *event) CurrentUserCreate(ctx *context.Context) (err []errors.Error) {
 		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
 	}
 
-	event.UserID = ctx.Bag["applicationUserID"].(uint64)
+	event.UserID = ctx.ApplicationUserID
 	if event.Visibility == 0 {
 		event.Visibility = entity.EventPublic
 	}
 
 	if err = validator.CreateEvent(
 		evt.readAppUser,
-		ctx.Bag["accountID"].(int64),
-		ctx.Bag["applicationID"].(int64),
+		ctx.OrganizationID,
+		ctx.ApplicationID,
 		event); err != nil {
 		return
 	}
 
-	event.ID, er = tgflake.FlakeNextID(ctx.Bag["applicationID"].(int64), "events")
+	event.ID, er = tgflake.FlakeNextID(ctx.ApplicationID, "events")
 	if er != nil {
 		return []errors.Error{errmsg.ErrServerInternalError.UpdateInternalMessage(er.Error())}
 	}
 
 	if event, err = evt.writeStorage.Create(
-		ctx.Bag["accountID"].(int64),
-		ctx.Bag["applicationID"].(int64),
-		ctx.Bag["applicationUserID"].(uint64),
+		ctx.OrganizationID,
+		ctx.ApplicationID,
+		ctx.ApplicationUserID,
 		event,
 		true); err != nil {
 		return
