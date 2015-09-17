@@ -23,6 +23,7 @@ type (
 )
 
 func (accUser *accountUser) Read(ctx *context.Context) (err []errors.Error) {
+	return []errors.Error{errmsg.ErrServerAPIVersionRemoved}
 	// TODO This one read only the current account user maybe we want to have something to read any account user?
 	accountUser := ctx.Bag["accountUser"].(*entity.AccountUser)
 	response.SanitizeAccountUser(accountUser)
@@ -32,6 +33,7 @@ func (accUser *accountUser) Read(ctx *context.Context) (err []errors.Error) {
 }
 
 func (accUser *accountUser) Update(ctx *context.Context) (err []errors.Error) {
+	return []errors.Error{errmsg.ErrServerAPIVersionRemoved}
 	accountUser := *(ctx.Bag["accountUser"].(*entity.AccountUser))
 
 	if accountUser.PublicID != ctx.Vars["accountUserID"] {
@@ -60,6 +62,7 @@ func (accUser *accountUser) Update(ctx *context.Context) (err []errors.Error) {
 }
 
 func (accUser *accountUser) Delete(ctx *context.Context) (err []errors.Error) {
+	return []errors.Error{errmsg.ErrServerAPIVersionRemoved}
 	accountUserID := ctx.Vars["accountUserID"]
 	if !validator.IsValidUUID5(accountUserID) {
 		return []errors.Error{errmsg.ErrApplicationUserIDInvalid}
@@ -78,6 +81,7 @@ func (accUser *accountUser) Delete(ctx *context.Context) (err []errors.Error) {
 }
 
 func (accUser *accountUser) Create(ctx *context.Context) (err []errors.Error) {
+	return []errors.Error{errmsg.ErrServerAPIVersionRemoved}
 	var accountUser = &entity.AccountUser{}
 
 	if err := json.Unmarshal(ctx.Body, accountUser); err != nil {
@@ -117,6 +121,7 @@ func (accUser *accountUser) Create(ctx *context.Context) (err []errors.Error) {
 }
 
 func (accUser *accountUser) List(ctx *context.Context) (err []errors.Error) {
+	return []errors.Error{errmsg.ErrServerAPIVersionRemoved}
 	var (
 		accountUsers []*entity.AccountUser
 	)
@@ -142,6 +147,7 @@ func (accUser *accountUser) List(ctx *context.Context) (err []errors.Error) {
 }
 
 func (accUser *accountUser) Login(ctx *context.Context) (err []errors.Error) {
+	return []errors.Error{errmsg.ErrServerAPIVersionRemoved}
 	var (
 		loginPayload = &entity.LoginPayload{}
 		account      *entity.Account
@@ -203,6 +209,7 @@ func (accUser *accountUser) Login(ctx *context.Context) (err []errors.Error) {
 }
 
 func (accUser *accountUser) RefreshSession(ctx *context.Context) (err []errors.Error) {
+	return []errors.Error{errmsg.ErrServerAPIVersionRemoved}
 	var (
 		tokenPayload struct {
 			Token string `json:"token"`
@@ -229,6 +236,7 @@ func (accUser *accountUser) RefreshSession(ctx *context.Context) (err []errors.E
 }
 
 func (accUser *accountUser) Logout(ctx *context.Context) (err []errors.Error) {
+	return []errors.Error{errmsg.ErrServerAPIVersionRemoved}
 	if err = accUser.storage.DestroySession(ctx.SessionToken, ctx.Bag["accountUser"].(*entity.AccountUser)); err != nil {
 		return
 	}
