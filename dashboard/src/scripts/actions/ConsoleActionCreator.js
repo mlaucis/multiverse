@@ -149,10 +149,14 @@ export function requestMemberDelete(id, user) {
   }, { id: id })
 }
 
-export function requestMemberInvite(email) {
+export function requestMemberInvite(email, firstName, lastName) {
   // TODO(xla): Needs to properly hooked-up with calls to the backend.
   return new Promise( resolve => {
-    dispatch(MemberConstants.MEMBER_INVITE_SUCCESS, { email: email })
+    dispatch(MemberConstants.MEMBER_INVITE_SUCCESS, {
+      email: email,
+      firstName: firstName,
+      lastName: lastName
+    })
     resolve(email)
   })
 }

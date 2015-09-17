@@ -24,23 +24,51 @@ class InviteDeveloper extends Component {
     event.preventDefault()
 
     let email = findDOMNode(this.refs.email).value
+    let firstName = findDOMNode(this.refs.firstName).value
+    let lastName = findDOMNode(this.refs.lastName).value
     let toggle = this.toggleSuccess
 
-    requestMemberInvite(email).then( () => {
+    requestMemberInvite(email, firstName, lastName).then( () => {
       toggle()
     })
   }
 
   viewDefault() {
     return (
-      <div className='card invite-developer'>
-        <h3>Get your team on board</h3>
-        <p>Invite a developer or others who should help integrate Tapglue
-          into your app.</p>
+      <div className='card invite-developer grid__col-sm-6'>
+        <div className='grid__col-12'>
+          <h3>Get your team on board</h3>
+          <p>Invite a developer or others who should help integrate Tapglue
+            into your app.</p>
+        </div>
         <form
-          className='grid grid--bleed grid--justify-space-between'
+          className='grid'
           onSubmit={this.handleSubmit}>
-          <div className='grid__col-sm-8'>
+          <div className='group grid__col-sm-6'>
+            <input id='firstName'
+                   name='firstName'
+                   placeholder='First Name'
+                   ref='firstName'
+                   type='text'
+                   required
+            />
+            <span className='bar'></span>
+            <span className='help'></span>
+            <label hmtlFor='firstName'>First Name</label>
+          </div>
+          <div className='group grid__col-sm-6'>
+            <input id='lastName'
+                   name='lastName'
+                   placeholder='Last Name'
+                   ref='lastName'
+                   type='text'
+                   required
+            />
+            <span className='bar'></span>
+            <span className='help'></span>
+            <label hmtlFor='lastName'>Last Name</label>
+          </div>
+          <div className='group grid__col-12'>
             <input
               id='developer-email'
               placeholder='Email Address'
@@ -48,14 +76,13 @@ class InviteDeveloper extends Component {
               required
               type='email'/>
             <span className='bar'></span>
-            <span
-              className='help'>
+            <span className='help'>
               Valid email in the form of member@company.org
             </span>
             <label htmlFor='developer-email'>Email Address</label>
           </div>
-          <div className='grid__col-sm-3'>
-            <input className='btn-default' type='submit' value='Invite'/>
+          <div className='grid__col-12'>
+            <input className='btn-default block' type='submit' value='Invite'/>
           </div>
         </form>
       </div>
@@ -64,7 +91,7 @@ class InviteDeveloper extends Component {
 
   viewSuccess() {
     return (
-      <div className='card invite-developer note note-block note-success'>
+      <div className='card grid__col-sm-6 note note-success '>
         <h2>Your invite is out!</h2>
         <p>
           We sent an invite to your team member with detailed instructions how
@@ -208,7 +235,7 @@ export default class Dashboard extends Component {
     )
 
     return (
-      <div className='home grid grid--bleed grid--align-content-start'>
+      <div className='home grid grid--align-content-start'>
         <div className='teaser grid__col-12'>
           <h1>Welcome to Tapglue, {this.state.user.firstName}!</h1>
           <p>Integrating Tapglue into your app is a matter of a few hours.</p>
@@ -230,9 +257,7 @@ export default class Dashboard extends Component {
         </div>
         {app}
         <div className='grid'>
-          <div className='grid__col-md-6'>
-            <InviteDeveloper/>
-          </div>
+          <InviteDeveloper/>
           <div className='grid__col-md-6'>
             <div className='card'>
               <h3>Product Resources</h3>
