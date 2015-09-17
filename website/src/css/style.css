@@ -3163,6 +3163,7 @@ body.landing #header .has-submenu:after {
   color: #858585;
   font-weight: 300;
   font-size: 2rem;
+  line-height: 1.6em;
 }
 
 .team h3 {
