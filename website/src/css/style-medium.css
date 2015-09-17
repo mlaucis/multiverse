@@ -13,11 +13,12 @@
 	}
 
 	.benefits h3 {
-		font-size: 2em;
+		margin-top: 2rem;
+		font-size: 2rem;
 	}
 
 	.benefits p {
-		font-size: 1.4em;
+		font-size: 1.4rem;
 	}
 
 /* Header */
@@ -45,7 +46,7 @@
 	#navButton .toggle {
 		height: 100%;
 		position: absolute;
-		right: 2rem;
+		right: 1.4rem;
 		text-decoration: none;
 		top: 1rem;
 		width: 100%;
@@ -153,7 +154,7 @@
 }
 
 #testimonial .portrait {
-	width: 15rem;
+	width: 12rem;
 }
 
 div.pricing .plan .vertical {

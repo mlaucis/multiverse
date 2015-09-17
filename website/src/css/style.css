@@ -1358,6 +1358,7 @@ body.landing #header .has-submenu:after {
   display: inline-block;
   padding: 0;
   transition: 0.15s all ease;
+  width: 18rem;
 }
 
 #testimonial .portrait:not(:first-of-type) {
@@ -1726,75 +1727,6 @@ body.landing #header .has-submenu:after {
     color: #69E2AC;
 }
 
-/* Landscape phones and down */
-
-@media (max-width: 480px) {
-    .icon.rounded.big {
-        font-size: 3em;
-    }
-    .icon.rounded.medium {
-        font-size: 2.4em;
-    }
-    .benefits h3 {
-        font-size: 1.6em;
-        line-height: 1.4em;
-    }
-    .benefits p {
-        font-size: 1.25em;
-    }
-    .benefits img {
-        margin-bottom: 30px;
-    }
-    .features h3 {
-        font-size: 1.6em;
-        line-height: 1.4em;
-    }
-    .features p {
-        font-size: 1.25em;
-    }
-    .features img {
-        margin: auto;
-    }
-    .request-access .form-layer {
-        width: 300px;
-        margin: 20px auto;
-        padding: 20px 10px;
-    }
-}
-/* Landscape phone to portrait tablet */
-
-@media (max-width: 767px) {
-    .icon.rounded.big {
-        font-size: 3.4em;
-    }
-    .icon.rounded.medium {
-        font-size: 2.6em;
-    }
-    .benefits h3 {
-        font-size: 1.6em;
-        line-height: 1.4em;
-    }
-    .benefits p {
-        font-size: 1.25em;
-        line-height: 1.25em;
-    }
-    .features h3 {
-        font-size: 1.4em;
-        line-height: 1.4em;
-    }
-    .features p {
-        font-size: 1.25em;
-        line-height: 1.25em;
-    }
-    .features img {
-        margin: auto;
-    }
-    .request-access .form-layer {
-        width: 320px;
-        margin: 5px auto;
-        padding: 5px 10px;
-    }
-}
 /* Gallery */
 
 .gallery .control-operator:target ~ .controls .control-button {
@@ -3564,4 +3496,10 @@ div.pricing .plan h4 {
   -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=100)";
   filter: progid: DXImageTransform.Microsoft.Alpha(Opacity=100);
   opacity: 1;
+}
+
+/* Navigation Buttons */
+
+.navbtn {
+  width: 80% !important;
 }

@@ -15,7 +15,7 @@
 	}
 
 	header.major h2 {
-		font-size: 2em;
+		font-size: 2rem;
 		margin-bottom: 1em;
 	}
 
@@ -61,6 +61,10 @@
 	.button {
 		padding: 0;
 	}
+
+#bannergreen h2 {
+	height: 18rem;
+}
 
 /* Others */
 #header .inner {
@@ -145,12 +149,12 @@ div.pricing .plan.feature section:nth-child(2) ul.features {
 	display: none;
 }
 .signup-button {
-	display:inline-block;
+	display:none;
 }
 
 .iphone {
-    margin-left: -2.4em;
-    margin-bottom: -4em;
+    margin-left: -7rem;
+    margin-bottom: -9em;
 }
 
 /* Tabs */
@@ -165,7 +169,7 @@ div.pricing .plan.feature section:nth-child(2) ul.features {
         font-size: 2em;
     }
     #generic-tabs ul li a {
-        font-size: .8em;
+        font-size: 1.6em;
         padding: 1.2em .2em;
     }
 

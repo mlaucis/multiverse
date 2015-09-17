@@ -71,8 +71,8 @@
   						'<li><a href="/blog/">Blog</a></li>' +
   						'<li><a href="/about-us/">About us</a></li>' +
   					'</ul>' +
-						'<a href="//dashboard.tapglue.com/login" class="btn-default block">Login</a>' +
-						'<a href="//dashboard.tapglue.com/signup" class="btn-default block">Signup</a>'
+						'<a href="//dashboard.tapglue.com/login" class="btn-default block navbtn">Login</a>' +
+						'<a href="//dashboard.tapglue.com/signup" class="btn-default block navbtn">Signup</a>'
 				}
 			}
 		}
