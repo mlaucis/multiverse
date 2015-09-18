@@ -4,7 +4,7 @@ resource "aws_launch_configuration" "corporate" {
     "aws_security_group.corporate-ssh"]
 
   image_id                    = "${var.ami_corporate}"
-  instance_type               = "t2.small"
+  instance_type               = "t2.micro"
   associate_public_ip_address = false
   enable_monitoring           = false
   ebs_optimized               = false
@@ -28,7 +28,7 @@ resource "aws_autoscaling_group" "corporate" {
     "${aws_subnet.corporate-b.id}"]
   name                      = "corporate"
   max_size                  = 10
-  min_size                  = 4
+  min_size                  = 2
   health_check_type         = "ELB"
   health_check_grace_period = 60
   force_delete              = false
