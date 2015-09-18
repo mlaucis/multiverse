@@ -214,17 +214,51 @@ class TrackingStore extends EventStore {
 
         break
       case MemberConstants.MEMBER_INVITE_FAILURE:
+        let _account = AccountStore.account
+        let _user = AccountStore.user
+
         this.trackEvent('Member invited', {
           eventId: 12,
-          email: action.email,
+          invitee: {
+            email: action.email,
+            firstName: action.firstName,
+            lastName: action.lastName
+          },
+          inviter: {
+            email: _user.email,
+            firstName: _user.firstName,
+            id: _user.id,
+            lastName: _user.lastName
+          },
+          org: {
+            id: _account.id,
+            name: _account.name
+          },
           success: false
         })
 
         break
       case MemberConstants.MEMBER_INVITE_SUCCESS:
+        let account = AccountStore.account
+        let user = AccountStore.user
+
         this.trackEvent('Member invited', {
           eventId: 12,
-          email: action.email,
+          invitee: {
+            email: action.email,
+            firstName: action.firstName,
+            lastName: action.lastName
+          },
+          inviter: {
+            email: user.email,
+            firstName: user.firstName,
+            id: user.id,
+            lastName: user.lastName
+          },
+          org: {
+            id: account.id,
+            name: account.name
+          },
           success: true
         })
 
