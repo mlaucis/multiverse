@@ -7,9 +7,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/tapglue/multiverse/context"
 	"github.com/tapglue/multiverse/errors"
 	"github.com/tapglue/multiverse/tgflake"
+	"github.com/tapglue/multiverse/v03/context"
 	"github.com/tapglue/multiverse/v03/core"
 	"github.com/tapglue/multiverse/v03/entity"
 	"github.com/tapglue/multiverse/v03/errmsg"
@@ -29,7 +29,7 @@ func (appUser *applicationUser) Read(ctx *context.Context) (err []errors.Error) 
 		return []errors.Error{errmsg.ErrApplicationUserIDInvalid}
 	}
 
-	user, err := appUser.storage.Read(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), userID)
+	user, err := appUser.storage.Read(ctx.OrganizationID, ctx.ApplicationID, userID)
 	if err != nil {
 		return err
 	}
@@ -40,7 +40,7 @@ func (appUser *applicationUser) Read(ctx *context.Context) (err []errors.Error) 
 		rel, _ := appUser.conn.Relation(accountID, applicationID, userFromID, userToID)
 
 		relation <- rel
-	}(relation, ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUser"].(*entity.ApplicationUser).ID, user.ID)
+	}(relation, ctx.OrganizationID, ctx.ApplicationID, ctx.ApplicationUser.ID, user.ID)
 
 	response.ComputeApplicationUserLastModified(ctx, user)
 
@@ -63,7 +63,7 @@ func (appUser *applicationUser) Read(ctx *context.Context) (err []errors.Error) 
 }
 
 func (appUser *applicationUser) ReadCurrent(ctx *context.Context) (err []errors.Error) {
-	user := ctx.Bag["applicationUser"].(*entity.ApplicationUser)
+	user := ctx.ApplicationUser
 	user.Password = ""
 	user.Deleted = nil
 	user.IsFriends = entity.PFalse
@@ -77,27 +77,27 @@ func (appUser *applicationUser) ReadCurrent(ctx *context.Context) (err []errors.
 }
 
 func (appUser *applicationUser) UpdateCurrent(ctx *context.Context) (err []errors.Error) {
-	user := *(ctx.Bag["applicationUser"].(*entity.ApplicationUser))
+	user := *ctx.ApplicationUser
 	var er error
 	if er = json.Unmarshal(ctx.Body, &user); er != nil {
 		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
 	}
 
-	user.ID = ctx.Bag["applicationUserID"].(uint64)
+	user.ID = ctx.ApplicationUserID
 
 	if err = validator.UpdateUser(
 		appUser.storage,
-		ctx.Bag["accountID"].(int64),
-		ctx.Bag["applicationID"].(int64),
-		ctx.Bag["applicationUser"].(*entity.ApplicationUser),
+		ctx.OrganizationID,
+		ctx.ApplicationID,
+		ctx.ApplicationUser,
 		&user); err != nil {
 		return
 	}
 
 	updatedUser, err := appUser.storage.Update(
-		ctx.Bag["accountID"].(int64),
-		ctx.Bag["applicationID"].(int64),
-		*(ctx.Bag["applicationUser"].(*entity.ApplicationUser)),
+		ctx.OrganizationID,
+		ctx.ApplicationID,
+		*ctx.ApplicationUser,
 		user,
 		false)
 	if err != nil {
@@ -120,8 +120,8 @@ func (appUser *applicationUser) Delete(ctx *context.Context) (err []errors.Error
 	}
 
 	if err = appUser.storage.Delete(
-		ctx.Bag["accountID"].(int64),
-		ctx.Bag["applicationID"].(int64),
+		ctx.OrganizationID,
+		ctx.ApplicationID,
 		userID); err != nil {
 		return
 	}
@@ -132,9 +132,9 @@ func (appUser *applicationUser) Delete(ctx *context.Context) (err []errors.Error
 
 func (appUser *applicationUser) DeleteCurrent(ctx *context.Context) (err []errors.Error) {
 	if err = appUser.storage.Delete(
-		ctx.Bag["accountID"].(int64),
-		ctx.Bag["applicationID"].(int64),
-		ctx.Bag["applicationUser"].(*entity.ApplicationUser).ID); err != nil {
+		ctx.OrganizationID,
+		ctx.ApplicationID,
+		ctx.ApplicationUser.ID); err != nil {
 		return
 	}
 
@@ -152,7 +152,7 @@ func (appUser *applicationUser) Create(ctx *context.Context) (err []errors.Error
 		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
 	}
 
-	err = validator.CreateUser(appUser.storage, ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), user)
+	err = validator.CreateUser(appUser.storage, ctx.OrganizationID, ctx.ApplicationID, user)
 	if err != nil {
 		if err[0] == errmsg.ErrApplicationUserEmailAlreadyExists || err[0] == errmsg.ErrApplicationUserUsernameInUse {
 			return appUser.Login(ctx)
@@ -164,17 +164,17 @@ func (appUser *applicationUser) Create(ctx *context.Context) (err []errors.Error
 	timeNow := time.Now()
 	user.LastLogin = &timeNow
 
-	user.ID, er = tgflake.FlakeNextID(ctx.Bag["applicationID"].(int64), "users")
+	user.ID, er = tgflake.FlakeNextID(ctx.ApplicationID, "users")
 	if er != nil {
 		return []errors.Error{errmsg.ErrServerInternalError.UpdateInternalMessage(er.Error())}
 	}
 
-	user, err = appUser.storage.Create(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), user, true)
+	user, err = appUser.storage.Create(ctx.OrganizationID, ctx.ApplicationID, user, true)
 	if err != nil {
 		return
 	}
 
-	sessionToken, err := appUser.storage.CreateSession(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), user)
+	sessionToken, err := appUser.storage.CreateSession(ctx.OrganizationID, ctx.ApplicationID, user)
 	if err != nil {
 		return
 	}
@@ -211,7 +211,7 @@ func (appUser *applicationUser) Login(ctx *context.Context) (err []errors.Error)
 	}
 
 	if loginPayload.Email != "" {
-		user, err = appUser.storage.FindByEmail(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), loginPayload.Email)
+		user, err = appUser.storage.FindByEmail(ctx.OrganizationID, ctx.ApplicationID, loginPayload.Email)
 		// TODO This is horrible and I should change it when we have constant errors
 		if err != nil && err[0].Error() != "application user not found" {
 			return
@@ -219,7 +219,7 @@ func (appUser *applicationUser) Login(ctx *context.Context) (err []errors.Error)
 	}
 
 	if loginPayload.Username != "" && user == nil {
-		user, err = appUser.storage.FindByUsername(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), loginPayload.Username)
+		user, err = appUser.storage.FindByUsername(ctx.OrganizationID, ctx.ApplicationID, loginPayload.Username)
 		// TODO This is horrible and I should change it when we have constant errors
 		if err != nil && err[0].Error() != "application user not found" {
 			return
@@ -234,13 +234,13 @@ func (appUser *applicationUser) Login(ctx *context.Context) (err []errors.Error)
 		return
 	}
 
-	if sessionToken, err = appUser.storage.CreateSession(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), user); err != nil {
+	if sessionToken, err = appUser.storage.CreateSession(ctx.OrganizationID, ctx.ApplicationID, user); err != nil {
 		return
 	}
 
 	timeNow := time.Now()
 	user.LastLogin = &timeNow
-	_, err = appUser.storage.Update(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), *user, *user, false)
+	_, err = appUser.storage.Update(ctx.OrganizationID, ctx.ApplicationID, *user, *user, false)
 	if err != nil {
 		return
 	}
@@ -267,9 +267,9 @@ func (appUser *applicationUser) RefreshSession(ctx *context.Context) (err []erro
 	}
 
 	if tokenPayload.Token, err = appUser.storage.RefreshSession(
-		ctx.Bag["accountID"].(int64),
-		ctx.Bag["applicationID"].(int64),
-		ctx.SessionToken, ctx.Bag["applicationUser"].(*entity.ApplicationUser)); err != nil {
+		ctx.OrganizationID,
+		ctx.ApplicationID,
+		ctx.SessionToken, ctx.ApplicationUser); err != nil {
 		return
 	}
 
@@ -279,10 +279,10 @@ func (appUser *applicationUser) RefreshSession(ctx *context.Context) (err []erro
 
 func (appUser *applicationUser) Logout(ctx *context.Context) (err []errors.Error) {
 	if err = appUser.storage.DestroySession(
-		ctx.Bag["accountID"].(int64),
-		ctx.Bag["applicationID"].(int64),
+		ctx.OrganizationID,
+		ctx.ApplicationID,
 		ctx.SessionToken,
-		ctx.Bag["applicationUser"].(*entity.ApplicationUser)); err != nil {
+		ctx.ApplicationUser); err != nil {
 		return
 	}
 
@@ -301,7 +301,7 @@ func (appUser *applicationUser) Search(ctx *context.Context) (err []errors.Error
 		return []errors.Error{errmsg.ErrApplicationUserSearchTypeMin3Chars}
 	}
 
-	users, err := appUser.storage.Search(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), query)
+	users, err := appUser.storage.Search(ctx.OrganizationID, ctx.ApplicationID, query)
 	if err != nil {
 		return
 	}
@@ -333,17 +333,18 @@ func (appUser *applicationUser) Search(ctx *context.Context) (err []errors.Error
 }
 
 func (appUser *applicationUser) PopulateContext(ctx *context.Context) (err []errors.Error) {
-	user, pass, ok := ctx.BasicAuth()
+	user, sessionToken, ok := ctx.BasicAuth()
 	if !ok {
-		return []errors.Error{errmsg.ErrAuthInvalidApplicationUserCredentials.UpdateInternalMessage(fmt.Sprintf("got %s:%s", user, pass))}
+		return []errors.Error{errmsg.ErrAuthInvalidApplicationUserCredentials.UpdateInternalMessage(fmt.Sprintf("got %s:%s", user, sessionToken))}
 	}
-	if pass == "" {
+	if sessionToken == "" {
 		return []errors.Error{errmsg.ErrAuthUserSessionNotSet}
 	}
-	ctx.Bag["applicationUser"], err = appUser.storage.FindBySession(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), pass)
+
+	ctx.ApplicationUser, err = appUser.storage.FindBySession(ctx.Application.OrgID, ctx.Application.ID, sessionToken)
 	if err == nil {
-		ctx.Bag["applicationUserID"] = ctx.Bag["applicationUser"].(*entity.ApplicationUser).ID
-		ctx.SessionToken = pass
+		ctx.ApplicationUserID = ctx.ApplicationUser.ID
+		ctx.SessionToken = sessionToken
 	}
 	return
 }

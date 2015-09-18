@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/tapglue/multiverse/context"
 	"github.com/tapglue/multiverse/errors"
 	"github.com/tapglue/multiverse/tgflake"
+	"github.com/tapglue/multiverse/v03/context"
 	"github.com/tapglue/multiverse/v03/core"
 	"github.com/tapglue/multiverse/v03/entity"
 	"github.com/tapglue/multiverse/v03/errmsg"
@@ -23,10 +23,10 @@ type connection struct {
 }
 
 func (conn *connection) Update(ctx *context.Context) (err []errors.Error) {
-	userFromID := ctx.Bag["applicationUserID"].(uint64)
+	userFromID := ctx.ApplicationUserID
 
-	accountID := ctx.Bag["accountID"].(int64)
-	applicationID := ctx.Bag["applicationID"].(int64)
+	accountID := ctx.OrganizationID
+	applicationID := ctx.ApplicationID
 
 	userToID, er := strconv.ParseUint(ctx.Vars["userToID"], 10, 64)
 	if er != nil {
@@ -64,10 +64,10 @@ func (conn *connection) Update(ctx *context.Context) (err []errors.Error) {
 }
 
 func (conn *connection) Delete(ctx *context.Context) (err []errors.Error) {
-	accountID := ctx.Bag["accountID"].(int64)
-	applicationID := ctx.Bag["applicationID"].(int64)
+	accountID := ctx.OrganizationID
+	applicationID := ctx.ApplicationID
 
-	userFromID := ctx.Bag["applicationUserID"].(uint64)
+	userFromID := ctx.ApplicationUserID
 
 	userToID, er := strconv.ParseUint(ctx.Vars["applicationUserToID"], 10, 64)
 	if er != nil {
@@ -102,8 +102,8 @@ func (conn *connection) Create(ctx *context.Context) (err []errors.Error) {
 }
 
 func (conn *connection) List(ctx *context.Context) (err []errors.Error) {
-	accountID := ctx.Bag["accountID"].(int64)
-	applicationID := ctx.Bag["applicationID"].(int64)
+	accountID := ctx.OrganizationID
+	applicationID := ctx.ApplicationID
 	userID, er := strconv.ParseUint(ctx.Vars["applicationUserID"], 10, 64)
 	if er != nil {
 		return []errors.Error{errmsg.ErrApplicationUserIDInvalid}
@@ -149,9 +149,9 @@ func (conn *connection) CurrentUserList(ctx *context.Context) (err []errors.Erro
 	var users []*entity.ApplicationUser
 
 	if users, err = conn.storage.List(
-		ctx.Bag["accountID"].(int64),
-		ctx.Bag["applicationID"].(int64),
-		ctx.Bag["applicationUserID"].(uint64)); err != nil {
+		ctx.OrganizationID,
+		ctx.ApplicationID,
+		ctx.ApplicationUserID); err != nil {
 		return
 	}
 
@@ -176,8 +176,8 @@ func (conn *connection) CurrentUserList(ctx *context.Context) (err []errors.Erro
 }
 
 func (conn *connection) FollowedByList(ctx *context.Context) (err []errors.Error) {
-	accountID := ctx.Bag["accountID"].(int64)
-	applicationID := ctx.Bag["applicationID"].(int64)
+	accountID := ctx.OrganizationID
+	applicationID := ctx.ApplicationID
 	userID, er := strconv.ParseUint(ctx.Vars["applicationUserID"], 10, 64)
 	if er != nil {
 		return []errors.Error{errmsg.ErrApplicationUserIDInvalid}
@@ -220,9 +220,9 @@ func (conn *connection) FollowedByList(ctx *context.Context) (err []errors.Error
 func (conn *connection) CurrentUserFollowedByList(ctx *context.Context) (err []errors.Error) {
 	var users []*entity.ApplicationUser
 	users, err = conn.storage.FollowedBy(
-		ctx.Bag["accountID"].(int64),
-		ctx.Bag["applicationID"].(int64),
-		ctx.Bag["applicationUserID"].(uint64))
+		ctx.OrganizationID,
+		ctx.ApplicationID,
+		ctx.ApplicationUserID)
 	if err != nil {
 		return
 	}
@@ -255,9 +255,9 @@ func (conn *connection) Confirm(ctx *context.Context) (err []errors.Error) {
 		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
 	}
 
-	accountID := ctx.Bag["accountID"].(int64)
-	applicationID := ctx.Bag["applicationID"].(int64)
-	connection.UserFromID = ctx.Bag["applicationUserID"].(uint64)
+	accountID := ctx.OrganizationID
+	applicationID := ctx.ApplicationID
+	connection.UserFromID = ctx.ApplicationUserID
 
 	connection, err = conn.storage.Read(accountID, applicationID, connection.UserFromID, connection.UserToID)
 	if err != nil {
@@ -292,7 +292,7 @@ func (conn *connection) CreateSocial(ctx *context.Context) (err []errors.Error) 
 		return []errors.Error{errmsg.ErrConnectionTypeIsWrong}
 	}
 
-	user := ctx.Bag["applicationUser"].(*entity.ApplicationUser)
+	user := ctx.ApplicationUser
 
 	if _, ok := user.SocialIDs[request.SocialPlatform]; !ok {
 		if len(user.SocialIDs[request.SocialPlatform]) == 0 {
@@ -300,8 +300,8 @@ func (conn *connection) CreateSocial(ctx *context.Context) (err []errors.Error) 
 		}
 		user.SocialIDs[request.SocialPlatform] = request.PlatformUserID
 		_, err = conn.appUser.Update(
-			ctx.Bag["accountID"].(int64),
-			ctx.Bag["applicationID"].(int64),
+			ctx.OrganizationID,
+			ctx.ApplicationID,
 			*user,
 			*user,
 			false)
@@ -311,8 +311,8 @@ func (conn *connection) CreateSocial(ctx *context.Context) (err []errors.Error) 
 	}
 
 	users, err := conn.storage.SocialConnect(
-		ctx.Bag["accountID"].(int64),
-		ctx.Bag["applicationID"].(int64),
+		ctx.OrganizationID,
+		ctx.ApplicationID,
 		user,
 		request.SocialPlatform,
 		request.ConnectionsIDs,
@@ -340,8 +340,8 @@ func (conn *connection) CreateSocial(ctx *context.Context) (err []errors.Error) 
 }
 
 func (conn *connection) Friends(ctx *context.Context) (err []errors.Error) {
-	accountID := ctx.Bag["accountID"].(int64)
-	applicationID := ctx.Bag["applicationID"].(int64)
+	accountID := ctx.OrganizationID
+	applicationID := ctx.ApplicationID
 	userID, er := strconv.ParseUint(ctx.Vars["applicationUserID"], 10, 64)
 	if er != nil {
 		return []errors.Error{errmsg.ErrApplicationUserIDInvalid}
@@ -382,7 +382,7 @@ func (conn *connection) Friends(ctx *context.Context) (err []errors.Error) {
 }
 
 func (conn *connection) CurrentUserFriends(ctx *context.Context) (err []errors.Error) {
-	users, err := conn.storage.Friends(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(uint64))
+	users, err := conn.storage.Friends(ctx.OrganizationID, ctx.ApplicationID, ctx.ApplicationUserID)
 	if err != nil {
 		return
 	}
@@ -438,9 +438,9 @@ func (conn *connection) CreateFollow(ctx *context.Context) []errors.Error {
 }
 
 func (conn *connection) doCreateConnection(ctx *context.Context, connection *entity.Connection) []errors.Error {
-	accountID := ctx.Bag["accountID"].(int64)
-	applicationID := ctx.Bag["applicationID"].(int64)
-	connection.UserFromID = ctx.Bag["applicationUserID"].(uint64)
+	accountID := ctx.OrganizationID
+	applicationID := ctx.ApplicationID
+	connection.UserFromID = ctx.ApplicationUserID
 
 	receivedEnabled := connection.Enabled
 	connection.Enabled = true
@@ -493,13 +493,13 @@ func (conn *connection) CreateAutoConnectionEvent(ctx *context.Context, connecti
 	}
 
 	var err error
-	event.ID, err = tgflake.FlakeNextID(ctx.Bag["applicationID"].(int64), "events")
+	event.ID, err = tgflake.FlakeNextID(ctx.ApplicationID, "events")
 	if err != nil {
 		return nil, []errors.Error{errmsg.ErrServerInternalError.UpdateInternalMessage(err.Error())}
 	}
 
-	accountID := ctx.Bag["accountID"].(int64)
-	applicationID := ctx.Bag["applicationID"].(int64)
+	accountID := ctx.OrganizationID
+	applicationID := ctx.ApplicationID
 
 	return conn.event.Create(accountID, applicationID, connection.UserFromID, event, false)
 }

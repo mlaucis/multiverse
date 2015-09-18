@@ -3,8 +3,8 @@ package kinesis
 import (
 	"net/http"
 
-	"github.com/tapglue/multiverse/context"
 	"github.com/tapglue/multiverse/errors"
+	"github.com/tapglue/multiverse/v03/context"
 	"github.com/tapglue/multiverse/v03/core"
 	"github.com/tapglue/multiverse/v03/errmsg"
 	"github.com/tapglue/multiverse/v03/server/handlers"
@@ -30,7 +30,7 @@ func (user *member) Delete(ctx *context.Context) (err []errors.Error) {
 	if !validator.IsValidUUID5(accountUserID) {
 		return []errors.Error{errmsg.ErrApplicationUserIDInvalid}
 	}
-	accountUser, err := user.readStorage.FindByPublicID(ctx.Bag["accountID"].(int64), accountUserID)
+	accountUser, err := user.readStorage.FindByPublicID(ctx.OrganizationID, accountUserID)
 	if err != nil {
 		return
 	}

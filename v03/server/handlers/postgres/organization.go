@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/tapglue/multiverse/context"
 	"github.com/tapglue/multiverse/errors"
+	"github.com/tapglue/multiverse/v03/context"
 	"github.com/tapglue/multiverse/v03/core"
 	"github.com/tapglue/multiverse/v03/entity"
 	"github.com/tapglue/multiverse/v03/errmsg"
@@ -20,22 +20,22 @@ type organization struct {
 }
 
 func (org *organization) Read(ctx *context.Context) (err []errors.Error) {
-	if ctx.Bag["account"] == nil {
+	if ctx.Organization == nil {
 		return []errors.Error{errmsg.ErrAccountMissingInContext}
 	}
 
-	if ctx.Bag["account"].(*entity.Organization).PublicID != ctx.Vars["accountID"] {
+	if ctx.Organization.PublicID != ctx.Vars["accountID"] {
 		return []errors.Error{errmsg.ErrAccountMismatch}
 	}
 
-	response.ComputeOrganizationLastModified(ctx, ctx.Bag["account"].(*entity.Organization))
+	response.ComputeOrganizationLastModified(ctx, ctx.Organization)
 
-	response.WriteResponse(ctx, ctx.Bag["account"].(*entity.Organization), http.StatusOK, 10)
+	response.WriteResponse(ctx, ctx.Organization, http.StatusOK, 10)
 	return
 }
 
 func (org *organization) Update(ctx *context.Context) (err []errors.Error) {
-	account := *(ctx.Bag["account"].(*entity.Organization))
+	account := *ctx.Organization
 
 	if account.PublicID != ctx.Vars["accountID"] {
 		return []errors.Error{errmsg.ErrAccountMismatch}
@@ -45,13 +45,13 @@ func (org *organization) Update(ctx *context.Context) (err []errors.Error) {
 		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
 	}
 
-	account.ID = ctx.Bag["accountID"].(int64)
+	account.ID = ctx.OrganizationID
 
-	if err := validator.UpdateOrganization(ctx.Bag["account"].(*entity.Organization), &account); err != nil {
+	if err := validator.UpdateOrganization(ctx.Organization, &account); err != nil {
 		return err
 	}
 
-	updatedAccount, err := org.storage.Update(*(ctx.Bag["account"].(*entity.Organization)), account, true)
+	updatedAccount, err := org.storage.Update(*ctx.Organization, account, true)
 	if err != nil {
 		return err
 	}
@@ -61,11 +61,11 @@ func (org *organization) Update(ctx *context.Context) (err []errors.Error) {
 }
 
 func (org *organization) Delete(ctx *context.Context) (err []errors.Error) {
-	if ctx.Bag["account"].(*entity.Organization).PublicID != ctx.Vars["accountID"] {
+	if ctx.Organization.PublicID != ctx.Vars["accountID"] {
 		return []errors.Error{errmsg.ErrAccountMismatch}
 	}
 
-	if err = org.storage.Delete(ctx.Bag["account"].(*entity.Organization)); err != nil {
+	if err = org.storage.Delete(ctx.Organization); err != nil {
 		return err
 	}
 
@@ -102,8 +102,8 @@ func (org *organization) PopulateContext(ctx *context.Context) (err []errors.Err
 		return []errors.Error{errmsg.ErrAccountNotFound}
 	}
 	if err == nil {
-		ctx.Bag["account"] = account
-		ctx.Bag["accountID"] = account.ID
+		ctx.Organization = account
+		ctx.OrganizationID = account.ID
 	}
 	return
 }

@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"github.com/tapglue/multiverse/context"
 	"github.com/tapglue/multiverse/errors"
+	"github.com/tapglue/multiverse/v03/context"
 )
 
 // Application defines the routes for the application

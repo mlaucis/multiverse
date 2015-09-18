@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/tapglue/multiverse/context"
 	"github.com/tapglue/multiverse/errors"
 	"github.com/tapglue/multiverse/tgflake"
+	"github.com/tapglue/multiverse/v03/context"
 	"github.com/tapglue/multiverse/v03/core"
 	"github.com/tapglue/multiverse/v03/entity"
 	"github.com/tapglue/multiverse/v03/errmsg"
@@ -31,9 +31,9 @@ func (evt *event) CurrentUserRead(ctx *context.Context) (err []errors.Error) {
 	}
 
 	if event, err = evt.storage.Read(
-		ctx.Bag["accountID"].(int64),
-		ctx.Bag["applicationID"].(int64),
-		ctx.Bag["applicationUserID"].(uint64),
+		ctx.OrganizationID,
+		ctx.ApplicationID,
+		ctx.ApplicationUserID,
 		eventID); err != nil {
 		return
 	}
@@ -58,8 +58,8 @@ func (evt *event) Read(ctx *context.Context) (err []errors.Error) {
 	}
 
 	if event, err = evt.storage.Read(
-		ctx.Bag["accountID"].(int64),
-		ctx.Bag["applicationID"].(int64),
+		ctx.OrganizationID,
+		ctx.ApplicationID,
 		userID,
 		eventID); err != nil {
 		return
@@ -85,10 +85,10 @@ func (evt *event) Update(ctx *context.Context) (err []errors.Error) {
 		}
 
 		existingEvent, err := evt.storage.Read(
-			ctx.Bag["accountID"].(int64),
-			ctx.Bag["applicationID"].(int64),
+			ctx.OrganizationID,
+			ctx.ApplicationID,
 			userID,
-			ctx.Bag["applicationUserID"].(uint64),
+			ctx.ApplicationUserID,
 			eventID)
 		if err != nil {
 			return
@@ -100,16 +100,16 @@ func (evt *event) Update(ctx *context.Context) (err []errors.Error) {
 		}
 
 		event.ID = eventID
-		event.UserID = ctx.Bag["applicationUserID"].(uint64)
+		event.UserID = ctx.ApplicationUserID
 
 		if err = validator.UpdateEvent(existingEvent, &event); err != nil {
 			return
 		}
 
 		updatedEvent, err := evt.storage.Update(
-			ctx.Bag["accountID"].(int64),
-			ctx.Bag["applicationID"].(int64),
-			ctx.Bag["applicationUserID"].(uint64),
+			ctx.OrganizationID,
+			ctx.ApplicationID,
+			ctx.ApplicationUserID,
 			*existingEvent,
 			event,
 			true)
@@ -128,9 +128,9 @@ func (evt *event) CurrentUserUpdate(ctx *context.Context) (err []errors.Error) {
 	}
 
 	existingEvent, err := evt.storage.Read(
-		ctx.Bag["accountID"].(int64),
-		ctx.Bag["applicationID"].(int64),
-		ctx.Bag["applicationUserID"].(uint64),
+		ctx.OrganizationID,
+		ctx.ApplicationID,
+		ctx.ApplicationUserID,
 		eventID)
 	if err != nil {
 		return
@@ -142,16 +142,16 @@ func (evt *event) CurrentUserUpdate(ctx *context.Context) (err []errors.Error) {
 	}
 
 	event.ID = eventID
-	event.UserID = ctx.Bag["applicationUserID"].(uint64)
+	event.UserID = ctx.ApplicationUserID
 
 	if err = validator.UpdateEvent(existingEvent, &event); err != nil {
 		return
 	}
 
 	updatedEvent, err := evt.storage.Update(
-		ctx.Bag["accountID"].(int64),
-		ctx.Bag["applicationID"].(int64),
-		ctx.Bag["applicationUserID"].(uint64),
+		ctx.OrganizationID,
+		ctx.ApplicationID,
+		ctx.ApplicationUserID,
 		*existingEvent,
 		event,
 		true)
@@ -164,8 +164,8 @@ func (evt *event) CurrentUserUpdate(ctx *context.Context) (err []errors.Error) {
 }
 
 func (evt *event) Delete(ctx *context.Context) (err []errors.Error) {
-	accountID := ctx.Bag["accountID"].(int64)
-	applicationID := ctx.Bag["applicationID"].(int64)
+	accountID := ctx.OrganizationID
+	applicationID := ctx.ApplicationID
 	userID, er := strconv.ParseUint(ctx.Vars["applicationUserID"], 10, 64)
 	if er != nil {
 		return []errors.Error{errmsg.ErrApplicationUserIDInvalid}
@@ -188,9 +188,9 @@ func (evt *event) Delete(ctx *context.Context) (err []errors.Error) {
 }
 
 func (evt *event) CurrentUserDelete(ctx *context.Context) (err []errors.Error) {
-	accountID := ctx.Bag["accountID"].(int64)
-	applicationID := ctx.Bag["applicationID"].(int64)
-	userID := ctx.Bag["applicationUserID"].(uint64)
+	accountID := ctx.OrganizationID
+	applicationID := ctx.ApplicationID
+	userID := ctx.ApplicationUserID
 	eventID, er := strconv.ParseUint(ctx.Vars["eventID"], 10, 64)
 	if er != nil {
 		return []errors.Error{errmsg.ErrEventIDInvalid}
@@ -209,8 +209,8 @@ func (evt *event) CurrentUserDelete(ctx *context.Context) (err []errors.Error) {
 }
 
 func (evt *event) List(ctx *context.Context) (err []errors.Error) {
-	accountID := ctx.Bag["accountID"].(int64)
-	applicationID := ctx.Bag["applicationID"].(int64)
+	accountID := ctx.OrganizationID
+	applicationID := ctx.ApplicationID
 	userID, er := strconv.ParseUint(ctx.Vars["applicationUserID"], 10, 64)
 	if er != nil {
 		return []errors.Error{errmsg.ErrApplicationUserIDInvalid}
@@ -254,10 +254,10 @@ func (evt *event) CurrentUserList(ctx *context.Context) (err []errors.Error) {
 	var events []*entity.Event
 
 	if events, err = evt.storage.List(
-		ctx.Bag["accountID"].(int64),
-		ctx.Bag["applicationID"].(int64),
-		ctx.Bag["applicationUserID"].(uint64),
-		ctx.Bag["applicationUserID"].(uint64)); err != nil {
+		ctx.OrganizationID,
+		ctx.ApplicationID,
+		ctx.ApplicationUserID,
+		ctx.ApplicationUserID); err != nil {
 		return
 	}
 
@@ -284,9 +284,9 @@ func (evt *event) Feed(ctx *context.Context) (err []errors.Error) {
 	resp := entity.EventsResponseWithUnread{}
 
 	if resp.UnreadCount, resp.Events, err = evt.storage.UserFeed(
-		ctx.Bag["accountID"].(int64),
-		ctx.Bag["applicationID"].(int64),
-		ctx.Bag["applicationUser"].(*entity.ApplicationUser)); err != nil {
+		ctx.OrganizationID,
+		ctx.ApplicationID,
+		ctx.ApplicationUser); err != nil {
 		return
 	}
 
@@ -322,29 +322,29 @@ func (evt *event) Create(ctx *context.Context) (err []errors.Error) {
 			return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
 		}
 
-		event.UserID = ctx.Bag["applicationUserID"].(uint64)
+		event.UserID = ctx.ApplicationUserID
 		if event.Visibility == 0 {
 			event.Visibility = entity.EventPublic
 		}
 
 		if err = validator.CreateEvent(
 			evt.appUser,
-			ctx.Bag["accountID"].(int64),
-			ctx.Bag["applicationID"].(int64),
+			ctx.OrganizationID,
+			ctx.ApplicationID,
 			event); err != nil {
 			return
 		}
 
 		if event, err = evt.storage.Create(
-			ctx.Bag["accountID"].(int64),
-			ctx.Bag["applicationID"].(int64),
-			ctx.Bag["applicationUserID"].(uint64),
+			ctx.OrganizationID,
+			ctx.ApplicationID,
+			ctx.ApplicationUserID,
 			event,
 			true); err != nil {
 			return
 		}
 
-		ctx.W.Header().Set("Location", fmt.Sprintf("https://api.tapglue.com/0.3/users/events/%d", ctx.Bag["applicationUserID"].(uint64), event.ID))
+		ctx.W.Header().Set("Location", fmt.Sprintf("https://api.tapglue.com/0.3/users/events/%d", ctx.ApplicationUserID, event.ID))
 		response.WriteResponse(ctx, event, http.StatusCreated, 0)
 		return*/
 }
@@ -359,28 +359,28 @@ func (evt *event) CurrentUserCreate(ctx *context.Context) (err []errors.Error) {
 		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
 	}
 
-	event.UserID = ctx.Bag["applicationUserID"].(uint64)
+	event.UserID = ctx.ApplicationUserID
 	if event.Visibility == 0 {
 		event.Visibility = entity.EventPublic
 	}
 
 	if err = validator.CreateEvent(
 		evt.appUser,
-		ctx.Bag["accountID"].(int64),
-		ctx.Bag["applicationID"].(int64),
+		ctx.OrganizationID,
+		ctx.ApplicationID,
 		event); err != nil {
 		return
 	}
 
-	event.ID, er = tgflake.FlakeNextID(ctx.Bag["applicationID"].(int64), "events")
+	event.ID, er = tgflake.FlakeNextID(ctx.ApplicationID, "events")
 	if er != nil {
 		return []errors.Error{errmsg.ErrServerInternalError.UpdateInternalMessage(er.Error())}
 	}
 
 	if event, err = evt.storage.Create(
-		ctx.Bag["accountID"].(int64),
-		ctx.Bag["applicationID"].(int64),
-		ctx.Bag["applicationUserID"].(uint64),
+		ctx.OrganizationID,
+		ctx.ApplicationID,
+		ctx.ApplicationUserID,
 		event,
 		true); err != nil {
 		return
@@ -441,19 +441,19 @@ func (evt *event) Search(ctx *context.Context) (err []errors.Error) {
 		}
 
 		events, err = evt.storage.GeoSearch(
-			ctx.Bag["accountID"].(int64),
-			ctx.Bag["applicationID"].(int64),
-			ctx.Bag["applicationUserID"].(uint64),
+			ctx.OrganizationID,
+			ctx.ApplicationID,
+			ctx.ApplicationUserID,
 			latitude,
 			longitude,
 			radius,
 			nearest)
 	} else if location := ctx.Query.Get("location"); location != "" {
-		if events, err = evt.storage.LocationSearch(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(uint64), location); err != nil {
+		if events, err = evt.storage.LocationSearch(ctx.OrganizationID, ctx.ApplicationID, ctx.ApplicationUserID, location); err != nil {
 			return
 		}
 	} else if objectKey := ctx.Query.Get("object"); objectKey != "" {
-		if events, err = evt.storage.ObjectSearch(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), ctx.Bag["applicationUserID"].(uint64), objectKey); err != nil {
+		if events, err = evt.storage.ObjectSearch(ctx.OrganizationID, ctx.ApplicationID, ctx.ApplicationUserID, objectKey); err != nil {
 			return
 		}
 	} else {
@@ -492,9 +492,9 @@ func (evt *event) UnreadFeed(ctx *context.Context) (err []errors.Error) {
 	resp := entity.EventsResponseWithUnread{}
 
 	if resp.UnreadCount, resp.Events, err = evt.storage.UnreadFeed(
-		ctx.Bag["accountID"].(int64),
-		ctx.Bag["applicationID"].(int64),
-		ctx.Bag["applicationUser"].(*entity.ApplicationUser)); err != nil {
+		ctx.OrganizationID,
+		ctx.ApplicationID,
+		ctx.ApplicationUser); err != nil {
 		return
 	}
 
@@ -524,9 +524,9 @@ func (evt *event) UnreadFeedCount(ctx *context.Context) (err []errors.Error) {
 	}{}
 
 	if count.Count, err = evt.storage.UnreadFeedCount(
-		ctx.Bag["accountID"].(int64),
-		ctx.Bag["applicationID"].(int64),
-		ctx.Bag["applicationUser"].(*entity.ApplicationUser)); err != nil {
+		ctx.OrganizationID,
+		ctx.ApplicationID,
+		ctx.ApplicationUser); err != nil {
 		return
 	}
 
@@ -549,7 +549,7 @@ func (evt *event) usersFromEvents(ctx *context.Context, events []*entity.Event) 
 		usrs = append(usrs, idx)
 	}
 
-	urs, err := evt.appUser.ReadMultiple(ctx.Bag["accountID"].(int64), ctx.Bag["applicationID"].(int64), usrs)
+	urs, err := evt.appUser.ReadMultiple(ctx.OrganizationID, ctx.ApplicationID, usrs)
 	if err != nil {
 		return
 	}

@@ -3,7 +3,7 @@ package response
 import (
 	"net/http"
 
-	"github.com/tapglue/multiverse/context"
+	"github.com/tapglue/multiverse/v03/context"
 	"github.com/tapglue/multiverse/v03/entity"
 )
 
