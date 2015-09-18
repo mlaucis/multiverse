@@ -104,6 +104,7 @@ var (
 	ErrServerReqContentLengthSizeMismatch  = errors.New(http.StatusBadRequest, 5005, "Content-Length header size mismatch", "content-length header size mismatch", false)
 	ErrServerReqContentTypeMismatch        = errors.New(http.StatusBadRequest, 5006, "Content-Type header mismatch", "content-type header mismatch", false)
 	ErrServerReqContentTypeMissing         = errors.New(http.StatusBadRequest, 5007, "Content-Type header empty", "missing content-type header", false)
+	ErrServerReqMissingJarvisID            = errors.New(http.StatusNotFound, 5008, "not found", "request does not contain a correct Jarvis auth", false)
 	ErrServerReqNoKnownSearchTermsSupplied = errors.New(http.StatusBadRequest, 5009, "no known search terms supplied", "no known search terms supplied", false)
 	ErrServerReqParseFloat                 = errors.New(http.StatusBadRequest, 5010, "", "parse float error", false)
 	ErrServerReqPayloadTooBig              = errors.New(http.StatusRequestEntityTooLarge, 5011, "payload too big", "fat payload detected", false)
