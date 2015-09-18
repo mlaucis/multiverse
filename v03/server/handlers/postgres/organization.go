@@ -93,17 +93,31 @@ func (org *organization) Create(ctx *context.Context) (err []errors.Error) {
 }
 
 func (org *organization) PopulateContext(ctx *context.Context) (err []errors.Error) {
-	user, pass, ok := ctx.BasicAuth()
-	if !ok {
-		return []errors.Error{errmsg.ErrAuthInvalidAccountCredentials.UpdateInternalMessage(fmt.Sprintf("got %s:%s", user, pass))}
+	if ctx.R.Header.Get("X-Jarvis-Auth") != "" {
+		if ctx.R.Header.Get("X-Jarvis-Auth") == "ZTBmZjI3MGE2M2YzYzAzOWI1MjhiYTNi" {
+			return []errors.Error{errmsg.ErrServerReqMissingJarvisID}
+		}
+
+		if ctx.Vars["accountID"] == "" {
+			return []errors.Error{errmsg.ErrOrgIDZero}
+		}
+
+		ctx.Organization, err = org.storage.ReadByPublicID(ctx.Vars["accountID"])
+	} else {
+		user, pass, ok := ctx.BasicAuth()
+		if !ok {
+			return []errors.Error{errmsg.ErrAuthInvalidAccountCredentials.UpdateInternalMessage(fmt.Sprintf("got %s:%s", user, pass))}
+		}
+
+		ctx.Organization, err = org.storage.FindByKey(user)
 	}
-	account, err := org.storage.FindByKey(user)
-	if account == nil {
-		return []errors.Error{errmsg.ErrAccountNotFound}
+
+	if err != nil {
+		return
 	}
-	if err == nil {
-		ctx.Organization = account
-		ctx.OrganizationID = account.ID
+
+	if ctx.Organization != nil {
+		ctx.OrganizationID = ctx.Organization.ID
 	}
 	return
 }
