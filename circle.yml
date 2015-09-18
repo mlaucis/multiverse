@@ -35,7 +35,7 @@ test:
     - ./bin/process_coverage.sh
 deployment:
   s3:
-    branch: master
+    branch: /.*/
     commands:
       - ./bin/make_release.sh intaker redis
       - ./bin/make_release.sh intaker kinesis

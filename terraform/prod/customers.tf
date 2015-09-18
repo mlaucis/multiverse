@@ -13,3 +13,11 @@ resource "cloudflare_record" "dawanda" {
   type   = "CNAME"
   ttl    = 1
 }
+
+resource "cloudflare_record" "gambify" {
+  domain = "${var.cloudflare_domain}"
+  name   = "gambify"
+  value  = "${aws_elb.frontend.dns_name}"
+  type   = "CNAME"
+  ttl    = 1
+}

@@ -128,3 +128,9 @@ For connecting to the instance via SSH, each team member has an individual user 
 - mosh, git, iptraf, htop, lynx, zhs (+oh-my-zsh), fish, aws cli
 
 On startup, the instance will run ```/home/tapglue/installer.sh``` which will read the instance tags, download the according software installer and run it.
+
+
+### SSH Tunnel to the database
+```
+ssh -A BASTION_IP -L 54321:localhost:54320 ssh -A -L 54320:DB_IP:5432 PRIVATE_INSTANCE_IP cat -
+```

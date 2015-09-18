@@ -8,6 +8,7 @@ resource "aws_route53_zone" "tapglue-internal" {
   }
 }
 
+/** /
 resource "aws_route53_record" "db-master" {
   zone_id = "${aws_route53_zone.tapglue-internal.zone_id}"
   name    = "db-master"
@@ -27,7 +28,7 @@ resource "aws_route53_record" "db-slave1" {
   records = [
     "${aws_db_instance.master.address}"]
 }
-
+/** /
 resource "aws_route53_record" "rate-limiter" {
   zone_id = "${aws_route53_zone.tapglue-internal.zone_id}"
   name    = "rate-limiter"
@@ -47,3 +48,4 @@ resource "aws_route53_record" "cache-app" {
   records = [
     "${aws_elasticache_cluster.rate-limiter.cache_nodes.0.address}"]
 }
+/**/
