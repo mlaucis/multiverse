@@ -91,6 +91,7 @@ type (
 		PublicID        string             `json:"id"`
 		PublicAccountID string             `json:"account_id"`
 		AuthToken       string             `json:"token"`
+		BackendToken    string             `json:"backend_token"`
 		Name            string             `json:"name"`
 		Description     string             `json:"description"`
 		URL             string             `json:"url"`

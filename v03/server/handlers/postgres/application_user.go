@@ -333,19 +333,43 @@ func (appUser *applicationUser) Search(ctx *context.Context) (err []errors.Error
 }
 
 func (appUser *applicationUser) PopulateContext(ctx *context.Context) (err []errors.Error) {
-	user, sessionToken, ok := ctx.BasicAuth()
-	if !ok {
-		return []errors.Error{errmsg.ErrAuthInvalidApplicationUserCredentials.UpdateInternalMessage(fmt.Sprintf("got %s:%s", user, sessionToken))}
-	}
-	if sessionToken == "" {
-		return []errors.Error{errmsg.ErrAuthUserSessionNotSet}
+	appToken, userToken, ok := ctx.BasicAuth()
+
+	if ctx.TokenType == context.TokenTypeApplication {
+		if !ok {
+			return []errors.Error{errmsg.ErrAuthInvalidApplicationUserCredentials.UpdateInternalMessage(fmt.Sprintf("got %s:%s", appToken, userToken))}
+		}
+		if userToken == "" {
+			return []errors.Error{errmsg.ErrAuthUserSessionNotSet}
+		}
+		ctx.ApplicationUser, err = appUser.storage.FindBySession(ctx.Application.OrgID, ctx.Application.ID, userToken)
+		if err == nil {
+			ctx.ApplicationUserID = ctx.ApplicationUser.ID
+			ctx.SessionToken = userToken
+		}
+	} else if ctx.TokenType == context.TokenTypeBackend {
+		var (
+			userID uint64
+			er     error
+		)
+		if userToken != "" {
+			userID, er = strconv.ParseUint(userToken, 10, 64)
+		} else if val, ok := ctx.Vars["applicationUserID"]; ok {
+			userID, er = strconv.ParseUint(val, 10, 64)
+		} else {
+			return []errors.Error{errmsg.ErrApplicationUserIDInvalid.UpdateMessage("user ID could not be read from the request")}
+		}
+		if er != nil {
+			return []errors.Error{errmsg.ErrApplicationUserIDInvalid.SetCurrentLocation()}
+		}
+		ctx.ApplicationUser, err = appUser.storage.Read(ctx.Application.OrgID, ctx.Application.ID, userID)
+		if err == nil {
+			ctx.ApplicationUserID = ctx.ApplicationUser.ID
+		}
+	} else {
+		return []errors.Error{errmsg.ErrServerInternalError.UpdateInternalMessage(fmt.Sprintf("unexpected context token type, got %d", ctx.TokenType))}
 	}
 
-	ctx.ApplicationUser, err = appUser.storage.FindBySession(ctx.Application.OrgID, ctx.Application.ID, sessionToken)
-	if err == nil {
-		ctx.ApplicationUserID = ctx.ApplicationUser.ID
-		ctx.SessionToken = sessionToken
-	}
 	return
 }
 

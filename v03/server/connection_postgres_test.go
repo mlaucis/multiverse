@@ -28,7 +28,7 @@ func (s *ConnectionSuite) TestCreateConnectionAfterDisable(c *C) {
 		userTo.ID,
 	)
 
-	routeName := "createConnection"
+	routeName := "createCurrentUserConnection"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
@@ -44,13 +44,13 @@ func (s *ConnectionSuite) TestCreateConnectionAfterDisable(c *C) {
 	c.Assert(connection.Type, Equals, "friend")
 	c.Assert(connection.Enabled, Equals, true)
 
-	routeName = "deleteConnection"
+	routeName = "deleteCurrentUserConnection"
 	route = getComposedRoute(routeName, userTo.ID)
 	code, _, err = runRequest(routeName, route, "", signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusNoContent)
 
-	routeName = "createConnection"
+	routeName = "createCurrentUserConnection"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)

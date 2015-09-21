@@ -83,7 +83,11 @@ func (app *application) Exists(accountID, applicationID int64) (bool, []errors.E
 	return false, []errors.Error{errmsg.ErrServerInvalidHandler}
 }
 
-func (app *application) FindByKey(applicationKey string) (*entity.Application, []errors.Error) {
+func (app *application) FindByApplicationToken(applicationToken string) (*entity.Application, []errors.Error) {
+	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
+}
+
+func (app *application) FindByBackendToken(backendToken string) (*entity.Application, []errors.Error) {
 	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
 }
 

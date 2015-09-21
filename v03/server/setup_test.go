@@ -476,6 +476,43 @@ func signApplicationRequest(application *entity.Application, applicationUser *en
 	}
 }
 
+func signApplicationBackendRequest(application *entity.Application, applicationUser *entity.ApplicationUser, goodApplicationToken, goodApplicationUserToken bool) func(*http.Request) {
+	return func(r *http.Request) {
+		user := ""
+		pass := ""
+
+		if goodApplicationToken && application != nil {
+			user = application.BackendToken
+		}
+		if goodApplicationToken && application == nil {
+			user = ""
+		}
+		if !goodApplicationToken && application != nil {
+			user = application.BackendToken + "a"
+		}
+		if !goodApplicationToken && application == nil {
+			user = "a"
+		}
+
+		if goodApplicationUserToken && applicationUser != nil {
+			pass = strconv.FormatUint(applicationUser.ID, 10)
+		}
+		if goodApplicationUserToken && applicationUser == nil {
+			pass = ""
+		}
+		if !goodApplicationUserToken && applicationUser != nil {
+			pass = strconv.FormatUint(applicationUser.ID+1, 10)
+		}
+		if !goodApplicationUserToken && applicationUser == nil {
+			pass = "a"
+		}
+
+		encodedAuth := Base64Encode(user + ":" + pass)
+
+		r.Header.Add("Authorization", "Basic "+encodedAuth)
+	}
+}
+
 func getRoute(routeName string) *server.Route {
 	routes := server.SetupRoutes()
 	for idx := range routes {

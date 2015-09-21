@@ -36,24 +36,48 @@ func (app *application) List(ctx *context.Context) (err []errors.Error) {
 }
 
 func (app *application) PopulateContext(ctx *context.Context) (err []errors.Error) {
-	user, pass, ok := ctx.BasicAuth()
+	appToken, userToken, ok := ctx.BasicAuth()
 	if !ok {
-		return []errors.Error{errmsg.ErrAuthInvalidApplicationCredentials.UpdateInternalMessage(fmt.Sprintf("got %s:%s", user, pass))}
+		return []errors.Error{errmsg.ErrAuthInvalidApplicationCredentials.UpdateInternalMessage(fmt.Sprintf("got %s:%s", appToken, userToken))}
 	}
 
-	ctx.Application, err = app.storage.FindByKey(user)
-	if err == nil {
-		ctx.OrganizationID = ctx.Application.OrgID
-		ctx.ApplicationID = ctx.Application.ID
-	} else if err[0].Code() == errmsg.ErrApplicationNotFound.Code() {
-		ctx.Application, err = app.postgresStorage.FindByKey(user)
+	if len(appToken) == 32 {
+		ctx.Application, err = app.storage.FindByApplicationToken(appToken)
 		if err == nil {
 			ctx.OrganizationID = ctx.Application.OrgID
 			ctx.ApplicationID = ctx.Application.ID
-			go func(application *entity.Application) {
-				app.storage.Create(application, false)
-			}(ctx.Application)
+			ctx.TokenType = context.TokenTypeApplication
+		} else if err[0].Code() == errmsg.ErrApplicationNotFound.Code() {
+			ctx.Application, err = app.postgresStorage.FindByApplicationToken(appToken)
+			if err == nil {
+				ctx.OrganizationID = ctx.Application.OrgID
+				ctx.ApplicationID = ctx.Application.ID
+				ctx.TokenType = context.TokenTypeApplication
+				go func(application *entity.Application) {
+					app.storage.Create(application, false)
+				}(ctx.Application)
+			}
 		}
+	} else if len(appToken) == 44 {
+		ctx.Application, err = app.storage.FindByBackendToken(appToken)
+		if err == nil {
+			ctx.OrganizationID = ctx.Application.OrgID
+			ctx.ApplicationID = ctx.Application.ID
+			ctx.TokenType = context.TokenTypeBackend
+		} else if err[0].Code() == errmsg.ErrApplicationNotFound.Code() {
+			ctx.Application, err = app.postgresStorage.FindByBackendToken(appToken)
+			if err == nil {
+				ctx.OrganizationID = ctx.Application.OrgID
+				ctx.ApplicationID = ctx.Application.ID
+				ctx.TokenType = context.TokenTypeBackend
+				go func(application *entity.Application) {
+					app.storage.Create(application, false)
+				}(ctx.Application)
+			}
+		}
+	} else {
+		ctx.TokenType = context.TokenTypeUnknown
+		return []errors.Error{errmsg.ErrAuthInvalidApplicationCredentials.UpdateInternalMessage(fmt.Sprintf("got unexpected token size %s:%s", appToken, userToken))}
 	}
 
 	return

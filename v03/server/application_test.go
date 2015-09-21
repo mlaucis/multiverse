@@ -377,6 +377,7 @@ func (s *ApplicationSuite) TestGetApplicationListWorks(c *C) {
 	c.Assert(len(response.Applications), Equals, 1)
 	application.Users = nil
 	application.ID = 0
+	application.OrgID = 0
 	c.Assert(response.Applications[0], DeepEquals, application)
 }
 
