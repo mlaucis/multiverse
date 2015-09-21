@@ -3504,3 +3504,9 @@ div.pricing .plan h4 {
 .navbtn {
   width: 80% !important;
 }
+
+/* Mixpanel Badge */
+
+.mixpanel-badge {
+  margin-top: 1rem !important;
+}
