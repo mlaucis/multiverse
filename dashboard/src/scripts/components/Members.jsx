@@ -184,8 +184,8 @@ class Member extends Component {
             Do you really want to delete this member?
           </h2>
           <p>
-            This will remove all the data assoicated with
-            <strong>{this.props.member.email}</strong> and the operation is
+            This will remove all the data assoicated
+            with <strong>{this.props.member.email}</strong> and the operation is
             irreversible.
           </p>
           <div className='actions'>
