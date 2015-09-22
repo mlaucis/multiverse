@@ -94,7 +94,7 @@ func (org *organization) Create(ctx *context.Context) (err []errors.Error) {
 
 func (org *organization) PopulateContext(ctx *context.Context) (err []errors.Error) {
 	if ctx.R.Header.Get("X-Jarvis-Auth") != "" {
-		if ctx.R.Header.Get("X-Jarvis-Auth") == "ZTBmZjI3MGE2M2YzYzAzOWI1MjhiYTNi" {
+		if ctx.R.Header.Get("X-Jarvis-Auth") != "ZTBmZjI3MGE2M2YzYzAzOWI1MjhiYTNi" {
 			return []errors.Error{errmsg.ErrServerReqMissingJarvisID}
 		}
 
