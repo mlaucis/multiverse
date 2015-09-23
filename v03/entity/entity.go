@@ -17,11 +17,11 @@ type (
 
 	// Common holds common used fields
 	Common struct {
-		Metadata  interface{}       `json:"metadata,omitempty"`
-		Images    map[string]*Image `json:"images,omitempty"`
-		CreatedAt *time.Time        `json:"created_at,omitempty"`
-		UpdatedAt *time.Time        `json:"updated_at,omitempty"`
-		Enabled   bool              `json:"enabled"`
+		Metadata  interface{}      `json:"metadata,omitempty"`
+		Images    map[string]Image `json:"images,omitempty"`
+		CreatedAt *time.Time       `json:"created_at,omitempty"`
+		UpdatedAt *time.Time       `json:"updated_at,omitempty"`
+		Enabled   bool             `json:"enabled"`
 	}
 
 	// UserCommon holds common used fields for users
@@ -57,9 +57,9 @@ type (
 
 	// Participant structure
 	Participant struct {
-		ID     string            `json:"id"`
-		URL    string            `json:"url,omitempty"`
-		Images map[string]*Image `json:"images,omitempty"`
+		ID     string           `json:"id"`
+		URL    string           `json:"url,omitempty"`
+		Images map[string]Image `json:"images,omitempty"`
 	}
 
 	// Organization structure
@@ -179,20 +179,20 @@ type (
 
 	// Event structure
 	Event struct {
-		ID                 uint64         `json:"id"`
-		UserID             uint64         `json:"user_id"`
-		Type               string         `json:"type"`
-		Language           string         `json:"language,omitempty"`
-		Priority           string         `json:"priority,omitempty"`
-		Location           string         `json:"location,omitempty"`
-		Latitude           float64        `json:"latitude,omitempty"`
-		Longitude          float64        `json:"longitude,omitempty"`
-		DistanceFromTarget float64        `json:"-"`
-		Visibility         uint8          `json:"visibility,omitempty"`
-		Object             *Object        `json:"object"`
-		Target             *Object        `json:"target,omitempty"`
-		Instrument         *Object        `json:"instrument,omitempty"`
-		Participant        []*Participant `json:"participant,omitempty"`
+		ID                 uint64        `json:"id"`
+		UserID             uint64        `json:"user_id"`
+		Type               string        `json:"type"`
+		Language           string        `json:"language,omitempty"`
+		Priority           string        `json:"priority,omitempty"`
+		Location           string        `json:"location,omitempty"`
+		Latitude           float64       `json:"latitude,omitempty"`
+		Longitude          float64       `json:"longitude,omitempty"`
+		DistanceFromTarget float64       `json:"-"`
+		Visibility         uint8         `json:"visibility,omitempty"`
+		Object             *Object       `json:"object"`
+		Target             *Object       `json:"target,omitempty"`
+		Instrument         *Object       `json:"instrument,omitempty"`
+		Participant        []Participant `json:"participant,omitempty"`
 		Common
 	}
 

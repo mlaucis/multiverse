@@ -488,18 +488,20 @@ func AddCorrectUserEvents(orgID, applicationID int64, user *entity.ApplicationUs
 			event.Location = locations[i].Label
 		}
 
-		event.Images = map[string]*entity.Image{}
-		event.Images["thumb_pic"] = &entity.Image{}
-		event.Images["thumb_pic"].URL = "https://www.tapglue.com/img/box/newsfeed.jpg"
-		event.Images["thumb_pic"].Width = 200
-		event.Images["thumb_pic"].Heigth = 200
-		event.Images["thumb_pic"].Type = "image/jpeg"
+		event.Images = map[string]entity.Image{}
+		event.Images["thumb_pic"] = entity.Image{
+			URL:    "https://www.tapglue.com/img/box/newsfeed.jpg",
+			Width:  200,
+			Heigth: 200,
+			Type:   "image/jpeg",
+		}
 
-		event.Images["original_pic"] = &entity.Image{}
-		event.Images["original_pic"].URL = "https://www.tapglue.com/img/original.jpg"
-		event.Images["original_pic"].Width = 2048
-		event.Images["original_pic"].Heigth = 2048
-		event.Images["original_pic"].Type = "image/jpeg"
+		event.Images["original_pic"] = entity.Image{
+			URL:    "https://www.tapglue.com/img/original.jpg",
+			Width:  2048,
+			Heigth: 2048,
+			Type:   "image/jpeg",
+		}
 
 		result[i], err = coreEvt.Create(orgID, applicationID, user.ID, event, true)
 		if err != nil {
