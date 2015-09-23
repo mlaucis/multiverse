@@ -1486,3 +1486,19 @@ func (s *ApplicationUserSuite) TestGetUserWithoutSessionFails(c *C) {
 	c.Assert(code, Equals, http.StatusBadRequest)
 	c.Assert(body, Equals, "{\"errors\":[{\"code\":4013,\"message\":\"session token missing from request\"}]}\n")
 }
+
+func (s *ApplicationUserSuite) TestCreateUser_NullOK(c *C) {
+	accounts := CorrectDeploy(1, 0, 1, 0, 0, true, true)
+	application := accounts[0].Applications[0]
+
+	payload := `{"custom_id":"demo","first_name":"firstName1","last_name":"lastName2","images":{"profile": null}, "metadata":{"public":false}}`
+
+	routeName := "createApplicationUser"
+	route := getComposedRoute(routeName)
+	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, nil, true, true))
+	c.Assert(err, IsNil)
+
+	c.Assert(code, Equals, http.StatusBadRequest)
+
+	c.Assert(body, Not(Equals), "")
+}
