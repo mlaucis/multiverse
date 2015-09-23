@@ -68,4 +68,12 @@ function extractReferrer() {
   adjustPricing($);
   startRotation();
   extractReferrer();
+
+  var sp =new StatusPage({ pageId: '0ln51qn4551c' });
+
+  sp.getStatus({
+    success: function(data) {
+      $('.status-dot').addClass(data.status.indicator);
+    }
+  });
 })(jQuery);

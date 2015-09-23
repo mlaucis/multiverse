@@ -3505,8 +3505,25 @@ div.pricing .plan h4 {
   width: 80% !important;
 }
 
-/* Mixpanel Badge */
+/* Status indicator */
+.status-dot {
+  background: #a0d468;
+  border-radius: 100%;
+  display: inline-block;
+  margin-left: 0.5rem;
+  height: 1rem;
+  width: 1rem;
+}
 
-.mixpanel-badge {
-  margin-top: 1rem !important;
+.status-dot.none {
+  background: #a0d468;
+}
+.status-dot.minor {
+  background: #ffce54;
+}
+.status-dot.major {
+  background: #fc6e51;
+}
+.status-dot.critical {
+  background: #ed5565;
 }
