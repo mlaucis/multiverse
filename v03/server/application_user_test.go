@@ -409,7 +409,7 @@ func (s *ApplicationUserSuite) TestLoginUserWorks(c *C) {
 		user.OriginalPassword,
 	)
 
-	routeName := "loginApplicationUser"
+	routeName := "loginCurrentUserApplicationUser"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, nil, true, true))
 	c.Assert(err, IsNil)
@@ -429,7 +429,7 @@ func (s *ApplicationUserSuite) TestLoginUserWorksWithUsernameOrEmail(c *C) {
 	application := accounts[0].Applications[0]
 	user := application.Users[0]
 
-	routeName := "loginApplicationUser"
+	routeName := "loginCurrentUserApplicationUser"
 	route := getComposedRoute(routeName)
 
 	payload := fmt.Sprintf(
@@ -484,7 +484,7 @@ func (s *ApplicationUserSuite) TestLoginUserWithDetails(c *C) {
 		user.OriginalPassword,
 	)
 
-	routeName := "loginApplicationUser"
+	routeName := "loginCurrentUserApplicationUser"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, nil, true, true))
 	c.Assert(err, IsNil)
@@ -514,7 +514,7 @@ func (s *ApplicationUserSuite) TestRefreshSessionOnOriginalTokenFailsAfterDouble
 		user.OriginalPassword,
 	)
 
-	routeName := "loginApplicationUser"
+	routeName := "loginCurrentUserApplicationUser"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, nil, true, true))
 	c.Assert(err, IsNil)
@@ -533,7 +533,7 @@ func (s *ApplicationUserSuite) TestRefreshSessionOnOriginalTokenFailsAfterDouble
 
 	payload = fmt.Sprintf(`{"session_token": "%s"}`, user.SessionToken)
 
-	routeName = "refreshApplicationUserSession"
+	routeName = "refreshCurrentUserApplicationUserSession"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, nil, true, true))
 	c.Assert(err, IsNil)
@@ -551,7 +551,7 @@ func (s *ApplicationUserSuite) TestLoginUserAfterLoginWorks(c *C) {
 		user.OriginalPassword,
 	)
 
-	routeName := "loginApplicationUser"
+	routeName := "loginCurrentUserApplicationUser"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, nil, true, true))
 	c.Assert(err, IsNil)
@@ -596,7 +596,7 @@ func (s *ApplicationUserSuite) TestLoginAndRefreshSessionWorks(c *C) {
 		user.OriginalPassword,
 	)
 
-	routeName := "loginApplicationUser"
+	routeName := "loginCurrentUserApplicationUser"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, nil, true, true))
 	c.Assert(err, IsNil)
@@ -616,7 +616,7 @@ func (s *ApplicationUserSuite) TestLoginAndRefreshSessionWorks(c *C) {
 
 	payload = fmt.Sprintf(`{"session_token": "%s"}`, user.SessionToken)
 
-	routeName = "refreshApplicationUserSession"
+	routeName = "refreshCurrentUserApplicationUserSession"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, user, true, true))
 	c.Assert(err, IsNil)
@@ -643,7 +643,7 @@ func (s *ApplicationUserSuite) TestLoginRefreshSessionLogoutWorks(c *C) {
 		user.OriginalPassword,
 	)
 
-	routeName := "loginApplicationUser"
+	routeName := "loginCurrentUserApplicationUser"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, nil, true, true))
 	c.Assert(err, IsNil)
@@ -663,7 +663,7 @@ func (s *ApplicationUserSuite) TestLoginRefreshSessionLogoutWorks(c *C) {
 
 	// REFRESH USER SESSION
 	payload = fmt.Sprintf(`{"session_token": "%s"}`, sessionToken.Token)
-	routeName = "refreshApplicationUserSession"
+	routeName = "refreshCurrentUserApplicationUserSession"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, user, true, true))
 	c.Assert(err, IsNil)
@@ -679,7 +679,7 @@ func (s *ApplicationUserSuite) TestLoginRefreshSessionLogoutWorks(c *C) {
 
 	// LOGOUT USER
 	payload = fmt.Sprintf(`{"session_token": "%s"}`, updatedToken.Token)
-	routeName = "logoutApplicationUser"
+	routeName = "logoutCurrentUserApplicationUser"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, user, true, true))
 	c.Assert(err, IsNil)
@@ -697,7 +697,7 @@ func (s *ApplicationUserSuite) TestLogoutUserWorks(c *C) {
 		user.OriginalPassword,
 	)
 
-	routeName := "loginApplicationUser"
+	routeName := "loginCurrentUserApplicationUser"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, nil, true, true))
 	c.Assert(err, IsNil)
@@ -714,7 +714,7 @@ func (s *ApplicationUserSuite) TestLogoutUserWorks(c *C) {
 	c.Assert(sessionToken.Token, Not(Equals), "")
 	user.SessionToken = sessionToken.Token
 
-	routeName = "logoutApplicationUser"
+	routeName = "logoutCurrentUserApplicationUser"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, "", signApplicationRequest(application, user, true, true))
 	c.Assert(err, IsNil)
@@ -732,7 +732,7 @@ func (s *ApplicationUserSuite) TestLoginLogoutLoginWorks(c *C) {
 		user.OriginalPassword,
 	)
 
-	routeName := "loginApplicationUser"
+	routeName := "loginCurrentUserApplicationUser"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, nil, true, true))
 	c.Assert(err, IsNil)
@@ -750,7 +750,7 @@ func (s *ApplicationUserSuite) TestLoginLogoutLoginWorks(c *C) {
 	user.SessionToken = sessionToken.Token
 
 	payload = fmt.Sprintf(`{"session_token": "%s"}`, sessionToken.Token)
-	routeName = "logoutApplicationUser"
+	routeName = "logoutCurrentUserApplicationUser"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, user, true, true))
 	c.Assert(err, IsNil)
@@ -762,7 +762,7 @@ func (s *ApplicationUserSuite) TestLoginLogoutLoginWorks(c *C) {
 		user.Email,
 		user.OriginalPassword,
 	)
-	routeName = "loginApplicationUser"
+	routeName = "loginCurrentUserApplicationUser"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, nil, true, true))
 	c.Assert(err, IsNil)
@@ -786,7 +786,7 @@ func (s *ApplicationUserSuite) TestRefreshSessionWithoutLoginFails(c *C) {
 
 	// REFRESH USER SESSION
 	payload := fmt.Sprintf(`{"session_token": "%s"}`, "random session token stuff")
-	routeName := "refreshApplicationUserSession"
+	routeName := "refreshCurrentUserApplicationUserSession"
 	route := getComposedRoute(routeName)
 	code, _, err := runRequest(routeName, route, payload, signApplicationRequest(application, nil, true, false))
 	c.Assert(err, IsNil)
@@ -804,7 +804,7 @@ func (s *ApplicationUserSuite) TestLoginLogoutRefreshSessionFails(c *C) {
 		user.OriginalPassword,
 	)
 
-	routeName := "loginApplicationUser"
+	routeName := "loginCurrentUserApplicationUser"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, nil, true, true))
 	c.Assert(err, IsNil)
@@ -824,7 +824,7 @@ func (s *ApplicationUserSuite) TestLoginLogoutRefreshSessionFails(c *C) {
 
 	// LOGOUT USER
 	payload = fmt.Sprintf(`{"session_token": "%s"}`, sessionToken.Token)
-	routeName = "logoutApplicationUser"
+	routeName = "logoutCurrentUserApplicationUser"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, user, true, true))
 	c.Assert(err, IsNil)
@@ -832,7 +832,7 @@ func (s *ApplicationUserSuite) TestLoginLogoutRefreshSessionFails(c *C) {
 
 	// REFRESH USER SESSION
 	payload = fmt.Sprintf(`{"session_token": "%s"}`, sessionToken.Token)
-	routeName = "refreshApplicationUserSession"
+	routeName = "refreshCurrentUserApplicationUserSession"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, user, true, true))
 	c.Assert(err, IsNil)
@@ -850,7 +850,7 @@ func (s *ApplicationUserSuite) TestLoginChangePasswordRefreshWorks(c *C) {
 		user.OriginalPassword,
 	)
 
-	routeName := "loginApplicationUser"
+	routeName := "loginCurrentUserApplicationUser"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, nil, true, true))
 	c.Assert(err, IsNil)
@@ -902,7 +902,7 @@ func (s *ApplicationUserSuite) TestLoginChangePasswordRefreshWorks(c *C) {
 
 	// REFRESH USER SESSION
 	payload = fmt.Sprintf(`{"session_token": "%s"}`, sessionToken.Token)
-	routeName = "refreshApplicationUserSession"
+	routeName = "refreshCurrentUserApplicationUserSession"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, user, true, true))
 	c.Assert(err, IsNil)
@@ -926,7 +926,7 @@ func (s *ApplicationUserSuite) TestLoginChangeUsernameRefreshWorks(c *C) {
 		user.OriginalPassword,
 	)
 
-	routeName := "loginApplicationUser"
+	routeName := "loginCurrentUserApplicationUser"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, nil, true, true))
 	c.Assert(err, IsNil)
@@ -980,7 +980,7 @@ func (s *ApplicationUserSuite) TestLoginChangeUsernameRefreshWorks(c *C) {
 
 	// REFRESH USER SESSION
 	payload = fmt.Sprintf(`{"session_token": "%s"}`, sessionToken.Token)
-	routeName = "refreshApplicationUserSession"
+	routeName = "refreshCurrentUserApplicationUserSession"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, user, true, true))
 	c.Assert(err, IsNil)
@@ -1004,7 +1004,7 @@ func (s *ApplicationUserSuite) TestLoginChangeEmailRefreshWorks(c *C) {
 		user.OriginalPassword,
 	)
 
-	routeName := "loginApplicationUser"
+	routeName := "loginCurrentUserApplicationUser"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, nil, true, true))
 	c.Assert(err, IsNil)
@@ -1057,7 +1057,7 @@ func (s *ApplicationUserSuite) TestLoginChangeEmailRefreshWorks(c *C) {
 
 	// REFRESH USER SESSION
 	payload = fmt.Sprintf(`{"session_token": "%s"}`, sessionToken.Token)
-	routeName = "refreshApplicationUserSession"
+	routeName = "refreshCurrentUserApplicationUserSession"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, user, true, true))
 	c.Assert(err, IsNil)
@@ -1081,7 +1081,7 @@ func (s *ApplicationUserSuite) TestLoginLogoutLogoutFails(c *C) {
 		user.OriginalPassword,
 	)
 
-	routeName := "loginApplicationUser"
+	routeName := "loginCurrentUserApplicationUser"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, nil, true, true))
 	c.Assert(err, IsNil)
@@ -1101,7 +1101,7 @@ func (s *ApplicationUserSuite) TestLoginLogoutLogoutFails(c *C) {
 
 	// LOGOUT USER
 	payload = fmt.Sprintf(`{"session_token": "%s"}`, sessionToken.Token)
-	routeName = "logoutApplicationUser"
+	routeName = "logoutCurrentUserApplicationUser"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, user, true, true))
 	c.Assert(err, IsNil)
@@ -1109,7 +1109,7 @@ func (s *ApplicationUserSuite) TestLoginLogoutLogoutFails(c *C) {
 
 	// LOGOUT USER
 	payload = fmt.Sprintf(`{"session_token": "%s"}`, sessionToken.Token)
-	routeName = "logoutApplicationUser"
+	routeName = "logoutCurrentUserApplicationUser"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, user, true, true))
 	c.Assert(err, IsNil)
@@ -1127,7 +1127,7 @@ func (s *ApplicationUserSuite) TestLoginChangeUsernameGetEventWorks(c *C) {
 		user.OriginalPassword,
 	)
 
-	routeName := "loginApplicationUser"
+	routeName := "loginCurrentUserApplicationUser"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, nil, true, true))
 	c.Assert(err, IsNil)
@@ -1313,56 +1313,56 @@ func (s *ApplicationUserSuite) TestLoginRefreshLogoutMalformedPayloadFails(c *C)
 		// 0
 		{
 			Payload:   fmt.Sprintf(`{"email": "%s", "password": "%s"`, user.Email, user.OriginalPassword),
-			RouteName: "loginApplicationUser",
-			Route:     getComposedRoute("loginApplicationUser"),
+			RouteName: "loginCurrentUserApplicationUser",
+			Route:     getComposedRoute("loginCurrentUserApplicationUser"),
 			Code:      http.StatusBadRequest,
 			Body:      `{"errors":[{"code":5001,"message":"unexpected end of JSON input"}]}` + "\n",
 		},
 		// 1
 		{
 			Payload:   fmt.Sprintf(`{"email": "%s", "password": "%s"}`, "tap@glue", user.OriginalPassword),
-			RouteName: "loginApplicationUser",
-			Route:     getComposedRoute("loginApplicationUser"),
+			RouteName: "loginCurrentUserApplicationUser",
+			Route:     getComposedRoute("loginCurrentUserApplicationUser"),
 			Code:      http.StatusNotFound,
 			Body:      `{"errors":[{"code":1001,"message":"application user not found"}]}` + "\n",
 		},
 		// 2
 		{
 			Payload:   fmt.Sprintf(`{"user_name": "%s", "password": "%s"}`, "", user.OriginalPassword),
-			RouteName: "loginApplicationUser",
-			Route:     getComposedRoute("loginApplicationUser"),
+			RouteName: "loginCurrentUserApplicationUser",
+			Route:     getComposedRoute("loginCurrentUserApplicationUser"),
 			Code:      http.StatusBadRequest,
 			Body:      `{"errors":[{"code":4003,"message":"both username and email are empty"}]}` + "\n",
 		},
 		// 3
 		{
 			Payload:   fmt.Sprintf(`{"user_name": "%s", "password": "%s"}`, "tapg", user.OriginalPassword),
-			RouteName: "loginApplicationUser",
-			Route:     getComposedRoute("loginApplicationUser"),
+			RouteName: "loginCurrentUserApplicationUser",
+			Route:     getComposedRoute("loginCurrentUserApplicationUser"),
 			Code:      http.StatusNotFound,
 			Body:      `{"errors":[{"code":1001,"message":"application user not found"}]}` + "\n",
 		},
 		// 4
 		{
 			Payload:   fmt.Sprintf(`{"user_name": "%s", "password": "%s"}`, user.Username, "nothing"),
-			RouteName: "loginApplicationUser",
-			Route:     getComposedRoute("loginApplicationUser"),
+			RouteName: "loginCurrentUserApplicationUser",
+			Route:     getComposedRoute("loginCurrentUserApplicationUser"),
 			Code:      http.StatusBadRequest,
 			Body:      `{"errors":[{"code":4001,"message":"authentication error"}]}` + "\n",
 		},
 		// 5
 		{
 			Payload:   fmt.Sprintf(`{"session_token": "%s"`, user.SessionToken),
-			RouteName: "refreshApplicationUserSession",
-			Route:     getComposedRoute("refreshApplicationUserSession"),
+			RouteName: "refreshCurrentUserApplicationUserSession",
+			Route:     getComposedRoute("refreshCurrentUserApplicationUserSession"),
 			Code:      http.StatusBadRequest,
 			Body:      `{"errors":[{"code":5001,"message":"unexpected end of JSON input"}]}` + "\n",
 		},
 		// 6
 		{
 			Payload:   fmt.Sprintf(`{"session_token": "%s"}`, "nothing"),
-			RouteName: "refreshApplicationUserSession",
-			Route:     getComposedRoute("refreshApplicationUserSession"),
+			RouteName: "refreshCurrentUserApplicationUserSession",
+			Route:     getComposedRoute("refreshCurrentUserApplicationUserSession"),
 			Code:      http.StatusBadRequest,
 			Body:      `{"errors":[{"code":4012,"message":"session token mismatch"}]}` + "\n",
 		},

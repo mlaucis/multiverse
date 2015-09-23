@@ -104,11 +104,22 @@ func (app *application) List(ctx *context.Context) (err []errors.Error) {
 }
 
 func (app *application) PopulateContext(ctx *context.Context) (err []errors.Error) {
-	user, pass, ok := ctx.BasicAuth()
+	appToken, userToken, ok := ctx.BasicAuth()
 	if !ok {
-		return []errors.Error{errmsg.ErrAuthInvalidApplicationCredentials.UpdateInternalMessage(fmt.Sprintf("got %s:%s", user, pass))}
+		return []errors.Error{errmsg.ErrAuthInvalidApplicationCredentials.UpdateInternalMessage(fmt.Sprintf("got %s:%s", appToken, userToken))}
 	}
-	ctx.Application, err = app.storage.FindByKey(user)
+
+	if len(appToken) == 32 {
+		ctx.TokenType = context.TokenTypeApplication
+		ctx.Application, err = app.storage.FindByApplicationToken(appToken)
+	} else if len(appToken) == 44 {
+		ctx.TokenType = context.TokenTypeBackend
+		ctx.Application, err = app.storage.FindByBackendToken(appToken)
+	} else {
+		ctx.TokenType = context.TokenTypeUnknown
+		return []errors.Error{errmsg.ErrAuthInvalidApplicationCredentials.UpdateInternalMessage(fmt.Sprintf("got unexpected token size %s:%s", appToken, userToken))}
+	}
+
 	if err == nil {
 		ctx.OrganizationID = ctx.Application.OrgID
 		ctx.ApplicationID = ctx.Application.ID
@@ -125,7 +136,7 @@ func (app *application) PopulateContextFromID(ctx *context.Context) (err []error
 	ctx.Application, err = app.storage.FindByPublicID(applicationID)
 	if err == nil {
 		if ctx.Application == nil {
-			return []errors.Error{errmsg.ErrApplicationNotFound}
+			return []errors.Error{errmsg.ErrApplicationNotFound.SetCurrentLocation()}
 		}
 		ctx.OrganizationID = ctx.Application.OrgID
 		ctx.ApplicationID = ctx.Application.ID

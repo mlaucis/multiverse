@@ -25,8 +25,11 @@ type Application interface {
 	// Exists validates if an application exists and returns the application or an error
 	Exists(accountID, applicationID int64) (bool, []errors.Error)
 
-	// FindByKey will load an application by the application key, if it exists
-	FindByKey(applicationKey string) (*entity.Application, []errors.Error)
+	// FindByToken will load an application by the application token, if it exists
+	FindByApplicationToken(applicationToken string) (*entity.Application, []errors.Error)
+
+	// FindByBackendToken will load an application by the backend token, if it exists
+	FindByBackendToken(applicationToken string) (*entity.Application, []errors.Error)
 
 	// FindByPublicID finds an application by it's public ID
 	FindByPublicID(publicID string) (*entity.Application, []errors.Error)

@@ -23,13 +23,14 @@ type application struct {
 }
 
 const (
-	createApplicationEntryQuery            = `INSERT INTO tg.applications (account_id, json_data) VALUES($1, $2) RETURNING id`
-	selectApplicationEntryByIDQuery        = `SELECT json_data, enabled FROM tg.applications WHERE id = $1 AND account_id = $2 and enabled = 1`
-	selectApplicationEntryByPublicIDsQuery = `SELECT id, account_id, json_data, enabled FROM tg.applications WHERE json_data @> json_build_object('id', $1::text)::jsonb LIMIT 1`
-	selectApplicationEntryByKeyQuery       = `SELECT id, account_id, json_data, enabled FROM tg.applications WHERE json_data @> json_build_object('token', $1::text)::jsonb LIMIT 1`
-	updateApplicationEntryByIDQuery        = `UPDATE tg.applications SET json_data = $1 WHERE id = $2 AND account_id = $3`
-	deleteApplicationEntryByIDQuery        = `UPDATE tg.applications SET enabled = 0 WHERE id = $1 AND account_id = $2`
-	listApplicationsEntryByAccountIDQuery  = `SELECT id, json_data, enabled FROM tg.applications where account_id = $1 and enabled = 1`
+	createApplicationEntryQuery                   = `INSERT INTO tg.applications (account_id, json_data) VALUES($1, $2) RETURNING id`
+	selectApplicationEntryByIDQuery               = `SELECT id, account_id, json_data, enabled FROM tg.applications WHERE id = $1 AND account_id = $2 and enabled = 1`
+	selectApplicationEntryByPublicIDsQuery        = `SELECT id, account_id, json_data, enabled FROM tg.applications WHERE json_data @> json_build_object('id', $1::text)::jsonb LIMIT 1`
+	selectApplicationEntryByApplicationTokenQuery = `SELECT id, account_id, json_data, enabled FROM tg.applications WHERE json_data @> json_build_object('token', $1::text)::jsonb LIMIT 1`
+	selectApplicationEntryByBackendTokenQuery     = `SELECT id, account_id, json_data, enabled FROM tg.applications WHERE json_data @> json_build_object('backend_token', $1::text)::jsonb LIMIT 1`
+	updateApplicationEntryByIDQuery               = `UPDATE tg.applications SET json_data = $1 WHERE id = $2 AND account_id = $3`
+	deleteApplicationEntryByIDQuery               = `UPDATE tg.applications SET enabled = 0 WHERE id = $1 AND account_id = $2`
+	listApplicationsEntryByAccountIDQuery         = `SELECT id, json_data, enabled FROM tg.applications where account_id = $1 and enabled = 1`
 )
 
 var createApplicationNamespaceQuery = []string{
@@ -69,6 +70,7 @@ func (app *application) Create(application *entity.Application, retrieve bool) (
 	timeNow := time.Now()
 	application.CreatedAt, application.UpdatedAt = &timeNow, &timeNow
 	application.AuthToken = storageHelper.GenerateApplicationSecretKey(application)
+	application.BackendToken = storageHelper.GenerateBackendApplicationSecretKey(application)
 
 	applicationJSON, err := json.Marshal(application)
 	if err != nil {
@@ -101,34 +103,15 @@ func (app *application) Create(application *entity.Application, retrieve bool) (
 }
 
 func (app *application) Read(accountID, applicationID int64) (*entity.Application, []errors.Error) {
-	var (
-		JSONData string
-		enabled  bool
-	)
-	err := app.pg.SlaveDatastore(-1).
-		QueryRow(selectApplicationEntryByIDQuery, applicationID, accountID).
-		Scan(&JSONData, &enabled)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, []errors.Error{errmsg.ErrApplicationNotFound}
-		}
-		return nil, []errors.Error{errmsg.ErrInternalApplicationRead.UpdateInternalMessage(err.Error())}
-	}
-
-	application := &entity.Application{}
-	err = json.Unmarshal([]byte(JSONData), application)
-	if err != nil {
-		return nil, []errors.Error{errmsg.ErrInternalApplicationRead.UpdateInternalMessage(err.Error())}
-	}
-	application.ID = applicationID
-	application.Enabled = enabled
-
-	return application, nil
+	return app.findByQuery(selectApplicationEntryByIDQuery, applicationID, accountID)
 }
 
 func (app *application) Update(existingApplication, updatedApplication entity.Application, retrieve bool) (*entity.Application, []errors.Error) {
 	if updatedApplication.AuthToken == "" {
 		updatedApplication.AuthToken = existingApplication.AuthToken
+	}
+	if updatedApplication.BackendToken == "" {
+		updatedApplication.BackendToken = existingApplication.BackendToken
 	}
 	timeNow := time.Now()
 	updatedApplication.UpdatedAt = &timeNow
@@ -212,56 +195,42 @@ func (app *application) Exists(accountID, applicationID int64) (bool, []errors.E
 	return true, nil
 }
 
-func (app *application) FindByKey(applicationKey string) (*entity.Application, []errors.Error) {
-	var (
-		ID, accountID int64
-		JSONData      string
-		Enabled       bool
-	)
-	err := app.pg.SlaveDatastore(-1).
-		QueryRow(selectApplicationEntryByKeyQuery, applicationKey).
-		Scan(&ID, &accountID, &JSONData, &Enabled)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, []errors.Error{errmsg.ErrApplicationNotFound}
-		}
-		return nil, []errors.Error{errmsg.ErrInternalApplicationRead.UpdateInternalMessage(err.Error())}
-	}
-	application := &entity.Application{}
-	err = json.Unmarshal([]byte(JSONData), application)
-	if err != nil {
-		return nil, []errors.Error{errmsg.ErrInternalApplicationRead.UpdateInternalMessage(err.Error())}
-	}
-	application.ID = ID
-	application.OrgID = accountID
-	application.Enabled = Enabled
+func (app *application) FindByApplicationToken(applicationToken string) (*entity.Application, []errors.Error) {
+	return app.findByQuery(selectApplicationEntryByApplicationTokenQuery, applicationToken)
+}
 
-	return application, nil
+func (app *application) FindByBackendToken(backendToken string) (*entity.Application, []errors.Error) {
+	return app.findByQuery(selectApplicationEntryByBackendTokenQuery, backendToken)
 }
 
 func (app *application) FindByPublicID(publicID string) (*entity.Application, []errors.Error) {
+	return app.findByQuery(selectApplicationEntryByPublicIDsQuery, publicID)
+}
+
+func (app *application) findByQuery(query string, params ...interface{}) (*entity.Application, []errors.Error) {
 	var (
 		ID, accountID int64
-		JSONData      string
-		Enabled       bool
+		jsonData      string
+		enabled       bool
 	)
 	err := app.pg.SlaveDatastore(-1).
-		QueryRow(selectApplicationEntryByPublicIDsQuery, publicID).
-		Scan(&ID, &accountID, &JSONData, &Enabled)
+		QueryRow(query, params...).
+		Scan(&ID, &accountID, &jsonData, &enabled)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, []errors.Error{errmsg.ErrApplicationNotFound}
+			return nil, []errors.Error{errmsg.ErrApplicationNotFound.SetCurrentLocation()}
 		}
 		return nil, []errors.Error{errmsg.ErrInternalApplicationRead.UpdateInternalMessage(err.Error())}
 	}
+
 	application := &entity.Application{}
-	err = json.Unmarshal([]byte(JSONData), application)
+	err = json.Unmarshal([]byte(jsonData), application)
 	if err != nil {
 		return nil, []errors.Error{errmsg.ErrInternalApplicationRead.UpdateInternalMessage(err.Error())}
 	}
 	application.ID = ID
 	application.OrgID = accountID
-	application.Enabled = Enabled
+	application.Enabled = enabled
 
 	return application, nil
 }

@@ -16,7 +16,8 @@ type application struct {
 }
 
 const (
-	redisAppKey = "applications:bykey:"
+	redisApplicationToken = "applications:token:application"
+	redisBackendToken     = "applications:token:backend"
 )
 
 func (app *application) Create(application *entity.Application, retrieve bool) (*entity.Application, []errors.Error) {
@@ -36,7 +37,11 @@ func (app *application) Create(application *entity.Application, retrieve bool) (
 		return nil, []errors.Error{errmsg.ErrInternalApplicationCreation.UpdateInternalMessage(err.Error())}
 	}
 
-	if _, err := conn.Do("SET", redisAppKey+application.AuthToken, ap, "NX"); err != nil {
+	if _, err := conn.Do("SET", redisApplicationToken+application.AuthToken, ap, "NX"); err != nil {
+		return nil, []errors.Error{errmsg.ErrInternalApplicationCreation.UpdateInternalMessage(err.Error())}
+	}
+
+	if _, err := conn.Do("SET", redisBackendToken+application.BackendToken, ap, "NX"); err != nil {
 		return nil, []errors.Error{errmsg.ErrInternalApplicationCreation.UpdateInternalMessage(err.Error())}
 	}
 
@@ -58,6 +63,9 @@ func (app *application) Update(existingApplication, updatedApplication entity.Ap
 	if updatedApplication.AuthToken == "" {
 		updatedApplication.AuthToken = existingApplication.AuthToken
 	}
+	if updatedApplication.BackendToken == "" {
+		updatedApplication.BackendToken = existingApplication.BackendToken
+	}
 
 	a := struct {
 		entity.OrgAppIDs
@@ -72,7 +80,11 @@ func (app *application) Update(existingApplication, updatedApplication entity.Ap
 		return nil, []errors.Error{errmsg.ErrInternalApplicationCreation.UpdateInternalMessage(err.Error())}
 	}
 
-	if _, err := conn.Do("SET", redisAppKey+updatedApplication.AuthToken, ap); err != nil {
+	if _, err := conn.Do("SET", redisApplicationToken+updatedApplication.AuthToken, ap); err != nil {
+		return nil, []errors.Error{errmsg.ErrInternalApplicationCreation.UpdateInternalMessage(err.Error())}
+	}
+
+	if _, err := conn.Do("SET", redisApplicationToken+updatedApplication.BackendToken, ap); err != nil {
 		return nil, []errors.Error{errmsg.ErrInternalApplicationCreation.UpdateInternalMessage(err.Error())}
 	}
 
@@ -95,17 +107,25 @@ func (app *application) Exists(orgID, applicationID int64) (bool, []errors.Error
 	return false, []errors.Error{errmsg.ErrServerNotImplementedYet}
 }
 
-func (app *application) FindByKey(applicationKey string) (*entity.Application, []errors.Error) {
+func (app *application) FindByApplicationToken(applicationToken string) (*entity.Application, []errors.Error) {
+	return app.findByRedisKey(redisBackendToken + applicationToken)
+}
+
+func (app *application) FindByBackendToken(backendToken string) (*entity.Application, []errors.Error) {
+	return app.findByRedisKey(redisBackendToken + backendToken)
+}
+
+func (app *application) findByRedisKey(redisKey string) (*entity.Application, []errors.Error) {
 	conn := app.storage.Get()
 	defer conn.Close()
 
-	application, err := conn.Do("GET", redisAppKey+applicationKey)
+	application, err := conn.Do("GET", redisKey)
 	if err != nil {
 		return nil, []errors.Error{errmsg.ErrInternalApplicationRead.UpdateInternalMessage(err.Error())}
 	}
 
 	if application == nil {
-		return nil, []errors.Error{errmsg.ErrApplicationNotFound}
+		return nil, []errors.Error{errmsg.ErrApplicationNotFound.SetCurrentLocation()}
 	}
 
 	ap := &struct {

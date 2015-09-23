@@ -24,7 +24,7 @@ func (s *ApplicationUserSuite) TestLoginDisableLoginFails(c *C) {
 		user.OriginalPassword,
 	)
 
-	routeName := "loginApplicationUser"
+	routeName := "loginCurrentUserApplicationUser"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, nil, true, true))
 	c.Assert(err, IsNil)
@@ -75,7 +75,7 @@ func (s *ApplicationUserSuite) TestLoginDisableLoginFails(c *C) {
 		user.OriginalPassword,
 	)
 
-	routeName = "loginApplicationUser"
+	routeName = "loginCurrentUserApplicationUser"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, nil, true, true))
 	c.Assert(err, IsNil)
@@ -94,7 +94,7 @@ func (s *ApplicationUserSuite) TestLoginDeleteLogoutFails(c *C) {
 		user.OriginalPassword,
 	)
 
-	routeName := "loginApplicationUser"
+	routeName := "loginCurrentUserApplicationUser"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, nil, true, true))
 	c.Assert(err, IsNil)
@@ -119,7 +119,7 @@ func (s *ApplicationUserSuite) TestLoginDeleteLogoutFails(c *C) {
 	c.Assert(code, Equals, http.StatusNoContent)
 
 	payload = fmt.Sprintf(`{"session_token": "%s"}`, sessionToken.Token)
-	routeName = "logoutApplicationUser"
+	routeName = "logoutCurrentUserApplicationUser"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, user, true, true))
 	c.Assert(err, IsNil)
@@ -137,7 +137,7 @@ func (s *ApplicationUserSuite) TestLoginDeleteLoginFails(c *C) {
 		user.OriginalPassword,
 	)
 
-	routeName := "loginApplicationUser"
+	routeName := "loginCurrentUserApplicationUser"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, nil, true, true))
 	c.Assert(err, IsNil)
@@ -168,7 +168,7 @@ func (s *ApplicationUserSuite) TestLoginDeleteLoginFails(c *C) {
 		user.OriginalPassword,
 	)
 
-	routeName = "loginApplicationUser"
+	routeName = "loginCurrentUserApplicationUser"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, nil, true, true))
 	c.Assert(err, IsNil)
@@ -187,7 +187,7 @@ func (s *ApplicationUserSuite) TestLoginChangeUsernameLogoutLoginWorks(c *C) {
 		user.OriginalPassword,
 	)
 
-	routeName := "loginApplicationUser"
+	routeName := "loginCurrentUserApplicationUser"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, nil, true, true))
 	c.Assert(err, IsNil)
@@ -233,7 +233,7 @@ func (s *ApplicationUserSuite) TestLoginChangeUsernameLogoutLoginWorks(c *C) {
 	c.Assert(updatedUser, DeepEquals, user)
 
 	payload = fmt.Sprintf(`{"session_token": "%s"}`, sessionToken.Token)
-	routeName = "logoutApplicationUser"
+	routeName = "logoutCurrentUserApplicationUser"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, user, true, true))
 	c.Assert(err, IsNil)
@@ -245,7 +245,7 @@ func (s *ApplicationUserSuite) TestLoginChangeUsernameLogoutLoginWorks(c *C) {
 		user.OriginalPassword,
 	)
 
-	routeName = "loginApplicationUser"
+	routeName = "loginCurrentUserApplicationUser"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, nil, true, true))
 	c.Assert(err, IsNil)
@@ -274,7 +274,7 @@ func (s *ApplicationUserSuite) TestLoginChangeEmailLogoutLoginWorks(c *C) {
 		user.OriginalPassword,
 	)
 
-	routeName := "loginApplicationUser"
+	routeName := "loginCurrentUserApplicationUser"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, nil, true, true))
 	c.Assert(err, IsNil)
@@ -319,7 +319,7 @@ func (s *ApplicationUserSuite) TestLoginChangeEmailLogoutLoginWorks(c *C) {
 	c.Assert(updatedUser, DeepEquals, user)
 
 	payload = fmt.Sprintf(`{"session_token": "%s"}`, sessionToken.Token)
-	routeName = "logoutApplicationUser"
+	routeName = "logoutCurrentUserApplicationUser"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, user, true, true))
 	c.Assert(err, IsNil)
@@ -331,7 +331,7 @@ func (s *ApplicationUserSuite) TestLoginChangeEmailLogoutLoginWorks(c *C) {
 		user.OriginalPassword,
 	)
 
-	routeName = "loginApplicationUser"
+	routeName = "loginCurrentUserApplicationUser"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, nil, true, true))
 	c.Assert(err, IsNil)
@@ -361,7 +361,7 @@ func (s *ApplicationUserSuite) TestLoginChangePasswordLoginWorks(c *C) {
 		user.OriginalPassword,
 	)
 
-	routeName := "loginApplicationUser"
+	routeName := "loginCurrentUserApplicationUser"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, nil, true, true))
 	c.Assert(err, IsNil)
@@ -412,7 +412,7 @@ func (s *ApplicationUserSuite) TestLoginChangePasswordLoginWorks(c *C) {
 		"newPass",
 	)
 
-	routeName = "loginApplicationUser"
+	routeName = "loginCurrentUserApplicationUser"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, nil, true, true))
 	c.Assert(err, IsNil)
@@ -437,7 +437,7 @@ func (s *ApplicationUserSuite) TestDeleteOnEventsOnUserDeleteWorks(c *C) {
 	user2 := application.Users[1]
 
 	// GET EVENT
-	routeName := "deleteConnection"
+	routeName := "deleteCurrentUserConnection"
 	route := getComposedRoute(routeName, user2.ID)
 	code, body, err := runRequest(routeName, route, "", signApplicationRequest(application, user1, true, true))
 	c.Assert(err, IsNil)
@@ -483,7 +483,7 @@ func (s *ApplicationUserSuite) TestDeleteOnEventsOnUserDeleteWorks(c *C) {
 	c.Assert(code, Equals, http.StatusNoContent)
 
 	// GET EVENTS LIST
-	routeName = "getFeed"
+	routeName = "getCurrentUserFeed"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, "", signApplicationRequest(application, user1, true, true))
 	c.Assert(err, IsNil)

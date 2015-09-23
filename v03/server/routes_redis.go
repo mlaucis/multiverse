@@ -256,6 +256,19 @@ func SetupRoutes() []*Route {
 			},
 		},
 		&Route{
+			Name:   "updateApplicationUser",
+			Method: "PUT",
+			Path:   fmt.Sprintf("/users/%s", applicationUserID),
+			Handlers: []RouteFunc{
+				postgresApplicationUserHandler.UpdateCurrent,
+			},
+			Filters: []Filter{
+				ContextHasApplication(redisApplicationHandler),
+				RateLimitApplication,
+				ContextHasApplicationUser(postgresApplicationUserHandler),
+			},
+		},
+		&Route{
 			Name:   "updateCurrentApplicationUser",
 			Method: "PUT",
 			Path:   "/me",
@@ -269,11 +282,11 @@ func SetupRoutes() []*Route {
 			},
 		},
 		&Route{
-			Name:   "deleteCurrentApplicationUser",
+			Name:   "deleteApplicationUser",
 			Method: "DELETE",
-			Path:   "/me",
+			Path:   fmt.Sprintf("/users/%s", applicationUserID),
 			Handlers: []RouteFunc{
-				postgresApplicationUserHandler.DeleteCurrent,
+				postgresApplicationUserHandler.Delete,
 			},
 			Filters: []Filter{
 				ContextHasApplication(redisApplicationHandler),
@@ -282,11 +295,11 @@ func SetupRoutes() []*Route {
 			},
 		},
 		&Route{
-			Name:   "deleteApplicationUser",
+			Name:   "deleteCurrentApplicationUser",
 			Method: "DELETE",
-			Path:   fmt.Sprintf("/users/%s", applicationUserID),
+			Path:   "/me",
 			Handlers: []RouteFunc{
-				postgresApplicationUserHandler.Delete,
+				postgresApplicationUserHandler.DeleteCurrent,
 			},
 			Filters: []Filter{
 				ContextHasApplication(redisApplicationHandler),
@@ -309,6 +322,18 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "loginApplicationUser",
 			Method: "POST",
+			Path:   "/users/login",
+			Handlers: []RouteFunc{
+				postgresApplicationUserHandler.Login,
+			},
+			Filters: []Filter{
+				ContextHasApplication(redisApplicationHandler),
+				RateLimitApplication,
+			},
+		},
+		&Route{
+			Name:   "loginCurrentUserApplicationUser",
+			Method: "POST",
 			Path:   "/me/login",
 			Handlers: []RouteFunc{
 				postgresApplicationUserHandler.Login,
@@ -320,6 +345,19 @@ func SetupRoutes() []*Route {
 		},
 		&Route{
 			Name:   "refreshApplicationUserSession",
+			Method: "POST",
+			Path:   fmt.Sprintf("/users/%s/refresh", applicationUserID),
+			Handlers: []RouteFunc{
+				postgresApplicationUserHandler.RefreshSession,
+			},
+			Filters: []Filter{
+				ContextHasApplication(redisApplicationHandler),
+				RateLimitApplication,
+				ContextHasApplicationUser(postgresApplicationUserHandler),
+			},
+		},
+		&Route{
+			Name:   "refreshCurrentUserApplicationUserSession",
 			Method: "POST",
 			Path:   "/me/refresh",
 			Handlers: []RouteFunc{
@@ -333,6 +371,19 @@ func SetupRoutes() []*Route {
 		},
 		&Route{
 			Name:   "logoutApplicationUser",
+			Method: "DELETE",
+			Path:   fmt.Sprintf("/users/%s/logout", applicationUserID),
+			Handlers: []RouteFunc{
+				postgresApplicationUserHandler.Logout,
+			},
+			Filters: []Filter{
+				ContextHasApplication(redisApplicationHandler),
+				RateLimitApplication,
+				ContextHasApplicationUser(postgresApplicationUserHandler),
+			},
+		},
+		&Route{
+			Name:   "logoutCurrentUserApplicationUser",
 			Method: "DELETE",
 			Path:   "/me/logout",
 			Handlers: []RouteFunc{
@@ -351,6 +402,19 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "createConnection",
 			Method: "PUT",
+			Path:   fmt.Sprintf("/users/%s/connections", applicationUserID),
+			Handlers: []RouteFunc{
+				postgresConnectionHandler.Create,
+			},
+			Filters: []Filter{
+				ContextHasApplication(redisApplicationHandler),
+				RateLimitApplication,
+				ContextHasApplicationUser(postgresApplicationUserHandler),
+			},
+		},
+		&Route{
+			Name:   "createCurrentUserConnection",
+			Method: "PUT",
 			Path:   "/me/connections",
 			Handlers: []RouteFunc{
 				postgresConnectionHandler.Create,
@@ -363,6 +427,19 @@ func SetupRoutes() []*Route {
 		},
 		&Route{
 			Name:   "createFriendConnectionAlias",
+			Method: "PUT",
+			Path:   fmt.Sprintf("/users/%s/friends", applicationUserID),
+			Handlers: []RouteFunc{
+				postgresConnectionHandler.CreateFriend,
+			},
+			Filters: []Filter{
+				ContextHasApplication(redisApplicationHandler),
+				RateLimitApplication,
+				ContextHasApplicationUser(postgresApplicationUserHandler),
+			},
+		},
+		&Route{
+			Name:   "createCurrentUserFriendConnectionAlias",
 			Method: "PUT",
 			Path:   "/me/friends",
 			Handlers: []RouteFunc{
@@ -377,6 +454,19 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "createFollowConnectionAlias",
 			Method: "PUT",
+			Path:   fmt.Sprintf("/users/%s/follow", applicationUserID),
+			Handlers: []RouteFunc{
+				postgresConnectionHandler.CreateFollow,
+			},
+			Filters: []Filter{
+				ContextHasApplication(redisApplicationHandler),
+				RateLimitApplication,
+				ContextHasApplicationUser(postgresApplicationUserHandler),
+			},
+		},
+		&Route{
+			Name:   "createCurrentUserFollowConnectionAlias",
+			Method: "PUT",
 			Path:   "/me/follow",
 			Handlers: []RouteFunc{
 				postgresConnectionHandler.CreateFollow,
@@ -389,6 +479,19 @@ func SetupRoutes() []*Route {
 		},
 		&Route{
 			Name:   "deleteConnection",
+			Method: "DELETE",
+			Path:   fmt.Sprintf("/users/%s/connections/%s", applicationUserID, applicationUserToID),
+			Handlers: []RouteFunc{
+				postgresConnectionHandler.Delete,
+			},
+			Filters: []Filter{
+				ContextHasApplication(redisApplicationHandler),
+				RateLimitApplication,
+				ContextHasApplicationUser(postgresApplicationUserHandler),
+			},
+		},
+		&Route{
+			Name:   "deleteCurrentUserConnection",
 			Method: "DELETE",
 			Path:   fmt.Sprintf("/me/connections/%s", applicationUserToID),
 			Handlers: []RouteFunc{
@@ -403,6 +506,19 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "confirmConnection",
 			Method: "POST",
+			Path:   fmt.Sprintf("/users/%s/connections/%s/confirm", applicationUserID, applicationUserToID),
+			Handlers: []RouteFunc{
+				postgresConnectionHandler.Confirm,
+			},
+			Filters: []Filter{
+				ContextHasApplication(redisApplicationHandler),
+				RateLimitApplication,
+				ContextHasApplicationUser(postgresApplicationUserHandler),
+			},
+		},
+		&Route{
+			Name:   "confirmCurrentUserConnection",
+			Method: "POST",
 			Path:   fmt.Sprintf("/me/connections/%s/confirm", applicationUserToID),
 			Handlers: []RouteFunc{
 				postgresConnectionHandler.Confirm,
@@ -415,6 +531,19 @@ func SetupRoutes() []*Route {
 		},
 		&Route{
 			Name:   "createSocialConnections",
+			Method: "POST",
+			Path:   fmt.Sprintf("/users/%s/connections/social", applicationUserID),
+			Handlers: []RouteFunc{
+				postgresConnectionHandler.CreateSocial,
+			},
+			Filters: []Filter{
+				ContextHasApplication(redisApplicationHandler),
+				RateLimitApplication,
+				ContextHasApplicationUser(postgresApplicationUserHandler),
+			},
+		},
+		&Route{
+			Name:   "createCurrentUserSocialConnections",
 			Method: "POST",
 			Path:   "/me/connections/social",
 			Handlers: []RouteFunc{
@@ -640,6 +769,19 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "getFeed",
 			Method: "GET",
+			Path:   fmt.Sprintf("/users/%s/feed", applicationUserID),
+			Handlers: []RouteFunc{
+				postgresEventHandler.Feed,
+			},
+			Filters: []Filter{
+				ContextHasApplication(redisApplicationHandler),
+				RateLimitApplication,
+				ContextHasApplicationUser(postgresApplicationUserHandler),
+			},
+		},
+		&Route{
+			Name:   "getCurrentUserFeed",
+			Method: "GET",
 			Path:   "/me/feed",
 			Handlers: []RouteFunc{
 				postgresEventHandler.Feed,
@@ -653,6 +795,19 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "getUnreadFeedCount",
 			Method: "GET",
+			Path:   fmt.Sprintf("/users/%s/feed/unread/count", applicationUserID),
+			Handlers: []RouteFunc{
+				postgresEventHandler.UnreadFeedCount,
+			},
+			Filters: []Filter{
+				ContextHasApplication(redisApplicationHandler),
+				RateLimitApplication,
+				ContextHasApplicationUser(postgresApplicationUserHandler),
+			},
+		},
+		&Route{
+			Name:   "getCurrentUserUnreadFeedCount",
+			Method: "GET",
 			Path:   "/me/feed/unread/count",
 			Handlers: []RouteFunc{
 				postgresEventHandler.UnreadFeedCount,
@@ -665,6 +820,19 @@ func SetupRoutes() []*Route {
 		},
 		&Route{
 			Name:   "getUnreadFeed",
+			Method: "GET",
+			Path:   fmt.Sprintf("/users/%s/feed/unread", applicationUserID),
+			Handlers: []RouteFunc{
+				postgresEventHandler.UnreadFeed,
+			},
+			Filters: []Filter{
+				ContextHasApplication(redisApplicationHandler),
+				RateLimitApplication,
+				ContextHasApplicationUser(postgresApplicationUserHandler),
+			},
+		},
+		&Route{
+			Name:   "getCurrentUserUnreadFeed",
 			Method: "GET",
 			Path:   "/me/feed/unread",
 			Handlers: []RouteFunc{
@@ -689,6 +857,8 @@ func SetupRoutes() []*Route {
 				ContextHasApplicationUser(postgresApplicationUserHandler),
 			},
 		},
+
+		// Misc
 		&Route{
 			Name:   "version",
 			Method: "GET",

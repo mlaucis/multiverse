@@ -60,11 +60,17 @@ const (
 
 	alpha1 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ~!@#$%^&*()_+{}:\"|<>?"
 	alpha2 = "abcdefghijklmnopqrstuvwxyz0123456789`-=[];'\\,./"
+
+	charNum1 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ01234"
+	charNum2 = "abcdefghijklmnopqrstuvwxyz56789"
 )
 
 var (
 	alpha1Len = len(alpha1)
 	alpha2Len = len(alpha2)
+
+	charNum1Len = len(charNum1)
+	charNum2Len = len(charNum2)
 
 	// OIDUUIDNamespace refers to the Object ID UUID Namespace http://tools.ietf.org/html/rfc4122.html#section-4.3
 	OIDUUIDNamespace = uuid.NamespaceOID.String()
@@ -98,6 +104,19 @@ func GenerateRandomString(size int) string {
 	for i := 0; i < size/2; i++ {
 		salt += string(alpha1[rand.Intn(alpha1Len)])
 		salt += string(alpha2[rand.Intn(alpha2Len)])
+	}
+
+	return salt
+}
+
+// GenerateRandomStringSet returns a random string of the given size formed only from chars and digits
+func GenerateRandomStringSet(size int) string {
+	rand.Seed(time.Now().UnixNano())
+	salt := ""
+
+	for i := 0; i < size/2; i++ {
+		salt += string(charNum1[rand.Intn(charNum1Len)])
+		salt += string(charNum2[rand.Intn(charNum2Len)])
 	}
 
 	return salt
@@ -143,6 +162,12 @@ func GenerateApplicationSecretKey(application *entity.Application) string {
 		application.CreatedAt.Format(time.RFC3339),
 	)))
 	return fmt.Sprintf("%x", hasher.Sum(nil))
+}
+
+// GenerateBackendApplicationSecretKey returns a backend token for the specified application of an organization
+// Currently this is a 44 char string (32 md5 + 12 extra padding)
+func GenerateBackendApplicationSecretKey(application *entity.Application) string {
+	return GenerateApplicationSecretKey(application) + GenerateRandomStringSet(12)
 }
 
 // GenerateAccountSessionID generated the session id for the specific

@@ -17,7 +17,7 @@ import (
 /******************** CREATECONNECTION TESTS ********************/
 /****************************************************************/
 
-// Test createConnection request with a wrong key
+// Test createCurrentUserConnection request with a wrong key
 func (s *ConnectionSuite) TestCreateConnection_WrongKey(c *C) {
 	accounts := CorrectDeploy(1, 0, 1, 1, 0, true, true)
 	application := accounts[0].Applications[0]
@@ -25,7 +25,7 @@ func (s *ConnectionSuite) TestCreateConnection_WrongKey(c *C) {
 
 	payload := "{usrfromidea:''}"
 
-	routeName := "createConnection"
+	routeName := "createCurrentUserConnection"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, user, true, true))
 	c.Assert(err, IsNil)
@@ -34,7 +34,7 @@ func (s *ConnectionSuite) TestCreateConnection_WrongKey(c *C) {
 	c.Assert(body, Not(Equals), "")
 }
 
-// Test createConnection request with an wrong name
+// Test createCurrentUserConnection request with an wrong name
 func (s *ConnectionSuite) TestCreateConnection_WrongValue(c *C) {
 	accounts := CorrectDeploy(1, 0, 1, 1, 0, true, true)
 	application := accounts[0].Applications[0]
@@ -42,7 +42,7 @@ func (s *ConnectionSuite) TestCreateConnection_WrongValue(c *C) {
 
 	payload := `{"user_from_id":"","user_to_id":""}`
 
-	routeName := "createConnection"
+	routeName := "createCurrentUserConnection"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, user, true, true))
 	c.Assert(err, IsNil)
@@ -51,7 +51,7 @@ func (s *ConnectionSuite) TestCreateConnection_WrongValue(c *C) {
 	c.Assert(body, Not(Equals), "")
 }
 
-// Test a correct createConnection request
+// Test a correct createCurrentUserConnection request
 func (s *ConnectionSuite) TestCreateConnection_OK(c *C) {
 	accounts := CorrectDeploy(1, 0, 1, 2, 0, false, true)
 	application := accounts[0].Applications[0]
@@ -66,7 +66,7 @@ func (s *ConnectionSuite) TestCreateConnection_OK(c *C) {
 		userTo.ID,
 	)
 
-	routeName := "createConnection"
+	routeName := "createCurrentUserConnection"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
@@ -97,7 +97,7 @@ func (s *ConnectionSuite) TestCreateConnectionTwice(c *C) {
 		userTo.ID,
 	)
 
-	routeName := "createConnection"
+	routeName := "createCurrentUserConnection"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
@@ -133,7 +133,7 @@ func (s *ConnectionSuite) TestCreateFriendConnection(c *C) {
 		userTo.ID,
 	)
 
-	routeName := "createFriendConnectionAlias"
+	routeName := "createCurrentUserFriendConnectionAlias"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
@@ -163,7 +163,7 @@ func (s *ConnectionSuite) TestCreateFollowConnection(c *C) {
 		userTo.ID,
 	)
 
-	routeName := "createFollowConnectionAlias"
+	routeName := "createCurrentUserFollowConnectionAlias"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
@@ -195,7 +195,7 @@ func (s *ConnectionSuite) TestCreateConnectionWithCustomIDs_OK(c *C) {
 		userTo.CustomID,
 	)
 
-	routeName := "createConnection"
+	routeName := "createCurrentUserConnection"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
@@ -226,7 +226,7 @@ func (s *ConnectionSuite) TestCreateConnectionAfterLogin(c *C) {
 		userFrom.OriginalPassword,
 	)
 
-	routeName := "loginApplicationUser"
+	routeName := "loginCurrentUserApplicationUser"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
@@ -246,7 +246,7 @@ func (s *ConnectionSuite) TestCreateConnectionAfterLogin(c *C) {
 
 	payload = fmt.Sprintf(`{"user_to_id":%d, "type": "follow"}`, userTo.ID)
 
-	routeName = "createConnection"
+	routeName = "createCurrentUserConnection"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
@@ -277,7 +277,7 @@ func (s *ConnectionSuite) TestCreateConnectionAfterLoginRefreshNewToken(c *C) {
 		userFrom.OriginalPassword,
 	)
 
-	routeName := "loginApplicationUser"
+	routeName := "loginCurrentUserApplicationUser"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
@@ -313,7 +313,7 @@ func (s *ConnectionSuite) TestCreateConnectionAfterLoginRefreshNewToken(c *C) {
 
 	payload = fmt.Sprintf(`{"user_to_id":%d, "type": "friend"}`, userTo.ID)
 
-	routeName = "createConnection"
+	routeName = "createCurrentUserConnection"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
@@ -343,7 +343,7 @@ func (s *ConnectionSuite) TestCreateConnectionAfterLoginRefreshOldToken_Works(c 
 		userFrom.OriginalPassword,
 	)
 
-	routeName := "loginApplicationUser"
+	routeName := "loginCurrentUserApplicationUser"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, nil, true, true))
 	c.Assert(err, IsNil)
@@ -363,7 +363,7 @@ func (s *ConnectionSuite) TestCreateConnectionAfterLoginRefreshOldToken_Works(c 
 
 	payload = fmt.Sprintf(`{"session_token": "%s"}`, userFrom.SessionToken)
 
-	routeName = "refreshApplicationUserSession"
+	routeName = "refreshCurrentUserApplicationUserSession"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
@@ -377,7 +377,7 @@ func (s *ConnectionSuite) TestCreateConnectionAfterLoginRefreshOldToken_Works(c 
 
 	payload = fmt.Sprintf(`{"user_to_id":%d, "type": "friend"}`, userTo.ID)
 
-	routeName = "createConnection"
+	routeName = "createCurrentUserConnection"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
@@ -398,7 +398,7 @@ func (s *ConnectionSuite) TestCreateConnectionAfterLoginLogout(c *C) {
 		userFrom.OriginalPassword,
 	)
 
-	routeName := "loginApplicationUser"
+	routeName := "loginCurrentUserApplicationUser"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, nil, true, true))
 	c.Assert(err, IsNil)
@@ -418,7 +418,7 @@ func (s *ConnectionSuite) TestCreateConnectionAfterLoginLogout(c *C) {
 
 	payload = fmt.Sprintf(`{"session_token": "%s"}`, userFrom.SessionToken)
 
-	routeName = "logoutApplicationUser"
+	routeName = "logoutCurrentUserApplicationUser"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
@@ -426,7 +426,7 @@ func (s *ConnectionSuite) TestCreateConnectionAfterLoginLogout(c *C) {
 
 	payload = fmt.Sprintf(`{"user_to_id":%d, "type": "friend"}`, userTo.ID)
 
-	routeName = "createConnection"
+	routeName = "createCurrentUserConnection"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
@@ -448,7 +448,7 @@ func (s *ConnectionSuite) TestCreateConnectionAfterLoginLogoutLogin(c *C) {
 		userFrom.OriginalPassword,
 	)
 
-	routeName := "loginApplicationUser"
+	routeName := "loginCurrentUserApplicationUser"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
@@ -466,12 +466,12 @@ func (s *ConnectionSuite) TestCreateConnectionAfterLoginLogoutLogin(c *C) {
 
 	payloadLogout := fmt.Sprintf(`{"session_token": "%s"}`, userFrom.SessionToken)
 
-	routeName = "logoutApplicationUser"
+	routeName = "logoutCurrentUserApplicationUser"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, payloadLogout, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
 
-	routeName = "loginApplicationUser"
+	routeName = "loginCurrentUserApplicationUser"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
@@ -485,7 +485,7 @@ func (s *ConnectionSuite) TestCreateConnectionAfterLoginLogoutLogin(c *C) {
 
 	payload = fmt.Sprintf(`{"user_to_id":%d, "type": "friend"}`, userTo.ID)
 
-	routeName = "createConnection"
+	routeName = "createCurrentUserConnection"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
@@ -512,7 +512,7 @@ func (s *ConnectionSuite) TestCreateConnectionAfterLoginRefreshLogout(c *C) {
 		userFrom.OriginalPassword,
 	)
 
-	routeName := "loginApplicationUser"
+	routeName := "loginCurrentUserApplicationUser"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
@@ -547,7 +547,7 @@ func (s *ConnectionSuite) TestCreateConnectionAfterLoginRefreshLogout(c *C) {
 	userFrom.SessionToken = sessionToken.Token
 	payload = fmt.Sprintf(`{"session_token": "%s"}`, userFrom.SessionToken)
 
-	routeName = "logoutApplicationUser"
+	routeName = "logoutCurrentUserApplicationUser"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
@@ -555,7 +555,7 @@ func (s *ConnectionSuite) TestCreateConnectionAfterLoginRefreshLogout(c *C) {
 
 	payload = fmt.Sprintf(`{"user_to_id":%d, "type": "friend"}`, userTo.ID)
 
-	routeName = "createConnection"
+	routeName = "createCurrentUserConnection"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
@@ -577,7 +577,7 @@ func (s *ConnectionSuite) TestCreateFollowConnectionAndCheckLists(c *C) {
 
 	payload := fmt.Sprintf(`{"user_to_id":%d,  "type": "follow"}`, userTo.ID)
 
-	routeName := "createConnection"
+	routeName := "createCurrentUserConnection"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
@@ -632,7 +632,7 @@ func (s *ConnectionSuite) TestCreateFollowConnectionAndCheckLists(c *C) {
 	c.Assert(userConnections.Users[0].ID, Equals, userFrom.ID)
 
 	// Check activity feed events
-	routeName = "getFeed"
+	routeName = "getCurrentUserFeed"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, "", signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
@@ -661,7 +661,7 @@ func (s *ConnectionSuite) TestCreateFriendConnectionAndCheckLists(c *C) {
 
 	payload := fmt.Sprintf(`{"user_to_id":%d,  "type": "friend"}`, userTo.ID)
 
-	routeName := "createConnection"
+	routeName := "createCurrentUserConnection"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
@@ -716,7 +716,7 @@ func (s *ConnectionSuite) TestCreateFriendConnectionAndCheckLists(c *C) {
 	c.Assert(userConnections.Users[0].ID, Equals, userFrom.ID)
 
 	// Check activity feed events
-	routeName = "getFeed"
+	routeName = "getCurrentUserFeed"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, "", signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
@@ -745,7 +745,7 @@ func (s *ConnectionSuite) TestCreateConnectionUsersAlreadyConnected(c *C) {
 
 	payload := fmt.Sprintf(`{"user_to_id":%d, "type": "friend"}`, userTo.ID)
 
-	routeName := "createConnection"
+	routeName := "createCurrentUserConnection"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
@@ -767,7 +767,7 @@ func (s *ConnectionSuite) TestCreateConnectionUsersAlreadyConnected(c *C) {
 
 	payload := fmt.Sprintf(`{"user_to_id":%d, "type": "friend"}`, app2UserTo.ID)
 
-	routeName := "createConnection"
+	routeName := "createCurrentUserConnection"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application1, app1UserFrom, true, true))
 	c.Assert(err, IsNil)
@@ -795,7 +795,7 @@ func (s *ConnectionSuite) TestCreateConnectionUsersNotActivated(c *C) {
 
 	payload = fmt.Sprintf(`{"user_to_id":%d}`, userTo.ID)
 
-	routeName = "createConnection"
+	routeName = "createCurrentUserConnection"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
@@ -994,7 +994,7 @@ func (s *ConnectionSuite) TestUpdateConnectionDisableAndCheckLists(c *C) {
 /******************** DELETECONNECTION TESTS ********************/
 /****************************************************************/
 
-// Test a correct deleteConnection request
+// Test a correct deleteCurrentUserConnection request
 func (s *ConnectionSuite) TestDeleteConnection_OK(c *C) {
 	accounts := CorrectDeploy(1, 0, 1, 2, 0, true, true)
 	account := accounts[0]
@@ -1004,7 +1004,7 @@ func (s *ConnectionSuite) TestDeleteConnection_OK(c *C) {
 
 	LoginApplicationUser(account.ID, application.ID, userFrom)
 
-	routeName := "deleteConnection"
+	routeName := "deleteCurrentUserConnection"
 	route := getComposedRoute(routeName, userTo.ID)
 	code, _, err := runRequest(routeName, route, "", signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
@@ -1013,14 +1013,14 @@ func (s *ConnectionSuite) TestDeleteConnection_OK(c *C) {
 	c.Assert(code, Equals, http.StatusNoContent)
 }
 
-// Test deleteConnection request with a wrong id
+// Test deleteCurrentUserConnection request with a wrong id
 func (s *ConnectionSuite) TestDeleteConnection_WrongID(c *C) {
 	accounts := CorrectDeploy(1, 0, 1, 2, 0, true, true)
 	application := accounts[0].Applications[0]
 	userFrom := application.Users[0]
 	userTo := application.Users[1]
 
-	routeName := "deleteConnection"
+	routeName := "deleteCurrentUserConnection"
 	route := getComposedRoute(routeName, userTo.ID+1)
 	code, _, err := runRequest(routeName, route, "", signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
@@ -1152,7 +1152,7 @@ func (s *ConnectionSuite) TestConfirmConnection(c *C) {
 	LoginApplicationUser(accounts[0].ID, application.ID, user1)
 
 	payload := fmt.Sprintf(`{"user_from_id":%q, "user_to_id":%d, "type": "friend", "enabled": false}`, user1.ID, user2.ID)
-	routeName := "createConnection"
+	routeName := "createCurrentUserConnection"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, user1, true, true))
 	c.Assert(err, IsNil)
@@ -1212,7 +1212,7 @@ func (s *ConnectionSuite) TestCreateSocialConnection(c *C) {
 	})
 	c.Assert(er, IsNil)
 
-	routeName := "createSocialConnections"
+	routeName := "createCurrentUserSocialConnections"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, string(payload), signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
@@ -1295,24 +1295,24 @@ func (s *ConnectionSuite) TestConnectionMalformedPayloadFails(c *C) {
 		// 0
 		{
 			Payload:   "",
-			RouteName: "deleteConnection",
-			Route:     getComposedRouteString("deleteConnection", user12.ID),
+			RouteName: "deleteCurrentUserConnection",
+			Route:     getComposedRouteString("deleteCurrentUserConnection", user12.ID),
 			Code:      http.StatusNotFound,
 			Body:      `{"message":"connection not found"}` + "\n",
 		},
 		// 1
 		{
 			Payload:   "",
-			RouteName: "deleteConnection",
-			Route:     getComposedRoute("deleteConnection", user12.ID),
+			RouteName: "deleteCurrentUserConnection",
+			Route:     getComposedRoute("deleteCurrentUserConnection", user12.ID),
 			Code:      http.StatusNotFound,
 			Body:      `{"message":"connection not found"}` + "\n",
 		},
 		// 2
 		{
 			Payload:   fmt.Sprintf(`{"user_from_id":%q, "user_to_id":%d, "enabled":false}`, user1.ID, user1.ID),
-			RouteName: "createConnection",
-			Route:     getComposedRoute("createConnection", user12.ID),
+			RouteName: "createCurrentUserConnection",
+			Route:     getComposedRoute("createCurrentUserConnection", user12.ID),
 			Code:      http.StatusBadRequest,
 			Body:      "400 failed to create connection (2)\nuser is connecting with itself",
 		},
@@ -1335,32 +1335,32 @@ func (s *ConnectionSuite) TestConnectionMalformedPayloadFails(c *C) {
 		// 5
 		{
 			Payload:   "",
-			RouteName: "createSocialConnections",
-			Route:     getComposedRoute("createSocialConnections"),
+			RouteName: "createCurrentUserSocialConnections",
+			Route:     getComposedRoute("createCurrentUserSocialConnections"),
 			Code:      http.StatusNotFound,
 			Body:      "404 social connecting failed (1)\nunexpected social platform",
 		},
 		// 6
 		{
 			Payload:   fmt.Sprintf(`{"user_from_id": %q}`, "13"),
-			RouteName: "createSocialConnections",
-			Route:     getComposedRoute("createSocialConnections"),
+			RouteName: "createCurrentUserSocialConnections",
+			Route:     getComposedRoute("createCurrentUserSocialConnections"),
 			Code:      http.StatusBadRequest,
 			Body:      "400 social connecting failed (3)\nuser mismatch",
 		},
 		// 7
 		{
 			Payload:   fmt.Sprintf(`{"user_from_id": %q, "social_platform": "%s"}`, user1.ID, "fake"),
-			RouteName: "createSocialConnections",
-			Route:     getComposedRoute("createSocialConnections"),
+			RouteName: "createCurrentUserSocialConnections",
+			Route:     getComposedRoute("createCurrentUserSocialConnections"),
 			Code:      http.StatusBadRequest,
 			Body:      "400 social connecting failed (3)\nplatform mismatch",
 		},
 		// 8
 		{
 			Payload:   fmt.Sprintf(`{"user_from_id": %q, "social_platform": "%s"`, user1.ID, "fake"),
-			RouteName: "createSocialConnections",
-			Route:     getComposedRoute("createSocialConnections"),
+			RouteName: "createCurrentUserSocialConnections",
+			Route:     getComposedRoute("createCurrentUserSocialConnections"),
 			Code:      http.StatusBadRequest,
 			Body:      "400 social connecting failed (2)\nunexpected end of JSON input",
 		},
@@ -1400,7 +1400,7 @@ func (s *ConnectionSuite) TestCreateSocialConnectionFriendsAlreadyConnected(c *C
 	})
 	c.Assert(er, IsNil)
 
-	routeName := "createSocialConnections"
+	routeName := "createCurrentUserSocialConnections"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, string(payload), signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
@@ -1434,7 +1434,7 @@ func (s *ConnectionSuite) TestCreateSocialConnectionFriendsAlreadyConnected(c *C
 	})
 	c.Assert(er, IsNil)
 
-	routeName = "createSocialConnections"
+	routeName = "createCurrentUserSocialConnections"
 	code, body, err = runRequest(routeName, route, string(payload), signApplicationRequest(application, user2, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusCreated)
@@ -1478,7 +1478,7 @@ func (s *ConnectionSuite) TestCreateSocialConnectionFollowsAlreadyConnected(c *C
 	})
 	c.Assert(er, IsNil)
 
-	routeName := "createSocialConnections"
+	routeName := "createCurrentUserSocialConnections"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, string(payload), signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
@@ -1512,7 +1512,7 @@ func (s *ConnectionSuite) TestCreateSocialConnectionFollowsAlreadyConnected(c *C
 	})
 	c.Assert(er, IsNil)
 
-	routeName = "createSocialConnections"
+	routeName = "createCurrentUserSocialConnections"
 	code, body, err = runRequest(routeName, route, string(payload), signApplicationRequest(application, user2, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusCreated)
@@ -1556,7 +1556,7 @@ func (s *ConnectionSuite) TestCreateSocialConnectionFollowsFriendAlreadyConnecte
 	})
 	c.Assert(er, IsNil)
 
-	routeName := "createSocialConnections"
+	routeName := "createCurrentUserSocialConnections"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, string(payload), signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
@@ -1590,7 +1590,7 @@ func (s *ConnectionSuite) TestCreateSocialConnectionFollowsFriendAlreadyConnecte
 	})
 	c.Assert(er, IsNil)
 
-	routeName = "createSocialConnections"
+	routeName = "createCurrentUserSocialConnections"
 	code, body, err = runRequest(routeName, route, string(payload), signApplicationRequest(application, user2, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusCreated)
@@ -1634,7 +1634,7 @@ func (s *ConnectionSuite) TestCreateSocialConnectionFriendFollowsAlreadyConnecte
 	})
 	c.Assert(er, IsNil)
 
-	routeName := "createSocialConnections"
+	routeName := "createCurrentUserSocialConnections"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, string(payload), signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
@@ -1668,7 +1668,7 @@ func (s *ConnectionSuite) TestCreateSocialConnectionFriendFollowsAlreadyConnecte
 	})
 	c.Assert(er, IsNil)
 
-	routeName = "createSocialConnections"
+	routeName = "createCurrentUserSocialConnections"
 	code, body, err = runRequest(routeName, route, string(payload), signApplicationRequest(application, user2, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusCreated)
@@ -1698,7 +1698,7 @@ func (s *ConnectionSuite) TestGetConnectionsCount(c *C) {
 		userFriend.ID,
 	)
 
-	routeName := "createFriendConnectionAlias"
+	routeName := "createCurrentUserFriendConnectionAlias"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, user, true, true))
 	c.Assert(err, IsNil)
@@ -1744,7 +1744,7 @@ func (s *ConnectionSuite) TestCreateConnectionWithEvent(c *C) {
 		userTo.ID,
 	)
 
-	routeName := "createConnection"
+	routeName := "createCurrentUserConnection"
 	route := getComposedRoute(routeName) + "?with_event=true"
 	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
@@ -1760,7 +1760,7 @@ func (s *ConnectionSuite) TestCreateConnectionWithEvent(c *C) {
 	c.Assert(connection.Type, Equals, "friend")
 	c.Assert(connection.Enabled, Equals, true)
 
-	routeName = "getFeed"
+	routeName = "getCurrentUserFeed"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, "", signApplicationRequest(application, userTo, true, true))
 	c.Assert(err, IsNil)
@@ -1806,7 +1806,7 @@ func (s *ConnectionSuite) TestCreateSocialConnectionWithEvent(c *C) {
 	})
 	c.Assert(er, IsNil)
 
-	routeName := "createSocialConnections"
+	routeName := "createCurrentUserSocialConnections"
 	route := getComposedRoute(routeName) + "?with_event=true"
 	code, body, err := runRequest(routeName, route, string(payload), signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
@@ -1824,7 +1824,7 @@ func (s *ConnectionSuite) TestCreateSocialConnectionWithEvent(c *C) {
 	c.Assert(connectedUsers.Users[0].ID, Equals, user2.ID)
 	c.Assert(connectedUsers.Users[1].ID, Equals, user4.ID)
 
-	routeName = "getFeed"
+	routeName = "getCurrentUserFeed"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, "", signApplicationRequest(application, user2, true, true))
 	c.Assert(err, IsNil)

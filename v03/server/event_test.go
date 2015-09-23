@@ -529,7 +529,7 @@ func (s *EventSuite) TestGetFeed(c *C) {
 	userFrom := application.Users[0]
 
 	// Check activity feed events
-	routeName := "getFeed"
+	routeName := "getCurrentUserFeed"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, "", signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
@@ -550,7 +550,7 @@ func (s *EventSuite) TestGetFeed(c *C) {
 
 	time.Sleep(10 * time.Millisecond)
 
-	routeName = "getFeed"
+	routeName = "getCurrentUserFeed"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, "", signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
@@ -578,7 +578,7 @@ func (s *EventSuite) TestGetFeedWithCacheHeaders(c *C) {
 	userFrom := application.Users[0]
 
 	// Check activity feed events
-	routeName := "getFeed"
+	routeName := "getCurrentUserFeed"
 	route := getComposedRoute(routeName)
 	code, body, headers, err := runRequestWithHeaders(routeName, route, "", func(r *http.Request) {}, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
@@ -650,7 +650,7 @@ func (s *EventSuite) TestGetUnreadFeed(c *C) {
 	userFrom := application.Users[0]
 
 	// Check activity feed events
-	routeName := "getFeed"
+	routeName := "getCurrentUserFeed"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, "", signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
@@ -674,7 +674,7 @@ func (s *EventSuite) TestGetUnreadFeed(c *C) {
 
 	time.Sleep(10 * time.Millisecond)
 
-	routeName = "getUnreadFeed"
+	routeName = "getCurrentUserUnreadFeed"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, "", signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
@@ -698,7 +698,7 @@ func (s *EventSuite) TestGetUnreadFeedCount(c *C) {
 	userFrom := application.Users[0]
 
 	// Check activity feed events
-	routeName := "getUnreadFeedCount"
+	routeName := "getCurrentUserUnreadFeedCount"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, "", signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
@@ -712,7 +712,7 @@ func (s *EventSuite) TestGetUnreadFeedCount(c *C) {
 	c.Assert(er, IsNil)
 	c.Assert(response.Count, Equals, 33)
 
-	routeName = "getUnreadFeed"
+	routeName = "getCurrentUserUnreadFeed"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, "", signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
@@ -729,7 +729,7 @@ func (s *EventSuite) TestGetUnreadFeedCount(c *C) {
 
 	time.Sleep(1 * time.Second)
 
-	routeName = "getUnreadFeedCount"
+	routeName = "getCurrentUserUnreadFeedCount"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, "", signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
@@ -738,6 +738,127 @@ func (s *EventSuite) TestGetUnreadFeedCount(c *C) {
 	er = json.Unmarshal([]byte(body), &response)
 	c.Assert(er, IsNil)
 	c.Assert(response.Count, Equals, 0)
+}
+
+func (s *EventSuite) TestGetFeedWithBackendToken(c *C) {
+	accounts := CorrectDeploy(1, 0, 1, 10, 10, true, true)
+	application := accounts[0].Applications[0]
+	user := application.Users[0]
+
+	c.Assert(application.BackendToken, Not(Equals), "")
+	c.Assert(len(application.BackendToken), Equals, 44)
+
+	// Check activity feed events
+	routeName := "getFeed"
+	route := getComposedRoute(routeName, user.ID)
+	code, body, err := runRequest(routeName, route, "", signApplicationBackendRequest(application, nil, true, true))
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusOK)
+	c.Assert(body, Not(Equals), "")
+
+	response := struct {
+		Count  int                               `json:"unread_events_count"`
+		Events []entity.Event                    `json:"events"`
+		Users  map[string]entity.ApplicationUser `json:"users"`
+	}{}
+	er := json.Unmarshal([]byte(body), &response)
+	c.Assert(er, IsNil)
+
+	c.Assert(response.Count, Equals, 33)
+	c.Assert(len(response.Events), Equals, 33)
+	c.Assert(len(response.Users), Equals, 9)
+
+	time.Sleep(10 * time.Millisecond)
+
+	routeName = "getFeed"
+	route = getComposedRoute(routeName, user.ID)
+	code, body, err = runRequest(routeName, route, "", signApplicationBackendRequest(application, nil, true, true))
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusOK)
+	c.Assert(body, Not(Equals), "")
+
+	response = struct {
+		Count  int                               `json:"unread_events_count"`
+		Events []entity.Event                    `json:"events"`
+		Users  map[string]entity.ApplicationUser `json:"users"`
+	}{}
+	er = json.Unmarshal([]byte(body), &response)
+	c.Assert(er, IsNil)
+	c.Assert(response.Count, Equals, 0)
+	c.Assert(len(response.Events), Equals, 33)
+	c.Assert(len(response.Users), Equals, 9)
+	for _, user := range response.Users {
+		c.Assert(user.Deleted, IsNil)
+	}
+}
+
+func (s *EventSuite) TestGetFeedWithBackendToken2(c *C) {
+	accounts := CorrectDeploy(1, 0, 1, 10, 10, true, true)
+	application := accounts[0].Applications[0]
+	user := application.Users[0]
+
+	c.Assert(application.BackendToken, Not(Equals), "")
+	c.Assert(len(application.BackendToken), Equals, 44)
+
+	// Check activity feed events
+	routeName := "getFeed"
+	route := getComposedRoute(routeName, user.ID)
+	code, body, err := runRequest(routeName, route, "", signApplicationBackendRequest(application, user, true, true))
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusOK)
+	c.Assert(body, Not(Equals), "")
+
+	response := struct {
+		Count  int                               `json:"unread_events_count"`
+		Events []entity.Event                    `json:"events"`
+		Users  map[string]entity.ApplicationUser `json:"users"`
+	}{}
+	er := json.Unmarshal([]byte(body), &response)
+	c.Assert(er, IsNil)
+
+	c.Assert(response.Count, Equals, 33)
+	c.Assert(len(response.Events), Equals, 33)
+	c.Assert(len(response.Users), Equals, 9)
+
+	time.Sleep(10 * time.Millisecond)
+
+	routeName = "getFeed"
+	route = getComposedRoute(routeName, user.ID)
+	code, body, err = runRequest(routeName, route, "", signApplicationBackendRequest(application, user, true, true))
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusOK)
+	c.Assert(body, Not(Equals), "")
+
+	response = struct {
+		Count  int                               `json:"unread_events_count"`
+		Events []entity.Event                    `json:"events"`
+		Users  map[string]entity.ApplicationUser `json:"users"`
+	}{}
+	er = json.Unmarshal([]byte(body), &response)
+	c.Assert(er, IsNil)
+	c.Assert(response.Count, Equals, 0)
+	c.Assert(len(response.Events), Equals, 33)
+	c.Assert(len(response.Users), Equals, 9)
+	for _, user := range response.Users {
+		c.Assert(user.Deleted, IsNil)
+	}
+}
+
+func (s *EventSuite) TestGetFeedWithBackendToken_Bad(c *C) {
+	accounts := CorrectDeploy(1, 0, 1, 10, 10, true, true)
+	application := accounts[0].Applications[0]
+	user := application.Users[0]
+
+	c.Assert(application.BackendToken, Not(Equals), "")
+	c.Assert(len(application.BackendToken), Equals, 44)
+
+	// Check activity feed events
+	routeName := "getFeed"
+	route := getComposedRoute(routeName, user.ID)
+	code, body, err := runRequest(routeName, route, "", signApplicationBackendRequest(application, user, false, true))
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusBadRequest)
+	c.Assert(body, Not(Equals), "")
 }
 
 func BenchmarkCreateEvent1_Write(b *testing.B) {

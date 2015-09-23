@@ -69,5 +69,9 @@ func UpdateApplication(existingApplication, updatedApplication *entity.Applicati
 		errs = append(errs, errmsg.ErrApplicationAuthTokenUpdateNotAllowed)
 	}
 
+	if existingApplication.BackendToken != updatedApplication.BackendToken {
+		errs = append(errs, errmsg.ErrApplicationAuthTokenUpdateNotAllowed)
+	}
+
 	return
 }

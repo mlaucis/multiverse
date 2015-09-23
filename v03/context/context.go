@@ -6,13 +6,13 @@ import (
 )
 
 type (
-	rokenType uint8
+	tokenType uint8
 
 	// Context holds the context for the current request
 	Context struct {
 		ctx.Context
 
-		TokenType         rokenType
+		TokenType         tokenType
 		OrganizationID    int64
 		MemberID          int64
 		ApplicationID     int64
@@ -26,6 +26,9 @@ type (
 
 // Here we define the supported token types
 const (
-	TokenTypeApplication rokenType = iota
+	TokenTypeUnknown tokenType = iota
+	TokenTypeOrganization
+	TokenTypeOrganizationID
+	TokenTypeApplication
 	TokenTypeBackend
 )
