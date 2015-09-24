@@ -692,7 +692,7 @@ func SetupRoutes() []*Route {
 			Method: "POST",
 			Path:   fmt.Sprintf("/users/%s/events", applicationUserID),
 			Handlers: []RouteFunc{
-				kinesisEventHandler.Create,
+				kinesisEventHandler.CurrentUserCreate,
 			},
 			Filters: []Filter{
 				ContextHasApplication(redisApplicationHandler),

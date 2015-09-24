@@ -693,7 +693,7 @@ func SetupRoutes() []*Route {
 			Method: "POST",
 			Path:   fmt.Sprintf("/users/%s/events", applicationUserID),
 			Handlers: []RouteFunc{
-				postgresEventHandler.Create,
+				postgresEventHandler.CurrentUserCreate,
 			},
 			Filters: []Filter{
 				ContextHasApplication(redisApplicationHandler),

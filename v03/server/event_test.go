@@ -740,6 +740,87 @@ func (s *EventSuite) TestGetUnreadFeedCount(c *C) {
 	c.Assert(response.Count, Equals, 0)
 }
 
+func (s *EventSuite) TestCreateEventWithBackendToken(c *C) {
+	accounts := CorrectDeploy(1, 0, 1, 1, 0, true, true)
+	application := accounts[0].Applications[0]
+	user := application.Users[0]
+	event := CorrectEvent(application.ID)
+
+	c.Assert(application.BackendToken, Not(Equals), "")
+	c.Assert(len(application.BackendToken), Equals, 44)
+
+	payload := fmt.Sprintf(
+		`{"type":%q, "language":%q, "visibility": %d}`,
+		event.Type,
+		event.Language,
+		entity.EventPublic,
+	)
+
+	routeName := "createEvent"
+	route := getComposedRoute(routeName, user.ID)
+	code, body, headerz, err := runRequestWithHeaders(routeName, route, payload, func(*http.Request) {}, signApplicationBackendRequest(application, nil, true, true))
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusCreated)
+	c.Assert(headerz.Get("Location"), Not(Equals), "")
+	c.Assert(headerz.Get("Content-Type"), Equals, "application/json; charset=UTF-8")
+	c.Assert(body, Not(Equals), "")
+
+	receivedEvent := &entity.Event{}
+	er := json.Unmarshal([]byte(body), receivedEvent)
+	c.Assert(er, IsNil)
+	c.Assert(receivedEvent.ID, Not(Equals), "")
+	c.Assert(receivedEvent.UserID, Equals, user.ID)
+	c.Assert(receivedEvent.Enabled, Equals, true)
+	c.Assert(receivedEvent.Type, Equals, event.Type)
+	c.Assert(receivedEvent.Language, Equals, event.Language)
+	c.Assert(int(receivedEvent.Visibility), Equals, entity.EventPublic)
+
+	payload = fmt.Sprintf(
+		`{"type":%q, "language":%q}`,
+		event.Type,
+		event.Language,
+	)
+
+	code, body, err = runRequest(routeName, route, payload, signApplicationBackendRequest(application, nil, true, true))
+	c.Assert(err, IsNil)
+
+	c.Assert(code, Equals, http.StatusCreated)
+
+	c.Assert(body, Not(Equals), "")
+
+	receivedEvent = &entity.Event{}
+	er = json.Unmarshal([]byte(body), receivedEvent)
+	c.Assert(er, IsNil)
+	c.Assert(receivedEvent.UserID, Equals, user.ID)
+	c.Assert(receivedEvent.Enabled, Equals, true)
+	c.Assert(receivedEvent.Type, Equals, event.Type)
+	c.Assert(receivedEvent.Language, Equals, event.Language)
+	c.Assert(int(receivedEvent.Visibility), Equals, entity.EventPublic)
+
+	payload = fmt.Sprintf(
+		`{"type":%q, "language":%q, "visibility": %d}`,
+		event.Type,
+		event.Language,
+		entity.EventGlobal,
+	)
+
+	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, user, true, true))
+	c.Assert(err, IsNil)
+
+	c.Assert(code, Equals, http.StatusCreated)
+
+	c.Assert(body, Not(Equals), "")
+
+	receivedEvent = &entity.Event{}
+	er = json.Unmarshal([]byte(body), receivedEvent)
+	c.Assert(er, IsNil)
+	c.Assert(receivedEvent.UserID, Equals, user.ID)
+	c.Assert(receivedEvent.Enabled, Equals, true)
+	c.Assert(receivedEvent.Type, Equals, event.Type)
+	c.Assert(receivedEvent.Language, Equals, event.Language)
+	c.Assert(int(receivedEvent.Visibility), Equals, entity.EventGlobal)
+}
+
 func (s *EventSuite) TestGetFeedWithBackendToken(c *C) {
 	accounts := CorrectDeploy(1, 0, 1, 10, 10, true, true)
 	application := accounts[0].Applications[0]
