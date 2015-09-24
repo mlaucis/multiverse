@@ -49,7 +49,7 @@ type (
 
 	// Object structure
 	Object struct {
-		ID           string            `json:"id"`
+		ID           interface{}       `json:"id"`
 		Type         string            `json:"type"`
 		URL          string            `json:"url,omitempty"`
 		DisplayNames map[string]string `json:"display_names,omitempty"` // ["en"=>"article", "de"=>"artikel"]
@@ -57,7 +57,7 @@ type (
 
 	// Participant structure
 	Participant struct {
-		ID     string           `json:"id"`
+		ID     interface{}      `json:"id"`
 		URL    string           `json:"url,omitempty"`
 		Images map[string]Image `json:"images,omitempty"`
 	}
