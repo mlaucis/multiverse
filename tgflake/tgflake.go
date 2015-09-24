@@ -22,7 +22,7 @@ func Flake(appID int64, flake string) *sonyflake.Sonyflake {
 	}
 
 	var st sonyflake.Settings
-	st.StartTime = time.Date(2014, 12, 17, 18, 7, 0, 0, time.UTC)
+	st.StartTime = time.Date(2015, 8, 31, 18, 7, 0, 0, time.UTC)
 	flakes[appID][flake] = sonyflake.NewSonyflake(st)
 	if flakes[appID][flake] == nil {
 		panic("sonyflake not created")
