@@ -181,13 +181,6 @@ func GetRouter(
 		}(generalRoutes[idx]))
 	}
 
-	router.
-		Methods("GET").
-		Path("/favicon.ico").
-		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "./favicon.ico")
-	})
-
 	if debugMode {
 		router.PathPrefix("/debug/").Handler(http.DefaultServeMux)
 	}

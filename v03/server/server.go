@@ -244,6 +244,16 @@ func CustomHandler(route *Route, mainLogChan, errorLogChan chan *logger.LogMsg, 
 			}
 		}
 
+		ua := strings.ToLower(ctx.R.Header.Get("User-Agent"))
+		switch true {
+		case strings.HasPrefix(ua, "elb"):
+			fallthrough
+		case strings.HasPrefix(ua, "updown"):
+			fallthrough
+		case strings.HasPrefix(ua, "pingdom"):
+			return
+		}
+
 		go ctx.LogRequest(ctx.StatusCode, -1)
 	}
 }
