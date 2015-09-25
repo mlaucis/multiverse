@@ -120,6 +120,16 @@ server {
     }
 
     location / {
+        if ($http_user_agent ~* "ELB-HealthChecker" ) {
+            access_log off;
+        }
+        if ($http_user_agent ~* "Pingdom" ) {
+            access_log off;
+        }
+        if ($http_user_agent ~* "updown.io" ) {
+            access_log off;
+        }
+
         index index.html;
     }
 }

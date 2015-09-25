@@ -167,9 +167,13 @@ func GetRouter(
 				}
 
 				route.handler(ctx)
-				if ctx.R.Header.Get("User-Agent") == "ELB-HealthChecker/1.0" {
-					return
-				} else if ctx.R.Header.Get("User-Agent") == "updown.io bot 2.0" {
+				ua := strings.ToLower(ctx.R.Header.Get("User-Agent"))
+				switch true {
+				case strings.HasPrefix(ua, "elb"):
+					fallthrough
+				case strings.HasPrefix(ua, "updown"):
+					fallthrough
+				case strings.HasPrefix(ua, "pingdom"):
 					return
 				}
 				go ctx.LogRequest(ctx.StatusCode, -1)

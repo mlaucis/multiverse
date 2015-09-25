@@ -143,6 +143,32 @@ QzMmZpRpIBB321ZBlcnlxiTJvWxvbCPHKHj20VwwAz7LONF59s84ZsOqfoBv8gKM
 s0s5dsq5zpLeaw==
 -----END CERTIFICATE-----' > ~/ssl/origin-pull-ca.pem
 
+echo 'server {
+  listen 80 default_server;
+  listen [::]:80 default_server;
+
+  root /var/www/html;
+
+  index index.html index.htm index.nginx-debian.html;
+
+  server_name _;
+
+  location / {
+    if ($http_user_agent ~* "ELB-HealthChecker" ) {
+        access_log off;
+    }
+    if ($http_user_agent ~* "Pingdom" ) {
+        access_log off;
+    }
+    if ($http_user_agent ~* "updown.io" ) {
+        access_log off;
+    }
+
+    try_files $uri $uri/ =404;
+  }
+}
+' > /etc/nginx/sites-available/default
+
 mkdir -p ~/releases/${INSTALLER_COMPONENT}/
 
 declare -a INSTALLER_TARGETS=( "styleguide" "dashboard" "website" )
