@@ -98,6 +98,16 @@ server {
 
 
     location ^~ /blog {
+        if ($http_user_agent ~* "ELB-HealthChecker" ) {
+            access_log off;
+        }
+        if ($http_user_agent ~* "Pingdom" ) {
+            access_log off;
+        }
+        if ($http_user_agent ~* "updown.io" ) {
+            access_log off;
+        }
+
         proxy_pass http://127.0.0.1:8080;
 
         proxy_set_header X-Real-IP $remote_addr;
