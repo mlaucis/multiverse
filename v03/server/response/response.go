@@ -22,8 +22,9 @@ const (
 	// APIVersion holds which API Version does this module holds
 	APIVersion = "0.3"
 
-	appRateLimit        int64 = 1000
-	appRateLimitSeconds int64 = 60
+	appRateLimitProduction int64 = 20000
+	appRateLimitStaging    int64 = 100
+	appRateLimitSeconds    int64 = 60
 )
 
 var currentRevision, currentHostname string
@@ -139,6 +140,12 @@ func WriteCommonHeaders(cacheTime uint, ctx *context.Context) {
 	if !ctx.Bag["rateLimit.enabled"].(bool) {
 		return
 	}
+
+	appRateLimit := appRateLimitStaging
+	if ctx.Application.InProduction {
+		appRateLimit = appRateLimitProduction
+	}
+
 	ctx.W.Header().Set("X-RateLimit-Limit", strconv.FormatInt(appRateLimit, 10))
 	ctx.W.Header().Set("X-RateLimit-Remaining", strconv.FormatInt(ctx.Bag["rateLimit.limit"].(int64), 10))
 	ctx.W.Header().Set("X-RateLimit-Reset", strconv.FormatInt(ctx.Bag["rateLimit.refreshTime"].(time.Time).Unix(), 10))
