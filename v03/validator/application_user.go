@@ -48,16 +48,6 @@ func CreateUser(datastore core.ApplicationUser, accountID, applicationID int64, 
 		errs = append(errs, errmsg.ErrApplicationUserEmailInvalid)
 	}
 
-	if user.URL != "" && !IsValidURL(user.URL, true) {
-		errs = append(errs, errmsg.ErrApplicationUserURLInvalid)
-	}
-
-	if len(user.Images) > 0 {
-		if !checkImages(user.Images) {
-			errs = append(errs, errmsg.ErrInvalidImageURL)
-		}
-	}
-
 	if user.Email != "" {
 		if isDuplicate, err := DuplicateApplicationUserEmail(datastore, accountID, applicationID, user.Email); isDuplicate || err != nil {
 			if isDuplicate {
@@ -107,16 +97,6 @@ func UpdateUser(datastore core.ApplicationUser, accountID, applicationID int64, 
 
 	if updatedApplicationUser.Email != "" && !IsValidEmail(updatedApplicationUser.Email) {
 		errs = append(errs, errmsg.ErrApplicationUserEmailInvalid)
-	}
-
-	if updatedApplicationUser.URL != "" && !IsValidURL(updatedApplicationUser.URL, true) {
-		errs = append(errs, errmsg.ErrApplicationUserURLInvalid)
-	}
-
-	if len(updatedApplicationUser.Images) > 0 {
-		if !checkImages(updatedApplicationUser.Images) {
-			errs = append(errs, errmsg.ErrInvalidImageURL)
-		}
 	}
 
 	if updatedApplicationUser.Email != "" && existingApplicationUser.Email != updatedApplicationUser.Email {

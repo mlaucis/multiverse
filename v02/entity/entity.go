@@ -17,11 +17,11 @@ type (
 
 	// Common holds common used fields
 	Common struct {
-		Metadata  interface{}       `json:"metadata,omitempty"`
-		Images    map[string]*Image `json:"images,omitempty"`
-		CreatedAt *time.Time        `json:"created_at,omitempty"`
-		UpdatedAt *time.Time        `json:"updated_at,omitempty"`
-		Enabled   bool              `json:"enabled"`
+		Metadata  interface{}      `json:"metadata,omitempty"`
+		Images    map[string]Image `json:"images,omitempty"`
+		CreatedAt *time.Time       `json:"created_at,omitempty"`
+		UpdatedAt *time.Time       `json:"updated_at,omitempty"`
+		Enabled   bool             `json:"enabled"`
 	}
 
 	// UserCommon holds common used fields for users
@@ -48,7 +48,7 @@ type (
 
 	// Object structure
 	Object struct {
-		ID           string            `json:"id"`
+		ID           interface{}       `json:"id"`
 		Type         string            `json:"type"`
 		URL          string            `json:"url,omitempty"`
 		DisplayNames map[string]string `json:"display_names,omitempty"` // ["en"=>"article", "de"=>"artikel"]
@@ -56,9 +56,9 @@ type (
 
 	// Participant structure
 	Participant struct {
-		ID     string            `json:"id"`
-		URL    string            `json:"url,omitempty"`
-		Images map[string]*Image `json:"images,omitempty"`
+		ID     interface{}      `json:"id"`
+		URL    string           `json:"url,omitempty"`
+		Images map[string]Image `json:"images,omitempty"`
 	}
 
 	// Account structure

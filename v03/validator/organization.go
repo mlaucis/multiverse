@@ -32,12 +32,6 @@ func CreateOrganization(organization *entity.Organization) (errs []errors.Error)
 		errs = append(errs, errmsg.ErrOrgTokenAlreadySet)
 	}
 
-	if len(organization.Images) > 0 {
-		if !checkImages(organization.Images) {
-			errs = append(errs, errmsg.ErrInvalidImageURL)
-		}
-	}
-
 	return
 }
 
@@ -53,12 +47,6 @@ func UpdateOrganization(existingOrg, updatedOrg *entity.Organization) (errs []er
 
 	if !StringLengthBetween(updatedOrg.Description, orgDescriptionMin, orgDescriptionMax) {
 		errs = append(errs, errmsg.ErrAccountDescriptionSize)
-	}
-
-	if len(updatedOrg.Images) > 0 {
-		if !checkImages(updatedOrg.Images) {
-			errs = append(errs, errmsg.ErrInvalidImageURL)
-		}
 	}
 
 	return

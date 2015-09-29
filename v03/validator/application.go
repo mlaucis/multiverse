@@ -32,16 +32,6 @@ func CreateApplication(application *entity.Application) (errs []errors.Error) {
 		errs = append(errs, errmsg.ErrOrgIDZero)
 	}
 
-	if application.URL != "" && !IsValidURL(application.URL, true) {
-		errs = append(errs, errmsg.ErrApplicationURLInvalid)
-	}
-
-	if len(application.Images) > 0 {
-		if !checkImages(application.Images) {
-			errs = append(errs, errmsg.ErrInvalidImageURL)
-		}
-	}
-
 	return
 }
 
@@ -53,16 +43,6 @@ func UpdateApplication(existingApplication, updatedApplication *entity.Applicati
 
 	if !StringLengthBetween(updatedApplication.Description, applicationDescriptionMin, applicationDescriptionMax) {
 		errs = append(errs, errmsg.ErrApplicationDescriptionSize)
-	}
-
-	if updatedApplication.URL != "" && !IsValidURL(updatedApplication.URL, true) {
-		errs = append(errs, errmsg.ErrApplicationURLInvalid)
-	}
-
-	if len(updatedApplication.Images) > 0 {
-		if !checkImages(updatedApplication.Images) {
-			errs = append(errs, errmsg.ErrInvalidImageURL)
-		}
 	}
 
 	if existingApplication.AuthToken != updatedApplication.AuthToken {
