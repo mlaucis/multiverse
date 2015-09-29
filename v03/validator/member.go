@@ -44,16 +44,6 @@ func CreateMember(datastore core.Member, member *entity.Member) (errs []errors.E
 		errs = append(errs, errmsg.ErrMemberEmailInvalid)
 	}
 
-	if member.URL != "" && !IsValidURL(member.URL, false) {
-		errs = append(errs, errmsg.ErrMemberURLInvalid)
-	}
-
-	if len(member.Images) > 0 {
-		if !checkImages(member.Images) {
-			errs = append(errs, errmsg.ErrInvalidImageURL)
-		}
-	}
-
 	if isDuplicate, err := DuplicateMemberEmail(datastore, member.Email); isDuplicate || err != nil {
 		if isDuplicate {
 			errs = append(errs, errmsg.ErrApplicationUserEmailAlreadyExists)
@@ -95,16 +85,6 @@ func UpdateMember(datastore core.Member, existingMember, updatedMember *entity.M
 
 	if updatedMember.Email == "" || !IsValidEmail(updatedMember.Email) {
 		errs = append(errs, errmsg.ErrMemberEmailInvalid)
-	}
-
-	if updatedMember.URL != "" && !IsValidURL(updatedMember.URL, true) {
-		errs = append(errs, errmsg.ErrMemberURLInvalid)
-	}
-
-	if len(updatedMember.Images) > 0 {
-		if !checkImages(updatedMember.Images) {
-			errs = append(errs, errmsg.ErrInvalidImageURL)
-		}
 	}
 
 	if existingMember.Email != updatedMember.Email {
