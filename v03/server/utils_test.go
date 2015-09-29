@@ -377,6 +377,12 @@ func AddCorrectUserEvents(orgID, applicationID int64, user *entity.ApplicationUs
 		{Lat: 52.515585, Lon: 13.287820, Label: "onur"},
 	}
 
+	eventTypes := map[int]string{
+		0: "follow",
+		1: "like",
+		2: "love",
+	}
+
 	result := make([]*entity.Event, numberOfEventsPerUser)
 	for i := 0; i < numberOfEventsPerUser; i++ {
 		result[i] = CorrectEvent(applicationID)
@@ -390,8 +396,12 @@ func AddCorrectUserEvents(orgID, applicationID int64, user *entity.ApplicationUs
 			}
 			result[i].Object = &entity.Object{
 				ID:           fmt.Sprintf("object-%d", i+1),
+				Type:         "public-object",
 				DisplayNames: map[string]string{"all": fmt.Sprintf("object-%d-all", i+1)},
 			}
+			result[i].Metadata = struct {
+				CustomName string `json:"custom_name"`
+			}{CustomName: "public-metadata"}
 		} else if result[i].Visibility == entity.EventGlobal {
 			result[i].Location = fmt.Sprintf("location-global-%d", i+1)
 			result[i].Target = &entity.Object{
@@ -435,6 +445,8 @@ func AddCorrectUserEvents(orgID, applicationID int64, user *entity.ApplicationUs
 			Heigth: 2048,
 			Type:   "image/jpeg",
 		}
+
+		result[i].Type = eventTypes[i%3]
 
 		err = coreEvt.Create(orgID, applicationID, user.ID, result[i])
 
