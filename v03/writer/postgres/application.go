@@ -27,7 +27,7 @@ func (p *pg) applicationUpdate(msg string) []errors.Error {
 
 	existingApplication, er := p.application.Read(updatedApplication.OrgID, updatedApplication.ID)
 	if er != nil {
-		return nil
+		return er
 	}
 
 	_, er = p.application.Update(*existingApplication, updatedApplication, false)
