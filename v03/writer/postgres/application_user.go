@@ -15,6 +15,9 @@ func (p *pg) applicationUserUpdate(msg string) []errors.Error {
 	}
 
 	existingApplicationUser, er := p.applicationUser.Read(updatedApplicationUser.OrgID, updatedApplicationUser.AppID, updatedApplicationUser.ID)
+	if er != nil {
+		return er
+	}
 
 	_, er = p.applicationUser.Update(updatedApplicationUser.OrgID, updatedApplicationUser.AppID, *existingApplicationUser, updatedApplicationUser.ApplicationUser, false)
 	return er
