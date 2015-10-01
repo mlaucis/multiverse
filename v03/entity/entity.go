@@ -112,9 +112,9 @@ type (
 		Events               []*Event            `json:"events,omitempty"`
 		Connections          []*ApplicationUser  `json:"connections,omitempty"`
 		LastRead             *time.Time          `json:"-"`
-		FriendCount          int64               `json:"friend_count"`
-		FollowerCount        int64               `json:"follower_count"`
-		FollowedCount        int64               `json:"followed_count"`
+		FriendCount          *int64              `json:"friend_count,omitempty"`
+		FollowerCount        *int64              `json:"follower_count,omitempty"`
+		FollowedCount        *int64              `json:"followed_count,omitempty"`
 		Relation
 		UserCommon
 		Common

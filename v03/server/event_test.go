@@ -568,6 +568,16 @@ func (s *EventSuite) TestGetFeed(c *C) {
 	c.Assert(len(response.Events), Equals, 33)
 	c.Assert(len(response.Users), Equals, 9)
 	for _, user := range response.Users {
+		c.Assert(user.Password, Equals, "")
+		c.Assert(user.Email, Equals, "")
+		c.Assert(user.SessionToken, Equals, "")
+		c.Assert(user.FriendCount, IsNil)
+		c.Assert(user.FollowerCount, IsNil)
+		c.Assert(user.FollowedCount, IsNil)
+		c.Assert(user.CreatedAt, IsNil)
+		c.Assert(user.UpdatedAt, IsNil)
+		c.Assert(user.LastLogin, IsNil)
+		c.Assert(user.LastRead, IsNil)
 		c.Assert(user.Deleted, IsNil)
 	}
 }
