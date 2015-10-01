@@ -21,6 +21,7 @@ func SanitizeApplicationUsers(users []*entity.ApplicationUser) {
 		users[idx].Deleted = nil
 		users[idx].Email = ""
 		users[idx].SessionToken = ""
+		users[idx].FriendCount, users[idx].FollowerCount, users[idx].FollowedCount = nil, nil, nil
 		users[idx].CreatedAt, users[idx].UpdatedAt, users[idx].LastLogin, users[idx].LastRead = nil, nil, nil, nil
 	}
 }
@@ -32,6 +33,7 @@ func SanitizeApplicationUsersMap(users map[string]*entity.ApplicationUser) {
 		users[idx].Deleted = nil
 		users[idx].Email = ""
 		users[idx].SessionToken = ""
+		users[idx].FriendCount, users[idx].FollowerCount, users[idx].FollowedCount = nil, nil, nil
 		users[idx].CreatedAt, users[idx].UpdatedAt, users[idx].LastLogin, users[idx].LastRead = nil, nil, nil, nil
 	}
 }

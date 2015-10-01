@@ -1726,9 +1726,9 @@ func (s *ConnectionSuite) TestGetConnectionsCount(c *C) {
 	er = json.Unmarshal([]byte(body), receivedUser)
 	c.Assert(er, IsNil)
 	c.Assert(receivedUser.Username, Equals, user.Username)
-	c.Assert(receivedUser.FriendCount, Equals, int64(1))
-	c.Assert(receivedUser.FollowerCount, Equals, int64(1))
-	c.Assert(receivedUser.FollowedCount, Equals, int64(3))
+	c.Assert(*receivedUser.FriendCount, Equals, int64(1))
+	c.Assert(*receivedUser.FollowerCount, Equals, int64(1))
+	c.Assert(*receivedUser.FollowedCount, Equals, int64(3))
 }
 
 func (s *ConnectionSuite) TestCreateFriendsConnectionWithEvent(c *C) {
