@@ -171,6 +171,9 @@ func (c *connection) List(accountID, applicationID int64, userID uint64) (users 
 		}
 		user, er := c.appUser.Read(accountID, applicationID, conn.UserToID)
 		if er != nil {
+			if er[0].Code() == errmsg.ErrApplicationUserNotFound.Code() {
+				continue
+			}
 			return nil, er
 		}
 
@@ -202,6 +205,9 @@ func (c *connection) FollowedBy(accountID, applicationID int64, userID uint64) (
 		}
 		user, er := c.appUser.Read(accountID, applicationID, conn.UserFromID)
 		if er != nil {
+			if er[0].Code() == errmsg.ErrApplicationUserNotFound.Code() {
+				continue
+			}
 			return nil, er
 		}
 
@@ -233,6 +239,9 @@ func (c *connection) Friends(accountID, applicationID int64, userID uint64) ([]*
 		}
 		user, er := c.appUser.Read(accountID, applicationID, conn.UserFromID)
 		if er != nil {
+			if er[0].Code() == errmsg.ErrApplicationUserNotFound.Code() {
+				continue
+			}
 			return nil, er
 		}
 
@@ -265,6 +274,9 @@ func (c *connection) FriendsAndFollowing(accountID, applicationID int64, userID 
 		}
 		user, er := c.appUser.Read(accountID, applicationID, conn.UserToID)
 		if er != nil {
+			if er[0].Code() == errmsg.ErrApplicationUserNotFound.Code() {
+				continue
+			}
 			return nil, er
 		}
 
