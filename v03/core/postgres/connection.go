@@ -406,7 +406,7 @@ func (c *connection) Relation(accountID, applicationID int64, userFromID, userTo
 	defer relations.Close()
 
 	rel := &entity.Relation{
-		IsFriends:  entity.PFalse,
+		IsFriend:  entity.PFalse,
 		IsFollowed: entity.PFalse,
 		IsFollower: entity.PFalse,
 	}
@@ -421,7 +421,7 @@ func (c *connection) Relation(accountID, applicationID int64, userFromID, userTo
 		}
 
 		if relationType == "friends" {
-			rel.IsFriends = entity.PTrue
+			rel.IsFriend = entity.PTrue
 		}
 
 		if relationFrom == userFromID && relationTo == userToID && relationType == "follow" {

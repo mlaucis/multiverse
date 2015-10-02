@@ -49,11 +49,11 @@ func (appUser *applicationUser) Read(ctx *context.Context) (err []errors.Error) 
 	user.CreatedAt, user.UpdatedAt, user.LastLogin, user.LastRead = nil, nil, nil, nil
 
 	if rel := <-relation; rel != nil {
-		user.IsFriends = rel.IsFriends
+		user.IsFriend = rel.IsFriend
 		user.IsFollower = rel.IsFollower
 		user.IsFollowed = rel.IsFollowed
 	} else {
-		user.IsFriends = entity.PFalse
+		user.IsFriend = entity.PFalse
 		user.IsFollower = entity.PFalse
 		user.IsFollowed = entity.PFalse
 	}
@@ -66,9 +66,9 @@ func (appUser *applicationUser) ReadCurrent(ctx *context.Context) (err []errors.
 	user := ctx.ApplicationUser
 	user.Password = ""
 	user.Deleted = nil
-	user.IsFriends = entity.PFalse
-	user.IsFollower = entity.PFalse
-	user.IsFollowed = entity.PFalse
+	user.IsFriend = nil
+	user.IsFollower = nil
+	user.IsFollowed = nil
 
 	response.ComputeApplicationUserLastModified(ctx, user)
 
