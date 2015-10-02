@@ -143,7 +143,7 @@ type (
 
 	// Relation holds the relation between two users
 	Relation struct {
-		IsFriends  *bool `json:"is_friends,omitempty"`
+		IsFriend   *bool `json:"is_friend,omitempty"`
 		IsFollower *bool `json:"is_follower,omitempty"`
 		IsFollowed *bool `json:"is_followed,omitempty"`
 	}
