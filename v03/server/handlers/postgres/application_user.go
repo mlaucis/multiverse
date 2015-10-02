@@ -240,13 +240,16 @@ func (appUser *applicationUser) Login(ctx *context.Context) (err []errors.Error)
 
 	timeNow := time.Now()
 	user.LastLogin = &timeNow
-	_, err = appUser.storage.Update(ctx.OrganizationID, ctx.ApplicationID, *user, *user, false)
+	user, err = appUser.storage.Update(ctx.OrganizationID, ctx.ApplicationID, *user, *user, true)
 	if err != nil {
 		return
 	}
 
-	user.Password = ""
+	response.SanitizeApplicationUser(user)
 	user.SessionToken = sessionToken
+	user.IsFriend = nil
+	user.IsFollower = nil
+	user.IsFollowed = nil
 
 	ctx.W.Header().Set("Location", fmt.Sprintf("https://api.tapglue.com/0.3/users/%d", user.ID))
 	response.WriteResponse(ctx, user, http.StatusCreated, 0)
