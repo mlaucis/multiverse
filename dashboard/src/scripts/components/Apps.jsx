@@ -1,5 +1,7 @@
 import React, { Component, PropTypes, findDOMNode } from 'react'
 
+import Clipboard from 'clipboard/dist/clipboard'
+
 import AccountStore from '../stores/AccountStore'
 import ApplicationStore from '../stores/ApplicationStore'
 import { requestApps } from '../actions/ConsoleActionCreator'
@@ -178,13 +180,6 @@ export class App extends Component {
     this.setState(this.getState())
   }
 
-  toggleToken = (event) => {
-    event.preventDefault()
-
-    this._showToken = !this._showToken
-    this.setState(this.getState())
-  }
-
   viewDefault() {
     let app = this.props.app
     let actionsClass = 'actions'
@@ -205,32 +200,6 @@ export class App extends Component {
         </div>
       </div>
     )
-    let token = this.state.showToken ? (
-      <form>
-        <div className='group'>
-          <input
-            autoFocus
-            ref='token'
-            type='text'
-            defaultValue={app.token}/>
-        </div>
-        <div className='actions'>
-          <button
-            className='btn-secondary'
-            onClick={this.toggleToken} type='button'>
-            Close
-          </button>
-          <button className='btn-default' type='button'>Copy</button>
-        </div>
-      </form>
-    ) : (
-      <button
-        className='btn-default block outline'
-        onClick={this.toggleToken}>
-        <span>API Token: </span>
-        <span className='sub'>{app.token}</span>
-      </button>
-    )
 
     return (
       <div
@@ -247,24 +216,17 @@ export class App extends Component {
             }
           })()}
         </header>
-        {( () => {
-          if (this.state.showToken) {
-            return (
-              <main>
-                {token}
-              </main>
-            )
-          } else {
-            return (
-              <main>
-                <div className='description'>
-                  <p>{app.description}</p>
-                </div>
-                {token}
-              </main>
-            )
-          }
-        })()}
+        <main>
+          <div className='description'>
+            <p>{app.description}</p>
+          </div>
+          <button
+            className='btn-default block outline copy'
+            data-clipboard-text={app.token}>
+            <span>API Token: </span>
+            <span className='sub'>{app.token}</span>
+          </button>
+        </main>
       </div>
     )
   }
@@ -332,6 +294,17 @@ export default class Apps extends Component {
     super()
 
     this.state = this.getState()
+
+    this.clipboard = new Clipboard('.copy')
+    this.clipboard.on('success', event => {
+      let content = event.trigger.innerHTML
+
+      event.trigger.innerHTML = 'Copied'
+
+      setTimeout(() => {
+        event.trigger.innerHTML = content
+      }, 2000)
+    })
   }
 
   componentDidMount() {
@@ -342,6 +315,8 @@ export default class Apps extends Component {
 
   componentWillUnmount() {
     ApplicationStore.removeChangeListener(this.handleChange)
+
+    this.clipboard.destroy()
   }
 
   getState() {
