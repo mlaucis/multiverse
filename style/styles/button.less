@@ -33,6 +33,10 @@
     background: lighten(@color, 5%);
     color: #fff;
     text-decoration: none;
+
+    svg {
+      fill: #fff;
+    }
   }
 
   &.block {
@@ -66,12 +70,20 @@
     font-weight: 300;
     letter-spacing: 0.1rem;
   }
+
+  svg {
+    transition: all 0.15s ease;
+  }
 }
 
 .btn-outline(@color) {
   background: transparent;
   border: 0.2rem solid darken(@tpgl-blue, 5%);
   color: darken(@tpgl-blue, 5%);
+
+  svg {
+    fill: darken(@tpgl-blue, 5%);
+  }
 
   &:focus {
     background: transparent;
@@ -81,6 +93,10 @@
     color: #fff;
     background: darken(@color, 5%);
     border: 0.2rem solid darken(@color, 5%);
+
+    svg {
+      fill: #fff;
+    }
   }
 
   &.small {
