@@ -9,6 +9,8 @@ import { requestAppCreate } from '../actions/ConsoleActionCreator'
 import { requestAppDelete } from '../actions/ConsoleActionCreator'
 import { requestAppUpdate } from '../actions/ConsoleActionCreator'
 
+import CopyIcon from '../../icons/Apps_Icon_CopytoClipboard.svg?t=custom'
+
 class AppForm extends Component {
   static propTypes = {
     description: PropTypes.string,
@@ -207,9 +209,9 @@ export class App extends Component {
         onMouseEnter={this.toggleActions}
         onMouseLeave={this.toggleActions}>
         <header className='grid grid--bleed'>
-          <h3 className='grid__col-9'>
+          <h2 className='grid__col-9'>
             {app.name}
-          </h3>
+          </h2>
           {(() => {
             if (this.props.actions) {
               return actions
@@ -220,12 +222,15 @@ export class App extends Component {
           <div className='description'>
             <p>{app.description}</p>
           </div>
-          <button
-            className='btn-default block outline copy'
-            data-clipboard-text={app.token}>
-            <span>API Token: </span>
-            <span className='sub'>{app.token}</span>
-          </button>
+          <div>
+            <h3>API Token: </h3>
+            <button
+              className='btn-default block outline copy'
+              data-clipboard-text={app.token}>
+              {CopyIcon}
+              <span className='sub'>{app.token}</span>
+            </button>
+          </div>
         </main>
       </div>
     )
@@ -299,7 +304,7 @@ export default class Apps extends Component {
     this.clipboard.on('success', event => {
       let content = event.trigger.innerHTML
 
-      event.trigger.innerHTML = 'Copied'
+      event.trigger.innerHTML = '<span class="sub">Copied</sub>'
 
       setTimeout(() => {
         event.trigger.innerHTML = content
