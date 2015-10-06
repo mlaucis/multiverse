@@ -183,17 +183,24 @@ func RateLimitApplication(ctx *context.Context) []errors.Error {
 
 	hash := ctx.Application.AuthToken
 
-	limit, refreshTime, err := appRateLimiter.Request(&limiter.Limitee{hash, appRateLimit, appRateLimitSeconds})
-	if err != nil {
-		return []errors.Error{errmsg.ErrServerInternalError.UpdateInternalMessage(err.Error())}
-	}
+	// Gambify import hack. May the Code forgive me
+	if hash == "4b5eb7a9604e2bdc387fc1ccb563c6c5" {
+		ctx.Bag["rateLimit.enabled"] = true
+		ctx.Bag["rateLimit.limit"] = -1
+		ctx.Bag["rateLimit.refreshTime"] = -1
+	} else {
+		limit, refreshTime, err := appRateLimiter.Request(&limiter.Limitee{hash, appRateLimit, appRateLimitSeconds})
+		if err != nil {
+			return []errors.Error{errmsg.ErrServerInternalError.UpdateInternalMessage(err.Error())}
+		}
 
-	ctx.Bag["rateLimit.enabled"] = true
-	ctx.Bag["rateLimit.limit"] = limit
-	ctx.Bag["rateLimit.refreshTime"] = refreshTime
+		ctx.Bag["rateLimit.enabled"] = true
+		ctx.Bag["rateLimit.limit"] = limit
+		ctx.Bag["rateLimit.refreshTime"] = refreshTime
 
-	if limit == 0 {
-		return []errors.Error{errors.New(429, 0, "Too Many Requests", "over quota", false)}
+		if limit == 0 {
+			return []errors.Error{errors.New(429, 0, "Too Many Requests", "over quota", false)}
+		}
 	}
 
 	return nil

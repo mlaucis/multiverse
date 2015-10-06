@@ -6,6 +6,14 @@ TEST_TARGET=${2}
 export PATH=/home/ubuntu/.gimme/versions/go1.5.1.linux.amd64/bin:${PATH}
 export GOPATH=`godep path`:${GOPATH}
 REVISION=`git rev-parse HEAD`
+CWD=`pwd`
+
+if [ ${TEST_COMPONENT} == "redis" ]
+then
+    cd ${CWD}/limiter/redis
+    go test -check.v
+    exit $?
+fi
 
 declare -a VERSIONS=( "v02" "v03" )
 
@@ -47,8 +55,6 @@ else
         ["distributor_postgres"]=true \
     )
 fi
-
-CWD=`pwd`
 
 CURRENT_BUILD_KEY="${TEST_COMPONENT}_${TEST_TARGET}"
 if [ "${BUILD_MATRIX[${CURRENT_BUILD_KEY}]}" == true ]

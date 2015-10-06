@@ -26,6 +26,7 @@ test:
     - ./bin/test_configs.sh intaker
     - cd dashboard && npm run lint
   override:
+    - ./bin/run_tests.sh redis
     - ./bin/run_tests.sh intaker postgres
     - ./bin/run_tests.sh intaker redis
     - ./bin/run_tests.sh intaker kinesis
