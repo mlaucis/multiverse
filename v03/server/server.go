@@ -185,9 +185,7 @@ func RateLimitApplication(ctx *context.Context) []errors.Error {
 
 	// Gambify import hack. May the Code forgive me
 	if hash == "4b5eb7a9604e2bdc387fc1ccb563c6c5" {
-		ctx.Bag["rateLimit.enabled"] = true
-		ctx.Bag["rateLimit.limit"] = -1
-		ctx.Bag["rateLimit.refreshTime"] = -1
+		ctx.Bag["rateLimit.enabled"] = false
 	} else {
 		limit, refreshTime, err := appRateLimiter.Request(&limiter.Limitee{hash, appRateLimit, appRateLimitSeconds})
 		if err != nil {
