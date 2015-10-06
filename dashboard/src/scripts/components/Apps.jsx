@@ -205,11 +205,20 @@ export class App extends Component {
 
     return (
       <div
-        className='app card grid__col-md-6'
+        className='app card grid__col-md-6 grid--bleed'
         onMouseEnter={this.toggleActions}
         onMouseLeave={this.toggleActions}>
-        <header className='grid grid--bleed'>
-          <h2 className='grid__col-9'>
+        <header className='grid'>
+          {(() => {
+            if (app.inProduction) {
+              return (
+                <div className='grid__col-1 prod'>
+                  <span>prod</span>
+                </div>
+              )
+            }
+          })()}
+          <h2 className='grid__col-8'>
             {app.name}
           </h2>
           {(() => {
@@ -218,12 +227,12 @@ export class App extends Component {
             }
           })()}
         </header>
-        <main>
+        <main className='grid__col-md-12'>
           <div className='description'>
             <p>{app.description}</p>
           </div>
           <div>
-            <h3>API Token: </h3>
+            <h3>Auth Token: </h3>
             <button
               className='btn-default block outline copy'
               data-clipboard-text={app.token}>
