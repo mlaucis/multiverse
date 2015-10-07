@@ -6,7 +6,7 @@
 package redis
 
 import (
-	"errors"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -15,87 +15,9 @@ import (
 	"github.com/garyburd/redigo/redis"
 )
 
-type (
-	rateLimiter struct {
-		bucket   string
-		connPool *redis.Pool
-	}
-)
-
-var (
-	errTime = time.Date(2015, 5, 1, 1, 2, 3, 4, time.UTC)
-)
-
-func (rateLimiter *rateLimiter) Request(limitee *limiter.Limitee) (int64, time.Time, error) {
-	hash := rateLimiter.bucket + limitee.Hash
-
-	conn := rateLimiter.connPool.Get()
-	defer conn.Close()
-
-	remaining, err := conn.Do("GET", hash)
-	if err != nil {
-		return 0, errTime, err
-	}
-
-	if remaining == nil {
-		return rateLimiter.create(conn, limitee)
-	}
-
-	left, err := strconv.ParseInt(string(remaining.([]uint8)), 10, 64)
-	if err != nil {
-		return 0, errTime, errors.New("something went wrong")
-	}
-
-	if left > 0 {
-		return rateLimiter.decrement(conn, limitee, left)
-	}
-
-	if left <= 0 {
-		return rateLimiter.expiresIn(conn, limitee)
-	}
-
-	return 0, errTime, errors.New("something went wrong")
-}
-
-func (rateLimiter *rateLimiter) decrement(conn redis.Conn, limitee *limiter.Limitee, value int64) (int64, time.Time, error) {
-	hash := rateLimiter.bucket + limitee.Hash
-	expiry, err := conn.Do("TTL", hash)
-	if err != nil {
-		return 0, errTime, err
-	}
-
-	_, err = conn.Do("DECR", hash)
-	if err != nil {
-		return 0, errTime, err
-	}
-
-	return value - 1, time.Now().Add(time.Duration(expiry.(int64)) * time.Second), nil
-}
-
-func (rateLimiter *rateLimiter) create(conn redis.Conn, limitee *limiter.Limitee) (int64, time.Time, error) {
-	hash := rateLimiter.bucket + limitee.Hash
-	limit := limitee.Limit
-	response, err := conn.Do("SET", hash, limit, "EX", limitee.WindowSize, "NX")
-	if err != nil {
-		return 0, errTime, err
-	}
-
-	// Check if this was set by someone else meanwhile
-	if response == nil {
-		return rateLimiter.decrement(conn, limitee, limitee.Limit)
-	}
-
-	return limit - 1, time.Now().Add(time.Duration(limitee.WindowSize) * time.Second), nil
-}
-
-func (rateLimiter *rateLimiter) expiresIn(conn redis.Conn, limitee *limiter.Limitee) (int64, time.Time, error) {
-	hash := rateLimiter.bucket + limitee.Hash
-	expiry, err := conn.Do("TTL", hash)
-	if err != nil {
-		return 0, errTime, err
-	}
-
-	return 0, time.Now().Add(time.Duration(expiry.(int64)) * time.Second), nil
+type rateLimiter struct {
+	bucket   string
+	connPool *redis.Pool
 }
 
 // NewLimiter creates a new Limiter implementation using Redis
@@ -104,4 +26,53 @@ func NewLimiter(connPool *redis.Pool, bucketName string) limiter.Limiter {
 		bucket:   bucketName,
 		connPool: connPool,
 	}
+}
+
+func (rateLimiter *rateLimiter) Request(limitee *limiter.Limitee) (int64, time.Time, error) {
+	var (
+		key     = fmt.Sprintf("%s:%s", rateLimiter.bucket, limitee.Hash)
+		conn    = rateLimiter.connPool.Get()
+		expires = time.Now().Add(time.Duration(limitee.WindowSize))
+		left    = int64(-1)
+	)
+	defer conn.Close()
+
+	res, err := conn.Do("GET", key)
+	if err != nil {
+		return 0, time.Now(), err
+	}
+
+	if res != nil {
+		l, err := strconv.ParseInt(string(res.([]uint8)), 10, 64)
+		if err != nil {
+			return 0, expires, fmt.Errorf("parsing counter failed: %s", err)
+		}
+		left = l
+
+		expiry, err := conn.Do("TTL", key)
+		if err != nil {
+			return 0, time.Now(), err
+		}
+		expires = time.Now().Add(time.Duration(expiry.(int64)) * time.Second)
+	}
+
+	if left == -1 {
+		_, err := conn.Do("SET", key, limitee.Limit-1, "EX", limitee.WindowSize, "NX")
+		if err != nil {
+			return 0, expires, err
+		}
+
+		return limitee.Limit - 1, expires, nil
+	}
+
+	if left > 0 {
+		_, err = conn.Do("DECR", key)
+		if err != nil {
+			return 0, expires, err
+		}
+
+		return left - 1, expires, nil
+	}
+
+	return left, expires, nil
 }
