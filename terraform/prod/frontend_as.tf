@@ -4,7 +4,7 @@ resource "aws_launch_configuration" "frontend" {
     "aws_security_group.frontend-ssh"]
 
   image_id                    = "${var.ami_frontend}"
-  instance_type               = "c4.large"
+  instance_type               = "m4.large"
   associate_public_ip_address = false
   enable_monitoring           = true
   ebs_optimized               = false
