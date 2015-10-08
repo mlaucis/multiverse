@@ -41,11 +41,11 @@ const (
 
 	selectApplicationUserCountsQuery = `SELECT
   (SELECT count(*) FROM app_%d_%d.connections
-    WHERE json_data @> json_build_object('user_from_id', $1::BIGINT, 'enabled', TRUE, 'type', 'friend')::JSONB) AS "friends",
+    WHERE (json_data->>'user_from_id')::BIGINT = $1::BIGINT AND json_data @> json_build_object('enabled', TRUE, 'type', 'friend')::JSONB) AS "friends",
   (SELECT count(*) FROM app_%d_%d.connections
-    WHERE json_data @> json_build_object('user_to_id', $1::BIGINT, 'enabled', TRUE, 'type', 'follow')::JSONB) AS "follower",
+    WHERE (json_data->>'user_to_id')::BIGINT = $1::BIGINT AND json_data @> json_build_object('enabled', TRUE, 'type', 'follow')::JSONB) AS "follower",
   (SELECT count(*) FROM app_%d_%d.connections
-    WHERE json_data @> json_build_object('user_from_id', $1::BIGINT, 'enabled', TRUE, 'type', 'follow')::JSONB) AS "followed"`
+    WHERE (json_data->>'user_from_id')::BIGINT = $1::BIGINT AND json_data @> json_build_object('enabled', TRUE, 'type', 'follow')::JSONB) AS "followed"`
 )
 
 func (au *applicationUser) Create(accountID, applicationID int64, user *entity.ApplicationUser, retrieve bool) (*entity.ApplicationUser, []errors.Error) {

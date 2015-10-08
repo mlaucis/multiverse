@@ -24,11 +24,11 @@ type connection struct {
 const (
 	createConnectionQuery              = `INSERT INTO app_%d_%d.connections(json_data) VALUES ($1)`
 	selectConnectionQuery              = `SELECT json_data FROM app_%d_%d.connections WHERE (json_data->>'user_from_id')::BIGINT = $1::BIGINT AND (json_data->>'user_to_id')::BIGINT = $2::BIGINT LIMIT 1`
-	updateConnectionQuery              = `UPDATE app_%d_%d.connections SET json_data = $1 WHERE json_data @> json_build_object('user_from_id', $2::BIGINT, 'user_to_id', $3::BIGINT)::JSONB`
-	followsQuery                       = `SELECT json_data FROM app_%d_%d.connections WHERE json_data @> json_build_object('user_from_id', $1::BIGINT, 'type', 'follow', 'enabled', TRUE)::JSONB`
-	followersQuery                     = `SELECT json_data FROM app_%d_%d.connections WHERE json_data @> json_build_object('user_to_id', $1::BIGINT, 'type', 'follow', 'enabled', TRUE)::JSONB`
-	friendConnectionsQuery             = `SELECT json_data FROM app_%d_%d.connections WHERE json_data @> json_build_object('user_to_id', $1::BIGINT, 'type', 'friend', 'enabled', TRUE)::JSONB`
-	friendAndFollowingConnectionsQuery = `SELECT json_data FROM app_%d_%d.connections WHERE json_data @> json_build_object('user_from_id', $1::BIGINT, 'enabled', TRUE)::JSONB`
+	updateConnectionQuery              = `UPDATE app_%d_%d.connections SET json_data = $1 WHERE (json_data->>'user_from_id')::BIGINT = $2::BIGINT AND (json_data->>'user_to_id')::BIGINT = $3::BIGINT`
+	followsQuery                       = `SELECT json_data FROM app_%d_%d.connections WHERE (json_data->>'user_from_id')::BIGINT = $1::BIGINT AND json_data @> json_build_object('type', 'follow', 'enabled', TRUE)::JSONB`
+	followersQuery                     = `SELECT json_data FROM app_%d_%d.connections WHERE (json_data->>'user_to_id')::BIGINT = $1::BIGINT AND json_data @> json_build_object('type', 'follow', 'enabled', TRUE)::JSONB`
+	friendConnectionsQuery             = `SELECT json_data FROM app_%d_%d.connections WHERE (json_data->>'user_to_id')::BIGINT = $1::BIGINT AND json_data @> json_build_object('type', 'friend', 'enabled', TRUE)::JSONB`
+	friendAndFollowingConnectionsQuery = `SELECT json_data FROM app_%d_%d.connections WHERE (json_data->>'user_from_id')::BIGINT = $1::BIGINT AND json_data @> json_build_object('enabled', TRUE)::JSONB`
 	listUsersBySocialIDQuery           = `SELECT json_data FROM app_%d_%d.users WHERE json_data @> '{"enabled": true, "deleted": false}' AND json_data->'social_ids'->>'%s' IN (?)`
 
 	getUsersRelationQuery = `SELECT
@@ -37,13 +37,13 @@ const (
   json_data ->> 'type'         AS "type"
 FROM app_%d_%d.connections
 WHERE json_data @> '{"enabled": true}'
-      AND (json_data @> json_build_object('user_from_id', $1::BIGINT, 'user_to_id', $2::BIGINT)::JSONB OR
-           json_data @> json_build_object('user_from_id', $2::BIGINT, 'user_to_id', $1::BIGINT)::JSONB)`
+      AND (((json_data->>'user_from_id')::BIGINT = $1::BIGINT AND (json_data->>'user_to_id')::BIGINT = $2::BIGINT) OR
+           (json_data->>'user_from_id')::BIGINT = $2::BIGINT AND (json_data->>'user_to_id')::BIGINT = $1::BIGINT)`
 
 	connectionExistsQuery = `SELECT
   (count(*) > 0) :: BOOL AS "exists"
 FROM app_%d_%d.connections
-WHERE json_data @> json_build_object('user_from_id', $1::BIGINT, 'user_to_id', $2::BIGINT, 'type', $3::TEXT, 'enabled', true)::JSONB;`
+WHERE (json_data->>'user_from_id')::BIGINT = $1::BIGINT AND (json_data->>'user_to_id')::BIGINT = $2::BIGINT AND json_data @> json_build_object('type', $3::TEXT, 'enabled', true)::JSONB;`
 )
 
 func (c *connection) Create(accountID, applicationID int64, connection *entity.Connection, retrieve bool) (*entity.Connection, []errors.Error) {
