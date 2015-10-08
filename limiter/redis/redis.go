@@ -43,11 +43,10 @@ func (rateLimiter *rateLimiter) Request(limitee *limiter.Limitee) (int64, time.T
 	}
 
 	if res != nil {
-		l, err := strconv.ParseInt(string(res.([]uint8)), 10, 64)
+		left, err = strconv.ParseInt(string(res.([]uint8)), 10, 64)
 		if err != nil {
 			return 0, expires, fmt.Errorf("parsing counter failed: %s", err)
 		}
-		left = l
 
 		expiry, err := conn.Do("TTL", key)
 		if err != nil {
