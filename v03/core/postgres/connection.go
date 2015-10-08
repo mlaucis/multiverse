@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/tapglue/multiverse/errors"
@@ -30,7 +29,7 @@ const (
 	followersQuery                     = `SELECT json_data FROM app_%d_%d.connections WHERE json_data @> json_build_object('user_to_id', $1::BIGINT, 'type', 'follow', 'enabled', TRUE)::JSONB`
 	friendConnectionsQuery             = `SELECT json_data FROM app_%d_%d.connections WHERE json_data @> json_build_object('user_to_id', $1::BIGINT, 'type', 'friend', 'enabled', TRUE)::JSONB`
 	friendAndFollowingConnectionsQuery = `SELECT json_data FROM app_%d_%d.connections WHERE json_data @> json_build_object('user_from_id', $1::BIGINT, 'enabled', TRUE)::JSONB`
-	listUsersBySocialIDQuery           = `SELECT json_data FROM app_%d_%d.users WHERE json_data @> '{"enabled": true, "deleted": false}' AND (%s)`
+	listUsersBySocialIDQuery           = `SELECT json_data FROM app_%d_%d.users WHERE json_data @> '{"enabled": true, "deleted": false}' AND json_data->'social_ids'->>'%s' IN (?)`
 
 	getUsersRelationQuery = `SELECT
   json_data ->> 'user_from_id' AS "from",
@@ -320,13 +319,14 @@ func (c *connection) SocialConnect(accountID, applicationID int64, user *entity.
 		return users, nil
 	}
 
-	var conditions []string
-	for idx := range socialFriendsIDs {
-		conditions = append(conditions, fmt.Sprintf(`json_data @> '{"social_ids": {%q: %q}}'`, platform, socialFriendsIDs[idx]))
+	query, args, err := sqlx.In(fmt.Sprintf(listUsersBySocialIDQuery, accountID, applicationID, platform), socialFriendsIDs)
+	if err != nil {
+		return nil, []errors.Error{errmsg.ErrServerInternalError.UpdateInternalMessage(err.Error())}
 	}
+	query = sqlx.Rebind(sqlx.DOLLAR, query)
 
 	dbUsers, err := c.pg.SlaveDatastore(-1).
-		Query(fmt.Sprintf(listUsersBySocialIDQuery, accountID, applicationID, strings.Join(conditions, " OR ")))
+		Query(query, args...)
 	if err != nil {
 		return nil, []errors.Error{errmsg.ErrInternalConnectingUsers.UpdateInternalMessage(err.Error())}
 	}
@@ -359,15 +359,12 @@ func (c *connection) AutoConnectSocialFriends(accountID, applicationID int64, us
 			UserToID:   ourStoredUsersIDs[idx].ID,
 			Type:       connectionType,
 		}
+		connection.Enabled = true
 
 		if _, err := c.Create(accountID, applicationID, connection, false); err != nil {
 			if err[0] != errmsg.ErrConnectionAlreadyExists {
 				return nil, err
 			}
-		}
-
-		if _, err := c.Confirm(accountID, applicationID, connection, false); err != nil {
-			return nil, err
 		}
 
 		if connectionType != "friend" {
@@ -384,10 +381,6 @@ func (c *connection) AutoConnectSocialFriends(accountID, applicationID int64, us
 			if err[0] != errmsg.ErrConnectionAlreadyExists {
 				return nil, err
 			}
-		}
-
-		if _, err := c.Confirm(accountID, applicationID, connection, false); err != nil {
-			return nil, err
 		}
 	}
 
@@ -406,7 +399,7 @@ func (c *connection) Relation(accountID, applicationID int64, userFromID, userTo
 	defer relations.Close()
 
 	rel := &entity.Relation{
-		IsFriend:  entity.PFalse,
+		IsFriend:   entity.PFalse,
 		IsFollowed: entity.PFalse,
 		IsFollower: entity.PFalse,
 	}
