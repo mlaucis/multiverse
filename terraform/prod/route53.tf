@@ -25,8 +25,19 @@ resource "aws_route53_record" "db-slave1" {
 
   ttl     = "5"
   records = [
-    "${aws_db_instance.master.address}"]
+    "${aws_db_instance.slave1.address}"]
 }
+
+resource "aws_route53_record" "db-slave2" {
+  zone_id = "${aws_route53_zone.tapglue-internal.zone_id}"
+  name    = "db-slave2"
+  type    = "CNAME"
+
+  ttl     = "5"
+  records = [
+    "${aws_db_instance.slave2.address}"]
+}
+
 
 /*
 resource "aws_route53_record" "db-corp-master" {
