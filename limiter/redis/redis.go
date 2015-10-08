@@ -1,13 +1,8 @@
 // Package redis provides a Redis implementation of the rate limiting interfaces
-// NOTE: As of 13.05.2015 this is not a very strict implementation, meaning that with
-// sufficient concurrency levels / high latency the limits will be broken.
-// Also, limit creation point might not be as accurate as possible.
-// TODO Have proper locks in places so that this doesn't happen
 package redis
 
 import (
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/tapglue/multiverse/limiter"
@@ -16,62 +11,67 @@ import (
 )
 
 type rateLimiter struct {
-	bucket   string
-	connPool *redis.Pool
+	prefix string
+	pool   *redis.Pool
 }
 
-// NewLimiter creates a new Limiter implementation using Redis
-func NewLimiter(connPool *redis.Pool, bucketName string) limiter.Limiter {
+// NewLimiter returns a Redis Limiter implementation.
+func NewLimiter(pool *redis.Pool, prefix string) limiter.Limiter {
 	return &rateLimiter{
-		bucket:   bucketName,
-		connPool: connPool,
+		prefix: prefix,
+		pool:   pool,
 	}
 }
 
 func (rateLimiter *rateLimiter) Request(limitee *limiter.Limitee) (int64, time.Time, error) {
 	var (
-		key     = fmt.Sprintf("%s:%s", rateLimiter.bucket, limitee.Hash)
-		conn    = rateLimiter.connPool.Get()
+		conn    = rateLimiter.pool.Get()
 		expires = time.Now().Add(limitee.WindowSize)
-		left    = int64(-1)
+		key     = fmt.Sprintf("%s:%s", rateLimiter.prefix, limitee.Hash)
 	)
 	defer conn.Close()
 
-	res, err := conn.Do("GET", key)
+	quota, err := getQuota(conn, key)
 	if err != nil {
 		return 0, time.Now(), err
 	}
 
-	if res != nil {
-		left, err = strconv.ParseInt(string(res.([]uint8)), 10, 64)
-		if err != nil {
-			return 0, expires, fmt.Errorf("parsing counter failed: %s", err)
-		}
+	ttl, err := getTTL(conn, key)
+	if err != nil {
+		return 0, time.Now(), err
+	}
 
-		expiry, err := conn.Do("TTL", key)
+	if ttl < 0 {
+		quota = limitee.Limit - 1
+
+		_, err := conn.Do("SET", key, quota, "EX", uint64(limitee.WindowSize/time.Second))
 		if err != nil {
 			return 0, time.Now(), err
 		}
-		expires = time.Now().Add(time.Duration(expiry.(int64)) * time.Second)
+
+		return quota, expires, nil
 	}
 
-	if left == -1 {
-		_, err := conn.Do("SET", key, limitee.Limit-1, "EX", uint64(limitee.WindowSize/time.Second), "NX")
-		if err != nil {
-			return 0, expires, err
-		}
+	return quota, time.Now().Add(ttl), nil
+}
 
-		return limitee.Limit - 1, expires, nil
+func getQuota(conn redis.Conn, key string) (int64, error) {
+	// DECR on non-existent keys will set them to `-1` we can make use of that to
+	// determine if we have to reset the quota.
+	res, err := conn.Do("DECR", key)
+	if err != nil {
+		return 0, err
 	}
 
-	if left > 0 {
-		_, err = conn.Do("DECR", key)
-		if err != nil {
-			return 0, expires, err
-		}
+	return res.(int64), nil
+}
 
-		return left - 1, expires, nil
+func getTTL(conn redis.Conn, key string) (time.Duration, error) {
+	// TTL returns -2 for a key that doesn't exist and -1 if none is set.
+	res, err := conn.Do("TTL", key)
+	if err != nil {
+		return 0, err
 	}
 
-	return left, expires, nil
+	return time.Duration(res.(int64)) * time.Second, nil
 }
