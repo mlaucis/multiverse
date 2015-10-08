@@ -359,15 +359,12 @@ func (c *connection) AutoConnectSocialFriends(accountID, applicationID int64, us
 			UserToID:   ourStoredUsersIDs[idx].ID,
 			Type:       connectionType,
 		}
+		connection.Enabled = true
 
 		if _, err := c.Create(accountID, applicationID, connection, false); err != nil {
 			if err[0] != errmsg.ErrConnectionAlreadyExists {
 				return nil, err
 			}
-		}
-
-		if _, err := c.Confirm(accountID, applicationID, connection, false); err != nil {
-			return nil, err
 		}
 
 		if connectionType != "friend" {
@@ -384,10 +381,6 @@ func (c *connection) AutoConnectSocialFriends(accountID, applicationID int64, us
 			if err[0] != errmsg.ErrConnectionAlreadyExists {
 				return nil, err
 			}
-		}
-
-		if _, err := c.Confirm(accountID, applicationID, connection, false); err != nil {
-			return nil, err
 		}
 	}
 
