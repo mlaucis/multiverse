@@ -7,8 +7,6 @@ import (
 	"strings"
 
 	"github.com/tapglue/multiverse/context"
-
-	"github.com/sendgridlabs/go-kinesis"
 )
 
 type generalRoute struct {
@@ -172,7 +170,6 @@ func healthCheckHandler(ctx *context.Context) {
 	response := struct {
 		Healthy  bool `json:"healthy"`
 		Services struct {
-			Kinesis        bool   `json:"kinesis"`
 			PostgresMaster bool   `json:"postgres_master"`
 			PostgresSlaves []bool `json:"postgres_slaves"`
 			RateLimiter    bool   `json:"rate_limiter"`
@@ -181,13 +178,11 @@ func healthCheckHandler(ctx *context.Context) {
 	}{
 		Healthy: true,
 		Services: struct {
-			Kinesis        bool   `json:"kinesis"`
 			PostgresMaster bool   `json:"postgres_master"`
 			PostgresSlaves []bool `json:"postgres_slaves"`
 			RateLimiter    bool   `json:"rate_limiter"`
 			AppCache       bool   `json:"app_cache"`
 		}{
-			Kinesis:        true,
 			PostgresMaster: true,
 			PostgresSlaves: make([]bool, rawPostgresClient.SlaveCount()),
 			RateLimiter:    true,
@@ -207,18 +202,6 @@ func healthCheckHandler(ctx *context.Context) {
 		ctx.W.WriteHeader(ctx.StatusCode)
 		json.NewEncoder(ctx.W).Encode(response)
 	}()
-
-	// Check Kinesis
-	args := kinesis.NewArgs()
-	resp, err := rawKinesisClient.Datastore().ListStreams(args)
-	if err != nil {
-		response.Healthy = false
-		response.Services.Kinesis = false
-	} else if len(resp.StreamNames) == 0 {
-		// We should have at least one stream, the production one
-		response.Healthy = false
-		response.Services.Kinesis = false
-	}
 
 	// Check Postgres
 	if _, err := rawPostgresClient.MainDatastore().Exec("SELECT 1"); err != nil {
