@@ -351,105 +351,52 @@ func (s *ServerSuite) TestValidateDeleteCommon_NoCLHeader(c *C) {
 }
 
 func (s *ServerSuite) TestRateLimit(c *C) {
-	accounts := CorrectDeploy(1, 0, 1, 1, 0, false, true)
-	application := accounts[0].Applications[0]
-	user := application.Users[0]
+	var (
+		limit       = 10
+		accounts    = CorrectDeploy(1, 0, 1, 1, 0, false, true)
+		application = accounts[0].Applications[0]
+		user        = application.Users[0]
+		routeName   = "getCurrentApplicationUser"
+		route       = getComposedRoute(routeName)
+	)
 
-	routeName := "getCurrentApplicationUser"
-	route := getComposedRoute(routeName)
-	code, body, headers, err := runRequestWithHeaders(routeName, route, "", func(*http.Request) {}, signApplicationRequest(application, user, true, true))
-	c.Assert(err, IsNil)
-	c.Assert(code, Equals, http.StatusOK)
-	c.Assert(body, Not(Equals), "")
-	remaining, er := strconv.Atoi(headers.Get("X-RateLimit-Remaining"))
-	c.Assert(er, IsNil)
-	c.Assert(remaining, Equals, 9)
-
-	receivedUser := &entity.ApplicationUser{}
-	er = json.Unmarshal([]byte(body), receivedUser)
-	c.Assert(er, IsNil)
-	c.Assert(receivedUser.Username, Equals, user.Username)
-
-	for i := 2; i <= 10; i++ {
+	for i := 1; i < limit; i++ {
 		code, body, headers, err := runRequestWithHeaders(routeName, route, "", func(*http.Request) {}, signApplicationRequest(application, user, true, true))
 		c.Assert(err, IsNil)
 		c.Assert(code, Equals, http.StatusOK)
 		c.Assert(body, Not(Equals), "")
 		remaining, er := strconv.Atoi(headers.Get("X-RateLimit-Remaining"))
 		c.Assert(er, IsNil)
-		c.Assert(remaining, Equals, 10-i+1)
+		c.Assert(remaining, Equals, limit-i)
 	}
 
-	code, body, headers, err = runRequestWithHeaders(routeName, route, "", func(*http.Request) {}, signApplicationRequest(application, user, true, true))
+	code, _, headers, err := runRequestWithHeaders(routeName, route, "", func(*http.Request) {}, signApplicationRequest(application, user, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, 429)
-	remaining, er = strconv.Atoi(headers.Get("X-RateLimit-Remaining"))
+	remaining, er := strconv.Atoi(headers.Get("X-RateLimit-Remaining"))
 	c.Assert(er, IsNil)
 	c.Assert(remaining, Equals, 0)
 }
 
 func (s *ServerSuite) TestRateLimitProduction(c *C) {
-	account := CorrectDeploy(1, 1, 1, 1, 0, false, true)[0]
-	member := account.Users[0]
-	application := account.Applications[0]
-	user := application.Users[0]
+	var (
+		account     = CorrectDeploy(1, 1, 1, 1, 0, false, true)[0]
+		member      = account.Users[0]
+		application = account.Applications[0]
+		routeName   = "updateApplication"
+		route       = getComposedRoute(routeName, account.PublicID, application.PublicID)
 
-	payload := fmt.Sprintf(
-		`{"name":"%s", "description":"i changed the description", "url": "%s", "enabled": true, "in_production": true}`,
-		application.Name,
-		application.URL,
+		payload = fmt.Sprintf(
+			`{"name":"%s", "description":"i changed the description", "url": "%s", "enabled": true, "in_production": true}`,
+			application.Name,
+			application.URL,
+		)
 	)
 
-	routeName := "updateApplication"
-	route := getComposedRoute(routeName, account.PublicID, application.PublicID)
 	code, body, err := runRequest(routeName, route, payload, signAccountRequest(account, member, true, true))
 	c.Assert(err, IsNil)
-	c.Assert(code, Equals, http.StatusCreated)
+	c.Assert(code, Equals, http.StatusGone)
 	c.Assert(body, Not(Equals), "")
-
-	receivedApplication := &entity.Application{}
-	er := json.Unmarshal([]byte(body), receivedApplication)
-	c.Assert(er, IsNil)
-	if receivedApplication.PublicID == "" {
-		c.Fail()
-	}
-
-	c.Assert(receivedApplication.Name, Equals, application.Name)
-	c.Assert(receivedApplication.URL, Equals, application.URL)
-	c.Assert(receivedApplication.Enabled, Equals, true)
-	c.Assert(receivedApplication.InProduction, Equals, true)
-
-	routeName = "getCurrentApplicationUser"
-	route = getComposedRoute(routeName)
-	code, body, headers, err := runRequestWithHeaders(routeName, route, "", func(*http.Request) {}, signApplicationRequest(application, user, true, true))
-	c.Assert(err, IsNil)
-	c.Assert(code, Equals, http.StatusOK)
-	c.Assert(body, Not(Equals), "")
-	remaining, er := strconv.Atoi(headers.Get("X-RateLimit-Remaining"))
-	c.Assert(er, IsNil)
-	c.Assert(remaining, Equals, 49)
-
-	receivedUser := &entity.ApplicationUser{}
-	er = json.Unmarshal([]byte(body), receivedUser)
-	c.Assert(er, IsNil)
-	c.Assert(receivedUser.Username, Equals, user.Username)
-
-	for i := 2; i <= 50; i++ {
-		code, body, headers, err := runRequestWithHeaders(routeName, route, "", func(*http.Request) {}, signApplicationRequest(application, user, true, true))
-		c.Assert(err, IsNil)
-		c.Assert(code, Equals, http.StatusOK)
-		c.Assert(body, Not(Equals), "")
-		remaining, er := strconv.Atoi(headers.Get("X-RateLimit-Remaining"))
-		c.Assert(er, IsNil)
-		c.Assert(remaining, Equals, 50-i+1)
-	}
-
-	code, body, headers, err = runRequestWithHeaders(routeName, route, "", func(*http.Request) {}, signApplicationRequest(application, user, true, true))
-	c.Assert(err, IsNil)
-	c.Assert(code, Equals, 429)
-	remaining, er = strconv.Atoi(headers.Get("X-RateLimit-Remaining"))
-	c.Assert(er, IsNil)
-	c.Assert(remaining, Equals, 0)
 }
 
 // createCommonRequestHeaders create a correct request header

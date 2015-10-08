@@ -7,6 +7,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/tapglue/multiverse/context"
 	"github.com/tapglue/multiverse/errors"
@@ -47,7 +48,7 @@ var (
 
 	appRateLimitProduction int64 = 10000
 	appRateLimitStaging    int64 = 100
-	appRateLimitSeconds    int64 = 60
+	appRateLimitSeconds          = 60 * time.Second
 )
 
 func init() {
@@ -182,9 +183,13 @@ func RateLimitApplication(ctx *context.Context) []errors.Error {
 		appRateLimit = appRateLimitProduction
 	}
 
-	hash := ctx.Bag["application"].(*entity.Application).AuthToken
+	limitee := &limiter.Limitee{
+		Hash:       ctx.Bag["application"].(*entity.Application).AuthToken,
+		Limit:      appRateLimit,
+		WindowSize: appRateLimitSeconds,
+	}
 
-	limit, refreshTime, err := appRateLimiter.Request(&limiter.Limitee{hash, appRateLimit, appRateLimitSeconds})
+	limit, refreshTime, err := appRateLimiter.Request(limitee)
 	if err != nil {
 		return []errors.Error{errmsg.ErrServerInternalError.UpdateInternalMessage(err.Error())}
 	}

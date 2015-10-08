@@ -47,7 +47,7 @@ var (
 			URL:       "http://tapglue.com/users/1/demouser",
 		},
 		Common: entity.Common{
-			Images: map[string]*entity.Image{
+			Images: map[string]entity.Image{
 				"profile_thumb": {
 
 					URL: "http://images.tapglue.com/1/demouser/profile.jpg",
