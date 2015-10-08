@@ -16,7 +16,7 @@ func TestLimiter(t *testing.T) {
 		limitee = &limiter.Limitee{
 			Hash:       "token",
 			Limit:      10,
-			WindowSize: 1,
+			WindowSize: 1 * time.Second,
 		}
 		l = NewLimiter(pool, "limitertest")
 	)

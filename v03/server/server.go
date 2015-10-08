@@ -7,6 +7,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/tapglue/multiverse/errors"
 	"github.com/tapglue/multiverse/limiter"
@@ -46,7 +47,7 @@ var (
 
 	appRateLimitProduction int64 = 20000
 	appRateLimitStaging    int64 = 100
-	appRateLimitSeconds    int64 = 60
+	appRateLimitSeconds          = 60 * time.Second
 )
 
 func init() {

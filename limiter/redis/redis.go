@@ -32,7 +32,7 @@ func (rateLimiter *rateLimiter) Request(limitee *limiter.Limitee) (int64, time.T
 	var (
 		key     = fmt.Sprintf("%s:%s", rateLimiter.bucket, limitee.Hash)
 		conn    = rateLimiter.connPool.Get()
-		expires = time.Now().Add(time.Duration(limitee.WindowSize))
+		expires = time.Now().Add(limitee.WindowSize)
 		left    = int64(-1)
 	)
 	defer conn.Close()
@@ -56,7 +56,7 @@ func (rateLimiter *rateLimiter) Request(limitee *limiter.Limitee) (int64, time.T
 	}
 
 	if left == -1 {
-		_, err := conn.Do("SET", key, limitee.Limit-1, "EX", limitee.WindowSize, "NX")
+		_, err := conn.Do("SET", key, limitee.Limit-1, "EX", uint64(limitee.WindowSize/time.Second), "NX")
 		if err != nil {
 			return 0, expires, err
 		}
