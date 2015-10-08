@@ -13,7 +13,7 @@ type (
 		Limit int64
 
 		// WindowSize holds the number of seconds for which the rate limit applies
-		WindowSize int64
+		WindowSize time.Duration
 	}
 
 	// Limiter is the actual the one providing the actual limitation implementation

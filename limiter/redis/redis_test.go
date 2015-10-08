@@ -1,61 +1,55 @@
-package redis_test
+package redis
 
 import (
 	"testing"
 	"time"
 
-	rLimiter "github.com/tapglue/multiverse/limiter"
-	"github.com/tapglue/multiverse/limiter/redis"
-
-	redigo "github.com/garyburd/redigo/redis"
-	. "gopkg.in/check.v1"
+	"github.com/garyburd/redigo/redis"
+	"github.com/tapglue/multiverse/limiter"
 )
 
-// Hook up gocheck into the "go test" runner.
-func Test(t *testing.T) {
-	t.Parallel()
-	TestingT(t)
-}
-
-type RedisSuite struct{}
-
-var _ = Suite(&RedisSuite{})
-
-func (s *RedisSuite) TestNegativeTTL(c *C) {
-	connPool := redigo.NewPool(func() (redigo.Conn, error) {
-		return redigo.Dial("tcp", "localhost:6379")
-	}, 5)
-	limiter := redis.NewLimiter(connPool, "demo")
-
+func TestLimiter(t *testing.T) {
 	var (
-		redisKey       = "demodemo2015-10-06 21:18:59.985307449 +0200 CEST"
-		limit    int64 = 5
-		i        int64 = 0
+		pool = redis.NewPool(func() (redis.Conn, error) {
+			return redis.Dial("tcp", "127.0.0.1:6379")
+		}, 10)
+		limitee = &limiter.Limitee{
+			Hash:       "token",
+			Limit:      10,
+			WindowSize: 1 * time.Second,
+		}
+		l = NewLimiter(pool, "limitertest")
 	)
-	limitee := rLimiter.Limitee{
-		Hash:       redisKey,
-		Limit:      limit,
-		WindowSize: 2,
-	}
-	x, _, er := limiter.Request(&limitee)
-	c.Assert(er, IsNil)
-	c.Assert(x, Equals, limit-1)
-	for i = 0; i < limit; i++ {
-		x, _, er := limiter.Request(&limitee)
-		c.Assert(er, IsNil)
-		c.Assert(x, Equals, limit-i-1)
+
+	limit, _, err := l.Request(limitee)
+	if err != nil {
+		t.Fatalf("request failed: %s", err)
 	}
 
-	// Wait for the lock to expire
-	time.Sleep(2 * time.Second)
+	for i := 0; i < 20; i++ {
+		_, _, err := l.Request(limitee)
+		if err != nil {
+			t.Fatalf("request failed: %s", err)
+		}
+	}
 
-	limitee.Limit = limit
-	x, _, er = limiter.Request(&limitee)
-	c.Assert(er, IsNil)
-	c.Assert(x, Equals, limit-1)
-	for i = 0; i < limit; i++ {
-		x, _, er := limiter.Request(&limitee)
-		c.Assert(er, IsNil)
-		c.Assert(x, Equals, limit-i-1)
+	limit, _, err = l.Request(limitee)
+	if err != nil {
+		t.Fatalf("request failed: %s", err)
+	}
+
+	if have, want := limit, int64(0); have != want {
+		t.Errorf("have %v, want %v", have, want)
+	}
+
+	time.Sleep(1 * time.Second)
+
+	limit, _, err = l.Request(limitee)
+	if err != nil {
+		t.Fatalf("request failed: %s", err)
+	}
+
+	if have, want := limit, int64(9); have != want {
+		t.Errorf("have %v, want %v", have, want)
 	}
 }

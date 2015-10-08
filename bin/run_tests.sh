@@ -11,7 +11,7 @@ CWD=`pwd`
 if [ ${TEST_COMPONENT} == "redis" ]
 then
     cd ${CWD}/limiter/redis
-    go test -check.v
+    go test
     exit $?
 fi
 
