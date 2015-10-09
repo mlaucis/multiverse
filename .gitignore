@@ -34,3 +34,6 @@ config.json
 .idea/libraries/GOPATH_*
 
 terraform/*.tfvars
+mem.out
+cpu.out
+server.test
