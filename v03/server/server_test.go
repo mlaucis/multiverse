@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strconv"
 	"strings"
 
@@ -187,6 +188,10 @@ func (s *ServerSuite) TestValidateDeleteCommon_NoCLHeader(c *C) {
 }
 
 func (s *ServerSuite) TestRateLimitStaging(c *C) {
+	if os.Getenv("NO_LIMITS") == "true" {
+		c.Skip("skipping test in NO_LIMITS mode")
+	}
+
 	var (
 		limit         = 10
 		organizations = CorrectDeploy(1, 0, 1, 1, 0, false, true)
@@ -220,6 +225,10 @@ func (s *ServerSuite) TestRateLimitStaging(c *C) {
 }
 
 func (s *ServerSuite) TestRateLimitProduction(c *C) {
+	if os.Getenv("NO_LIMITS") == "true" {
+		c.Skip("skipping test in NO_LIMITS mode")
+	}
+
 	var (
 		limit        = 50
 		organization = CorrectDeploy(1, 1, 1, 1, 0, false, true)[0]
