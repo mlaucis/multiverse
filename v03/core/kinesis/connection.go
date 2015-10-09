@@ -103,6 +103,10 @@ func (c *connection) FriendsAndFollowing(accountID, applicationID int64, userID 
 	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
 }
 
+func (c *connection) FriendsAndFollowingIDs(accountID, applicationID int64, userID uint64) ([]uint64, []errors.Error) {
+	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
+}
+
 func (c *connection) Confirm(accountID, applicationID int64, connection *entity.Connection, retrieve bool) (*entity.Connection, []errors.Error) {
 	con := entity.ConnectionWithIDs{}
 	con.OrgID = accountID
