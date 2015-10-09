@@ -119,6 +119,11 @@ func (org *organization) PopulateContext(ctx *context.Context) (err []errors.Err
 	if ctx.Organization != nil {
 		ctx.OrganizationID = ctx.Organization.ID
 	}
+
+	if ctx.Organization == nil {
+		return []errors.Error{errmsg.ErrOrgNotFound.SetCurrentLocation()}
+	}
+
 	return
 }
 

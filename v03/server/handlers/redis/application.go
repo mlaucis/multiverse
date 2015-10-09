@@ -80,6 +80,10 @@ func (app *application) PopulateContext(ctx *context.Context) (err []errors.Erro
 		return []errors.Error{errmsg.ErrAuthInvalidApplicationCredentials.UpdateInternalMessage(fmt.Sprintf("got unexpected token size %s:%s", appToken, userToken))}
 	}
 
+	if ctx.Application == nil {
+		return []errors.Error{errmsg.ErrApplicationNotFound.SetCurrentLocation()}
+	}
+
 	return
 }
 
