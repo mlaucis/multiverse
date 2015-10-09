@@ -5,12 +5,10 @@ package server_test
 import (
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"net/http"
 
-	"github.com/tapglue/multiverse/utils"
 	"github.com/tapglue/multiverse/v03/entity"
-
-	"math/rand"
 
 	. "gopkg.in/check.v1"
 )
@@ -101,16 +99,10 @@ func (s *ApplicationSuite) TestCreateApplication_OK(c *C) {
 
 // Test a correct updateApplication request
 func (s *ApplicationSuite) TestUpdateApplication_OK(c *C) {
-	account, err := AddCorrectOrganization(true)
-	c.Assert(err, IsNil)
-
-	accountUser, err := AddCorrectMember(account.ID, true)
-	c.Assert(err, IsNil)
-
-	LoginMember(accountUser)
-
-	application, err := AddCorrectApplication(account.ID, true)
-	c.Assert(err, IsNil)
+	accounts := CorrectDeploy(1, 1, 1, 0, 0, false, true)
+	account := accounts[0]
+	accountUser := account.Members[0]
+	application := account.Applications[0]
 
 	payload := fmt.Sprintf(
 		`{"name":"%s", "description":"i changed the description", "url": "%s", "enabled": true}`,
@@ -132,6 +124,8 @@ func (s *ApplicationSuite) TestUpdateApplication_OK(c *C) {
 		c.Fail()
 	}
 
+	c.Assert(receivedApplication.PublicID, Equals, application.PublicID)
+	c.Assert(receivedApplication.PublicOrgID, Equals, application.PublicOrgID)
 	c.Assert(receivedApplication.Name, Equals, application.Name)
 	c.Assert(receivedApplication.URL, Equals, application.URL)
 	c.Assert(receivedApplication.Enabled, Equals, true)
@@ -139,23 +133,16 @@ func (s *ApplicationSuite) TestUpdateApplication_OK(c *C) {
 
 // Test a correct updateApplication request with a wrong id
 func (s *ApplicationSuite) TestUpdateApplication_WrongID(c *C) {
-	account, err := AddCorrectOrganization(true)
-	c.Assert(err, IsNil)
-
-	accountUser, err := AddCorrectMember(account.ID, true)
-	c.Assert(err, IsNil)
-
-	application, err := AddCorrectApplication(account.ID, true)
-	c.Assert(err, IsNil)
-
-	application.PublicOrgID = account.PublicID
+	accounts := CorrectDeploy(1, 1, 1, 0, 0, false, true)
+	account := accounts[0]
+	accountUser := account.Members[0]
+	application := account.Applications[0]
 
 	payload := fmt.Sprintf(
 		`{"name":"%s", "description":"i changed the description", "url": "%s", "enabled": true}`,
 		application.Name,
 		application.URL,
 	)
-	c.Assert(err, IsNil)
 
 	routeName := "updateApplication"
 	route := getComposedRoute(routeName, application.PublicOrgID, application.PublicID+"a")
@@ -166,59 +153,39 @@ func (s *ApplicationSuite) TestUpdateApplication_WrongID(c *C) {
 
 // Test a correct updateApplication request with an invalid description
 func (s *ApplicationSuite) TestUpdateApplication_WrongValue(c *C) {
-	account, err := AddCorrectOrganization(true)
-	c.Assert(err, IsNil)
-
-	accountUser, err := AddCorrectMember(account.ID, true)
-	c.Assert(err, IsNil)
-
-	application, err := AddCorrectApplication(account.ID, true)
-	c.Assert(err, IsNil)
-
-	application.PublicOrgID = account.PublicID
+	accounts := CorrectDeploy(1, 1, 1, 0, 0, false, true)
+	account := accounts[0]
+	accountUser := account.Members[0]
+	application := account.Applications[0]
 
 	payload := fmt.Sprintf(
 		`{"name":"%s", "description":"", "url": "%s", "enabled": true}`,
 		application.Name,
 		application.URL,
 	)
-	c.Assert(err, IsNil)
 
 	routeName := "updateApplication"
-	route := getComposedRoute(routeName, application.PublicOrgID, application.PublicID)
+	route := getComposedRoute(routeName, application.PublicOrgID, application.PublicID+"a")
 	code, _, err := runRequest(routeName, route, payload, signOrganizationRequest(account, accountUser, true, true))
 	c.Assert(err, IsNil)
-
 	c.Assert(code, Equals, http.StatusNotFound)
 }
 
 // Test a correct updateApplication request with a wrong token
 func (s *ApplicationSuite) TestUpdateApplication_WrongToken(c *C) {
-	account, err := AddCorrectOrganization(true)
-	c.Assert(err, IsNil)
-
-	accountUser, err := AddCorrectMember(account.ID, true)
-	c.Assert(err, IsNil)
-
-	correctApplication, err := AddCorrectApplication(account.ID, true)
-	c.Assert(err, IsNil)
-
-	correctApplication.PublicOrgID = account.PublicID
+	accounts := CorrectDeploy(1, 1, 1, 0, 0, false, true)
+	account := accounts[0]
+	accountUser := account.Members[0]
+	application := account.Applications[0]
 
 	payload := fmt.Sprintf(
 		`{"name":"%s", "description":"i changed the description", "url": "%s", "enabled": true}`,
-		correctApplication.Name,
-		correctApplication.URL,
+		application.Name,
+		application.URL,
 	)
-	c.Assert(err, IsNil)
-
-	sessionToken, er := utils.Base64Decode(getMemberSessionToken(accountUser))
-	c.Assert(er, IsNil)
-
-	sessionToken = utils.Base64Encode(sessionToken + "a")
 
 	routeName := "updateApplication"
-	route := getComposedRoute(routeName, correctApplication.PublicOrgID, correctApplication.PublicID)
+	route := getComposedRoute(routeName, application.PublicOrgID, application.PublicID)
 	code, _, err := runRequest(routeName, route, payload, signOrganizationRequest(account, accountUser, false, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusNotFound)
@@ -226,16 +193,10 @@ func (s *ApplicationSuite) TestUpdateApplication_WrongToken(c *C) {
 
 // Test a correct deleteApplication request
 func (s *ApplicationSuite) TestDeleteApplication_OK(c *C) {
-	account, err := AddCorrectOrganization(true)
-	c.Assert(err, IsNil)
-
-	accountUser, err := AddCorrectMember(account.ID, true)
-	c.Assert(err, IsNil)
-
-	LoginMember(accountUser)
-
-	application, err := AddCorrectApplication(account.ID, true)
-	c.Assert(err, IsNil)
+	accounts := CorrectDeploy(1, 1, 1, 0, 0, false, true)
+	account := accounts[0]
+	accountUser := account.Members[0]
+	application := account.Applications[0]
 
 	routeName := "deleteApplication"
 	route := getComposedRoute(routeName, account.PublicID, application.PublicID)
@@ -247,16 +208,10 @@ func (s *ApplicationSuite) TestDeleteApplication_OK(c *C) {
 
 // Test a correct deleteApplication request with a wrong id
 func (s *ApplicationSuite) TestDeleteApplication_WrongID(c *C) {
-	account, err := AddCorrectOrganization(true)
-	c.Assert(err, IsNil)
-
-	accountUser, err := AddCorrectMember(account.ID, true)
-	c.Assert(err, IsNil)
-
-	LoginMember(accountUser)
-
-	application, err := AddCorrectApplication(account.ID, true)
-	c.Assert(err, IsNil)
+	accounts := CorrectDeploy(1, 1, 1, 0, 0, false, true)
+	account := accounts[0]
+	accountUser := account.Members[0]
+	application := account.Applications[0]
 
 	routeName := "deleteApplication"
 	route := getComposedRoute(routeName, account.PublicID, application.PublicID+"1")
@@ -268,19 +223,10 @@ func (s *ApplicationSuite) TestDeleteApplication_WrongID(c *C) {
 
 // Test a correct deleteApplication request with a wrong token
 func (s *ApplicationSuite) TestDeleteApplication_WrongToken(c *C) {
-	account, err := AddCorrectOrganization(true)
-	c.Assert(err, IsNil)
-
-	accountUser, err := AddCorrectMember(account.ID, true)
-	c.Assert(err, IsNil)
-
-	application, err := AddCorrectApplication(account.ID, true)
-	c.Assert(err, IsNil)
-
-	sessionToken, er := utils.Base64Decode(getMemberSessionToken(accountUser))
-	c.Assert(er, IsNil)
-
-	sessionToken = utils.Base64Encode(sessionToken + "a")
+	accounts := CorrectDeploy(1, 1, 1, 0, 0, false, true)
+	account := accounts[0]
+	accountUser := account.Members[0]
+	application := account.Applications[0]
 
 	routeName := "deleteApplication"
 	route := getComposedRoute(routeName, account.PublicID, application.PublicID+"1")
@@ -316,16 +262,10 @@ func (s *ApplicationSuite) TestGetApplication_OK(c *C) {
 
 // Test a correct getApplication request with a wrong id
 func (s *ApplicationSuite) TestGetApplication_WrongID(c *C) {
-	account, err := AddCorrectOrganization(true)
-	c.Assert(err, IsNil)
-
-	accountUser, err := AddCorrectMember(account.ID, true)
-	c.Assert(err, IsNil)
-
-	LoginMember(accountUser)
-
-	application, err := AddCorrectApplication(account.ID, true)
-	c.Assert(err, IsNil)
+	accounts := CorrectDeploy(1, 1, 1, 0, 0, false, true)
+	account := accounts[0]
+	accountUser := account.Members[0]
+	application := account.Applications[0]
 
 	routeName := "getApplication"
 	route := getComposedRoute(routeName, account.PublicID, application.PublicID+"a")
@@ -337,16 +277,10 @@ func (s *ApplicationSuite) TestGetApplication_WrongID(c *C) {
 
 // Test a correct getApplication request with a wrong token
 func (s *ApplicationSuite) TestGetApplication_WrongToken(c *C) {
-	account, err := AddCorrectOrganization(true)
-	c.Assert(err, IsNil)
-
-	accountUser, err := AddCorrectMember(account.ID, true)
-	c.Assert(err, IsNil)
-
-	application, err := AddCorrectApplication(account.ID, true)
-	c.Assert(err, IsNil)
-
-	LoginMember(accountUser)
+	accounts := CorrectDeploy(1, 1, 1, 0, 0, false, true)
+	account := accounts[0]
+	accountUser := account.Members[0]
+	application := account.Applications[0]
 
 	routeName := "getApplication"
 	route := getComposedRoute(routeName, account.PublicID, application.PublicID)

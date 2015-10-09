@@ -34,7 +34,8 @@ func (app *application) Update(ctx *context.Context) (err []errors.Error) {
 
 	application.ID = ctx.ApplicationID
 	application.OrgID = ctx.OrganizationID
-	application.PublicID = ctx.Organization.PublicID
+	application.PublicID = ctx.Application.PublicID
+	application.PublicOrgID = ctx.Organization.PublicID
 
 	if err = validator.UpdateApplication(ctx.Application, &application); err != nil {
 		return
@@ -124,6 +125,11 @@ func (app *application) PopulateContext(ctx *context.Context) (err []errors.Erro
 		ctx.OrganizationID = ctx.Application.OrgID
 		ctx.ApplicationID = ctx.Application.ID
 	}
+
+	if ctx.Application == nil {
+		return []errors.Error{errmsg.ErrApplicationNotFound.SetCurrentLocation()}
+	}
+
 	return
 }
 
@@ -141,6 +147,11 @@ func (app *application) PopulateContextFromID(ctx *context.Context) (err []error
 		ctx.OrganizationID = ctx.Application.OrgID
 		ctx.ApplicationID = ctx.Application.ID
 	}
+
+	if ctx.Application == nil {
+		return []errors.Error{errmsg.ErrApplicationNotFound.SetCurrentLocation()}
+	}
+
 	return
 }
 

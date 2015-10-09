@@ -125,14 +125,15 @@ var (
 
 	// Account errors
 
-	ErrAccountDescriptionSize  = errors.New(http.StatusBadRequest, 6000, "account description must be between 0 and 100 characters", "", false)
-	ErrOrgIDIsAlreadySet       = errors.New(http.StatusBadRequest, 6001, "account id is already set", "", false)
-	ErrOrgIDZero               = errors.New(http.StatusBadRequest, 6002, "account id can't be 0", "", false)
+	ErrAccountDescriptionSize  = errors.New(http.StatusBadRequest, 6000, "organization description must be between 0 and 100 characters", "", false)
+	ErrOrgIDIsAlreadySet       = errors.New(http.StatusBadRequest, 6001, "organization id is already set", "", false)
+	ErrOrgIDZero               = errors.New(http.StatusBadRequest, 6002, "organization id can't be 0", "", false)
 	ErrAccountMismatch         = errors.New(http.StatusBadRequest, 6003, "organization mismatch", "", false)
 	ErrAccountMissingInContext = errors.New(http.StatusInternalServerError, 6004, "missing account context", "", false)
 	ErrAccountNameSize         = errors.New(http.StatusBadRequest, 6005, "account name must be between 3 and 40 characters", "", false)
 	ErrAccountNotFound         = errors.New(http.StatusNotFound, 6006, "account not found", "", false)
 	ErrOrgTokenAlreadySet      = errors.New(http.StatusBadRequest, 6007, "account token is already set", "", false)
+	ErrOrgNotFound             = errors.New(http.StatusNotFound, 6008, "organization not found", "", false)
 
 	// Internal account errors
 
