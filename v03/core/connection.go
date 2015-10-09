@@ -31,6 +31,9 @@ type Connection interface {
 	// FriendsAndFollowing returns all friends and people followed by the specified user
 	FriendsAndFollowing(accountID, applicationID int64, userID uint64) ([]*entity.ApplicationUser, []errors.Error)
 
+	// FriendsAndFollowingIDs returns all friends and people followed by the specified user
+	FriendsAndFollowingIDs(accountID, applicationID int64, userID uint64) ([]uint64, []errors.Error)
+
 	// Confirm confirms a user connection and returns the connection or an error
 	Confirm(accountID, applicationID int64, connection *entity.Connection, retrieve bool) (con *entity.Connection, err []errors.Error)
 

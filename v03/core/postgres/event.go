@@ -430,7 +430,7 @@ func (e *event) rowsToSlice(rows *sql.Rows) (events []*entity.Event, err []error
 }
 
 func (e *event) composeConnectionCondition(accountID, applicationID int64, userID uint64, joinOperator string) (string, []errors.Error) {
-	connections, er := e.c.FriendsAndFollowing(accountID, applicationID, userID)
+	connections, er := e.c.FriendsAndFollowingIDs(accountID, applicationID, userID)
 	if er != nil {
 		return "", er
 	}
@@ -441,7 +441,7 @@ func (e *event) composeConnectionCondition(accountID, applicationID int64, userI
 
 	condition := []string{}
 	for idx := range connections {
-		condition = append(condition, fmt.Sprintf(`json_data @> '{"user_id": %d}'`, connections[idx].ID))
+		condition = append(condition, fmt.Sprintf(`json_data @> '{"user_id": %d}'`, connections[idx]))
 	}
 
 	return strings.Join(condition, joinOperator), nil
