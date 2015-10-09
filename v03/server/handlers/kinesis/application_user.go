@@ -60,6 +60,7 @@ func (appUser *applicationUser) UpdateCurrent(ctx *context.Context) (err []error
 
 	updatedUser.Password = ""
 	updatedUser.Enabled = false
+	appUser.readStorage.FriendStatistics(ctx.OrganizationID, ctx.ApplicationID, updatedUser)
 
 	response.WriteResponse(ctx, updatedUser, http.StatusCreated, 0)
 	return

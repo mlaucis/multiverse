@@ -24,7 +24,7 @@ func CreateConnection(datastore core.ApplicationUser, accountID, applicationID i
 			errs = append(errs, errmsg.ErrApplicationUserNotFound.SetCurrentLocation())
 		}
 	}
-	userFrom, err := datastore.Read(accountID, applicationID, connection.UserFromID)
+	userFrom, err := datastore.Read(accountID, applicationID, connection.UserFromID, false)
 	if err != nil {
 		errs = append(errs, err...)
 	}
@@ -39,7 +39,7 @@ func CreateConnection(datastore core.ApplicationUser, accountID, applicationID i
 			errs = append(errs, errmsg.ErrApplicationUserNotFound.SetCurrentLocation())
 		}
 	}
-	userTo, err := datastore.Read(accountID, applicationID, connection.UserToID)
+	userTo, err := datastore.Read(accountID, applicationID, connection.UserToID, false)
 	if err != nil {
 		errs = append(errs, err...)
 	}

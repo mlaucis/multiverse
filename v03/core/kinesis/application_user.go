@@ -23,7 +23,7 @@ func (appu *applicationUser) Create(accountID, applicationID int64, user *entity
 	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
 }
 
-func (appu *applicationUser) Read(accountID, applicationID int64, userID uint64) (user *entity.ApplicationUser, err []errors.Error) {
+func (appu *applicationUser) Read(accountID, applicationID int64, userID uint64, withStatistics bool) (user *entity.ApplicationUser, err []errors.Error) {
 	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
 }
 
@@ -119,6 +119,10 @@ func (appu *applicationUser) FindBySession(accountID, applicationID int64, sessi
 
 func (appu *applicationUser) Search(accountID, applicationID int64, searchTerm string) ([]*entity.ApplicationUser, []errors.Error) {
 	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
+}
+
+func (appu *applicationUser) FriendStatistics(accountID, applicationID int64, appUser *entity.ApplicationUser) []errors.Error {
+	return []errors.Error{errmsg.ErrServerInvalidHandler}
 }
 
 // NewApplicationUser creates a new Event

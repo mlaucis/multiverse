@@ -169,7 +169,7 @@ func (c *connection) List(accountID, applicationID int64, userID uint64) (users 
 		if err != nil {
 			return nil, []errors.Error{errmsg.ErrInternalFollowingList.UpdateInternalMessage(err.Error())}
 		}
-		user, er := c.appUser.Read(accountID, applicationID, conn.UserToID)
+		user, er := c.appUser.Read(accountID, applicationID, conn.UserToID, false)
 		if er != nil {
 			if er[0].Code() == errmsg.ErrApplicationUserNotFound.Code() {
 				continue
@@ -203,7 +203,7 @@ func (c *connection) FollowedBy(accountID, applicationID int64, userID uint64) (
 		if err != nil {
 			return nil, []errors.Error{errmsg.ErrInternalFollowersList.UpdateInternalMessage(err.Error())}
 		}
-		user, er := c.appUser.Read(accountID, applicationID, conn.UserFromID)
+		user, er := c.appUser.Read(accountID, applicationID, conn.UserFromID, false)
 		if er != nil {
 			if er[0].Code() == errmsg.ErrApplicationUserNotFound.Code() {
 				continue
@@ -237,7 +237,7 @@ func (c *connection) Friends(accountID, applicationID int64, userID uint64) ([]*
 		if err != nil {
 			return nil, []errors.Error{errmsg.ErrInternalFriendsList.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 		}
-		user, er := c.appUser.Read(accountID, applicationID, conn.UserFromID)
+		user, er := c.appUser.Read(accountID, applicationID, conn.UserFromID, false)
 		if er != nil {
 			if er[0].Code() == errmsg.ErrApplicationUserNotFound.Code() {
 				continue
@@ -272,7 +272,7 @@ func (c *connection) FriendsAndFollowing(accountID, applicationID int64, userID 
 		if err != nil {
 			return nil, []errors.Error{errmsg.ErrInternalFriendsList.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 		}
-		user, er := c.appUser.Read(accountID, applicationID, conn.UserToID)
+		user, er := c.appUser.Read(accountID, applicationID, conn.UserToID, false)
 		if er != nil {
 			if er[0].Code() == errmsg.ErrApplicationUserNotFound.Code() {
 				continue

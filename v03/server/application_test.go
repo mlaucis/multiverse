@@ -293,7 +293,7 @@ func (s *ApplicationSuite) TestGetApplicationListWorks(c *C) {
 	accounts := CorrectDeploy(2, 1, 1, 0, 0, false, true)
 	account := accounts[0]
 	accountUser := account.Members[0]
-	application := account.Applications[0]
+	expected := account.Applications[0]
 
 	routeName := "getApplications"
 	route := getComposedRoute(routeName, account.PublicID)
@@ -309,10 +309,14 @@ func (s *ApplicationSuite) TestGetApplicationListWorks(c *C) {
 	er := json.Unmarshal([]byte(body), response)
 	c.Assert(er, IsNil)
 	c.Assert(len(response.Applications), Equals, 1)
-	application.Users = nil
-	application.ID = 0
-	application.OrgID = 0
-	c.Assert(response.Applications[0], DeepEquals, application)
+	received := response.Applications[0]
+	received.CreatedAt = expected.CreatedAt
+	received.UpdatedAt = expected.UpdatedAt
+	expected.Users = nil
+	expected.ID = 0
+	expected.OrgID = 0
+
+	c.Assert(received, DeepEquals, expected)
 }
 
 func (s *ApplicationSuite) TestApplicationMalformedPayloadsFails(c *C) {
