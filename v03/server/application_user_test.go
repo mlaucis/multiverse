@@ -1454,23 +1454,37 @@ func BenchmarkCreateAndLogin(b *testing.B) {
 		requestRoute = getRoute(routeName)
 		routePath    = getComposedRoute(routeName)
 		user         = CorrectUser()
-		payloads     = []string{}
 		signer       = signApplicationRequest(application, nil, true, true)
+		ws           []*httptest.ResponseRecorder
+		reqs         []*http.Request
+		payload      string
 	)
 
 	for i := 0; i < b.N; i++ {
-		payloads = append(
-			payloads,
-			fmt.Sprintf(
-				`{"user_name": %q, "first_name": %q, "last_name": %q,  "email": %q,  "url": %q,  "password": %q}`,
-				fmt.Sprintf("%d-%s", i, user.Username),
-				user.FirstName,
-				user.LastName,
-				fmt.Sprintf("%d-%s", i, user.Email),
-				user.URL,
-				user.Password,
-			),
+		payload = fmt.Sprintf(
+			`{"user_name": %q, "first_name": %q, "last_name": %q,  "email": %q,  "url": %q,  "password": %q}`,
+			fmt.Sprintf("%d-%s", i, user.Username),
+			user.FirstName,
+			user.LastName,
+			fmt.Sprintf("%d-%s", i, user.Email),
+			user.URL,
+			user.Password,
 		)
+
+		req, er := http.NewRequest(
+			requestRoute.Method,
+			routePath,
+			strings.NewReader(payload),
+		)
+		if er != nil {
+			panic(er)
+		}
+
+		createCommonRequestHeaders(req)
+		signer(req)
+
+		ws = append(ws, httptest.NewRecorder())
+		reqs = append(reqs, req)
 	}
 
 	m := mux.NewRouter()
@@ -1482,23 +1496,10 @@ func BenchmarkCreateAndLogin(b *testing.B) {
 	b.StartTimer()
 
 	for i := 0; i < b.N; i++ {
-		req, er := http.NewRequest(
-			requestRoute.Method,
-			routePath,
-			strings.NewReader(payloads[i]),
-		)
-		if er != nil {
-			panic(er)
-		}
+		m.ServeHTTP(ws[i], reqs[i])
 
-		createCommonRequestHeaders(req)
-		signer(req)
-
-		w := httptest.NewRecorder()
-		m.ServeHTTP(w, req)
-
-		if w.Code != http.StatusCreated {
-			b.Fatalf("wrong response %d with body %s", w.Code, w.Body.String())
+		if ws[i].Code != http.StatusCreated {
+			b.Fatalf("wrong response %d with body %s", ws[i].Code, ws[i].Body.String())
 		}
 	}
 }

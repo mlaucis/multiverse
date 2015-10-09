@@ -953,6 +953,8 @@ func (s *EventSuite) TestGetFeedWithBackendToken_Bad(c *C) {
 }
 
 func BenchmarkCreateEvent1_Write(b *testing.B) {
+	b.StopTimer()
+
 	accounts := CorrectDeploy(1, 0, 1, 1, 0, false, true)
 	account := accounts[0]
 	application := account.Applications[0]
@@ -975,22 +977,28 @@ func BenchmarkCreateEvent1_Write(b *testing.B) {
 	createCommonRequestHeaders(req)
 	signApplicationRequest(application, user, true, true)(req)
 
-	w := httptest.NewRecorder()
 	m := mux.NewRouter()
-
 	m.
 		HandleFunc(requestRoute.RoutePattern(), server.CustomHandler(requestRoute, mainLogChan, errorLogChan, "test", false, true)).
 		Methods(requestRoute.Method)
 
-	for i := 1; i <= b.N; i++ {
-		m.ServeHTTP(w, req)
-		if w.Code != 201 {
-			b.Errorf("Received non 201 code, %d", w.Code)
+	var ws []*httptest.ResponseRecorder
+	for i := 0; i < b.N; i++ {
+		ws = append(ws, httptest.NewRecorder())
+	}
+
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		m.ServeHTTP(ws[i], req)
+		if ws[i].Code != 201 {
+			b.Errorf("Received non 201 code, %d %s", ws[i].Code, ws[i].Body.String())
 		}
 	}
 }
 
 func BenchmarkCreateEvent2_Read(b *testing.B) {
+	b.StopTimer()
+
 	accounts := CorrectDeploy(1, 0, 1, 1, 1, false, true)
 	account := accounts[0]
 	application := account.Applications[0]
@@ -1014,17 +1022,21 @@ func BenchmarkCreateEvent2_Read(b *testing.B) {
 	createCommonRequestHeaders(req)
 	signApplicationRequest(application, user, true, true)(req)
 
-	w := httptest.NewRecorder()
 	m := mux.NewRouter()
-
 	m.
 		HandleFunc(requestRoute.RoutePattern(), server.CustomHandler(requestRoute, mainLogChan, errorLogChan, "test", false, true)).
 		Methods(requestRoute.Method)
 
-	for i := 1; i <= b.N; i++ {
-		m.ServeHTTP(w, req)
-		if w.Code != 200 {
-			b.Errorf("Received non 200 code, %d", w.Code)
+	var ws []*httptest.ResponseRecorder
+	for i := 0; i < b.N; i++ {
+		ws = append(ws, httptest.NewRecorder())
+	}
+
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		m.ServeHTTP(ws[i], req)
+		if ws[i].Code != 200 {
+			b.Errorf("Received non 200 code, %d %s", ws[i].Code, ws[i].Body.String())
 		}
 	}
 }

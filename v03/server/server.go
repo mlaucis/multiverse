@@ -3,6 +3,7 @@ package server
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -54,6 +55,14 @@ func init() {
 	if os.Getenv("CI") == "true" {
 		appRateLimitProduction = 50
 		appRateLimitStaging = 10
+	}
+
+	if os.Getenv("NO_LIMITS") == "true" {
+		log.Println("WARNING: LAUNCHING WITH NO APP LIMITS!!!")
+		log.Println("WARNING: LAUNCHING WITH NO APP LIMITS!!!")
+		log.Println("WARNING: LAUNCHING WITH NO APP LIMITS!!!")
+		appRateLimitProduction = 5000000
+		appRateLimitStaging = 1000000
 	}
 }
 
