@@ -53,8 +53,9 @@ var (
 					URL: "http://images.tapglue.com/1/demouser/profile.jpg",
 				},
 			},
-			Metadata: map[string]string{
-				"customData": "customValue",
+			Metadata: map[string]interface{}{
+				"customData":  "customValue",
+				"customData1": 1,
 			},
 		},
 	}

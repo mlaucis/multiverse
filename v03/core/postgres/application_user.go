@@ -88,10 +88,13 @@ func (au *applicationUser) Create(accountID, applicationID int64, user *entity.A
 	if !retrieve {
 		return nil, nil
 	}
-	return au.Read(accountID, applicationID, user.ID)
+
+	au.FriendStatistics(accountID, applicationID, user)
+
+	return user, nil
 }
 
-func (au *applicationUser) Read(accountID, applicationID int64, userID uint64) (*entity.ApplicationUser, []errors.Error) {
+func (au *applicationUser) Read(accountID, applicationID int64, userID uint64, withStatistics bool) (*entity.ApplicationUser, []errors.Error) {
 	var (
 		JSONData string
 		lastRead time.Time
@@ -107,21 +110,17 @@ func (au *applicationUser) Read(accountID, applicationID int64, userID uint64) (
 		return nil, []errors.Error{errmsg.ErrInternalApplicationUserRead.UpdateInternalMessage(err.Error())}
 	}
 
-	applicationUser := &entity.ApplicationUser{}
-	err = json.Unmarshal([]byte(JSONData), applicationUser)
+	appUser := &entity.ApplicationUser{}
+	err = json.Unmarshal([]byte(JSONData), appUser)
 	if err != nil {
 		return nil, []errors.Error{errmsg.ErrInternalApplicationUserRead.UpdateInternalMessage(err.Error())}
 	}
-	applicationUser.LastRead = &lastRead
-
-	err = au.pg.SlaveDatastore(-1).
-		QueryRow(appSchemaWithParams(selectApplicationUserCountsQuery, accountID, applicationID, accountID, applicationID, accountID, applicationID), userID).
-		Scan(&applicationUser.FriendCount, &applicationUser.FollowerCount, &applicationUser.FollowedCount)
-	if err != nil {
-		return nil, []errors.Error{errmsg.ErrInternalApplicationUserRead.UpdateInternalMessage(err.Error())}
+	appUser.LastRead = &lastRead
+	if withStatistics {
+		au.FriendStatistics(accountID, applicationID, appUser)
 	}
 
-	return applicationUser, nil
+	return appUser, nil
 }
 
 func (au *applicationUser) ReadMultiple(accountID, applicationID int64, userIDs []uint64) (users []*entity.ApplicationUser, err []errors.Error) {
@@ -195,11 +194,11 @@ func (au *applicationUser) Update(accountID, applicationID int64, existingUser, 
 		return nil, nil
 	}
 
-	return au.Read(accountID, applicationID, existingUser.ID)
+	return &updatedUser, nil
 }
 
 func (au *applicationUser) Delete(accountID, applicationID int64, userID uint64) []errors.Error {
-	user, err := au.Read(accountID, applicationID, userID)
+	user, err := au.Read(accountID, applicationID, userID, false)
 	if err != nil {
 		return err
 	}
@@ -411,7 +410,7 @@ func (au *applicationUser) FindBySession(accountID, applicationID int64, session
 		return nil, []errors.Error{errmsg.ErrInternalApplicationUserRead.UpdateInternalMessage(err.Error())}
 	}
 
-	return au.Read(accountID, applicationID, userID)
+	return au.Read(accountID, applicationID, userID, false)
 }
 
 func (au *applicationUser) Search(accountID, applicationID int64, searchTerm string) ([]*entity.ApplicationUser, []errors.Error) {
@@ -449,6 +448,16 @@ func (au *applicationUser) destroyAllUserSession(accountID, applicationID int64,
 		return []errors.Error{errmsg.ErrInternalApplicationUserSessionsDelete.UpdateInternalMessage(err.Error())}
 	}
 
+	return nil
+}
+
+func (au *applicationUser) FriendStatistics(accountID, applicationID int64, appUser *entity.ApplicationUser) []errors.Error {
+	err := au.pg.SlaveDatastore(-1).
+		QueryRow(appSchemaWithParams(selectApplicationUserCountsQuery, accountID, applicationID, accountID, applicationID, accountID, applicationID), appUser.ID).
+		Scan(&appUser.FriendCount, &appUser.FollowerCount, &appUser.FollowedCount)
+	if err != nil {
+		return []errors.Error{errmsg.ErrInternalApplicationUserRead.UpdateInternalMessage(err.Error())}
+	}
 	return nil
 }
 

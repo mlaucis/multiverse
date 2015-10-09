@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"time"
 
+	"sync"
+
 	"github.com/tapglue/multiverse/errors"
 	"github.com/tapglue/multiverse/tgflake"
 	"github.com/tapglue/multiverse/v03/context"
@@ -29,10 +31,17 @@ func (appUser *applicationUser) Read(ctx *context.Context) (err []errors.Error) 
 		return []errors.Error{errmsg.ErrApplicationUserIDInvalid}
 	}
 
-	user, err := appUser.storage.Read(ctx.OrganizationID, ctx.ApplicationID, userID)
+	user, err := appUser.storage.Read(ctx.OrganizationID, ctx.ApplicationID, userID, false)
 	if err != nil {
 		return err
 	}
+
+	wg := &sync.WaitGroup{}
+	wg.Add(1)
+	go func(wg *sync.WaitGroup) {
+		defer wg.Done()
+		appUser.storage.FriendStatistics(ctx.OrganizationID, ctx.ApplicationID, user)
+	}(wg)
 
 	// maybe not the most efficient way to do it?
 	relation := make(chan *entity.Relation)
@@ -58,6 +67,8 @@ func (appUser *applicationUser) Read(ctx *context.Context) (err []errors.Error) 
 		user.IsFollowed = entity.PFalse
 	}
 
+	wg.Wait()
+
 	response.WriteResponse(ctx, user, http.StatusOK, 10)
 	return
 }
@@ -69,6 +80,8 @@ func (appUser *applicationUser) ReadCurrent(ctx *context.Context) (err []errors.
 	user.IsFriend = nil
 	user.IsFollower = nil
 	user.IsFollowed = nil
+
+	appUser.storage.FriendStatistics(ctx.OrganizationID, ctx.ApplicationID, user)
 
 	response.ComputeApplicationUserLastModified(ctx, user)
 
@@ -108,6 +121,7 @@ func (appUser *applicationUser) UpdateCurrent(ctx *context.Context) (err []error
 	}
 
 	updatedUser.Password = ""
+	appUser.storage.FriendStatistics(ctx.OrganizationID, ctx.ApplicationID, updatedUser)
 
 	response.WriteResponse(ctx, updatedUser, http.StatusCreated, 0)
 	return
@@ -365,7 +379,7 @@ func (appUser *applicationUser) PopulateContext(ctx *context.Context) (err []err
 		if er != nil {
 			return []errors.Error{errmsg.ErrApplicationUserIDInvalid.SetCurrentLocation()}
 		}
-		ctx.ApplicationUser, err = appUser.storage.Read(ctx.Application.OrgID, ctx.Application.ID, userID)
+		ctx.ApplicationUser, err = appUser.storage.Read(ctx.Application.OrgID, ctx.Application.ID, userID, false)
 		if err == nil {
 			ctx.ApplicationUserID = ctx.ApplicationUser.ID
 		}

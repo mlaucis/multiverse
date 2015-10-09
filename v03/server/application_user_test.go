@@ -879,20 +879,7 @@ func (s *ApplicationUserSuite) TestLoginChangePasswordRefreshWorks(c *C) {
 	updatedUser := &entity.ApplicationUser{}
 	er = json.Unmarshal([]byte(body), updatedUser)
 	c.Assert(er, IsNil)
-	c.Assert(updatedUser.UpdatedAt.Sub(*user.UpdatedAt) > 0, Equals, true)
-	updatedUser.UpdatedAt = user.UpdatedAt
-	// WE need these to make DeepEquals work
-	updatedUser.SessionToken = user.SessionToken
-	updatedUser.OriginalPassword = user.OriginalPassword
-	updatedUser.Images = nil
-	updatedUser.LastLogin = user.LastLogin
-	updatedUser.LastRead = user.LastRead
-	updatedUser.Enabled = user.Enabled
-	user.Password = ""
-	user.Events = nil
-	user.Images = nil
-	user.Activated = true
-	c.Assert(updatedUser, DeepEquals, user)
+	compareUsers(c, user, updatedUser)
 
 	payload = fmt.Sprintf(
 		`{"email": "%s", "password": "%s"}`,
@@ -944,7 +931,8 @@ func (s *ApplicationUserSuite) TestLoginChangeUsernameRefreshWorks(c *C) {
 	c.Assert(sessionToken.Token, Not(Equals), "")
 	user.SessionToken = sessionToken.Token
 
-	payload = fmt.Sprintf(`{"user_name": "%s"}`, "newUserName")
+	user.Username = "newUserName"
+	payload = fmt.Sprintf(`{"user_name": "%s"}`, user.Username)
 	routeName = "updateCurrentApplicationUser"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, user, true, true))
@@ -955,22 +943,7 @@ func (s *ApplicationUserSuite) TestLoginChangeUsernameRefreshWorks(c *C) {
 	updatedUser := &entity.ApplicationUser{}
 	er = json.Unmarshal([]byte(body), updatedUser)
 	c.Assert(er, IsNil)
-	c.Assert(updatedUser.Username, Equals, "newUserName")
-	c.Assert(updatedUser.UpdatedAt.Sub(*user.UpdatedAt).Nanoseconds() > 0, Equals, true)
-	// WE need these to make DeepEquals work
-	updatedUser.SessionToken = user.SessionToken
-	updatedUser.OriginalPassword = user.OriginalPassword
-	updatedUser.Images = nil
-	updatedUser.LastLogin = user.LastLogin
-	updatedUser.UpdatedAt = user.UpdatedAt
-	updatedUser.LastRead = user.LastRead
-	updatedUser.Enabled = user.Enabled
-	user.Password = ""
-	user.Events = nil
-	user.Images = nil
-	user.Username = "newUserName"
-	user.Activated = true
-	c.Assert(updatedUser, DeepEquals, user)
+	compareUsers(c, user, updatedUser)
 
 	payload = fmt.Sprintf(
 		`{"email": "%s", "password": "%s"}`,
@@ -1022,7 +995,8 @@ func (s *ApplicationUserSuite) TestLoginChangeEmailRefreshWorks(c *C) {
 
 	user.SessionToken = sessionToken.Token
 
-	payload = fmt.Sprintf(`{"email": "%s"}`, "newUserEmail@tapglue.com")
+	user.Email = "newUserEmail@tapglue.com"
+	payload = fmt.Sprintf(`{"email": "%s"}`, user.Email)
 	routeName = "updateCurrentApplicationUser"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, user, true, true))
@@ -1032,22 +1006,7 @@ func (s *ApplicationUserSuite) TestLoginChangeEmailRefreshWorks(c *C) {
 	updatedUser := &entity.ApplicationUser{}
 	er = json.Unmarshal([]byte(body), updatedUser)
 	c.Assert(er, IsNil)
-	c.Assert(updatedUser.Email, Equals, "newUserEmail@tapglue.com")
-	c.Assert(updatedUser.UpdatedAt.Sub(*user.UpdatedAt) > 0, Equals, true)
-	updatedUser.UpdatedAt = user.UpdatedAt
-	// WE need these to make DeepEquals work
-	updatedUser.SessionToken = user.SessionToken
-	updatedUser.OriginalPassword = user.OriginalPassword
-	updatedUser.Images = nil
-	updatedUser.LastLogin = user.LastLogin
-	updatedUser.LastRead = user.LastRead
-	updatedUser.Enabled = user.Enabled
-	user.Password = ""
-	user.Events = nil
-	user.Images = nil
-	user.Email = "newUserEmail@tapglue.com"
-	user.Activated = true
-	c.Assert(updatedUser, DeepEquals, user)
+	compareUsers(c, user, updatedUser)
 
 	payload = fmt.Sprintf(
 		`{"email": "%s", "password": "%s"}`,
@@ -1120,6 +1079,7 @@ func (s *ApplicationUserSuite) TestLoginChangeUsernameGetEventWorks(c *C) {
 	accounts := CorrectDeploy(1, 0, 1, 1, 1, false, false)
 	application := accounts[0].Applications[0]
 	user := application.Users[0]
+	event := user.Events[0]
 
 	payload := fmt.Sprintf(
 		`{"email": "%s", "password": "%s"}`,
@@ -1144,7 +1104,8 @@ func (s *ApplicationUserSuite) TestLoginChangeUsernameGetEventWorks(c *C) {
 	c.Assert(sessionToken.Token, Not(Equals), "")
 	user.SessionToken = sessionToken.Token
 
-	payload = fmt.Sprintf(`{"user_name": "%s"}`, "newUserName")
+	user.Username = "newUserName"
+	payload = fmt.Sprintf(`{"user_name": "%s"}`, user.Username)
 	routeName = "updateCurrentApplicationUser"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, user, true, true))
@@ -1155,34 +1116,19 @@ func (s *ApplicationUserSuite) TestLoginChangeUsernameGetEventWorks(c *C) {
 	updatedUser := &entity.ApplicationUser{}
 	er = json.Unmarshal([]byte(body), updatedUser)
 	c.Assert(er, IsNil)
-	c.Assert(updatedUser.Username, Equals, "newUserName")
-	c.Assert(updatedUser.UpdatedAt.Sub(*user.UpdatedAt) > 0, Equals, true)
-	updatedUser.UpdatedAt = user.UpdatedAt
-	// WE need these to make DeepEquals work
-	updatedUser.SessionToken = user.SessionToken
-	updatedUser.OriginalPassword = user.OriginalPassword
-	updatedUser.Images = nil
-	updatedUser.LastLogin = user.LastLogin
-	updatedUser.Events = user.Events
-	updatedUser.LastRead = user.LastRead
-	updatedUser.Enabled = user.Enabled
-	user.Password = ""
-	user.Images = nil
-	user.Username = "newUserName"
-	user.Activated = true
-	c.Assert(updatedUser, DeepEquals, user)
+	compareUsers(c, user, updatedUser)
 
 	// GET EVENT
 	routeName = "getEvent"
-	route = getComposedRoute(routeName, user.ID, user.Events[0].ID)
+	route = getComposedRoute(routeName, user.ID, event.ID)
 	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, user, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusOK)
 	c.Assert(body, Not(Equals), "")
-	event := &entity.Event{}
-	er = json.Unmarshal([]byte(body), &event)
+	receivedEvent := &entity.Event{}
+	er = json.Unmarshal([]byte(body), receivedEvent)
 	c.Assert(er, IsNil)
-	c.Assert(event, DeepEquals, user.Events[0])
+	c.Assert(receivedEvent, DeepEquals, event)
 }
 
 func (s *ApplicationUserSuite) TestLoginChangeUsernameExistingUsernameFails(c *C) {
@@ -1385,22 +1331,21 @@ func (s *ApplicationUserSuite) TestSearch(c *C) {
 	accounts := CorrectDeploy(1, 0, 1, 10, 0, false, true)
 	application := accounts[0].Applications[0]
 	user := application.Users[0]
-
-	user2 := *application.Users[1]
-	user2.SessionToken = ""
-	user2.Password = ""
-	user2.OriginalPassword = ""
-
+	user2 := application.Users[1]
 	user3 := application.Users[2]
 	user3.Enabled = false
 	UpdateUser(accounts[0].ID, application.ID, *user3)
+
+	user.Deleted, user2.Deleted, user3.Deleted = nil, nil, nil
+	user.CreatedAt, user2.CreatedAt, user3.CreatedAt = nil, nil, nil
+	user.UpdatedAt, user2.UpdatedAt, user3.UpdatedAt = nil, nil, nil
 
 	iterations := []struct {
 		Payload   string
 		RouteName string
 		Route     string
 		Code      int
-		Response  []entity.ApplicationUser
+		Response  []*entity.ApplicationUser
 	}{
 		//0
 		{
@@ -1408,7 +1353,7 @@ func (s *ApplicationUserSuite) TestSearch(c *C) {
 			RouteName: "searchApplicationUser",
 			Route:     getComposedRoute("searchApplicationUser") + "?q=dlsniper",
 			Code:      http.StatusNoContent,
-			Response:  []entity.ApplicationUser{},
+			Response:  []*entity.ApplicationUser{},
 		},
 		// 1
 		{
@@ -1416,7 +1361,7 @@ func (s *ApplicationUserSuite) TestSearch(c *C) {
 			RouteName: "searchApplicationUser",
 			Route:     getComposedRoute("searchApplicationUser") + "?q=florin@tapglue.com",
 			Code:      http.StatusNoContent,
-			Response:  []entity.ApplicationUser{},
+			Response:  []*entity.ApplicationUser{},
 		},
 		// 2
 		{
@@ -1424,7 +1369,7 @@ func (s *ApplicationUserSuite) TestSearch(c *C) {
 			RouteName: "searchApplicationUser",
 			Route:     getComposedRoute("searchApplicationUser") + "?q=" + user2.Username,
 			Code:      http.StatusOK,
-			Response:  []entity.ApplicationUser{user2},
+			Response:  []*entity.ApplicationUser{user2},
 		},
 		// 3
 		{
@@ -1432,7 +1377,7 @@ func (s *ApplicationUserSuite) TestSearch(c *C) {
 			RouteName: "searchApplicationUser",
 			Route:     getComposedRoute("searchApplicationUser") + "?q=" + user2.Email,
 			Code:      http.StatusOK,
-			Response:  []entity.ApplicationUser{user2},
+			Response:  []*entity.ApplicationUser{user2},
 		},
 		// 4
 		{
@@ -1440,7 +1385,7 @@ func (s *ApplicationUserSuite) TestSearch(c *C) {
 			RouteName: "searchApplicationUser",
 			Route:     getComposedRoute("searchApplicationUser") + "?q=" + user3.Email,
 			Code:      http.StatusNoContent,
-			Response:  []entity.ApplicationUser{},
+			Response:  []*entity.ApplicationUser{},
 		},
 	}
 
@@ -1454,24 +1399,17 @@ func (s *ApplicationUserSuite) TestSearch(c *C) {
 		c.Assert(err, IsNil)
 		c.Assert(code, Equals, iterations[idx].Code)
 		response := struct {
-			Users      []entity.ApplicationUser `json:"users"`
-			UsersCount int                      `json:"users_count"`
+			Users      []*entity.ApplicationUser `json:"users"`
+			UsersCount int                       `json:"users_count"`
 		}{}
 		c.Logf("response body: %s", body)
 		er := json.Unmarshal([]byte(body), &response)
 		c.Assert(er, IsNil)
 		if response.UsersCount > 0 {
-			response.Users[0].Events = iterations[idx].Response[0].Events
-			response.Users[0].SocialConnectionsIDs = iterations[idx].Response[0].SocialConnectionsIDs
-			response.Users[0].Images = iterations[idx].Response[0].Images
-			response.Users[0].CreatedAt = iterations[idx].Response[0].CreatedAt
-			response.Users[0].UpdatedAt = iterations[idx].Response[0].UpdatedAt
-			response.Users[0].LastLogin = iterations[idx].Response[0].LastLogin
-			response.Users[0].LastRead = iterations[idx].Response[0].LastRead
-			response.Users[0].Enabled = iterations[idx].Response[0].Enabled
-			iterations[idx].Response[0].Deleted = nil
+			compareUsers(c, iterations[idx].Response[0], response.Users[0])
+		} else {
+			c.Assert(response.Users, DeepEquals, iterations[idx].Response)
 		}
-		c.Assert(response.Users, DeepEquals, iterations[idx].Response)
 	}
 }
 

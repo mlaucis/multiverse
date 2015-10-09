@@ -11,7 +11,7 @@ type ApplicationUser interface {
 	Create(accountID, applicationID int64, user *entity.ApplicationUser, retrieve bool) (usr *entity.ApplicationUser, err []errors.Error)
 
 	// Read returns the user matching the ID or an error
-	Read(accountID, applicationID int64, userID uint64) (user *entity.ApplicationUser, err []errors.Error)
+	Read(accountID, applicationID int64, userID uint64, withStatistics bool) (user *entity.ApplicationUser, err []errors.Error)
 
 	// ReadMultiple returns all users matching the desired IDs
 	ReadMultiple(accountID, applicationID int64, userIDs []uint64) (users []*entity.ApplicationUser, err []errors.Error)
@@ -57,4 +57,7 @@ type ApplicationUser interface {
 
 	// Search finds the users matching the search term
 	Search(accountID, applicationID int64, searchTerm string) (user []*entity.ApplicationUser, err []errors.Error)
+
+	// Read friend and follower statistics for a user
+	FriendStatistics(accountID, applicationID int64, appUser *entity.ApplicationUser) []errors.Error
 }

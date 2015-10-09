@@ -25,6 +25,7 @@ type application struct {
 const (
 	createApplicationEntryQuery                   = `INSERT INTO tg.applications (account_id, json_data) VALUES($1, $2) RETURNING id`
 	selectApplicationEntryByIDQuery               = `SELECT id, account_id, json_data, enabled FROM tg.applications WHERE id = $1 AND account_id = $2 and enabled = 1`
+	checkApplicationExistsByIDQuery               = `SELECT id FROM tg.applications WHERE id = $1 AND account_id = $2 and enabled = 1`
 	selectApplicationEntryByPublicIDsQuery        = `SELECT id, account_id, json_data, enabled FROM tg.applications WHERE json_data @> json_build_object('id', $1::text)::jsonb LIMIT 1`
 	selectApplicationEntryByApplicationTokenQuery = `SELECT id, account_id, json_data, enabled FROM tg.applications WHERE json_data @> json_build_object('token', $1::text)::jsonb LIMIT 1`
 	selectApplicationEntryByBackendTokenQuery     = `SELECT id, account_id, json_data, enabled FROM tg.applications WHERE json_data @> json_build_object('backend_token', $1::text)::jsonb LIMIT 1`
@@ -99,7 +100,7 @@ func (app *application) Create(application *entity.Application, retrieve bool) (
 		return nil, nil
 	}
 
-	return app.Read(application.OrgID, applicationID)
+	return application, nil
 }
 
 func (app *application) Read(accountID, applicationID int64) (*entity.Application, []errors.Error) {
@@ -131,7 +132,7 @@ func (app *application) Update(existingApplication, updatedApplication entity.Ap
 	if !retrieve {
 		return nil, nil
 	}
-	return app.Read(existingApplication.OrgID, existingApplication.ID)
+	return &updatedApplication, nil
 }
 
 func (app *application) Delete(application *entity.Application) []errors.Error {
@@ -151,7 +152,7 @@ func (app *application) List(accountID int64) ([]*entity.Application, []errors.E
 		if err == sql.ErrNoRows {
 			return applications, nil
 		}
-		return applications, []errors.Error{errmsg.ErrInternalApplicationRead.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalApplicationRead.UpdateInternalMessage(err.Error())}
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -179,13 +180,10 @@ func (app *application) List(accountID int64) ([]*entity.Application, []errors.E
 }
 
 func (app *application) Exists(accountID, applicationID int64) (bool, []errors.Error) {
-	var (
-		ID       int
-		JSONData string
-	)
+	var ID int
 	err := app.pg.SlaveDatastore(-1).
 		QueryRow(selectApplicationEntryByIDQuery, applicationID, accountID).
-		Scan(&ID, &JSONData)
+		Scan(&ID)
 	if err == sql.ErrNoRows {
 		return false, nil
 	}

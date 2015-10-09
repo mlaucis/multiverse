@@ -44,6 +44,7 @@ func (s *ApplicationUserSuite) TestLoginDisableLoginFails(c *C) {
 
 	payload = `{"enabled": false}`
 
+	user.Enabled = false
 	routeName = "updateCurrentApplicationUser"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, user, true, true))
@@ -54,20 +55,7 @@ func (s *ApplicationUserSuite) TestLoginDisableLoginFails(c *C) {
 	updatedUser := &entity.ApplicationUser{}
 	er = json.Unmarshal([]byte(body), updatedUser)
 	c.Assert(er, IsNil)
-	c.Assert(updatedUser.Enabled, Equals, false)
-	// WE need these to make DeepEquals work
-	updatedUser.SessionToken = user.SessionToken
-	updatedUser.OriginalPassword = user.OriginalPassword
-	updatedUser.Images = nil
-	updatedUser.LastLogin = user.LastLogin
-	updatedUser.UpdatedAt = user.UpdatedAt
-	updatedUser.LastRead = user.LastRead
-	user.Password = ""
-	user.Events = nil
-	user.Images = nil
-	user.Enabled = false
-	user.Activated = true
-	c.Assert(updatedUser, DeepEquals, user)
+	compareUsers(c, user, updatedUser)
 
 	payload = fmt.Sprintf(
 		`{"user_name": "%s", "password": "%s"}`,
@@ -205,7 +193,8 @@ func (s *ApplicationUserSuite) TestLoginChangeUsernameLogoutLoginWorks(c *C) {
 	c.Assert(sessionToken.Token, Not(Equals), "")
 	user.SessionToken = sessionToken.Token
 
-	payload = fmt.Sprintf(`{"user_name": "%s"}`, "newUserName")
+	user.Username = "newUserName"
+	payload = fmt.Sprintf(`{"user_name": "%s"}`, user.Username)
 	routeName = "updateCurrentApplicationUser"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, user, true, true))
@@ -216,21 +205,7 @@ func (s *ApplicationUserSuite) TestLoginChangeUsernameLogoutLoginWorks(c *C) {
 	updatedUser := &entity.ApplicationUser{}
 	er = json.Unmarshal([]byte(body), updatedUser)
 	c.Assert(er, IsNil)
-	c.Assert(updatedUser.Username, Equals, "newUserName")
-	c.Assert(updatedUser.UpdatedAt.Sub(*user.UpdatedAt).Nanoseconds() > 0, Equals, true)
-	// WE need these to make DeepEquals work
-	updatedUser.UpdatedAt = user.UpdatedAt
-	updatedUser.SessionToken = user.SessionToken
-	updatedUser.OriginalPassword = user.OriginalPassword
-	updatedUser.Images = nil
-	updatedUser.LastLogin = user.LastLogin
-	updatedUser.LastRead = user.LastRead
-	updatedUser.Enabled = user.Enabled
-	user.Password = ""
-	user.Events = nil
-	user.Images = nil
-	user.Username = "newUserName"
-	c.Assert(updatedUser, DeepEquals, user)
+	compareUsers(c, user, updatedUser)
 
 	payload = fmt.Sprintf(`{"session_token": "%s"}`, sessionToken.Token)
 	routeName = "logoutCurrentUserApplicationUser"
@@ -291,7 +266,8 @@ func (s *ApplicationUserSuite) TestLoginChangeEmailLogoutLoginWorks(c *C) {
 	c.Assert(sessionToken.Token, Not(Equals), "")
 	user.SessionToken = sessionToken.Token
 
-	payload = fmt.Sprintf(`{"email": "%s"}`, "newUserEmail@tapglue.com")
+	user.Email = "newUserEmail@tapglue.com"
+	payload = fmt.Sprintf(`{"email": "%s"}`, user.Email)
 	routeName = "updateCurrentApplicationUser"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, user, true, true))
@@ -301,22 +277,7 @@ func (s *ApplicationUserSuite) TestLoginChangeEmailLogoutLoginWorks(c *C) {
 	updatedUser := &entity.ApplicationUser{}
 	er = json.Unmarshal([]byte(body), updatedUser)
 	c.Assert(er, IsNil)
-	c.Assert(updatedUser.Email, Equals, "newUserEmail@tapglue.com")
-	c.Assert(updatedUser.UpdatedAt.Sub(*user.UpdatedAt) > 0, Equals, true)
-	updatedUser.UpdatedAt = user.UpdatedAt
-	// WE need these to make DeepEquals work
-	updatedUser.SessionToken = user.SessionToken
-	updatedUser.OriginalPassword = user.OriginalPassword
-	updatedUser.Images = nil
-	updatedUser.LastLogin = user.LastLogin
-	updatedUser.LastRead = user.LastRead
-	updatedUser.Enabled = user.Enabled
-	user.Password = ""
-	user.Events = nil
-	user.Images = nil
-	user.Email = "newUserEmail@tapglue.com"
-	user.Activated = true
-	c.Assert(updatedUser, DeepEquals, user)
+	compareUsers(c, user, updatedUser)
 
 	payload = fmt.Sprintf(`{"session_token": "%s"}`, sessionToken.Token)
 	routeName = "logoutCurrentUserApplicationUser"
@@ -391,20 +352,7 @@ func (s *ApplicationUserSuite) TestLoginChangePasswordLoginWorks(c *C) {
 	updatedUser := &entity.ApplicationUser{}
 	er = json.Unmarshal([]byte(body), updatedUser)
 	c.Assert(er, IsNil)
-	c.Assert(updatedUser.UpdatedAt.Sub(*user.UpdatedAt) > 0, Equals, true)
-	updatedUser.UpdatedAt = user.UpdatedAt
-	// WE need these to make DeepEquals work
-	updatedUser.SessionToken = user.SessionToken
-	updatedUser.OriginalPassword = user.OriginalPassword
-	updatedUser.Images = nil
-	updatedUser.LastLogin = user.LastLogin
-	updatedUser.LastRead = user.LastRead
-	updatedUser.Enabled = user.Enabled
-	user.Password = ""
-	user.Events = nil
-	user.Images = nil
-	user.Activated = true
-	c.Assert(updatedUser, DeepEquals, user)
+	compareUsers(c, user, updatedUser)
 
 	payload = fmt.Sprintf(
 		`{"email": "%s", "password": "%s"}`,

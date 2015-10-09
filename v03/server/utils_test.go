@@ -12,6 +12,8 @@ import (
 	"github.com/tapglue/multiverse/tgflake"
 	"github.com/tapglue/multiverse/v03/entity"
 	"github.com/tapglue/multiverse/v03/fixtures"
+
+	. "gopkg.in/check.v1"
 )
 
 type AppUserByID []*entity.ApplicationUser
@@ -583,4 +585,72 @@ func testBootup(conf *config.Postgres) {
 	defer conn.Close()
 	conn.Do("EVAL", "return redis.call('del', unpack(redis.call('keys', ARGV[1])))", 0, "test:*")
 	conn.Do("EVAL", "return redis.call('del', unpack(redis.call('keys', ARGV[1])))", 0, "applications:*")
+}
+
+func compareUsers(c *C, expectedUser, obtainedUser *entity.ApplicationUser) {
+	if obtainedUser.CreatedAt != nil && expectedUser.CreatedAt != nil {
+		c.Assert(obtainedUser.CreatedAt.Sub(*expectedUser.CreatedAt), Equals, time.Duration(0))
+	} else if obtainedUser.CreatedAt != expectedUser.CreatedAt {
+		c.Assert(obtainedUser.CreatedAt, Equals, expectedUser.CreatedAt)
+	}
+
+	if obtainedUser.UpdatedAt != nil && expectedUser.UpdatedAt != nil {
+		c.Assert(obtainedUser.UpdatedAt.Sub(*expectedUser.UpdatedAt) > 0, Equals, true)
+	} else if obtainedUser.UpdatedAt != expectedUser.UpdatedAt {
+		c.Assert(obtainedUser.UpdatedAt, Equals, expectedUser.UpdatedAt)
+	}
+
+	if obtainedUser.Deleted != nil && expectedUser.Deleted != nil {
+		c.Assert(*obtainedUser.Deleted, Equals, *expectedUser.Deleted)
+	} else if obtainedUser.Deleted != expectedUser.Deleted {
+		c.Assert(obtainedUser.Deleted, Equals, expectedUser.Deleted)
+	}
+
+	if obtainedUser.FriendCount != nil && expectedUser.FriendCount != nil {
+		c.Assert(*obtainedUser.FriendCount, Equals, *expectedUser.FriendCount)
+	} else if obtainedUser.FriendCount != expectedUser.FriendCount {
+		c.Assert(obtainedUser.FriendCount, Equals, expectedUser.FriendCount)
+	}
+
+	if obtainedUser.FollowerCount != nil && expectedUser.FollowerCount != nil {
+		c.Assert(*obtainedUser.FollowerCount, Equals, *expectedUser.FollowerCount)
+	} else if obtainedUser.FollowerCount != expectedUser.FollowerCount {
+		c.Assert(obtainedUser.FollowerCount, Equals, expectedUser.FollowerCount)
+	}
+
+	if obtainedUser.FollowedCount != nil && expectedUser.FollowedCount != nil {
+		c.Assert(*obtainedUser.FollowedCount, Equals, *expectedUser.FollowedCount)
+	} else if obtainedUser.FollowedCount != expectedUser.FollowedCount {
+		c.Assert(obtainedUser.FollowedCount, Equals, expectedUser.FollowedCount)
+	}
+
+	for idx := range expectedUser.SocialIDs {
+		if _, ok := obtainedUser.SocialIDs[idx]; !ok {
+			c.Fatalf("social key %q not found in expected user %#v", idx, obtainedUser.SocialIDs)
+		}
+		c.Assert(obtainedUser.SocialIDs[idx], Equals, expectedUser.SocialIDs[idx])
+	}
+
+	// WE need these to make DeepEquals work
+	obtainedUser.SessionToken = expectedUser.SessionToken
+	obtainedUser.OriginalPassword = expectedUser.OriginalPassword
+	obtainedUser.Images = nil
+	obtainedUser.LastLogin = expectedUser.LastLogin
+	obtainedUser.LastRead = expectedUser.LastRead
+	obtainedUser.Enabled = expectedUser.Enabled
+	expectedUser.Password = ""
+	expectedUser.Events = nil
+	expectedUser.Images = nil
+	expectedUser.Activated = true
+	obtainedUser.Deleted = expectedUser.Deleted
+	obtainedUser.FriendCount = expectedUser.FriendCount
+	obtainedUser.FollowerCount = expectedUser.FollowerCount
+	obtainedUser.FollowedCount = expectedUser.FollowedCount
+	obtainedUser.CreatedAt = expectedUser.CreatedAt
+	obtainedUser.UpdatedAt = expectedUser.UpdatedAt
+
+	// TODO: Better inspection for metadata is required
+	obtainedUser.Metadata, expectedUser.Metadata = nil, nil
+
+	c.Assert(obtainedUser, DeepEquals, expectedUser)
 }
