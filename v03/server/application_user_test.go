@@ -6,10 +6,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/http/httptest"
 	"strings"
+	"testing"
 
 	"github.com/tapglue/multiverse/v03/entity"
+	"github.com/tapglue/multiverse/v03/server"
 
+	"github.com/gorilla/mux"
 	. "gopkg.in/check.v1"
 )
 
@@ -1439,4 +1443,62 @@ func (s *ApplicationUserSuite) TestCreateUser_NullOK(c *C) {
 	c.Assert(code, Equals, http.StatusBadRequest)
 
 	c.Assert(body, Not(Equals), "")
+}
+
+func BenchmarkCreateAndLogin(b *testing.B) {
+	b.StopTimer()
+	var (
+		accounts     = CorrectDeploy(1, 0, 1, 0, 0, false, false)
+		application  = accounts[0].Applications[0]
+		routeName    = "createApplicationUser"
+		requestRoute = getRoute(routeName)
+		routePath    = getComposedRoute(routeName)
+		user         = CorrectUser()
+		payloads     = []string{}
+		signer       = signApplicationRequest(application, nil, true, true)
+	)
+
+	for i := 0; i < b.N; i++ {
+		payloads = append(
+			payloads,
+			fmt.Sprintf(
+				`{"user_name": %q, "first_name": %q, "last_name": %q,  "email": %q,  "url": %q,  "password": %q}`,
+				fmt.Sprintf("%d-%s", i, user.Username),
+				user.FirstName,
+				user.LastName,
+				fmt.Sprintf("%d-%s", i, user.Email),
+				user.URL,
+				user.Password,
+			),
+		)
+	}
+
+	m := mux.NewRouter()
+
+	m.
+		HandleFunc(requestRoute.RoutePattern(), server.CustomHandler(requestRoute, mainLogChan, errorLogChan, "test", false, true)).
+		Methods(requestRoute.Method)
+
+	b.StartTimer()
+
+	for i := 0; i < b.N; i++ {
+		req, er := http.NewRequest(
+			requestRoute.Method,
+			routePath,
+			strings.NewReader(payloads[i]),
+		)
+		if er != nil {
+			panic(er)
+		}
+
+		createCommonRequestHeaders(req)
+		signer(req)
+
+		w := httptest.NewRecorder()
+		m.ServeHTTP(w, req)
+
+		if w.Code != http.StatusCreated {
+			b.Fatalf("wrong response %d with body %s", w.Code, w.Body.String())
+		}
+	}
 }
