@@ -92,6 +92,24 @@ resource "aws_security_group" "rds_ec2" {
   }
 }
 
+resource "aws_db_parameter_group" "master-prod" {
+  name        = "master-prod"
+  family      = "postgres9.4"
+  description = "Postgres prod parameter group"
+
+  parameter {
+    name         = "log_statement"
+    value        = "all"
+    apply_method = "immediate"
+  }
+
+  parameter {
+    name         = "log_min_duration_statement"
+    value        = "200"
+    apply_method = "immediate"
+  }
+}
+
 /**/
 # Database master
 resource "aws_db_instance" "master" {
@@ -117,20 +135,22 @@ resource "aws_db_instance" "master" {
   backup_retention_period = 30
   backup_window           = "04:00-04:30"
   maintenance_window      = "sat:05:00-sat:06:30"
+  parameter_group_name    = "${aws_db_parameter_group.master-prod.id}"
+  apply_immediately       = true
 }
-/** /
+/**/
 # Database slaves
 resource "aws_db_instance" "slave1" {
   identifier              = "slave1"
   # change this to io1 if you want to use provisioned iops for production
   storage_type            = "gp2"
   #iops = 3000 # this should give us a boost in performance for production
-  allocated_storage       = "10"
+  allocated_storage       = "100"
   engine                  = "postgres"
   engine_version          = "9.4.4"
-  instance_class          = "db.t2.micro"
+  instance_class          = "db.r3.xlarge"
   # if you want to change to true, see the list of instance types that support storage encryption: http://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Overview.Encryption.html#d0e10116
-  storage_encrypted       = false
+  storage_encrypted       = true
   name                    = "${var.rds_db_name}"
   username                = "${var.rds_username}"
   password                = "${var.rds_password}"
@@ -143,5 +163,34 @@ resource "aws_db_instance" "slave1" {
   backup_retention_period = 0
   backup_window           = "04:00-04:30"
   maintenance_window      = "sat:05:00-sat:06:30"
+  parameter_group_name    = "${aws_db_parameter_group.master-prod.id}"
+  apply_immediately       = true
+}
+
+resource "aws_db_instance" "slave2" {
+  identifier              = "slave2"
+  # change this to io1 if you want to use provisioned iops for production
+  storage_type            = "gp2"
+  #iops = 3000 # this should give us a boost in performance for production
+  allocated_storage       = "100"
+  engine                  = "postgres"
+  engine_version          = "9.4.4"
+  instance_class          = "db.r3.xlarge"
+  # if you want to change to true, see the list of instance types that support storage encryption: http://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Overview.Encryption.html#d0e10116
+  storage_encrypted       = true
+  name                    = "${var.rds_db_name}"
+  username                = "${var.rds_username}"
+  password                = "${var.rds_password}"
+  multi_az                = false
+  publicly_accessible     = false
+  replicate_source_db     = "${aws_db_instance.master.identifier}"
+  vpc_security_group_ids  = [
+    "${aws_security_group.rds_db.id}"]
+  db_subnet_group_name    = "${aws_db_subnet_group.prod.id}"
+  backup_retention_period = 0
+  backup_window           = "04:00-04:30"
+  maintenance_window      = "sat:05:00-sat:06:30"
+  parameter_group_name    = "${aws_db_parameter_group.master-prod.id}"
+  apply_immediately       = true
 }
 /**/
