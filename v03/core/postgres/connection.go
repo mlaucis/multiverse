@@ -411,6 +411,10 @@ func (c *connection) AutoConnectSocialFriends(accountID, applicationID int64, us
 }
 
 func (c *connection) Relation(accountID, applicationID int64, userFromID, userToID uint64) (*entity.Relation, []errors.Error) {
+	if userFromID == userToID {
+		return &entity.Relation{}, nil
+	}
+
 	relations, err := c.pg.SlaveDatastore(-1).
 		Query(appSchema(getUsersRelationQuery, accountID, applicationID), userFromID, userToID)
 	if err != nil {
