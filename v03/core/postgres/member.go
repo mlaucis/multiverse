@@ -48,7 +48,7 @@ func (mem *member) Create(accountUser *entity.Member, retrieve bool) (*entity.Me
 
 	accountUserJSON, err := json.Marshal(accountUser)
 	if err != nil {
-		return nil, []errors.Error{errmsg.ErrInternalAccountUserCreation.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalAccountUserCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 
 	var accountUserID int64
@@ -56,7 +56,7 @@ func (mem *member) Create(accountUser *entity.Member, retrieve bool) (*entity.Me
 		QueryRow(createAccountUserQuery, accountUser.OrgID, string(accountUserJSON)).
 		Scan(&accountUserID)
 	if err != nil {
-		return nil, []errors.Error{errmsg.ErrInternalAccountUserCreation.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalAccountUserCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 
 	if !retrieve {
@@ -72,15 +72,15 @@ func (mem *member) Read(accountID, accountUserID int64) (accountUser *entity.Mem
 		Scan(&JSONData)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, []errors.Error{errmsg.ErrMemberNotFound}
+			return nil, []errors.Error{errmsg.ErrMemberNotFound.SetCurrentLocation()}
 		}
-		return nil, []errors.Error{errmsg.ErrInternalAccountUserRead.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalAccountUserRead.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 
 	accountUser = &entity.Member{}
 	err = json.Unmarshal([]byte(JSONData), accountUser)
 	if err != nil {
-		return nil, []errors.Error{errmsg.ErrInternalAccountUserRead.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalAccountUserRead.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 	accountUser.ID = accountUserID
 	accountUser.OrgID = accountID
@@ -99,13 +99,13 @@ func (mem *member) Update(existingAccountUser, updatedAccountUser entity.Member,
 
 	accountUserJSON, err := json.Marshal(updatedAccountUser)
 	if err != nil {
-		return nil, []errors.Error{errmsg.ErrInternalAccountUserUpdate.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalAccountUserUpdate.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 
 	_, err = mem.mainPg.
 		Exec(updateAccountUserByIDQuery, string(accountUserJSON), existingAccountUser.ID, existingAccountUser.OrgID)
 	if err != nil {
-		return nil, []errors.Error{errmsg.ErrInternalAccountUserUpdate.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalAccountUserUpdate.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 
 	if !retrieve {
@@ -129,7 +129,7 @@ func (mem *member) Delete(accountUser *entity.Member) []errors.Error {
 
 	_, er := mem.mainPg.Exec(destroyAccountUserSessionsQuery, user.OrgID, user.ID)
 	if er != nil {
-		return []errors.Error{errmsg.ErrInternalAccountUserSessionDelete.UpdateInternalMessage(er.Error())}
+		return []errors.Error{errmsg.ErrInternalAccountUserSessionDelete.UpdateInternalMessage(er.Error()).SetCurrentLocation()}
 	}
 
 	return nil
@@ -141,7 +141,7 @@ func (mem *member) List(accountID int64) (accountUsers []*entity.Member, er []er
 	rows, err := mem.pg.SlaveDatastore(-1).
 		Query(listAccountUsersByAccountIDQuery, accountID)
 	if err != nil {
-		return accountUsers, []errors.Error{errmsg.ErrInternalAccountUserList.UpdateInternalMessage(err.Error())}
+		return accountUsers, []errors.Error{errmsg.ErrInternalAccountUserList.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -151,12 +151,12 @@ func (mem *member) List(accountID int64) (accountUsers []*entity.Member, er []er
 		)
 		err := rows.Scan(&ID, &JSONData)
 		if err != nil {
-			return nil, []errors.Error{errmsg.ErrInternalAccountUserList.UpdateInternalMessage(err.Error())}
+			return nil, []errors.Error{errmsg.ErrInternalAccountUserList.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 		}
 		accountUser := &entity.Member{}
 		err = json.Unmarshal([]byte(JSONData), accountUser)
 		if err != nil {
-			return nil, []errors.Error{errmsg.ErrInternalAccountUserList.UpdateInternalMessage(err.Error())}
+			return nil, []errors.Error{errmsg.ErrInternalAccountUserList.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 		}
 		accountUser.ID = ID
 
@@ -170,7 +170,7 @@ func (mem *member) CreateSession(user *entity.Member) (string, []errors.Error) {
 	sessionToken := storageHelper.GenerateAccountSessionID(user)
 	_, err := mem.mainPg.Exec(createAccountUserSessionQuery, user.OrgID, user.ID, sessionToken)
 	if err != nil {
-		return "", []errors.Error{errmsg.ErrInternalAccountUserSessionCreation.UpdateInternalMessage(err.Error())}
+		return "", []errors.Error{errmsg.ErrInternalAccountUserSessionCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 
 	return sessionToken, nil
@@ -180,7 +180,7 @@ func (mem *member) RefreshSession(sessionToken string, user *entity.Member) (str
 	updatedSessionToken := storageHelper.GenerateAccountSessionID(user)
 	_, err := mem.mainPg.Exec(updateAccountUserSessionQuery, sessionToken, user.OrgID, user.ID, updatedSessionToken)
 	if err != nil {
-		return "", []errors.Error{errmsg.ErrInternalAccountUserSessionUpdate.UpdateInternalMessage(err.Error())}
+		return "", []errors.Error{errmsg.ErrInternalAccountUserSessionUpdate.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 
 	return updatedSessionToken, nil
@@ -189,7 +189,7 @@ func (mem *member) RefreshSession(sessionToken string, user *entity.Member) (str
 func (mem *member) DestroySession(sessionToken string, user *entity.Member) []errors.Error {
 	_, err := mem.mainPg.Exec(destroyAccountUserSessionQuery, user.OrgID, user.ID, sessionToken)
 	if err != nil {
-		return []errors.Error{errmsg.ErrInternalAccountUserSessionDelete.UpdateInternalMessage(err.Error())}
+		return []errors.Error{errmsg.ErrInternalAccountUserSessionDelete.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 
 	return nil
@@ -199,14 +199,14 @@ func (mem *member) GetSession(user *entity.Member) (string, []errors.Error) {
 	rows, err := mem.pg.SlaveDatastore(-1).
 		Query(selectAccountUserSessionQuery, user.OrgID, user.ID)
 	if err != nil {
-		return "", []errors.Error{errmsg.ErrInternalAccountUserSessionRead.UpdateInternalMessage(err.Error())}
+		return "", []errors.Error{errmsg.ErrInternalAccountUserSessionRead.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 	defer rows.Close()
 	sessions := []string{}
 	for rows.Next() {
 		session := ""
 		if err := rows.Scan(&session); err != nil {
-			return "", []errors.Error{errmsg.ErrInternalAccountUserSessionRead.UpdateInternalMessage(err.Error())}
+			return "", []errors.Error{errmsg.ErrInternalAccountUserSessionRead.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 		}
 		if session == user.SessionToken {
 			return session, nil
@@ -230,12 +230,12 @@ func (mem *member) FindByEmail(email string) (*entity.Organization, *entity.Memb
 		if err == sql.ErrNoRows {
 			return nil, nil, nil
 		}
-		return nil, nil, []errors.Error{errmsg.ErrInternalAccountUserRead.UpdateInternalMessage(err.Error())}
+		return nil, nil, []errors.Error{errmsg.ErrInternalAccountUserRead.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 	accountUser := &entity.Member{}
 	err = json.Unmarshal([]byte(JSONData), accountUser)
 	if err != nil {
-		return nil, nil, []errors.Error{errmsg.ErrInternalAccountUserRead.UpdateInternalMessage(err.Error())}
+		return nil, nil, []errors.Error{errmsg.ErrInternalAccountUserRead.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 	accountUser.ID = ID
 
@@ -260,7 +260,7 @@ func (mem *member) ExistsByEmail(email string) (bool, []errors.Error) {
 		return false, nil
 	}
 	if err != nil {
-		return false, []errors.Error{errmsg.ErrInternalAccountUserRead.UpdateInternalMessage(err.Error())}
+		return false, []errors.Error{errmsg.ErrInternalAccountUserRead.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 	return true, nil
 }
@@ -277,12 +277,12 @@ func (mem *member) FindByUsername(username string) (*entity.Organization, *entit
 		if err == sql.ErrNoRows {
 			return nil, nil, nil
 		}
-		return nil, nil, []errors.Error{errmsg.ErrInternalAccountUserRead.UpdateInternalMessage(err.Error())}
+		return nil, nil, []errors.Error{errmsg.ErrInternalAccountUserRead.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 	accountUser := &entity.Member{}
 	err = json.Unmarshal([]byte(JSONData), accountUser)
 	if err != nil {
-		return nil, nil, []errors.Error{errmsg.ErrInternalAccountUserRead.UpdateInternalMessage(err.Error())}
+		return nil, nil, []errors.Error{errmsg.ErrInternalAccountUserRead.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 	accountUser.ID = ID
 
@@ -307,7 +307,7 @@ func (mem *member) ExistsByUsername(username string) (bool, []errors.Error) {
 		return false, nil
 	}
 	if err != nil {
-		return false, []errors.Error{errmsg.ErrInternalAccountUserRead.UpdateInternalMessage(err.Error())}
+		return false, []errors.Error{errmsg.ErrInternalAccountUserRead.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 	return true, nil
 }
@@ -324,7 +324,7 @@ func (mem *member) ExistsByID(accountID, accountUserID int64) (bool, []errors.Er
 		return false, nil
 	}
 	if err != nil {
-		return false, []errors.Error{errmsg.ErrInternalAccountUserRead.UpdateInternalMessage(err.Error())}
+		return false, []errors.Error{errmsg.ErrInternalAccountUserRead.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 	return true, nil
 }
@@ -340,9 +340,9 @@ func (mem *member) FindBySession(sessionKey string) (*entity.Member, []errors.Er
 	}
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, []errors.Error{errmsg.ErrMemberNotFound}
+			return nil, []errors.Error{errmsg.ErrMemberNotFound.SetCurrentLocation()}
 		}
-		return nil, []errors.Error{errmsg.ErrInternalAccountUserRead.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalAccountUserRead.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 
 	accountUser, er := mem.Read(accountID, accountUserID)
@@ -350,7 +350,7 @@ func (mem *member) FindBySession(sessionKey string) (*entity.Member, []errors.Er
 		return nil, er
 	}
 	if accountUser == nil || accountUser.Enabled == false {
-		return nil, []errors.Error{errmsg.ErrMemberNotFound}
+		return nil, []errors.Error{errmsg.ErrMemberNotFound.SetCurrentLocation()}
 	}
 
 	return accountUser, nil
@@ -367,14 +367,14 @@ func (mem *member) FindByPublicID(accountID int64, publicID string) (*entity.Mem
 		Scan(&accountUserID, &JSONData)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, []errors.Error{errmsg.ErrMemberNotFound}
+			return nil, []errors.Error{errmsg.ErrMemberNotFound.SetCurrentLocation()}
 		}
-		return nil, []errors.Error{errmsg.ErrInternalAccountUserRead.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalAccountUserRead.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 
 	accountUser := &entity.Member{}
 	if err := json.Unmarshal([]byte(JSONData), accountUser); err != nil {
-		return nil, []errors.Error{errmsg.ErrInternalAccountUserRead.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalAccountUserRead.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 	accountUser.ID = accountUserID
 	accountUser.OrgID = accountID

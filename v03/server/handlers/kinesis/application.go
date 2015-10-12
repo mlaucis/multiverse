@@ -17,11 +17,11 @@ type application struct {
 }
 
 func (app *application) Read(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 func (app *application) Update(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 func (app *application) Delete(ctx *context.Context) (err []errors.Error) {
@@ -34,19 +34,19 @@ func (app *application) Delete(ctx *context.Context) (err []errors.Error) {
 }
 
 func (app *application) Create(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 func (app *application) List(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 func (app *application) PopulateContext(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 func (app *application) PopulateContextFromID(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 // NewApplication returns a new application route handler

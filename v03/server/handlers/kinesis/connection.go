@@ -20,7 +20,7 @@ type connection struct {
 }
 
 func (conn *connection) Update(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 func (conn *connection) Delete(ctx *context.Context) (err []errors.Error) {
@@ -30,7 +30,7 @@ func (conn *connection) Delete(ctx *context.Context) (err []errors.Error) {
 
 	userToID, er := strconv.ParseUint(ctx.Vars["applicationUserToID"], 10, 64)
 	if er != nil {
-		return []errors.Error{errmsg.ErrApplicationUserIDInvalid}
+		return []errors.Error{errmsg.ErrApplicationUserIDInvalid.SetCurrentLocation()}
 	}
 
 	connection, err := conn.readStorage.Read(accountID, applicationID, userFromID, userToID)
@@ -48,51 +48,51 @@ func (conn *connection) Delete(ctx *context.Context) (err []errors.Error) {
 }
 
 func (conn *connection) Create(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 func (conn *connection) List(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 func (conn *connection) CurrentUserList(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 func (conn *connection) FollowedByList(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 func (conn *connection) CurrentUserFollowedByList(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 func (conn *connection) Confirm(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 func (conn *connection) CreateSocial(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 func (conn *connection) Friends(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 func (conn *connection) CurrentUserFriends(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 func (conn *connection) CreateFriend(*context.Context) []errors.Error {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 func (conn *connection) CreateFollow(*context.Context) []errors.Error {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 func (conn *connection) CreateAutoConnectionEvent(ctx *context.Context, connection *entity.Connection) (*entity.Event, []errors.Error) {
-	return nil, []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return nil, []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 // NewConnectionWithApplicationUser returns a new connection handler

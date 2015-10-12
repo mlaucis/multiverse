@@ -42,7 +42,7 @@ func (c *connection) Create(accountID, applicationID int64, conn *entity.Connect
 }
 
 func (c *connection) Read(accountID, applicationID int64, userFromID, userToID uint64) (connection *entity.Connection, err []errors.Error) {
-	return connection, []errors.Error{errmsg.ErrServerInvalidHandler}
+	return connection, []errors.Error{errmsg.ErrServerInvalidHandler.SetCurrentLocation()}
 }
 
 func (c *connection) Update(accountID, applicationID int64, existingConnection, updatedConnection entity.Connection, retrieve bool) (*entity.Connection, []errors.Error) {
@@ -88,23 +88,23 @@ func (c *connection) Delete(accountID, applicationID int64, connection *entity.C
 }
 
 func (c *connection) List(accountID, applicationID int64, userID uint64) (users []*entity.ApplicationUser, err []errors.Error) {
-	return users, []errors.Error{errmsg.ErrServerInvalidHandler}
+	return users, []errors.Error{errmsg.ErrServerInvalidHandler.SetCurrentLocation()}
 }
 
 func (c *connection) FollowedBy(accountID, applicationID int64, userID uint64) (users []*entity.ApplicationUser, err []errors.Error) {
-	return users, []errors.Error{errmsg.ErrServerInvalidHandler}
+	return users, []errors.Error{errmsg.ErrServerInvalidHandler.SetCurrentLocation()}
 }
 
 func (c *connection) Friends(accountID, applicationID int64, userID uint64) (users []*entity.ApplicationUser, err []errors.Error) {
-	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
+	return nil, []errors.Error{errmsg.ErrServerInvalidHandler.SetCurrentLocation()}
 }
 
 func (c *connection) FriendsAndFollowing(accountID, applicationID int64, userID uint64) ([]*entity.ApplicationUser, []errors.Error) {
-	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
+	return nil, []errors.Error{errmsg.ErrServerInvalidHandler.SetCurrentLocation()}
 }
 
 func (c *connection) FriendsAndFollowingIDs(accountID, applicationID int64, userID uint64) ([]uint64, []errors.Error) {
-	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
+	return nil, []errors.Error{errmsg.ErrServerInvalidHandler.SetCurrentLocation()}
 }
 
 func (c *connection) Confirm(accountID, applicationID int64, connection *entity.Connection, retrieve bool) (*entity.Connection, []errors.Error) {
@@ -131,11 +131,11 @@ func (c *connection) Confirm(accountID, applicationID int64, connection *entity.
 }
 
 func (c *connection) WriteEventsToList(accountID, applicationID int64, connection *entity.Connection) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerInvalidHandler}
+	return []errors.Error{errmsg.ErrServerInvalidHandler.SetCurrentLocation()}
 }
 
 func (c *connection) DeleteEventsFromLists(accountID, applicationID int64, userFromID, userToID uint64) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerInvalidHandler}
+	return []errors.Error{errmsg.ErrServerInvalidHandler.SetCurrentLocation()}
 }
 
 func (c *connection) SocialConnect(accountID, applicationID int64, user *entity.ApplicationUser, platform string, socialFriendsIDs []string, connectionType string) ([]*entity.ApplicationUser, []errors.Error) {
@@ -184,11 +184,11 @@ func (c *connection) AutoConnectSocialFriends(accountID, applicationID int64, us
 }
 
 func (c *connection) Relation(accountID, applicationID int64, userFromID, userToID uint64) (*entity.Relation, []errors.Error) {
-	return nil, []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return nil, []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 func (c *connection) Exists(accountID, applicationID int64, userFromID, userToID uint64, connType string) (bool, []errors.Error) {
-	return false, []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return false, []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 // NewConnection creates a new Connection

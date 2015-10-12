@@ -17,19 +17,19 @@ const (
 // CreateApplication validates an application on create
 func CreateApplication(application *entity.Application) (errs []errors.Error) {
 	if !StringLengthBetween(application.Name, applicationNameMin, applicationNameMax) {
-		errs = append(errs, errmsg.ErrApplicationNameSize)
+		errs = append(errs, errmsg.ErrApplicationNameSize.SetCurrentLocation())
 	}
 
 	if !StringLengthBetween(application.Description, applicationDescriptionMin, applicationDescriptionMax) {
-		errs = append(errs, errmsg.ErrApplicationDescriptionSize)
+		errs = append(errs, errmsg.ErrApplicationDescriptionSize.SetCurrentLocation())
 	}
 
 	if application.ID != 0 {
-		errs = append(errs, errmsg.ErrApplicationIDIsAlreadySet)
+		errs = append(errs, errmsg.ErrApplicationIDIsAlreadySet.SetCurrentLocation())
 	}
 
 	if application.OrgID == 0 {
-		errs = append(errs, errmsg.ErrOrgIDZero)
+		errs = append(errs, errmsg.ErrOrgIDZero.SetCurrentLocation())
 	}
 
 	return
@@ -38,19 +38,19 @@ func CreateApplication(application *entity.Application) (errs []errors.Error) {
 // UpdateApplication validates an application on update
 func UpdateApplication(existingApplication, updatedApplication *entity.Application) (errs []errors.Error) {
 	if !StringLengthBetween(updatedApplication.Name, applicationNameMin, applicationNameMax) {
-		errs = append(errs, errmsg.ErrApplicationNameSize)
+		errs = append(errs, errmsg.ErrApplicationNameSize.SetCurrentLocation())
 	}
 
 	if !StringLengthBetween(updatedApplication.Description, applicationDescriptionMin, applicationDescriptionMax) {
-		errs = append(errs, errmsg.ErrApplicationDescriptionSize)
+		errs = append(errs, errmsg.ErrApplicationDescriptionSize.SetCurrentLocation())
 	}
 
 	if existingApplication.AuthToken != updatedApplication.AuthToken {
-		errs = append(errs, errmsg.ErrApplicationAuthTokenUpdateNotAllowed)
+		errs = append(errs, errmsg.ErrApplicationAuthTokenUpdateNotAllowed.SetCurrentLocation())
 	}
 
 	if existingApplication.BackendToken != updatedApplication.BackendToken {
-		errs = append(errs, errmsg.ErrApplicationAuthTokenUpdateNotAllowed)
+		errs = append(errs, errmsg.ErrApplicationAuthTokenUpdateNotAllowed.SetCurrentLocation())
 	}
 
 	return

@@ -16,29 +16,29 @@ type application struct {
 }
 
 func (app *application) Read(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 func (app *application) Update(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 func (app *application) Delete(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 func (app *application) Create(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 func (app *application) List(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 func (app *application) PopulateContext(ctx *context.Context) (err []errors.Error) {
 	appToken, userToken, ok := ctx.BasicAuth()
 	if !ok {
-		return []errors.Error{errmsg.ErrAuthInvalidApplicationCredentials.UpdateInternalMessage(fmt.Sprintf("got %s:%s", appToken, userToken))}
+		return []errors.Error{errmsg.ErrAuthInvalidApplicationCredentials.UpdateInternalMessage(fmt.Sprintf("got %s:%s", appToken, userToken)).SetCurrentLocation()}
 	}
 
 	if len(appToken) == 32 {
@@ -77,7 +77,7 @@ func (app *application) PopulateContext(ctx *context.Context) (err []errors.Erro
 		}
 	} else {
 		ctx.TokenType = context.TokenTypeUnknown
-		return []errors.Error{errmsg.ErrAuthInvalidApplicationCredentials.UpdateInternalMessage(fmt.Sprintf("got unexpected token size %s:%s", appToken, userToken))}
+		return []errors.Error{errmsg.ErrAuthInvalidApplicationCredentials.UpdateInternalMessage(fmt.Sprintf("got unexpected token size %s:%s", appToken, userToken)).SetCurrentLocation()}
 	}
 
 	if ctx.Application == nil {
@@ -88,7 +88,7 @@ func (app *application) PopulateContext(ctx *context.Context) (err []errors.Erro
 }
 
 func (app *application) PopulateContextFromID(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 // NewApplication returns a new application route handler

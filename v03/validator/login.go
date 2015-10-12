@@ -10,23 +10,23 @@ import (
 func IsValidLoginPayload(loginPayload *entity.LoginPayload) []errors.Error {
 	if loginPayload.Email != "" && loginPayload.Username != "" {
 		if loginPayload.EmailName == "" {
-			return []errors.Error{errmsg.ErrAuthGotBothUsernameAndEmail}
+			return []errors.Error{errmsg.ErrAuthGotBothUsernameAndEmail.SetCurrentLocation()}
 		}
 	}
 
 	if loginPayload.Email == "" && loginPayload.Username == "" && loginPayload.EmailName == "" {
-		return []errors.Error{errmsg.ErrAuthGotNoUsernameOrEmail}
+		return []errors.Error{errmsg.ErrAuthGotNoUsernameOrEmail.SetCurrentLocation()}
 	}
 
 	if loginPayload.Email != "" {
 		if !IsValidEmail(loginPayload.Email) {
-			return []errors.Error{errmsg.ErrAuthInvalidEmailAddress}
+			return []errors.Error{errmsg.ErrAuthInvalidEmailAddress.SetCurrentLocation()}
 		}
 	}
 
 	if loginPayload.Username != "" {
 		if !StringLengthBetween(loginPayload.Username, memberNameMin, memberNameMax) {
-			return []errors.Error{errmsg.ErrMemberUsernameSize}
+			return []errors.Error{errmsg.ErrMemberUsernameSize.SetCurrentLocation()}
 		}
 	}
 

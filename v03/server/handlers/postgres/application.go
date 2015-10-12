@@ -29,7 +29,7 @@ func (app *application) Read(ctx *context.Context) (err []errors.Error) {
 func (app *application) Update(ctx *context.Context) (err []errors.Error) {
 	application := *ctx.Application
 	if er := json.Unmarshal(ctx.Body, &application); er != nil {
-		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
+		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error()).SetCurrentLocation()}
 	}
 
 	application.ID = ctx.ApplicationID
@@ -65,7 +65,7 @@ func (app *application) Create(ctx *context.Context) (err []errors.Error) {
 	)
 
 	if er := json.Unmarshal(ctx.Body, application); er != nil {
-		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
+		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error()).SetCurrentLocation()}
 	}
 
 	application.OrgID = ctx.OrganizationID
@@ -107,7 +107,7 @@ func (app *application) List(ctx *context.Context) (err []errors.Error) {
 func (app *application) PopulateContext(ctx *context.Context) (err []errors.Error) {
 	appToken, userToken, ok := ctx.BasicAuth()
 	if !ok {
-		return []errors.Error{errmsg.ErrAuthInvalidApplicationCredentials.UpdateInternalMessage(fmt.Sprintf("got %s:%s", appToken, userToken))}
+		return []errors.Error{errmsg.ErrAuthInvalidApplicationCredentials.UpdateInternalMessage(fmt.Sprintf("got %s:%s", appToken, userToken)).SetCurrentLocation()}
 	}
 
 	if len(appToken) == 32 {
@@ -118,7 +118,7 @@ func (app *application) PopulateContext(ctx *context.Context) (err []errors.Erro
 		ctx.Application, err = app.storage.FindByBackendToken(appToken)
 	} else {
 		ctx.TokenType = context.TokenTypeUnknown
-		return []errors.Error{errmsg.ErrAuthInvalidApplicationCredentials.UpdateInternalMessage(fmt.Sprintf("got unexpected token size %s:%s", appToken, userToken))}
+		return []errors.Error{errmsg.ErrAuthInvalidApplicationCredentials.UpdateInternalMessage(fmt.Sprintf("got unexpected token size %s:%s", appToken, userToken)).SetCurrentLocation()}
 	}
 
 	if err == nil {
@@ -136,7 +136,7 @@ func (app *application) PopulateContext(ctx *context.Context) (err []errors.Erro
 func (app *application) PopulateContextFromID(ctx *context.Context) (err []errors.Error) {
 	applicationID := ctx.Vars["applicationID"]
 	if !validator.IsValidUUID5(applicationID) {
-		return []errors.Error{errmsg.ErrApplicationIDInvalid}
+		return []errors.Error{errmsg.ErrApplicationIDInvalid.SetCurrentLocation()}
 	}
 
 	ctx.Application, err = app.storage.FindByPublicID(applicationID)

@@ -21,11 +21,11 @@ type organization struct {
 
 func (org *organization) Read(ctx *context.Context) (err []errors.Error) {
 	if ctx.Organization == nil {
-		return []errors.Error{errmsg.ErrAccountMissingInContext}
+		return []errors.Error{errmsg.ErrAccountMissingInContext.SetCurrentLocation()}
 	}
 
 	if ctx.Organization.PublicID != ctx.Vars["accountID"] {
-		return []errors.Error{errmsg.ErrAccountMismatch}
+		return []errors.Error{errmsg.ErrAccountMismatch.SetCurrentLocation()}
 	}
 
 	response.ComputeOrganizationLastModified(ctx, ctx.Organization)
@@ -38,11 +38,11 @@ func (org *organization) Update(ctx *context.Context) (err []errors.Error) {
 	account := *ctx.Organization
 
 	if account.PublicID != ctx.Vars["accountID"] {
-		return []errors.Error{errmsg.ErrAccountMismatch}
+		return []errors.Error{errmsg.ErrAccountMismatch.SetCurrentLocation()}
 	}
 
 	if er := json.Unmarshal(ctx.Body, &account); er != nil {
-		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
+		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error()).SetCurrentLocation()}
 	}
 
 	account.ID = ctx.OrganizationID
@@ -62,7 +62,7 @@ func (org *organization) Update(ctx *context.Context) (err []errors.Error) {
 
 func (org *organization) Delete(ctx *context.Context) (err []errors.Error) {
 	if ctx.Organization.PublicID != ctx.Vars["accountID"] {
-		return []errors.Error{errmsg.ErrAccountMismatch}
+		return []errors.Error{errmsg.ErrAccountMismatch.SetCurrentLocation()}
 	}
 
 	if err = org.storage.Delete(ctx.Organization); err != nil {
@@ -77,7 +77,7 @@ func (org *organization) Create(ctx *context.Context) (err []errors.Error) {
 	var account = &entity.Organization{}
 
 	if er := json.Unmarshal(ctx.Body, account); er != nil {
-		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
+		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error()).SetCurrentLocation()}
 	}
 
 	if err = validator.CreateOrganization(account); err != nil {
@@ -95,18 +95,18 @@ func (org *organization) Create(ctx *context.Context) (err []errors.Error) {
 func (org *organization) PopulateContext(ctx *context.Context) (err []errors.Error) {
 	if ctx.R.Header.Get("X-Jarvis-Auth") != "" {
 		if ctx.R.Header.Get("X-Jarvis-Auth") != "ZTBmZjI3MGE2M2YzYzAzOWI1MjhiYTNi" {
-			return []errors.Error{errmsg.ErrServerReqMissingJarvisID}
+			return []errors.Error{errmsg.ErrServerReqMissingJarvisID.SetCurrentLocation()}
 		}
 
 		if ctx.Vars["accountID"] == "" {
-			return []errors.Error{errmsg.ErrOrgIDZero}
+			return []errors.Error{errmsg.ErrOrgIDZero.SetCurrentLocation()}
 		}
 
 		ctx.Organization, err = org.storage.ReadByPublicID(ctx.Vars["accountID"])
 	} else {
 		user, pass, ok := ctx.BasicAuth()
 		if !ok {
-			return []errors.Error{errmsg.ErrAuthInvalidAccountCredentials.UpdateInternalMessage(fmt.Sprintf("got %s:%s", user, pass))}
+			return []errors.Error{errmsg.ErrAuthInvalidAccountCredentials.UpdateInternalMessage(fmt.Sprintf("got %s:%s", user, pass)).SetCurrentLocation()}
 		}
 
 		ctx.Organization, err = org.storage.FindByKey(user)
@@ -121,7 +121,7 @@ func (org *organization) PopulateContext(ctx *context.Context) (err []errors.Err
 	}
 
 	if ctx.Organization == nil {
-		return []errors.Error{errmsg.ErrOrgNotFound.SetCurrentLocation()}
+		return []errors.Error{errmsg.ErrOrgNotFound.SetCurrentLocation().SetCurrentLocation()}
 	}
 
 	return

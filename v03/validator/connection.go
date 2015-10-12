@@ -10,11 +10,11 @@ import (
 // CreateConnection validates a connection on create
 func CreateConnection(datastore core.ApplicationUser, accountID, applicationID int64, connection *entity.Connection) (errs []errors.Error) {
 	if connection.UserFromID == connection.UserToID {
-		return []errors.Error{errmsg.ErrConnectionSelfConnectingUser}
+		return []errors.Error{errmsg.ErrConnectionSelfConnectingUser.SetCurrentLocation()}
 	}
 
 	if connection.Type != "friend" && connection.Type != "follow" {
-		return []errors.Error{errmsg.ErrConnectionTypeIsWrong.UpdateMessage("unexpected connection type " + connection.Type)}
+		return []errors.Error{errmsg.ErrConnectionTypeIsWrong.UpdateMessage("unexpected connection type " + connection.Type).SetCurrentLocation()}
 	}
 
 	if exists, err := datastore.ExistsByID(accountID, applicationID, connection.UserFromID); !exists || err != nil {
@@ -29,7 +29,7 @@ func CreateConnection(datastore core.ApplicationUser, accountID, applicationID i
 		errs = append(errs, err...)
 	}
 	if !userFrom.Activated {
-		errs = append(errs, errmsg.ErrApplicationUserNotActivated)
+		errs = append(errs, errmsg.ErrApplicationUserNotActivated.SetCurrentLocation())
 	}
 
 	if exists, err := datastore.ExistsByID(accountID, applicationID, connection.UserToID); !exists || err != nil {
@@ -44,9 +44,9 @@ func CreateConnection(datastore core.ApplicationUser, accountID, applicationID i
 		errs = append(errs, err...)
 	}
 	if userTo == nil {
-		errs = append(errs, errmsg.ErrApplicationUserNotActivated)
+		errs = append(errs, errmsg.ErrApplicationUserNotActivated.SetCurrentLocation())
 	} else if !userTo.Activated {
-		errs = append(errs, errmsg.ErrApplicationUserNotActivated)
+		errs = append(errs, errmsg.ErrApplicationUserNotActivated.SetCurrentLocation())
 	}
 
 	return
@@ -76,7 +76,7 @@ func ConfirmConnection(datastore core.ApplicationUser, accountID, applicationID 
 // UpdateConnection validates a connection on update
 func UpdateConnection(datastore core.ApplicationUser, accountID, applicationID int64, existingConnection, updatedConnection *entity.Connection) (errs []errors.Error) {
 	if updatedConnection.Type != "friend" && updatedConnection.Type != "follow" {
-		return []errors.Error{errmsg.ErrConnectionTypeIsWrong.UpdateMessage("unexpected connection type " + updatedConnection.Type)}
+		return []errors.Error{errmsg.ErrConnectionTypeIsWrong.UpdateMessage("unexpected connection type " + updatedConnection.Type).SetCurrentLocation()}
 	}
 
 	if exists, err := datastore.ExistsByID(accountID, applicationID, updatedConnection.UserToID); !exists || err != nil {

@@ -24,21 +24,21 @@ type event struct {
 }
 
 func (evt *event) CurrentUserRead(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 func (evt *event) Read(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 func (evt *event) Update(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 func (evt *event) CurrentUserUpdate(ctx *context.Context) (err []errors.Error) {
 	eventID, er := strconv.ParseUint(ctx.Vars["eventID"], 10, 64)
 	if er != nil {
-		return []errors.Error{errmsg.ErrEventIDInvalid}
+		return []errors.Error{errmsg.ErrEventIDInvalid.SetCurrentLocation()}
 	}
 
 	existingEvent, err := evt.readStorage.Read(
@@ -52,7 +52,7 @@ func (evt *event) CurrentUserUpdate(ctx *context.Context) (err []errors.Error) {
 
 	event := *existingEvent
 	if er = json.Unmarshal(ctx.Body, &event); er != nil {
-		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
+		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error()).SetCurrentLocation()}
 	}
 
 	event.ID = eventID
@@ -82,11 +82,11 @@ func (evt *event) Delete(ctx *context.Context) (err []errors.Error) {
 	applicationID := ctx.ApplicationID
 	userID, er := strconv.ParseUint(ctx.Vars["applicationUserID"], 10, 64)
 	if er != nil {
-		return []errors.Error{errmsg.ErrApplicationUserIDInvalid}
+		return []errors.Error{errmsg.ErrApplicationUserIDInvalid.SetCurrentLocation()}
 	}
 	eventID, er := strconv.ParseUint(ctx.Vars["eventID"], 10, 64)
 	if er != nil {
-		return []errors.Error{errmsg.ErrEventIDInvalid}
+		return []errors.Error{errmsg.ErrEventIDInvalid.SetCurrentLocation()}
 	}
 
 	if err = evt.writeStorage.Delete(
@@ -107,7 +107,7 @@ func (evt *event) CurrentUserDelete(ctx *context.Context) (err []errors.Error) {
 	userID := ctx.ApplicationUserID
 	eventID, er := strconv.ParseUint(ctx.Vars["eventID"], 10, 64)
 	if er != nil {
-		return []errors.Error{errmsg.ErrEventIDInvalid}
+		return []errors.Error{errmsg.ErrEventIDInvalid.SetCurrentLocation()}
 	}
 
 	if err = evt.writeStorage.Delete(
@@ -123,19 +123,19 @@ func (evt *event) CurrentUserDelete(ctx *context.Context) (err []errors.Error) {
 }
 
 func (evt *event) List(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 func (evt *event) CurrentUserList(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 func (evt *event) Feed(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 func (evt *event) Create(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 func (evt *event) CurrentUserCreate(ctx *context.Context) (err []errors.Error) {
@@ -145,7 +145,7 @@ func (evt *event) CurrentUserCreate(ctx *context.Context) (err []errors.Error) {
 	)
 
 	if er = json.Unmarshal(ctx.Body, event); er != nil {
-		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
+		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error()).SetCurrentLocation()}
 	}
 
 	event.UserID = ctx.ApplicationUserID
@@ -163,7 +163,7 @@ func (evt *event) CurrentUserCreate(ctx *context.Context) (err []errors.Error) {
 
 	event.ID, er = tgflake.FlakeNextID(ctx.ApplicationID, "events")
 	if er != nil {
-		return []errors.Error{errmsg.ErrServerInternalError.UpdateInternalMessage(er.Error())}
+		return []errors.Error{errmsg.ErrServerInternalError.UpdateInternalMessage(er.Error()).SetCurrentLocation()}
 	}
 
 	if event, err = evt.writeStorage.Create(
@@ -181,27 +181,27 @@ func (evt *event) CurrentUserCreate(ctx *context.Context) (err []errors.Error) {
 }
 
 func (evt *event) Search(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 func (evt *event) SearchGeo(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 func (evt *event) SearchObject(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 func (evt *event) SearchLocation(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 func (evt *event) UnreadFeed(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 func (evt *event) UnreadFeedCount(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 // NewEventWithApplicationUser returns a new event handler

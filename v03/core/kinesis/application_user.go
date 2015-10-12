@@ -20,15 +20,15 @@ type applicationUser struct {
 }
 
 func (appu *applicationUser) Create(accountID, applicationID int64, user *entity.ApplicationUser, retrieve bool) (usr *entity.ApplicationUser, err []errors.Error) {
-	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
+	return nil, []errors.Error{errmsg.ErrServerInvalidHandler.SetCurrentLocation()}
 }
 
 func (appu *applicationUser) Read(accountID, applicationID int64, userID uint64, withStatistics bool) (user *entity.ApplicationUser, err []errors.Error) {
-	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
+	return nil, []errors.Error{errmsg.ErrServerInvalidHandler.SetCurrentLocation()}
 }
 
 func (appu *applicationUser) ReadMultiple(accountID, applicationID int64, userIDs []uint64) (users []*entity.ApplicationUser, err []errors.Error) {
-	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
+	return nil, []errors.Error{errmsg.ErrServerInvalidHandler.SetCurrentLocation()}
 }
 
 func (appu *applicationUser) Update(accountID, applicationID int64, existingUser, updatedUser entity.ApplicationUser, retrieve bool) (*entity.ApplicationUser, []errors.Error) {
@@ -74,55 +74,55 @@ func (appu *applicationUser) Delete(accountID, applicationID int64, userID uint6
 }
 
 func (appu *applicationUser) List(accountID, applicationID int64) (users []*entity.ApplicationUser, err []errors.Error) {
-	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
+	return nil, []errors.Error{errmsg.ErrServerInvalidHandler.SetCurrentLocation()}
 }
 
 func (appu *applicationUser) CreateSession(accountID, applicationID int64, user *entity.ApplicationUser) (string, []errors.Error) {
-	return "", []errors.Error{errmsg.ErrServerInvalidHandler}
+	return "", []errors.Error{errmsg.ErrServerInvalidHandler.SetCurrentLocation()}
 }
 
 func (appu *applicationUser) RefreshSession(accountID, applicationID int64, sessionToken string, user *entity.ApplicationUser) (string, []errors.Error) {
-	return "", []errors.Error{errmsg.ErrServerInvalidHandler}
+	return "", []errors.Error{errmsg.ErrServerInvalidHandler.SetCurrentLocation()}
 }
 
 func (appu *applicationUser) GetSession(accountID, applicationID int64, user *entity.ApplicationUser) (string, []errors.Error) {
-	return "", []errors.Error{errmsg.ErrServerInvalidHandler}
+	return "", []errors.Error{errmsg.ErrServerInvalidHandler.SetCurrentLocation()}
 }
 
 func (appu *applicationUser) DestroySession(accountID, applicationID int64, sessionToken string, user *entity.ApplicationUser) []errors.Error {
-	return []errors.Error{errmsg.ErrServerInvalidHandler}
+	return []errors.Error{errmsg.ErrServerInvalidHandler.SetCurrentLocation()}
 }
 
 func (appu *applicationUser) FindByEmail(accountID, applicationID int64, email string) (*entity.ApplicationUser, []errors.Error) {
-	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
+	return nil, []errors.Error{errmsg.ErrServerInvalidHandler.SetCurrentLocation()}
 }
 
 func (appu *applicationUser) ExistsByEmail(accountID, applicationID int64, email string) (bool, []errors.Error) {
-	return false, []errors.Error{errmsg.ErrServerInvalidHandler}
+	return false, []errors.Error{errmsg.ErrServerInvalidHandler.SetCurrentLocation()}
 }
 
 func (appu *applicationUser) FindByUsername(accountID, applicationID int64, username string) (*entity.ApplicationUser, []errors.Error) {
-	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
+	return nil, []errors.Error{errmsg.ErrServerInvalidHandler.SetCurrentLocation()}
 }
 
 func (appu *applicationUser) ExistsByUsername(accountID, applicationID int64, username string) (bool, []errors.Error) {
-	return false, []errors.Error{errmsg.ErrServerInvalidHandler}
+	return false, []errors.Error{errmsg.ErrServerInvalidHandler.SetCurrentLocation()}
 }
 
 func (appu *applicationUser) ExistsByID(accountID, applicationID int64, userID uint64) (bool, []errors.Error) {
-	return false, []errors.Error{errmsg.ErrServerInvalidHandler}
+	return false, []errors.Error{errmsg.ErrServerInvalidHandler.SetCurrentLocation()}
 }
 
 func (appu *applicationUser) FindBySession(accountID, applicationID int64, sessionKey string) (*entity.ApplicationUser, []errors.Error) {
-	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
+	return nil, []errors.Error{errmsg.ErrServerInvalidHandler.SetCurrentLocation()}
 }
 
 func (appu *applicationUser) Search(accountID, applicationID int64, searchTerm string) ([]*entity.ApplicationUser, []errors.Error) {
-	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
+	return nil, []errors.Error{errmsg.ErrServerInvalidHandler.SetCurrentLocation()}
 }
 
 func (appu *applicationUser) FriendStatistics(accountID, applicationID int64, appUser *entity.ApplicationUser) []errors.Error {
-	return []errors.Error{errmsg.ErrServerInvalidHandler}
+	return []errors.Error{errmsg.ErrServerInvalidHandler.SetCurrentLocation()}
 }
 
 // NewApplicationUser creates a new Event

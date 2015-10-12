@@ -27,7 +27,7 @@ func (evt *event) CurrentUserRead(ctx *context.Context) (err []errors.Error) {
 
 	eventID, er := strconv.ParseUint(ctx.Vars["eventID"], 10, 64)
 	if er != nil {
-		return []errors.Error{errmsg.ErrEventIDInvalid}
+		return []errors.Error{errmsg.ErrEventIDInvalid.SetCurrentLocation()}
 	}
 
 	if event, err = evt.storage.Read(
@@ -49,12 +49,12 @@ func (evt *event) Read(ctx *context.Context) (err []errors.Error) {
 
 	eventID, er := strconv.ParseUint(ctx.Vars["eventID"], 10, 64)
 	if er != nil {
-		return []errors.Error{errmsg.ErrEventIDInvalid}
+		return []errors.Error{errmsg.ErrEventIDInvalid.SetCurrentLocation()}
 	}
 
 	userID, er := strconv.ParseUint(ctx.Vars["applicationUserID"], 10, 64)
 	if er != nil {
-		return []errors.Error{errmsg.ErrApplicationUserIDInvalid}
+		return []errors.Error{errmsg.ErrApplicationUserIDInvalid.SetCurrentLocation()}
 	}
 
 	if event, err = evt.storage.Read(
@@ -72,16 +72,16 @@ func (evt *event) Read(ctx *context.Context) (err []errors.Error) {
 }
 
 func (evt *event) Update(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 
 	/*	eventID, er := strconv.ParseUint(ctx.Vars["eventID"], 10, 64)
 		if er != nil {
-			return []errors.Error{errmsg.ErrEventIDInvalid}
+			return []errors.Error{errmsg.ErrEventIDInvalid.SetCurrentLocation()}
 		}
 
 		userID, er := strconv.ParseUint(ctx.Vars["applicationUserID"], 10, 64)
 		if er != nil {
-			return []errors.Error{errmsg.ErrApplicationUserIDInvalid}
+			return []errors.Error{errmsg.ErrApplicationUserIDInvalid.SetCurrentLocation()}
 		}
 
 		existingEvent, err := evt.storage.Read(
@@ -96,7 +96,7 @@ func (evt *event) Update(ctx *context.Context) (err []errors.Error) {
 
 		event := *existingEvent
 		if er = json.Unmarshal(ctx.Body, &event); er != nil {
-			return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
+			return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error()).SetCurrentLocation()}
 		}
 
 		event.ID = eventID
@@ -124,7 +124,7 @@ func (evt *event) Update(ctx *context.Context) (err []errors.Error) {
 func (evt *event) CurrentUserUpdate(ctx *context.Context) (err []errors.Error) {
 	eventID, er := strconv.ParseUint(ctx.Vars["eventID"], 10, 64)
 	if er != nil {
-		return []errors.Error{errmsg.ErrEventIDInvalid}
+		return []errors.Error{errmsg.ErrEventIDInvalid.SetCurrentLocation()}
 	}
 
 	existingEvent, err := evt.storage.Read(
@@ -138,7 +138,7 @@ func (evt *event) CurrentUserUpdate(ctx *context.Context) (err []errors.Error) {
 
 	event := *existingEvent
 	if er = json.Unmarshal(ctx.Body, &event); er != nil {
-		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
+		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error()).SetCurrentLocation()}
 	}
 
 	event.ID = eventID
@@ -168,11 +168,11 @@ func (evt *event) Delete(ctx *context.Context) (err []errors.Error) {
 	applicationID := ctx.ApplicationID
 	userID, er := strconv.ParseUint(ctx.Vars["applicationUserID"], 10, 64)
 	if er != nil {
-		return []errors.Error{errmsg.ErrApplicationUserIDInvalid}
+		return []errors.Error{errmsg.ErrApplicationUserIDInvalid.SetCurrentLocation()}
 	}
 	eventID, er := strconv.ParseUint(ctx.Vars["eventID"], 10, 64)
 	if er != nil {
-		return []errors.Error{errmsg.ErrEventIDInvalid}
+		return []errors.Error{errmsg.ErrEventIDInvalid.SetCurrentLocation()}
 	}
 
 	if err = evt.storage.Delete(
@@ -193,7 +193,7 @@ func (evt *event) CurrentUserDelete(ctx *context.Context) (err []errors.Error) {
 	userID := ctx.ApplicationUserID
 	eventID, er := strconv.ParseUint(ctx.Vars["eventID"], 10, 64)
 	if er != nil {
-		return []errors.Error{errmsg.ErrEventIDInvalid}
+		return []errors.Error{errmsg.ErrEventIDInvalid.SetCurrentLocation()}
 	}
 
 	if err = evt.storage.Delete(
@@ -213,7 +213,7 @@ func (evt *event) List(ctx *context.Context) (err []errors.Error) {
 	applicationID := ctx.ApplicationID
 	userID, er := strconv.ParseUint(ctx.Vars["applicationUserID"], 10, 64)
 	if er != nil {
-		return []errors.Error{errmsg.ErrApplicationUserIDInvalid}
+		return []errors.Error{errmsg.ErrApplicationUserIDInvalid.SetCurrentLocation()}
 	}
 
 	exists, err := evt.appUser.ExistsByID(accountID, applicationID, userID)
@@ -222,7 +222,7 @@ func (evt *event) List(ctx *context.Context) (err []errors.Error) {
 	}
 
 	if !exists {
-		return []errors.Error{errmsg.ErrApplicationUserNotFound}
+		return []errors.Error{errmsg.ErrApplicationUserNotFound.SetCurrentLocation()}
 	}
 
 	var events []*entity.Event
@@ -311,7 +311,7 @@ func (evt *event) Feed(ctx *context.Context) (err []errors.Error) {
 }
 
 func (evt *event) Create(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 
 	/*	var (
 			event = &entity.Event{}
@@ -319,7 +319,7 @@ func (evt *event) Create(ctx *context.Context) (err []errors.Error) {
 		)
 
 		if er = json.Unmarshal(ctx.Body, event); er != nil {
-			return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
+			return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error()).SetCurrentLocation()}
 		}
 
 		event.UserID = ctx.ApplicationUserID
@@ -356,7 +356,7 @@ func (evt *event) CurrentUserCreate(ctx *context.Context) (err []errors.Error) {
 	)
 
 	if er = json.Unmarshal(ctx.Body, event); er != nil {
-		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
+		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error()).SetCurrentLocation()}
 	}
 
 	event.UserID = ctx.ApplicationUserID
@@ -374,7 +374,7 @@ func (evt *event) CurrentUserCreate(ctx *context.Context) (err []errors.Error) {
 
 	event.ID, er = tgflake.FlakeNextID(ctx.ApplicationID, "events")
 	if er != nil {
-		return []errors.Error{errmsg.ErrServerInternalError.UpdateInternalMessage(er.Error())}
+		return []errors.Error{errmsg.ErrServerInternalError.UpdateInternalMessage(er.Error()).SetCurrentLocation()}
 	}
 
 	if event, err = evt.storage.Create(
@@ -401,43 +401,43 @@ func (evt *event) Search(ctx *context.Context) (err []errors.Error) {
 
 	if l := ctx.Query.Get("lat"); l != "" {
 		if latitude, er = strconv.ParseFloat(l, 64); er != nil {
-			return []errors.Error{errmsg.ErrServerReqParseFloat.UpdateMessage(er.Error())}
+			return []errors.Error{errmsg.ErrServerReqParseFloat.UpdateMessage(er.Error()).SetCurrentLocation()}
 		}
 	}
 
 	if l := ctx.Query.Get("lon"); l != "" {
 		if longitude, er = strconv.ParseFloat(l, 64); er != nil {
-			return []errors.Error{errmsg.ErrServerReqParseFloat.UpdateMessage(er.Error())}
+			return []errors.Error{errmsg.ErrServerReqParseFloat.UpdateMessage(er.Error()).SetCurrentLocation()}
 		}
 	}
 
 	if rad := ctx.Query.Get("rad"); rad != "" {
 		if radius, er = strconv.ParseFloat(rad, 64); er != nil {
-			return []errors.Error{errmsg.ErrServerReqParseFloat.UpdateMessage(er.Error())}
+			return []errors.Error{errmsg.ErrServerReqParseFloat.UpdateMessage(er.Error()).SetCurrentLocation()}
 		}
 	}
 
 	if near := ctx.Query.Get("nearest"); near != "" {
 		if nearest, er = strconv.ParseInt(near, 10, 64); er != nil {
-			return []errors.Error{errmsg.ErrServerReqParseFloat.UpdateMessage(er.Error())}
+			return []errors.Error{errmsg.ErrServerReqParseFloat.UpdateMessage(er.Error()).SetCurrentLocation()}
 		}
 
 		if nearest < 1 || nearest > 200 {
-			return []errors.Error{errmsg.ErrEventNearestNotInBounds}
+			return []errors.Error{errmsg.ErrEventNearestNotInBounds.SetCurrentLocation()}
 		}
 	}
 
 	if ctx.Query.Get("lat") != "" && ctx.Query.Get("lon") != "" {
 		if radius == 0 && nearest == 0 {
-			return []errors.Error{errmsg.ErrEventGeoRadiusAndNearestMissing}
+			return []errors.Error{errmsg.ErrEventGeoRadiusAndNearestMissing.SetCurrentLocation()}
 		}
 
 		if radius < 2 && nearest == 0 {
-			return []errors.Error{errmsg.ErrEventGeoRadiusUnder2M}
+			return []errors.Error{errmsg.ErrEventGeoRadiusUnder2M.SetCurrentLocation()}
 		}
 
 		if radius == 0 && nearest > 200 {
-			return []errors.Error{errmsg.ErrEventNearestNotInBounds}
+			return []errors.Error{errmsg.ErrEventNearestNotInBounds.SetCurrentLocation()}
 		}
 
 		events, err = evt.storage.GeoSearch(
@@ -457,7 +457,7 @@ func (evt *event) Search(ctx *context.Context) (err []errors.Error) {
 			return
 		}
 	} else {
-		err = []errors.Error{errmsg.ErrServerReqNoKnownSearchTermsSupplied}
+		err = []errors.Error{errmsg.ErrServerReqNoKnownSearchTermsSupplied.SetCurrentLocation()}
 	}
 	if err != nil {
 		return

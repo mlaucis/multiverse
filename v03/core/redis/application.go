@@ -34,15 +34,15 @@ func (app *application) Create(application *entity.Application, retrieve bool) (
 
 	ap, err := json.Marshal(a)
 	if err != nil {
-		return nil, []errors.Error{errmsg.ErrInternalApplicationCreation.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalApplicationCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 
 	if _, err := conn.Do("SET", redisApplicationToken+application.AuthToken, ap, "NX"); err != nil {
-		return nil, []errors.Error{errmsg.ErrInternalApplicationCreation.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalApplicationCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 
 	if _, err := conn.Do("SET", redisBackendToken+application.BackendToken, ap, "NX"); err != nil {
-		return nil, []errors.Error{errmsg.ErrInternalApplicationCreation.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalApplicationCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 
 	if !retrieve {
@@ -53,7 +53,7 @@ func (app *application) Create(application *entity.Application, retrieve bool) (
 }
 
 func (app *application) Read(orgID, applicationID int64) (*entity.Application, []errors.Error) {
-	return nil, []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return nil, []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 func (app *application) Update(existingApplication, updatedApplication entity.Application, retrieve bool) (*entity.Application, []errors.Error) {
@@ -77,15 +77,15 @@ func (app *application) Update(existingApplication, updatedApplication entity.Ap
 
 	ap, err := json.Marshal(a)
 	if err != nil {
-		return nil, []errors.Error{errmsg.ErrInternalApplicationCreation.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalApplicationCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 
 	if _, err := conn.Do("SET", redisApplicationToken+updatedApplication.AuthToken, ap); err != nil {
-		return nil, []errors.Error{errmsg.ErrInternalApplicationCreation.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalApplicationCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 
 	if _, err := conn.Do("SET", redisApplicationToken+updatedApplication.BackendToken, ap); err != nil {
-		return nil, []errors.Error{errmsg.ErrInternalApplicationCreation.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalApplicationCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 
 	if !retrieve {
@@ -96,15 +96,15 @@ func (app *application) Update(existingApplication, updatedApplication entity.Ap
 }
 
 func (app *application) Delete(application *entity.Application) []errors.Error {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 func (app *application) List(orgID int64) ([]*entity.Application, []errors.Error) {
-	return nil, []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return nil, []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 func (app *application) Exists(orgID, applicationID int64) (bool, []errors.Error) {
-	return false, []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return false, []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 func (app *application) FindByApplicationToken(applicationToken string) (*entity.Application, []errors.Error) {
@@ -121,7 +121,7 @@ func (app *application) findByRedisKey(redisKey string) (*entity.Application, []
 
 	application, err := conn.Do("GET", redisKey)
 	if err != nil {
-		return nil, []errors.Error{errmsg.ErrInternalApplicationRead.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalApplicationRead.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 
 	if application == nil {
@@ -133,7 +133,7 @@ func (app *application) findByRedisKey(redisKey string) (*entity.Application, []
 		entity.Application
 	}{}
 	if err := json.Unmarshal(application.([]byte), ap); err != nil {
-		return nil, []errors.Error{errmsg.ErrInternalApplicationRead.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalApplicationRead.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 
 	ap.Application.ID = ap.OrgAppIDs.AppID
@@ -143,7 +143,7 @@ func (app *application) findByRedisKey(redisKey string) (*entity.Application, []
 }
 
 func (app *application) FindByPublicID(publicID string) (*entity.Application, []errors.Error) {
-	return nil, []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return nil, []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 // NewApplication returns a new application handler with Redis as storage driver
