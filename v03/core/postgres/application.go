@@ -61,7 +61,8 @@ var createApplicationNamespaceQuery = []string{
 	`CREATE INDEX ON app_%d_%d.users USING GIN (json_data jsonb_path_ops)`,
 	`CREATE INDEX ON app_%d_%d.sessions (session_id, user_id)`,
 	`CREATE INDEX ON app_%d_%d.connections USING GIN (json_data jsonb_path_ops)`,
-	`CREATE INDEX ON app_%d_%d.connections (((json_data->>'user_from_id')::BIGINT), ((json_data->>'user_to_id')::BIGINT))`,
+	`CREATE INDEX conection_from_id ON app_%d_%d.connections USING btree ((((json_data ->> 'user_from_id'::text))::bigint))`,
+	`CREATE INDEX conection_to_id ON app_%d_%d.connections USING btree ((((json_data ->> 'user_to_id'::text))::bigint))`,
 	`CREATE INDEX ON app_%d_%d.events USING GIN (json_data jsonb_path_ops)`,
 	`CREATE INDEX ON app_%d_%d.events USING GIST (geo)`,
 }
