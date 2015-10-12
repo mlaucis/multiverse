@@ -38,7 +38,7 @@ func (app *application) Create(application *entity.Application, retrieve bool) (
 }
 
 func (app *application) Read(accountID, applicationID int64) (*entity.Application, []errors.Error) {
-	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
+	return nil, []errors.Error{errmsg.ErrServerInvalidHandler.SetCurrentLocation()}
 }
 
 func (app *application) Update(existingApplication, updatedApplication entity.Application, retrieve bool) (*entity.Application, []errors.Error) {
@@ -76,23 +76,23 @@ func (app *application) Delete(application *entity.Application) []errors.Error {
 }
 
 func (app *application) List(accountID int64) ([]*entity.Application, []errors.Error) {
-	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
+	return nil, []errors.Error{errmsg.ErrServerInvalidHandler.SetCurrentLocation()}
 }
 
 func (app *application) Exists(accountID, applicationID int64) (bool, []errors.Error) {
-	return false, []errors.Error{errmsg.ErrServerInvalidHandler}
+	return false, []errors.Error{errmsg.ErrServerInvalidHandler.SetCurrentLocation()}
 }
 
 func (app *application) FindByApplicationToken(applicationToken string) (*entity.Application, []errors.Error) {
-	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
+	return nil, []errors.Error{errmsg.ErrServerInvalidHandler.SetCurrentLocation()}
 }
 
 func (app *application) FindByBackendToken(backendToken string) (*entity.Application, []errors.Error) {
-	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
+	return nil, []errors.Error{errmsg.ErrServerInvalidHandler.SetCurrentLocation()}
 }
 
 func (app *application) FindByPublicID(publicID string) (*entity.Application, []errors.Error) {
-	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
+	return nil, []errors.Error{errmsg.ErrServerInvalidHandler.SetCurrentLocation()}
 }
 
 // NewApplication creates a new Application

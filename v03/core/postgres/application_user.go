@@ -50,7 +50,7 @@ const (
 
 func (au *applicationUser) Create(accountID, applicationID int64, user *entity.ApplicationUser, retrieve bool) (*entity.ApplicationUser, []errors.Error) {
 	if user.ID == 0 {
-		return nil, []errors.Error{errmsg.ErrInternalApplicationUserIDMissing}
+		return nil, []errors.Error{errmsg.ErrInternalApplicationUserIDMissing.SetCurrentLocation()}
 	}
 	connectionType := user.SocialConnectionType
 	user.SocialConnectionType = ""
@@ -61,7 +61,7 @@ func (au *applicationUser) Create(accountID, applicationID int64, user *entity.A
 	var err error
 	user.Password, err = storageHelper.StrongEncryptPassword(user.Password)
 	if err != nil {
-		return nil, []errors.Error{errmsg.ErrInternalApplicationUserCreation.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalApplicationUserCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 
 	timeNow := time.Now()
@@ -69,13 +69,13 @@ func (au *applicationUser) Create(accountID, applicationID int64, user *entity.A
 
 	applicationUserJSON, err := json.Marshal(user)
 	if err != nil {
-		return nil, []errors.Error{errmsg.ErrInternalApplicationUserCreation.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalApplicationUserCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 
 	_, err = au.mainPg.
 		Exec(appSchema(createApplicationUserQuery, accountID, applicationID), string(applicationUserJSON))
 	if err != nil {
-		return nil, []errors.Error{errmsg.ErrInternalApplicationUserCreation.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalApplicationUserCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 
 	for platform := range user.SocialIDs {
@@ -107,13 +107,13 @@ func (au *applicationUser) Read(accountID, applicationID int64, userID uint64, w
 		if err == sql.ErrNoRows {
 			return nil, []errors.Error{errmsg.ErrApplicationUserNotFound.SetCurrentLocation()}
 		}
-		return nil, []errors.Error{errmsg.ErrInternalApplicationUserRead.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalApplicationUserRead.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 
 	appUser := &entity.ApplicationUser{}
 	err = json.Unmarshal([]byte(JSONData), appUser)
 	if err != nil {
-		return nil, []errors.Error{errmsg.ErrInternalApplicationUserRead.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalApplicationUserRead.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 	appUser.LastRead = &lastRead
 	if withStatistics {
@@ -139,7 +139,7 @@ func (au *applicationUser) ReadMultiple(accountID, applicationID int64, userIDs 
 	rows, er := au.pg.SlaveDatastore(-1).
 		Query(appSchemaWithParams(listApplicationUsersByUserIDsQuery, accountID, applicationID, condition))
 	if er != nil {
-		return users, []errors.Error{errmsg.ErrInternalApplicationUserList.UpdateInternalMessage(er.Error())}
+		return users, []errors.Error{errmsg.ErrInternalApplicationUserList.UpdateInternalMessage(er.Error()).SetCurrentLocation()}
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -148,12 +148,12 @@ func (au *applicationUser) ReadMultiple(accountID, applicationID int64, userIDs 
 		)
 		err := rows.Scan(&JSONData)
 		if err != nil {
-			return nil, []errors.Error{errmsg.ErrInternalApplicationUserList.UpdateInternalMessage(err.Error())}
+			return nil, []errors.Error{errmsg.ErrInternalApplicationUserList.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 		}
 		user := &entity.ApplicationUser{}
 		err = json.Unmarshal([]byte(JSONData), user)
 		if err != nil {
-			return nil, []errors.Error{errmsg.ErrInternalApplicationUserList.UpdateInternalMessage(err.Error())}
+			return nil, []errors.Error{errmsg.ErrInternalApplicationUserList.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 		}
 
 		users = append(users, user)
@@ -170,7 +170,7 @@ func (au *applicationUser) Update(accountID, applicationID int64, existingUser, 
 		var err error
 		updatedUser.Password, err = storageHelper.StrongEncryptPassword(updatedUser.Password)
 		if err != nil {
-			return nil, []errors.Error{errmsg.ErrInternalApplicationUserUpdate.UpdateInternalMessage(err.Error())}
+			return nil, []errors.Error{errmsg.ErrInternalApplicationUserUpdate.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 		}
 	}
 	timeNow := time.Now()
@@ -181,13 +181,13 @@ func (au *applicationUser) Update(accountID, applicationID int64, existingUser, 
 
 	userJSON, err := json.Marshal(updatedUser)
 	if err != nil {
-		return nil, []errors.Error{errmsg.ErrInternalApplicationUserUpdate.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalApplicationUserUpdate.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 
 	_, err = au.mainPg.
 		Exec(appSchema(updateApplicationUserByIDQuery, accountID, applicationID), string(userJSON), existingUser.ID)
 	if err != nil {
-		return nil, []errors.Error{errmsg.ErrInternalApplicationUserUpdate.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalApplicationUserUpdate.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 
 	if !retrieve {
@@ -220,7 +220,7 @@ func (au *applicationUser) List(accountID, applicationID int64) (users []*entity
 	rows, err := au.pg.SlaveDatastore(-1).
 		Query(appSchema(listApplicationUsersByApplicationIDQuery, accountID, applicationID))
 	if err != nil {
-		return nil, []errors.Error{errmsg.ErrInternalApplicationUserList.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalApplicationUserList.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -229,12 +229,12 @@ func (au *applicationUser) List(accountID, applicationID int64) (users []*entity
 		)
 		err := rows.Scan(&JSONData)
 		if err != nil {
-			return nil, []errors.Error{errmsg.ErrInternalApplicationUserList.UpdateInternalMessage(err.Error())}
+			return nil, []errors.Error{errmsg.ErrInternalApplicationUserList.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 		}
 		user := &entity.ApplicationUser{}
 		err = json.Unmarshal([]byte(JSONData), user)
 		if err != nil {
-			return nil, []errors.Error{errmsg.ErrInternalApplicationUserList.UpdateInternalMessage(err.Error())}
+			return nil, []errors.Error{errmsg.ErrInternalApplicationUserList.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 		}
 
 		users = append(users, user)
@@ -247,7 +247,7 @@ func (au *applicationUser) CreateSession(accountID, applicationID int64, user *e
 	sessionToken := storageHelper.GenerateApplicationSessionID(user)
 	_, err := au.mainPg.Exec(appSchema(createApplicationUserSessionQuery, accountID, applicationID), user.ID, sessionToken)
 	if err != nil {
-		return "", []errors.Error{errmsg.ErrInternalApplicationUserSessionCreation.UpdateInternalMessage(err.Error())}
+		return "", []errors.Error{errmsg.ErrInternalApplicationUserSessionCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 
 	return sessionToken, nil
@@ -257,7 +257,7 @@ func (au *applicationUser) RefreshSession(accountID, applicationID int64, sessio
 	updatedSessionToken := storageHelper.GenerateApplicationSessionID(user)
 	_, err := au.mainPg.Exec(appSchema(updateApplicationUserSessionQuery, accountID, applicationID), sessionToken, user.ID, updatedSessionToken)
 	if err != nil {
-		return "", []errors.Error{errmsg.ErrInternalApplicationUserSessionUpdate.UpdateInternalMessage(err.Error())}
+		return "", []errors.Error{errmsg.ErrInternalApplicationUserSessionUpdate.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 
 	return updatedSessionToken, nil
@@ -267,14 +267,14 @@ func (au *applicationUser) GetSession(accountID, applicationID int64, user *enti
 	rows, err := au.pg.SlaveDatastore(-1).
 		Query(appSchema(selectApplicationUserSessionQuery, accountID, applicationID), user.ID)
 	if err != nil {
-		return "", []errors.Error{errmsg.ErrInternalApplicationUserSessionRead.UpdateInternalMessage(err.Error())}
+		return "", []errors.Error{errmsg.ErrInternalApplicationUserSessionRead.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 	defer rows.Close()
 	sessions := []string{}
 	for rows.Next() {
 		session := ""
 		if err := rows.Scan(&session); err != nil {
-			return "", []errors.Error{errmsg.ErrInternalApplicationUserSessionRead.UpdateInternalMessage(err.Error())}
+			return "", []errors.Error{errmsg.ErrInternalApplicationUserSessionRead.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 		}
 		if session == user.SessionToken {
 			return session, nil
@@ -289,7 +289,7 @@ func (au *applicationUser) GetSession(accountID, applicationID int64, user *enti
 func (au *applicationUser) DestroySession(accountID, applicationID int64, sessionToken string, user *entity.ApplicationUser) []errors.Error {
 	_, err := au.mainPg.Exec(appSchema(destroyApplicationUserSessionQuery, accountID, applicationID), user.ID, sessionToken)
 	if err != nil {
-		return []errors.Error{errmsg.ErrInternalApplicationUserSessionDelete.UpdateInternalMessage(err.Error())}
+		return []errors.Error{errmsg.ErrInternalApplicationUserSessionDelete.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 
 	return nil
@@ -307,12 +307,12 @@ func (au *applicationUser) FindByEmail(accountID, applicationID int64, email str
 		if err == sql.ErrNoRows {
 			return nil, []errors.Error{errmsg.ErrApplicationUserNotFound.SetCurrentLocation()}
 		}
-		return nil, []errors.Error{errmsg.ErrInternalApplicationUserRead.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalApplicationUserRead.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 	user := &entity.ApplicationUser{}
 	err = json.Unmarshal([]byte(JSONData), user)
 	if err != nil {
-		return nil, []errors.Error{errmsg.ErrInternalApplicationUserRead.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalApplicationUserRead.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 	user.LastRead = &lastRead
 
@@ -331,7 +331,7 @@ func (au *applicationUser) ExistsByEmail(accountID, applicationID int64, email s
 		return false, nil
 	}
 	if err != nil {
-		return false, []errors.Error{errmsg.ErrInternalApplicationUserRead.UpdateInternalMessage(err.Error())}
+		return false, []errors.Error{errmsg.ErrInternalApplicationUserRead.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 
 	return true, nil
@@ -349,12 +349,12 @@ func (au *applicationUser) FindByUsername(accountID, applicationID int64, userna
 		if err == sql.ErrNoRows {
 			return nil, []errors.Error{errmsg.ErrApplicationUserNotFound.SetCurrentLocation()}
 		}
-		return nil, []errors.Error{errmsg.ErrInternalApplicationUserRead.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalApplicationUserRead.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 	user := &entity.ApplicationUser{}
 	err = json.Unmarshal([]byte(JSONData), user)
 	if err != nil {
-		return nil, []errors.Error{errmsg.ErrInternalApplicationUserRead.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalApplicationUserRead.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 	user.LastRead = &lastRead
 
@@ -373,7 +373,7 @@ func (au *applicationUser) ExistsByUsername(accountID, applicationID int64, user
 		return false, nil
 	}
 	if err != nil {
-		return false, []errors.Error{errmsg.ErrInternalApplicationUserRead.UpdateInternalMessage(err.Error())}
+		return false, []errors.Error{errmsg.ErrInternalApplicationUserRead.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 
 	return true, nil
@@ -392,7 +392,7 @@ func (au *applicationUser) ExistsByID(accountID, applicationID int64, userID uin
 		return false, nil
 	}
 	if err != nil {
-		return false, []errors.Error{errmsg.ErrInternalApplicationUserRead.UpdateInternalMessage(err.Error())}
+		return false, []errors.Error{errmsg.ErrInternalApplicationUserRead.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 	return true, nil
 }
@@ -407,7 +407,7 @@ func (au *applicationUser) FindBySession(accountID, applicationID int64, session
 		if err == sql.ErrNoRows {
 			return nil, []errors.Error{errmsg.ErrApplicationUserNotFound.SetCurrentLocation()}
 		}
-		return nil, []errors.Error{errmsg.ErrInternalApplicationUserRead.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalApplicationUserRead.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 
 	return au.Read(accountID, applicationID, userID, false)
@@ -419,7 +419,7 @@ func (au *applicationUser) Search(accountID, applicationID int64, searchTerm str
 	rows, err := au.pg.SlaveDatastore(-1).
 		Query(appSchema(searchApplicationUsersQuery, accountID, applicationID), "%"+searchTerm+"%")
 	if err != nil {
-		return users, []errors.Error{errmsg.ErrInternalApplicationUserList.UpdateInternalMessage(err.Error())}
+		return users, []errors.Error{errmsg.ErrInternalApplicationUserList.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -428,12 +428,12 @@ func (au *applicationUser) Search(accountID, applicationID int64, searchTerm str
 		)
 		err := rows.Scan(&JSONData)
 		if err != nil {
-			return nil, []errors.Error{errmsg.ErrInternalApplicationUserList.UpdateInternalMessage(err.Error())}
+			return nil, []errors.Error{errmsg.ErrInternalApplicationUserList.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 		}
 		user := &entity.ApplicationUser{}
 		err = json.Unmarshal([]byte(JSONData), user)
 		if err != nil {
-			return nil, []errors.Error{errmsg.ErrInternalApplicationUserList.UpdateInternalMessage(err.Error())}
+			return nil, []errors.Error{errmsg.ErrInternalApplicationUserList.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 		}
 
 		users = append(users, user)
@@ -445,7 +445,7 @@ func (au *applicationUser) Search(accountID, applicationID int64, searchTerm str
 func (au *applicationUser) destroyAllUserSession(accountID, applicationID int64, user *entity.ApplicationUser) []errors.Error {
 	_, err := au.mainPg.Exec(appSchema(destroyAllApplicationUserSessionQuery, accountID, applicationID), user.ID)
 	if err != nil {
-		return []errors.Error{errmsg.ErrInternalApplicationUserSessionsDelete.UpdateInternalMessage(err.Error())}
+		return []errors.Error{errmsg.ErrInternalApplicationUserSessionsDelete.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 
 	return nil
@@ -456,7 +456,7 @@ func (au *applicationUser) FriendStatistics(accountID, applicationID int64, appU
 		QueryRow(appSchemaWithParams(selectApplicationUserCountsQuery, accountID, applicationID, accountID, applicationID, accountID, applicationID), appUser.ID).
 		Scan(&appUser.FriendCount, &appUser.FollowerCount, &appUser.FollowedCount)
 	if err != nil {
-		return []errors.Error{errmsg.ErrInternalApplicationUserRead.UpdateInternalMessage(err.Error())}
+		return []errors.Error{errmsg.ErrInternalApplicationUserRead.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 	return nil
 }

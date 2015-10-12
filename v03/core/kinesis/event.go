@@ -20,7 +20,7 @@ type event struct {
 
 func (e *event) Create(accountID, applicationID int64, currentUserID uint64, event *entity.Event, retrieve bool) (*entity.Event, []errors.Error) {
 	if event.ID == 0 {
-		return nil, []errors.Error{errmsg.ErrInternalEventMissingID}
+		return nil, []errors.Error{errmsg.ErrInternalEventMissingID.SetCurrentLocation()}
 	}
 	evt := entity.EventWithIDs{}
 	evt.OrgID = accountID
@@ -46,7 +46,7 @@ func (e *event) Create(accountID, applicationID int64, currentUserID uint64, eve
 }
 
 func (e *event) Read(accountID, applicationID int64, userID, eventID uint64) (event *entity.Event, err []errors.Error) {
-	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
+	return nil, []errors.Error{errmsg.ErrServerInvalidHandler.SetCurrentLocation()}
 }
 
 func (e *event) Update(accountID, applicationID int64, currentUserID uint64, existingEvent, updatedEvent entity.Event, retrieve bool) (*entity.Event, []errors.Error) {
@@ -93,39 +93,39 @@ func (e *event) Delete(accountID, applicationID int64, userID, eventID uint64) [
 }
 
 func (e *event) List(accountID, applicationID int64, userID, currentUserID uint64) (events []*entity.Event, err []errors.Error) {
-	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
+	return nil, []errors.Error{errmsg.ErrServerInvalidHandler.SetCurrentLocation()}
 }
 
 func (e *event) UserFeed(accountID, applicationID int64, user *entity.ApplicationUser) (count int, events []*entity.Event, err []errors.Error) {
-	return 0, nil, []errors.Error{errmsg.ErrServerInvalidHandler}
+	return 0, nil, []errors.Error{errmsg.ErrServerInvalidHandler.SetCurrentLocation()}
 }
 
 func (e *event) UnreadFeed(accountID, applicationID int64, user *entity.ApplicationUser) (count int, events []*entity.Event, err []errors.Error) {
-	return 0, nil, []errors.Error{errmsg.ErrServerInvalidHandler}
+	return 0, nil, []errors.Error{errmsg.ErrServerInvalidHandler.SetCurrentLocation()}
 }
 
 func (e *event) UnreadFeedCount(accountID, applicationID int64, user *entity.ApplicationUser) (count int, err []errors.Error) {
-	return 0, []errors.Error{errmsg.ErrServerInvalidHandler}
+	return 0, []errors.Error{errmsg.ErrServerInvalidHandler.SetCurrentLocation()}
 }
 
 func (e *event) WriteToConnectionsLists(accountID, applicationID int64, event *entity.Event, key string) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerInvalidHandler}
+	return []errors.Error{errmsg.ErrServerInvalidHandler.SetCurrentLocation()}
 }
 
 func (e *event) DeleteFromConnectionsLists(accountID, applicationID int64, userID uint64, key string) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerInvalidHandler}
+	return []errors.Error{errmsg.ErrServerInvalidHandler.SetCurrentLocation()}
 }
 
 func (e *event) GeoSearch(accountID, applicationID int64, currentUserID uint64, latitude, longitude, radius float64, nearest int64) (events []*entity.Event, err []errors.Error) {
-	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
+	return nil, []errors.Error{errmsg.ErrServerInvalidHandler.SetCurrentLocation()}
 }
 
 func (e *event) ObjectSearch(accountID, applicationID int64, currentUserID uint64, objectKey string) ([]*entity.Event, []errors.Error) {
-	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
+	return nil, []errors.Error{errmsg.ErrServerInvalidHandler.SetCurrentLocation()}
 }
 
 func (e *event) LocationSearch(accountID, applicationID int64, currentUserID uint64, locationKey string) ([]*entity.Event, []errors.Error) {
-	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
+	return nil, []errors.Error{errmsg.ErrServerInvalidHandler.SetCurrentLocation()}
 }
 
 // NewEvent creates a new Event

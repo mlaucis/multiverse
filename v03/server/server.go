@@ -71,7 +71,7 @@ func ValidateGetCommon(ctx *context.Context) (err []errors.Error) {
 	if ctx.R.Header.Get("User-Agent") != "" {
 		return
 	}
-	return []errors.Error{errmsg.ErrServerReqBadUserAgent}
+	return []errors.Error{errmsg.ErrServerReqBadUserAgent.SetCurrentLocation()}
 }
 
 // ValidatePutCommon runs a series of predefinied, common, tests for PUT requests
@@ -81,38 +81,38 @@ func ValidatePutCommon(ctx *context.Context) (err []errors.Error) {
 	}
 
 	if ctx.R.Header.Get("User-Agent") == "" {
-		err = append(err, errmsg.ErrServerReqBadUserAgent)
+		err = append(err, errmsg.ErrServerReqBadUserAgent.SetCurrentLocation())
 	}
 
 	if ctx.R.Header.Get("Content-Length") == "" {
-		err = append(err, errmsg.ErrServerReqContentLengthMissing)
+		err = append(err, errmsg.ErrServerReqContentLengthMissing.SetCurrentLocation())
 	}
 
 	if ctx.R.Header.Get("Content-Type") == "" {
-		err = append(err, errmsg.ErrServerReqContentTypeMissing)
+		err = append(err, errmsg.ErrServerReqContentTypeMissing.SetCurrentLocation())
 	}
 
 	if ctx.R.Header.Get("Content-Type") != "application/json" &&
 		ctx.R.Header.Get("Content-Type") != "application/json; charset=UTF-8" {
-		err = append(err, errmsg.ErrServerReqContentTypeMismatch)
+		err = append(err, errmsg.ErrServerReqContentTypeMismatch.SetCurrentLocation())
 	}
 
 	reqCL, er := strconv.ParseInt(ctx.R.Header.Get("Content-Length"), 10, 64)
 	if er != nil {
-		err = append(err, errmsg.ErrServerReqContentLengthInvalid)
+		err = append(err, errmsg.ErrServerReqContentLengthInvalid.SetCurrentLocation())
 	}
 
 	if reqCL != ctx.R.ContentLength {
-		err = append(err, errmsg.ErrServerReqContentLengthSizeMismatch)
+		err = append(err, errmsg.ErrServerReqContentLengthSizeMismatch.SetCurrentLocation())
 	} else {
 		// TODO better handling here for limits, maybe make them customizable
 		if reqCL > 2048 {
-			err = append(err, errmsg.ErrServerReqPayloadTooBig)
+			err = append(err, errmsg.ErrServerReqPayloadTooBig.SetCurrentLocation())
 		}
 	}
 
 	if ctx.R.Body == nil {
-		err = append(err, errmsg.ErrServerReqBodyEmpty)
+		err = append(err, errmsg.ErrServerReqBodyEmpty.SetCurrentLocation())
 	}
 	return
 }
@@ -120,7 +120,7 @@ func ValidatePutCommon(ctx *context.Context) (err []errors.Error) {
 // ValidateDeleteCommon runs a series of predefinied, common, tests for DELETE requests
 func ValidateDeleteCommon(ctx *context.Context) (err []errors.Error) {
 	if ctx.R.Header.Get("User-Agent") == "" {
-		err = append(err, errmsg.ErrServerReqBadUserAgent)
+		err = append(err, errmsg.ErrServerReqBadUserAgent.SetCurrentLocation())
 	}
 
 	return
@@ -133,38 +133,38 @@ func ValidatePostCommon(ctx *context.Context) (err []errors.Error) {
 	}
 
 	if ctx.R.Header.Get("User-Agent") == "" {
-		err = append(err, errmsg.ErrServerReqBadUserAgent)
+		err = append(err, errmsg.ErrServerReqBadUserAgent.SetCurrentLocation())
 	}
 
 	if ctx.R.Header.Get("Content-Length") == "" {
-		err = append(err, errmsg.ErrServerReqContentLengthMissing)
+		err = append(err, errmsg.ErrServerReqContentLengthMissing.SetCurrentLocation())
 	}
 
 	if ctx.R.Header.Get("Content-Type") == "" {
-		err = append(err, errmsg.ErrServerReqContentTypeMissing)
+		err = append(err, errmsg.ErrServerReqContentTypeMissing.SetCurrentLocation())
 	}
 
 	if ctx.R.Header.Get("Content-Type") != "application/json" &&
 		ctx.R.Header.Get("Content-Type") != "application/json; charset=UTF-8" {
-		err = append(err, errmsg.ErrServerReqContentTypeMismatch)
+		err = append(err, errmsg.ErrServerReqContentTypeMismatch.SetCurrentLocation())
 	}
 
 	reqCL, er := strconv.ParseInt(ctx.R.Header.Get("Content-Length"), 10, 64)
 	if er != nil {
-		err = append(err, errmsg.ErrServerReqContentLengthInvalid)
+		err = append(err, errmsg.ErrServerReqContentLengthInvalid.SetCurrentLocation())
 	}
 
 	if reqCL != ctx.R.ContentLength {
-		err = append(err, errmsg.ErrServerReqContentLengthSizeMismatch)
+		err = append(err, errmsg.ErrServerReqContentLengthSizeMismatch.SetCurrentLocation())
 	} else {
 		// TODO better handling here for limits, maybe make them customizable
 		if reqCL > 2048 {
-			err = append(err, errmsg.ErrServerReqPayloadTooBig)
+			err = append(err, errmsg.ErrServerReqPayloadTooBig.SetCurrentLocation())
 		}
 	}
 
 	if ctx.R.Body == nil {
-		err = append(err, errmsg.ErrServerReqBodyEmpty)
+		err = append(err, errmsg.ErrServerReqBodyEmpty.SetCurrentLocation())
 	}
 	return
 }
@@ -199,7 +199,7 @@ func RateLimitApplication(ctx *context.Context) []errors.Error {
 
 	limit, refreshTime, err := appRateLimiter.Request(limitee)
 	if err != nil {
-		return []errors.Error{errmsg.ErrServerInternalError.UpdateInternalMessage(err.Error())}
+		return []errors.Error{errmsg.ErrServerInternalError.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 
 	ctx.Bag["rateLimit.enabled"] = true

@@ -28,7 +28,7 @@ type applicationUser struct {
 func (appUser *applicationUser) Read(ctx *context.Context) (err []errors.Error) {
 	userID, er := strconv.ParseUint(ctx.Vars["applicationUserID"], 10, 64)
 	if er != nil {
-		return []errors.Error{errmsg.ErrApplicationUserIDInvalid}
+		return []errors.Error{errmsg.ErrApplicationUserIDInvalid.SetCurrentLocation()}
 	}
 
 	user, err := appUser.storage.Read(ctx.OrganizationID, ctx.ApplicationID, userID, false)
@@ -93,7 +93,7 @@ func (appUser *applicationUser) UpdateCurrent(ctx *context.Context) (err []error
 	user := *ctx.ApplicationUser
 	var er error
 	if er = json.Unmarshal(ctx.Body, &user); er != nil {
-		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
+		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error()).SetCurrentLocation()}
 	}
 
 	user.ID = ctx.ApplicationUserID
@@ -130,7 +130,7 @@ func (appUser *applicationUser) UpdateCurrent(ctx *context.Context) (err []error
 func (appUser *applicationUser) Delete(ctx *context.Context) (err []errors.Error) {
 	userID, er := strconv.ParseUint(ctx.Vars["applicationUserID"], 10, 64)
 	if er != nil {
-		return []errors.Error{errmsg.ErrApplicationUserIDInvalid}
+		return []errors.Error{errmsg.ErrApplicationUserIDInvalid.SetCurrentLocation()}
 	}
 
 	if err = appUser.storage.Delete(
@@ -163,12 +163,13 @@ func (appUser *applicationUser) Create(ctx *context.Context) (err []errors.Error
 	)
 
 	if er = json.Unmarshal(ctx.Body, user); er != nil {
-		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
+		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error()).SetCurrentLocation()}
 	}
 
 	err = validator.CreateUser(appUser.storage, ctx.OrganizationID, ctx.ApplicationID, user)
 	if err != nil {
-		if err[0] == errmsg.ErrApplicationUserEmailAlreadyExists || err[0] == errmsg.ErrApplicationUserUsernameInUse {
+		if err[0].Code() == errmsg.ErrApplicationUserEmailAlreadyExists.Code() ||
+			err[0].Code() == errmsg.ErrApplicationUserUsernameInUse.Code() {
 			return appUser.Login(ctx)
 		}
 
@@ -180,7 +181,7 @@ func (appUser *applicationUser) Create(ctx *context.Context) (err []errors.Error
 
 	user.ID, er = tgflake.FlakeNextID(ctx.ApplicationID, "users")
 	if er != nil {
-		return []errors.Error{errmsg.ErrServerInternalError.UpdateInternalMessage(er.Error())}
+		return []errors.Error{errmsg.ErrServerInternalError.UpdateInternalMessage(er.Error()).SetCurrentLocation()}
 	}
 
 	user, err = appUser.storage.Create(ctx.OrganizationID, ctx.ApplicationID, user, true)
@@ -210,11 +211,11 @@ func (appUser *applicationUser) Login(ctx *context.Context) (err []errors.Error)
 	)
 
 	if er = json.Unmarshal(ctx.Body, loginPayload); er != nil {
-		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
+		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error()).SetCurrentLocation()}
 	}
 
 	if err = validator.IsValidLoginPayload(loginPayload); err != nil {
-		if !(err[0] == errmsg.ErrAuthGotBothUsernameAndEmail) {
+		if !(err[0].Code() == errmsg.ErrAuthGotBothUsernameAndEmail.Code()) {
 			return
 		}
 	}
@@ -241,7 +242,7 @@ func (appUser *applicationUser) Login(ctx *context.Context) (err []errors.Error)
 	}
 
 	if user == nil || !user.Enabled || user.Deleted == entity.PFalse {
-		return []errors.Error{errmsg.ErrApplicationUserNotFound}
+		return []errors.Error{errmsg.ErrApplicationUserNotFound.SetCurrentLocation()}
 	}
 
 	if err = validator.ApplicationUserCredentialsValid(loginPayload.Password, user); err != nil {
@@ -276,11 +277,11 @@ func (appUser *applicationUser) RefreshSession(ctx *context.Context) (err []erro
 	}{}
 
 	if er := json.Unmarshal(ctx.Body, &tokenPayload); er != nil {
-		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
+		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error()).SetCurrentLocation()}
 	}
 
 	if tokenPayload.Token != ctx.SessionToken {
-		return []errors.Error{errmsg.ErrAuthSessionTokenMismatch}
+		return []errors.Error{errmsg.ErrAuthSessionTokenMismatch.SetCurrentLocation()}
 	}
 
 	if tokenPayload.Token, err = appUser.storage.RefreshSession(
@@ -315,7 +316,7 @@ func (appUser *applicationUser) Search(ctx *context.Context) (err []errors.Error
 	}
 
 	if len(query) < 3 {
-		return []errors.Error{errmsg.ErrApplicationUserSearchTypeMin3Chars}
+		return []errors.Error{errmsg.ErrApplicationUserSearchTypeMin3Chars.SetCurrentLocation()}
 	}
 
 	users, err := appUser.storage.Search(ctx.OrganizationID, ctx.ApplicationID, query)
@@ -354,10 +355,10 @@ func (appUser *applicationUser) PopulateContext(ctx *context.Context) (err []err
 
 	if ctx.TokenType == context.TokenTypeApplication {
 		if !ok {
-			return []errors.Error{errmsg.ErrAuthInvalidApplicationUserCredentials.UpdateInternalMessage(fmt.Sprintf("got %s:%s", appToken, userToken))}
+			return []errors.Error{errmsg.ErrAuthInvalidApplicationUserCredentials.UpdateInternalMessage(fmt.Sprintf("got %s:%s", appToken, userToken)).SetCurrentLocation()}
 		}
 		if userToken == "" {
-			return []errors.Error{errmsg.ErrAuthUserSessionNotSet}
+			return []errors.Error{errmsg.ErrAuthUserSessionNotSet.SetCurrentLocation()}
 		}
 		ctx.ApplicationUser, err = appUser.storage.FindBySession(ctx.Application.OrgID, ctx.Application.ID, userToken)
 		if err == nil {
@@ -374,7 +375,7 @@ func (appUser *applicationUser) PopulateContext(ctx *context.Context) (err []err
 		} else if val, ok := ctx.Vars["applicationUserID"]; ok {
 			userID, er = strconv.ParseUint(val, 10, 64)
 		} else {
-			return []errors.Error{errmsg.ErrApplicationUserIDInvalid.UpdateMessage("user ID could not be read from the request")}
+			return []errors.Error{errmsg.ErrApplicationUserIDInvalid.UpdateMessage("user ID could not be read from the request").SetCurrentLocation()}
 		}
 		if er != nil {
 			return []errors.Error{errmsg.ErrApplicationUserIDInvalid.SetCurrentLocation()}
@@ -384,7 +385,7 @@ func (appUser *applicationUser) PopulateContext(ctx *context.Context) (err []err
 			ctx.ApplicationUserID = ctx.ApplicationUser.ID
 		}
 	} else {
-		return []errors.Error{errmsg.ErrServerInternalError.UpdateInternalMessage(fmt.Sprintf("unexpected context token type, got %d", ctx.TokenType))}
+		return []errors.Error{errmsg.ErrServerInternalError.UpdateInternalMessage(fmt.Sprintf("unexpected context token type, got %d", ctx.TokenType)).SetCurrentLocation()}
 	}
 
 	return

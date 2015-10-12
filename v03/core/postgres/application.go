@@ -76,7 +76,7 @@ func (app *application) Create(application *entity.Application, retrieve bool) (
 
 	applicationJSON, err := json.Marshal(application)
 	if err != nil {
-		return nil, []errors.Error{errmsg.ErrInternalApplicationCreation.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalApplicationCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 
 	var applicationID int64
@@ -84,7 +84,7 @@ func (app *application) Create(application *entity.Application, retrieve bool) (
 		QueryRow(createApplicationEntryQuery, application.OrgID, applicationJSON).
 		Scan(&applicationID)
 	if err != nil {
-		return nil, []errors.Error{errmsg.ErrInternalApplicationCreation.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalApplicationCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 	application.ID = applicationID
 
@@ -93,7 +93,7 @@ func (app *application) Create(application *entity.Application, retrieve bool) (
 		if err != nil {
 			// TODO rollback the creation from the field if we fail to create all the stuff here
 			// TODO learn transactions :)
-			return nil, []errors.Error{errmsg.ErrInternalApplicationCreation.UpdateInternalMessage(err.Error())}
+			return nil, []errors.Error{errmsg.ErrInternalApplicationCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 		}
 	}
 
@@ -120,12 +120,12 @@ func (app *application) Update(existingApplication, updatedApplication entity.Ap
 
 	applicationJSON, err := json.Marshal(updatedApplication)
 	if err != nil {
-		return nil, []errors.Error{errmsg.ErrInternalApplicationUpdate.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalApplicationUpdate.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 
 	_, err = app.mainPg.Exec(updateApplicationEntryByIDQuery, applicationJSON, existingApplication.ID, existingApplication.OrgID)
 	if err != nil {
-		return nil, []errors.Error{errmsg.ErrInternalApplicationUpdate.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalApplicationUpdate.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 
 	go app.redis.Update(existingApplication, updatedApplication, false)
@@ -139,7 +139,7 @@ func (app *application) Update(existingApplication, updatedApplication entity.Ap
 func (app *application) Delete(application *entity.Application) []errors.Error {
 	_, err := app.mainPg.Exec(deleteApplicationEntryByIDQuery, application.ID, application.OrgID)
 	if err != nil {
-		return []errors.Error{errmsg.ErrInternalApplicationDelete.UpdateInternalMessage(err.Error())}
+		return []errors.Error{errmsg.ErrInternalApplicationDelete.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 	return nil
 }
@@ -153,7 +153,7 @@ func (app *application) List(accountID int64) ([]*entity.Application, []errors.E
 		if err == sql.ErrNoRows {
 			return applications, nil
 		}
-		return nil, []errors.Error{errmsg.ErrInternalApplicationRead.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalApplicationRead.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -164,12 +164,12 @@ func (app *application) List(accountID int64) ([]*entity.Application, []errors.E
 		)
 		err := rows.Scan(&ID, &JSONData, &Enabled)
 		if err != nil {
-			return nil, []errors.Error{errmsg.ErrInternalApplicationRead.UpdateInternalMessage(err.Error())}
+			return nil, []errors.Error{errmsg.ErrInternalApplicationRead.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 		}
 		application := &entity.Application{}
 		err = json.Unmarshal([]byte(JSONData), application)
 		if err != nil {
-			return nil, []errors.Error{errmsg.ErrInternalApplicationRead.UpdateInternalMessage(err.Error())}
+			return nil, []errors.Error{errmsg.ErrInternalApplicationRead.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 		}
 		application.ID = ID
 		application.Enabled = Enabled
@@ -189,7 +189,7 @@ func (app *application) Exists(accountID, applicationID int64) (bool, []errors.E
 		return false, nil
 	}
 	if err != nil {
-		return false, []errors.Error{errmsg.ErrInternalApplicationRead.UpdateInternalMessage(err.Error())}
+		return false, []errors.Error{errmsg.ErrInternalApplicationRead.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 	return true, nil
 }
@@ -219,13 +219,13 @@ func (app *application) findByQuery(query string, params ...interface{}) (*entit
 		if err == sql.ErrNoRows {
 			return nil, []errors.Error{errmsg.ErrApplicationNotFound.SetCurrentLocation()}
 		}
-		return nil, []errors.Error{errmsg.ErrInternalApplicationRead.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalApplicationRead.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 
 	application := &entity.Application{}
 	err = json.Unmarshal([]byte(jsonData), application)
 	if err != nil {
-		return nil, []errors.Error{errmsg.ErrInternalApplicationRead.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrInternalApplicationRead.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 	application.ID = ID
 	application.OrgID = accountID

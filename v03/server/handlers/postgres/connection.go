@@ -30,7 +30,7 @@ func (conn *connection) Update(ctx *context.Context) (err []errors.Error) {
 
 	userToID, er := strconv.ParseUint(ctx.Vars["userToID"], 10, 64)
 	if er != nil {
-		return []errors.Error{errmsg.ErrApplicationUserIDInvalid}
+		return []errors.Error{errmsg.ErrApplicationUserIDInvalid.SetCurrentLocation()}
 	}
 
 	existingConnection, err := conn.storage.Read(accountID, applicationID, userFromID, userToID)
@@ -38,12 +38,12 @@ func (conn *connection) Update(ctx *context.Context) (err []errors.Error) {
 		return
 	}
 	if existingConnection == nil {
-		return []errors.Error{errmsg.ErrConnectionUsersNotConnected}
+		return []errors.Error{errmsg.ErrConnectionUsersNotConnected.SetCurrentLocation()}
 	}
 
 	connection := *existingConnection
 	if er := json.Unmarshal(ctx.Body, &connection); er != nil {
-		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
+		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error()).SetCurrentLocation()}
 	}
 
 	connection.UserFromID = userFromID
@@ -71,7 +71,7 @@ func (conn *connection) Delete(ctx *context.Context) (err []errors.Error) {
 
 	userToID, er := strconv.ParseUint(ctx.Vars["applicationUserToID"], 10, 64)
 	if er != nil {
-		return []errors.Error{errmsg.ErrApplicationUserIDInvalid}
+		return []errors.Error{errmsg.ErrApplicationUserIDInvalid.SetCurrentLocation()}
 	}
 
 	connection, err := conn.storage.Read(accountID, applicationID, userFromID, userToID)
@@ -95,7 +95,7 @@ func (conn *connection) Create(ctx *context.Context) (err []errors.Error) {
 	)
 
 	if er = json.Unmarshal(ctx.Body, connection); er != nil {
-		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
+		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error()).SetCurrentLocation()}
 	}
 
 	return conn.doCreateConnection(ctx, connection)
@@ -106,7 +106,7 @@ func (conn *connection) List(ctx *context.Context) (err []errors.Error) {
 	applicationID := ctx.ApplicationID
 	userID, er := strconv.ParseUint(ctx.Vars["applicationUserID"], 10, 64)
 	if er != nil {
-		return []errors.Error{errmsg.ErrApplicationUserIDInvalid}
+		return []errors.Error{errmsg.ErrApplicationUserIDInvalid.SetCurrentLocation()}
 	}
 
 	exists, err := conn.appUser.ExistsByID(accountID, applicationID, userID)
@@ -115,7 +115,7 @@ func (conn *connection) List(ctx *context.Context) (err []errors.Error) {
 	}
 
 	if !exists {
-		return []errors.Error{errmsg.ErrApplicationUserNotFound}
+		return []errors.Error{errmsg.ErrApplicationUserNotFound.SetCurrentLocation()}
 	}
 
 	var users []*entity.ApplicationUser
@@ -180,7 +180,7 @@ func (conn *connection) FollowedByList(ctx *context.Context) (err []errors.Error
 	applicationID := ctx.ApplicationID
 	userID, er := strconv.ParseUint(ctx.Vars["applicationUserID"], 10, 64)
 	if er != nil {
-		return []errors.Error{errmsg.ErrApplicationUserIDInvalid}
+		return []errors.Error{errmsg.ErrApplicationUserIDInvalid.SetCurrentLocation()}
 	}
 
 	exists, err := conn.appUser.ExistsByID(accountID, applicationID, userID)
@@ -189,7 +189,7 @@ func (conn *connection) FollowedByList(ctx *context.Context) (err []errors.Error
 	}
 
 	if !exists {
-		return []errors.Error{errmsg.ErrApplicationUserNotFound}
+		return []errors.Error{errmsg.ErrApplicationUserNotFound.SetCurrentLocation()}
 	}
 
 	var users []*entity.ApplicationUser
@@ -252,7 +252,7 @@ func (conn *connection) Confirm(ctx *context.Context) (err []errors.Error) {
 	var connection = &entity.Connection{}
 
 	if er := json.Unmarshal(ctx.Body, connection); er != nil {
-		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
+		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error()).SetCurrentLocation()}
 	}
 
 	accountID := ctx.OrganizationID
@@ -285,11 +285,11 @@ func (conn *connection) CreateSocial(ctx *context.Context) (err []errors.Error) 
 	}{}
 
 	if er := json.Unmarshal(ctx.Body, &request); er != nil {
-		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
+		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error()).SetCurrentLocation()}
 	}
 
 	if request.ConnectionType == "" || (request.ConnectionType != "friend" && request.ConnectionType != "follow") {
-		return []errors.Error{errmsg.ErrConnectionTypeIsWrong}
+		return []errors.Error{errmsg.ErrConnectionTypeIsWrong.SetCurrentLocation()}
 	}
 
 	user := ctx.ApplicationUser
@@ -344,7 +344,7 @@ func (conn *connection) Friends(ctx *context.Context) (err []errors.Error) {
 	applicationID := ctx.ApplicationID
 	userID, er := strconv.ParseUint(ctx.Vars["applicationUserID"], 10, 64)
 	if er != nil {
-		return []errors.Error{errmsg.ErrApplicationUserIDInvalid}
+		return []errors.Error{errmsg.ErrApplicationUserIDInvalid.SetCurrentLocation()}
 	}
 
 	exists, err := conn.appUser.ExistsByID(accountID, applicationID, userID)
@@ -353,7 +353,7 @@ func (conn *connection) Friends(ctx *context.Context) (err []errors.Error) {
 	}
 
 	if !exists {
-		return []errors.Error{errmsg.ErrApplicationUserNotFound}
+		return []errors.Error{errmsg.ErrApplicationUserNotFound.SetCurrentLocation()}
 	}
 
 	var users []*entity.ApplicationUser
@@ -415,7 +415,7 @@ func (conn *connection) CreateFriend(ctx *context.Context) []errors.Error {
 	connection.Enabled = true
 
 	if er = json.Unmarshal(ctx.Body, connection); er != nil {
-		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
+		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error()).SetCurrentLocation()}
 	}
 
 	connection.Type = "friend"
@@ -430,7 +430,7 @@ func (conn *connection) CreateFollow(ctx *context.Context) []errors.Error {
 	connection.Enabled = true
 
 	if er = json.Unmarshal(ctx.Body, connection); er != nil {
-		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
+		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error()).SetCurrentLocation()}
 	}
 
 	connection.Type = "follow"
@@ -495,7 +495,7 @@ func (conn *connection) CreateAutoConnectionEvent(ctx *context.Context, connecti
 	var err error
 	event.ID, err = tgflake.FlakeNextID(ctx.ApplicationID, "events")
 	if err != nil {
-		return nil, []errors.Error{errmsg.ErrServerInternalError.UpdateInternalMessage(err.Error())}
+		return nil, []errors.Error{errmsg.ErrServerInternalError.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 
 	accountID := ctx.OrganizationID

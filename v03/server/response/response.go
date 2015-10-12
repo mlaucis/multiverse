@@ -54,7 +54,7 @@ func WriteResponse(ctx *context.Context, response interface{}, code int, cacheTi
 	err := json.NewEncoder(output).Encode(response)
 	if err != nil {
 		ctx.LogError(err)
-		ErrorHappened(ctx, []errors.Error{errmsg.ErrServerInternalError.UpdateInternalMessage(err.Error())})
+		ErrorHappened(ctx, []errors.Error{errmsg.ErrServerInternalError.UpdateInternalMessage(err.Error()).SetCurrentLocation()})
 		return
 	}
 

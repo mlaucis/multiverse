@@ -20,18 +20,18 @@ type applicationUser struct {
 }
 
 func (appUser *applicationUser) Read(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 func (appUser *applicationUser) ReadCurrent(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 func (appUser *applicationUser) UpdateCurrent(ctx *context.Context) (err []errors.Error) {
 	user := *ctx.ApplicationUser
 	var er error
 	if er = json.Unmarshal(ctx.Body, &user); er != nil {
-		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error())}
+		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error()).SetCurrentLocation()}
 	}
 
 	user.ID = ctx.ApplicationUserID
@@ -69,7 +69,7 @@ func (appUser *applicationUser) UpdateCurrent(ctx *context.Context) (err []error
 func (appUser *applicationUser) Delete(ctx *context.Context) (err []errors.Error) {
 	userID, er := strconv.ParseUint(ctx.Vars["applicationUserID"], 10, 64)
 	if er != nil {
-		return []errors.Error{errmsg.ErrApplicationUserIDInvalid}
+		return []errors.Error{errmsg.ErrApplicationUserIDInvalid.SetCurrentLocation()}
 	}
 
 	if err = appUser.writeStorage.Delete(
@@ -96,27 +96,27 @@ func (appUser *applicationUser) DeleteCurrent(ctx *context.Context) (err []error
 }
 
 func (appUser *applicationUser) Create(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 func (appUser *applicationUser) Login(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 func (appUser *applicationUser) RefreshSession(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 func (appUser *applicationUser) Logout(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 func (appUser *applicationUser) Search(*context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 func (appUser *applicationUser) PopulateContext(ctx *context.Context) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet}
+	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 // NewApplicationUser returns a new application user routes handler

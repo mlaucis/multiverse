@@ -19,11 +19,11 @@ type account struct {
 }
 
 func (a *account) Create(account *entity.Organization, retrieve bool) (acc *entity.Organization, err []errors.Error) {
-	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
+	return nil, []errors.Error{errmsg.ErrServerInvalidHandler.SetCurrentLocation()}
 }
 
 func (a *account) Read(accountID int64) (account *entity.Organization, err []errors.Error) {
-	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
+	return nil, []errors.Error{errmsg.ErrServerInvalidHandler.SetCurrentLocation()}
 }
 
 func (a *account) Update(existingAccount, updatedAccount entity.Organization, retrieve bool) (*entity.Organization, []errors.Error) {
@@ -61,15 +61,15 @@ func (a *account) Delete(account *entity.Organization) []errors.Error {
 }
 
 func (a *account) Exists(accountID int64) (bool, []errors.Error) {
-	return false, []errors.Error{errmsg.ErrServerInvalidHandler}
+	return false, []errors.Error{errmsg.ErrServerInvalidHandler.SetCurrentLocation()}
 }
 
 func (a *account) FindByKey(authKey string) (*entity.Organization, []errors.Error) {
-	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
+	return nil, []errors.Error{errmsg.ErrServerInvalidHandler.SetCurrentLocation()}
 }
 
 func (a *account) ReadByPublicID(id string) (*entity.Organization, []errors.Error) {
-	return nil, []errors.Error{errmsg.ErrServerInvalidHandler}
+	return nil, []errors.Error{errmsg.ErrServerInvalidHandler.SetCurrentLocation()}
 }
 
 // NewAccount creates a new Account
