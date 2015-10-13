@@ -56,11 +56,11 @@ func processErrors(streamName string, errs chan errors.Error, internalDone chan 
 
 func progressSaver(sequenceNumber <-chan string, internalDone chan struct{}) {
 	var (
-		sequenceNo, prevPosition = "", ""
-		ok                       bool
+		sequenceNo = ""
+		ok         bool
 	)
 
-	ticker := time.NewTicker(60 * time.Second)
+	ticker := time.NewTicker(500 * time.Millisecond)
 	defer ticker.Stop()
 
 	for {
@@ -72,14 +72,13 @@ func progressSaver(sequenceNumber <-chan string, internalDone chan struct{}) {
 			log.Printf("GOT SEQUENCE:\t%s", sequenceNo)
 
 		case <-ticker.C:
-			sequence := sequenceNo
-			if prevPosition == sequence {
-				break
+			if sequenceNo == "" {
+				continue
 			}
-			log.Printf("SAVING SEQUENCE:\t%s", sequence)
-			_, err := pg.MainDatastore().Exec(updateConsumerPositionQuery, sequence)
+			log.Printf("SAVING SEQUENCE:\t%s", sequenceNo)
+			_, err := pg.MainDatastore().Exec(updateConsumerPositionQuery, sequenceNo)
 			if err != nil {
-				log.Printf("Error %s while saving sequence: %s", err, sequence)
+				log.Printf("Error %s while saving sequence: %s", err, sequenceNo)
 			}
 		case <-internalDone:
 			return
