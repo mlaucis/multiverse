@@ -54,6 +54,7 @@ type (
 		SkipSecurity   bool      `json:"skip_security"`
 		JSONLogs       bool      `json:"json_logs"`
 		ListenHostPort string    `json:"listenHost"`
+		TelemetryAddr  string    `json:"telemetry_addr"`
 		CacheApp       *Redis    `json:"cache_app"`
 		RateLimiter    *Redis    `json:"rate_limiter"`
 		Kinesis        *Kinesis  `json:"kinesis"`
@@ -73,6 +74,7 @@ func defaultConfig() *Config {
 	cfg.SkipSecurity = false
 	cfg.JSONLogs = false
 	cfg.ListenHostPort = ":8082"
+	cfg.TelemetryAddr = ":9000"
 
 	cfg.RateLimiter = &Redis{}
 	cfg.RateLimiter.Hosts = append(cfg.RateLimiter.Hosts, "127.0.0.1:6379")

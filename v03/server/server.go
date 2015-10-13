@@ -24,7 +24,10 @@ import (
 	v03_postgres "github.com/tapglue/multiverse/v03/storage/postgres"
 
 	"github.com/garyburd/redigo/redis"
+	"github.com/go-kit/kit/metrics"
+	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 type errorResponse struct {
@@ -49,6 +52,30 @@ var (
 	appRateLimitProduction int64 = 20000
 	appRateLimitStaging    int64 = 100
 	appRateLimitSeconds          = 60 * time.Second
+)
+
+var (
+	namespace    = "api"
+	subsystem    = strings.Replace(APIVersion, ".", "", -1)
+	fieldKeys    = []string{"error", "route"}
+	requestCount = kitprometheus.NewCounter(prometheus.CounterOpts{
+		Namespace: namespace,
+		Subsystem: subsystem,
+		Name:      "request_count",
+		Help:      "Number of requests received",
+	}, fieldKeys)
+	requestLatency = metrics.NewTimeHistogram(
+		time.Microsecond,
+		kitprometheus.NewSummary(
+			prometheus.SummaryOpts{
+				Namespace: namespace,
+				Subsystem: subsystem,
+				Name:      "request_latency_microseconds",
+				Help:      "Total duration of requests in microseconds",
+			},
+			fieldKeys,
+		),
+	)
 )
 
 func init() {
@@ -237,6 +264,18 @@ func CustomHandler(route *Route, mainLogChan, errorLogChan chan *logger.LogMsg, 
 	route.Handlers = append(extraHandlers, route.Handlers...)
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		var err []errors.Error
+
+		defer func(begin time.Time) {
+			var (
+				errorFied  = metrics.Field{Key: "error", Value: fmt.Sprintf("%t", err == nil)}
+				routeField = metrics.Field{Key: "route", Value: route.Name}
+			)
+
+			requestCount.With(errorFied).With(routeField).Add(1)
+			requestLatency.With(errorFied).With(routeField).Observe(time.Since(begin))
+		}(time.Now())
+
 		ctx, err := NewContext(w, r, mux.Vars(r), mainLogChan, errorLogChan, route, env, debug)
 		if err != nil {
 			response.ErrorHappened(ctx, err)

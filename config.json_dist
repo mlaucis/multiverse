@@ -1,6 +1,7 @@
 {
 	"env": "APP_ENV",
 	"listenHost": "APP_HOST_PORT",
+	"telemetry_addr": "METRICS_ADDRESS",
 	"skip_security": false,
 	"json_logs": true,
 	"use_syslog": true,

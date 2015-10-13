@@ -22,6 +22,8 @@ import (
 	"github.com/tapglue/multiverse/errors"
 	"github.com/tapglue/multiverse/logger"
 	"github.com/tapglue/multiverse/server"
+
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 const (
@@ -132,6 +134,12 @@ func main() {
 
 `)
 	}
+
+	go func() {
+		http.Handle("/metrics", prometheus.Handler())
+
+		log.Fatal(http.ListenAndServe(conf.TelemetryAddr, nil))
+	}()
 
 	if conf.UseSSL {
 		log.Printf("Starting SSL server at \"%s\" in %s", conf.ListenHostPort, time.Now().Sub(startTime))
