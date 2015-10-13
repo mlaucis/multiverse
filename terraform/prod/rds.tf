@@ -120,7 +120,7 @@ resource "aws_db_instance" "master" {
   allocated_storage       = "100"
   engine                  = "postgres"
   engine_version          = "9.4.4"
-  instance_class          = "db.r3.xlarge"
+  instance_class          = "db.r3.large"
   # if you want to change to true, see the list of instance types that support storage encryption: http://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Overview.Encryption.html#d0e10116
   storage_encrypted       = true
   name                    = "${var.rds_db_name}"
@@ -166,7 +166,7 @@ resource "aws_db_instance" "slave1" {
   parameter_group_name    = "${aws_db_parameter_group.master-prod.id}"
   apply_immediately       = true
 }
-
+/** /
 resource "aws_db_instance" "slave2" {
   identifier              = "slave2"
   # change this to io1 if you want to use provisioned iops for production

@@ -45,6 +45,7 @@ type (
 	ApplicationUserSuite struct{}
 	ConnectionSuite      struct{}
 	EventSuite           struct{}
+	BenchSuite           struct{}
 )
 
 var (
@@ -55,6 +56,7 @@ var (
 	_ = Suite(&ApplicationUserSuite{})
 	_ = Suite(&ConnectionSuite{})
 	_ = Suite(&EventSuite{})
+	_ = Suite(&BenchSuite{})
 
 	conf               *config.Config
 	doLogTest          = flag.Bool("lt", false, "Set flag in order to get logs output from the tests")
