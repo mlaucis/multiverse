@@ -14,7 +14,7 @@ func (p *pg) applicationUserUpdate(msg string) []errors.Error {
 		return []errors.Error{errBadInputJSON.UpdateInternalMessage(err.Error())}
 	}
 
-	existingApplicationUser, er := p.applicationUser.Read(updatedApplicationUser.OrgID, updatedApplicationUser.AppID, updatedApplicationUser.ID)
+	existingApplicationUser, er := p.applicationUser.Read(updatedApplicationUser.OrgID, updatedApplicationUser.AppID, updatedApplicationUser.ID, false)
 	if er != nil {
 		return er
 	}
