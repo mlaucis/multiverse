@@ -157,7 +157,7 @@ func (e *event) Create(accountID, applicationID int64, currentUserID uint64, eve
 	if !retrieve {
 		return nil, nil
 	}
-	return e.Read(accountID, applicationID, event.UserID, event.ID)
+	return event, nil
 }
 
 func (e *event) Read(accountID, applicationID int64, userID, eventID uint64) (*entity.Event, []errors.Error) {
@@ -201,7 +201,7 @@ func (e *event) Update(accountID, applicationID int64, currentUserID uint64, exi
 		return nil, nil
 	}
 
-	return e.Read(accountID, applicationID, existingEvent.UserID, existingEvent.ID)
+	return &updatedEvent, nil
 }
 
 func (e *event) Delete(accountID, applicationID int64, userID, eventID uint64) []errors.Error {

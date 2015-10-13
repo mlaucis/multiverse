@@ -1132,7 +1132,7 @@ func (s *ApplicationUserSuite) TestLoginChangeUsernameGetEventWorks(c *C) {
 	receivedEvent := &entity.Event{}
 	er = json.Unmarshal([]byte(body), receivedEvent)
 	c.Assert(er, IsNil)
-	c.Assert(receivedEvent, DeepEquals, event)
+	compareEvents(c, event, receivedEvent)
 }
 
 func (s *ApplicationUserSuite) TestLoginChangeUsernameExistingUsernameFails(c *C) {

@@ -120,9 +120,9 @@ func CorrectUserWithDefaults(orgID, applicationID, userNumber int64) *entity.App
 
 // CorrectEvent returns a correct event
 func CorrectEvent(applicationID int64) *entity.Event {
-	event := &fixtures.CorrectEvent
+	event := fixtures.CorrectEvent
 	event.ID, _ = tgflake.FlakeNextID(applicationID, "events")
-	return event
+	return &event
 }
 
 func AddCorrectOrganizations(numberOfOrganizations int) []*entity.Organization {
@@ -203,13 +203,13 @@ func AddCorrectApplications(org *entity.Organization, numberOfApplicationsPerOrg
 
 // HookUp create a connection between two users provided
 func HookUp(orgID, applicationID int64, userFromID, userToID uint64) {
-	connection := &entity.Connection{
+	connection := entity.Connection{
 		UserFromID: userFromID,
 		UserToID:   userToID,
 		Type:       "follow",
 	}
-	coreConn.Create(orgID, applicationID, connection, false)
-	coreConn.Confirm(orgID, applicationID, connection, false)
+	coreConn.Create(orgID, applicationID, &connection, false)
+	coreConn.Confirm(orgID, applicationID, &connection, false)
 }
 
 // HookUpUsers creates connection between all users that you provide
@@ -258,30 +258,30 @@ func HookUpUsersCustom(orgID, applicationID int64, users []*entity.ApplicationUs
 	}
 
 	if len(users) >= 5 {
-		connection := &entity.Connection{
+		connection := entity.Connection{
 			UserFromID: users[0].ID,
 			UserToID:   users[4].ID,
 			Type:       "follow",
 		}
-		coreConn.Create(orgID, applicationID, connection, false)
+		coreConn.Create(orgID, applicationID, &connection, false)
 	}
 
 	if len(users) >= 6 {
-		connection := &entity.Connection{
+		connection := entity.Connection{
 			UserFromID: users[4].ID,
 			UserToID:   users[5].ID,
 			Type:       "follow",
 		}
-		coreConn.Create(orgID, applicationID, connection, false)
+		coreConn.Create(orgID, applicationID, &connection, false)
 	}
 
 	if len(users) >= 8 {
-		connection := &entity.Connection{
+		connection := entity.Connection{
 			UserFromID: users[6].ID,
 			UserToID:   users[7].ID,
 			Type:       "follow",
 		}
-		coreConn.Create(orgID, applicationID, connection, false)
+		coreConn.Create(orgID, applicationID, &connection, false)
 	}
 }
 
@@ -384,7 +384,8 @@ func AddCorrectUserEvents(orgID, applicationID int64, user *entity.ApplicationUs
 
 	result := make([]*entity.Event, numberOfEventsPerUser)
 	for i := 0; i < numberOfEventsPerUser; i++ {
-		event := CorrectEvent(applicationID)
+		ev := CorrectEvent(applicationID)
+		event := *ev
 		event.Visibility = uint8(i%4*10 + 10)
 		event.UserID = user.ID
 		if event.Visibility == entity.EventPublic {
@@ -442,9 +443,9 @@ func AddCorrectUserEvents(orgID, applicationID int64, user *entity.ApplicationUs
 		}
 
 		if fetchEvents {
-			result[i], err = coreEvt.Create(orgID, applicationID, user.ID, event, true)
+			result[i], err = coreEvt.Create(orgID, applicationID, user.ID, &event, true)
 		} else {
-			_, err = coreEvt.Create(orgID, applicationID, user.ID, event, false)
+			_, err = coreEvt.Create(orgID, applicationID, user.ID, &event, false)
 		}
 
 		if err != nil {
@@ -676,4 +677,20 @@ func compareUsers(c *C, expectedUser, obtainedUser *entity.ApplicationUser) {
 	obtainedUser.Metadata, expectedUser.Metadata = nil, nil
 
 	c.Assert(obtainedUser, DeepEquals, expectedUser)
+}
+
+func compareEvents(c *C, expectedEvent, obtainedEvent *entity.Event) {
+	c.Assert(obtainedEvent.Object.ID, Equals, expectedEvent.Object.ID)
+	c.Assert(obtainedEvent.Object.Type, Equals, expectedEvent.Object.Type)
+	c.Assert(obtainedEvent.CreatedAt.Sub(*expectedEvent.CreatedAt), Equals, time.Duration(0))
+	c.Assert(obtainedEvent.UpdatedAt.Sub(*expectedEvent.UpdatedAt), Equals, time.Duration(0))
+
+	obtainedEvent.Object, expectedEvent.Object = nil, nil
+	obtainedEvent.CreatedAt, expectedEvent.CreatedAt = nil, nil
+	obtainedEvent.UpdatedAt, expectedEvent.UpdatedAt = nil, nil
+
+	// TODO: Better inspection for metadata is required
+	obtainedEvent.Metadata, expectedEvent.Metadata = nil, nil
+
+	c.Assert(obtainedEvent, DeepEquals, expectedEvent)
 }

@@ -341,8 +341,7 @@ func (s *EventSuite) TestGetEventList_OK(c *C) {
 	c.Assert(response.EventsCount, Equals, len(user.Events))
 	for idx := range response.Events {
 		c.Logf("pass %d", idx)
-		response.Events[idx].UpdatedAt = user.Events[4-idx].UpdatedAt
-		c.Assert(response.Events[idx], DeepEquals, user.Events[4-idx])
+		compareEvents(c, user.Events[4-idx], response.Events[idx])
 	}
 }
 
@@ -498,7 +497,7 @@ func (s *EventSuite) TestGetLocation(c *C) {
 	er := json.Unmarshal([]byte(body), &response)
 	c.Assert(er, IsNil)
 	c.Assert(response.EventsCount, Equals, 1)
-	c.Assert(response.Events[0], DeepEquals, user1.Events[0])
+	compareEvents(c, user1.Events[0], response.Events[0])
 }
 
 func (s *EventSuite) TestGetObjectEvents(c *C) {

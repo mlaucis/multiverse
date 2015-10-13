@@ -400,14 +400,14 @@ func (s *ApplicationUserSuite) TestDeleteOnEventsOnUserDeleteWorks(c *C) {
 	c.Assert(code, Equals, http.StatusOK)
 	c.Assert(body, Not(Equals), "")
 	response := struct {
-		Events      []*entity.Event `json:"events"`
-		EventsCount int             `json:"events_count"`
+		Events      []entity.Event `json:"events"`
+		EventsCount int            `json:"events_count"`
 	}{}
 	er := json.Unmarshal([]byte(body), &response)
 	c.Assert(er, IsNil)
 	c.Assert(response.EventsCount, Equals, 2)
-	c.Assert(response.Events[0], DeepEquals, user1.Events[1])
-	c.Assert(response.Events[1], DeepEquals, user1.Events[0])
+	compareEvents(c, user1.Events[1], &response.Events[0])
+	compareEvents(c, user1.Events[0], &response.Events[1])
 
 	// Check connetions list
 	routeName = "getUserFollowers"

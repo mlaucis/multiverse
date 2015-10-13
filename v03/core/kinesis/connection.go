@@ -35,10 +35,10 @@ func (c *connection) Create(accountID, applicationID int64, conn *entity.Connect
 	}
 
 	if retrieve {
-		return conn, nil
+		return nil, nil
 	}
 
-	return nil, nil
+	return conn, nil
 }
 
 func (c *connection) Read(accountID, applicationID int64, userFromID, userToID uint64) (connection *entity.Connection, err []errors.Error) {
@@ -61,11 +61,11 @@ func (c *connection) Update(accountID, applicationID int64, existingConnection, 
 		return nil, []errors.Error{err}
 	}
 
-	if retrieve {
-		return &updatedConnection, nil
+	if !retrieve {
+		return nil, nil
 	}
 
-	return nil, nil
+	return &updatedConnection, nil
 }
 
 func (c *connection) Delete(accountID, applicationID int64, connection *entity.Connection) []errors.Error {

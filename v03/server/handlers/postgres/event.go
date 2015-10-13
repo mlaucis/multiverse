@@ -355,7 +355,7 @@ func (evt *event) CurrentUserCreate(ctx *context.Context) (err []errors.Error) {
 		er    error
 	)
 
-	if er = json.Unmarshal(ctx.Body, event); er != nil {
+	if er = json.Unmarshal(ctx.Body, &event); er != nil {
 		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error()).SetCurrentLocation()}
 	}
 
@@ -377,17 +377,18 @@ func (evt *event) CurrentUserCreate(ctx *context.Context) (err []errors.Error) {
 		return []errors.Error{errmsg.ErrServerInternalError.UpdateInternalMessage(er.Error()).SetCurrentLocation()}
 	}
 
-	if event, err = evt.storage.Create(
+	ev, err := evt.storage.Create(
 		ctx.OrganizationID,
 		ctx.ApplicationID,
 		ctx.ApplicationUserID,
 		event,
-		true); err != nil {
+		true)
+	if err != nil {
 		return
 	}
 
-	ctx.W.Header().Set("Location", fmt.Sprintf("https://api.tapglue.com/0.3/me/events/%d", event.ID))
-	response.WriteResponse(ctx, event, http.StatusCreated, 0)
+	ctx.W.Header().Set("Location", fmt.Sprintf("https://api.tapglue.com/0.3/me/events/%d", ev.ID))
+	response.WriteResponse(ctx, ev, http.StatusCreated, 0)
 	return
 }
 

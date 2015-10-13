@@ -89,7 +89,7 @@ func (c *connection) Create(accountID, applicationID int64, connection *entity.C
 	if !retrieve {
 		return nil, nil
 	}
-	return c.Read(accountID, applicationID, connection.UserFromID, connection.UserToID)
+	return connection, nil
 }
 
 func (c *connection) Read(accountID, applicationID int64, userFromID, userToID uint64) (*entity.Connection, []errors.Error) {
@@ -132,7 +132,7 @@ func (c *connection) Update(accountID, applicationID int64, existingConnection, 
 		return nil, nil
 	}
 
-	return c.Read(accountID, applicationID, existingConnection.UserFromID, existingConnection.UserToID)
+	return &updatedConnection, nil
 }
 
 func (c *connection) Delete(accountID, applicationID int64, connection *entity.Connection) []errors.Error {

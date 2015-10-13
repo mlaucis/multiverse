@@ -38,11 +38,11 @@ func (e *event) Create(accountID, applicationID int64, currentUserID uint64, eve
 		return nil, []errors.Error{err}
 	}
 
-	if retrieve {
-		return event, nil
+	if !retrieve {
+		return nil, nil
 	}
 
-	return nil, nil
+	return event, nil
 }
 
 func (e *event) Read(accountID, applicationID int64, userID, eventID uint64) (event *entity.Event, err []errors.Error) {

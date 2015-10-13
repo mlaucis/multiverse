@@ -461,23 +461,23 @@ func (conn *connection) doCreateConnection(ctx *context.Context, connection *ent
 		return err
 	}
 
-	connection, err = conn.storage.Create(accountID, applicationID, connection, true)
+	con, err := conn.storage.Create(accountID, applicationID, connection, true)
 	if err != nil {
 		return err
 	}
 
 	if ctx.Query.Get("with_event") == "true" {
-		go conn.CreateAutoConnectionEvent(ctx, connection)
+		go conn.CreateAutoConnectionEvent(ctx, con)
 	}
 
 	if receivedEnabled {
-		connection, err = conn.storage.Confirm(accountID, applicationID, connection, true)
+		con, err = conn.storage.Confirm(accountID, applicationID, con, true)
 		if err != nil {
 			return err
 		}
 	}
 
-	response.WriteResponse(ctx, connection, http.StatusCreated, 0)
+	response.WriteResponse(ctx, con, http.StatusCreated, 0)
 	return nil
 }
 
