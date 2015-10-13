@@ -74,7 +74,7 @@ func defaultConfig() *Config {
 	cfg.SkipSecurity = false
 	cfg.JSONLogs = false
 	cfg.ListenHostPort = ":8082"
-	cfg.TelemtryAddr = ":9000"
+	cfg.TelemetryAddr = ":9000"
 
 	cfg.RateLimiter = &Redis{}
 	cfg.RateLimiter.Hosts = append(cfg.RateLimiter.Hosts, "127.0.0.1:6379")
