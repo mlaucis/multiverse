@@ -1446,7 +1446,6 @@ func (s *ApplicationUserSuite) TestCreateUser_NullOK(c *C) {
 }
 
 func BenchmarkCreateAndLogin(b *testing.B) {
-	b.StopTimer()
 	var (
 		accounts     = CorrectDeploy(1, 0, 1, 0, 0, false, false)
 		application  = accounts[0].Applications[0]
@@ -1455,13 +1454,13 @@ func BenchmarkCreateAndLogin(b *testing.B) {
 		routePath    = getComposedRoute(routeName)
 		user         = CorrectUser()
 		signer       = signApplicationRequest(application, nil, true, true)
-		ws           []*httptest.ResponseRecorder
-		reqs         []*http.Request
-		payload      string
+		m            = mux.NewRouter()
+		w            = httptest.NewRecorder()
+		requests     = []*http.Request{}
 	)
 
 	for i := 0; i < b.N; i++ {
-		payload = fmt.Sprintf(
+		payload := fmt.Sprintf(
 			`{"user_name": %q, "first_name": %q, "last_name": %q,  "email": %q,  "url": %q,  "password": %q}`,
 			fmt.Sprintf("%d-%s", i, user.Username),
 			user.FirstName,
@@ -1471,35 +1470,40 @@ func BenchmarkCreateAndLogin(b *testing.B) {
 			user.Password,
 		)
 
-		req, er := http.NewRequest(
+		req, err := http.NewRequest(
 			requestRoute.Method,
 			routePath,
 			strings.NewReader(payload),
 		)
-		if er != nil {
-			panic(er)
+		if err != nil {
+			b.Fatal(err)
 		}
 
 		createCommonRequestHeaders(req)
 		signer(req)
 
-		ws = append(ws, httptest.NewRecorder())
-		reqs = append(reqs, req)
+		requests = append(requests, req)
 	}
 
-	m := mux.NewRouter()
+	m.HandleFunc(
+		requestRoute.RoutePattern(),
+		server.CustomHandler(
+			requestRoute,
+			mainLogChan,
+			errorLogChan,
+			"test",
+			false,
+			true,
+		),
+	).Methods(requestRoute.Method)
 
-	m.
-		HandleFunc(requestRoute.RoutePattern(), server.CustomHandler(requestRoute, mainLogChan, errorLogChan, "test", false, true)).
-		Methods(requestRoute.Method)
+	b.ResetTimer()
 
-	b.StartTimer()
+	for _, req := range requests {
+		m.ServeHTTP(w, req)
 
-	for i := 0; i < b.N; i++ {
-		m.ServeHTTP(ws[i], reqs[i])
-
-		if ws[i].Code != http.StatusCreated {
-			b.Fatalf("wrong response %d with body %s", ws[i].Code, ws[i].Body.String())
+		if w.Code != http.StatusCreated {
+			b.Fatalf("wrong response %d with body %s", w.Code, w.Body.String())
 		}
 	}
 }
