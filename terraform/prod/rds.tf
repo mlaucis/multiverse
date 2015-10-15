@@ -138,7 +138,7 @@ resource "aws_db_instance" "master" {
   parameter_group_name    = "${aws_db_parameter_group.master-prod.id}"
   apply_immediately       = true
 }
-/**/
+/** /
 # Database slaves
 resource "aws_db_instance" "slave1" {
   identifier              = "slave1"
@@ -166,7 +166,7 @@ resource "aws_db_instance" "slave1" {
   parameter_group_name    = "${aws_db_parameter_group.master-prod.id}"
   apply_immediately       = true
 }
-
+/** /
 resource "aws_db_instance" "slave2" {
   identifier              = "slave2"
   # change this to io1 if you want to use provisioned iops for production

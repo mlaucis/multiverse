@@ -128,4 +128,3 @@ resource "cloudflare_record" "styleguide-prod" {
   type   = "CNAME"
   ttl    = 1
 }
-

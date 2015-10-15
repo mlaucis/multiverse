@@ -64,7 +64,7 @@ resource "aws_elasticache_subnet_group" "rate-limiter" {
     "${aws_subnet.frontend-b.id}"]
 }
 
-/** /
+/**/
 resource "aws_elasticache_cluster" "rate-limiter" {
   depends_on           = [
     "aws_elasticache_subnet_group.rate-limiter"]

@@ -25,7 +25,7 @@ resource "aws_route53_record" "db-slave1" {
 
   ttl     = "5"
   records = [
-    "${aws_db_instance.slave1.address}"]
+    "${aws_db_instance.master.address}"]
 }
 
 resource "aws_route53_record" "db-slave2" {
@@ -35,7 +35,7 @@ resource "aws_route53_record" "db-slave2" {
 
   ttl     = "5"
   records = [
-    "${aws_db_instance.slave2.address}"]
+    "${aws_db_instance.master.address}"]
 }
 
 
