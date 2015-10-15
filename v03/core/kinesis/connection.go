@@ -18,27 +18,23 @@ type connection struct {
 	ksis    *ksis.Kinesis
 }
 
-func (c *connection) Create(accountID, applicationID int64, conn *entity.Connection, retrieve bool) (*entity.Connection, []errors.Error) {
+func (c *connection) Create(accountID, applicationID int64, conn *entity.Connection) []errors.Error {
 	con := entity.ConnectionWithIDs{}
 	con.OrgID = accountID
 	con.AppID = applicationID
 	con.Connection = *conn
 	data, er := json.Marshal(con)
 	if er != nil {
-		return nil, []errors.Error{errors.NewInternalError(0, "error while creating the connection (1)", er.Error())}
+		return []errors.Error{errors.NewInternalError(0, "error while creating the connection (1)", er.Error())}
 	}
 
 	partitionKey := fmt.Sprintf("partitionKey-%d-%d", accountID, applicationID)
 	_, err := c.storage.PackAndPutRecord(kinesis.StreamConnectionCreate, partitionKey, data)
 	if err != nil {
-		return nil, []errors.Error{err}
+		return []errors.Error{err}
 	}
 
-	if retrieve {
-		return nil, nil
-	}
-
-	return conn, nil
+	return nil
 }
 
 func (c *connection) Read(accountID, applicationID int64, userFromID, userToID uint64) (connection *entity.Connection, err []errors.Error) {

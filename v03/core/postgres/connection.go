@@ -47,49 +47,47 @@ FROM app_%d_%d.connections
 WHERE (json_data->>'user_from_id')::BIGINT = $1::BIGINT AND (json_data->>'user_to_id')::BIGINT = $2::BIGINT AND json_data @> json_build_object('type', $3::TEXT, 'enabled', true)::JSONB;`
 )
 
-func (c *connection) Create(accountID, applicationID int64, connection *entity.Connection, retrieve bool) (*entity.Connection, []errors.Error) {
+func (c *connection) Create(accountID, applicationID int64, connection *entity.Connection) []errors.Error {
 	exists, er := c.Read(accountID, applicationID, connection.UserFromID, connection.UserToID)
 	if er != nil && er[0].Code() != errmsg.ErrConnectionNotFound.Code() {
-		return nil, er
+		return er
 	}
 	if exists != nil {
 		if !exists.Enabled {
 			exists.Enabled = true
-			return c.Update(accountID, applicationID, *exists, *exists, true)
+			connection, er = c.Update(accountID, applicationID, *exists, *exists, true)
+			return er
 		}
 
-		return nil, []errors.Error{errmsg.ErrConnectionAlreadyExists.SetCurrentLocation()}
+		return []errors.Error{errmsg.ErrConnectionAlreadyExists.SetCurrentLocation()}
 	}
 
 	timeNow := time.Now()
 	connection.CreatedAt, connection.UpdatedAt = &timeNow, &timeNow
 	connectionJSON, err := json.Marshal(connection)
 	if err != nil {
-		return nil, []errors.Error{errmsg.ErrInternalConnectionCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
+		return []errors.Error{errmsg.ErrInternalConnectionCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 	_, err = c.mainPg.Exec(appSchema(createConnectionQuery, accountID, applicationID), string(connectionJSON))
 	if err != nil {
-		return nil, []errors.Error{errmsg.ErrInternalConnectionCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
+		return []errors.Error{errmsg.ErrInternalConnectionCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 
 	if connection.Type == "friend" {
 		connection.UserFromID, connection.UserToID = connection.UserToID, connection.UserFromID
 		connectionJSON, err = json.Marshal(connection)
 		if err != nil {
-			return nil, []errors.Error{errmsg.ErrInternalConnectionCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
+			return []errors.Error{errmsg.ErrInternalConnectionCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 		}
 		_, err = c.mainPg.Exec(appSchema(createConnectionQuery, accountID, applicationID), string(connectionJSON))
 		if err != nil {
-			return nil, []errors.Error{errmsg.ErrInternalConnectionCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
+			return []errors.Error{errmsg.ErrInternalConnectionCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 		}
 		// Switch back so we have the original IDs in place
 		connection.UserFromID, connection.UserToID = connection.UserToID, connection.UserFromID
 	}
 
-	if !retrieve {
-		return nil, nil
-	}
-	return connection, nil
+	return nil
 }
 
 func (c *connection) Read(accountID, applicationID int64, userFromID, userToID uint64) (*entity.Connection, []errors.Error) {
@@ -384,7 +382,7 @@ func (c *connection) AutoConnectSocialFriends(accountID, applicationID int64, us
 		}
 		connection.Enabled = true
 
-		if _, err := c.Create(accountID, applicationID, connection, false); err != nil {
+		if err := c.Create(accountID, applicationID, connection); err != nil {
 			if err[0].Code() != errmsg.ErrConnectionAlreadyExists.Code() {
 				return nil, err
 			}
@@ -400,7 +398,7 @@ func (c *connection) AutoConnectSocialFriends(accountID, applicationID int64, us
 			Type:       connectionType,
 		}
 
-		if _, err := c.Create(accountID, applicationID, connection, false); err != nil {
+		if err := c.Create(accountID, applicationID, connection); err != nil {
 			if err[0].Code() != errmsg.ErrConnectionAlreadyExists.Code() {
 				return nil, err
 			}

@@ -24,6 +24,11 @@ func (s *ApplicationUserSuite) TestLoginDisableLoginFails(c *C) {
 		user.OriginalPassword,
 	)
 
+	var zero int64 = 0
+	user.FriendCount = &zero
+	user.FollowerCount = &zero
+	user.FollowedCount = &zero
+
 	routeName := "loginCurrentUserApplicationUser"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, nil, true, true))
@@ -169,6 +174,11 @@ func (s *ApplicationUserSuite) TestLoginChangeUsernameLogoutLoginWorks(c *C) {
 	application := accounts[0].Applications[0]
 	user := application.Users[0]
 
+	var zero int64 = 0
+	user.FriendCount = &zero
+	user.FollowerCount = &zero
+	user.FollowedCount = &zero
+
 	payload := fmt.Sprintf(
 		`{"user_name": "%s", "password": "%s"}`,
 		user.Username,
@@ -243,6 +253,11 @@ func (s *ApplicationUserSuite) TestLoginChangeEmailLogoutLoginWorks(c *C) {
 	application := accounts[0].Applications[0]
 	user := application.Users[0]
 
+	var zero int64 = 0
+	user.FriendCount = &zero
+	user.FollowerCount = &zero
+	user.FollowedCount = &zero
+
 	payload := fmt.Sprintf(
 		`{"email": "%s", "password": "%s"}`,
 		user.Email,
@@ -315,6 +330,11 @@ func (s *ApplicationUserSuite) TestLoginChangePasswordLoginWorks(c *C) {
 	accounts := CorrectDeploy(1, 0, 1, 1, 0, false, false)
 	application := accounts[0].Applications[0]
 	user := application.Users[0]
+
+	var zero int64 = 0
+	user.FriendCount = &zero
+	user.FollowerCount = &zero
+	user.FollowedCount = &zero
 
 	payload := fmt.Sprintf(
 		`{"email": "%s", "password": "%s"}`,

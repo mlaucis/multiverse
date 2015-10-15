@@ -461,23 +461,23 @@ func (conn *connection) doCreateConnection(ctx *context.Context, connection *ent
 		return err
 	}
 
-	con, err := conn.storage.Create(accountID, applicationID, connection, true)
+	err = conn.storage.Create(accountID, applicationID, connection)
 	if err != nil {
 		return err
 	}
 
 	if ctx.Query.Get("with_event") == "true" {
-		go conn.CreateAutoConnectionEvent(ctx, con)
+		go conn.CreateAutoConnectionEvent(ctx, connection)
 	}
 
 	if receivedEnabled {
-		con, err = conn.storage.Confirm(accountID, applicationID, con, true)
+		connection, err = conn.storage.Confirm(accountID, applicationID, connection, true)
 		if err != nil {
 			return err
 		}
 	}
 
-	response.WriteResponse(ctx, con, http.StatusCreated, 0)
+	response.WriteResponse(ctx, connection, http.StatusCreated, 0)
 	return nil
 }
 
@@ -501,7 +501,8 @@ func (conn *connection) CreateAutoConnectionEvent(ctx *context.Context, connecti
 	accountID := ctx.OrganizationID
 	applicationID := ctx.ApplicationID
 
-	return conn.event.Create(accountID, applicationID, connection.UserFromID, event, false)
+	er := conn.event.Create(accountID, applicationID, connection.UserFromID, event)
+	return event, er
 }
 
 func (conn *connection) CreateAutoConnectionEvents(

@@ -8,7 +8,7 @@ import (
 // Event interface
 type Event interface {
 	// Create adds an event to the database and returns the created event or an error
-	Create(accountID, applicationID int64, currentUserID uint64, event *entity.Event, retrieve bool) (evn *entity.Event, err []errors.Error)
+	Create(accountID, applicationID int64, currentUserID uint64, event *entity.Event) []errors.Error
 
 	// Read returns the event matching the ID or an error
 	Read(accountID, applicationID int64, userID, eventID uint64) (event *entity.Event, err []errors.Error)

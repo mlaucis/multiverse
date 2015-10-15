@@ -208,7 +208,7 @@ func HookUp(orgID, applicationID int64, userFromID, userToID uint64) {
 		UserToID:   userToID,
 		Type:       "follow",
 	}
-	coreConn.Create(orgID, applicationID, &connection, false)
+	coreConn.Create(orgID, applicationID, &connection)
 	coreConn.Confirm(orgID, applicationID, &connection, false)
 }
 
@@ -263,7 +263,7 @@ func HookUpUsersCustom(orgID, applicationID int64, users []*entity.ApplicationUs
 			UserToID:   users[4].ID,
 			Type:       "follow",
 		}
-		coreConn.Create(orgID, applicationID, &connection, false)
+		coreConn.Create(orgID, applicationID, &connection)
 	}
 
 	if len(users) >= 6 {
@@ -272,7 +272,7 @@ func HookUpUsersCustom(orgID, applicationID int64, users []*entity.ApplicationUs
 			UserToID:   users[5].ID,
 			Type:       "follow",
 		}
-		coreConn.Create(orgID, applicationID, &connection, false)
+		coreConn.Create(orgID, applicationID, &connection)
 	}
 
 	if len(users) >= 8 {
@@ -281,7 +281,7 @@ func HookUpUsersCustom(orgID, applicationID int64, users []*entity.ApplicationUs
 			UserToID:   users[7].ID,
 			Type:       "follow",
 		}
-		coreConn.Create(orgID, applicationID, &connection, false)
+		coreConn.Create(orgID, applicationID, &connection)
 	}
 }
 
@@ -298,7 +298,7 @@ func BenchHookUpUsersCustom(orgID, applicationID int64, users []*entity.Applicat
 		connection.UserFromID = users[i].ID
 		for j := 1; j <= numberOfConnectionsPerUser; j++ {
 			connection.UserToID = users[i+j].ID
-			coreConn.Create(orgID, applicationID, connection, false)
+			coreConn.Create(orgID, applicationID, connection)
 		}
 	}
 }
@@ -327,15 +327,14 @@ func AddCorrectApplicationUsers(orgID int64, application *entity.Application, nu
 	var err []errors.Error
 	result := make([]*entity.ApplicationUser, numberOfUsersPerApplication)
 	for i := 0; i < numberOfUsersPerApplication; i++ {
-		user := CorrectUserWithDefaults(orgID, application.ID, int64(i+1))
-		password := user.Password
-		user.Activated = true
-		user.Deleted = entity.PFalse
-		result[i], err = coreAppUser.Create(orgID, application.ID, user, true)
+		result[i] = CorrectUserWithDefaults(orgID, application.ID, int64(i+1))
+		result[i].OriginalPassword = result[i].Password
+		result[i].Activated = true
+		result[i].Deleted = entity.PFalse
+		err = coreAppUser.Create(orgID, application.ID, result[i])
 		if err != nil {
 			panic(err[0].InternalErrorWithLocation())
 		}
-		result[i].OriginalPassword = password
 	}
 
 	if hookUpUsers {
@@ -349,16 +348,15 @@ func BenchAddCorrectApplicationUsers(orgID int64, application *entity.Applicatio
 	var err []errors.Error
 	result := make([]*entity.ApplicationUser, numberOfUsersPerApplication)
 	for i := 0; i < numberOfUsersPerApplication; i++ {
-		user := CorrectUserWithDefaults(orgID, application.ID, int64(i+1))
-		password := user.Password
-		user.Activated = true
-		user.Deleted = entity.PFalse
-		user.Metadata = *user
-		result[i], err = coreAppUser.Create(orgID, application.ID, user, true)
+		result[i] = CorrectUserWithDefaults(orgID, application.ID, int64(i+1))
+		result[i].OriginalPassword = result[i].Password
+		result[i].Activated = true
+		result[i].Deleted = entity.PFalse
+		result[i].Metadata = *result[i]
+		err = coreAppUser.Create(orgID, application.ID, result[i])
 		if err != nil {
 			panic(err[0].InternalErrorWithLocation())
 		}
-		result[i].OriginalPassword = password
 	}
 
 	return result
@@ -384,37 +382,36 @@ func AddCorrectUserEvents(orgID, applicationID int64, user *entity.ApplicationUs
 
 	result := make([]*entity.Event, numberOfEventsPerUser)
 	for i := 0; i < numberOfEventsPerUser; i++ {
-		ev := CorrectEvent(applicationID)
-		event := *ev
-		event.Visibility = uint8(i%4*10 + 10)
-		event.UserID = user.ID
-		if event.Visibility == entity.EventPublic {
-			event.Location = fmt.Sprintf("location-all-%d", i+1)
-			event.Target = &entity.Object{
+		result[i] = CorrectEvent(applicationID)
+		result[i].Visibility = uint8(i%4*10 + 10)
+		result[i].UserID = user.ID
+		if result[i].Visibility == entity.EventPublic {
+			result[i].Location = fmt.Sprintf("location-all-%d", i+1)
+			result[i].Target = &entity.Object{
 				ID:           fmt.Sprintf("target-%d", i+1),
 				DisplayNames: map[string]string{"all": fmt.Sprintf("target-%d-all", i+1)},
 			}
-			event.Object = &entity.Object{
+			result[i].Object = &entity.Object{
 				ID:           fmt.Sprintf("object-%d", i+1),
 				DisplayNames: map[string]string{"all": fmt.Sprintf("object-%d-all", i+1)},
 			}
-		} else if event.Visibility == entity.EventGlobal {
-			event.Location = fmt.Sprintf("location-global-%d", i+1)
-			event.Target = &entity.Object{
+		} else if result[i].Visibility == entity.EventGlobal {
+			result[i].Location = fmt.Sprintf("location-global-%d", i+1)
+			result[i].Target = &entity.Object{
 				ID:           fmt.Sprintf("target-global-%d", i+1),
 				DisplayNames: map[string]string{"all": fmt.Sprintf("target-global-%d-all", i+1)},
 			}
-			event.Object = &entity.Object{
+			result[i].Object = &entity.Object{
 				ID:           fmt.Sprintf("object-global-%d", i+1),
 				DisplayNames: map[string]string{"all": fmt.Sprintf("object-global-%d-all", i+1)},
 			}
 		} else {
-			event.Location = fmt.Sprintf("location-%d", i+1)
-			event.Target = &entity.Object{
+			result[i].Location = fmt.Sprintf("location-%d", i+1)
+			result[i].Target = &entity.Object{
 				ID:           fmt.Sprintf("acc-%d-app-%d-usr-%d-target-%d", orgID, applicationID, user.ID, i+1),
 				DisplayNames: map[string]string{"all": fmt.Sprintf("acc-%d-app-%d-usr-%d-target-%d-lall", orgID, applicationID, user.ID, i+1)},
 			}
-			event.Object = &entity.Object{
+			result[i].Object = &entity.Object{
 				ID:           fmt.Sprintf("acc-%d-app-%d-usr-%d-object-%d", orgID, applicationID, user.ID, i+1),
 				DisplayNames: map[string]string{"all": fmt.Sprintf("acc-%d-app-%d-usr-%d-object-%d-lall", orgID, applicationID, user.ID, i+1)},
 			}
@@ -422,31 +419,27 @@ func AddCorrectUserEvents(orgID, applicationID int64, user *entity.ApplicationUs
 
 		// Some locations are more special then others (easier things to debug when it comes to the location search by geo coordinates)
 		if i < len(locations) {
-			event.Latitude = locations[i].Lat
-			event.Longitude = locations[i].Lon
-			event.Location = locations[i].Label
+			result[i].Latitude = locations[i].Lat
+			result[i].Longitude = locations[i].Lon
+			result[i].Location = locations[i].Label
 		}
 
-		event.Images = map[string]entity.Image{}
-		event.Images["thumb_pic"] = entity.Image{
+		result[i].Images = map[string]entity.Image{}
+		result[i].Images["thumb_pic"] = entity.Image{
 			URL:    "https://www.tapglue.com/img/box/newsfeed.jpg",
 			Width:  200,
 			Heigth: 200,
 			Type:   "image/jpeg",
 		}
 
-		event.Images["original_pic"] = entity.Image{
+		result[i].Images["original_pic"] = entity.Image{
 			URL:    "https://www.tapglue.com/img/original.jpg",
 			Width:  2048,
 			Heigth: 2048,
 			Type:   "image/jpeg",
 		}
 
-		if fetchEvents {
-			result[i], err = coreEvt.Create(orgID, applicationID, user.ID, &event, true)
-		} else {
-			_, err = coreEvt.Create(orgID, applicationID, user.ID, &event, false)
-		}
+		err = coreEvt.Create(orgID, applicationID, user.ID, result[i])
 
 		if err != nil {
 			panic(fmt.Sprintf("%#v", err))

@@ -135,9 +135,9 @@ const (
 		ORDER BY ST_Distance_Sphere(geo, ST_SetSRID(ST_MakePoint($2, $3), 4326)), json_data->>'created_at' DESC LIMIT $4`
 )
 
-func (e *event) Create(accountID, applicationID int64, currentUserID uint64, event *entity.Event, retrieve bool) (*entity.Event, []errors.Error) {
+func (e *event) Create(accountID, applicationID int64, currentUserID uint64, event *entity.Event) []errors.Error {
 	if event.ID == 0 {
-		return nil, []errors.Error{errmsg.ErrInternalEventMissingID.SetCurrentLocation()}
+		return []errors.Error{errmsg.ErrInternalEventMissingID.SetCurrentLocation()}
 	}
 	event.Enabled = true
 	timeNow := time.Now()
@@ -145,19 +145,16 @@ func (e *event) Create(accountID, applicationID int64, currentUserID uint64, eve
 
 	eventJSON, err := json.Marshal(event)
 	if err != nil {
-		return nil, []errors.Error{errmsg.ErrInternalEventCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
+		return []errors.Error{errmsg.ErrInternalEventCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 
 	_, err = e.mainPg.
 		Exec(appSchema(createEventQuery, accountID, applicationID), string(eventJSON), event.Latitude, event.Longitude)
 	if err != nil {
-		return nil, []errors.Error{errmsg.ErrInternalEventCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
+		return []errors.Error{errmsg.ErrInternalEventCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 
-	if !retrieve {
-		return nil, nil
-	}
-	return event, nil
+	return nil
 }
 
 func (e *event) Read(accountID, applicationID int64, userID, eventID uint64) (*entity.Event, []errors.Error) {

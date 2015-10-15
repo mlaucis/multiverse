@@ -19,8 +19,8 @@ type applicationUser struct {
 	ksis    *ksis.Kinesis
 }
 
-func (appu *applicationUser) Create(accountID, applicationID int64, user *entity.ApplicationUser, retrieve bool) (usr *entity.ApplicationUser, err []errors.Error) {
-	return nil, []errors.Error{errmsg.ErrServerInvalidHandler.SetCurrentLocation()}
+func (appu *applicationUser) Create(accountID, applicationID int64, user *entity.ApplicationUser) []errors.Error {
+	return []errors.Error{errmsg.ErrServerInvalidHandler.SetCurrentLocation()}
 }
 
 func (appu *applicationUser) Read(accountID, applicationID int64, userID uint64, withStatistics bool) (user *entity.ApplicationUser, err []errors.Error) {

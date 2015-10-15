@@ -848,6 +848,11 @@ func (s *ApplicationUserSuite) TestLoginChangePasswordRefreshWorks(c *C) {
 	application := accounts[0].Applications[0]
 	user := application.Users[0]
 
+	var zero int64 = 0
+	user.FriendCount = &zero
+	user.FollowerCount = &zero
+	user.FollowedCount = &zero
+
 	payload := fmt.Sprintf(
 		`{"email": "%s", "password": "%s"}`,
 		user.Email,
@@ -910,6 +915,11 @@ func (s *ApplicationUserSuite) TestLoginChangeUsernameRefreshWorks(c *C) {
 	accounts := CorrectDeploy(1, 0, 1, 1, 0, false, false)
 	application := accounts[0].Applications[0]
 	user := application.Users[0]
+
+	var zero int64 = 0
+	user.FriendCount = &zero
+	user.FollowerCount = &zero
+	user.FollowedCount = &zero
 
 	payload := fmt.Sprintf(
 		`{"email": "%s", "password": "%s"}`,
@@ -974,6 +984,11 @@ func (s *ApplicationUserSuite) TestLoginChangeEmailRefreshWorks(c *C) {
 	accounts := CorrectDeploy(1, 0, 1, 1, 0, false, false)
 	application := accounts[0].Applications[0]
 	user := application.Users[0]
+
+	var zero int64 = 0
+	user.FriendCount = &zero
+	user.FollowerCount = &zero
+	user.FollowedCount = &zero
 
 	payload := fmt.Sprintf(
 		`{"email": "%s", "password": "%s"}`,
@@ -1084,6 +1099,11 @@ func (s *ApplicationUserSuite) TestLoginChangeUsernameGetEventWorks(c *C) {
 	application := accounts[0].Applications[0]
 	user := application.Users[0]
 	event := user.Events[0]
+
+	var zero int64 = 0
+	user.FriendCount = &zero
+	user.FollowerCount = &zero
+	user.FollowedCount = &zero
 
 	payload := fmt.Sprintf(
 		`{"email": "%s", "password": "%s"}`,
