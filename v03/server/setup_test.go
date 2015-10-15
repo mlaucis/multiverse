@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"runtime"
 	"strconv"
 	"strings"
@@ -64,6 +65,7 @@ var (
 	doLogResponseTimes = flag.Bool("rt", false, "Set flag in order to get logs with response times only")
 	doLogResponses     = flag.Bool("rl", false, "Set flag in order to get logs with response headers and bodies")
 	quickBenchmark     = flag.Bool("qb", false, "Set flag in order to run only the benchmarks and skip all tests")
+	noWipe             = flag.Bool("no-wipe", false, "Set flag in order to run the benchmarks without existing data")
 	mainLogChan        = make(chan *logger.LogMsg)
 	errorLogChan       = make(chan *logger.LogMsg)
 
@@ -140,7 +142,9 @@ func init() {
 	server.SetupRateLimit(applicationRateLimiter)
 	server.Setup(v03KinesisClient, v03PostgresClient, appCache, "HEAD", "CI-Machine")
 
-	testBootup(conf.Postgres)
+	if !*noWipe {
+		testBootup(conf.Postgres)
+	}
 
 	createdAt := struct {
 		CreatedAt *time.Time
@@ -191,6 +195,12 @@ func (s *ConnectionSuite) SetUpSuite(c *C) {
 func (s *EventSuite) SetUpSuite(c *C) {
 	if *quickBenchmark {
 		c.Skip("Running in quick benchmark mode")
+	}
+}
+
+func (s *BenchSuite) SetUpSuite(c *C) {
+	if os.Getenv("CI") == "true" {
+		c.Skip("not to be run inside the CI suite")
 	}
 }
 

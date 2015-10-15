@@ -366,7 +366,7 @@ func BenchAddCorrectApplicationUsers(orgID int64, application *entity.Applicatio
 
 // AddCorrectUserEvents adds correct events to a user
 // If numberOfEventsPerUser < 4 then events are common, else they are user specific (thus unique)
-func AddCorrectUserEvents(orgID, applicationID int64, user *entity.ApplicationUser, numberOfEventsPerUser int) []*entity.Event {
+func AddCorrectUserEvents(orgID, applicationID int64, user *entity.ApplicationUser, numberOfEventsPerUser int, fetchEvents bool) []*entity.Event {
 	var err []errors.Error
 	locations := []struct {
 		Lat   float64
@@ -441,7 +441,12 @@ func AddCorrectUserEvents(orgID, applicationID int64, user *entity.ApplicationUs
 			Type:   "image/jpeg",
 		}
 
-		result[i], err = coreEvt.Create(orgID, applicationID, user.ID, event, true)
+		if fetchEvents {
+			result[i], err = coreEvt.Create(orgID, applicationID, user.ID, event, true)
+		} else {
+			_, err = coreEvt.Create(orgID, applicationID, user.ID, event, false)
+		}
+
 		if err != nil {
 			panic(fmt.Sprintf("%#v", err))
 		}
@@ -473,7 +478,7 @@ func CorrectDeploy(
 			}
 
 			for k := 0; k < numberOfUsersPerApplication; k++ {
-				organizations[i].Applications[j].Users[k].Events = AddCorrectUserEvents(organizations[i].ID, organizations[i].Applications[j].ID, organizations[i].Applications[j].Users[k], numberOfEventsPerUser)
+				organizations[i].Applications[j].Users[k].Events = AddCorrectUserEvents(organizations[i].ID, organizations[i].Applications[j].ID, organizations[i].Applications[j].Users[k], numberOfEventsPerUser, true)
 			}
 		}
 	}
@@ -527,7 +532,7 @@ func CorrectDeployBench(
 
 			for k := 0; k < numberOfUsersPerApplication; k++ {
 				log.Printf("Generating event for organization %d, application %d user %d...\n", organizations[i].ID, organizations[i].Applications[j].ID, k+1)
-				AddCorrectUserEvents(organizations[i].ID, organizations[i].Applications[j].ID, organizations[i].Applications[j].Users[k], numberOfEventsPerUser)
+				AddCorrectUserEvents(organizations[i].ID, organizations[i].Applications[j].ID, organizations[i].Applications[j].Users[k], numberOfEventsPerUser, false)
 				runtime.GC()
 			}
 
@@ -543,6 +548,24 @@ func CorrectDeployBench(
 	runtime.GC()
 
 	return organizations
+}
+
+func populateEventsForUsers(orgID, appID int64, eventsPerUser int) {
+	existingUsersRows, err := v03PostgresClient.SlaveDatastore(-1).
+		Query(fmt.Sprintf("SELECT json_data->>'id' FROM app_%d_%d.users ORDER BY json_data->>'created_at' ASC", orgID, appID))
+	if err != nil {
+		panic(err)
+	}
+	defer existingUsersRows.Close()
+	var userID uint64
+	for existingUsersRows.Next() {
+		err := existingUsersRows.Scan(&userID)
+		if err != nil {
+			panic(err)
+		}
+		log.Printf("Generating events for user %d\n", userID)
+		AddCorrectUserEvents(orgID, appID, &entity.ApplicationUser{ID: userID}, eventsPerUser, false)
+	}
 }
 
 func testBootup(conf *config.Postgres) {
