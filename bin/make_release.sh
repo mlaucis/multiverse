@@ -16,7 +16,7 @@ if [ ${finalComponentName} == "corporate" ]
 then
     if [ ${finalReleaseTarget} == "styleguide" ]
     then
-        cp ${CWD}/terraform/nginx/corporate/styleguide ${CWD}/style/styleguide.nginx
+        cp ${CWD}/infrastructure/nginx/corporate/styleguide ${CWD}/style/styleguide.nginx
         tarDir=${CWD}
         finalArtifactName=style
     elif [ ${finalReleaseTarget} == "dashboard" ] || [ ${finalReleaseTarget} == "website" ]
@@ -24,7 +24,7 @@ then
         cd ${CWD}/${finalReleaseTarget}
         npm run clean
         npm run bundle
-        cp ${CWD}/terraform/nginx/corporate/${finalReleaseTarget} ${CWD}/${finalReleaseTarget}/build/${finalReleaseTarget}.nginx
+        cp ${CWD}/infrastructure/nginx/corporate/${finalReleaseTarget} ${CWD}/${finalReleaseTarget}/build/${finalReleaseTarget}.nginx
         tarDir=${CWD}/${finalReleaseTarget}
         finalArtifactName=build
     fi
