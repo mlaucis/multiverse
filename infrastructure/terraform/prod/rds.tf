@@ -110,7 +110,6 @@ resource "aws_db_parameter_group" "master-prod" {
   }
 }
 
-/**/
 # Database master
 resource "aws_db_instance" "master" {
   identifier              = "tapglue-master"
@@ -138,14 +137,14 @@ resource "aws_db_instance" "master" {
   parameter_group_name    = "${aws_db_parameter_group.master-prod.id}"
   apply_immediately       = true
 }
-/** /
+
 # Database slaves
 resource "aws_db_instance" "slave1" {
   identifier              = "slave1"
   # change this to io1 if you want to use provisioned iops for production
   storage_type            = "gp2"
   #iops = 3000 # this should give us a boost in performance for production
-  allocated_storage       = "100"
+  allocated_storage       = "200"
   engine                  = "postgres"
   engine_version          = "9.4.4"
   instance_class          = "db.r3.xlarge"
