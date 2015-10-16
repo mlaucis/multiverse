@@ -43,5 +43,7 @@ CREATE TABLE tg.consumers
 
 CREATE INDEX on tg.accounts USING GIN (json_data jsonb_path_ops);
 CREATE INDEX on tg.account_users USING GIN (json_data jsonb_path_ops);
-CREATE INDEX on tg.applications USING GIN (json_data jsonb_path_ops);
+CREATE INDEX app_public_id ON tg.applications (((json_data ->> 'id') :: TEXT));
+CREATE INDEX app_token ON tg.applications (((json_data ->> 'token') :: TEXT));
+CREATE INDEX app_backend_token ON tg.applications (((json_data ->> 'backend_token') :: TEXT));
 

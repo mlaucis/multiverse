@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/tapglue/multiverse/errors"
@@ -29,109 +28,118 @@ const (
 
 	selectEventByIDQuery = `SELECT json_data
 		FROM app_%d_%d.events
-		WHERE json_data @> json_build_object('id', $1::bigint, 'user_id', $2::bigint, 'enabled', true)::jsonb  LIMIT 1`
+		WHERE (json_data->>'id')::BIGINT = $1::BIGINT
+			AND (json_data->>'user_id')::BIGINT = $2::BIGINT
+			AND (json_data->>'enabled')::BOOL = true
+		LIMIT 1`
 
 	updateEventByIDQuery = `UPDATE app_%d_%d.events
 		SET json_data = $1, geo = ST_GeomFromText('POINT(' || $2 || ' ' || $3 || ')', 4326)
-		WHERE json_data @> json_build_object('id', $4::bigint, 'user_id', $5::bigint)::jsonb`
+		WHERE (json_data->>'id')::BIGINT = $4::BIGINT
+			AND (json_data->>'user_id')::BIGINT = $5::BIGINT`
 
 	listPublicEventsByUserIDQuery = `SELECT json_data
 		FROM app_%d_%d.events
-		WHERE json_data @> json_build_object('user_id', $1::bigint, 'enabled', true)::jsonb
-			AND (json_data @> '{"visibility": 30}' OR json_data @> '{"visibility": 40}')
+		WHERE (json_data->>'user_id')::BIGINT = $1::BIGINT
+			AND ((json_data->>'visibility')::INT == 30 OR (json_data->>'visibility')::INT == 40)
+			AND (json_data->'enabled')::BOOL = true
 		ORDER BY json_data->>'created_at' DESC LIMIT 200`
 
 	listConnectionEventsByUserIDQuery = `SELECT json_data
 		FROM app_%d_%d.events
-		WHERE json_data @> json_build_object('user_id', $1::bigint, 'enabled', true)::jsonb
-			AND (json_data @> '{"visibility": 20}' OR json_data @> '{"visibility": 30}' OR json_data @> '{"visibility": 40}')
+		WHERE (json_data->>'user_id')::BIGINT = $1::BIGINT
+			AND ((json_data->>'visibility')::INT = 20 OR (json_data->>'visibility')::INT = 30 OR (json_data->>'visibility')::INT = 40)
+			AND (json_data->>'enabled')::BOOL = true
 		ORDER BY json_data->>'created_at' DESC LIMIT 200`
 
 	listAllEventsByUserIDQuery = `SELECT json_data
 		FROM app_%d_%d.events
-		WHERE json_data @> json_build_object('user_id', $1::bigint, 'enabled', true)::jsonb
+		WHERE (json_data->>'user_id')::BIGINT = $1::BIGINT
+			AND (json_data->>'enabled')::BOOL = true
 		ORDER BY json_data->>'created_at' DESC LIMIT 200`
 
 	listEventsByUserFollowerIDQuery = `SELECT json_data
 		FROM app_%d_%d.events
-		WHERE (((%s) AND (json_data @> '{"visibility": 20}' OR json_data @> '{"visibility": 30}'))
-			OR (json_data @> '{"visibility": 40}' AND (json_data->>'user_id')::BIGINT != $1::BIGINT)
+		WHERE ((%s AND ((json_data->>'visibility')::INT = 20 OR (json_data->>'visibility')::INT = 30))
+			OR ((json_data->>'visibility')::INT = 40 AND (json_data->>'user_id')::BIGINT != $1::BIGINT)
 			OR (json_data->'target'->>'id') = $2::TEXT)
-			AND json_data @> '{"enabled": true}'
+			AND (json_data->>'enabled')::BOOL = true
 		ORDER BY json_data->>'created_at' DESC LIMIT 200`
 
 	listEventsNoUserFollowersQuery = `SELECT json_data
 		FROM app_%d_%d.events
-		WHERE ((json_data @> '{"visibility": 40}' AND (json_data->>'user_id')::BIGINT != $1::BIGINT)
+		WHERE (((json_data->>'visibility')::INT = 40 AND (json_data->>'user_id')::BIGINT != $1::BIGINT)
 			OR (json_data->'target'->>'id') = $2::TEXT)
-			AND json_data @> '{"enabled": true}'
+			AND (json_data->>'enabled')::BOOL = true
 		ORDER BY json_data->>'created_at' DESC LIMIT 200`
 
 	listUnreadEventsByUserFollowerIDQuery = `SELECT json_data
 		FROM app_%d_%d.events
-		WHERE (((%s) AND (json_data @> '{"visibility": 20}' OR json_data @> '{"visibility": 30}'))
-			OR (json_data @> '{"visibility": 40}' AND (json_data->>'user_id')::BIGINT != $1::BIGINT)
+		WHERE (((%s) AND ((json_data->>'visibility')::INT = 20 OR (json_data->>'visibility')::INT = 30))
+			OR ((json_data->> 'visibility')::INT = 40 AND (json_data->>'user_id')::BIGINT != $1::BIGINT)
 			OR (json_data->'target'->>'id') = $2::TEXT)
 			AND json_data->>'created_at' > $3
-			AND json_data @> '{"enabled": true}'
+			AND (json_data->>'enabled')::BOOL = true
 		ORDER BY json_data->>'created_at' DESC LIMIT 200`
 
 	listUnreadEventsNoUserFollowersQuery = `SELECT json_data
 		FROM app_%d_%d.events
-		WHERE ((json_data @> '{"visibility": 40}' AND (json_data->>'user_id')::BIGINT != $1::BIGINT)
+		WHERE (((json_data->>'visibility')::INT = 40 AND (json_data->>'user_id')::BIGINT != $1::BIGINT)
 			OR (json_data->'target'->>'id') = $2::TEXT)
 			AND json_data->>'created_at' > $3
-			AND json_data @> '{"enabled": true}'
+			AND (json_data->>'enabled')::BOOL = true
 		ORDER BY json_data->>'created_at' DESC LIMIT 200`
 
 	countUnreadEventsByUserFollowerIDQuery = `SELECT count(*) AS "events"
 			FROM app_%d_%d.events
-			WHERE (((%s) AND (json_data @> '{"visibility": 20}' OR json_data @> '{"visibility": 30}'))
-				OR (json_data @> '{"visibility": 40}' AND (json_data->>'user_id')::BIGINT != $1::BIGINT)
+			WHERE (((%s) AND ((json_data->>'visibility')::INT = 20 OR (json_data->>'visibility')::INT = 30))
+				OR ((json_data->>'visibility')::INT = 40 AND (json_data->>'user_id')::BIGINT != $1::BIGINT)
 				OR (json_data->'target'->>'id') = $2::TEXT)
 				AND json_data->>'created_at' > $3
-				AND json_data @> '{"enabled": true}'`
+				AND (json_data->>'enabled')::BOOL = true`
 
 	countUnreadEventsNoUserFollowersQuery = `SELECT count(*) AS "events"
 			FROM app_%d_%d.events
-			WHERE ((json_data @> '{"visibility": 40}' AND (json_data->>'user_id')::BIGINT != $1::BIGINT)
+			WHERE (((json_data->>'visibility')::INT = 40 AND (json_data->>'user_id')::BIGINT != $1::BIGINT)
 				OR (json_data->'target'->>'id') = $2::TEXT)
 				AND json_data->>'created_at' > $3
-				AND json_data @> '{"enabled": true}'`
+				AND (json_data->>'enabled')::BOOL = true`
 
 	updateApplicationUserLastReadQuery = `UPDATE app_%d_%d.users
 		SET last_read = now()
-		WHERE json_data @> json_build_object('id', $1::bigint, 'enabled', true)::jsonb`
+		WHERE (json_data->>'id')::BIGINT = $1::BIGINT
+			AND (json_data->>'enabled')::BOOL = true`
 
 	listEventsByLocationQuery = `SELECT json_data
 		FROM app_%d_%d.events
-		WHERE json_data @> json_build_object('location', $1::text, 'enabled', true)::jsonb
+		WHERE json_data->>'location' = $1::text
 			AND (
-				json_data @> '{"visibility": 30}' OR json_data @> '{"visibility": 40}' OR
+				(json_data->>'visibility')::INT = 30 OR (json_data->>'visibility')::INT = 40 OR
 				%s
-				json_data @> json_build_object('user_id', $2::bigint)::jsonb
+				(json_data->>'user_id')::BIGINT = $2::bigint
 			)
+			AND (json_data->>'enabled')::BOOL = true
 		ORDER BY json_data->>'created_at' DESC LIMIT 200`
 
 	listEventsByLatLonRadQuery = `SELECT json_data
 		FROM app_%d_%d.events
 		WHERE ST_DWithin(geo, ST_SetSRID(ST_MakePoint($1, $2), 4326), $3, true)
-			AND json_data @> '{"enabled": true}'
 			AND (
-				json_data @> '{"visibility": 30}' OR json_data @> '{"visibility": 40}' OR
+				(json_data->>'visibility')::INT = 30 OR (json_data->>'visibility')::INT = 40 OR
 				%s
-				json_data @> json_build_object('user_id', $4::bigint)::jsonb
+				(json_data->>'user_id')::BIGINT = $4::bigint
 			)
+			AND (json_data->>'enabled')::BOOL = true
 		ORDER BY json_data->>'created_at' DESC LIMIT 200`
 
 	listEventsByLatLonNearQuery = `SELECT json_data
 		FROM app_%d_%d.events
-		WHERE json_data @> '{"enabled": true}'
-			AND (
-				json_data @> '{"visibility": 30}' OR json_data @> '{"visibility": 40}' OR
+		WHERE (
+				(json_data->>'visibility')::INT = 30 OR (json_data->>'visibility')::INT = 40 OR
 				%s
-				json_data @> json_build_object('user_id', $1::bigint)::jsonb
+				(json_data->>'user_id')::BIGINT = $1::bigint
 			)
+			AND (json_data->>'enabled')::BOOL = true
 		ORDER BY ST_Distance_Sphere(geo, ST_SetSRID(ST_MakePoint($2, $3), 4326)), json_data->>'created_at' DESC LIMIT $4`
 )
 
@@ -436,12 +444,18 @@ func (e *event) composeConnectionCondition(accountID, applicationID int64, userI
 		return "", nil
 	}
 
-	condition := []string{}
-	for idx := range connections {
-		condition = append(condition, fmt.Sprintf(`json_data @> '{"user_id": %d}'`, connections[idx]))
-	}
+	condition := "(json_data->>'user_id')::BIGINT IN ("
+	con := connections[len(connections)-1]
+	if len(connections) > 1 {
+		connections = connections[:len(connections)-1]
 
-	return strings.Join(condition, joinOperator), nil
+		for idx := range connections {
+			condition += fmt.Sprintf(`%d::BIGINT, `, connections[idx])
+		}
+	}
+	condition += fmt.Sprintf(`%d::BIGINT)`, con)
+
+	return condition, nil
 }
 
 // NewEvent returns a new event handler with PostgreSQL as storage driver
