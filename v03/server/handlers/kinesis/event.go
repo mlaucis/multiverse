@@ -166,12 +166,12 @@ func (evt *event) CurrentUserCreate(ctx *context.Context) (err []errors.Error) {
 		return []errors.Error{errmsg.ErrServerInternalError.UpdateInternalMessage(er.Error()).SetCurrentLocation()}
 	}
 
-	if event, err = evt.writeStorage.Create(
+	err = evt.writeStorage.Create(
 		ctx.OrganizationID,
 		ctx.ApplicationID,
 		ctx.ApplicationUserID,
-		event,
-		true); err != nil {
+		event)
+	if err != nil {
 		return
 	}
 

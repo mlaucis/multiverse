@@ -184,7 +184,7 @@ func (appUser *applicationUser) Create(ctx *context.Context) (err []errors.Error
 		return []errors.Error{errmsg.ErrServerInternalError.UpdateInternalMessage(er.Error()).SetCurrentLocation()}
 	}
 
-	user, err = appUser.storage.Create(ctx.OrganizationID, ctx.ApplicationID, user, true)
+	err = appUser.storage.Create(ctx.OrganizationID, ctx.ApplicationID, user)
 	if err != nil {
 		return
 	}

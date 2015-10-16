@@ -461,7 +461,7 @@ func (conn *connection) doCreateConnection(ctx *context.Context, connection *ent
 		return err
 	}
 
-	connection, err = conn.storage.Create(accountID, applicationID, connection, true)
+	err = conn.storage.Create(accountID, applicationID, connection)
 	if err != nil {
 		return err
 	}
@@ -501,7 +501,8 @@ func (conn *connection) CreateAutoConnectionEvent(ctx *context.Context, connecti
 	accountID := ctx.OrganizationID
 	applicationID := ctx.ApplicationID
 
-	return conn.event.Create(accountID, applicationID, connection.UserFromID, event, false)
+	er := conn.event.Create(accountID, applicationID, connection.UserFromID, event)
+	return event, er
 }
 
 func (conn *connection) CreateAutoConnectionEvents(

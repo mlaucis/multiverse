@@ -355,7 +355,7 @@ func (evt *event) CurrentUserCreate(ctx *context.Context) (err []errors.Error) {
 		er    error
 	)
 
-	if er = json.Unmarshal(ctx.Body, event); er != nil {
+	if er = json.Unmarshal(ctx.Body, &event); er != nil {
 		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error()).SetCurrentLocation()}
 	}
 
@@ -377,12 +377,12 @@ func (evt *event) CurrentUserCreate(ctx *context.Context) (err []errors.Error) {
 		return []errors.Error{errmsg.ErrServerInternalError.UpdateInternalMessage(er.Error()).SetCurrentLocation()}
 	}
 
-	if event, err = evt.storage.Create(
+	err = evt.storage.Create(
 		ctx.OrganizationID,
 		ctx.ApplicationID,
 		ctx.ApplicationUserID,
-		event,
-		true); err != nil {
+		event)
+	if err != nil {
 		return
 	}
 

@@ -48,9 +48,9 @@ const (
     WHERE (json_data->>'user_from_id')::BIGINT = $1::BIGINT AND json_data @> json_build_object('enabled', TRUE, 'type', 'follow')::JSONB) AS "followed"`
 )
 
-func (au *applicationUser) Create(accountID, applicationID int64, user *entity.ApplicationUser, retrieve bool) (*entity.ApplicationUser, []errors.Error) {
+func (au *applicationUser) Create(accountID, applicationID int64, user *entity.ApplicationUser) []errors.Error {
 	if user.ID == 0 {
-		return nil, []errors.Error{errmsg.ErrInternalApplicationUserIDMissing.SetCurrentLocation()}
+		return []errors.Error{errmsg.ErrInternalApplicationUserIDMissing.SetCurrentLocation()}
 	}
 	connectionType := user.SocialConnectionType
 	user.SocialConnectionType = ""
@@ -61,7 +61,7 @@ func (au *applicationUser) Create(accountID, applicationID int64, user *entity.A
 	var err error
 	user.Password, err = storageHelper.StrongEncryptPassword(user.Password)
 	if err != nil {
-		return nil, []errors.Error{errmsg.ErrInternalApplicationUserCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
+		return []errors.Error{errmsg.ErrInternalApplicationUserCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 
 	timeNow := time.Now()
@@ -69,29 +69,23 @@ func (au *applicationUser) Create(accountID, applicationID int64, user *entity.A
 
 	applicationUserJSON, err := json.Marshal(user)
 	if err != nil {
-		return nil, []errors.Error{errmsg.ErrInternalApplicationUserCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
+		return []errors.Error{errmsg.ErrInternalApplicationUserCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 
 	_, err = au.mainPg.
 		Exec(appSchema(createApplicationUserQuery, accountID, applicationID), string(applicationUserJSON))
 	if err != nil {
-		return nil, []errors.Error{errmsg.ErrInternalApplicationUserCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
+		return []errors.Error{errmsg.ErrInternalApplicationUserCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 
 	for platform := range user.SocialIDs {
 		_, err := au.conn.SocialConnect(accountID, applicationID, user, platform, user.SocialConnectionsIDs[platform], connectionType)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
 
-	if !retrieve {
-		return nil, nil
-	}
-
-	au.FriendStatistics(accountID, applicationID, user)
-
-	return user, nil
+	return nil
 }
 
 func (au *applicationUser) Read(accountID, applicationID int64, userID uint64, withStatistics bool) (*entity.ApplicationUser, []errors.Error) {

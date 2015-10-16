@@ -8,7 +8,7 @@ import (
 // ApplicationUser interface
 type ApplicationUser interface {
 	// Create adds a user to the database and returns the created user or an error
-	Create(accountID, applicationID int64, user *entity.ApplicationUser, retrieve bool) (usr *entity.ApplicationUser, err []errors.Error)
+	Create(accountID, applicationID int64, user *entity.ApplicationUser) []errors.Error
 
 	// Read returns the user matching the ID or an error
 	Read(accountID, applicationID int64, userID uint64, withStatistics bool) (user *entity.ApplicationUser, err []errors.Error)

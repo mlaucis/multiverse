@@ -24,6 +24,11 @@ func (s *ApplicationUserSuite) TestLoginDisableLoginFails(c *C) {
 		user.OriginalPassword,
 	)
 
+	var zero int64 = 0
+	user.FriendCount = &zero
+	user.FollowerCount = &zero
+	user.FollowedCount = &zero
+
 	routeName := "loginCurrentUserApplicationUser"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, nil, true, true))
@@ -169,6 +174,11 @@ func (s *ApplicationUserSuite) TestLoginChangeUsernameLogoutLoginWorks(c *C) {
 	application := accounts[0].Applications[0]
 	user := application.Users[0]
 
+	var zero int64 = 0
+	user.FriendCount = &zero
+	user.FollowerCount = &zero
+	user.FollowedCount = &zero
+
 	payload := fmt.Sprintf(
 		`{"user_name": "%s", "password": "%s"}`,
 		user.Username,
@@ -243,6 +253,11 @@ func (s *ApplicationUserSuite) TestLoginChangeEmailLogoutLoginWorks(c *C) {
 	application := accounts[0].Applications[0]
 	user := application.Users[0]
 
+	var zero int64 = 0
+	user.FriendCount = &zero
+	user.FollowerCount = &zero
+	user.FollowedCount = &zero
+
 	payload := fmt.Sprintf(
 		`{"email": "%s", "password": "%s"}`,
 		user.Email,
@@ -315,6 +330,11 @@ func (s *ApplicationUserSuite) TestLoginChangePasswordLoginWorks(c *C) {
 	accounts := CorrectDeploy(1, 0, 1, 1, 0, false, false)
 	application := accounts[0].Applications[0]
 	user := application.Users[0]
+
+	var zero int64 = 0
+	user.FriendCount = &zero
+	user.FollowerCount = &zero
+	user.FollowedCount = &zero
 
 	payload := fmt.Sprintf(
 		`{"email": "%s", "password": "%s"}`,
@@ -400,14 +420,14 @@ func (s *ApplicationUserSuite) TestDeleteOnEventsOnUserDeleteWorks(c *C) {
 	c.Assert(code, Equals, http.StatusOK)
 	c.Assert(body, Not(Equals), "")
 	response := struct {
-		Events      []*entity.Event `json:"events"`
-		EventsCount int             `json:"events_count"`
+		Events      []entity.Event `json:"events"`
+		EventsCount int            `json:"events_count"`
 	}{}
 	er := json.Unmarshal([]byte(body), &response)
 	c.Assert(er, IsNil)
 	c.Assert(response.EventsCount, Equals, 2)
-	c.Assert(response.Events[0], DeepEquals, user1.Events[1])
-	c.Assert(response.Events[1], DeepEquals, user1.Events[0])
+	compareEvents(c, user1.Events[1], &response.Events[0])
+	compareEvents(c, user1.Events[0], &response.Events[1])
 
 	// Check connetions list
 	routeName = "getUserFollowers"

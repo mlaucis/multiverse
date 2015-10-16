@@ -18,9 +18,9 @@ type event struct {
 	ksis    *ksis.Kinesis
 }
 
-func (e *event) Create(accountID, applicationID int64, currentUserID uint64, event *entity.Event, retrieve bool) (*entity.Event, []errors.Error) {
+func (e *event) Create(accountID, applicationID int64, currentUserID uint64, event *entity.Event) []errors.Error {
 	if event.ID == 0 {
-		return nil, []errors.Error{errmsg.ErrInternalEventMissingID.SetCurrentLocation()}
+		return []errors.Error{errmsg.ErrInternalEventMissingID.SetCurrentLocation()}
 	}
 	evt := entity.EventWithIDs{}
 	evt.OrgID = accountID
@@ -29,20 +29,16 @@ func (e *event) Create(accountID, applicationID int64, currentUserID uint64, eve
 	evt.Event = *event
 	data, er := json.Marshal(evt)
 	if er != nil {
-		return nil, []errors.Error{errors.NewInternalError(0, "error while creating the event (1)", er.Error())}
+		return []errors.Error{errors.NewInternalError(0, "error while creating the event (1)", er.Error())}
 	}
 
 	partitionKey := fmt.Sprintf("partitionKey-%d-%d", accountID, applicationID)
 	_, err := e.storage.PackAndPutRecord(kinesis.StreamEventCreate, partitionKey, data)
 	if err != nil {
-		return nil, []errors.Error{err}
+		return []errors.Error{err}
 	}
 
-	if retrieve {
-		return event, nil
-	}
-
-	return nil, nil
+	return nil
 }
 
 func (e *event) Read(accountID, applicationID int64, userID, eventID uint64) (event *entity.Event, err []errors.Error) {

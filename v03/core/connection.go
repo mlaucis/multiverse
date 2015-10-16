@@ -8,7 +8,7 @@ import (
 // Connection interface
 type Connection interface {
 	// Create adds a user connection and returns the created connection or an error
-	Create(accountID, applicationID int64, connection *entity.Connection, retrieve bool) (con *entity.Connection, err []errors.Error)
+	Create(accountID, applicationID int64, connection *entity.Connection) []errors.Error
 
 	// Read returns the connection, if any, between two users
 	Read(accountID, applicationID int64, userFromID, userToID uint64) (connection *entity.Connection, err []errors.Error)
