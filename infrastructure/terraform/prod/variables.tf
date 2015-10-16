@@ -109,3 +109,11 @@ variable "rds_corp_username" {
 variable "rds_corp_password" {
   default = "AFsswsOUf6sdPnBt4T7RwFYbirr4N7fdFDz8bf"
 }
+
+variable "monitoring_ami" {
+  default = "ami-e2a0adff"
+}
+
+variable "monitoring_instance_type" {
+  default = "t2.medium"
+}
