@@ -44,7 +44,8 @@ resource "aws_security_group" "frontend-elb-inet" {
     to_port     = 443
     protocol    = "tcp"
     cidr_blocks = [
-      "0.0.0.0/0"]
+      "0.0.0.0/0",
+    ]
   }
 
   egress {

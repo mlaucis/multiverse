@@ -19,7 +19,6 @@ resource "aws_launch_configuration" "corporate" {
     "${aws_security_group.corporate-elb-vpc.id}",
     "${aws_security_group.corporate-ssh.id}",
     "${aws_security_group.to-nat.id}",
-    "${aws_security_group.monitored.id}",
   ]
 }
 

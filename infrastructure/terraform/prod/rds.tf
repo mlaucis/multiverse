@@ -115,9 +115,9 @@ resource "aws_db_parameter_group" "master-prod" {
 resource "aws_db_instance" "master" {
   identifier              = "tapglue-master"
   # change this to io1 if you want to use provisioned iops for production
-  storage_type            = "gp2"
+  storage_type            = "io1"
   iops = 1000 # this should give us a boost in performance for production
-  allocated_storage       = "100"
+  allocated_storage       = "200"
   engine                  = "postgres"
   engine_version          = "9.4.4"
   instance_class          = "db.r3.large"

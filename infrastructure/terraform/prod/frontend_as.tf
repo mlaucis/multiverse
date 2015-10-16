@@ -20,7 +20,6 @@ resource "aws_launch_configuration" "frontend" {
     "${aws_security_group.to-nat.id}",
     "${aws_security_group.rds_ec2.id}",
     "${aws_security_group.ec-redis-ec2.id}",
-    "${aws_security_group.monitored.id}",
   ]
 }
 
