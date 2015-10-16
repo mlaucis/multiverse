@@ -1,0 +1,37 @@
+{
+  "variables": {
+    "aws_access_key": "",
+    "aws_secret_key": ""
+  },
+  "builders": [
+    {
+      "ami_description": "Monitoring",
+      "ami_name": "monitoring-{{timestamp}}",
+      "instance_type": "t2.medium",
+      "region": "eu-central-1",
+      "ssh_username": "ubuntu",
+      "source_ami": "ami-94e5e389",
+      "type": "amazon-ebs",
+      "access_key": "{{user `aws_access_key`}}",
+      "secret_key": "{{user `aws_secret_key`}}"
+    }
+  ],
+  "provisioners": [
+    {
+      "inline": [
+        "sleep 30",
+        "sudo apt-get update",
+        "wget https://grafanarel.s3.amazonaws.com/builds/grafana_2.1.3_amd64.deb",
+        "sudo apt-get install -y adduser libfontconfig",
+        "sudo dpkg -i grafana_2.1.3_amd64.deb",
+        "sudo service grafana-server start",
+        "sudo update-rc.d grafana-server defaults 95 10"
+      ],
+      "type": "shell"
+    },
+    {
+      "script": "{{template_dir}}/scripts/install_prometheus.sh",
+      "type": "shell"
+    }
+  ]
+}
