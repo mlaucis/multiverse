@@ -14,8 +14,7 @@ func (p *pg) eventCreate(msg string) []errors.Error {
 		return []errors.Error{errBadInputJSON.UpdateInternalMessage(err.Error())}
 	}
 
-	_, er := p.event.Create(event.OrgID, event.AppID, event.CurrentUserID, &event.Event, false)
-	return er
+	return p.event.Create(event.OrgID, event.AppID, event.CurrentUserID, &event.Event)
 }
 
 func (p *pg) eventUpdate(msg string) []errors.Error {

@@ -14,8 +14,7 @@ func (p *pg) connectionCreate(msg string) []errors.Error {
 		return []errors.Error{errBadInputJSON.UpdateInternalMessage(err.Error())}
 	}
 
-	_, er := p.connection.Create(connection.OrgID, connection.AppID, &connection.Connection, false)
-	return er
+	return p.connection.Create(connection.OrgID, connection.AppID, &connection.Connection)
 }
 
 func (p *pg) connectionConfirm(msg string) []errors.Error {
