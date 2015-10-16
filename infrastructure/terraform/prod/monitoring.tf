@@ -86,6 +86,16 @@ resource "aws_subnet" "monitoring-b" {
   }
 }
 
+resource "aws_route_table_association" "monitoring-a" {
+  subnet_id      = "${aws_subnet.monitoring-a.id}"
+  route_table_id = "${aws_route_table.to-nat.id}"
+}
+
+resource "aws_route_table_association" "monitoring-b" {
+  subnet_id      = "${aws_subnet.monitoring-b.id}"
+  route_table_id = "${aws_route_table.to-nat.id}"
+}
+
 resource "aws_instance" "monitoring0" {
   ami           = "${var.monitoring_ami}"
   instance_type = "${var.monitoring_instance_type}"
