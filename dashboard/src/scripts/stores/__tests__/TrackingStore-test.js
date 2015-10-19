@@ -1,3 +1,5 @@
+import { decamelizeKeys } from 'humps'
+
 jest.dontMock('../TrackingStore')
 
 import AccountConstants from '../../constants/AccountConstants'
@@ -9,6 +11,7 @@ describe('TrackingStore', () => {
   let callback
   let identifyMock = jest.genMockFunction()
   let trackMock = jest.genMockFunction()
+  let trackPidMock = jest.genMockFunction()
   let app = {
     description: 'instant',
     id: 54321,
@@ -40,6 +43,13 @@ describe('TrackingStore', () => {
     value: {
       identify: identifyMock,
       track: trackMock
+    }
+  })
+  Object.defineProperty(window, 'twttr', {
+    value: {
+      conversion: {
+        trackPid: trackPidMock
+      }
     }
   })
 
@@ -100,6 +110,10 @@ describe('TrackingStore', () => {
       referrer: meta.referrer,
       success: true
     })
+    expect(trackPidMock).lastCalledWith('ntlyu', decamelizeKeys({
+      twSaleAmount: 0,
+      twOrderQuantity: 0
+    }))
   })
 
   it('tracks LOGIN_FAILURE', () => {
