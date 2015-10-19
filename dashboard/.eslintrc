@@ -30,7 +30,8 @@
     "node": true
   },
   "globals": {
-    "jest": true
+    "jest": true,
+    "twttr": true
   },
   "rules": {
     "constructor-super": 2,

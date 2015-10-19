@@ -1,3 +1,5 @@
+import { decamelizeKeys } from 'humps'
+
 import AccountConstants from '../constants/AccountConstants'
 import ApplicationConstants from '../constants/ApplicationConstants'
 import MemberConstants from '../constants/MemberConstants'
@@ -86,6 +88,12 @@ class TrackingStore extends EventStore {
           referrer: action.referrer,
           success: true
         })
+        if (twttr && twttr.conversion) {
+          twttr.conversion.trackPid('ntlyu', decamelizeKeys({
+            twSaleAmount: 0,
+            twOrderQuantity: 0
+          }))
+        }
 
         break
       case AccountConstants.LOGIN_FAILURE:

@@ -75,6 +75,7 @@ module.exports = {
   plugins: [
     new HtmlWebpackPlugin({
       segmentKey: 'New9ADhDv3J4ipQ3OrfsoWo9DMlVCIxO',
+      twttr: true,
       template: './src/index.html'
     }),
     new webpack.optimize.UglifyJsPlugin({

@@ -55,7 +55,7 @@
     "webpack": "^1.10.5"
   },
   "scripts": {
-    "bundle": "gulp build",
+    "bundle": "gulp build:prod",
     "clean": "rm -rf build",
     "lint": "gulp lint",
     "serve": "gulp serve",

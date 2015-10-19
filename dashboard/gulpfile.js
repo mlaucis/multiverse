@@ -7,8 +7,16 @@ var plugins = require('gulp-load-plugins')()
 var webpack = require('webpack')
 
 gulp.task('build', [ 'bundle', 'favicon' ])
+gulp.task('build:prod', [ 'bundle:prod', 'favicon' ])
 
 gulp.task('bundle', function(cb) {
+  var config = require('./webpack.config.js')
+  var bundler = webpack(config)
+
+  bundler.run(reportBundle(cb))
+})
+
+gulp.task('bundle:prod', function(cb) {
   var config = require('./webpack.production.js')
   var bundler = webpack(config)
 
