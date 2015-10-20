@@ -58,7 +58,9 @@ var (
 		enabled BOOL DEFAULT TRUE NOT NULL
 	)`,
 
-		`CREATE INDEX ON app_%d_%d.users USING GIN (json_data jsonb_path_ops)`,
+		`CREATE INDEX user_id ON app_%d_%d.users USING btree (((json_data ->> 'id') :: BIGINT))`,
+		`CREATE INDEX user_email ON app_%d_%d.users USING btree (((json_data ->> 'email') :: TEXT))`,
+		`CREATE INDEX user_username ON app_%d_%d.users USING btree (((json_data ->> 'user_name') :: TEXT))`,
 		`CREATE INDEX ON app_%d_%d.sessions (session_id, user_id)`,
 		`CREATE INDEX ON app_%d_%d.connections USING GIN (json_data jsonb_path_ops)`,
 		`CREATE INDEX conection_from_id ON app_%d_%d.connections USING btree ((((json_data ->> 'user_from_id'::text))::bigint))`,
