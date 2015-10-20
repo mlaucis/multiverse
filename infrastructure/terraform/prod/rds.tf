@@ -139,6 +139,7 @@ resource "aws_db_instance" "master" {
 }
 
 # Database slaves
+/** /
 resource "aws_db_instance" "slave1" {
   identifier              = "slave1"
   # change this to io1 if you want to use provisioned iops for production
