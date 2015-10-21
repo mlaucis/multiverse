@@ -1,8 +1,4 @@
 resource "aws_launch_configuration" "corporate" {
-  depends_on                  = [
-    "aws_security_group.corporate-elb-vpc",
-    "aws_security_group.corporate-ssh"]
-
   image_id                    = "${var.ami_corporate}"
   instance_type               = "t2.micro"
   associate_public_ip_address = false
@@ -15,10 +11,9 @@ resource "aws_launch_configuration" "corporate" {
   }
 
   security_groups             = [
-    "${aws_security_group.rds_corp_ec2.id}",
-    "${aws_security_group.corporate-elb-vpc.id}",
-    "${aws_security_group.corporate-ssh.id}",
-    "${aws_security_group.to-nat.id}",
+    "${aws_security_group.gateway.id}",
+    "${aws_security_group.private.id}",
+    "${aws_security_group.service.id}",
   ]
 }
 
