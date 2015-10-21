@@ -1,40 +1,42 @@
 #!/usr/bin/env bash
 
-finalComponentName=${1}
-finalReleaseTarget=${2}
+set -e
+
+componentName=${1}
+releaseTarget=${2}
 
 CWD=`pwd`
 
-finalArchiveName=${finalComponentName}_${finalReleaseTarget}.${CIRCLE_BUILD_NUM}.tar.gz
-finalS3Location=s3://tapglue-builds/${finalComponentName}/${finalReleaseTarget}
-finalReleasesFilename='releases.json'
+archiveName=${componentName}_${releaseTarget}.${CIRCLE_BUILD_NUM}.tar.gz
+s3Location=s3://tapglue-builds/${componentName}/${releaseTarget}
+releasesFilename='releases.json'
 
-finalArtifactName=${finalComponentName}_${finalReleaseTarget}_${CIRCLE_BUILD_NUM}
+artifactName=${componentName}_${releaseTarget}_${CIRCLE_BUILD_NUM}
 tarDir=${CWD}
 
-if [ ${finalComponentName} == "corporate" ]
+if [ ${componentName} == "corporate" ]
 then
-    if [ ${finalReleaseTarget} == "styleguide" ]
+    if [ ${releaseTarget} == "styleguide" ]
     then
         cp ${CWD}/infrastructure/nginx/corporate/styleguide ${CWD}/style/styleguide.nginx
         tarDir=${CWD}
-        finalArtifactName=style
-    elif [ ${finalReleaseTarget} == "dashboard" ] || [ ${finalReleaseTarget} == "website" ]
+        artifactName=style
+    elif [ ${releaseTarget} == "dashboard" ] || [ ${releaseTarget} == "website" ]
     then
-        cd ${CWD}/${finalReleaseTarget}
+        cd ${CWD}/${releaseTarget}
         npm run clean
         npm run bundle
-        cp ${CWD}/infrastructure/nginx/corporate/${finalReleaseTarget} ${CWD}/${finalReleaseTarget}/build/${finalReleaseTarget}.nginx
-        tarDir=${CWD}/${finalReleaseTarget}
-        finalArtifactName=build
+        cp ${CWD}/infrastructure/nginx/corporate/${releaseTarget} ${CWD}/${releaseTarget}/build/${releaseTarget}.nginx
+        tarDir=${CWD}/${releaseTarget}
+        artifactName=build
     fi
 fi
 
 cd ${CWD}
-tar -C ${tarDir} -czf ${CWD}/${finalArchiveName} ${finalArtifactName}
-cp ${finalArchiveName} ${CIRCLE_ARTIFACTS}/
-aws s3 cp ${finalArchiveName} ${finalS3Location}/
-aws s3 cp ${finalS3Location}/${finalReleasesFilename} ${CIRCLE_ARTIFACTS}/${finalReleasesFilename}
-sed -i -r 's/latest_build": [0-9]+/latest_build": '${CIRCLE_BUILD_NUM}'/g' ${CIRCLE_ARTIFACTS}/${finalReleasesFilename}
-aws s3 cp ${CIRCLE_ARTIFACTS}/releases.json ${finalS3Location}/
-rm -f ${CIRCLE_ARTIFACTS}/${finalReleasesFilename}
+tar -C ${tarDir} -czf ${CWD}/${archiveName} ${artifactName}
+cp ${archiveName} ${CIRCLE_ARTIFACTS}/
+aws s3 cp ${archiveName} ${s3Location}/
+aws s3 cp ${s3Location}/${releasesFilename} ${CIRCLE_ARTIFACTS}/${releasesFilename}
+sed -i -r 's/latest_build": [0-9]+/latest_build": '${CIRCLE_BUILD_NUM}'/g' ${CIRCLE_ARTIFACTS}/${releasesFilename}
+aws s3 cp ${CIRCLE_ARTIFACTS}/releases.json ${s3Location}/
+rm -f ${CIRCLE_ARTIFACTS}/${releasesFilename}

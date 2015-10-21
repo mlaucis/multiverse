@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 
+set -e
+
+rm -f /home/ubuntu/.go_workspace/src/github.com/tapglue/multiverse
+exit 0
+
 export GOPATH=`godep path`:${GOPATH}
-declare -a TEST_TARGETS=("postgres" "kinesis", "redis")
+declare -a TEST_TARGETS=("postgres" "kinesis" "redis")
 TEST_COMPONENT="intaker"
 
 if [ ${CIRCLE_BRANCH} == "master" ]
@@ -52,5 +57,3 @@ do
         mv coverage_server_${VERSION}_${TEST_TARGET}.html ${CIRCLE_ARTIFACTS}/
     done
 done
-
-rm -f /home/ubuntu/.go_workspace/src/github.com/tapglue/multiverse

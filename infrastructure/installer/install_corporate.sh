@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 exec 1> >(logger -t $(basename ${0})) 2>&1
 
 # We want to stop nginx as early as possible so that the healthcheck doesn't kick in and mark the instance as available
