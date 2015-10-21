@@ -26,9 +26,9 @@ const (
 	createApplicationEntryQuery                   = `INSERT INTO tg.applications (account_id, json_data) VALUES($1, $2) RETURNING id`
 	selectApplicationEntryByIDQuery               = `SELECT id, account_id, json_data, enabled FROM tg.applications WHERE id = $1 AND account_id = $2 and enabled = 1`
 	checkApplicationExistsByIDQuery               = `SELECT id FROM tg.applications WHERE id = $1 AND account_id = $2 and enabled = 1`
-	selectApplicationEntryByPublicIDsQuery        = `SELECT id, account_id, json_data, enabled FROM tg.applications WHERE json_data @> json_build_object('id', $1::text)::jsonb LIMIT 1`
-	selectApplicationEntryByApplicationTokenQuery = `SELECT id, account_id, json_data, enabled FROM tg.applications WHERE json_data @> json_build_object('token', $1::text)::jsonb LIMIT 1`
-	selectApplicationEntryByBackendTokenQuery     = `SELECT id, account_id, json_data, enabled FROM tg.applications WHERE json_data @> json_build_object('backend_token', $1::text)::jsonb LIMIT 1`
+	selectApplicationEntryByPublicIDsQuery        = `SELECT id, account_id, json_data, enabled FROM tg.applications WHERE json_data->>'id' = $1::text LIMIT 1`
+	selectApplicationEntryByApplicationTokenQuery = `SELECT id, account_id, json_data, enabled FROM tg.applications WHERE json_data->>'token' = $1::text LIMIT 1`
+	selectApplicationEntryByBackendTokenQuery     = `SELECT id, account_id, json_data, enabled FROM tg.applications WHERE json_data->>'backend_token' = $1::text LIMIT 1`
 	updateApplicationEntryByIDQuery               = `UPDATE tg.applications SET json_data = $1 WHERE id = $2 AND account_id = $3`
 	deleteApplicationEntryByIDQuery               = `UPDATE tg.applications SET enabled = 0 WHERE id = $1 AND account_id = $2`
 	listApplicationsEntryByAccountIDQuery         = `SELECT id, json_data, enabled FROM tg.applications where account_id = $1 and enabled = 1`
@@ -61,11 +61,16 @@ var createApplicationNamespaceQuery = []string{
 	`CREATE INDEX user_id ON app_%d_%d.users USING btree (((json_data ->> 'id') :: BIGINT))`,
 	`CREATE INDEX user_email ON app_%d_%d.users USING btree (((json_data ->> 'email') :: TEXT))`,
 	`CREATE INDEX user_username ON app_%d_%d.users USING btree (((json_data ->> 'user_name') :: TEXT))`,
+
 	`CREATE INDEX ON app_%d_%d.sessions (session_id, user_id)`,
-	`CREATE INDEX ON app_%d_%d.connections USING GIN (json_data jsonb_path_ops)`,
+
 	`CREATE INDEX conection_from_id ON app_%d_%d.connections USING btree ((((json_data ->> 'user_from_id'::text))::bigint))`,
 	`CREATE INDEX conection_to_id ON app_%d_%d.connections USING btree ((((json_data ->> 'user_to_id'::text))::bigint))`,
-	`CREATE INDEX ON app_%d_%d.events USING GIN (json_data jsonb_path_ops)`,
+
+	`CREATE INDEX event_id ON app_%d_%d.events USING btree (((json_data ->> 'id') :: BIGINT))`,
+	`CREATE INDEX event_user_id ON app_%d_%d.events USING btree (((json_data ->> 'user_id') :: BIGINT))`,
+	`CREATE INDEX event_visibility ON app_%d_%d.events USING btree (((json_data ->> 'visibility') :: INT))`,
+	`CREATE INDEX event_created_at ON app_%d_%d.events USING btree ((json_data ->> 'created_at'))`,
 	`CREATE INDEX ON app_%d_%d.events USING GIST (geo)`,
 }
 

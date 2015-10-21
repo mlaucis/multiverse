@@ -25,12 +25,12 @@ const (
 	createConnectionQuery                 = `INSERT INTO app_%d_%d.connections(json_data) VALUES ($1)`
 	selectConnectionQuery                 = `SELECT json_data FROM app_%d_%d.connections WHERE (json_data->>'user_from_id')::BIGINT = $1::BIGINT AND (json_data->>'user_to_id')::BIGINT = $2::BIGINT LIMIT 1`
 	updateConnectionQuery                 = `UPDATE app_%d_%d.connections SET json_data = $1 WHERE (json_data->>'user_from_id')::BIGINT = $2::BIGINT AND (json_data->>'user_to_id')::BIGINT = $3::BIGINT`
-	followsQuery                          = `SELECT json_data FROM app_%d_%d.connections WHERE (json_data->>'user_from_id')::BIGINT = $1::BIGINT AND json_data @> json_build_object('type', 'follow', 'enabled', TRUE)::JSONB`
-	followersQuery                        = `SELECT json_data FROM app_%d_%d.connections WHERE (json_data->>'user_to_id')::BIGINT = $1::BIGINT AND json_data @> json_build_object('type', 'follow', 'enabled', TRUE)::JSONB`
-	friendConnectionsQuery                = `SELECT json_data FROM app_%d_%d.connections WHERE (json_data->>'user_to_id')::BIGINT = $1::BIGINT AND json_data @> json_build_object('type', 'friend', 'enabled', TRUE)::JSONB`
-	friendAndFollowingConnectionsQuery    = `SELECT json_data FROM app_%d_%d.connections WHERE (json_data->>'user_from_id')::BIGINT = $1::BIGINT AND json_data @> json_build_object('enabled', TRUE)::JSONB`
-	friendAndFollowingConnectionsIDsQuery = `SELECT json_data->>'user_to_id' as "user_id" FROM app_%d_%d.connections WHERE (json_data->>'user_from_id')::BIGINT = $1::BIGINT AND json_data @> json_build_object('enabled', TRUE)::JSONB`
-	listUsersBySocialIDQuery              = `SELECT json_data FROM app_%d_%d.users WHERE json_data @> '{"enabled": true, "deleted": false}' AND json_data->'social_ids'->>'%s' IN (?)`
+	followsQuery                          = `SELECT json_data FROM app_%d_%d.connections WHERE (json_data->>'user_from_id')::BIGINT = $1::BIGINT AND json_data->>'type' = 'follow' AND (json_data->>'enabled')::BOOL = true`
+	followersQuery                        = `SELECT json_data FROM app_%d_%d.connections WHERE (json_data->>'user_to_id')::BIGINT = $1::BIGINT AND json_data->>'type' = 'follow' AND (json_data->>'enabled')::BOOL = true`
+	friendConnectionsQuery                = `SELECT json_data FROM app_%d_%d.connections WHERE (json_data->>'user_to_id')::BIGINT = $1::BIGINT AND json_data->>'type' = 'friend' AND (json_data->>'enabled')::BOOL = true`
+	friendAndFollowingConnectionsQuery    = `SELECT json_data FROM app_%d_%d.connections WHERE (json_data->>'user_from_id')::BIGINT = $1::BIGINT AND (json_data->>'enabled')::BOOL = true`
+	friendAndFollowingConnectionsIDsQuery = `SELECT json_data->>'user_to_id' as "user_id" FROM app_%d_%d.connections WHERE (json_data->>'user_from_id')::BIGINT = $1::BIGINT AND (json_data->>'enabled')::BOOL = true`
+	listUsersBySocialIDQuery              = `SELECT json_data FROM app_%d_%d.users WHERE (json_data->>'enabled')::BOOL = true AND (json_data->>'deleted')::BOOL = false AND json_data->'social_ids'->>'%s' IN (?)`
 
 	getUsersRelationQuery = `SELECT
   json_data ->> 'user_from_id' AS "from",
