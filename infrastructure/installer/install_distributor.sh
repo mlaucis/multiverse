@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 exec 1> >(logger -t $(basename ${0})) 2>&1
 
 INSTANCE_ID=`wget -qO- http://instance-data/latest/meta-data/instance-id`
