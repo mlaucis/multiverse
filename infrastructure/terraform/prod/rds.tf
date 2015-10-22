@@ -52,6 +52,37 @@ resource "aws_db_parameter_group" "master-prod" {
     value        = "1"
     apply_method = "immediate"
   }
+
+  parameter {
+    name         = "shared_preload_libraries"
+    value        = "pg_stat_statements"
+    apply_method = "immediate"
+  }
+
+  parameter {
+    name         = "track_activity_query_size"
+    value        = "2048"
+    apply_method = "immediate"
+  }
+
+  parameter {
+    name         = "pg_stat_statements.track"
+    value        = "ALL"
+    apply_method = "immediate"
+  }
+
+  parameter {
+    name         = "autovacuum"
+    value        = "1"
+    apply_method = "immediate"
+  }
+
+  parameter {
+    name         = "log_autovacuum_min_duration"
+    value        = "1"
+    apply_method = "immediate"
+  }
+
 }
 
 # Database master
