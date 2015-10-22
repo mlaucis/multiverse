@@ -32,30 +32,3 @@ resource "aws_route_table_association" "backend-b" {
   subnet_id      = "${aws_subnet.backend-b.id}"
   route_table_id = "${aws_route_table.to-nat.id}"
 }
-
-# Security groups
-resource "aws_security_group" "backend-ssh" {
-  vpc_id      = "${aws_vpc.tapglue.id}"
-  name        = "backend-ssh"
-  description = "Allow SSH traffic from the Bastion host"
-
-  ingress {
-    from_port       = 22
-    to_port         = 22
-    protocol        = "tcp"
-    security_groups = [
-      "${aws_security_group.bastion.id}"]
-  }
-
-  egress {
-    from_port       = 22
-    to_port         = 22
-    protocol        = "tcp"
-    security_groups = [
-      "${aws_security_group.bastion.id}"]
-  }
-
-  tags {
-    Name = "SSH from Bastion to Backend"
-  }
-}
