@@ -1,4 +1,8 @@
 resource "aws_launch_configuration" "frontend" {
+  depends_on                  = [
+    "aws_security_group.frontend-elb-vpc",
+    "aws_security_group.frontend-ssh"]
+
   image_id                    = "${var.ami_frontend}"
   instance_type               = "c4.large"
   associate_public_ip_address = false
@@ -11,9 +15,11 @@ resource "aws_launch_configuration" "frontend" {
   }
 
   security_groups             = [
-    "${aws_security_group.gateway.id}",
-    "${aws_security_group.private.id}",
-    "${aws_security_group.service.id}",
+    "${aws_security_group.frontend-elb-vpc.id}",
+    "${aws_security_group.frontend-ssh.id}",
+    "${aws_security_group.to-nat.id}",
+    "${aws_security_group.rds_ec2.id}",
+    "${aws_security_group.ec-redis-ec2.id}",
   ]
 }
 

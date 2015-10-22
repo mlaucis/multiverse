@@ -33,6 +33,173 @@ resource "aws_route_table_association" "corporate-b" {
   route_table_id = "${aws_route_table.to-nat.id}"
 }
 
+# Security groups
+resource "aws_security_group" "corporate-ssh" {
+  vpc_id      = "${aws_vpc.tapglue.id}"
+  name        = "corporate-ssh"
+  description = "Allow SSH traffic from the Bastion host"
+
+  ingress {
+    from_port       = 22
+    to_port         = 22
+    protocol        = "tcp"
+    security_groups = [
+      "${aws_security_group.bastion.id}"]
+  }
+
+  egress {
+    from_port       = 22
+    to_port         = 22
+    protocol        = "tcp"
+    security_groups = [
+      "${aws_security_group.bastion.id}"]
+  }
+
+  tags {
+    Name = "SSH from Bastion to Corporate"
+  }
+}
+
+resource "aws_security_group" "corporate-elb-inet" {
+  vpc_id      = "${aws_vpc.tapglue.id}"
+  name        = "corporate-elb-inet"
+  description = "Allow Internet traffic to and from ELB"
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = [
+      "0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = [
+      "0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = [
+      "0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = [
+      "0.0.0.0/0"]
+  }
+
+  tags {
+    Name = "Internet to ELB Corporate"
+  }
+}
+
+resource "aws_security_group" "corporate-elb-ec2" {
+  vpc_id      = "${aws_vpc.tapglue.id}"
+  name        = "corporate-elb-ec2"
+  description = "Allow Traffic from ELB to EC2"
+
+  ingress {
+    from_port = 80
+    to_port   = 80
+    protocol  = "tcp"
+    self      = true
+  }
+
+  ingress {
+    from_port = 443
+    to_port   = 443
+    protocol  = "tcp"
+    self      = true
+  }
+
+  egress {
+    from_port       = 80
+    to_port         = 80
+    protocol        = "tcp"
+    security_groups = [
+      "${aws_security_group.corporate-elb-vpc.id}"]
+  }
+
+  egress {
+    from_port       = 443
+    to_port         = 443
+    protocol        = "tcp"
+    security_groups = [
+      "${aws_security_group.corporate-elb-vpc.id}"]
+  }
+
+  tags {
+    Name = "Allow Traffic from ELB to EC2"
+  }
+}
+
+resource "aws_security_group" "corporate-elb-vpc" {
+  vpc_id      = "${aws_vpc.tapglue.id}"
+  name        = "corporate-elb"
+  description = "Allow EC2 traffic to and from the ELB"
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = [
+      "0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = [
+      "0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = [
+      "0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = [
+      "0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = [
+      "0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = [
+      "0.0.0.0/0"]
+  }
+
+  tags {
+    Name = "ELB Frontend to EC2"
+  }
+}
+
 # ELB
 resource "aws_elb" "corporate" {
   name                        = "corporate-prod"
@@ -44,8 +211,8 @@ resource "aws_elb" "corporate" {
     "${aws_subnet.public-a.id}",
     "${aws_subnet.public-b.id}"]
   security_groups             = [
-    "${aws_security_group.loadbalancer.id}",
-  ]
+    "${aws_security_group.corporate-elb-inet.id}",
+    "${aws_security_group.corporate-elb-ec2.id}"]
 
   listener {
     lb_port           = 80

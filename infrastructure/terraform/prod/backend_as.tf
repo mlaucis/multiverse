@@ -1,4 +1,7 @@
 resource "aws_launch_configuration" "backend" {
+  depends_on                  = [
+    "aws_security_group.backend-ssh"]
+
   image_id                    = "${var.ami_backend}"
   instance_type               = "c4.large"
   associate_public_ip_address = false
@@ -11,8 +14,10 @@ resource "aws_launch_configuration" "backend" {
   }
 
   security_groups             = [
-    "${aws_security_group.private.id}",
-    "${aws_security_group.service.id}",
+    "${aws_security_group.backend-ssh.id}",
+    "${aws_security_group.to-nat.id}",
+    "${aws_security_group.rds_ec2.id}",
+    "${aws_security_group.ec-redis-ec2.id}",
   ]
 }
 
