@@ -6,64 +6,6 @@ resource "aws_db_subnet_group" "corp-prod" {
     "${aws_subnet.corporate-b.id}"]
 }
 
-# Security groups
-resource "aws_security_group" "rds_corp_db" {
-  depends_on  = [
-    "aws_db_subnet_group.corp-prod"]
-  name        = "RDS corporate incoming traffic"
-  description = "Allow traffic on MySQL port only"
-  vpc_id      = "${aws_vpc.tapglue.id}"
-
-  ingress {
-    from_port   = 3306
-    to_port     = 3306
-    protocol    = "tcp"
-    cidr_blocks = [
-      "${aws_subnet.corporate-a.cidr_block}",
-      "${aws_subnet.corporate-b.cidr_block}"]
-  }
-
-  egress {
-    from_port   = 3306
-    to_port     = 3306
-    protocol    = "tcp"
-    cidr_blocks = [
-      "${aws_subnet.corporate-a.cidr_block}",
-      "${aws_subnet.corporate-b.cidr_block}"]
-  }
-
-  tags {
-    Name = "RDS corporate incoming traffic"
-  }
-}
-
-resource "aws_security_group" "rds_corp_ec2" {
-  depends_on  = [
-    "aws_db_subnet_group.corp-prod"]
-  name        = "RDS corporate outgoing traffic"
-  description = "Allow traffic to MySQL port only"
-  vpc_id      = "${aws_vpc.tapglue.id}"
-
-  egress {
-    from_port       = 3306
-    to_port         = 3306
-    protocol        = "tcp"
-    security_groups = [
-      "${aws_security_group.rds_corp_db.id}"]
-  }
-  ingress {
-    from_port       = 3306
-    to_port         = 3306
-    protocol        = "tcp"
-    security_groups = [
-      "${aws_security_group.rds_corp_db.id}"]
-  }
-
-  tags {
-    Name = "RDS corporate outgoing traffic"
-  }
-}
-
 /** /
 # Database master
 resource "aws_db_instance" "corp-master" {
@@ -84,7 +26,8 @@ resource "aws_db_instance" "corp-master" {
   # this should be true for production
   publicly_accessible     = false
   vpc_security_group_ids  = [
-    "${aws_security_group.rds_corp_db.id}"]
+    "${aws_security_group.platform.id}",
+  ]
   db_subnet_group_name    = "${aws_db_subnet_group.corp-prod.id}"
   backup_retention_period = 7
   backup_window           = "04:00-04:30"
@@ -110,7 +53,8 @@ resource "aws_db_instance" "corp-slave1" {
   publicly_accessible     = false
   replicate_source_db     = "${aws_db_instance.master.identifier}"
   vpc_security_group_ids  = [
-    "${aws_security_group.rds_corp_db.id}"]
+    "${aws_security_group.platform.id}",
+  ]
   db_subnet_group_name    = "${aws_db_subnet_group.corp-prod.id}"
   backup_retention_period = 0
   backup_window           = "04:00-04:30"
