@@ -81,11 +81,6 @@
 			"Rev": "6b8e5b55d20d01ad47ecfe98e5171688397c61e9"
 		},
 		{
-			"ImportPath": "github.com/sendgridlabs/go-kinesis",
-			"Comment": "1.0.1-12-gbf869db",
-			"Rev": "bf869db83dab314a449228e864d7779422e87c51"
-		},
-		{
 			"ImportPath": "github.com/sony/sonyflake",
 			"Rev": "63503fdccf0c68f6ea60f1da6722f6b5c862324f"
 		},

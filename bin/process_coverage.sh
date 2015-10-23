@@ -6,7 +6,7 @@ rm -f /home/ubuntu/.go_workspace/src/github.com/tapglue/multiverse
 exit 0
 
 export GOPATH=`godep path`:${GOPATH}
-declare -a TEST_TARGETS=("postgres" "kinesis" "redis")
+declare -a TEST_TARGETS=("postgres" "redis")
 TEST_COMPONENT="intaker"
 
 if [ ${CIRCLE_BRANCH} == "master" ]
@@ -16,10 +16,6 @@ then
         ["intaker_postgres_v03"]=true \
         ["intaker_redis_v02"]=false \
         ["intaker_redis_v03"]=true \
-        ["intaker_kinesis_v02"]=true \
-        ["intaker_kinesis_v03"]=true \
-        ["distributor_postgres_v02"]=false \
-        ["distributor_postgres_v03"]=false \
     )
 else
     declare -A BUILD_MATRIX=( \
@@ -27,10 +23,6 @@ else
         ["intaker_postgres_v03"]=false \
         ["intaker_redis_v02"]=false \
         ["intaker_redis_v03"]=false \
-        ["intaker_kinesis_v02"]=false \
-        ["intaker_kinesis_v03"]=true \
-        ["distributor_postgres_v02"]=false \
-        ["distributor_postgres_v03"]=false \
     )
 fi
 

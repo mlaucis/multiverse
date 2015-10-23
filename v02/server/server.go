@@ -14,12 +14,10 @@ import (
 	"github.com/tapglue/multiverse/limiter"
 	"github.com/tapglue/multiverse/logger"
 	"github.com/tapglue/multiverse/v02/core"
-	v02_kinesis_core "github.com/tapglue/multiverse/v02/core/kinesis"
 	v02_postgres_core "github.com/tapglue/multiverse/v02/core/postgres"
 	"github.com/tapglue/multiverse/v02/entity"
 	"github.com/tapglue/multiverse/v02/errmsg"
 	"github.com/tapglue/multiverse/v02/server/response"
-	v02_kinesis "github.com/tapglue/multiverse/v02/storage/kinesis"
 	v02_postgres "github.com/tapglue/multiverse/v02/storage/postgres"
 
 	"github.com/gorilla/mux"
@@ -37,12 +35,12 @@ type (
 const APIVersion = "0.2"
 
 var (
-	postgresAccount, kinesisAccount                 core.Account
-	postgresAccountUser, kinesisAccountUser         core.AccountUser
-	postgresApplication, kinesisApplication         core.Application
-	postgresApplicationUser, kinesisApplicationUser core.ApplicationUser
-	postgresConnection, kinesisConnection           core.Connection
-	postgresEvent, kinesisEvent                     core.Event
+	postgresAccount         core.Account
+	postgresAccountUser     core.AccountUser
+	postgresApplication     core.Application
+	postgresApplicationUser core.ApplicationUser
+	postgresConnection      core.Connection
+	postgresEvent           core.Event
 
 	appRateLimiter limiter.Limiter
 
@@ -301,17 +299,10 @@ func SetupRateLimit(applicationRateLimiter limiter.Limiter) {
 
 // Setup initializes the route handlers
 // Must be called after initializing the cores
-func Setup(v02KinesisClient v02_kinesis.Client, v02PostgresClient v02_postgres.Client, revision, hostname string) {
+func Setup(v02PostgresClient v02_postgres.Client, revision, hostname string) {
 	if appRateLimiter == nil {
 		panic("You must first initialize the rate limiter")
 	}
-
-	kinesisAccount = v02_kinesis_core.NewAccount(v02KinesisClient)
-	kinesisAccountUser = v02_kinesis_core.NewAccountUser(v02KinesisClient)
-	kinesisApplication = v02_kinesis_core.NewApplication(v02KinesisClient)
-	kinesisApplicationUser = v02_kinesis_core.NewApplicationUser(v02KinesisClient)
-	kinesisConnection = v02_kinesis_core.NewConnection(v02KinesisClient)
-	kinesisEvent = v02_kinesis_core.NewEvent(v02KinesisClient)
 
 	postgresAccount = v02_postgres_core.NewAccount(v02PostgresClient)
 	postgresAccountUser = v02_postgres_core.NewAccountUser(v02PostgresClient)

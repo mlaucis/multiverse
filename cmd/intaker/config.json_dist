@@ -21,12 +21,6 @@
 		"db": REDIS_DB_ID,
 		"pool_size": 30
 	},
-	"kinesis": {
-		"auth_key": "AWS_AUTH_KEY",
-		"secret_key": "AWS_SECRET_KEY",
-		"region": "AWS_REGION",
-		"endpoint": "AWS_ENDPOINT"
-	},
 	"postgres": {
 		"database": "PG_DATABASE",
 		"master": {

@@ -21,7 +21,6 @@ import (
 	v02_postgres_core "github.com/tapglue/multiverse/v02/core/postgres"
 	"github.com/tapglue/multiverse/v02/entity"
 	"github.com/tapglue/multiverse/v02/server"
-	v02_kinesis "github.com/tapglue/multiverse/v02/storage/kinesis"
 	v02_postgres "github.com/tapglue/multiverse/v02/storage/postgres"
 	v02_redis "github.com/tapglue/multiverse/v02/storage/redis"
 
@@ -71,7 +70,6 @@ var (
 	coreConn    core.Connection
 	coreEvt     core.Event
 
-	v02KinesisClient  v02_kinesis.Client
 	v02PostgresClient v02_postgres.Client
 
 	nilTime             *time.Time
@@ -105,12 +103,6 @@ func init() {
 		go logger.TGSilentLog(errorLogChan)
 	}
 
-	if conf.Kinesis.Endpoint != "" {
-		v02KinesisClient = v02_kinesis.NewTest(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Kinesis.Endpoint, conf.Environment, "test")
-	}
-
-	v02KinesisClient.SetupStreams([]string{"test"})
-
 	v02PostgresClient = v02_postgres.New(conf.Postgres)
 
 	redigoRateLimitPool = v02_redis.NewRedigoPool(conf.RateLimiter.Hosts[0], "")
@@ -124,7 +116,7 @@ func init() {
 	coreEvt = v02_postgres_core.NewEvent(v02PostgresClient)
 
 	server.SetupRateLimit(applicationRateLimiter)
-	server.Setup(v02KinesisClient, v02PostgresClient, "HEAD", "CI-Machine")
+	server.Setup(v02PostgresClient, "HEAD", "CI-Machine")
 
 	testBootup(conf.Postgres)
 

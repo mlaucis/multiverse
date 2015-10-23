@@ -29,8 +29,6 @@ test:
     - ./bin/run_tests.sh redis
     - ./bin/run_tests.sh intaker postgres
     - ./bin/run_tests.sh intaker redis
-    - ./bin/run_tests.sh intaker kinesis
-    - ./bin/run_tests.sh distributor postgres
     - cd dashboard && npm run test
   post:
     - ./bin/process_coverage.sh
@@ -39,9 +37,7 @@ deployment:
     branch: /.*/
     commands:
       - ./bin/make_release.sh intaker redis
-      - ./bin/make_release.sh intaker kinesis
       - ./bin/make_release.sh intaker postgres
-      - ./bin/make_release.sh distributor postgres
       - ./bin/make_release.sh corporate dashboard
       - ./bin/make_release.sh corporate website
       - ./bin/make_release.sh corporate styleguide

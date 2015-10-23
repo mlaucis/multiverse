@@ -114,7 +114,7 @@ func (acc *account) PopulateContext(ctx *context.Context) (err []errors.Error) {
 	return
 }
 
-// NewAccount returns a new account handler tweaked specifically for Kinesis
+// NewAccount returns a new account handler
 func NewAccount(datastore core.Account) handlers.Account {
 	return &account{
 		storage: datastore,

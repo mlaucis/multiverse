@@ -27,17 +27,11 @@ then
         ["intaker_postgres_v03"]=true \
         ["intaker_redis_v02"]=false \
         ["intaker_redis_v03"]=true \
-        ["intaker_kinesis_v02"]=false \
-        ["intaker_kinesis_v03"]=true \
-        ["distributor_postgres_v02"]=false \
-        ["distributor_postgres_v03"]=false \
     )
 
     declare -A BUILD_MATRIX=( \
         ["intaker_postgres"]=true \
         ["intaker_redis"]=true \
-        ["intaker_kinesis"]=true \
-        ["distributor_postgres"]=true \
     )
 else
     declare -A TEST_MATRIX=( \
@@ -45,37 +39,22 @@ else
         ["intaker_postgres_v03"]=true \
         ["intaker_redis_v02"]=false \
         ["intaker_redis_v03"]=false \
-        ["intaker_kinesis_v02"]=false \
-        ["intaker_kinesis_v03"]=true \
-        ["distributor_postgres_v02"]=false \
-        ["distributor_postgres_v03"]=false \
     )
 
     declare -A BUILD_MATRIX=( \
         ["intaker_postgres"]=true \
         ["intaker_redis"]=true \
-        ["intaker_kinesis"]=true \
-        ["distributor_postgres"]=true \
     )
 fi
 
 CURRENT_BUILD_KEY="${TEST_COMPONENT}_${TEST_TARGET}"
 if [ "${BUILD_MATRIX[${CURRENT_BUILD_KEY}]}" == true ]
 then
-    if [ "${TEST_COMPONENT}" == "distributor" ]
-    then
-        go build \
-            -ldflags "-X main.currentRevision=${REVISION}" \
-            -tags ${TEST_TARGET} \
-            -o ${TEST_COMPONENT}_${TEST_TARGET}_${CIRCLE_BUILD_NUM} \
-            cmd/${TEST_COMPONENT}/${TEST_COMPONENT}.go cmd/${TEST_COMPONENT}/executor.go
-    else
-        go build \
-            -ldflags "-X main.currentRevision=${REVISION}" \
-            -tags ${TEST_TARGET} \
-            -o ${TEST_COMPONENT}_${TEST_TARGET}_${CIRCLE_BUILD_NUM} \
-            cmd/${TEST_COMPONENT}/${TEST_COMPONENT}.go
-    fi
+    go build \
+        -ldflags "-X main.currentRevision=${REVISION}" \
+        -tags ${TEST_TARGET} \
+        -o ${TEST_COMPONENT}_${TEST_TARGET}_${CIRCLE_BUILD_NUM} \
+        cmd/${TEST_COMPONENT}/${TEST_COMPONENT}.go
 fi
 
 for VERSION in "${VERSIONS[@]}"

@@ -1,7 +1,6 @@
 resource "aws_autoscaling_notification" "autoscaling" {
   group_names   = [
     "${aws_autoscaling_group.frontend.name}",
-    "${aws_autoscaling_group.backend.name}",
   ]
   notifications = [
     "autoscaling:EC2_INSTANCE_LAUNCH",

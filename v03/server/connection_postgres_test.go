@@ -1,4 +1,3 @@
-// +build !kinesis
 // +build postgres
 // +build !bench
 

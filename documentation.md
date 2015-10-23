@@ -27,30 +27,6 @@ Note:
 The ```CI=true``` will switch the scrypt implementation to use weaker values so that the tests can run in an acceptable
 ammount of time.
 
-### Testing with Kinesis on localhost
-
-First you must get the kinesalite emulator:
-```bash
-docker run -d -t -p 127.0.0.1:4567:4567 dlsniper/kinesalite:1.7.1
-```
-
-After this, in the ```config.json``` file you should have something like the following configuration:
-```json
-  "kinesis": {
-    "auth_key": "demo",
-    "secret_key": "demo",
-    "region": "eu-central-1",
-    "endpoint": "http://127.0.0.1:4567"
-  },
-```
-
-Note the ```"endpoint"``` configuration will point the Kinesis to your local emulator. If you want to test with the real
-kinesis from AWS, you can remove the ```"endpoint"``` key and provide the correct details.
-
-```bash
-CI=true go test -tags kinesis -check.v
-```
-
 ## Breaking changes in the API
 
 Breaking changes in the API should be done by bumping the API version in all cases but one.
@@ -95,7 +71,6 @@ Tapglue runs in AWS VPC using the following services:
 - VPC
 - ELB
 - RDS (Postgres)
-- Kinesis
 - EC (Redis)
 
 ### Infrastructure layout

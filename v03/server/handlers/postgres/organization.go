@@ -127,7 +127,7 @@ func (org *organization) PopulateContext(ctx *context.Context) (err []errors.Err
 	return
 }
 
-// NewOrganization returns a new account handler tweaked specifically for Kinesis
+// NewOrganization returns a new account handler
 func NewOrganization(datastore core.Organization) handlers.Organization {
 	return &organization{
 		storage: datastore,

@@ -7,7 +7,6 @@ import (
 	"github.com/tapglue/multiverse/logger"
 	"github.com/tapglue/multiverse/v03/context"
 	"github.com/tapglue/multiverse/v03/server/handlers"
-	"github.com/tapglue/multiverse/v03/server/handlers/kinesis"
 	"github.com/tapglue/multiverse/v03/server/handlers/postgres"
 	"github.com/tapglue/multiverse/v03/server/handlers/redis"
 	"github.com/tapglue/multiverse/v03/server/response"
@@ -42,12 +41,12 @@ const (
 )
 
 var (
-	postgresOrganizationHandler, kinesisOrganizationHandler                        handlers.Organization
-	postgresMemberHandler, kinesisAccountUserHandler                               handlers.Member
-	postgresApplicationHandler, kinesisApplicationHandler, redisApplicationHandler handlers.Application
-	postgresApplicationUserHandler, kinesisApplicationUserHandler                  handlers.ApplicationUser
-	postgresConnectionHandler, kinesisConnectionHandler                            handlers.Connection
-	postgresEventHandler, kinesisEventHandler                                      handlers.Event
+	postgresOrganizationHandler                         handlers.Organization
+	postgresMemberHandler                               handlers.Member
+	postgresApplicationHandler, redisApplicationHandler handlers.Application
+	postgresApplicationUserHandler                      handlers.ApplicationUser
+	postgresConnectionHandler                           handlers.Connection
+	postgresEventHandler                                handlers.Event
 
 	applicationUserIDPattern = "%d"
 	eventIDPattern           = "%d"
@@ -106,13 +105,6 @@ func InitRouter(router *mux.Router, mainLogChan, errorLogChan chan *logger.LogMs
 
 // InitHandlers handles the initialization of the route handlers
 func InitHandlers() {
-	kinesisOrganizationHandler = kinesis.NewOrganization(kinesisOrganization, postgresOrganization)
-	kinesisAccountUserHandler = kinesis.NewMember(kinesisAccountUser, postgresAccountUser)
-	kinesisApplicationHandler = kinesis.NewApplication(kinesisApplication, postgresApplication)
-	kinesisApplicationUserHandler = kinesis.NewApplicationUser(kinesisApplicationUser, postgresApplicationUser)
-	kinesisConnectionHandler = kinesis.NewConnectionWithApplicationUser(kinesisConnection, postgresConnection, postgresApplicationUser)
-	kinesisEventHandler = kinesis.NewEventWithApplicationUser(kinesisEvent, postgresEvent, postgresApplicationUser)
-
 	postgresOrganizationHandler = postgres.NewOrganization(postgresOrganization)
 	postgresMemberHandler = postgres.NewMember(postgresAccountUser)
 	postgresApplicationHandler = postgres.NewApplication(postgresApplication)

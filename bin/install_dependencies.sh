@@ -5,9 +5,6 @@ set -e
 export PATH=/home/ubuntu/.gimme/versions/go1.5.1.linux.amd64/bin:${PATH}
 CWD=`pwd`
 
-echo "Installing Kinesalite"
-docker pull dlsniper/kinesalite:1.8.0
-
 echo "Installing gimme"
 sudo curl -sL -o /usr/local/bin/gimme https://raw.githubusercontent.com/travis-ci/gimme/master/gimme
 sudo chmod +x /usr/local/bin/gimme
@@ -33,5 +30,3 @@ do
     cd ${CWD}/${STATIC_COMPONENT}
     cp -R node_modules /home/ubuntu/.${STATIC_COMPONENT}_node_modules
 done
-
-docker run -d -t -p 4567:4567 dlsniper/kinesalite:1.8.0

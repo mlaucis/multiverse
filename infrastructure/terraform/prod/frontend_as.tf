@@ -44,7 +44,7 @@ resource "aws_autoscaling_group" "frontend" {
 
   tag {
     key                 = "intaker_target"
-    value               = "kinesis"
+    value               = "redis"
     propagate_at_launch = true
   }
 

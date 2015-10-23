@@ -1,4 +1,4 @@
-// +build !kinesis !bench
+// +build !bench
 // +build postgres
 
 package server_test
