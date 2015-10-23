@@ -18,10 +18,8 @@ import (
 	"github.com/tapglue/multiverse/tgflake"
 	"github.com/tapglue/multiverse/utils"
 	v02_server "github.com/tapglue/multiverse/v02/server"
-	v02_kinesis "github.com/tapglue/multiverse/v02/storage/kinesis"
 	v02_postgres "github.com/tapglue/multiverse/v02/storage/postgres"
 	v03_server "github.com/tapglue/multiverse/v03/server"
-	v03_kinesis "github.com/tapglue/multiverse/v03/storage/kinesis"
 	v03_postgres "github.com/tapglue/multiverse/v03/storage/postgres"
 	v03_redis "github.com/tapglue/multiverse/v03/storage/redis"
 
@@ -45,7 +43,6 @@ var (
 	currentRevision = ""
 	currentHostname = ""
 
-	rawKinesisClient              v03_kinesis.Client
 	rawPostgresClient             v03_postgres.Client
 	rateLimiterPool, appCachePool *redigo.Pool
 )
@@ -227,26 +224,6 @@ func Setup(conf *config.Config, revision, hostname string) {
 	v02_server.SetupRateLimit(applicationRateLimiter)
 	v03_server.SetupRateLimit(applicationRateLimiter)
 
-	var (
-		v02KinesisClient v02_kinesis.Client
-		v03KinesisClient v03_kinesis.Client
-	)
-	if conf.Environment == "prod" {
-		v02KinesisClient = v02_kinesis.New(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Environment, conf.Kinesis.StreamName)
-		v03KinesisClient = v03_kinesis.New(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Environment, conf.Kinesis.StreamName)
-	} else {
-		if conf.Kinesis.Endpoint != "" {
-			v02KinesisClient = v02_kinesis.NewTest(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Kinesis.Endpoint, conf.Environment, conf.Kinesis.StreamName)
-			v03KinesisClient = v03_kinesis.NewWithEndpoint(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Kinesis.Endpoint, conf.Environment, conf.Kinesis.StreamName)
-		} else {
-			v02KinesisClient = v02_kinesis.New(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Environment, conf.Kinesis.StreamName)
-			v03KinesisClient = v03_kinesis.New(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Environment, conf.Kinesis.StreamName)
-		}
-	}
-	rawKinesisClient = v03KinesisClient
-
-	v03KinesisClient.SetupStreams([]string{conf.Kinesis.StreamName})
-
 	v02PostgresClient := v02_postgres.New(conf.Postgres)
 	v03PostgresClient := v03_postgres.New(conf.Postgres)
 	rawPostgresClient = v03PostgresClient
@@ -255,7 +232,7 @@ func Setup(conf *config.Config, revision, hostname string) {
 
 	appCachePool = v03_redis.NewRedigoPool(conf.CacheApp)
 
-	v02_server.Setup(v02KinesisClient, v02PostgresClient, currentRevision, currentHostname)
-	v03_server.Setup(v03KinesisClient, v03PostgresClient, appCachePool, currentRevision, currentHostname)
+	v02_server.Setup(v02PostgresClient, currentRevision, currentHostname)
+	v03_server.Setup(v03PostgresClient, appCachePool, currentRevision, currentHostname)
 
 }

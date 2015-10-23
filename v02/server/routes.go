@@ -7,7 +7,6 @@ import (
 	"github.com/tapglue/multiverse/errors"
 	"github.com/tapglue/multiverse/logger"
 	"github.com/tapglue/multiverse/v02/server/handlers"
-	"github.com/tapglue/multiverse/v02/server/handlers/kinesis"
 	"github.com/tapglue/multiverse/v02/server/handlers/postgres"
 	"github.com/tapglue/multiverse/v02/server/response"
 
@@ -41,12 +40,12 @@ const (
 )
 
 var (
-	postgresAccountHandler, kinesisAccountHandler                 handlers.Account
-	postgresAccountUserHandler, kinesisAccountUserHandler         handlers.AccountUser
-	postgresApplicationHandler, kinesisApplicationHandler         handlers.Application
-	postgresApplicationUserHandler, kinesisApplicationUserHandler handlers.ApplicationUser
-	postgresConnectionHandler, kinesisConnectionHandler           handlers.Connection
-	postgresEventHandler, kinesisEventHandler                     handlers.Event
+	postgresAccountHandler         handlers.Account
+	postgresAccountUserHandler     handlers.AccountUser
+	postgresApplicationHandler     handlers.Application
+	postgresApplicationUserHandler handlers.ApplicationUser
+	postgresConnectionHandler      handlers.Connection
+	postgresEventHandler           handlers.Event
 
 	applicationUserIDPattern = "%d"
 	eventIDPattern           = "%d"
@@ -105,13 +104,6 @@ func InitRouter(router *mux.Router, mainLogChan, errorLogChan chan *logger.LogMs
 
 // InitHandlers handles the initialization of the route handlers
 func InitHandlers() {
-	kinesisAccountHandler = kinesis.NewAccount(kinesisAccount, postgresAccount)
-	kinesisAccountUserHandler = kinesis.NewAccountUser(kinesisAccountUser, postgresAccountUser)
-	kinesisApplicationHandler = kinesis.NewApplication(kinesisApplication, postgresApplication)
-	kinesisApplicationUserHandler = kinesis.NewApplicationUser(kinesisApplicationUser, postgresApplicationUser)
-	kinesisConnectionHandler = kinesis.NewConnectionWithApplicationUser(kinesisConnection, postgresConnection, postgresApplicationUser)
-	kinesisEventHandler = kinesis.NewEventWithApplicationUser(kinesisEvent, postgresEvent, postgresApplicationUser)
-
 	postgresAccountHandler = postgres.NewAccount(postgresAccount)
 	postgresAccountUserHandler = postgres.NewAccountUser(postgresAccountUser)
 	postgresApplicationHandler = postgres.NewApplication(postgresApplication)

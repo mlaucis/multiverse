@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-declare -a TEST_TARGETS=("postgres" "kinesis")
+declare -a TEST_TARGETS=("postgres")
 
 export CI=true
 

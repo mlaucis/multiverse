@@ -23,7 +23,6 @@ import (
 	v03_redis_core "github.com/tapglue/multiverse/v03/core/redis"
 	"github.com/tapglue/multiverse/v03/entity"
 	"github.com/tapglue/multiverse/v03/server"
-	v03_kinesis "github.com/tapglue/multiverse/v03/storage/kinesis"
 	v03_postgres "github.com/tapglue/multiverse/v03/storage/postgres"
 	v03_redis "github.com/tapglue/multiverse/v03/storage/redis"
 
@@ -76,7 +75,6 @@ var (
 	coreConn              core.Connection
 	coreEvt               core.Event
 
-	v03KinesisClient  v03_kinesis.Client
 	v03PostgresClient v03_postgres.Client
 
 	nilTime       *time.Time
@@ -110,18 +108,6 @@ func init() {
 		go logger.TGSilentLog(errorLogChan)
 	}
 
-	if conf.Kinesis.Endpoint != "" {
-		v03KinesisClient = v03_kinesis.NewWithEndpoint(conf.Kinesis.AuthKey, conf.Kinesis.SecretKey, conf.Kinesis.Region, conf.Kinesis.Endpoint, conf.Environment, "test")
-	} else {
-		panic("config kinesis endpoint not found")
-	}
-
-	if err := v03KinesisClient.SetupStreams([]string{"test"}); err != nil {
-		if err.Error() != "Stream test under account 000000000000 already exists. (ResourceInUseException)" {
-			panic(err)
-		}
-	}
-
 	v03PostgresClient = v03_postgres.New(conf.Postgres)
 
 	rateLimitPool = v03_redis.NewRedigoPool(conf.RateLimiter)
@@ -140,7 +126,7 @@ func init() {
 	coreEvt = v03_postgres_core.NewEvent(v03PostgresClient)
 
 	server.SetupRateLimit(applicationRateLimiter)
-	server.Setup(v03KinesisClient, v03PostgresClient, appCache, "HEAD", "CI-Machine")
+	server.Setup(v03PostgresClient, appCache, "HEAD", "CI-Machine")
 
 	if !*noWipe {
 		testBootup(conf.Postgres)

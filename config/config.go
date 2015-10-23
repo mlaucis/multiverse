@@ -21,15 +21,6 @@ type (
 		PoolSize int      `json:"pool_size"`
 	}
 
-	// Kinesis structure
-	Kinesis struct {
-		AuthKey    string `json:"auth_key"`
-		SecretKey  string `json:"secret_key"`
-		Region     string `json:"region"`
-		Endpoint   string `json:"endpoint"`
-		StreamName string `json:"stream_name"`
-	}
-
 	// PostgresDB structure
 	PostgresDB struct {
 		Username string `json:"username"`
@@ -57,7 +48,6 @@ type (
 		TelemetryAddr  string    `json:"telemetry_addr"`
 		CacheApp       *Redis    `json:"cache_app"`
 		RateLimiter    *Redis    `json:"rate_limiter"`
-		Kinesis        *Kinesis  `json:"kinesis"`
 		Postgres       *Postgres `json:"postgres"`
 	}
 )
@@ -81,12 +71,6 @@ func defaultConfig() *Config {
 
 	cfg.CacheApp = &Redis{}
 	cfg.CacheApp.Hosts = append(cfg.CacheApp.Hosts, "127.0.0.1:6379")
-
-	cfg.Kinesis = &Kinesis{}
-	cfg.Kinesis.AuthKey = ""
-	cfg.Kinesis.SecretKey = ""
-	cfg.Kinesis.Region = "eu-central-1"
-	cfg.Kinesis.Endpoint = ""
 
 	return cfg
 }

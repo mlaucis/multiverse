@@ -15,12 +15,10 @@ import (
 	"github.com/tapglue/multiverse/logger"
 	"github.com/tapglue/multiverse/v03/context"
 	"github.com/tapglue/multiverse/v03/core"
-	v03_kinesis_core "github.com/tapglue/multiverse/v03/core/kinesis"
 	v03_postgres_core "github.com/tapglue/multiverse/v03/core/postgres"
 	v03_redis_core "github.com/tapglue/multiverse/v03/core/redis"
 	"github.com/tapglue/multiverse/v03/errmsg"
 	"github.com/tapglue/multiverse/v03/server/response"
-	v03_kinesis "github.com/tapglue/multiverse/v03/storage/kinesis"
 	v03_postgres "github.com/tapglue/multiverse/v03/storage/postgres"
 
 	"github.com/garyburd/redigo/redis"
@@ -40,12 +38,12 @@ type errorResponse struct {
 const APIVersion = "0.3"
 
 var (
-	postgresOrganization, kinesisOrganization                 core.Organization
-	postgresAccountUser, kinesisAccountUser                   core.Member
-	postgresApplication, kinesisApplication, redisApplication core.Application
-	postgresApplicationUser, kinesisApplicationUser           core.ApplicationUser
-	postgresConnection, kinesisConnection                     core.Connection
-	postgresEvent, kinesisEvent                               core.Event
+	postgresOrganization                  core.Organization
+	postgresAccountUser                   core.Member
+	postgresApplication, redisApplication core.Application
+	postgresApplicationUser               core.ApplicationUser
+	postgresConnection                    core.Connection
+	postgresEvent                         core.Event
 
 	appRateLimiter limiter.Limiter
 
@@ -349,7 +347,6 @@ func SetupRateLimit(applicationRateLimiter limiter.Limiter) {
 // Setup initializes the route handlers
 // Must be called after initializing the cores
 func Setup(
-	v03KinesisClient v03_kinesis.Client,
 	v03PostgresClient v03_postgres.Client,
 	appCache *redis.Pool,
 	revision, hostname string) {
@@ -357,13 +354,6 @@ func Setup(
 	if appRateLimiter == nil {
 		panic("You must first initialize the rate limiter")
 	}
-
-	kinesisOrganization = v03_kinesis_core.NewAccount(v03KinesisClient)
-	kinesisAccountUser = v03_kinesis_core.NewAccountUser(v03KinesisClient)
-	kinesisApplication = v03_kinesis_core.NewApplication(v03KinesisClient)
-	kinesisApplicationUser = v03_kinesis_core.NewApplicationUser(v03KinesisClient)
-	kinesisConnection = v03_kinesis_core.NewConnection(v03KinesisClient)
-	kinesisEvent = v03_kinesis_core.NewEvent(v03KinesisClient)
 
 	redisApplication = v03_redis_core.NewApplication(appCache)
 

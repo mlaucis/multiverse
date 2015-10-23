@@ -2,7 +2,7 @@
 
 set -e
 
-declare -a TEST_TARGETS=("postgres" "kinesis")
+declare -a TEST_TARGETS=("postgres")
 
 export CI=true
 CWD=`pwd`

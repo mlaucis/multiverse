@@ -84,7 +84,7 @@ Location: Berlin, Germany
 
 /* SITE */
 Last update: 2015/07/15
-Software: Go, AWS Kinesis, PostgreSQL, Redis, node.js`))
+Software: Go, AWS, PostgreSQL, Redis, node.js`))
 }
 
 // robots handles requests to robots.txt
