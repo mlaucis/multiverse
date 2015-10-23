@@ -149,6 +149,7 @@ resource "aws_security_group_rule" "nat_http_out" {
     "0.0.0.0/0"
   ]
 }
+
 resource "aws_security_group_rule" "nat_https_in" {
   from_port                 = 443
   to_port                   = 443
@@ -187,6 +188,46 @@ resource "aws_security_group_rule" "nat_ssh_out" {
   protocol                  = "tcp"
   security_group_id         = "${aws_security_group.nat.id}"
   source_security_group_id  = "${aws_security_group.private.id}"
+}
+
+resource "aws_security_group_rule" "nat_syslog_in" {
+  from_port                 = 514
+  to_port                   = 514
+  type                      = "ingress"
+  protocol                  = "tcp"
+  security_group_id         = "${aws_security_group.nat.id}"
+  source_security_group_id  = "${aws_security_group.private.id}"
+}
+
+resource "aws_security_group_rule" "nat_syslog_out" {
+  from_port                 = 514
+  to_port                   = 514
+  type                      = "egress"
+  protocol                  = "tcp"
+  security_group_id         = "${aws_security_group.nat.id}"
+  cidr_blocks = [
+    "0.0.0.0/0"
+  ]
+}
+
+resource "aws_security_group_rule" "nat_logzio_in" {
+  from_port                 = 5000
+  to_port                   = 5000
+  type                      = "ingress"
+  protocol                  = "tcp"
+  security_group_id         = "${aws_security_group.nat.id}"
+  source_security_group_id  = "${aws_security_group.private.id}"
+}
+
+resource "aws_security_group_rule" "nat_logzio_out" {
+  from_port                 = 5000
+  to_port                   = 5000
+  type                      = "egress"
+  protocol                  = "tcp"
+  security_group_id         = "${aws_security_group.nat.id}"
+  cidr_blocks = [
+    "0.0.0.0/0"
+  ]
 }
 
 resource "aws_security_group" "platform" {
@@ -257,6 +298,24 @@ resource "aws_security_group_rule" "private_http_out" {
 resource "aws_security_group_rule" "private_https_out" {
   from_port                 = 443
   to_port                   = 443
+  type                      = "egress"
+  protocol                  = "tcp"
+  security_group_id         = "${aws_security_group.private.id}"
+  source_security_group_id  = "${aws_security_group.nat.id}"
+}
+
+resource "aws_security_group_rule" "private_syslog_out" {
+  from_port                 = 514
+  to_port                   = 514
+  type                      = "egress"
+  protocol                  = "tcp"
+  security_group_id         = "${aws_security_group.private.id}"
+  source_security_group_id  = "${aws_security_group.nat.id}"
+}
+
+resource "aws_security_group_rule" "private_logzio_out" {
+  from_port                 = 5000
+  to_port                   = 5000
   type                      = "egress"
   protocol                  = "tcp"
   security_group_id         = "${aws_security_group.private.id}"
