@@ -322,7 +322,10 @@ func (conn *connection) CreateSocial(ctx *context.Context) (err []errors.Error) 
 	}
 
 	if ctx.Query.Get("with_event") == "true" {
-		go conn.CreateAutoConnectionEvents(ctx, user, users, request.ConnectionType)
+		_, err := conn.CreateAutoConnectionEvents(ctx, user, users, request.ConnectionType)
+		if err != nil {
+			ctx.LogError(err)
+		}
 	}
 
 	response.SanitizeApplicationUsers(users)
@@ -467,7 +470,10 @@ func (conn *connection) doCreateConnection(ctx *context.Context, connection *ent
 	}
 
 	if ctx.Query.Get("with_event") == "true" {
-		go conn.CreateAutoConnectionEvent(ctx, connection)
+		_, err := conn.CreateAutoConnectionEvent(ctx, connection)
+		if err != nil {
+			ctx.LogError(err)
+		}
 	}
 
 	if receivedEnabled {

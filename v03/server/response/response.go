@@ -158,7 +158,7 @@ func ErrorHappened(ctx *context.Context, errs []errors.Error) {
 		errorMessage.Errors = append(errorMessage.Errors, entity.ErrorResponse{Code: errs[idx].Code(), Message: errs[idx].Error()})
 	}
 	WriteResponse(ctx, errorMessage, int(errs[0].Type()), 0)
-	go ctx.LogError(errs)
+	ctx.LogError(errs)
 }
 
 // Setup initializes the response

@@ -7,8 +7,6 @@ import (
 	"strconv"
 	"time"
 
-	"sync"
-
 	"github.com/tapglue/multiverse/errors"
 	"github.com/tapglue/multiverse/tgflake"
 	"github.com/tapglue/multiverse/v03/context"
@@ -36,38 +34,31 @@ func (appUser *applicationUser) Read(ctx *context.Context) (err []errors.Error) 
 		return err
 	}
 
-	wg := &sync.WaitGroup{}
-	wg.Add(1)
-	go func(wg *sync.WaitGroup) {
-		defer wg.Done()
-		appUser.storage.FriendStatistics(ctx.OrganizationID, ctx.ApplicationID, user)
-	}(wg)
+	err = appUser.storage.FriendStatistics(ctx.OrganizationID, ctx.ApplicationID, user)
+	if err != nil {
+		ctx.LogError(err)
+	}
+
+	user.IsFriend = entity.PFalse
+	user.IsFollower = entity.PFalse
+	user.IsFollowed = entity.PFalse
 
 	// maybe not the most efficient way to do it?
-	relation := make(chan *entity.Relation)
-	go func(relation chan *entity.Relation, accountID, applicationID int64, userFromID, userToID uint64) {
-		rel, _ := appUser.conn.Relation(accountID, applicationID, userFromID, userToID)
-
-		relation <- rel
-	}(relation, ctx.OrganizationID, ctx.ApplicationID, ctx.ApplicationUser.ID, user.ID)
+	rel, err := appUser.conn.Relation(ctx.OrganizationID, ctx.ApplicationID, ctx.ApplicationUser.ID, user.ID)
+	if err != nil {
+		ctx.LogError(err)
+	}
+	if rel != nil {
+		user.IsFriend = rel.IsFriend
+		user.IsFollower = rel.IsFollower
+		user.IsFollowed = rel.IsFollowed
+	}
 
 	response.ComputeApplicationUserLastModified(ctx, user)
 
 	user.Password = ""
 	user.Deleted = nil
 	user.CreatedAt, user.UpdatedAt, user.LastLogin, user.LastRead = nil, nil, nil, nil
-
-	if rel := <-relation; rel != nil {
-		user.IsFriend = rel.IsFriend
-		user.IsFollower = rel.IsFollower
-		user.IsFollowed = rel.IsFollowed
-	} else {
-		user.IsFriend = entity.PFalse
-		user.IsFollower = entity.PFalse
-		user.IsFollowed = entity.PFalse
-	}
-
-	wg.Wait()
 
 	response.WriteResponse(ctx, user, http.StatusOK, 10)
 	return

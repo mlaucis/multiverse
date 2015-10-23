@@ -6,7 +6,6 @@ import (
 	"github.com/tapglue/multiverse/errors"
 	"github.com/tapglue/multiverse/v03/context"
 	"github.com/tapglue/multiverse/v03/core"
-	"github.com/tapglue/multiverse/v03/entity"
 	"github.com/tapglue/multiverse/v03/errmsg"
 	"github.com/tapglue/multiverse/v03/server/handlers"
 )
@@ -53,9 +52,10 @@ func (app *application) PopulateContext(ctx *context.Context) (err []errors.Erro
 				ctx.OrganizationID = ctx.Application.OrgID
 				ctx.ApplicationID = ctx.Application.ID
 				ctx.TokenType = context.TokenTypeApplication
-				go func(application *entity.Application) {
-					app.storage.Create(application, false)
-				}(ctx.Application)
+				_, err := app.storage.Create(ctx.Application, false)
+				if err != nil {
+					ctx.LogError(err)
+				}
 			}
 		}
 	} else if len(appToken) == 44 {
@@ -70,9 +70,10 @@ func (app *application) PopulateContext(ctx *context.Context) (err []errors.Erro
 				ctx.OrganizationID = ctx.Application.OrgID
 				ctx.ApplicationID = ctx.Application.ID
 				ctx.TokenType = context.TokenTypeBackend
-				go func(application *entity.Application) {
-					app.storage.Create(application, false)
-				}(ctx.Application)
+				_, err := app.storage.Create(ctx.Application, false)
+				if err != nil {
+					ctx.LogError(err)
+				}
 			}
 		}
 	} else {
