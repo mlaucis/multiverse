@@ -22,10 +22,16 @@ var (
 )
 
 func (s *BenchSuite) TestCreateUsers(c *C) {
-	flag.Parse()
+	if !flag.Parsed() {
+		flag.Parse()
+	}
 
 	if os.Getenv("CI") == "true" {
 		c.Skip("not to be run inside the CI suite")
+	}
+
+	if os.Getenv("CORRECT_DEPLOY") != "true" {
+		c.Skip("this can run only under CORRECT_DEPLOY=true")
 	}
 
 	if *connections > *applicationUsers {
@@ -43,10 +49,16 @@ func (s *BenchSuite) TestCreateUsers(c *C) {
 }
 
 func (s *BenchSuite) TestCreateUserEvents(c *C) {
-	flag.Parse()
+	if !flag.Parsed() {
+		flag.Parse()
+	}
 
 	if os.Getenv("CI") == "true" {
 		c.Skip("not to be run inside the CI suite")
+	}
+
+	if os.Getenv("CORRECT_DEPLOY") != "true" {
+		c.Skip("this can run only under CORRECT_DEPLOY=true")
 	}
 
 	log.Printf("\n\nCreating events for organization = %d, application = %d\n\n",
