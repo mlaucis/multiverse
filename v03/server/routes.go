@@ -87,19 +87,25 @@ var Routes []*Route
 // InitRouter initializes the router with this modules routes
 func InitRouter(router *mux.Router, mainLogChan, errorLogChan chan *logger.LogMsg, env string, skipSecurity, debug bool) {
 	for _, route := range Routes {
-		router.
-			Methods(route.Method).
-			Path("/" + APIVersion + route.Path).
-			Name(route.Name).
-			HandlerFunc(CustomHandler(route, mainLogChan, errorLogChan, env, skipSecurity, debug))
+		r := router.Methods(route.Method).Path("/" + APIVersion + route.Path)
+
+		r.Name(route.Name).HandlerFunc(
+			metricHandler(
+				route.Name,
+				CustomHandler(route, mainLogChan, errorLogChan, env, skipSecurity, debug),
+			),
+		)
 	}
 
 	for _, route := range Routes {
-		router.
-			Methods("OPTIONS").
-			Path("/" + APIVersion + route.Path).
-			Name(route.Name + "-options").
-			HandlerFunc(CustomOptionsHandler(route, mainLogChan, errorLogChan, env, skipSecurity, debug))
+		r := router.Methods("OPTIONS").Path("/" + APIVersion + route.Path)
+
+		r.Name(route.Name + "-options").HandlerFunc(
+			metricHandler(
+				route.Name,
+				CustomOptionsHandler(route, mainLogChan, errorLogChan, env, skipSecurity, debug),
+			),
+		)
 	}
 }
 
