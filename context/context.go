@@ -10,7 +10,6 @@ import (
 
 	"github.com/tapglue/multiverse/errors"
 	"github.com/tapglue/multiverse/logger"
-	"github.com/tapglue/multiverse/utils"
 )
 
 type (
@@ -111,6 +110,7 @@ func (ctx *Context) newLogMessage(stackDepth int) *logger.LogMsg {
 	}
 
 	return &logger.LogMsg{
+		Host:       ctx.R.Host,
 		RemoteAddr: ctx.R.RemoteAddr,
 		Method:     ctx.R.Method,
 		RequestURI: ctx.R.URL.Path + queryString,
@@ -121,41 +121,4 @@ func (ctx *Context) newLogMessage(stackDepth int) *logger.LogMsg {
 		End:        time.Now(),
 		Location:   location,
 	}
-}
-
-// New creates a new context from the current request
-func New(
-	w http.ResponseWriter,
-	r *http.Request,
-	mainLog, errorLog chan *logger.LogMsg,
-	routeName, scope, version string,
-	contextFilters []Filter,
-	environment string,
-	debugMode bool) (ctx *Context, err []errors.Error) {
-
-	ctx = new(Context)
-	ctx.StartTime = time.Now()
-	ctx.R = r
-	ctx.W = w
-	ctx.MainLog = mainLog
-	ctx.ErrorLog = errorLog
-	if r.Method == "POST" || r.Method == "PUT" {
-		ctx.Body = utils.PeakBody(r).Bytes()
-	}
-	ctx.RouteName = routeName
-	ctx.Scope = scope
-	ctx.Version = version
-	ctx.Environment = environment
-	ctx.DebugMode = debugMode
-	ctx.Bag = map[string]interface{}{}
-	ctx.AuthUsername, ctx.AuthPassword, ctx.AuthOk = r.BasicAuth()
-
-	for _, extraContext := range contextFilters {
-		err = extraContext(ctx)
-		if err != nil {
-			break
-		}
-	}
-
-	return ctx, err
 }

@@ -11,21 +11,23 @@ import (
 )
 
 const (
-	logFormat             = "%s\t%s\t%d\t%s\t%s\t%s\t%+v\t%s\t%s\t%s\t%s\n"
-	logResponseTimeFormat = "%s\t%s\t%d\t%s"
-	curlGetFormat         = "curl -i %s http://127.0.0.1:8083%s"
-	curlPostFormat        = "curl -i -X POST %s -d '%s' http://127.0.0.1:8083%s"
-	curlPutFormat         = "curl -i -X PUT %s -d '%s' http://127.0.0.1:8083%s"
-	curlDeleteFormat      = "curl -i -X DELETE %s http://127.0.0.1:8083%s"
+	curlGetFormat    = "curl -i %s http://127.0.0.1:8083%s"
+	curlPostFormat   = "curl -i -X POST %s -d '%s' http://127.0.0.1:8083%s"
+	curlPutFormat    = "curl -i -X PUT %s -d '%s' http://127.0.0.1:8083%s"
+	curlDeleteFormat = "curl -i -X DELETE %s http://127.0.0.1:8083%s"
 )
 
 type (
 	//LogMsg defines the log message fields
 	LogMsg struct {
-		RemoteAddr string      `json:"remote_addr,omitempty"`
 		Name       string      `json:"name,omitempty"`
 		StatusCode int         `json:"status_code,omitempty"`
+		OrgID      int64       `json:"org_id,omitempty"`
+		AppID      int64       `json:"app_id,omitempty"`
+		UserID     uint64      `json:"user_id,omitempty"`
+		RemoteAddr string      `json:"remote_addr,omitempty"`
 		Method     string      `json:"method,omitempty"`
+		Host       string      `json:"host,omitempty"`
 		RequestURI string      `json:"request_uri,omitempty"`
 		Headers    http.Header `json:"headers,omitempty"`
 		Payload    string      `json:"payload,omitempty"`
@@ -45,59 +47,6 @@ var (
 	passwordRE            = regexp.MustCompile(`("password": ".*?")`)
 	passwordREReplacement = []byte(`"password": ""`)
 )
-
-// TGLog is the Tapglue logger
-func TGLog(msg chan *LogMsg) {
-	for {
-		select {
-		case m := <-msg:
-			{
-				if m == nil {
-					continue
-				}
-
-				m.Payload = string(passwordRE.ReplaceAll([]byte(m.Payload), passwordREReplacement))
-
-				log.Printf(
-					logFormat,
-					m.Message,
-					m.RemoteAddr,
-					m.StatusCode,
-					m.Method,
-					m.RequestURI,
-					m.Payload,
-					m.Headers,
-					m.Name,
-					m.Location,
-					m.End.Sub(m.Start),
-					m.RawError,
-				)
-			}
-		}
-	}
-}
-
-// TGLogResponseTimes is the Tapglue logger that logs only the names and the response times of requests
-func TGLogResponseTimes(msg chan *LogMsg) {
-	for {
-		select {
-		case m := <-msg:
-			{
-				if m == nil {
-					continue
-				}
-
-				log.Printf(
-					logResponseTimeFormat,
-					m.End.Sub(m.Start),
-					m.Method,
-					m.StatusCode,
-					m.Name,
-				)
-			}
-		}
-	}
-}
 
 // JSONLog provides logging to JSON format
 func JSONLog(msg chan *LogMsg) {
@@ -127,7 +76,7 @@ func JSONLog(msg chan *LogMsg) {
 }
 
 // TGSilentLog logs all messages to "/dev/null"
-func TGSilentLog(msg chan *LogMsg) {
+func SilentLog(msg chan *LogMsg) {
 	for {
 		select {
 		case _ = <-msg:
@@ -149,7 +98,7 @@ func getCurlHeaders(headers http.Header) string {
 }
 
 // TGCurlLog is the Tapglue logger which outputs the message as a curl request
-func TGCurlLog(msg chan *LogMsg) {
+func CurlLog(msg chan *LogMsg) {
 	for {
 		select {
 		case m := <-msg:

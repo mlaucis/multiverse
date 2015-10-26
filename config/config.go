@@ -43,7 +43,6 @@ type (
 		UseSysLog      bool      `json:"use_syslog"`
 		UseSSL         bool      `json:"use_ssl"`
 		SkipSecurity   bool      `json:"skip_security"`
-		JSONLogs       bool      `json:"json_logs"`
 		ListenHostPort string    `json:"listenHost"`
 		TelemetryAddr  string    `json:"telemetry_addr"`
 		CacheApp       *Redis    `json:"cache_app"`
@@ -62,7 +61,6 @@ func defaultConfig() *Config {
 	cfg.UseSSL = false
 	cfg.UseSysLog = true
 	cfg.SkipSecurity = false
-	cfg.JSONLogs = false
 	cfg.ListenHostPort = ":8082"
 	cfg.TelemetryAddr = ":9000"
 
