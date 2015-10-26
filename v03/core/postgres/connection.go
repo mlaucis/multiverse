@@ -52,25 +52,23 @@ func (c *connection) Create(accountID, applicationID int64, connection *entity.C
 	if er != nil && er[0].Code() != errmsg.ErrConnectionNotFound.Code() {
 		return er
 	}
-	if exists != nil {
-		if !exists.Enabled {
-			exists.Enabled = true
-			connection, er = c.Update(accountID, applicationID, *exists, *exists, true)
+	if exists != nil && !exists.Enabled {
+		exists.Enabled = true
+		connection, er = c.Update(accountID, applicationID, *exists, *exists, true)
+		if er != nil {
 			return er
 		}
-
-		return []errors.Error{errmsg.ErrConnectionAlreadyExists.SetCurrentLocation()}
-	}
-
-	timeNow := time.Now()
-	connection.CreatedAt, connection.UpdatedAt = &timeNow, &timeNow
-	connectionJSON, err := json.Marshal(connection)
-	if err != nil {
-		return []errors.Error{errmsg.ErrInternalConnectionCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
-	}
-	_, err = c.mainPg.Exec(appSchema(createConnectionQuery, accountID, applicationID), string(connectionJSON))
-	if err != nil {
-		return []errors.Error{errmsg.ErrInternalConnectionCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
+	} else {
+		timeNow := time.Now()
+		connection.CreatedAt, connection.UpdatedAt = &timeNow, &timeNow
+		connectionJSON, err := json.Marshal(connection)
+		if err != nil {
+			return []errors.Error{errmsg.ErrInternalConnectionCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
+		}
+		_, err = c.mainPg.Exec(appSchema(createConnectionQuery, accountID, applicationID), string(connectionJSON))
+		if err != nil {
+			return []errors.Error{errmsg.ErrInternalConnectionCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
+		}
 	}
 
 	if connection.Type == "friend" {
@@ -80,17 +78,14 @@ func (c *connection) Create(accountID, applicationID int64, connection *entity.C
 		if er != nil && er[0].Code() != errmsg.ErrConnectionNotFound.Code() {
 			return er
 		}
-		if exists != nil {
-			if !exists.Enabled {
-				exists.Enabled = true
-				connection, er = c.Update(accountID, applicationID, *exists, *exists, true)
-				return er
-			}
-
-			return []errors.Error{errmsg.ErrConnectionAlreadyExists.SetCurrentLocation()}
+		if exists != nil && !exists.Enabled {
+			exists.Enabled = true
+			connection, er = c.Update(accountID, applicationID, *exists, *exists, true)
+			connection.UserFromID, connection.UserToID = connection.UserToID, connection.UserFromID
+			return er
 		}
 
-		connectionJSON, err = json.Marshal(connection)
+		connectionJSON, err := json.Marshal(connection)
 		if err != nil {
 			return []errors.Error{errmsg.ErrInternalConnectionCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 		}
