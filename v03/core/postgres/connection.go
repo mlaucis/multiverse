@@ -75,6 +75,21 @@ func (c *connection) Create(accountID, applicationID int64, connection *entity.C
 
 	if connection.Type == "friend" {
 		connection.UserFromID, connection.UserToID = connection.UserToID, connection.UserFromID
+
+		exists, er := c.Read(accountID, applicationID, connection.UserFromID, connection.UserToID)
+		if er != nil && er[0].Code() != errmsg.ErrConnectionNotFound.Code() {
+			return er
+		}
+		if exists != nil {
+			if !exists.Enabled {
+				exists.Enabled = true
+				connection, er = c.Update(accountID, applicationID, *exists, *exists, true)
+				return er
+			}
+
+			return []errors.Error{errmsg.ErrConnectionAlreadyExists.SetCurrentLocation()}
+		}
+
 		connectionJSON, err = json.Marshal(connection)
 		if err != nil {
 			return []errors.Error{errmsg.ErrInternalConnectionCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
