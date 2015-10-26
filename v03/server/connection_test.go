@@ -736,6 +736,149 @@ func (s *ConnectionSuite) TestCreateFriendConnectionAndCheckLists(c *C) {
 	c.Assert(response.Events[0].ID, Equals, userTo.Events[len(userTo.Events)-1].ID)
 }
 
+// Test to create connections and check the friend lists
+func (s *ConnectionSuite) TestCreateFriendConnectionAfterDeletingTheSameFriendConnection(c *C) {
+	accounts := CorrectDeploy(1, 0, 1, 2, 2, false, true)
+	account := accounts[0]
+	application := account.Applications[0]
+	userFrom := application.Users[0]
+	userTo := application.Users[1]
+
+	payload := fmt.Sprintf(`{"user_to_id":%d,  "type": "friend"}`, userTo.ID)
+
+	routeName := "createCurrentUserConnection"
+	route := getComposedRoute(routeName)
+	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusCreated)
+	c.Assert(body, Not(Equals), "")
+
+	connection := &entity.Connection{}
+	er := json.Unmarshal([]byte(body), connection)
+	c.Assert(er, IsNil)
+
+	c.Assert(connection.UserFromID, Equals, userFrom.ID)
+	c.Assert(connection.UserToID, Equals, userTo.ID)
+	c.Assert(connection.Enabled, Equals, true)
+	c.Assert(connection.Type, Equals, "friend")
+
+	routeName = "getUserFriends"
+	route = getComposedRoute(routeName, userFrom.ID)
+	code, body, err = runRequest(routeName, route, "", signApplicationRequest(application, userFrom, true, true))
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusOK)
+	c.Assert(body, Not(Equals), "")
+
+	userConnections := struct {
+		Users      []entity.ApplicationUser `json:"users"`
+		UsersCount int                      `json:"users_count"`
+	}{}
+	er = json.Unmarshal([]byte(body), &userConnections)
+	c.Assert(er, IsNil)
+
+	c.Assert(len(userConnections.Users), Equals, 1)
+	c.Assert(userConnections.UsersCount, Equals, 1)
+	c.Assert(userConnections.Users[0].ID, Equals, userTo.ID)
+
+	// Check followedBy list
+	routeName = "getUserFriends"
+	route = getComposedRoute(routeName, userTo.ID)
+	code, body, err = runRequest(routeName, route, "", signApplicationRequest(application, userTo, true, true))
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusOK)
+	c.Assert(body, Not(Equals), "")
+
+	userConnections = struct {
+		Users      []entity.ApplicationUser `json:"users"`
+		UsersCount int                      `json:"users_count"`
+	}{}
+	er = json.Unmarshal([]byte(body), &userConnections)
+	c.Assert(er, IsNil)
+
+	c.Assert(len(userConnections.Users), Equals, 1)
+	c.Assert(userConnections.UsersCount, Equals, 1)
+	c.Assert(userConnections.Users[0].ID, Equals, userFrom.ID)
+
+	routeName = "deleteCurrentUserConnection"
+	route = getComposedRoute(routeName, userTo.ID)
+	code, _, err = runRequest(routeName, route, "", signApplicationRequest(application, userFrom, true, true))
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusNoContent)
+
+	payload = fmt.Sprintf(`{"user_to_id":%d,  "type": "friend"}`, userTo.ID)
+	routeName = "createCurrentUserConnection"
+	route = getComposedRoute(routeName)
+	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusCreated)
+	c.Assert(body, Not(Equals), "")
+
+	connection = &entity.Connection{}
+	er = json.Unmarshal([]byte(body), connection)
+	c.Assert(er, IsNil)
+
+	c.Assert(connection.UserFromID, Equals, userFrom.ID)
+	c.Assert(connection.UserToID, Equals, userTo.ID)
+	c.Assert(connection.Enabled, Equals, true)
+	c.Assert(connection.Type, Equals, "friend")
+
+	routeName = "getUserFriends"
+	route = getComposedRoute(routeName, userFrom.ID)
+	code, body, err = runRequest(routeName, route, "", signApplicationRequest(application, userFrom, true, true))
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusOK)
+	c.Assert(body, Not(Equals), "")
+
+	userConnections = struct {
+		Users      []entity.ApplicationUser `json:"users"`
+		UsersCount int                      `json:"users_count"`
+	}{}
+	er = json.Unmarshal([]byte(body), &userConnections)
+	c.Assert(er, IsNil)
+
+	c.Assert(len(userConnections.Users), Equals, 1)
+	c.Assert(userConnections.UsersCount, Equals, 1)
+	c.Assert(userConnections.Users[0].ID, Equals, userTo.ID)
+
+	// Check followedBy list
+	routeName = "getUserFriends"
+	route = getComposedRoute(routeName, userTo.ID)
+	code, body, err = runRequest(routeName, route, "", signApplicationRequest(application, userTo, true, true))
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusOK)
+	c.Assert(body, Not(Equals), "")
+
+	userConnections = struct {
+		Users      []entity.ApplicationUser `json:"users"`
+		UsersCount int                      `json:"users_count"`
+	}{}
+	er = json.Unmarshal([]byte(body), &userConnections)
+	c.Assert(er, IsNil)
+
+	c.Assert(len(userConnections.Users), Equals, 1)
+	c.Assert(userConnections.UsersCount, Equals, 1)
+	c.Assert(userConnections.Users[0].ID, Equals, userFrom.ID)
+
+	// Check activity feed events
+	routeName = "getCurrentUserFeed"
+	route = getComposedRoute(routeName)
+	code, body, err = runRequest(routeName, route, "", signApplicationRequest(application, userFrom, true, true))
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusOK)
+	c.Assert(body, Not(Equals), "")
+
+	response := struct {
+		Count  int            `json:"unread_events_count"`
+		Events []entity.Event `json:"events"`
+	}{}
+	er = json.Unmarshal([]byte(body), &response)
+	c.Assert(er, IsNil)
+
+	c.Assert(response.Count, Equals, 1)
+	c.Assert(len(response.Events), Equals, 1)
+	c.Assert(response.Events[0].ID, Equals, userTo.Events[len(userTo.Events)-1].ID)
+}
+
 // Test to create connections if users are already connected
 func (s *ConnectionSuite) TestCreateConnectionUsersAlreadyConnected(c *C) {
 	accounts := CorrectDeploy(1, 0, 1, 2, 0, true, true)
@@ -748,11 +891,9 @@ func (s *ConnectionSuite) TestCreateConnectionUsersAlreadyConnected(c *C) {
 
 	routeName := "createCurrentUserConnection"
 	route := getComposedRoute(routeName)
-	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
+	code, _, err := runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
-
-	c.Assert(code, Equals, http.StatusBadRequest)
-	c.Assert(body, Equals, `{"errors":[{"code":2000,"message":"connection already exists"}]}`+"\n")
+	c.Assert(code, Equals, http.StatusCreated)
 }
 
 // Test to create connections if users are from different appIDs
