@@ -70,6 +70,7 @@ var createApplicationNamespaceQuery = []string{
 	`CREATE INDEX event_id ON app_%d_%d.events USING btree (((json_data ->> 'id') :: BIGINT))`,
 	`CREATE INDEX event_user_id ON app_%d_%d.events USING btree (((json_data ->> 'user_id') :: BIGINT))`,
 	`CREATE INDEX event_visibility ON app_%d_%d.events USING btree (((json_data ->> 'visibility') :: INT))`,
+	`CREATE INDEX event_target_id ON app_%d_%d.events USING BTREE (((json_data -> 'target'->>'id') :: TEXT))`,
 	`CREATE INDEX event_created_at ON app_%d_%d.events USING btree ((json_data ->> 'created_at'))`,
 	`CREATE INDEX ON app_%d_%d.events USING GIST (geo)`,
 }
