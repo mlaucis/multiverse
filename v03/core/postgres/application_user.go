@@ -247,11 +247,11 @@ func (au *applicationUser) Delete(accountID, applicationID int64, userID uint64)
 	*user.Deleted = true
 	_, err = au.Update(accountID, applicationID, *user, *user, false)
 
-	if err == nil {
-		go au.destroyAllUserSession(accountID, applicationID, user)
+	if err != nil {
+		return err
 	}
 
-	return err
+	return au.destroyAllUserSession(accountID, applicationID, user)
 }
 
 func (au *applicationUser) List(accountID, applicationID int64) (users []*entity.ApplicationUser, er []errors.Error) {

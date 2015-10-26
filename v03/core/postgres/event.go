@@ -286,7 +286,9 @@ func (e *event) UserFeed(accountID, applicationID int64, user *entity.Applicatio
 		events = append(events, event)
 	}
 
-	go e.updateApplicationUserLastRead(accountID, applicationID, user)
+	if err := e.updateApplicationUserLastRead(accountID, applicationID, user); err != nil {
+		return 0, nil, err
+	}
 
 	return unread, events, nil
 }
@@ -314,7 +316,9 @@ func (e *event) UnreadFeed(accountID, applicationID int64, user *entity.Applicat
 		return
 	}
 
-	go e.updateApplicationUserLastRead(accountID, applicationID, user)
+	if err := e.updateApplicationUserLastRead(accountID, applicationID, user); err != nil {
+		return 0, nil, err
+	}
 
 	return len(events), events, nil
 }

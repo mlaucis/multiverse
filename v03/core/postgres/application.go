@@ -136,7 +136,10 @@ func (app *application) Update(existingApplication, updatedApplication entity.Ap
 		return nil, []errors.Error{errmsg.ErrInternalApplicationUpdate.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 
-	go app.redis.Update(existingApplication, updatedApplication, false)
+	_, er := app.redis.Update(existingApplication, updatedApplication, false)
+	if er != nil {
+		return nil, er
+	}
 
 	if !retrieve {
 		return nil, nil
