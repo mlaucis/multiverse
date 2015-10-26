@@ -111,7 +111,7 @@ variable "rds_corp_password" {
 }
 
 variable "monitoring_ami" {
-  default = "ami-e2a0adff"
+  default = "ami-a0444bbd"
 }
 
 variable "monitoring_instance_type" {
