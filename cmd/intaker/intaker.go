@@ -97,13 +97,8 @@ func main() {
 		panic(err)
 	}
 
-	if conf.JSONLogs {
-		go logger.JSONLog(mainLogChan)
-		go logger.JSONLog(errorLogChan)
-	} else {
-		go logger.TGLog(mainLogChan)
-		go logger.TGLog(errorLogChan)
-	}
+	go logger.JSONLog(mainLogChan)
+	go logger.JSONLog(errorLogChan)
 
 	server := &http.Server{
 		Addr:           conf.ListenHostPort,

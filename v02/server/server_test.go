@@ -88,19 +88,16 @@ func init() {
 
 	errors.Init(conf.Environment != "prod")
 
-	if *doLogResponseTimes {
-		go logger.TGLogResponseTimes(mainLogChan)
-		go logger.TGLogResponseTimes(errorLogChan)
-	} else if *doLogTest {
+	if *doLogTest {
 		if *doCurlLogs {
-			go logger.TGCurlLog(mainLogChan)
+			go logger.CurlLog(mainLogChan)
 		} else {
-			go logger.TGLog(mainLogChan)
+			go logger.JSONLog(mainLogChan)
 		}
-		go logger.TGLog(errorLogChan)
+		go logger.JSONLog(errorLogChan)
 	} else {
-		go logger.TGSilentLog(mainLogChan)
-		go logger.TGSilentLog(errorLogChan)
+		go logger.SilentLog(mainLogChan)
+		go logger.SilentLog(errorLogChan)
 	}
 
 	v02PostgresClient = v02_postgres.New(conf.Postgres)
