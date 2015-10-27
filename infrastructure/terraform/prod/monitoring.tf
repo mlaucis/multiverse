@@ -60,3 +60,36 @@ resource "aws_instance" "monitoring1" {
     Name = "monitoring1"
   }
 }
+
+resource "aws_elb" "monitoring" {
+  cross_zone_load_balancing   = true
+  connection_draining         = true
+  connection_draining_timeout = 10
+  idle_timeout                = 15
+  name                        = "monitoring"
+
+  instances = [
+    "${aws_instance.monitoring0.id}",
+  ]
+
+  listener = {
+    instance_port       = 3000
+    instance_protocol   = "http"
+    lb_port             = 443
+    lb_protocol         = "https"
+    ssl_certificate_id  = "${aws_iam_server_certificate.self-signed.arn}"
+  }
+
+  security_groups = [
+    "${aws_security_group.loadbalancer.id}",
+  ]
+
+  subnets = [
+    "${aws_subnet.monitoring-a.id}",
+    "${aws_subnet.monitoring-b.id}",
+  ]
+
+  tags = {
+    Name = "monitoring"
+  }
+}

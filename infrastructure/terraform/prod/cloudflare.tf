@@ -34,3 +34,12 @@ resource "cloudflare_record" "styleguide-prod" {
   type   = "CNAME"
   ttl    = 1
 }
+
+# FIX: Temporary public endpoint for monitoring dashboard.
+resource "cloudflare_record" "monitoring" {
+  domain  = "${var.cloudflare_domain}"
+  name    = "monitoring"
+  ttl     = 1
+  type    = "CNAME"
+  value   = "${aws_elb.monitoring.dns_name}"
+}

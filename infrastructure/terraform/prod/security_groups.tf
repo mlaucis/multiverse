@@ -93,6 +93,16 @@ resource "aws_security_group_rule" "loadbalancer_cloudflae_https" {
   ]
 }
 
+# Temporary rule for grafana routing.
+resource "aws_security_group_rule" "loadbalancer_grafana_out" {
+  from_port                 = 3000
+  to_port                   = 3000
+  type                      = "egress"
+  protocol                  = "tcp"
+  security_group_id         = "${aws_security_group.loadbalancer.id}"
+  source_security_group_id  = "${aws_security_group.platform.id}"
+}
+
 resource "aws_security_group_rule" "loadbalancer_http_out" {
   from_port                 = 80
   to_port                   = 80
@@ -238,6 +248,16 @@ resource "aws_security_group" "platform" {
   tags {
     Name = "platform"
   }
+}
+
+# Temporary rule for grafana routing.
+resource "aws_security_group_rule" "platform_grafana_in" {
+  from_port                 = 3000
+  to_port                   = 3000
+  type                      = "ingress"
+  protocol                  = "tcp"
+  security_group_id         = "${aws_security_group.platform.id}"
+  source_security_group_id  = "${aws_security_group.loadbalancer.id}"
 }
 
 resource "aws_security_group_rule" "platform_metrics_out" {
