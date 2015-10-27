@@ -14,7 +14,7 @@ import (
 var (
 	namespace    = "api"
 	subsystem    = strings.Replace(APIVersion, ".", "", -1)
-	fieldKeys    = []string{"route", "status"}
+	fieldKeys    = []string{"route", "status", "user_agent"}
 	requestCount = kitprometheus.NewCounter(prometheus.CounterOpts{
 		Namespace: namespace,
 		Subsystem: subsystem,
@@ -59,11 +59,15 @@ func metricHandler(route string, next http.HandlerFunc) http.HandlerFunc {
 				Key:   "status",
 				Value: strconv.Itoa(rc.statusCode),
 			}
+			uaField = metrics.Field{
+				Key:   "user_agent",
+				Value: r.Header.Get("User-Agent"),
+			}
 		)
 
-		requestCount.With(routeField).With(statusField).Add(1)
-		requestLatency.With(routeField).With(statusField).Observe(time.Since(begin))
-		responseBytes.With(routeField).With(statusField).Add(uint64(rc.bytesWritten))
+		requestCount.With(routeField).With(statusField).With(uaField).Add(1)
+		requestLatency.With(routeField).With(statusField).With(uaField).Observe(time.Since(begin))
+		responseBytes.With(routeField).With(statusField).With(uaField).Add(uint64(rc.bytesWritten))
 	}
 }
 
