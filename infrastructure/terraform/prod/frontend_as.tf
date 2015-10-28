@@ -1,6 +1,6 @@
 resource "aws_launch_configuration" "frontend" {
   image_id                    = "${var.ami_frontend}"
-  instance_type               = "c4.large"
+  instance_type               = "t2.medium"
   associate_public_ip_address = false
   enable_monitoring           = true
   ebs_optimized               = false
