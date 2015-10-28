@@ -37,6 +37,8 @@ const (
 	applicationID       = "{applicationID}"
 	applicationUserID   = "{applicationUserID}"
 	applicationUserToID = "{applicationUserToID}"
+	connectionType      = "{connectionType}"
+	connectionState     = "{connectionState}"
 	eventID             = "{eventID}"
 )
 
@@ -49,6 +51,8 @@ var (
 	postgresEventHandler                                handlers.Event
 
 	applicationUserIDPattern = "%d"
+	connectionTypePattern    = "%s"
+	connectionStatePattern   = "%s"
 	eventIDPattern           = "%d"
 )
 
@@ -76,6 +80,8 @@ func (r *Route) TestPattern() string {
 	pattern = strings.Replace(pattern, applicationID, "%s", -1)
 	pattern = strings.Replace(pattern, applicationUserID, applicationUserIDPattern, -1)
 	pattern = strings.Replace(pattern, applicationUserToID, applicationUserIDPattern, -1)
+	pattern = strings.Replace(pattern, connectionType, connectionTypePattern, -1)
+	pattern = strings.Replace(pattern, connectionState, connectionStatePattern, -1)
 	pattern = strings.Replace(pattern, eventID, eventIDPattern, -1)
 
 	return pattern

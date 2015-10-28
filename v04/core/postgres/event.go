@@ -19,7 +19,7 @@ import (
 type event struct {
 	pg     postgres.Client
 	mainPg *sqlx.DB
-	c      core.Connection
+	conn   core.Connection
 }
 
 const (
@@ -227,14 +227,17 @@ func (e *event) List(accountID, applicationID int64, userID, currentUserID uint6
 	var query string
 	if userID == currentUserID {
 		query = listAllEventsByUserIDQuery
-	} else if _, err := e.c.Read(accountID, applicationID, currentUserID, userID); err != nil {
-		if err[0].Code() == errmsg.ErrConnectionNotFound.Code() {
-			query = listPublicEventsByUserIDQuery
-		} else {
-			return []*entity.Event{}, err
-		}
 	} else {
-		query = listConnectionEventsByUserIDQuery
+		relation, er := e.conn.Relation(accountID, applicationID, currentUserID, userID)
+		if er != nil {
+			return nil, er
+		}
+
+		if *relation.IsFriend || *relation.IsFollowed {
+			query = listConnectionEventsByUserIDQuery
+		} else {
+			query = listPublicEventsByUserIDQuery
+		}
 	}
 
 	rows, err := e.pg.SlaveDatastore(-1).
@@ -439,7 +442,7 @@ func (e *event) rowsToSlice(rows *sql.Rows) (events []*entity.Event, err []error
 }
 
 func (e *event) composeConnectionCondition(accountID, applicationID int64, userID uint64, joinOperator string) (string, []errors.Error) {
-	connections, er := e.c.FriendsAndFollowingIDs(accountID, applicationID, userID)
+	connections, er := e.conn.FriendsAndFollowingIDs(accountID, applicationID, userID)
 	if er != nil {
 		return "", er
 	}
@@ -467,6 +470,6 @@ func NewEvent(pgsql postgres.Client) core.Event {
 	return &event{
 		pg:     pgsql,
 		mainPg: pgsql.MainDatastore(),
-		c:      NewConnection(pgsql),
+		conn:   NewConnection(pgsql),
 	}
 }

@@ -44,6 +44,8 @@ var (
 	ErrConnectionTypeIsWrong        = errors.New(http.StatusBadRequest, 2002, "unexpected connection type", "", false)
 	ErrConnectionSelfConnectingUser = errors.New(http.StatusBadRequest, 2003, "user is connecting with itself", "self-connecting user", false)
 	ErrConnectionUsersNotConnected  = errors.New(http.StatusNotFound, 2004, "users are not connected", "", false)
+	ErrConnectionStateInvalid       = errors.New(http.StatusConflict, 2005, "invalid connection state", "", false)
+	ErrConnectionStateNotAllowed    = errors.New(http.StatusBadRequest, 2006, "cannot transfer connection from existing state to new state", "", false)
 
 	// Internal connection errors
 

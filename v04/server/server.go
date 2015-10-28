@@ -57,6 +57,7 @@ func init() {
 	if os.Getenv("CI") == "true" {
 		appRateLimitProduction = 50
 		appRateLimitStaging = 10
+		appRateLimitSeconds = 1 * time.Second
 	}
 
 	if os.Getenv("NO_LIMITS") == "true" {

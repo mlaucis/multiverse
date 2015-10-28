@@ -24,13 +24,6 @@ func CreateConnection(datastore core.ApplicationUser, accountID, applicationID i
 			errs = append(errs, errmsg.ErrApplicationUserNotFound.SetCurrentLocation())
 		}
 	}
-	userFrom, err := datastore.Read(accountID, applicationID, connection.UserFromID, false)
-	if err != nil {
-		errs = append(errs, err...)
-	}
-	if !userFrom.Activated {
-		errs = append(errs, errmsg.ErrApplicationUserNotActivated.SetCurrentLocation())
-	}
 
 	if exists, err := datastore.ExistsByID(accountID, applicationID, connection.UserToID); !exists || err != nil {
 		if err != nil {
@@ -38,15 +31,6 @@ func CreateConnection(datastore core.ApplicationUser, accountID, applicationID i
 		} else {
 			errs = append(errs, errmsg.ErrApplicationUserNotFound.SetCurrentLocation())
 		}
-	}
-	userTo, err := datastore.Read(accountID, applicationID, connection.UserToID, false)
-	if err != nil {
-		errs = append(errs, err...)
-	}
-	if userTo == nil {
-		errs = append(errs, errmsg.ErrApplicationUserNotActivated.SetCurrentLocation())
-	} else if !userTo.Activated {
-		errs = append(errs, errmsg.ErrApplicationUserNotActivated.SetCurrentLocation())
 	}
 
 	return

@@ -3,6 +3,9 @@ package entity
 
 import (
 	"time"
+
+	"github.com/tapglue/multiverse/errors"
+	"github.com/tapglue/multiverse/v04/errmsg"
 )
 
 type (
@@ -34,7 +37,6 @@ type (
 		Email            string     `json:"email,omitempty"`
 		URL              string     `json:"url,omitempty"`
 		LastLogin        *time.Time `json:"last_login,omitempty"`
-		Activated        bool       `json:"activated,omitempty"`
 		Deleted          *bool      `json:"deleted,omitempty"`
 		SessionToken     string     `json:"session_token,omitempty"`
 	}
@@ -103,18 +105,19 @@ type (
 
 	// ApplicationUser structure
 	ApplicationUser struct {
-		ID                   uint64              `json:"id"`
-		CustomID             string              `json:"custom_id,omitempty"`
-		SocialIDs            map[string]string   `json:"social_ids,omitempty"`
-		SocialConnectionsIDs map[string][]string `json:"social_connections_ids,omitempty"`
-		SocialConnectionType string              `json:"connection_type,omitempty"`
-		DeviceIDs            []string            `json:"device_ids,omitempty"`
-		Events               []*Event            `json:"events,omitempty"`
-		Connections          []*ApplicationUser  `json:"connections,omitempty"`
-		LastRead             *time.Time          `json:"-"`
-		FriendCount          *int64              `json:"friend_count,omitempty"`
-		FollowerCount        *int64              `json:"follower_count,omitempty"`
-		FollowedCount        *int64              `json:"followed_count,omitempty"`
+		ID                    uint64              `json:"id"`
+		CustomID              string              `json:"custom_id,omitempty"`
+		SocialIDs             map[string]string   `json:"social_ids,omitempty"`
+		SocialConnectionsIDs  map[string][]string `json:"social_connections_ids,omitempty"`
+		SocialConnectionType  ConnectionTypeType  `json:"connection_type,omitempty"`
+		SocialConnectionState ConnectionStateType `json:"connection_state,omitempty"`
+		DeviceIDs             []string            `json:"device_ids,omitempty"`
+		Events                []*Event            `json:"events,omitempty"`
+		Connections           []*ApplicationUser  `json:"connections,omitempty"`
+		LastRead              *time.Time          `json:"-"`
+		FriendCount           *int64              `json:"friend_count,omitempty"`
+		FollowerCount         *int64              `json:"follower_count,omitempty"`
+		FollowedCount         *int64              `json:"followed_count,omitempty"`
 		Relation
 		UserCommon
 		Common
@@ -128,11 +131,13 @@ type (
 
 	// Connection structure holds the connections of the users
 	Connection struct {
-		UserFromID  uint64     `json:"user_from_id"`
-		UserToID    uint64     `json:"user_to_id"`
-		Type        string     `json:"type"`
-		ConfirmedAt *time.Time `json:"confirmed_at,omitempty"`
-		Common
+		UserFromID uint64              `json:"user_from_id"`
+		UserToID   uint64              `json:"user_to_id"`
+		Type       ConnectionTypeType  `json:"type"`
+		State      ConnectionStateType `json:"state"`
+		Enabled    *bool               `json:"enabled,omitempty"`
+		CreatedAt  *time.Time          `json:"created_at,omitempty"`
+		UpdatedAt  *time.Time          `json:"updated_at,omitempty"`
 	}
 
 	// ConnectionWithIDs holds the connection structure with the added account and application ids
@@ -253,6 +258,31 @@ type (
 	ErrorsResponse struct {
 		Errors []ErrorResponse `json:"errors"`
 	}
+
+	// CreateSocialConnectionRequest is used by the client when requesting creation of a social connection from a user
+	CreateSocialConnectionRequest struct {
+		PlatformUserID  string              `json:"platform_user_id"`
+		SocialPlatform  string              `json:"platform"`
+		ConnectionsIDs  []string            `json:"connection_ids"`
+		ConnectionType  ConnectionTypeType  `json:"type"`
+		ConnectionState ConnectionStateType `json:"state"`
+	}
+
+	// ConnectionsByStateResponse is used as a response to the API query to return the connections in a certain state
+	ConnectionsByStateResponse struct {
+		IncomingConnections      []*Connection      `json:"incoming"`
+		OutgoingConnections      []*Connection      `json:"outgoing"`
+		Users                    []*ApplicationUser `json:"users"`
+		IncomingConnectionsCount int                `json:"incoming_connections_count"`
+		OutgoingConnectionsCount int                `json:"outgoing_connections_count"`
+		UsersCount               int                `json:"users_count"`
+	}
+
+	// ConnectionStateType represents the type of a connection state
+	ConnectionStateType string
+
+	// ConnectionTypeType represents the type of a connection type
+	ConnectionTypeType string
 )
 
 const (
@@ -269,10 +299,19 @@ const (
 	EventGlobal = 40
 
 	// ConnectionTypeFollow is a friend connection
-	ConnectionTypeFriend = "friend"
+	ConnectionTypeFriend ConnectionTypeType = "friend"
 
 	// ConnectionTypeFollow is a follow connection
-	ConnectionTypeFollow = "follow"
+	ConnectionTypeFollow ConnectionTypeType = "follow"
+
+	// ConnectionStatePending is used for pending connections
+	ConnectionStatePending ConnectionStateType = "pending"
+
+	// ConnectionStateConfirmed is used for accepted connections
+	ConnectionStateConfirmed ConnectionStateType = "confirmed"
+
+	// ConnectionStateRejected is used for rejected connections
+	ConnectionStateRejected ConnectionStateType = "rejected"
 )
 
 var (
@@ -296,4 +335,88 @@ func (e SortableEventsByDistance) Len() int      { return len(e) }
 func (e SortableEventsByDistance) Swap(i, j int) { e[i], e[j] = e[j], e[i] }
 func (e SortableEventsByDistance) Less(i, j int) bool {
 	return e[i].DistanceFromTarget < e[j].DistanceFromTarget
+}
+
+// IsValidType will check if the current connection type is valid
+func (c *Connection) IsValidType() bool {
+	return c.Type == ConnectionTypeFollow ||
+		c.Type == ConnectionTypeFriend
+}
+
+// IsValidState will check if the current connection state is valid
+func (c *Connection) IsValidState() bool {
+	return IsValidConectionState(c.State)
+}
+
+// TransferState will take care of transfering the connection state to the new state
+func (c *Connection) TransferState(newState ConnectionStateType) []errors.Error {
+	if !IsValidConectionState(newState) {
+		return []errors.Error{errmsg.ErrConnectionStateInvalid.
+			UpdateInternalMessage("got connection state: " + string(newState)).
+			SetCurrentLocation()}
+	}
+
+	if c.State == "" {
+		return c.transferEmpty(newState)
+	}
+
+	if c.State == ConnectionStatePending {
+		return c.transferPending(newState)
+	}
+
+	if c.State == ConnectionStateConfirmed {
+		return c.transferConfirmed(newState)
+	}
+
+	if c.State == ConnectionStateRejected {
+		return c.transferRejected(newState)
+	}
+
+	return []errors.Error{errmsg.ErrConnectionStateInvalid.
+		UpdateInternalMessage("failed to transfer connection to new state: " + string(newState) + " from state: " + string(c.State)).
+		SetCurrentLocation()}
+}
+
+// IsValidConnectionState will check if the desired connection state is valid
+func IsValidConectionState(state ConnectionStateType) bool {
+	return state == ConnectionStatePending ||
+		state == ConnectionStateConfirmed ||
+		state == ConnectionStateRejected
+}
+
+func (c *Connection) transferEmpty(newState ConnectionStateType) []errors.Error {
+	c.State = newState
+	return nil
+}
+
+func (c *Connection) transferPending(newState ConnectionStateType) []errors.Error {
+	if newState == ConnectionStateConfirmed ||
+		newState == ConnectionStateRejected {
+		c.State = newState
+		return nil
+	}
+	return []errors.Error{errmsg.ErrConnectionStateNotAllowed.
+		UpdateInternalMessage("failed to transfer connection to new state: " + string(newState) + " from state: " + string(c.State)).
+		SetCurrentLocation()}
+}
+
+func (c *Connection) transferConfirmed(newState ConnectionStateType) []errors.Error {
+	if newState == ConnectionStateRejected {
+		c.State = newState
+		return nil
+	}
+	return []errors.Error{errmsg.ErrConnectionStateNotAllowed.
+		UpdateInternalMessage("failed to transfer connection to new state: " + string(newState) + " from state: " + string(c.State)).
+		SetCurrentLocation()}
+}
+
+func (c *Connection) transferRejected(newState ConnectionStateType) []errors.Error {
+	if newState == ConnectionStatePending ||
+		newState == ConnectionStateConfirmed {
+		c.State = newState
+		return nil
+	}
+	return []errors.Error{errmsg.ErrConnectionStateNotAllowed.
+		UpdateInternalMessage("failed to transfer connection to new state: " + string(newState) + " from state: " + string(c.State)).
+		SetCurrentLocation()}
 }

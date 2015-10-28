@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"sort"
 	"strings"
-	"time"
 
 	"github.com/tapglue/multiverse/v04/entity"
 
@@ -60,8 +59,6 @@ func (s *ConnectionSuite) TestCreateConnection_OK(c *C) {
 	userFrom := application.Users[0]
 	userTo := application.Users[1]
 
-	LoginApplicationUser(accounts[0].ID, application.ID, userFrom)
-
 	payload := fmt.Sprintf(
 		`{"user_from_id":%d, "user_to_id":%d, "type": "friend"}`,
 		userFrom.ID,
@@ -82,7 +79,6 @@ func (s *ConnectionSuite) TestCreateConnection_OK(c *C) {
 	c.Assert(connection.UserFromID, Equals, userFrom.ID)
 	c.Assert(connection.UserToID, Equals, userTo.ID)
 	c.Assert(connection.Type, Equals, entity.ConnectionTypeFriend)
-	c.Assert(connection.Enabled, Equals, true)
 
 	routeName = "getApplicationUser"
 	route = getComposedRoute(routeName, userTo.ID)
@@ -114,9 +110,10 @@ func (s *ConnectionSuite) TestCreateConnectionTwice(c *C) {
 	LoginApplicationUser(accounts[0].ID, application.ID, userFrom)
 
 	payload := fmt.Sprintf(
-		`{"user_from_id":%d, "user_to_id":%d, "type": "`+entity.ConnectionTypeFriend+`"}`,
+		`{"user_from_id":%d, "user_to_id":%d, "type": %q}`,
 		userFrom.ID,
 		userTo.ID,
+		entity.ConnectionTypeFriend,
 	)
 
 	routeName := "createCurrentUserConnection"
@@ -133,13 +130,19 @@ func (s *ConnectionSuite) TestCreateConnectionTwice(c *C) {
 	c.Assert(connection.UserFromID, Equals, userFrom.ID)
 	c.Assert(connection.UserToID, Equals, userTo.ID)
 	c.Assert(connection.Type, Equals, entity.ConnectionTypeFriend)
-	c.Assert(connection.Enabled, Equals, true)
 
 	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
 
-	c.Assert(code, Equals, http.StatusNoContent)
-	c.Assert(body, Equals, "\"\"\n")
+	c.Assert(code, Equals, http.StatusCreated)
+	c.Assert(body, Not(Equals), "")
+
+	connection = &entity.Connection{}
+	er = json.Unmarshal([]byte(body), connection)
+	c.Assert(er, IsNil)
+	c.Assert(connection.UserFromID, Equals, userFrom.ID)
+	c.Assert(connection.UserToID, Equals, userTo.ID)
+	c.Assert(connection.Type, Equals, entity.ConnectionTypeFriend)
 
 	routeName = "getCurrentUserFriends"
 	route = getComposedRoute(routeName)
@@ -187,7 +190,6 @@ func (s *ConnectionSuite) TestCreateFriendConnection(c *C) {
 	c.Assert(connection.UserFromID, Equals, userFrom.ID)
 	c.Assert(connection.UserToID, Equals, userTo.ID)
 	c.Assert(connection.Type, Equals, entity.ConnectionTypeFriend)
-	c.Assert(connection.Enabled, Equals, true)
 }
 
 func (s *ConnectionSuite) TestCreateFollowConnection(c *C) {
@@ -217,7 +219,6 @@ func (s *ConnectionSuite) TestCreateFollowConnection(c *C) {
 	c.Assert(connection.UserFromID, Equals, userFrom.ID)
 	c.Assert(connection.UserToID, Equals, userTo.ID)
 	c.Assert(connection.Type, Equals, entity.ConnectionTypeFollow)
-	c.Assert(connection.Enabled, Equals, true)
 }
 
 func (s *ConnectionSuite) TestCreateConnectionWithCustomIDs_OK(c *C) {
@@ -231,7 +232,7 @@ func (s *ConnectionSuite) TestCreateConnectionWithCustomIDs_OK(c *C) {
 	LoginApplicationUser(accounts[0].ID, application.ID, userFrom)
 
 	payload := fmt.Sprintf(
-		`{"user_to_id":%d, "type": "`+entity.ConnectionTypeFriend+`"}`,
+		`{"user_to_id":%d, "type": "`+string(entity.ConnectionTypeFriend)+`"}`,
 		userTo.CustomID,
 	)
 
@@ -249,7 +250,6 @@ func (s *ConnectionSuite) TestCreateConnectionWithCustomIDs_OK(c *C) {
 	c.Assert(connection.UserFromID, Equals, userFrom.ID)
 	c.Assert(connection.UserToID, Equals, userTo.ID)
 	c.Assert(connection.Type, Equals, entity.ConnectionTypeFriend)
-	c.Assert(connection.Enabled, Equals, true)
 }
 
 // Test to create connections after a user logs in
@@ -284,7 +284,7 @@ func (s *ConnectionSuite) TestCreateConnectionAfterLogin(c *C) {
 
 	userFrom.SessionToken = sessionToken.Token
 
-	payload = fmt.Sprintf(`{"user_to_id":%d, "type": "`+entity.ConnectionTypeFollow+`"}`, userTo.ID)
+	payload = fmt.Sprintf(`{"user_to_id":%d, "type": %q}`, userTo.ID, entity.ConnectionTypeFollow)
 
 	routeName = "createCurrentUserConnection"
 	route = getComposedRoute(routeName)
@@ -299,7 +299,6 @@ func (s *ConnectionSuite) TestCreateConnectionAfterLogin(c *C) {
 
 	c.Assert(connection.UserFromID, Equals, userFrom.ID)
 	c.Assert(connection.UserToID, Equals, userTo.ID)
-	c.Assert(connection.Enabled, Equals, true)
 }
 
 // Test to create connections after a user logs in and refreshes session with the new token
@@ -351,7 +350,7 @@ func (s *ConnectionSuite) TestCreateConnectionAfterLoginRefreshNewToken(c *C) {
 
 	userFrom.SessionToken = sessionToken.Token
 
-	payload = fmt.Sprintf(`{"user_to_id":%d, "type": "`+entity.ConnectionTypeFriend+`"}`, userTo.ID)
+	payload = fmt.Sprintf(`{"user_to_id":%d, "type": "`+string(entity.ConnectionTypeFriend)+`"}`, userTo.ID)
 
 	routeName = "createCurrentUserConnection"
 	route = getComposedRoute(routeName)
@@ -366,7 +365,6 @@ func (s *ConnectionSuite) TestCreateConnectionAfterLoginRefreshNewToken(c *C) {
 
 	c.Assert(connection.UserFromID, Equals, userFrom.ID)
 	c.Assert(connection.UserToID, Equals, userTo.ID)
-	c.Assert(connection.Enabled, Equals, true)
 }
 
 // Test to create connections after a user logs in and refreshes session with the old token
@@ -415,7 +413,7 @@ func (s *ConnectionSuite) TestCreateConnectionAfterLoginRefreshOldToken_Works(c 
 	c.Assert(sessionToken.UserID, Equals, userFrom.ID)
 	c.Assert(sessionToken.Token, Not(Equals), "")
 
-	payload = fmt.Sprintf(`{"user_to_id":%d, "type": "`+entity.ConnectionTypeFriend+`"}`, userTo.ID)
+	payload = fmt.Sprintf(`{"user_to_id":%d, "type": %q}`, userTo.ID, entity.ConnectionTypeFriend)
 
 	routeName = "createCurrentUserConnection"
 	route = getComposedRoute(routeName)
@@ -464,7 +462,7 @@ func (s *ConnectionSuite) TestCreateConnectionAfterLoginLogout(c *C) {
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusNoContent)
 
-	payload = fmt.Sprintf(`{"user_to_id":%d, "type": "`+entity.ConnectionTypeFriend+`"}`, userTo.ID)
+	payload = fmt.Sprintf(`{"user_to_id":%d, "type": %q}`, userTo.ID, entity.ConnectionTypeFriend)
 
 	routeName = "createCurrentUserConnection"
 	route = getComposedRoute(routeName)
@@ -523,7 +521,7 @@ func (s *ConnectionSuite) TestCreateConnectionAfterLoginLogoutLogin(c *C) {
 
 	userFrom.SessionToken = sessionToken.Token
 
-	payload = fmt.Sprintf(`{"user_to_id":%d, "type": "`+entity.ConnectionTypeFriend+`"}`, userTo.ID)
+	payload = fmt.Sprintf(`{"user_to_id":%d, "type": %q}`, userTo.ID, entity.ConnectionTypeFriend)
 
 	routeName = "createCurrentUserConnection"
 	route = getComposedRoute(routeName)
@@ -593,7 +591,7 @@ func (s *ConnectionSuite) TestCreateConnectionAfterLoginRefreshLogout(c *C) {
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusNoContent)
 
-	payload = fmt.Sprintf(`{"user_to_id":%d, "type": "`+entity.ConnectionTypeFriend+`"}`, userTo.ID)
+	payload = fmt.Sprintf(`{"user_to_id":%d, "type": %q}`, userTo.ID, entity.ConnectionTypeFriend)
 
 	routeName = "createCurrentUserConnection"
 	route = getComposedRoute(routeName)
@@ -615,7 +613,7 @@ func (s *ConnectionSuite) TestCreateFollowConnectionAndCheckLists(c *C) {
 	LoginApplicationUser(account.ID, application.ID, userFrom)
 	LoginApplicationUser(account.ID, application.ID, userTo)
 
-	payload := fmt.Sprintf(`{"user_to_id":%d,  "type": "`+entity.ConnectionTypeFollow+`"}`, userTo.ID)
+	payload := fmt.Sprintf(`{"user_to_id":%d,  "type": %q}`, userTo.ID, entity.ConnectionTypeFollow)
 
 	routeName := "createCurrentUserConnection"
 	route := getComposedRoute(routeName)
@@ -630,7 +628,6 @@ func (s *ConnectionSuite) TestCreateFollowConnectionAndCheckLists(c *C) {
 
 	c.Assert(connection.UserFromID, Equals, userFrom.ID)
 	c.Assert(connection.UserToID, Equals, userTo.ID)
-	c.Assert(connection.Enabled, Equals, true)
 	c.Assert(connection.Type, Equals, entity.ConnectionTypeFollow)
 
 	// Check connetions list
@@ -699,7 +696,7 @@ func (s *ConnectionSuite) TestCreateFriendConnectionAndCheckLists(c *C) {
 	userFrom := application.Users[0]
 	userTo := application.Users[1]
 
-	payload := fmt.Sprintf(`{"user_to_id":%d,  "type": "`+entity.ConnectionTypeFriend+`"}`, userTo.ID)
+	payload := fmt.Sprintf(`{"user_to_id":%d,  "type": %q}`, userTo.ID, entity.ConnectionTypeFriend)
 
 	routeName := "createCurrentUserConnection"
 	route := getComposedRoute(routeName)
@@ -714,7 +711,6 @@ func (s *ConnectionSuite) TestCreateFriendConnectionAndCheckLists(c *C) {
 
 	c.Assert(connection.UserFromID, Equals, userFrom.ID)
 	c.Assert(connection.UserToID, Equals, userTo.ID)
-	c.Assert(connection.Enabled, Equals, true)
 	c.Assert(connection.Type, Equals, entity.ConnectionTypeFriend)
 
 	// Check connetions list
@@ -783,7 +779,7 @@ func (s *ConnectionSuite) TestCreateFriendConnectionAfterDeletingTheSameFriendCo
 	userFrom := application.Users[0]
 	userTo := application.Users[1]
 
-	payload := fmt.Sprintf(`{"user_to_id":%d,  "type": "`+entity.ConnectionTypeFriend+`"}`, userTo.ID)
+	payload := fmt.Sprintf(`{"user_to_id":%d,  "type": %q}`, userTo.ID, entity.ConnectionTypeFriend)
 
 	routeName := "createCurrentUserConnection"
 	route := getComposedRoute(routeName)
@@ -798,7 +794,6 @@ func (s *ConnectionSuite) TestCreateFriendConnectionAfterDeletingTheSameFriendCo
 
 	c.Assert(connection.UserFromID, Equals, userFrom.ID)
 	c.Assert(connection.UserToID, Equals, userTo.ID)
-	c.Assert(connection.Enabled, Equals, true)
 	c.Assert(connection.Type, Equals, entity.ConnectionTypeFriend)
 
 	routeName = "getUserFriends"
@@ -839,12 +834,12 @@ func (s *ConnectionSuite) TestCreateFriendConnectionAfterDeletingTheSameFriendCo
 	c.Assert(userConnections.Users[0].ID, Equals, userFrom.ID)
 
 	routeName = "deleteCurrentUserConnection"
-	route = getComposedRoute(routeName, userTo.ID)
+	route = getComposedRoute(routeName, entity.ConnectionTypeFriend, userTo.ID)
 	code, _, err = runRequest(routeName, route, "", signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusNoContent)
 
-	payload = fmt.Sprintf(`{"user_to_id":%d,  "type": "`+entity.ConnectionTypeFriend+`"}`, userTo.ID)
+	payload = fmt.Sprintf(`{"user_to_id":%d,  "type": %q}`, userTo.ID, entity.ConnectionTypeFriend)
 	routeName = "createCurrentUserConnection"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
@@ -858,7 +853,6 @@ func (s *ConnectionSuite) TestCreateFriendConnectionAfterDeletingTheSameFriendCo
 
 	c.Assert(connection.UserFromID, Equals, userFrom.ID)
 	c.Assert(connection.UserToID, Equals, userTo.ID)
-	c.Assert(connection.Enabled, Equals, true)
 	c.Assert(connection.Type, Equals, entity.ConnectionTypeFriend)
 
 	routeName = "getUserFriends"
@@ -926,7 +920,7 @@ func (s *ConnectionSuite) TestCreateConnectionUsersAlreadyConnected(c *C) {
 	userFrom := application.Users[0]
 	userTo := application.Users[1]
 
-	payload := fmt.Sprintf(`{"user_to_id":%d, "type": "`+entity.ConnectionTypeFriend+`"}`, userTo.ID)
+	payload := fmt.Sprintf(`{"user_to_id":%d, "type": %q}`, userTo.ID, entity.ConnectionTypeFriend)
 
 	routeName := "createCurrentUserConnection"
 	route := getComposedRoute(routeName)
@@ -1031,7 +1025,6 @@ func (s *ConnectionSuite) TestUpdateConnection_OK(c *C) {
 	c.Assert(er, IsNil)
 	c.Assert(connection.UserFromID, Equals, userFrom.ID)
 	c.Assert(connection.UserToID, Equals, userTo.ID)
-	c.Assert(connection.Enabled, Equals, false)
 }
 
 // Test to update connections after a user logs in
@@ -1098,7 +1091,7 @@ func (s *ConnectionSuite) TestDeleteConnection_OK(c *C) {
 	LoginApplicationUser(account.ID, application.ID, userFrom)
 
 	routeName := "deleteCurrentUserConnection"
-	route := getComposedRoute(routeName, userTo.ID)
+	route := getComposedRoute(routeName, entity.ConnectionTypeFollow, userTo.ID)
 	code, _, err := runRequest(routeName, route, "", signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
 
@@ -1114,7 +1107,7 @@ func (s *ConnectionSuite) TestDeleteConnection_WrongID(c *C) {
 	userTo := application.Users[1]
 
 	routeName := "deleteCurrentUserConnection"
-	route := getComposedRoute(routeName, userTo.ID+1)
+	route := getComposedRoute(routeName, entity.ConnectionTypeFollow, userTo.ID+1)
 	code, _, err := runRequest(routeName, route, "", signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusNotFound)
@@ -1244,7 +1237,7 @@ func (s *ConnectionSuite) TestConfirmConnection(c *C) {
 
 	LoginApplicationUser(accounts[0].ID, application.ID, user1)
 
-	payload := fmt.Sprintf(`{"user_from_id":%q, "user_to_id":%d, "type": "`+entity.ConnectionTypeFriend+`", "enabled": false}`, user1.ID, user2.ID)
+	payload := fmt.Sprintf(`{"user_from_id":%q, "user_to_id":%d, "type": %q, "enabled": false}`, user1.ID, user2.ID, entity.ConnectionTypeFriend)
 	routeName := "createCurrentUserConnection"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, user1, true, true))
@@ -1257,9 +1250,8 @@ func (s *ConnectionSuite) TestConfirmConnection(c *C) {
 	c.Assert(er, IsNil)
 	c.Assert(connection.UserFromID, Equals, user1.ID)
 	c.Assert(connection.UserToID, Equals, user2.ID)
-	c.Assert(connection.Enabled, Equals, false)
 
-	payload = fmt.Sprintf(`{"user_from_id":%q, "user_to_id":%d, "type":"`+entity.ConnectionTypeFriend+`", "enabled": true}`, user1.ID, user2.ID)
+	payload = fmt.Sprintf(`{"user_from_id":%q, "user_to_id":%d, "type": %q, "enabled": true}`, user1.ID, user2.ID, entity.ConnectionTypeFriend)
 	routeName = "confirmConnection"
 	route = getComposedRoute(routeName, user2.ID)
 	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, user1, true, true))
@@ -1272,7 +1264,6 @@ func (s *ConnectionSuite) TestConfirmConnection(c *C) {
 	c.Assert(er, IsNil)
 	c.Assert(connection.UserFromID, Equals, user1.ID)
 	c.Assert(connection.UserToID, Equals, user2.ID)
-	c.Assert(connection.Enabled, Equals, true)
 }
 
 /****************************************************************/
@@ -1289,19 +1280,14 @@ func (s *ConnectionSuite) TestCreateSocialConnection(c *C) {
 	user2 := application.Users[1]
 	user4 := application.Users[3]
 
-	payload, er := json.Marshal(struct {
-		UserFromID     string   `json:"platform_user_id"`
-		SocialPlatform string   `json:"platform"`
-		ConnectionsIDs []string `json:"connection_ids"`
-		Type           string   `json:"type"`
-	}{
-		UserFromID:     userFrom.SocialIDs["facebook"],
+	payload, er := json.Marshal(entity.CreateSocialConnectionRequest{
+		PlatformUserID: userFrom.SocialIDs["facebook"],
 		SocialPlatform: "facebook",
 		ConnectionsIDs: []string{
 			user2.SocialIDs["facebook"],
 			user4.SocialIDs["facebook"],
 		},
-		Type: entity.ConnectionTypeFriend,
+		ConnectionType: entity.ConnectionTypeFriend,
 	})
 	c.Assert(er, IsNil)
 
@@ -1512,19 +1498,14 @@ func (s *ConnectionSuite) TestCreateSocialConnectionFriendsAlreadyConnected(c *C
 	user2 := application.Users[1]
 	user4 := application.Users[3]
 
-	payload, er := json.Marshal(struct {
-		UserFromID     string   `json:"platform_user_id"`
-		SocialPlatform string   `json:"platform"`
-		ConnectionsIDs []string `json:"connection_ids"`
-		Type           string   `json:"type"`
-	}{
-		UserFromID:     userFrom.SocialIDs["facebook"],
+	payload, er := json.Marshal(entity.CreateSocialConnectionRequest{
+		PlatformUserID: userFrom.SocialIDs["facebook"],
 		SocialPlatform: "facebook",
 		ConnectionsIDs: []string{
 			user2.SocialIDs["facebook"],
 			user4.SocialIDs["facebook"],
 		},
-		Type: entity.ConnectionTypeFriend,
+		ConnectionType: entity.ConnectionTypeFriend,
 	})
 	c.Assert(er, IsNil)
 
@@ -1546,19 +1527,14 @@ func (s *ConnectionSuite) TestCreateSocialConnectionFriendsAlreadyConnected(c *C
 	c.Assert(connectedUsers.Users[0].ID, Equals, user2.ID)
 	c.Assert(connectedUsers.Users[1].ID, Equals, user4.ID)
 
-	payload, er = json.Marshal(struct {
-		UserFromID     string   `json:"platform_user_id"`
-		SocialPlatform string   `json:"platform"`
-		ConnectionsIDs []string `json:"connection_ids"`
-		Type           string   `json:"type"`
-	}{
-		UserFromID:     user2.SocialIDs["facebook"],
+	payload, er = json.Marshal(entity.CreateSocialConnectionRequest{
+		PlatformUserID: user2.SocialIDs["facebook"],
 		SocialPlatform: "facebook",
 		ConnectionsIDs: []string{
 			userFrom.SocialIDs["facebook"],
 			user4.SocialIDs["facebook"],
 		},
-		Type: entity.ConnectionTypeFriend,
+		ConnectionType: entity.ConnectionTypeFriend,
 	})
 	c.Assert(er, IsNil)
 
@@ -1590,19 +1566,14 @@ func (s *ConnectionSuite) TestCreateSocialConnectionFollowsAlreadyConnected(c *C
 	user2 := application.Users[1]
 	user4 := application.Users[3]
 
-	payload, er := json.Marshal(struct {
-		UserFromID     string   `json:"platform_user_id"`
-		SocialPlatform string   `json:"platform"`
-		ConnectionsIDs []string `json:"connection_ids"`
-		Type           string   `json:"type"`
-	}{
-		UserFromID:     userFrom.SocialIDs["facebook"],
+	payload, er := json.Marshal(entity.CreateSocialConnectionRequest{
+		PlatformUserID: userFrom.SocialIDs["facebook"],
 		SocialPlatform: "facebook",
 		ConnectionsIDs: []string{
 			user2.SocialIDs["facebook"],
 			user4.SocialIDs["facebook"],
 		},
-		Type: entity.ConnectionTypeFollow,
+		ConnectionType: entity.ConnectionTypeFollow,
 	})
 	c.Assert(er, IsNil)
 
@@ -1624,19 +1595,14 @@ func (s *ConnectionSuite) TestCreateSocialConnectionFollowsAlreadyConnected(c *C
 	c.Assert(connectedUsers.Users[0].ID, Equals, user2.ID)
 	c.Assert(connectedUsers.Users[1].ID, Equals, user4.ID)
 
-	payload, er = json.Marshal(struct {
-		UserFromID     string   `json:"platform_user_id"`
-		SocialPlatform string   `json:"platform"`
-		ConnectionsIDs []string `json:"connection_ids"`
-		Type           string   `json:"type"`
-	}{
-		UserFromID:     user2.SocialIDs["facebook"],
+	payload, er = json.Marshal(entity.CreateSocialConnectionRequest{
+		PlatformUserID: user2.SocialIDs["facebook"],
 		SocialPlatform: "facebook",
 		ConnectionsIDs: []string{
 			userFrom.SocialIDs["facebook"],
 			user4.SocialIDs["facebook"],
 		},
-		Type: entity.ConnectionTypeFollow,
+		ConnectionType: entity.ConnectionTypeFollow,
 	})
 	c.Assert(er, IsNil)
 
@@ -1668,19 +1634,14 @@ func (s *ConnectionSuite) TestCreateSocialConnectionFollowsFriendAlreadyConnecte
 	user2 := application.Users[1]
 	user4 := application.Users[3]
 
-	payload, er := json.Marshal(struct {
-		UserFromID     string   `json:"platform_user_id"`
-		SocialPlatform string   `json:"platform"`
-		ConnectionsIDs []string `json:"connection_ids"`
-		Type           string   `json:"type"`
-	}{
-		UserFromID:     userFrom.SocialIDs["facebook"],
+	payload, er := json.Marshal(entity.CreateSocialConnectionRequest{
+		PlatformUserID: userFrom.SocialIDs["facebook"],
 		SocialPlatform: "facebook",
 		ConnectionsIDs: []string{
 			user2.SocialIDs["facebook"],
 			user4.SocialIDs["facebook"],
 		},
-		Type: entity.ConnectionTypeFollow,
+		ConnectionType: entity.ConnectionTypeFollow,
 	})
 	c.Assert(er, IsNil)
 
@@ -1702,19 +1663,14 @@ func (s *ConnectionSuite) TestCreateSocialConnectionFollowsFriendAlreadyConnecte
 	c.Assert(connectedUsers.Users[0].ID, Equals, user2.ID)
 	c.Assert(connectedUsers.Users[1].ID, Equals, user4.ID)
 
-	payload, er = json.Marshal(struct {
-		UserFromID     string   `json:"platform_user_id"`
-		SocialPlatform string   `json:"platform"`
-		ConnectionsIDs []string `json:"connection_ids"`
-		Type           string   `json:"type"`
-	}{
-		UserFromID:     user2.SocialIDs["facebook"],
+	payload, er = json.Marshal(entity.CreateSocialConnectionRequest{
+		PlatformUserID: user2.SocialIDs["facebook"],
 		SocialPlatform: "facebook",
 		ConnectionsIDs: []string{
 			userFrom.SocialIDs["facebook"],
 			user4.SocialIDs["facebook"],
 		},
-		Type: entity.ConnectionTypeFriend,
+		ConnectionType: entity.ConnectionTypeFriend,
 	})
 	c.Assert(er, IsNil)
 
@@ -1746,19 +1702,14 @@ func (s *ConnectionSuite) TestCreateSocialConnectionFriendFollowsAlreadyConnecte
 	user2 := application.Users[1]
 	user4 := application.Users[3]
 
-	payload, er := json.Marshal(struct {
-		UserFromID     string   `json:"platform_user_id"`
-		SocialPlatform string   `json:"platform"`
-		ConnectionsIDs []string `json:"connection_ids"`
-		Type           string   `json:"type"`
-	}{
-		UserFromID:     userFrom.SocialIDs["facebook"],
+	payload, er := json.Marshal(entity.CreateSocialConnectionRequest{
+		PlatformUserID: userFrom.SocialIDs["facebook"],
 		SocialPlatform: "facebook",
 		ConnectionsIDs: []string{
 			user2.SocialIDs["facebook"],
 			user4.SocialIDs["facebook"],
 		},
-		Type: entity.ConnectionTypeFriend,
+		ConnectionType: entity.ConnectionTypeFriend,
 	})
 	c.Assert(er, IsNil)
 
@@ -1780,19 +1731,14 @@ func (s *ConnectionSuite) TestCreateSocialConnectionFriendFollowsAlreadyConnecte
 	c.Assert(connectedUsers.Users[0].ID, Equals, user2.ID)
 	c.Assert(connectedUsers.Users[1].ID, Equals, user4.ID)
 
-	payload, er = json.Marshal(struct {
-		UserFromID     string   `json:"platform_user_id"`
-		SocialPlatform string   `json:"platform"`
-		ConnectionsIDs []string `json:"connection_ids"`
-		Type           string   `json:"type"`
-	}{
-		UserFromID:     user2.SocialIDs["facebook"],
+	payload, er = json.Marshal(entity.CreateSocialConnectionRequest{
+		PlatformUserID: user2.SocialIDs["facebook"],
 		SocialPlatform: "facebook",
 		ConnectionsIDs: []string{
 			userFrom.SocialIDs["facebook"],
 			user4.SocialIDs["facebook"],
 		},
-		Type: entity.ConnectionTypeFollow,
+		ConnectionType: entity.ConnectionTypeFollow,
 	})
 	c.Assert(er, IsNil)
 
@@ -1840,7 +1786,6 @@ func (s *ConnectionSuite) TestGetConnectionsCount(c *C) {
 	c.Assert(connection.UserFromID, Equals, user.ID)
 	c.Assert(connection.UserToID, Equals, userFriend.ID)
 	c.Assert(connection.Type, Equals, entity.ConnectionTypeFriend)
-	c.Assert(connection.Enabled, Equals, true)
 
 	routeName = "getCurrentApplicationUser"
 	route = getComposedRoute(routeName)
@@ -1858,174 +1803,325 @@ func (s *ConnectionSuite) TestGetConnectionsCount(c *C) {
 	c.Assert(*receivedUser.FollowedCount, Equals, int64(4))
 }
 
-func (s *ConnectionSuite) TestCreateFriendsConnectionWithEvent(c *C) {
-	accounts := CorrectDeploy(1, 0, 1, 2, 0, false, true)
+func (s *ConnectionSuite) TestCreateFriendConnectionWithState(c *C) {
+	accounts := CorrectDeploy(1, 0, 1, 10, 0, false, true)
 	application := accounts[0].Applications[0]
-	userFrom := application.Users[0]
-	userTo := application.Users[1]
+	application.InProduction = true
+	users := application.Users
 
-	LoginApplicationUser(accounts[0].ID, application.ID, userFrom)
+	if coreAppRedis != nil {
+		_, err := coreAppRedis.Update(*application, *application, false)
+		if err != nil {
+			c.Fatal(err)
+		}
+	}
+	_, err := coreApp.Update(*application, *application, false)
+	if err != nil {
+		c.Fatal(err)
+	}
 
-	payload := fmt.Sprintf(
-		`{"user_from_id":%d, "user_to_id":%d, "type": "`+entity.ConnectionTypeFriend+`"}`,
-		userFrom.ID,
-		userTo.ID,
-	)
+	usersByPos := make(map[uint64]*entity.ApplicationUser, len(users))
+	for userPos := range users {
+		usersByPos[users[userPos].ID] = users[userPos]
+	}
 
-	routeName := "createCurrentUserConnection"
-	route := getComposedRoute(routeName) + "?with_event=true"
-	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
-	c.Assert(err, IsNil)
-
-	c.Assert(code, Equals, http.StatusCreated)
-	c.Assert(body, Not(Equals), "")
-
-	connection := &entity.Connection{}
-	er := json.Unmarshal([]byte(body), connection)
-	c.Assert(er, IsNil)
-	c.Assert(connection.UserFromID, Equals, userFrom.ID)
-	c.Assert(connection.UserToID, Equals, userTo.ID)
-	c.Assert(connection.Type, Equals, entity.ConnectionTypeFriend)
-	c.Assert(connection.Enabled, Equals, true)
-
-	// We need to wait a bit for the background event to be created
-	time.Sleep(10 * time.Millisecond)
-
-	routeName = "getCurrentUserFeed"
-	route = getComposedRoute(routeName)
-	code, body, err = runRequest(routeName, route, "", signApplicationRequest(application, userTo, true, true))
-	c.Assert(err, IsNil)
-	c.Assert(code, Equals, http.StatusOK)
-	c.Assert(body, Not(Equals), "")
-
-	response := struct {
-		Count  int                               `json:"unread_events_count"`
-		Events []entity.Event                    `json:"events"`
-		Users  map[string]entity.ApplicationUser `json:"users"`
-	}{}
-	er = json.Unmarshal([]byte(body), &response)
-	c.Assert(er, IsNil)
-
-	c.Assert(response.Count, Equals, 1)
-	c.Assert(len(response.Events), Equals, 1)
-	c.Assert(len(response.Users), Equals, 1)
-	c.Assert(response.Events[0].Type, Equals, "tg_friend")
-}
-
-func (s *ConnectionSuite) TestCreateFollowConnectionWithEvent(c *C) {
-	accounts := CorrectDeploy(1, 0, 1, 2, 0, false, true)
-	application := accounts[0].Applications[0]
-	userFrom := application.Users[0]
-	userTo := application.Users[1]
-
-	LoginApplicationUser(accounts[0].ID, application.ID, userFrom)
-
-	payload := fmt.Sprintf(
-		`{"user_from_id":%d, "user_to_id":%d, "type": "`+entity.ConnectionTypeFollow+`"}`,
-		userFrom.ID,
-		userTo.ID,
-	)
-
-	routeName := "createCurrentUserConnection"
-	route := getComposedRoute(routeName) + "?with_event=true"
-	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
-	c.Assert(err, IsNil)
-
-	c.Assert(code, Equals, http.StatusCreated)
-	c.Assert(body, Not(Equals), "")
-
-	connection := &entity.Connection{}
-	er := json.Unmarshal([]byte(body), connection)
-	c.Assert(er, IsNil)
-	c.Assert(connection.UserFromID, Equals, userFrom.ID)
-	c.Assert(connection.UserToID, Equals, userTo.ID)
-	c.Assert(connection.Type, Equals, entity.ConnectionTypeFollow)
-	c.Assert(connection.Enabled, Equals, true)
-
-	// We need to wait a bit for the background event to be created
-	time.Sleep(10 * time.Millisecond)
-
-	routeName = "getCurrentUserFeed"
-	route = getComposedRoute(routeName)
-	code, body, err = runRequest(routeName, route, "", signApplicationRequest(application, userTo, true, true))
-	c.Assert(err, IsNil)
-	c.Assert(code, Equals, http.StatusOK)
-	c.Assert(body, Not(Equals), "")
-
-	response := struct {
-		Count  int                               `json:"unread_events_count"`
-		Events []entity.Event                    `json:"events"`
-		Users  map[string]entity.ApplicationUser `json:"users"`
-	}{}
-	er = json.Unmarshal([]byte(body), &response)
-	c.Assert(er, IsNil)
-
-	c.Assert(response.Count, Equals, 1)
-	c.Assert(len(response.Events), Equals, 1)
-	c.Assert(len(response.Users), Equals, 1)
-	c.Assert(response.Events[0].Type, Equals, "tg_follow")
-}
-
-func (s *ConnectionSuite) TestCreateSocialConnectionWithEvent(c *C) {
-	accounts := CorrectDeploy(1, 0, 1, 5, 0, false, true)
-	account := accounts[0]
-	application := account.Applications[0]
-
-	userFrom := application.Users[0]
-	user2 := application.Users[1]
-	user4 := application.Users[3]
-
-	payload, er := json.Marshal(struct {
-		UserFromID     string   `json:"platform_user_id"`
-		SocialPlatform string   `json:"platform"`
-		ConnectionsIDs []string `json:"connection_ids"`
-		Type           string   `json:"type"`
+	scenarios := []struct {
+		Payload      entity.Connection
+		ResponseCode int
+		Response     entity.Connection
 	}{
-		UserFromID:     userFrom.SocialIDs["facebook"],
-		SocialPlatform: "facebook",
-		ConnectionsIDs: []string{
-			user2.SocialIDs["facebook"],
-			user4.SocialIDs["facebook"],
+		// 0
+		{
+			Payload: entity.Connection{
+				UserFromID: users[0].ID,
+				UserToID:   users[1].ID,
+				State:      "pending",
+			},
+			ResponseCode: 201,
+			Response: entity.Connection{
+				UserFromID: users[0].ID,
+				UserToID:   users[1].ID,
+				State:      "pending",
+			},
 		},
-		Type: entity.ConnectionTypeFriend,
-	})
-	c.Assert(er, IsNil)
+		// 1
+		{
+			Payload: entity.Connection{
+				UserFromID: users[0].ID,
+				UserToID:   users[1].ID,
+				State:      "confirmed",
+			},
+			ResponseCode: 201,
+			Response: entity.Connection{
+				UserFromID: users[0].ID,
+				UserToID:   users[1].ID,
+				State:      "confirmed",
+			},
+		},
 
-	routeName := "createCurrentUserSocialConnections"
-	route := getComposedRoute(routeName) + "?with_event=true"
-	code, body, err := runRequest(routeName, route, string(payload), signApplicationRequest(application, userFrom, true, true))
+		// 2
+		{
+			Payload: entity.Connection{
+				UserFromID: users[0].ID,
+				UserToID:   users[2].ID,
+				State:      "pending",
+			},
+			ResponseCode: 201,
+			Response: entity.Connection{
+				UserFromID: users[0].ID,
+				UserToID:   users[2].ID,
+				State:      "pending",
+			},
+		},
+		// 3
+		{
+			Payload: entity.Connection{
+				UserFromID: users[0].ID,
+				UserToID:   users[2].ID,
+				State:      "rejected",
+			},
+			ResponseCode: 201,
+			Response: entity.Connection{
+				UserFromID: users[0].ID,
+				UserToID:   users[2].ID,
+				State:      "rejected",
+			},
+		},
+		// 4
+		{
+			Payload: entity.Connection{
+				UserFromID: users[0].ID,
+				UserToID:   users[4].ID,
+				State:      "pending",
+			},
+			ResponseCode: 201,
+			Response: entity.Connection{
+				UserFromID: users[0].ID,
+				UserToID:   users[4].ID,
+				State:      "pending",
+			},
+		},
+		// 5
+		{
+			Payload: entity.Connection{
+				UserFromID: users[4].ID,
+				UserToID:   users[0].ID,
+				State:      "confirmed",
+			},
+			ResponseCode: 201,
+			Response: entity.Connection{
+				UserFromID: users[4].ID,
+				UserToID:   users[0].ID,
+				State:      "confirmed",
+			},
+		},
+
+		// 6
+		{
+			Payload: entity.Connection{
+				UserFromID: users[0].ID,
+				UserToID:   users[5].ID,
+				State:      "pending",
+			},
+			ResponseCode: 201,
+			Response: entity.Connection{
+				UserFromID: users[0].ID,
+				UserToID:   users[5].ID,
+				State:      "pending",
+			},
+		},
+		// 7
+		{
+			Payload: entity.Connection{
+				UserFromID: users[0].ID,
+				UserToID:   users[5].ID,
+				State:      "pending",
+			},
+			ResponseCode: 201,
+			Response: entity.Connection{
+				UserFromID: users[0].ID,
+				UserToID:   users[5].ID,
+				State:      "pending",
+			},
+		},
+
+		// 8
+		{
+			Payload: entity.Connection{
+				UserFromID: users[0].ID,
+				UserToID:   users[6].ID,
+				State:      "pending",
+			},
+			ResponseCode: 201,
+			Response: entity.Connection{
+				UserFromID: users[0].ID,
+				UserToID:   users[6].ID,
+				State:      "pending",
+			},
+		},
+		// 9
+		{
+			Payload: entity.Connection{
+				UserFromID: users[7].ID,
+				UserToID:   users[0].ID,
+				State:      "rejected",
+			},
+			ResponseCode: 201,
+			Response: entity.Connection{
+				UserFromID: users[7].ID,
+				UserToID:   users[0].ID,
+				State:      "rejected",
+			},
+		},
+		// 10
+		{
+			Payload: entity.Connection{
+				UserFromID: users[0].ID,
+				UserToID:   users[7].ID,
+				State:      "pending",
+			},
+			ResponseCode: 201,
+			Response: entity.Connection{
+				UserFromID: users[0].ID,
+				UserToID:   users[7].ID,
+				State:      "pending",
+			},
+		},
+	}
+
+	signRequest := func(userPos uint64) func(r *http.Request) {
+		return signApplicationRequest(application, usersByPos[userPos], true, true)
+	}
+
+	for scenarioID := range scenarios {
+		c.Logf("Testing scenario: %d\n", scenarioID)
+		scenario := scenarios[scenarioID]
+		jsonPayload, err := json.Marshal(scenario.Payload)
+		c.Assert(err, IsNil)
+
+		payload := string(jsonPayload)
+		routeName := "createCurrentUserFriendConnectionAlias"
+		route := getComposedRoute(routeName)
+		code, body, err := runRequest(routeName, route, payload, signRequest(scenario.Payload.UserFromID))
+		c.Assert(err, IsNil)
+
+		c.Assert(code, Equals, scenario.ResponseCode)
+		c.Assert(body, Not(Equals), "")
+
+		connection := &entity.Connection{}
+		er := json.Unmarshal([]byte(body), connection)
+		c.Assert(er, IsNil)
+		c.Assert(connection.UserFromID, Equals, scenario.Response.UserFromID)
+		c.Assert(connection.UserToID, Equals, scenario.Response.UserToID)
+		c.Assert(connection.Type, Equals, entity.ConnectionTypeFriend)
+		c.Assert(connection.State, Equals, scenario.Response.State)
+	}
+}
+
+func (s *ConnectionSuite) TestGetConnectionsByState(c *C) {
+	accounts := CorrectDeploy(1, 0, 1, 4, 0, false, true)
+	application := accounts[0].Applications[0]
+	application.InProduction = true
+	users := application.Users
+
+	if coreAppRedis != nil {
+		_, err := coreAppRedis.Update(*application, *application, false)
+		if err != nil {
+			c.Fatal(err)
+		}
+	}
+	_, err := coreApp.Update(*application, *application, false)
+	if err != nil {
+		c.Fatal(err)
+	}
+
+	userFrom := users[0]
+	userToPending := users[1]
+	userToConfirmed := users[2]
+	userToRejected := users[3]
+
+	routeName := "createCurrentUserFriendConnectionAlias"
+	route := getComposedRoute(routeName)
+
+	jsonPayload, er := json.Marshal(entity.Connection{
+		UserToID: userToPending.ID,
+		Type:     entity.ConnectionTypeFriend,
+		State:    entity.ConnectionStatePending,
+	})
 	c.Assert(err, IsNil)
+
+	payload := string(jsonPayload)
+	code, body, errr := runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
+	c.Assert(errr, IsNil)
+
 	c.Assert(code, Equals, http.StatusCreated)
 	c.Assert(body, Not(Equals), "")
-	c.Assert(body, Not(Equals), "[]\n")
 
-	connectedUsers := struct {
-		Users      []*entity.ApplicationUser `json:"users"`
-		UsersCount int                       `json:"users_count"`
-	}{}
-	er = json.Unmarshal([]byte(body), &connectedUsers)
+	connection := &entity.Connection{}
+	er = json.Unmarshal([]byte(body), connection)
 	c.Assert(er, IsNil)
-	c.Assert(connectedUsers.UsersCount, Equals, 2)
-	c.Assert(connectedUsers.Users[0].ID, Equals, user2.ID)
-	c.Assert(connectedUsers.Users[1].ID, Equals, user4.ID)
+	c.Assert(connection.UserFromID, Equals, userFrom.ID)
+	c.Assert(connection.UserToID, Equals, userToPending.ID)
+	c.Assert(connection.Type, Equals, entity.ConnectionTypeFriend)
+	c.Assert(connection.State, Equals, entity.ConnectionStatePending)
 
-	routeName = "getCurrentUserFeed"
-	route = getComposedRoute(routeName)
-	code, body, err = runRequest(routeName, route, "", signApplicationRequest(application, user2, true, true))
+	jsonPayload, er = json.Marshal(entity.Connection{
+		UserToID: userToConfirmed.ID,
+		Type:     entity.ConnectionTypeFriend,
+		State:    entity.ConnectionStateConfirmed,
+	})
 	c.Assert(err, IsNil)
+
+	payload = string(jsonPayload)
+	code, body, errr = runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
+	c.Assert(errr, IsNil)
+
+	c.Assert(code, Equals, http.StatusCreated)
+	c.Assert(body, Not(Equals), "")
+
+	connection = &entity.Connection{}
+	er = json.Unmarshal([]byte(body), connection)
+	c.Assert(er, IsNil)
+	c.Assert(connection.UserFromID, Equals, userFrom.ID)
+	c.Assert(connection.UserToID, Equals, userToConfirmed.ID)
+	c.Assert(connection.Type, Equals, entity.ConnectionTypeFriend)
+	c.Assert(connection.State, Equals, entity.ConnectionStateConfirmed)
+
+	jsonPayload, er = json.Marshal(entity.Connection{
+		UserToID: userToRejected.ID,
+		Type:     entity.ConnectionTypeFriend,
+		State:    entity.ConnectionStateRejected,
+	})
+	c.Assert(err, IsNil)
+
+	payload = string(jsonPayload)
+	code, body, errr = runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
+	c.Assert(errr, IsNil)
+	c.Assert(code, Equals, http.StatusCreated)
+	c.Assert(body, Not(Equals), "")
+
+	connection = &entity.Connection{}
+	er = json.Unmarshal([]byte(body), connection)
+	c.Assert(er, IsNil)
+	c.Assert(connection.UserFromID, Equals, userFrom.ID)
+	c.Assert(connection.UserToID, Equals, userToRejected.ID)
+	c.Assert(connection.Type, Equals, entity.ConnectionTypeFriend)
+	c.Assert(connection.State, Equals, entity.ConnectionStateRejected)
+
+	routeName = "getCurrentUserConnectionsByState"
+	route = getComposedRoute(routeName, entity.ConnectionStatePending)
+	code, body, errr = runRequest(routeName, route, "", signApplicationRequest(application, userFrom, true, true))
+	c.Assert(errr, IsNil)
 	c.Assert(code, Equals, http.StatusOK)
 	c.Assert(body, Not(Equals), "")
 
-	response := struct {
-		Count  int                               `json:"unread_events_count"`
-		Events []entity.Event                    `json:"events"`
-		Users  map[string]entity.ApplicationUser `json:"users"`
-	}{}
-	er = json.Unmarshal([]byte(body), &response)
+	connectionsByState := &entity.ConnectionsByStateResponse{}
+	er = json.Unmarshal([]byte(body), connectionsByState)
 	c.Assert(er, IsNil)
-
-	c.Assert(response.Count, Equals, 1)
-	c.Assert(len(response.Events), Equals, 1)
-	c.Assert(len(response.Users), Equals, 1)
-	c.Assert(response.Events[0].Type, Equals, "tg_friend")
+	c.Assert(len(connectionsByState.IncomingConnections), Equals, 0)
+	c.Assert(connectionsByState.IncomingConnectionsCount, Equals, 0)
+	c.Assert(len(connectionsByState.OutgoingConnections), Equals, 1)
+	c.Assert(connectionsByState.OutgoingConnectionsCount, Equals, 1)
+	c.Assert(len(connectionsByState.Users), Equals, 1)
+	c.Assert(connectionsByState.UsersCount, Equals, 1)
 }

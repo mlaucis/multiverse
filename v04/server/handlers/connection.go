@@ -17,11 +17,11 @@ type Connection interface {
 	// Create handles requests to create a user connection
 	Create(*context.Context) []errors.Error
 
-	// List handles requests to get a users connections
-	List(*context.Context) []errors.Error
+	// FollowingList handles requests to get a users connections
+	FollowingList(*context.Context) []errors.Error
 
-	// List handles requests to get the current users connections
-	CurrentUserList(*context.Context) []errors.Error
+	// CurrentUserFollowingList handles requests to get the current users connections
+	CurrentUserFollowingList(*context.Context) []errors.Error
 
 	// FollowedByList handles requests to get a users list of users who follow him
 	FollowedByList(*context.Context) []errors.Error
@@ -35,9 +35,6 @@ type Connection interface {
 	// CurrentUserFriends handles requests to get the current user list of friends
 	CurrentUserFriends(*context.Context) []errors.Error
 
-	// Confirm handles requests to confirm a user connection
-	Confirm(*context.Context) []errors.Error
-
 	// CreateSocialConnections creates the social connections between users of the same social network
 	CreateSocial(*context.Context) []errors.Error
 
@@ -46,6 +43,12 @@ type Connection interface {
 
 	// CreateFollow is an alias for creating a follow connection type
 	CreateFollow(*context.Context) []errors.Error
+
+	// UserConnectionsByState retrieves the user connections by state
+	UserConnectionsByState(*context.Context) []errors.Error
+
+	// CurrentUserConnectionsByState retrieves the user connections by state
+	CurrentUserConnectionsByState(*context.Context) []errors.Error
 
 	// CreateAutoConnectionEvent will create an event automatically when a new connection is made
 	CreateAutoConnectionEvent(*context.Context, *entity.Connection) (*entity.Event, []errors.Error)

@@ -59,12 +59,8 @@ var (
 			},
 		},
 	}
-	CorrectConnection = entity.Connection{
-		Common: entity.Common{
-			Enabled: true,
-		},
-	}
-	CorrectEvent = entity.Event{
+	CorrectConnection = entity.Connection{}
+	CorrectEvent      = entity.Event{
 		Type:     "like",
 		Language: "en",
 		Object: &entity.Object{

@@ -148,7 +148,6 @@ func AddCorrectMembers(organization *entity.Organization, numberOfMembersPerOrg 
 		member := CorrectMemberWithDefaults(organization.ID, int64(i+1))
 		member.PublicAccountID = organization.PublicID
 		password := member.Password
-		member.Activated = true
 		result[i], err = coreAccUser.Create(member, true)
 		result[i].OriginalPassword = password
 		if err != nil {
@@ -207,9 +206,9 @@ func HookUp(orgID, applicationID int64, userFromID, userToID uint64) {
 		UserFromID: userFromID,
 		UserToID:   userToID,
 		Type:       entity.ConnectionTypeFollow,
+		State:      "confirmed",
 	}
 	coreConn.Create(orgID, applicationID, &connection)
-	coreConn.Confirm(orgID, applicationID, &connection, false)
 }
 
 // HookUpUsers creates connection between all users that you provide
@@ -262,6 +261,7 @@ func HookUpUsersCustom(orgID, applicationID int64, users []*entity.ApplicationUs
 			UserFromID: users[0].ID,
 			UserToID:   users[4].ID,
 			Type:       entity.ConnectionTypeFollow,
+			State:      "confirmed",
 		}
 		coreConn.Create(orgID, applicationID, &connection)
 	}
@@ -271,6 +271,7 @@ func HookUpUsersCustom(orgID, applicationID int64, users []*entity.ApplicationUs
 			UserFromID: users[4].ID,
 			UserToID:   users[5].ID,
 			Type:       entity.ConnectionTypeFollow,
+			State:      "confirmed",
 		}
 		coreConn.Create(orgID, applicationID, &connection)
 	}
@@ -280,6 +281,7 @@ func HookUpUsersCustom(orgID, applicationID int64, users []*entity.ApplicationUs
 			UserFromID: users[6].ID,
 			UserToID:   users[7].ID,
 			Type:       entity.ConnectionTypeFollow,
+			State:      "confirmed",
 		}
 		coreConn.Create(orgID, applicationID, &connection)
 	}
@@ -329,7 +331,6 @@ func AddCorrectApplicationUsers(orgID int64, application *entity.Application, nu
 	for i := 0; i < numberOfUsersPerApplication; i++ {
 		result[i] = CorrectUserWithDefaults(orgID, application.ID, int64(i+1))
 		result[i].OriginalPassword = result[i].Password
-		result[i].Activated = true
 		result[i].Deleted = entity.PFalse
 		err = coreAppUser.Create(orgID, application.ID, result[i])
 		if err != nil {
@@ -350,7 +351,6 @@ func BenchAddCorrectApplicationUsers(orgID int64, application *entity.Applicatio
 	for i := 0; i < numberOfUsersPerApplication; i++ {
 		result[i] = CorrectUserWithDefaults(orgID, application.ID, int64(i+1))
 		result[i].OriginalPassword = result[i].Password
-		result[i].Activated = true
 		result[i].Deleted = entity.PFalse
 		result[i].Metadata = *result[i]
 		err = coreAppUser.Create(orgID, application.ID, result[i])
@@ -658,7 +658,6 @@ func compareUsers(c *C, expectedUser, obtainedUser *entity.ApplicationUser) {
 	expectedUser.Password = ""
 	expectedUser.Events = nil
 	expectedUser.Images = nil
-	expectedUser.Activated = true
 	obtainedUser.Deleted = expectedUser.Deleted
 	obtainedUser.FriendCount = expectedUser.FriendCount
 	obtainedUser.FollowerCount = expectedUser.FollowerCount

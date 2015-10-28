@@ -23,7 +23,7 @@ type connection struct {
 
 const (
 	createConnectionQuery                 = `INSERT INTO app_%d_%d.connections(json_data) VALUES ($1)`
-	selectConnectionQuery                 = `SELECT json_data FROM app_%d_%d.connections WHERE (json_data->>'user_from_id')::BIGINT = $1::BIGINT AND (json_data->>'user_to_id')::BIGINT = $2::BIGINT LIMIT 1`
+	selectConnectionQuery                 = `SELECT json_data FROM app_%d_%d.connections WHERE (json_data->>'user_from_id')::BIGINT = $1::BIGINT AND (json_data->>'user_to_id')::BIGINT = $2::BIGINT AND (json_data->>'enabled')::BOOL = true LIMIT 1`
 	updateConnectionQuery                 = `UPDATE app_%d_%d.connections SET json_data = $1 WHERE (json_data->>'user_from_id')::BIGINT = $2::BIGINT AND (json_data->>'user_to_id')::BIGINT = $3::BIGINT`
 	followsQuery                          = `SELECT json_data FROM app_%d_%d.connections WHERE (json_data->>'user_from_id')::BIGINT = $1::BIGINT AND json_data->>'type' = '` + entity.ConnectionTypeFollow + `' AND (json_data->>'enabled')::BOOL = true`
 	followersQuery                        = `SELECT json_data FROM app_%d_%d.connections WHERE (json_data->>'user_to_id')::BIGINT = $1::BIGINT AND json_data->>'type' = '` + entity.ConnectionTypeFollow + `' AND (json_data->>'enabled')::BOOL = true`
@@ -55,18 +55,11 @@ func (c *connection) Create(accountID, applicationID int64, connection *entity.C
 	}
 
 	// If it exists and it's not enabled then enable it
-	if exists != nil && !exists.Enabled {
-		exists.Enabled = true
-		connection, er = c.Update(accountID, applicationID, *exists, *exists, true)
-		if er != nil {
-			return er
-		}
-
-		// If it doesn't exists then create it
-	} else if exists == nil {
+	if exists == nil {
 		timeNow := time.Now()
 		connection.CreatedAt, connection.UpdatedAt = &timeNow, &timeNow
 		connection.Enabled = true
+		connection.State = "confirmed"
 		connectionJSON, err := json.Marshal(connection)
 		if err != nil {
 			return []errors.Error{errmsg.ErrInternalConnectionCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
@@ -84,14 +77,6 @@ func (c *connection) Create(accountID, applicationID int64, connection *entity.C
 		// Check if the connection exists
 		exists, er := c.Read(accountID, applicationID, connection.UserFromID, connection.UserToID)
 		if er != nil && er[0].Code() != errmsg.ErrConnectionNotFound.Code() {
-			return er
-		}
-
-		// If it exists but it's not enabled then enable it
-		if exists != nil && !exists.Enabled {
-			exists.Enabled = true
-			connection, er = c.Update(accountID, applicationID, *exists, *exists, true)
-			connection.UserFromID, connection.UserToID = connection.UserToID, connection.UserFromID
 			return er
 		}
 
@@ -138,6 +123,7 @@ func (c *connection) Read(accountID, applicationID int64, userFromID, userToID u
 func (c *connection) Update(accountID, applicationID int64, existingConnection, updatedConnection entity.Connection, retrieve bool) (*entity.Connection, []errors.Error) {
 	timeNow := time.Now()
 	updatedConnection.UpdatedAt = &timeNow
+	updatedConnection.State = "confirmed"
 	connectionJSON, err := json.Marshal(updatedConnection)
 	if err != nil {
 		return nil, []errors.Error{errmsg.ErrInternalConnectionUpdate.UpdateInternalMessage(err.Error()).SetCurrentLocation()}

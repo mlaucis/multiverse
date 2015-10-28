@@ -1,5 +1,4 @@
 // +build !bench
-// +build postgres
 
 package server_test
 
@@ -406,7 +405,7 @@ func (s *ApplicationUserSuite) TestDeleteOnEventsOnUserDeleteWorks(c *C) {
 
 	// GET EVENT
 	routeName := "deleteCurrentUserConnection"
-	route := getComposedRoute(routeName, user2.ID)
+	route := getComposedRoute(routeName, entity.ConnectionTypeFollow, user2.ID)
 	code, body, err := runRequest(routeName, route, "", signApplicationRequest(application, user1, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusNoContent)
