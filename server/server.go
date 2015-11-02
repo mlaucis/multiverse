@@ -17,11 +17,16 @@ import (
 	"github.com/tapglue/multiverse/logger"
 	"github.com/tapglue/multiverse/tgflake"
 	"github.com/tapglue/multiverse/utils"
+
 	v02_server "github.com/tapglue/multiverse/v02/server"
 	v02_postgres "github.com/tapglue/multiverse/v02/storage/postgres"
+
 	v03_server "github.com/tapglue/multiverse/v03/server"
 	v03_postgres "github.com/tapglue/multiverse/v03/storage/postgres"
-	v03_redis "github.com/tapglue/multiverse/v03/storage/redis"
+
+	v04_server "github.com/tapglue/multiverse/v04/server"
+	v04_postgres "github.com/tapglue/multiverse/v04/storage/postgres"
+	v04_redis "github.com/tapglue/multiverse/v04/storage/redis"
 
 	redigo "github.com/garyburd/redigo/redis"
 	"github.com/gorilla/mux"
@@ -43,7 +48,7 @@ var (
 	currentRevision = ""
 	currentHostname = ""
 
-	rawPostgresClient             v03_postgres.Client
+	rawPostgresClient             v04_postgres.Client
 	rateLimiterPool, appCachePool *redigo.Pool
 )
 
@@ -147,14 +152,12 @@ func GetRouter(
 ) (*mux.Router, chan *logger.LogMsg, chan *logger.LogMsg, error) {
 	router := mux.NewRouter().StrictSlash(true)
 
-	v02_server.InitRouter(router, mainLogChan, errorLogChan, environment, skipSecurityChecks, debugMode)
-	v03_server.InitRouter(router, mainLogChan, errorLogChan, environment, skipSecurityChecks, debugMode)
+	v02_server.InitRouter(router, metricHandler, mainLogChan, errorLogChan, environment, skipSecurityChecks, debugMode)
+	v03_server.InitRouter(router, metricHandler, mainLogChan, errorLogChan, environment, skipSecurityChecks, debugMode)
+	v04_server.InitRouter(router, metricHandler, mainLogChan, errorLogChan, environment, skipSecurityChecks, debugMode)
 
 	for idx := range generalRoutes {
-		router.
-			Methods(generalRoutes[idx].method).
-			Path(generalRoutes[idx].path).
-			HandlerFunc(func(route generalRoute) http.HandlerFunc {
+		routeHandler := func(route generalRoute) http.HandlerFunc {
 			return func(w http.ResponseWriter, r *http.Request) {
 				ctx, err := NewContext(w, r, mux.Vars(r), mainLogChan, errorLogChan, route.name, "", false)
 				ctx.SkipSecurity = true
@@ -175,14 +178,19 @@ func GetRouter(
 				}
 				go ctx.LogRequest(ctx.StatusCode, -1)
 			}
-		}(generalRoutes[idx]))
+		}(generalRoutes[idx])
+
+		router.
+			Methods(generalRoutes[idx].method).
+			Path(generalRoutes[idx].path).
+			HandlerFunc(metricHandler(generalRoutes[idx].name, "main", routeHandler))
 	}
 
 	if debugMode {
 		router.PathPrefix("/debug/").Handler(http.DefaultServeMux)
 	}
 
-	router.NotFoundHandler = http.HandlerFunc(notFoundHandler)
+	router.NotFoundHandler = metricHandler("notFound", "default", http.HandlerFunc(notFoundHandler))
 
 	return router, mainLogChan, errorLogChan, nil
 }
@@ -219,20 +227,22 @@ func Setup(conf *config.Config, revision, hostname string) {
 	currentRevision = revision
 	currentHostname = hostname
 
-	rateLimiterPool = v03_redis.NewRedigoPool(conf.RateLimiter)
+	rateLimiterPool = v04_redis.NewRedigoPool(conf.RateLimiter)
 	applicationRateLimiter := ratelimiter_redis.NewLimiter(rateLimiterPool, "ratelimiter:app:")
 	v02_server.SetupRateLimit(applicationRateLimiter)
 	v03_server.SetupRateLimit(applicationRateLimiter)
+	v04_server.SetupRateLimit(applicationRateLimiter)
 
 	v02PostgresClient := v02_postgres.New(conf.Postgres)
 	v03PostgresClient := v03_postgres.New(conf.Postgres)
-	rawPostgresClient = v03PostgresClient
+	v04PostgresClient := v04_postgres.New(conf.Postgres)
+	rawPostgresClient = v04PostgresClient
 
 	SetupFlakes(v03PostgresClient.SlaveDatastore(-1))
 
-	appCachePool = v03_redis.NewRedigoPool(conf.CacheApp)
+	appCachePool = v04_redis.NewRedigoPool(conf.CacheApp)
 
 	v02_server.Setup(v02PostgresClient, currentRevision, currentHostname)
 	v03_server.Setup(v03PostgresClient, appCachePool, currentRevision, currentHostname)
-
+	v04_server.Setup(v04PostgresClient, appCachePool, currentRevision, currentHostname)
 }

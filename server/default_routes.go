@@ -56,7 +56,18 @@ var generalRoutes = map[string]generalRoute{
 }
 
 var (
-	notFoundResponse    = []byte("{\"errors\":[{\"code\":0,\"message\":\"requested resource was not found\"}]}")
+	notFoundResponse = []byte("{\"errors\":[{\"code\":0,\"message\":\"requested resource was not found\"}]}")
+	robotsResponse   = []byte(`User-agent: *
+Disallow: /`)
+	humansResponse = []byte(`/* TEAM */
+Founders: Norman Wiese, Onur Akpolat
+Team: Florin Patan, Alexander Simmerl, Rafael Aviles
+https://www.tapglue.com
+Location: Berlin, Germany
+
+/* SITE */
+Last update: 2015/07/15
+Software: Go, AWS, PostgreSQL, Redis, node.js`)
 	analyticsOKResponse = []byte("ok")
 )
 
@@ -76,15 +87,7 @@ func homeHandler(ctx *context.Context) {
 func humansHandler(ctx *context.Context) {
 	WriteCommonHeaders(10*24*3600, ctx.W, ctx.R)
 	ctx.W.Header().Set("Content-Type", "text/plain; charset=UTF-8")
-	ctx.W.Write([]byte(`/* TEAM */
-Founders: Normal Wiese, Onur Akpolat
-Team: Florin Patan, Alexander Simmerl
-https://www.tapglue.com
-Location: Berlin, Germany
-
-/* SITE */
-Last update: 2015/07/15
-Software: Go, AWS, PostgreSQL, Redis, node.js`))
+	ctx.W.Write(humansResponse)
 }
 
 // robots handles requests to robots.txt
@@ -93,8 +96,7 @@ Software: Go, AWS, PostgreSQL, Redis, node.js`))
 func robotsHandler(ctx *context.Context) {
 	WriteCommonHeaders(10*24*3600, ctx.W, ctx.R)
 	ctx.W.Header().Set("Content-Type", "text/plain; charset=UTF-8")
-	ctx.W.Write([]byte(`User-agent: *
-Disallow: /`))
+	ctx.W.Write(robotsResponse)
 }
 
 // versionsHandler endpoint handles the api status for each api version
@@ -115,6 +117,7 @@ func versionsHandler(ctx *context.Context) {
 			"0.1": {"0.1", "disabled"},
 			"0.2": {"0.2", "deprecated"},
 			"0.3": {"0.3", "current"},
+			"0.4": {"0.4", "alpha"},
 		},
 		Revision: currentRevision,
 	}
@@ -165,7 +168,6 @@ func notFoundHandler(w http.ResponseWriter, r *http.Request) {
 
 func healthCheckHandler(ctx *context.Context) {
 	// TODO make the checks concurrently
-	// TODO make the checks return which service fails (useful if the health-check service knows how to read our response)
 
 	response := struct {
 		Healthy  bool `json:"healthy"`

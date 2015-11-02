@@ -25,11 +25,15 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type errorResponse struct {
-	Code             int    `json:"code"`
-	Message          string `json:"message"`
-	DocumentationURL string `json:"documentation_url,omitempty"`
-}
+type (
+	errorResponse struct {
+		Code             int    `json:"code"`
+		Message          string `json:"message"`
+		DocumentationURL string `json:"documentation_url,omitempty"`
+	}
+
+	RouteMetricHandler func(routeName, routeVersion string, route http.HandlerFunc) http.HandlerFunc
+)
 
 // APIVersion holds which API Version does this module holds
 const APIVersion = "0.3"
