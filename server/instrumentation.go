@@ -3,7 +3,6 @@ package server
 import (
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/go-kit/kit/metrics"
@@ -13,8 +12,8 @@ import (
 
 var (
 	namespace    = "api"
-	subsystem    = strings.Replace(APIVersion, ".", "", -1)
-	fieldKeys    = []string{"route", "status", "user_agent"}
+	subsystem    = "intaker"
+	fieldKeys    = []string{"route", "api_version", "status", "user_agent"}
 	requestCount = kitprometheus.NewCounter(prometheus.CounterOpts{
 		Namespace: namespace,
 		Subsystem: subsystem,
@@ -41,7 +40,7 @@ var (
 	}, fieldKeys)
 )
 
-func metricHandler(route string, next http.HandlerFunc) http.HandlerFunc {
+func metricHandler(route, apiVersion string, next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var (
 			begin = time.Now()
@@ -51,9 +50,13 @@ func metricHandler(route string, next http.HandlerFunc) http.HandlerFunc {
 		next.ServeHTTP(rc, r)
 
 		var (
-			routeField = metrics.Field{
+			routeNameField = metrics.Field{
 				Key:   "route",
 				Value: route,
+			}
+			routeVersionField = metrics.Field{
+				Key:   "api_version",
+				Value: apiVersion,
 			}
 			statusField = metrics.Field{
 				Key:   "status",
@@ -65,9 +68,9 @@ func metricHandler(route string, next http.HandlerFunc) http.HandlerFunc {
 			}
 		)
 
-		requestCount.With(routeField).With(statusField).With(uaField).Add(1)
-		requestLatency.With(routeField).With(statusField).With(uaField).Observe(time.Since(begin))
-		responseBytes.With(routeField).With(statusField).With(uaField).Add(uint64(rc.bytesWritten))
+		requestCount.With(routeNameField).With(routeVersionField).With(statusField).With(uaField).Add(1)
+		requestLatency.With(routeNameField).With(routeVersionField).With(statusField).With(uaField).Observe(time.Since(begin))
+		responseBytes.With(routeNameField).With(routeVersionField).With(statusField).With(uaField).Add(uint64(rc.bytesWritten))
 	}
 }
 

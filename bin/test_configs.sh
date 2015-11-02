@@ -24,7 +24,7 @@ else
 fi
 sed -i "s/REDIS_DB_ID/0/g" config.json
 
-declare -a VERSIONS=( "v02" "v03" )
+declare -a VERSIONS=( "v02" "v03" "v04")
 for VERSION in "${VERSIONS[@]}"
 do
     cp config.json ${CWD}/${VERSION}/server/

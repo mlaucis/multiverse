@@ -85,13 +85,21 @@ func (r *Route) TestPattern() string {
 var Routes []*Route
 
 // InitRouter initializes the router with this modules routes
-func InitRouter(router *mux.Router, mainLogChan, errorLogChan chan *logger.LogMsg, env string, skipSecurity, debug bool) {
+func InitRouter(
+	router *mux.Router,
+	metricHandler RouteMetricHandler,
+	mainLogChan, errorLogChan chan *logger.LogMsg,
+	env string,
+	skipSecurity, debug bool,
+) {
+
 	for _, route := range Routes {
 		r := router.Methods(route.Method).Path("/" + APIVersion + route.Path)
 
 		r.Name(route.Name).HandlerFunc(
 			metricHandler(
 				route.Name,
+				APIVersion,
 				CustomHandler(route, mainLogChan, errorLogChan, env, skipSecurity, debug),
 			),
 		)
@@ -103,6 +111,7 @@ func InitRouter(router *mux.Router, mainLogChan, errorLogChan chan *logger.LogMs
 		r.Name(route.Name + "-options").HandlerFunc(
 			metricHandler(
 				route.Name,
+				APIVersion,
 				CustomOptionsHandler(route, mainLogChan, errorLogChan, env, skipSecurity, debug),
 			),
 		)

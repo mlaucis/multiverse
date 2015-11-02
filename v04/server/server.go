@@ -3,23 +3,25 @@ package server
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/tapglue/multiverse/context"
 	"github.com/tapglue/multiverse/errors"
 	"github.com/tapglue/multiverse/limiter"
 	"github.com/tapglue/multiverse/logger"
-	"github.com/tapglue/multiverse/v02/core"
-	v02_postgres_core "github.com/tapglue/multiverse/v02/core/postgres"
-	"github.com/tapglue/multiverse/v02/entity"
-	"github.com/tapglue/multiverse/v02/errmsg"
-	"github.com/tapglue/multiverse/v02/server/response"
-	v02_postgres "github.com/tapglue/multiverse/v02/storage/postgres"
+	"github.com/tapglue/multiverse/v03/context"
+	"github.com/tapglue/multiverse/v03/core"
+	v03_postgres_core "github.com/tapglue/multiverse/v03/core/postgres"
+	v03_redis_core "github.com/tapglue/multiverse/v03/core/redis"
+	"github.com/tapglue/multiverse/v03/errmsg"
+	"github.com/tapglue/multiverse/v03/server/response"
+	v03_postgres "github.com/tapglue/multiverse/v03/storage/postgres"
 
+	"github.com/garyburd/redigo/redis"
 	"github.com/gorilla/mux"
 )
 
@@ -34,19 +36,19 @@ type (
 )
 
 // APIVersion holds which API Version does this module holds
-const APIVersion = "0.2"
+const APIVersion = "0.4"
 
 var (
-	postgresAccount         core.Account
-	postgresAccountUser     core.AccountUser
-	postgresApplication     core.Application
-	postgresApplicationUser core.ApplicationUser
-	postgresConnection      core.Connection
-	postgresEvent           core.Event
+	postgresOrganization                  core.Organization
+	postgresAccountUser                   core.Member
+	postgresApplication, redisApplication core.Application
+	postgresApplicationUser               core.ApplicationUser
+	postgresConnection                    core.Connection
+	postgresEvent                         core.Event
 
 	appRateLimiter limiter.Limiter
 
-	appRateLimitProduction int64 = 10000
+	appRateLimitProduction int64 = 20000
 	appRateLimitStaging    int64 = 100
 	appRateLimitSeconds          = 60 * time.Second
 )
@@ -56,6 +58,14 @@ func init() {
 		appRateLimitProduction = 50
 		appRateLimitStaging = 10
 	}
+
+	if os.Getenv("NO_LIMITS") == "true" {
+		log.Println("WARNING: LAUNCHING WITH NO APP LIMITS!!!")
+		log.Println("WARNING: LAUNCHING WITH NO APP LIMITS!!!")
+		log.Println("WARNING: LAUNCHING WITH NO APP LIMITS!!!")
+		appRateLimitProduction = 5000000
+		appRateLimitStaging = 1000000
+	}
 }
 
 // ValidateGetCommon runs a series of predefined, common, tests for GET requests
@@ -63,7 +73,7 @@ func ValidateGetCommon(ctx *context.Context) (err []errors.Error) {
 	if ctx.R.Header.Get("User-Agent") != "" {
 		return
 	}
-	return []errors.Error{errmsg.ErrServerReqBadUserAgent}
+	return []errors.Error{errmsg.ErrServerReqBadUserAgent.SetCurrentLocation()}
 }
 
 // ValidatePutCommon runs a series of predefinied, common, tests for PUT requests
@@ -73,38 +83,38 @@ func ValidatePutCommon(ctx *context.Context) (err []errors.Error) {
 	}
 
 	if ctx.R.Header.Get("User-Agent") == "" {
-		err = append(err, errmsg.ErrServerReqBadUserAgent)
+		err = append(err, errmsg.ErrServerReqBadUserAgent.SetCurrentLocation())
 	}
 
 	if ctx.R.Header.Get("Content-Length") == "" {
-		err = append(err, errmsg.ErrServerReqContentLengthMissing)
+		err = append(err, errmsg.ErrServerReqContentLengthMissing.SetCurrentLocation())
 	}
 
 	if ctx.R.Header.Get("Content-Type") == "" {
-		err = append(err, errmsg.ErrServerReqContentTypeMissing)
+		err = append(err, errmsg.ErrServerReqContentTypeMissing.SetCurrentLocation())
 	}
 
 	if ctx.R.Header.Get("Content-Type") != "application/json" &&
 		ctx.R.Header.Get("Content-Type") != "application/json; charset=UTF-8" {
-		err = append(err, errmsg.ErrServerReqContentTypeMismatch)
+		err = append(err, errmsg.ErrServerReqContentTypeMismatch.SetCurrentLocation())
 	}
 
 	reqCL, er := strconv.ParseInt(ctx.R.Header.Get("Content-Length"), 10, 64)
 	if er != nil {
-		err = append(err, errmsg.ErrServerReqContentLengthInvalid)
+		err = append(err, errmsg.ErrServerReqContentLengthInvalid.SetCurrentLocation())
 	}
 
 	if reqCL != ctx.R.ContentLength {
-		err = append(err, errmsg.ErrServerReqContentLengthSizeMismatch)
+		err = append(err, errmsg.ErrServerReqContentLengthSizeMismatch.SetCurrentLocation())
 	} else {
 		// TODO better handling here for limits, maybe make them customizable
 		if reqCL > 2048 {
-			err = append(err, errmsg.ErrServerReqPayloadTooBig)
+			err = append(err, errmsg.ErrServerReqPayloadTooBig.SetCurrentLocation())
 		}
 	}
 
 	if ctx.R.Body == nil {
-		err = append(err, errmsg.ErrServerReqBodyEmpty)
+		err = append(err, errmsg.ErrServerReqBodyEmpty.SetCurrentLocation())
 	}
 	return
 }
@@ -112,7 +122,7 @@ func ValidatePutCommon(ctx *context.Context) (err []errors.Error) {
 // ValidateDeleteCommon runs a series of predefinied, common, tests for DELETE requests
 func ValidateDeleteCommon(ctx *context.Context) (err []errors.Error) {
 	if ctx.R.Header.Get("User-Agent") == "" {
-		err = append(err, errmsg.ErrServerReqBadUserAgent)
+		err = append(err, errmsg.ErrServerReqBadUserAgent.SetCurrentLocation())
 	}
 
 	return
@@ -125,38 +135,38 @@ func ValidatePostCommon(ctx *context.Context) (err []errors.Error) {
 	}
 
 	if ctx.R.Header.Get("User-Agent") == "" {
-		err = append(err, errmsg.ErrServerReqBadUserAgent)
+		err = append(err, errmsg.ErrServerReqBadUserAgent.SetCurrentLocation())
 	}
 
 	if ctx.R.Header.Get("Content-Length") == "" {
-		err = append(err, errmsg.ErrServerReqContentLengthMissing)
+		err = append(err, errmsg.ErrServerReqContentLengthMissing.SetCurrentLocation())
 	}
 
 	if ctx.R.Header.Get("Content-Type") == "" {
-		err = append(err, errmsg.ErrServerReqContentTypeMissing)
+		err = append(err, errmsg.ErrServerReqContentTypeMissing.SetCurrentLocation())
 	}
 
 	if ctx.R.Header.Get("Content-Type") != "application/json" &&
 		ctx.R.Header.Get("Content-Type") != "application/json; charset=UTF-8" {
-		err = append(err, errmsg.ErrServerReqContentTypeMismatch)
+		err = append(err, errmsg.ErrServerReqContentTypeMismatch.SetCurrentLocation())
 	}
 
 	reqCL, er := strconv.ParseInt(ctx.R.Header.Get("Content-Length"), 10, 64)
 	if er != nil {
-		err = append(err, errmsg.ErrServerReqContentLengthInvalid)
+		err = append(err, errmsg.ErrServerReqContentLengthInvalid.SetCurrentLocation())
 	}
 
 	if reqCL != ctx.R.ContentLength {
-		err = append(err, errmsg.ErrServerReqContentLengthSizeMismatch)
+		err = append(err, errmsg.ErrServerReqContentLengthSizeMismatch.SetCurrentLocation())
 	} else {
 		// TODO better handling here for limits, maybe make them customizable
 		if reqCL > 2048 {
-			err = append(err, errmsg.ErrServerReqPayloadTooBig)
+			err = append(err, errmsg.ErrServerReqPayloadTooBig.SetCurrentLocation())
 		}
 	}
 
 	if ctx.R.Body == nil {
-		err = append(err, errmsg.ErrServerReqBodyEmpty)
+		err = append(err, errmsg.ErrServerReqBodyEmpty.SetCurrentLocation())
 	}
 	return
 }
@@ -179,19 +189,19 @@ func RateLimitApplication(ctx *context.Context) []errors.Error {
 	}
 
 	appRateLimit := appRateLimitStaging
-	if ctx.Bag["application"].(*entity.Application).InProduction {
+	if ctx.Application.InProduction {
 		appRateLimit = appRateLimitProduction
 	}
 
 	limitee := &limiter.Limitee{
-		Hash:       ctx.Bag["application"].(*entity.Application).AuthToken,
+		Hash:       ctx.Application.AuthToken,
 		Limit:      appRateLimit,
 		WindowSize: appRateLimitSeconds,
 	}
 
 	limit, refreshTime, err := appRateLimiter.Request(limitee)
 	if err != nil {
-		return []errors.Error{errmsg.ErrServerInternalError.UpdateInternalMessage(err.Error())}
+		return []errors.Error{errmsg.ErrServerInternalError.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 
 	ctx.Bag["rateLimit.enabled"] = true
@@ -199,7 +209,7 @@ func RateLimitApplication(ctx *context.Context) []errors.Error {
 	ctx.Bag["rateLimit.refreshTime"] = refreshTime
 
 	if limit == 0 {
-		return []errors.Error{errmsg.ErrTooManyRequests}
+		return []errors.Error{errors.New(429, 0, "Too Many Requests", "over quota", false)}
 	}
 
 	return nil
@@ -237,14 +247,14 @@ func CustomHandler(route *Route, mainLogChan, errorLogChan chan *logger.LogMsg, 
 		ctx.SkipSecurity = skipSecurity
 
 		for idx := range route.Filters {
-			if err = route.Filters[idx](ctx); err != nil {
+			if err := route.Filters[idx](ctx); err != nil {
 				response.ErrorHappened(ctx, err)
 				return
 			}
 		}
 
 		for idx := range route.Handlers {
-			if err = route.Handlers[idx](ctx); err != nil {
+			if err := route.Handlers[idx](ctx); err != nil {
 				response.ErrorHappened(ctx, err)
 				return
 			}
@@ -301,17 +311,23 @@ func SetupRateLimit(applicationRateLimiter limiter.Limiter) {
 
 // Setup initializes the route handlers
 // Must be called after initializing the cores
-func Setup(v02PostgresClient v02_postgres.Client, revision, hostname string) {
+func Setup(
+	v03PostgresClient v03_postgres.Client,
+	appCache *redis.Pool,
+	revision, hostname string) {
+
 	if appRateLimiter == nil {
 		panic("You must first initialize the rate limiter")
 	}
 
-	postgresAccount = v02_postgres_core.NewAccount(v02PostgresClient)
-	postgresAccountUser = v02_postgres_core.NewAccountUser(v02PostgresClient)
-	postgresApplication = v02_postgres_core.NewApplication(v02PostgresClient)
-	postgresApplicationUser = v02_postgres_core.NewApplicationUser(v02PostgresClient)
-	postgresConnection = v02_postgres_core.NewConnection(v02PostgresClient)
-	postgresEvent = v02_postgres_core.NewEvent(v02PostgresClient)
+	redisApplication = v03_redis_core.NewApplication(appCache)
+
+	postgresOrganization = v03_postgres_core.NewOrganization(v03PostgresClient)
+	postgresAccountUser = v03_postgres_core.NewMember(v03PostgresClient)
+	postgresApplication = v03_postgres_core.NewApplication(v03PostgresClient, redisApplication)
+	postgresApplicationUser = v03_postgres_core.NewApplicationUser(v03PostgresClient)
+	postgresConnection = v03_postgres_core.NewConnection(v03PostgresClient)
+	postgresEvent = v03_postgres_core.NewEvent(v03PostgresClient)
 
 	if revision == "" {
 		panic("omfg missing revision")

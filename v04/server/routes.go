@@ -3,12 +3,13 @@ package server
 import (
 	"strings"
 
-	"github.com/tapglue/multiverse/context"
 	"github.com/tapglue/multiverse/errors"
 	"github.com/tapglue/multiverse/logger"
-	"github.com/tapglue/multiverse/v02/server/handlers"
-	"github.com/tapglue/multiverse/v02/server/handlers/postgres"
-	"github.com/tapglue/multiverse/v02/server/response"
+	"github.com/tapglue/multiverse/v03/context"
+	"github.com/tapglue/multiverse/v03/server/handlers"
+	"github.com/tapglue/multiverse/v03/server/handlers/postgres"
+	"github.com/tapglue/multiverse/v03/server/handlers/redis"
+	"github.com/tapglue/multiverse/v03/server/response"
 
 	"github.com/gorilla/mux"
 )
@@ -31,8 +32,8 @@ type (
 )
 
 const (
-	accountID           = "{accountID}"
-	accountUserID       = "{accountUserID}"
+	organizationID      = "{accountID}"
+	memberID            = "{accountUserID}"
 	applicationID       = "{applicationID}"
 	applicationUserID   = "{applicationUserID}"
 	applicationUserToID = "{applicationUserToID}"
@@ -40,12 +41,12 @@ const (
 )
 
 var (
-	postgresAccountHandler         handlers.Account
-	postgresAccountUserHandler     handlers.AccountUser
-	postgresApplicationHandler     handlers.Application
-	postgresApplicationUserHandler handlers.ApplicationUser
-	postgresConnectionHandler      handlers.Connection
-	postgresEventHandler           handlers.Event
+	postgresOrganizationHandler                         handlers.Organization
+	postgresMemberHandler                               handlers.Member
+	postgresApplicationHandler, redisApplicationHandler handlers.Application
+	postgresApplicationUserHandler                      handlers.ApplicationUser
+	postgresConnectionHandler                           handlers.Connection
+	postgresEventHandler                                handlers.Event
 
 	applicationUserIDPattern = "%d"
 	eventIDPattern           = "%d"
@@ -70,8 +71,8 @@ func ReplaceTestEventIDPattern(pattern string) {
 func (r *Route) TestPattern() string {
 	pattern := r.RoutePattern()
 
-	pattern = strings.Replace(pattern, accountID, "%s", -1)
-	pattern = strings.Replace(pattern, accountUserID, "%s", -1)
+	pattern = strings.Replace(pattern, organizationID, "%s", -1)
+	pattern = strings.Replace(pattern, memberID, "%s", -1)
 	pattern = strings.Replace(pattern, applicationID, "%s", -1)
 	pattern = strings.Replace(pattern, applicationUserID, applicationUserIDPattern, -1)
 	pattern = strings.Replace(pattern, applicationUserToID, applicationUserIDPattern, -1)
@@ -119,12 +120,14 @@ func InitRouter(
 
 // InitHandlers handles the initialization of the route handlers
 func InitHandlers() {
-	postgresAccountHandler = postgres.NewAccount(postgresAccount)
-	postgresAccountUserHandler = postgres.NewAccountUser(postgresAccountUser)
+	postgresOrganizationHandler = postgres.NewOrganization(postgresOrganization)
+	postgresMemberHandler = postgres.NewMember(postgresAccountUser)
 	postgresApplicationHandler = postgres.NewApplication(postgresApplication)
 	postgresApplicationUserHandler = postgres.NewApplicationUser(postgresApplicationUser, postgresConnection)
-	postgresConnectionHandler = postgres.NewConnection(postgresConnection, postgresApplicationUser)
+	postgresConnectionHandler = postgres.NewConnection(postgresConnection, postgresApplicationUser, postgresEvent)
 	postgresEventHandler = postgres.NewEvent(postgresEvent, postgresApplicationUser)
+
+	redisApplicationHandler = redis.NewApplication(redisApplication, postgresApplication)
 }
 
 // VersionHandler returns the current version status
@@ -132,7 +135,7 @@ func VersionHandler(ctx *context.Context) []errors.Error {
 	resp := struct {
 		Version string `json:"version"`
 		Status  string `json:"status"`
-	}{APIVersion, "deprecated"}
+	}{APIVersion, "alpha"}
 	response.WriteResponse(ctx, resp, 200, 86400)
 	return nil
 }
