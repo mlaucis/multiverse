@@ -1,7 +1,7 @@
 // Package fixtures holds the common fixtures for the application
 package fixtures
 
-import "github.com/tapglue/multiverse/v03/entity"
+import "github.com/tapglue/multiverse/v04/entity"
 
 // Definition of test data
 var (

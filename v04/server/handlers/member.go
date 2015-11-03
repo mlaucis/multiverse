@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"github.com/tapglue/multiverse/errors"
-	"github.com/tapglue/multiverse/v03/context"
+	"github.com/tapglue/multiverse/v04/context"
 )
 
 // Member holds the account user routes

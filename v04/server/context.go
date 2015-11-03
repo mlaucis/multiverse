@@ -7,9 +7,9 @@ import (
 	"github.com/tapglue/multiverse/errors"
 	"github.com/tapglue/multiverse/logger"
 	"github.com/tapglue/multiverse/utils"
-	"github.com/tapglue/multiverse/v03/context"
-	"github.com/tapglue/multiverse/v03/server/handlers"
-	v03_request_validator "github.com/tapglue/multiverse/v03/validator/request"
+	"github.com/tapglue/multiverse/v04/context"
+	"github.com/tapglue/multiverse/v04/server/handlers"
+	v03_request_validator "github.com/tapglue/multiverse/v04/validator/request"
 )
 
 // NewContext creates a new context from the current request

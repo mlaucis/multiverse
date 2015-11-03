@@ -9,7 +9,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/tapglue/multiverse/v03/entity"
+	"github.com/tapglue/multiverse/v04/entity"
 
 	. "gopkg.in/check.v1"
 )

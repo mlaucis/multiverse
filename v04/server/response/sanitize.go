@@ -1,6 +1,6 @@
 package response
 
-import "github.com/tapglue/multiverse/v03/entity"
+import "github.com/tapglue/multiverse/v04/entity"
 
 // SanitizeMember will sanitize the member for usage via the API
 func SanitizeMember(member *entity.Member) {

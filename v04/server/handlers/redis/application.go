@@ -4,10 +4,10 @@ import (
 	"fmt"
 
 	"github.com/tapglue/multiverse/errors"
-	"github.com/tapglue/multiverse/v03/context"
-	"github.com/tapglue/multiverse/v03/core"
-	"github.com/tapglue/multiverse/v03/errmsg"
-	"github.com/tapglue/multiverse/v03/server/handlers"
+	"github.com/tapglue/multiverse/v04/context"
+	"github.com/tapglue/multiverse/v04/core"
+	"github.com/tapglue/multiverse/v04/errmsg"
+	"github.com/tapglue/multiverse/v04/server/handlers"
 )
 
 type application struct {

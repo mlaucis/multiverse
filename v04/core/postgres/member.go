@@ -7,11 +7,11 @@ import (
 	"time"
 
 	"github.com/tapglue/multiverse/errors"
-	"github.com/tapglue/multiverse/v03/core"
-	"github.com/tapglue/multiverse/v03/entity"
-	"github.com/tapglue/multiverse/v03/errmsg"
-	storageHelper "github.com/tapglue/multiverse/v03/storage/helper"
-	"github.com/tapglue/multiverse/v03/storage/postgres"
+	"github.com/tapglue/multiverse/v04/core"
+	"github.com/tapglue/multiverse/v04/entity"
+	"github.com/tapglue/multiverse/v04/errmsg"
+	storageHelper "github.com/tapglue/multiverse/v04/storage/helper"
+	"github.com/tapglue/multiverse/v04/storage/postgres"
 
 	"github.com/jmoiron/sqlx"
 )

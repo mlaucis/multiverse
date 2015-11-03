@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/tapglue/multiverse/utils"
-	"github.com/tapglue/multiverse/v03/entity"
+	"github.com/tapglue/multiverse/v04/entity"
 
 	"github.com/satori/go.uuid"
 	"golang.org/x/crypto/scrypt"

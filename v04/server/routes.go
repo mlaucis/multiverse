@@ -5,11 +5,11 @@ import (
 
 	"github.com/tapglue/multiverse/errors"
 	"github.com/tapglue/multiverse/logger"
-	"github.com/tapglue/multiverse/v03/context"
-	"github.com/tapglue/multiverse/v03/server/handlers"
-	"github.com/tapglue/multiverse/v03/server/handlers/postgres"
-	"github.com/tapglue/multiverse/v03/server/handlers/redis"
-	"github.com/tapglue/multiverse/v03/server/response"
+	"github.com/tapglue/multiverse/v04/context"
+	"github.com/tapglue/multiverse/v04/server/handlers"
+	"github.com/tapglue/multiverse/v04/server/handlers/postgres"
+	"github.com/tapglue/multiverse/v04/server/handlers/redis"
+	"github.com/tapglue/multiverse/v04/server/response"
 
 	"github.com/gorilla/mux"
 )
