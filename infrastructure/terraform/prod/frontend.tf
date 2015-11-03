@@ -36,7 +36,7 @@ resource "aws_elb" "frontend" {
   connection_draining         = true
   connection_draining_timeout = 10
   cross_zone_load_balancing   = true
-  idle_timeout                = 50
+  idle_timeout                = 30
   name                        = "frontend-prod"
   subnets                     = [
     "${aws_subnet.public-a.id}",

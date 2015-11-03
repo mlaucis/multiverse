@@ -25,7 +25,7 @@ resource "aws_autoscaling_group" "frontend" {
   name                      = "frontend"
   max_size                  = 30
   min_size                  = 2
-  health_check_type         = "EC2"
+  health_check_type         = "ELB"
   health_check_grace_period = 60
   force_delete              = false
   launch_configuration      = "${aws_launch_configuration.frontend.name}"
