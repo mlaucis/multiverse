@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"github.com/tapglue/multiverse/errors"
-	"github.com/tapglue/multiverse/v03/context"
-	"github.com/tapglue/multiverse/v03/entity"
+	"github.com/tapglue/multiverse/v04/context"
+	"github.com/tapglue/multiverse/v04/entity"
 )
 
 // Connection holds the routes for the connections

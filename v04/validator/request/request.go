@@ -5,9 +5,9 @@ import (
 	"strings"
 
 	"github.com/tapglue/multiverse/errors"
-	"github.com/tapglue/multiverse/v03/context"
-	"github.com/tapglue/multiverse/v03/errmsg"
-	httpBasic "github.com/tapglue/multiverse/v03/validator/request/basic"
+	"github.com/tapglue/multiverse/v04/context"
+	"github.com/tapglue/multiverse/v04/errmsg"
+	httpBasic "github.com/tapglue/multiverse/v04/validator/request/basic"
 )
 
 var errAuthMethodNotSupported = []errors.Error{errmsg.ErrAuthMethodNotSupported.SetCurrentLocation()}

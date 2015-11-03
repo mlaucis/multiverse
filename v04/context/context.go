@@ -8,7 +8,7 @@ import (
 	ctx "github.com/tapglue/multiverse/context"
 	"github.com/tapglue/multiverse/errors"
 	"github.com/tapglue/multiverse/logger"
-	"github.com/tapglue/multiverse/v03/entity"
+	"github.com/tapglue/multiverse/v04/entity"
 )
 
 type (

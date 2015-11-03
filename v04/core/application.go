@@ -2,7 +2,7 @@ package core
 
 import (
 	"github.com/tapglue/multiverse/errors"
-	"github.com/tapglue/multiverse/v03/entity"
+	"github.com/tapglue/multiverse/v04/entity"
 )
 
 // Application interface

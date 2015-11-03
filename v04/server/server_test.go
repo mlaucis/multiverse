@@ -11,8 +11,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/tapglue/multiverse/v03/entity"
-	"github.com/tapglue/multiverse/v03/server"
+	"github.com/tapglue/multiverse/v04/entity"
+	"github.com/tapglue/multiverse/v04/server"
 
 	"github.com/gorilla/mux"
 	. "gopkg.in/check.v1"
