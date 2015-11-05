@@ -25,9 +25,9 @@ const (
 	createConnectionQuery                 = `INSERT INTO app_%d_%d.connections(json_data) VALUES ($1)`
 	selectConnectionQuery                 = `SELECT json_data FROM app_%d_%d.connections WHERE (json_data->>'user_from_id')::BIGINT = $1::BIGINT AND (json_data->>'user_to_id')::BIGINT = $2::BIGINT LIMIT 1`
 	updateConnectionQuery                 = `UPDATE app_%d_%d.connections SET json_data = $1 WHERE (json_data->>'user_from_id')::BIGINT = $2::BIGINT AND (json_data->>'user_to_id')::BIGINT = $3::BIGINT`
-	followsQuery                          = `SELECT json_data FROM app_%d_%d.connections WHERE (json_data->>'user_from_id')::BIGINT = $1::BIGINT AND json_data->>'type' = 'follow' AND (json_data->>'enabled')::BOOL = true`
-	followersQuery                        = `SELECT json_data FROM app_%d_%d.connections WHERE (json_data->>'user_to_id')::BIGINT = $1::BIGINT AND json_data->>'type' = 'follow' AND (json_data->>'enabled')::BOOL = true`
-	friendConnectionsQuery                = `SELECT json_data FROM app_%d_%d.connections WHERE (json_data->>'user_to_id')::BIGINT = $1::BIGINT AND json_data->>'type' = 'friend' AND (json_data->>'enabled')::BOOL = true`
+	followsQuery                          = `SELECT json_data FROM app_%d_%d.connections WHERE (json_data->>'user_from_id')::BIGINT = $1::BIGINT AND json_data->>'type' = '` + entity.ConnectionTypeFollow + `' AND (json_data->>'enabled')::BOOL = true`
+	followersQuery                        = `SELECT json_data FROM app_%d_%d.connections WHERE (json_data->>'user_to_id')::BIGINT = $1::BIGINT AND json_data->>'type' = '` + entity.ConnectionTypeFollow + `' AND (json_data->>'enabled')::BOOL = true`
+	friendConnectionsQuery                = `SELECT json_data FROM app_%d_%d.connections WHERE (json_data->>'user_to_id')::BIGINT = $1::BIGINT AND json_data->>'type' = '` + entity.ConnectionTypeFriend + `' AND (json_data->>'enabled')::BOOL = true`
 	friendAndFollowingConnectionsQuery    = `SELECT json_data FROM app_%d_%d.connections WHERE (json_data->>'user_from_id')::BIGINT = $1::BIGINT AND (json_data->>'enabled')::BOOL = true`
 	friendAndFollowingConnectionsIDsQuery = `SELECT json_data->>'user_to_id' as "user_id" FROM app_%d_%d.connections WHERE (json_data->>'user_from_id')::BIGINT = $1::BIGINT AND (json_data->>'enabled')::BOOL = true`
 	listUsersBySocialIDQuery              = `SELECT json_data FROM app_%d_%d.users WHERE (json_data->>'enabled')::BOOL = true AND (json_data->>'deleted')::BOOL = false AND json_data->'social_ids'->>'%s' IN (?)`
@@ -78,7 +78,7 @@ func (c *connection) Create(accountID, applicationID int64, connection *entity.C
 	}
 
 	// if the connection is of type friend then reverse the roles and create the other connection
-	if connection.Type == "friend" {
+	if connection.Type == entity.ConnectionTypeFriend {
 		connection.UserFromID, connection.UserToID = connection.UserToID, connection.UserFromID
 
 		// Check if the connection exists
@@ -164,7 +164,7 @@ func (c *connection) Delete(accountID, applicationID int64, connection *entity.C
 		return err
 	}
 
-	if connection.Type == "friend" {
+	if connection.Type == entity.ConnectionTypeFriend {
 		connection.UserFromID, connection.UserToID = connection.UserToID, connection.UserFromID
 		_, err = c.Update(accountID, applicationID, *connection, *connection, false)
 	}
@@ -340,7 +340,7 @@ func (c *connection) Confirm(accountID, applicationID int64, connection *entity.
 		return conn, err
 	}
 
-	if connection.Type == "friend" {
+	if connection.Type == entity.ConnectionTypeFriend {
 		con := *connection
 		con.UserFromID, con.UserToID = connection.UserToID, connection.UserFromID
 		_, err = c.Update(accountID, applicationID, con, con, retrieve)
@@ -412,7 +412,7 @@ func (c *connection) AutoConnectSocialFriends(accountID, applicationID int64, us
 			}
 		}
 
-		if connectionType != "friend" {
+		if connectionType != entity.ConnectionTypeFriend {
 			continue
 		}
 
@@ -462,15 +462,15 @@ func (c *connection) Relation(accountID, applicationID int64, userFromID, userTo
 			return nil, []errors.Error{errmsg.ErrInternalConnectingUsers.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 		}
 
-		if relationType == "friends" {
+		if relationType == entity.ConnectionTypeFriend {
 			rel.IsFriend = entity.PTrue
 		}
 
-		if relationFrom == userFromID && relationTo == userToID && relationType == "follow" {
+		if relationFrom == userFromID && relationTo == userToID && relationType == entity.ConnectionTypeFollow {
 			rel.IsFollowed = entity.PTrue
 		}
 
-		if relationFrom == userToID && relationTo == userFromID && relationType == "follow" {
+		if relationFrom == userToID && relationTo == userFromID && relationType == entity.ConnectionTypeFollow {
 			rel.IsFollower = entity.PTrue
 		}
 	}

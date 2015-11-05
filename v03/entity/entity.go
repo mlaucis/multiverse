@@ -267,6 +267,12 @@ const (
 
 	// EventGlobal flags that the event is public and visibile in the WHOLE app (use it with consideration)
 	EventGlobal = 40
+
+	// ConnectionTypeFollow is a friend connection
+	ConnectionTypeFriend = "friend"
+
+	// ConnectionTypeFollow is a follow connection
+	ConnectionTypeFollow = "follow"
 )
 
 var (

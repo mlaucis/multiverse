@@ -13,7 +13,7 @@ func CreateConnection(datastore core.ApplicationUser, accountID, applicationID i
 		return []errors.Error{errmsg.ErrConnectionSelfConnectingUser.SetCurrentLocation()}
 	}
 
-	if connection.Type != "friend" && connection.Type != "follow" {
+	if connection.Type != entity.ConnectionTypeFriend && connection.Type != entity.ConnectionTypeFollow {
 		return []errors.Error{errmsg.ErrConnectionTypeIsWrong.UpdateMessage("unexpected connection type " + connection.Type).SetCurrentLocation()}
 	}
 
@@ -75,7 +75,7 @@ func ConfirmConnection(datastore core.ApplicationUser, accountID, applicationID 
 
 // UpdateConnection validates a connection on update
 func UpdateConnection(datastore core.ApplicationUser, accountID, applicationID int64, existingConnection, updatedConnection *entity.Connection) (errs []errors.Error) {
-	if updatedConnection.Type != "friend" && updatedConnection.Type != "follow" {
+	if updatedConnection.Type != entity.ConnectionTypeFriend && updatedConnection.Type != entity.ConnectionTypeFollow {
 		return []errors.Error{errmsg.ErrConnectionTypeIsWrong.UpdateMessage("unexpected connection type " + updatedConnection.Type).SetCurrentLocation()}
 	}
 
