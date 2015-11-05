@@ -183,6 +183,7 @@ func (appUser *applicationUser) Create(ctx *context.Context) (err []errors.Error
 
 	response.SanitizeApplicationUser(user)
 	user.SessionToken = sessionToken
+	appUser.storage.FriendStatistics(ctx.OrganizationID, ctx.ApplicationID, user)
 
 	ctx.W.Header().Set("Location", fmt.Sprintf("https://api.tapglue.com/0.3/users/%d", user.ID))
 	response.WriteResponse(ctx, user, http.StatusCreated, 0)
@@ -252,6 +253,8 @@ func (appUser *applicationUser) Login(ctx *context.Context) (err []errors.Error)
 	user.IsFriend = nil
 	user.IsFollower = nil
 	user.IsFollowed = nil
+
+	appUser.storage.FriendStatistics(ctx.OrganizationID, ctx.ApplicationID, user)
 
 	ctx.W.Header().Set("Location", fmt.Sprintf("https://api.tapglue.com/0.3/users/%d", user.ID))
 	response.WriteResponse(ctx, user, http.StatusCreated, 0)
