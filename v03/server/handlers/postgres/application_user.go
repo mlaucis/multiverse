@@ -54,8 +54,6 @@ func (appUser *applicationUser) Read(ctx *context.Context) (err []errors.Error) 
 		user.IsFollowed = rel.IsFollowed
 	}
 
-	response.ComputeApplicationUserLastModified(ctx, user)
-
 	user.Password = ""
 	user.Deleted = nil
 	user.CreatedAt, user.UpdatedAt, user.LastLogin, user.LastRead = nil, nil, nil, nil
@@ -73,8 +71,6 @@ func (appUser *applicationUser) ReadCurrent(ctx *context.Context) (err []errors.
 	user.IsFollowed = nil
 
 	appUser.storage.FriendStatistics(ctx.OrganizationID, ctx.ApplicationID, user)
-
-	response.ComputeApplicationUserLastModified(ctx, user)
 
 	response.WriteResponse(ctx, user, http.StatusOK, 10)
 	return
@@ -187,6 +183,7 @@ func (appUser *applicationUser) Create(ctx *context.Context) (err []errors.Error
 
 	response.SanitizeApplicationUser(user)
 	user.SessionToken = sessionToken
+	appUser.storage.FriendStatistics(ctx.OrganizationID, ctx.ApplicationID, user)
 
 	ctx.W.Header().Set("Location", fmt.Sprintf("https://api.tapglue.com/0.3/users/%d", user.ID))
 	response.WriteResponse(ctx, user, http.StatusCreated, 0)
@@ -257,6 +254,8 @@ func (appUser *applicationUser) Login(ctx *context.Context) (err []errors.Error)
 	user.IsFollower = nil
 	user.IsFollowed = nil
 
+	appUser.storage.FriendStatistics(ctx.OrganizationID, ctx.ApplicationID, user)
+
 	ctx.W.Header().Set("Location", fmt.Sprintf("https://api.tapglue.com/0.3/users/%d", user.ID))
 	response.WriteResponse(ctx, user, http.StatusCreated, 0)
 	return
@@ -315,7 +314,6 @@ func (appUser *applicationUser) Search(ctx *context.Context) (err []errors.Error
 		return
 	}
 
-	response.ComputeApplicationUsersLastModified(ctx, users)
 	response.SanitizeApplicationUsers(users)
 
 	for idx := range users {

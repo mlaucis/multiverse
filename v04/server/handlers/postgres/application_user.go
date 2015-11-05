@@ -54,8 +54,6 @@ func (appUser *applicationUser) Read(ctx *context.Context) (err []errors.Error) 
 		user.IsFollowed = rel.IsFollowed
 	}
 
-	response.ComputeApplicationUserLastModified(ctx, user)
-
 	user.Password = ""
 	user.Deleted = nil
 	user.CreatedAt, user.UpdatedAt, user.LastLogin, user.LastRead = nil, nil, nil, nil
@@ -73,8 +71,6 @@ func (appUser *applicationUser) ReadCurrent(ctx *context.Context) (err []errors.
 	user.IsFollowed = nil
 
 	appUser.storage.FriendStatistics(ctx.OrganizationID, ctx.ApplicationID, user)
-
-	response.ComputeApplicationUserLastModified(ctx, user)
 
 	response.WriteResponse(ctx, user, http.StatusOK, 10)
 	return
@@ -315,7 +311,6 @@ func (appUser *applicationUser) Search(ctx *context.Context) (err []errors.Error
 		return
 	}
 
-	response.ComputeApplicationUsersLastModified(ctx, users)
 	response.SanitizeApplicationUsers(users)
 
 	for idx := range users {

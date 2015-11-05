@@ -124,7 +124,6 @@ func (conn *connection) List(ctx *context.Context) (err []errors.Error) {
 		return
 	}
 
-	response.ComputeApplicationUsersLastModified(ctx, users)
 	response.SanitizeApplicationUsers(users)
 
 	resp := struct {
@@ -155,7 +154,6 @@ func (conn *connection) CurrentUserList(ctx *context.Context) (err []errors.Erro
 		return
 	}
 
-	response.ComputeApplicationUsersLastModified(ctx, users)
 	response.SanitizeApplicationUsers(users)
 
 	resp := struct {
@@ -197,7 +195,6 @@ func (conn *connection) FollowedByList(ctx *context.Context) (err []errors.Error
 		return
 	}
 
-	response.ComputeApplicationUsersLastModified(ctx, users)
 	response.SanitizeApplicationUsers(users)
 
 	resp := struct {
@@ -227,7 +224,6 @@ func (conn *connection) CurrentUserFollowedByList(ctx *context.Context) (err []e
 		return
 	}
 
-	response.ComputeApplicationUsersLastModified(ctx, users)
 	response.SanitizeApplicationUsers(users)
 
 	resp := struct {
@@ -364,7 +360,6 @@ func (conn *connection) Friends(ctx *context.Context) (err []errors.Error) {
 		return
 	}
 
-	response.ComputeApplicationUsersLastModified(ctx, users)
 	response.SanitizeApplicationUsers(users)
 
 	resp := struct {
@@ -390,7 +385,6 @@ func (conn *connection) CurrentUserFriends(ctx *context.Context) (err []errors.E
 		return
 	}
 
-	response.ComputeApplicationUsersLastModified(ctx, users)
 	response.SanitizeApplicationUsers(users)
 
 	resp := struct {
