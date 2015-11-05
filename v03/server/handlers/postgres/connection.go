@@ -288,7 +288,7 @@ func (conn *connection) CreateSocial(ctx *context.Context) (err []errors.Error) 
 		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error()).SetCurrentLocation()}
 	}
 
-	if request.ConnectionType == "" || (request.ConnectionType != "friend" && request.ConnectionType != "follow") {
+	if request.ConnectionType == "" || (request.ConnectionType != entity.ConnectionTypeFriend && request.ConnectionType != entity.ConnectionTypeFollow) {
 		return []errors.Error{errmsg.ErrConnectionTypeIsWrong.SetCurrentLocation()}
 	}
 
@@ -421,7 +421,7 @@ func (conn *connection) CreateFriend(ctx *context.Context) []errors.Error {
 		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error()).SetCurrentLocation()}
 	}
 
-	connection.Type = "friend"
+	connection.Type = entity.ConnectionTypeFriend
 	return conn.doCreateConnection(ctx, connection)
 }
 
@@ -436,7 +436,7 @@ func (conn *connection) CreateFollow(ctx *context.Context) []errors.Error {
 		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error()).SetCurrentLocation()}
 	}
 
-	connection.Type = "follow"
+	connection.Type = entity.ConnectionTypeFollow
 	return conn.doCreateConnection(ctx, connection)
 }
 

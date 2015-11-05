@@ -23,7 +23,7 @@ func (s *ConnectionSuite) TestCreateConnectionAfterDisable(c *C) {
 	LoginApplicationUser(accounts[0].ID, application.ID, userFrom)
 
 	payload := fmt.Sprintf(
-		`{"user_from_id":%d, "user_to_id":%d, "type": "friend"}`,
+		`{"user_from_id":%d, "user_to_id":%d, "type": "`+entity.ConnectionTypeFriend+`"}`,
 		userFrom.ID,
 		userTo.ID,
 	)
@@ -41,7 +41,7 @@ func (s *ConnectionSuite) TestCreateConnectionAfterDisable(c *C) {
 	c.Assert(er, IsNil)
 	c.Assert(connection.UserFromID, Equals, userFrom.ID)
 	c.Assert(connection.UserToID, Equals, userTo.ID)
-	c.Assert(connection.Type, Equals, "friend")
+	c.Assert(connection.Type, Equals, entity.ConnectionTypeFriend)
 	c.Assert(connection.Enabled, Equals, true)
 
 	routeName = "deleteCurrentUserConnection"
@@ -63,7 +63,7 @@ func (s *ConnectionSuite) TestCreateConnectionAfterDisable(c *C) {
 	c.Assert(er, IsNil)
 	c.Assert(connection.UserFromID, Equals, userFrom.ID)
 	c.Assert(connection.UserToID, Equals, userTo.ID)
-	c.Assert(connection.Type, Equals, "friend")
+	c.Assert(connection.Type, Equals, entity.ConnectionTypeFriend)
 	c.Assert(connection.Enabled, Equals, true)
 }
 
@@ -76,7 +76,7 @@ func (s *ConnectionSuite) TestCreateFollowConnectionWithUserGeneratedEvent(c *C)
 	LoginApplicationUser(accounts[0].ID, application.ID, userFrom)
 
 	payload := fmt.Sprintf(
-		`{"user_from_id":%d, "user_to_id":%d, "type": "follow"}`,
+		`{"user_from_id":%d, "user_to_id":%d, "type": "`+entity.ConnectionTypeFollow+`"}`,
 		userFrom.ID,
 		userTo.ID,
 	)
@@ -94,7 +94,7 @@ func (s *ConnectionSuite) TestCreateFollowConnectionWithUserGeneratedEvent(c *C)
 	c.Assert(er, IsNil)
 	c.Assert(connection.UserFromID, Equals, userFrom.ID)
 	c.Assert(connection.UserToID, Equals, userTo.ID)
-	c.Assert(connection.Type, Equals, "follow")
+	c.Assert(connection.Type, Equals, entity.ConnectionTypeFollow)
 	c.Assert(connection.Enabled, Equals, true)
 
 	payload = fmt.Sprintf(

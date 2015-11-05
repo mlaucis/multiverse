@@ -206,7 +206,7 @@ func HookUp(orgID, applicationID int64, userFromID, userToID uint64) {
 	connection := entity.Connection{
 		UserFromID: userFromID,
 		UserToID:   userToID,
-		Type:       "follow",
+		Type:       entity.ConnectionTypeFollow,
 	}
 	coreConn.Create(orgID, applicationID, &connection)
 	coreConn.Confirm(orgID, applicationID, &connection, false)
@@ -261,7 +261,7 @@ func HookUpUsersCustom(orgID, applicationID int64, users []*entity.ApplicationUs
 		connection := entity.Connection{
 			UserFromID: users[0].ID,
 			UserToID:   users[4].ID,
-			Type:       "follow",
+			Type:       entity.ConnectionTypeFollow,
 		}
 		coreConn.Create(orgID, applicationID, &connection)
 	}
@@ -270,7 +270,7 @@ func HookUpUsersCustom(orgID, applicationID int64, users []*entity.ApplicationUs
 		connection := entity.Connection{
 			UserFromID: users[4].ID,
 			UserToID:   users[5].ID,
-			Type:       "follow",
+			Type:       entity.ConnectionTypeFollow,
 		}
 		coreConn.Create(orgID, applicationID, &connection)
 	}
@@ -279,7 +279,7 @@ func HookUpUsersCustom(orgID, applicationID int64, users []*entity.ApplicationUs
 		connection := entity.Connection{
 			UserFromID: users[6].ID,
 			UserToID:   users[7].ID,
-			Type:       "follow",
+			Type:       entity.ConnectionTypeFollow,
 		}
 		coreConn.Create(orgID, applicationID, &connection)
 	}
@@ -291,7 +291,7 @@ func BenchHookUpUsersCustom(orgID, applicationID int64, users []*entity.Applicat
 	}
 
 	connection := &entity.Connection{
-		Type: "friend",
+		Type: entity.ConnectionTypeFriend,
 	}
 
 	for i := 0; i < len(users)-numberOfConnectionsPerUser; i++ {
