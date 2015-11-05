@@ -543,8 +543,8 @@ func (s *EventSuite) TestGetFeed(c *C) {
 	er := json.Unmarshal([]byte(body), &response)
 	c.Assert(er, IsNil)
 
-	c.Assert(response.Count, Equals, 33)
-	c.Assert(len(response.Events), Equals, 33)
+	c.Assert(response.Count, Equals, 38)
+	c.Assert(len(response.Events), Equals, 38)
 	c.Assert(len(response.Users), Equals, 9)
 
 	time.Sleep(10 * time.Millisecond)
@@ -564,11 +564,11 @@ func (s *EventSuite) TestGetFeed(c *C) {
 	er = json.Unmarshal([]byte(body), &response)
 	c.Assert(er, IsNil)
 	c.Assert(response.Count, Equals, 0)
-	c.Assert(len(response.Events), Equals, 33)
+	c.Assert(len(response.Events), Equals, 38)
 	c.Assert(len(response.Users), Equals, 9)
 	for _, user := range response.Users {
 		c.Assert(user.Password, Equals, "")
-		c.Assert(user.Email, Equals, "")
+		c.Assert(user.Email, Not(Equals), "")
 		c.Assert(user.SessionToken, Equals, "")
 		c.Assert(user.FriendCount, IsNil)
 		c.Assert(user.FollowerCount, IsNil)
@@ -606,8 +606,8 @@ func (s *EventSuite) TestGetFeedWithCacheHeaders(c *C) {
 	er := json.Unmarshal([]byte(body), &response)
 	c.Assert(er, IsNil)
 
-	c.Assert(response.Count, Equals, 33)
-	c.Assert(len(response.Events), Equals, 33)
+	c.Assert(response.Count, Equals, 38)
+	c.Assert(len(response.Events), Equals, 38)
 	c.Assert(len(response.Users), Equals, 9)
 	for _, user := range response.Users {
 		c.Assert(user.Deleted, IsNil)
@@ -674,8 +674,8 @@ func (s *EventSuite) TestGetUnreadFeed(c *C) {
 	er := json.Unmarshal([]byte(body), &response)
 	c.Assert(er, IsNil)
 
-	c.Assert(response.Count, Equals, 33)
-	c.Assert(len(response.Events), Equals, 33)
+	c.Assert(response.Count, Equals, 38)
+	c.Assert(len(response.Events), Equals, 38)
 	c.Assert(len(response.Users), Equals, 9)
 	for _, user := range response.Users {
 		c.Assert(user.Deleted, IsNil)
@@ -719,7 +719,7 @@ func (s *EventSuite) TestGetUnreadFeedCount(c *C) {
 	}{}
 	er := json.Unmarshal([]byte(body), &response)
 	c.Assert(er, IsNil)
-	c.Assert(response.Count, Equals, 33)
+	c.Assert(response.Count, Equals, 38)
 
 	routeName = "getCurrentUserUnreadFeed"
 	route = getComposedRoute(routeName)
@@ -733,8 +733,8 @@ func (s *EventSuite) TestGetUnreadFeedCount(c *C) {
 	}{}
 	er = json.Unmarshal([]byte(body), &response)
 	c.Assert(er, IsNil)
-	c.Assert(response.Count, Equals, 33)
-	c.Assert(len(response.Events), Equals, 33)
+	c.Assert(response.Count, Equals, 38)
+	c.Assert(len(response.Events), Equals, 38)
 
 	time.Sleep(1 * time.Second)
 
@@ -854,8 +854,8 @@ func (s *EventSuite) TestGetFeedWithBackendToken(c *C) {
 	er := json.Unmarshal([]byte(body), &response)
 	c.Assert(er, IsNil)
 
-	c.Assert(response.Count, Equals, 33)
-	c.Assert(len(response.Events), Equals, 33)
+	c.Assert(response.Count, Equals, 38)
+	c.Assert(len(response.Events), Equals, 38)
 	c.Assert(len(response.Users), Equals, 9)
 
 	time.Sleep(10 * time.Millisecond)
@@ -875,7 +875,7 @@ func (s *EventSuite) TestGetFeedWithBackendToken(c *C) {
 	er = json.Unmarshal([]byte(body), &response)
 	c.Assert(er, IsNil)
 	c.Assert(response.Count, Equals, 0)
-	c.Assert(len(response.Events), Equals, 33)
+	c.Assert(len(response.Events), Equals, 38)
 	c.Assert(len(response.Users), Equals, 9)
 	for _, user := range response.Users {
 		c.Assert(user.Deleted, IsNil)
@@ -906,8 +906,8 @@ func (s *EventSuite) TestGetFeedWithBackendToken2(c *C) {
 	er := json.Unmarshal([]byte(body), &response)
 	c.Assert(er, IsNil)
 
-	c.Assert(response.Count, Equals, 33)
-	c.Assert(len(response.Events), Equals, 33)
+	c.Assert(response.Count, Equals, 38)
+	c.Assert(len(response.Events), Equals, 38)
 	c.Assert(len(response.Users), Equals, 9)
 
 	time.Sleep(10 * time.Millisecond)
@@ -927,7 +927,7 @@ func (s *EventSuite) TestGetFeedWithBackendToken2(c *C) {
 	er = json.Unmarshal([]byte(body), &response)
 	c.Assert(er, IsNil)
 	c.Assert(response.Count, Equals, 0)
-	c.Assert(len(response.Events), Equals, 33)
+	c.Assert(len(response.Events), Equals, 38)
 	c.Assert(len(response.Users), Equals, 9)
 	for _, user := range response.Users {
 		c.Assert(user.Deleted, IsNil)

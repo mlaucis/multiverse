@@ -56,7 +56,7 @@ type ApplicationUser interface {
 	FindBySession(accountID, applicationID int64, sessionKey string) (*entity.ApplicationUser, []errors.Error)
 
 	// Search finds the users matching the search term
-	Search(accountID, applicationID int64, searchTerm string) (user []*entity.ApplicationUser, err []errors.Error)
+	Search(accountID, applicationID int64, userID uint64, searchTerm string) (user []*entity.ApplicationUser, err []errors.Error)
 
 	// Read friend and follower statistics for a user
 	FriendStatistics(accountID, applicationID int64, appUser *entity.ApplicationUser) []errors.Error

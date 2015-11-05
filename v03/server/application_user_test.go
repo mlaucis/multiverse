@@ -1352,7 +1352,7 @@ func (s *ApplicationUserSuite) TestLoginRefreshLogoutMalformedPayloadFails(c *C)
 }
 
 func (s *ApplicationUserSuite) TestSearch(c *C) {
-	accounts := CorrectDeploy(1, 0, 1, 10, 0, false, true)
+	accounts := CorrectDeploy(1, 0, 1, 10, 0, true, true)
 	application := accounts[0].Applications[0]
 	user := application.Users[0]
 	user2 := application.Users[1]
@@ -1363,6 +1363,7 @@ func (s *ApplicationUserSuite) TestSearch(c *C) {
 	user.Deleted, user2.Deleted, user3.Deleted = nil, nil, nil
 	user.CreatedAt, user2.CreatedAt, user3.CreatedAt = nil, nil, nil
 	user.UpdatedAt, user2.UpdatedAt, user3.UpdatedAt = nil, nil, nil
+	user2.IsFriend, user2.IsFollower, user2.IsFollowed = entity.PFalse, entity.PTrue, entity.PTrue
 
 	iterations := []struct {
 		Payload   string
@@ -1408,6 +1409,14 @@ func (s *ApplicationUserSuite) TestSearch(c *C) {
 			Payload:   "",
 			RouteName: "searchApplicationUser",
 			Route:     getComposedRoute("searchApplicationUser") + "?q=" + user3.Email,
+			Code:      http.StatusNoContent,
+			Response:  []*entity.ApplicationUser{},
+		},
+		// 5
+		{
+			Payload:   "",
+			RouteName: "searchApplicationUser",
+			Route:     getComposedRoute("searchApplicationUser") + "?q=" + user.Email,
 			Code:      http.StatusNoContent,
 			Response:  []*entity.ApplicationUser{},
 		},

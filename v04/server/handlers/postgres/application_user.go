@@ -310,18 +310,21 @@ func (appUser *applicationUser) Search(ctx *context.Context) (err []errors.Error
 		return []errors.Error{errmsg.ErrApplicationUserSearchTypeMin3Chars.SetCurrentLocation()}
 	}
 
-	users, err := appUser.storage.Search(ctx.OrganizationID, ctx.ApplicationID, query)
+	users, err := appUser.storage.Search(ctx.OrganizationID, ctx.ApplicationID, ctx.ApplicationUserID, query)
 	if err != nil {
 		return
 	}
 
 	response.ComputeApplicationUsersLastModified(ctx, users)
+	response.SanitizeApplicationUsers(users)
 
 	for idx := range users {
-		users[idx].Password = ""
-		users[idx].Deleted = nil
-		users[idx].SessionToken = ""
-		users[idx].CreatedAt, users[idx].UpdatedAt, users[idx].LastLogin, users[idx].LastRead = nil, nil, nil, nil
+		relation, err := appUser.conn.Relation(ctx.OrganizationID, ctx.ApplicationID, ctx.ApplicationUserID, users[idx].ID)
+		if err != nil {
+			ctx.LogError(err)
+		} else {
+			users[idx].Relation = *relation
+		}
 	}
 
 	resp := struct {

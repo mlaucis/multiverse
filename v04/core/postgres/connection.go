@@ -48,19 +48,25 @@ WHERE (json_data->>'user_from_id')::BIGINT = $1::BIGINT AND (json_data->>'user_t
 )
 
 func (c *connection) Create(accountID, applicationID int64, connection *entity.Connection) []errors.Error {
+	// Check if the connection already exists between users
 	exists, er := c.Read(accountID, applicationID, connection.UserFromID, connection.UserToID)
 	if er != nil && er[0].Code() != errmsg.ErrConnectionNotFound.Code() {
 		return er
 	}
+
+	// If it exists and it's not enabled then enable it
 	if exists != nil && !exists.Enabled {
 		exists.Enabled = true
 		connection, er = c.Update(accountID, applicationID, *exists, *exists, true)
 		if er != nil {
 			return er
 		}
-	} else {
+
+		// If it doesn't exists then create it
+	} else if exists == nil {
 		timeNow := time.Now()
 		connection.CreatedAt, connection.UpdatedAt = &timeNow, &timeNow
+		connection.Enabled = true
 		connectionJSON, err := json.Marshal(connection)
 		if err != nil {
 			return []errors.Error{errmsg.ErrInternalConnectionCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
@@ -71,13 +77,17 @@ func (c *connection) Create(accountID, applicationID int64, connection *entity.C
 		}
 	}
 
+	// if the connection is of type friend then reverse the roles and create the other connection
 	if connection.Type == "friend" {
 		connection.UserFromID, connection.UserToID = connection.UserToID, connection.UserFromID
 
+		// Check if the connection exists
 		exists, er := c.Read(accountID, applicationID, connection.UserFromID, connection.UserToID)
 		if er != nil && er[0].Code() != errmsg.ErrConnectionNotFound.Code() {
 			return er
 		}
+
+		// If it exists but it's not enabled then enable it
 		if exists != nil && !exists.Enabled {
 			exists.Enabled = true
 			connection, er = c.Update(accountID, applicationID, *exists, *exists, true)
@@ -85,14 +95,18 @@ func (c *connection) Create(accountID, applicationID int64, connection *entity.C
 			return er
 		}
 
-		connectionJSON, err := json.Marshal(connection)
-		if err != nil {
-			return []errors.Error{errmsg.ErrInternalConnectionCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
+		// If it doesn't exists then create it
+		if exists == nil {
+			connectionJSON, err := json.Marshal(connection)
+			if err != nil {
+				return []errors.Error{errmsg.ErrInternalConnectionCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
+			}
+			_, err = c.mainPg.Exec(appSchema(createConnectionQuery, accountID, applicationID), string(connectionJSON))
+			if err != nil {
+				return []errors.Error{errmsg.ErrInternalConnectionCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
+			}
 		}
-		_, err = c.mainPg.Exec(appSchema(createConnectionQuery, accountID, applicationID), string(connectionJSON))
-		if err != nil {
-			return []errors.Error{errmsg.ErrInternalConnectionCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
-		}
+
 		// Switch back so we have the original IDs in place
 		connection.UserFromID, connection.UserToID = connection.UserToID, connection.UserFromID
 	}

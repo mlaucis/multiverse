@@ -119,6 +119,24 @@ func (s *ConnectionSuite) TestCreateConnectionTwice(c *C) {
 
 	c.Assert(code, Equals, http.StatusNoContent)
 	c.Assert(body, Equals, "\"\"\n")
+
+	routeName = "getCurrentUserFriends"
+	route = getComposedRoute(routeName)
+	code, body, err = runRequest(routeName, route, "", signApplicationRequest(application, userFrom, true, true))
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusOK)
+	c.Assert(body, Not(Equals), "")
+
+	response := struct {
+		Count int                      `json:"users_count"`
+		Users []entity.ApplicationUser `json:"users"`
+	}{}
+	er = json.Unmarshal([]byte(body), &response)
+	c.Assert(er, IsNil)
+
+	c.Assert(response.Count, Equals, 1)
+	c.Assert(len(response.Users), Equals, 1)
+	c.Assert(response.Users[0].ID, Equals, userTo.ID)
 }
 
 func (s *ConnectionSuite) TestCreateFriendConnection(c *C) {
@@ -1283,6 +1301,41 @@ func (s *ConnectionSuite) TestCreateSocialConnection(c *C) {
 	c.Assert(connectedUsers.UsersCount, Equals, 2)
 	c.Assert(connectedUsers.Users[0].ID, Equals, user2.ID)
 	c.Assert(connectedUsers.Users[1].ID, Equals, user4.ID)
+
+	code, body, err = runRequest(routeName, route, string(payload), signApplicationRequest(application, userFrom, true, true))
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusCreated)
+	c.Assert(body, Not(Equals), "")
+	c.Assert(body, Not(Equals), "[]\n")
+
+	connectedUsers = struct {
+		Users      []*entity.ApplicationUser `json:"users"`
+		UsersCount int                       `json:"users_count"`
+	}{}
+	er = json.Unmarshal([]byte(body), &connectedUsers)
+	c.Assert(er, IsNil)
+	c.Assert(connectedUsers.UsersCount, Equals, 2)
+	c.Assert(connectedUsers.Users[0].ID, Equals, user2.ID)
+	c.Assert(connectedUsers.Users[1].ID, Equals, user4.ID)
+
+	routeName = "getCurrentUserFriends"
+	route = getComposedRoute(routeName)
+	code, body, err = runRequest(routeName, route, "", signApplicationRequest(application, userFrom, true, true))
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusOK)
+	c.Assert(body, Not(Equals), "")
+
+	response := struct {
+		Count int                      `json:"users_count"`
+		Users []entity.ApplicationUser `json:"users"`
+	}{}
+	er = json.Unmarshal([]byte(body), &response)
+	c.Assert(er, IsNil)
+
+	c.Assert(response.Count, Equals, 2)
+	c.Assert(len(response.Users), Equals, 2)
+	c.Assert(response.Users[0].ID, Equals, user2.ID)
+	c.Assert(response.Users[1].ID, Equals, user4.ID)
 }
 
 // Test to create a social connection from users of differnt apps
@@ -1781,7 +1834,7 @@ func (s *ConnectionSuite) TestGetConnectionsCount(c *C) {
 	c.Assert(receivedUser.Username, Equals, user.Username)
 	c.Assert(*receivedUser.FriendCount, Equals, int64(1))
 	c.Assert(*receivedUser.FollowerCount, Equals, int64(1))
-	c.Assert(*receivedUser.FollowedCount, Equals, int64(3))
+	c.Assert(*receivedUser.FollowedCount, Equals, int64(4))
 }
 
 func (s *ConnectionSuite) TestCreateFriendsConnectionWithEvent(c *C) {
