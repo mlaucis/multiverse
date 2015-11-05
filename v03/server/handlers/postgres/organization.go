@@ -28,8 +28,6 @@ func (org *organization) Read(ctx *context.Context) (err []errors.Error) {
 		return []errors.Error{errmsg.ErrAccountMismatch.SetCurrentLocation()}
 	}
 
-	response.ComputeOrganizationLastModified(ctx, ctx.Organization)
-
 	response.WriteResponse(ctx, ctx.Organization, http.StatusOK, 10)
 	return
 }

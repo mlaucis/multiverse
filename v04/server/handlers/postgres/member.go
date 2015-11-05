@@ -24,7 +24,6 @@ func (user *member) Read(ctx *context.Context) (err []errors.Error) {
 	// TODO This one read only the current account user maybe we want to have something to read any account user?
 	accountUser := ctx.Member
 	response.SanitizeMember(accountUser)
-	response.ComputeMemberLastModified(ctx, accountUser)
 	response.WriteResponse(ctx, accountUser, http.StatusOK, 10)
 	return
 }
@@ -132,8 +131,6 @@ func (user *member) List(ctx *context.Context) (err []errors.Error) {
 	}{
 		AccountUsers: accountUsers,
 	}
-
-	response.ComputeMembersLastModified(ctx, resp.AccountUsers)
 
 	response.WriteResponse(ctx, resp, http.StatusOK, 10)
 	return

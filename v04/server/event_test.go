@@ -594,9 +594,7 @@ func (s *EventSuite) TestGetFeedWithCacheHeaders(c *C) {
 	c.Assert(code, Equals, http.StatusOK)
 	c.Assert(body, Not(Equals), "")
 	c.Assert(headers.Get("ETag"), Not(Equals), "")
-	c.Assert(headers.Get("Last-Modified"), Not(Equals), "")
 	etag := headers.Get("ETag")
-	lastModified := headers.Get("Last-Modified")
 
 	response := struct {
 		Count  int                               `json:"unread_events_count"`
@@ -622,9 +620,7 @@ func (s *EventSuite) TestGetFeedWithCacheHeaders(c *C) {
 	c.Assert(code, Equals, http.StatusOK)
 	c.Assert(body, Not(Equals), "")
 	c.Assert(headers.Get("ETag"), Not(Equals), "")
-	c.Assert(headers.Get("Last-Modified"), Not(Equals), "")
 	c.Assert(headers.Get("ETag"), Not(Equals), etag)
-	c.Assert(headers.Get("Last-Modified"), Equals, lastModified)
 	etag = headers.Get("ETag")
 
 	// Now we do our real tests
@@ -633,24 +629,14 @@ func (s *EventSuite) TestGetFeedWithCacheHeaders(c *C) {
 	c.Assert(code, Equals, http.StatusNotModified)
 	c.Assert(body, Equals, "")
 	c.Assert(headers.Get("ETag"), Equals, etag)
-	c.Assert(headers.Get("Last-Modified"), Equals, lastModified)
-
-	code, body, headers, err = runRequestWithHeaders(routeName, route, "", func(r *http.Request) { r.Header.Set("If-Modified-Since", lastModified) }, signApplicationRequest(application, userFrom, true, true))
-	c.Assert(err, IsNil)
-	c.Assert(code, Equals, http.StatusNotModified)
-	c.Assert(body, Equals, "")
-	c.Assert(headers.Get("ETag"), Equals, etag)
-	c.Assert(headers.Get("Last-Modified"), Equals, lastModified)
 
 	code, body, headers, err = runRequestWithHeaders(routeName, route, "", func(r *http.Request) {
 		r.Header.Set("If-None-Match", etag)
-		r.Header.Set("If-Modified-Since", lastModified)
 	}, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusNotModified)
 	c.Assert(body, Equals, "")
 	c.Assert(headers.Get("ETag"), Equals, etag)
-	c.Assert(headers.Get("Last-Modified"), Equals, lastModified)
 }
 
 func (s *EventSuite) TestGetUnreadFeed(c *C) {

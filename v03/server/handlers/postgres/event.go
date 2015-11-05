@@ -38,8 +38,6 @@ func (evt *event) CurrentUserRead(ctx *context.Context) (err []errors.Error) {
 		return
 	}
 
-	response.ComputeEventLastModified(ctx, event)
-
 	response.WriteResponse(ctx, event, http.StatusOK, 10)
 	return
 }
@@ -64,8 +62,6 @@ func (evt *event) Read(ctx *context.Context) (err []errors.Error) {
 		eventID); err != nil {
 		return
 	}
-
-	response.ComputeEventLastModified(ctx, event)
 
 	response.WriteResponse(ctx, event, http.StatusOK, 10)
 	return
@@ -240,8 +236,6 @@ func (evt *event) List(ctx *context.Context) (err []errors.Error) {
 	}
 
 	status := http.StatusOK
-	response.ComputeEventsLastModified(ctx, resp.Events)
-
 	if resp.EventsCount == 0 {
 		status = http.StatusNoContent
 	}
@@ -270,7 +264,6 @@ func (evt *event) CurrentUserList(ctx *context.Context) (err []errors.Error) {
 	}
 
 	status := http.StatusOK
-	response.ComputeEventsLastModified(ctx, resp.Events)
 
 	if resp.EventsCount == 0 {
 		status = http.StatusNoContent
@@ -293,8 +286,6 @@ func (evt *event) Feed(ctx *context.Context) (err []errors.Error) {
 	resp.EventsCount = len(resp.Events)
 
 	status := http.StatusOK
-	response.ComputeEventsLastModified(ctx, resp.Events)
-
 	if resp.EventsCount == 0 {
 		status = http.StatusNoContent
 	} else {
@@ -478,8 +469,6 @@ func (evt *event) Search(ctx *context.Context) (err []errors.Error) {
 	}
 
 	status := http.StatusOK
-	response.ComputeEventsLastModified(ctx, resp.Events)
-
 	if resp.EventsCount == 0 {
 		status = http.StatusNoContent
 	}
@@ -501,7 +490,6 @@ func (evt *event) UnreadFeed(ctx *context.Context) (err []errors.Error) {
 	resp.EventsCount = len(resp.Events)
 
 	status := http.StatusOK
-	response.ComputeEventsLastModified(ctx, resp.Events)
 
 	if resp.UnreadCount == 0 {
 		status = http.StatusNoContent
@@ -529,9 +517,6 @@ func (evt *event) UnreadFeedCount(ctx *context.Context) (err []errors.Error) {
 		ctx.ApplicationUser); err != nil {
 		return
 	}
-
-	// TODO Maybe not the best idea?
-	response.ComputeLastModifiedNow(ctx)
 
 	response.WriteResponse(ctx, count, http.StatusOK, 10)
 	return

@@ -21,7 +21,6 @@ type application struct {
 
 func (app *application) Read(ctx *context.Context) (err []errors.Error) {
 	// TODO This one read only the current application maybe we want to have something to read any application?
-	response.ComputeApplicationLastModified(ctx, ctx.Application)
 	response.WriteResponse(ctx, ctx.Application, http.StatusOK, 10)
 	return
 }
@@ -97,8 +96,6 @@ func (app *application) List(ctx *context.Context) (err []errors.Error) {
 	}{
 		Applications: applications,
 	}
-
-	response.ComputeApplicationsLastModified(ctx, resp.Applications)
 
 	response.WriteResponse(ctx, resp, http.StatusOK, 10)
 	return

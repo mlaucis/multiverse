@@ -73,26 +73,11 @@ func WriteResponse(ctx *context.Context, response interface{}, code int, cacheTi
 		etagString := fmt.Sprintf("%x", etag)
 		ctx.W.Header().Set("ETag", etagString)
 
-		if myLastModified, ok := ctx.Bag["Last-Modified"]; ok {
-			ctx.W.Header().Set("Last-Modified", myLastModified.(string))
-		}
-
 		if requestEtag := ctx.R.Header.Get("If-None-Match"); requestEtag != "" {
 			if requestEtag == etagString {
 				ctx.StatusCode = http.StatusNotModified
 				ctx.W.WriteHeader(ctx.StatusCode)
 				return
-			}
-		}
-
-		if ifModifiedSince := ctx.R.Header.Get("If-Modified-Since"); ifModifiedSince != "" {
-			if myLastModified, ok := ctx.Bag["Last-Modified"]; ok {
-				ctx.W.Header().Set("Last-Modified", myLastModified.(string))
-				if myLastModified.(string) == ifModifiedSince {
-					ctx.StatusCode = http.StatusNotModified
-					ctx.W.WriteHeader(ctx.StatusCode)
-					return
-				}
 			}
 		}
 
