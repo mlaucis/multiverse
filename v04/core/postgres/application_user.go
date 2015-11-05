@@ -81,6 +81,7 @@ const (
 		OR (json_data->>'email' ILIKE $1)
 		OR (json_data->>'first_name' ILIKE $1)
 		OR (json_data->>'last_name' ILIKE $1))
+		AND (json_data->>'id')::BIGINT != $2
 		AND (json_data->>'enabled')::BOOL = true
 		AND (json_data->>'deleted')::BOOL = false
 	LIMIT 50`
@@ -453,11 +454,11 @@ func (au *applicationUser) FindBySession(accountID, applicationID int64, session
 	return au.Read(accountID, applicationID, userID, false)
 }
 
-func (au *applicationUser) Search(accountID, applicationID int64, searchTerm string) ([]*entity.ApplicationUser, []errors.Error) {
+func (au *applicationUser) Search(accountID, applicationID int64, userID uint64, searchTerm string) ([]*entity.ApplicationUser, []errors.Error) {
 	users := []*entity.ApplicationUser{}
 
 	rows, err := au.pg.SlaveDatastore(-1).
-		Query(appSchema(searchApplicationUsersQuery, accountID, applicationID), "%"+searchTerm+"%")
+		Query(appSchema(searchApplicationUsersQuery, accountID, applicationID), "%"+searchTerm+"%", userID)
 	if err != nil {
 		return users, []errors.Error{errmsg.ErrInternalApplicationUserList.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}

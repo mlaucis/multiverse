@@ -310,7 +310,7 @@ func (appUser *applicationUser) Search(ctx *context.Context) (err []errors.Error
 		return []errors.Error{errmsg.ErrApplicationUserSearchTypeMin3Chars.SetCurrentLocation()}
 	}
 
-	users, err := appUser.storage.Search(ctx.OrganizationID, ctx.ApplicationID, query)
+	users, err := appUser.storage.Search(ctx.OrganizationID, ctx.ApplicationID, ctx.ApplicationUserID, query)
 	if err != nil {
 		return
 	}
