@@ -55,11 +55,11 @@ const (
 			AND (json_data->>'enabled')::BOOL = true`
 
 	friendConnectionsQuery = `SELECT
-		json_data->>'user_from_id'
+		json_data->>'user_from_id', json_data->>'user_to_id'
 		FROM app_%d_%d.connections
-		WHERE (json_data->>'user_to_id')::BIGINT = $1::BIGINT AND
-			json_data->>'type' = '` + string(entity.ConnectionTypeFriend) + `' AND
-			json_data->>'state' = '` + string(entity.ConnectionStateConfirmed) + `'
+		WHERE ((json_data->>'user_to_id')::BIGINT = $1::BIGINT OR (json_data->>'user_from_id')::BIGINT = $1::BIGINT)
+			AND json_data->>'type' = '` + string(entity.ConnectionTypeFriend) + `'
+			AND json_data->>'state' = '` + string(entity.ConnectionStateConfirmed) + `'
 			AND (json_data->>'enabled')::BOOL = true`
 
 	friendAndFollowingConnectionsQuery = `SELECT
@@ -122,19 +122,6 @@ func (c *connection) Create(accountID, applicationID int64, connection *entity.C
 	_, err = c.mainPg.Exec(appSchema(createConnectionQuery, accountID, applicationID), string(connectionJSON))
 	if err != nil {
 		return []errors.Error{errmsg.ErrInternalConnectionCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
-	}
-
-	if connection.Type == entity.ConnectionTypeFriend {
-		reverseConnection := *connection
-		reverseConnection.UserFromID, reverseConnection.UserToID = connection.UserToID, connection.UserFromID
-		connectionJSON, err := json.Marshal(reverseConnection)
-		if err != nil {
-			return []errors.Error{errmsg.ErrInternalConnectionCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
-		}
-		_, err = c.mainPg.Exec(appSchema(createConnectionQuery, accountID, applicationID), string(connectionJSON))
-		if err != nil {
-			return []errors.Error{errmsg.ErrInternalConnectionCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
-		}
 	}
 
 	return nil
@@ -200,15 +187,6 @@ func (c *connection) Delete(accountID, applicationID int64, userFromID, userToID
 		return err
 	}
 
-	if connectionType == entity.ConnectionTypeFriend {
-		existingConn := *existingConnection
-		existingConn.UserFromID, existingConn.UserToID = existingConn.UserToID, existingConn.UserFromID
-		_, err = c.Update(accountID, applicationID, existingConn, existingConn, false)
-		if err != nil {
-			return err
-		}
-	}
-
 	return nil
 }
 
@@ -269,13 +247,19 @@ func (c *connection) Friends(accountID, applicationID int64, userID uint64) (use
 	}
 	defer rows.Close()
 	for rows.Next() {
-		var userFromID uint64
-		err := rows.Scan(&userFromID)
+		var (
+			userFromID uint64
+			userToID   uint64
+		)
+		err := rows.Scan(&userFromID, &userToID)
 		if err != nil {
 			return nil, []errors.Error{errmsg.ErrInternalFriendsList.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 		}
-
-		userIDs = append(userIDs, userFromID)
+		if userID != userFromID {
+			userIDs = append(userIDs, userFromID)
+		} else if userID != userToID {
+			userIDs = append(userIDs, userToID)
+		}
 	}
 
 	return userIDs, nil
@@ -367,23 +351,6 @@ func (c *connection) CreateMultiple(accountID, applicationID int64, user *entity
 		connection := &entity.Connection{
 			UserFromID: user.ID,
 			UserToID:   ourStoredUsersIDs[idx],
-			Type:       connectionType,
-			State:      connectionState,
-		}
-
-		if err := c.Create(accountID, applicationID, connection); err != nil {
-			if err[0].Code() != errmsg.ErrConnectionAlreadyExists.Code() {
-				return nil, err
-			}
-		}
-
-		if connectionType != entity.ConnectionTypeFriend {
-			continue
-		}
-
-		connection = &entity.Connection{
-			UserFromID: ourStoredUsersIDs[idx],
-			UserToID:   user.ID,
 			Type:       connectionType,
 			State:      connectionState,
 		}

@@ -438,9 +438,6 @@ func (conn *connection) CreateFollow(ctx *context.Context) []errors.Error {
 }
 
 func (conn *connection) doCreateConnection(ctx *context.Context, connection *entity.Connection) []errors.Error {
-	accountID := ctx.OrganizationID
-	applicationID := ctx.ApplicationID
-
 	existingConnection, err := conn.storage.Read(ctx.OrganizationID, ctx.ApplicationID, ctx.ApplicationUserID, connection.UserToID, connection.Type)
 	if err != nil {
 		if err[0].Code() != errmsg.ErrConnectionNotFound.Code() {
@@ -453,26 +450,26 @@ func (conn *connection) doCreateConnection(ctx *context.Context, connection *ent
 			(connection.State == existingConnection.State) {
 			goto createResponse
 		} else {
-			if err := existingConnection.TransferState(connection.State); err != nil {
+			if err := existingConnection.TransferState(connection.State, ctx.ApplicationUserID); err != nil {
 				return err
 			}
 		}
 
-		_, err = conn.storage.Update(accountID, applicationID, *existingConnection, *existingConnection, false)
+		_, err = conn.storage.Update(ctx.OrganizationID, ctx.ApplicationID, *existingConnection, *existingConnection, false)
 		if err != nil {
 			return err
 		}
 	} else {
 		if connection.State == "" {
-			connection.TransferState(entity.ConnectionStateConfirmed)
+			connection.TransferState(entity.ConnectionStateConfirmed, ctx.ApplicationUserID)
 		}
 
-		err = validator.CreateConnection(conn.appUser, accountID, applicationID, connection)
+		err = validator.CreateConnection(conn.appUser, ctx.OrganizationID, ctx.ApplicationID, connection)
 		if err != nil {
 			return err
 		}
 
-		err = conn.storage.Create(accountID, applicationID, connection)
+		err = conn.storage.Create(ctx.OrganizationID, ctx.ApplicationID, connection)
 		if err != nil {
 			return err
 		}

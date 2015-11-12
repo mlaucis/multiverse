@@ -39,13 +39,14 @@ var (
 
 	// Connection errors
 
-	ErrConnectionAlreadyExists      = errors.New(http.StatusBadRequest, 2000, "connection already exists", "", false)
-	ErrConnectionNotFound           = errors.New(http.StatusNotFound, 2001, "connection not found", "", false)
-	ErrConnectionTypeIsWrong        = errors.New(http.StatusBadRequest, 2002, "unexpected connection type", "", false)
-	ErrConnectionSelfConnectingUser = errors.New(http.StatusBadRequest, 2003, "user is connecting with itself", "self-connecting user", false)
-	ErrConnectionUsersNotConnected  = errors.New(http.StatusNotFound, 2004, "users are not connected", "", false)
-	ErrConnectionStateInvalid       = errors.New(http.StatusConflict, 2005, "invalid connection state", "", false)
-	ErrConnectionStateNotAllowed    = errors.New(http.StatusBadRequest, 2006, "cannot transfer connection from existing state to new state", "", false)
+	ErrConnectionAlreadyExists           = errors.New(http.StatusBadRequest, 2000, "connection already exists", "", false)
+	ErrConnectionNotFound                = errors.New(http.StatusNotFound, 2001, "connection not found", "", false)
+	ErrConnectionTypeIsWrong             = errors.New(http.StatusBadRequest, 2002, "unexpected connection type", "", false)
+	ErrConnectionSelfConnectingUser      = errors.New(http.StatusBadRequest, 2003, "user is connecting with itself", "self-connecting user", false)
+	ErrConnectionUsersNotConnected       = errors.New(http.StatusNotFound, 2004, "users are not connected", "", false)
+	ErrConnectionStateInvalid            = errors.New(http.StatusConflict, 2005, "invalid connection state", "", false)
+	ErrConnectionStateNotAllowed         = errors.New(http.StatusBadRequest, 2006, "cannot transfer connection to new state", "", false)
+	ErrConnectionStateTransferNotAllowed = errors.New(http.StatusForbidden, 2007, "user not allowed to transfer the connection to the new state", "", false)
 
 	// Internal connection errors
 
