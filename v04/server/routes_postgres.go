@@ -608,7 +608,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "getUserConnectionsByState",
 			Method: "GET",
-			Path:   fmt.Sprintf("/users/%s/%s", applicationUserID, connectionState),
+			Path:   fmt.Sprintf("/users/%s/connections/%s", applicationUserID, connectionState),
 			Handlers: []RouteFunc{
 				postgresConnectionHandler.UserConnectionsByState,
 			},
@@ -621,7 +621,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "getCurrentUserConnectionsByState",
 			Method: "GET",
-			Path:   fmt.Sprintf("/me/%s", connectionState),
+			Path:   fmt.Sprintf("/me/connections/%s", connectionState),
 			Handlers: []RouteFunc{
 				postgresConnectionHandler.CurrentUserConnectionsByState,
 			},
