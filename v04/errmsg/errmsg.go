@@ -47,6 +47,7 @@ var (
 	ErrConnectionStateInvalid            = errors.New(http.StatusConflict, 2005, "invalid connection state", "", false)
 	ErrConnectionStateNotAllowed         = errors.New(http.StatusBadRequest, 2006, "cannot transfer connection to new state", "", false)
 	ErrConnectionStateTransferNotAllowed = errors.New(http.StatusForbidden, 2007, "user not allowed to transfer the connection to the new state", "", false)
+	ErrConnectionDeletionNotAllowed      = errors.New(http.StatusForbidden, 2007, "user not allowed to delete the connection", "", false)
 
 	// Internal connection errors
 

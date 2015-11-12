@@ -82,13 +82,19 @@ func (conn *connection) Delete(ctx *context.Context) (err []errors.Error) {
 		return []errors.Error{errmsg.ErrConnectionTypeIsWrong.UpdateInternalMessage("got connection type: " + string(connectionType)).SetCurrentLocation()}
 	}
 
-	exists, err := conn.storage.Exists(accountID, applicationID, userFromID, userToID, connectionType)
+	existingConnection, err := conn.storage.Read(accountID, applicationID, userFromID, userToID, connectionType)
 	if err != nil {
 		return
 	}
 
-	if !exists {
+	if existingConnection == nil {
 		return []errors.Error{errmsg.ErrConnectionNotFound.SetCurrentLocation()}
+	}
+
+	if existingConnection.State == entity.ConnectionStateRejected {
+		if existingConnection.UserFromID == userFromID {
+			return []errors.Error{errmsg.ErrConnectionDeletionNotAllowed.SetCurrentLocation()}
+		}
 	}
 
 	err = conn.storage.Delete(accountID, applicationID, userFromID, userToID, connectionType)
