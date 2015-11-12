@@ -33,6 +33,13 @@ const (
   		AND (json_data->>'deleted')::BOOL = FALSE
 	LIMIT 1`
 
+	selectApplicationUserExistsByIDQuery = `SELECT true
+	FROM app_%d_%d.users
+	WHERE (json_data->>'id')::BIGINT = $1::BIGINT
+  		AND (json_data->>'enabled')::BOOL = TRUE
+  		AND (json_data->>'deleted')::BOOL = FALSE
+	LIMIT 1`
+
 	updateApplicationUserByIDQuery = `UPDATE app_%d_%d.users
 	SET json_data = $1
 	WHERE (json_data->>'id')::BIGINT = $2::BIGINT`
@@ -101,7 +108,6 @@ func (au *applicationUser) Create(accountID, applicationID int64, user *entity.A
 	}
 	connectionType := user.SocialConnectionType
 	user.SocialConnectionType = ""
-	user.Activated = true
 	user.Enabled = true
 	user.Deleted = entity.PFalse
 
@@ -421,14 +427,11 @@ func (au *applicationUser) ExistsByUsername(accountID, applicationID int64, user
 }
 
 func (au *applicationUser) ExistsByID(accountID, applicationID int64, userID uint64) (bool, []errors.Error) {
-	var (
-		JSONData string
-		lastRead time.Time
-	)
+	var exists bool
 
 	err := au.pg.SlaveDatastore(-1).
-		QueryRow(appSchema(selectApplicationUserByIDQuery, accountID, applicationID), userID).
-		Scan(&JSONData, &lastRead)
+		QueryRow(appSchema(selectApplicationUserExistsByIDQuery, accountID, applicationID), userID).
+		Scan(&exists)
 	if err == sql.ErrNoRows {
 		return false, nil
 	}

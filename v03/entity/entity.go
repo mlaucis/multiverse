@@ -34,7 +34,6 @@ type (
 		Email            string     `json:"email,omitempty"`
 		URL              string     `json:"url,omitempty"`
 		LastLogin        *time.Time `json:"last_login,omitempty"`
-		Activated        bool       `json:"activated,omitempty"`
 		Deleted          *bool      `json:"deleted,omitempty"`
 		SessionToken     string     `json:"session_token,omitempty"`
 	}
@@ -131,6 +130,7 @@ type (
 		UserFromID  uint64     `json:"user_from_id"`
 		UserToID    uint64     `json:"user_to_id"`
 		Type        string     `json:"type"`
+		State       string     `json:"state,omitempty"`
 		ConfirmedAt *time.Time `json:"confirmed_at,omitempty"`
 		Common
 	}

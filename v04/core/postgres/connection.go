@@ -22,52 +22,112 @@ type connection struct {
 }
 
 const (
-	createConnectionQuery                 = `INSERT INTO app_%d_%d.connections(json_data) VALUES ($1)`
-	selectConnectionQuery                 = `SELECT json_data FROM app_%d_%d.connections WHERE (json_data->>'user_from_id')::BIGINT = $1::BIGINT AND (json_data->>'user_to_id')::BIGINT = $2::BIGINT LIMIT 1`
-	updateConnectionQuery                 = `UPDATE app_%d_%d.connections SET json_data = $1 WHERE (json_data->>'user_from_id')::BIGINT = $2::BIGINT AND (json_data->>'user_to_id')::BIGINT = $3::BIGINT`
-	followsQuery                          = `SELECT json_data FROM app_%d_%d.connections WHERE (json_data->>'user_from_id')::BIGINT = $1::BIGINT AND json_data->>'type' = '` + entity.ConnectionTypeFollow + `' AND (json_data->>'enabled')::BOOL = true`
-	followersQuery                        = `SELECT json_data FROM app_%d_%d.connections WHERE (json_data->>'user_to_id')::BIGINT = $1::BIGINT AND json_data->>'type' = '` + entity.ConnectionTypeFollow + `' AND (json_data->>'enabled')::BOOL = true`
-	friendConnectionsQuery                = `SELECT json_data FROM app_%d_%d.connections WHERE (json_data->>'user_to_id')::BIGINT = $1::BIGINT AND json_data->>'type' = '` + entity.ConnectionTypeFriend + `' AND (json_data->>'enabled')::BOOL = true`
-	friendAndFollowingConnectionsQuery    = `SELECT json_data FROM app_%d_%d.connections WHERE (json_data->>'user_from_id')::BIGINT = $1::BIGINT AND (json_data->>'enabled')::BOOL = true`
-	friendAndFollowingConnectionsIDsQuery = `SELECT json_data->>'user_to_id' as "user_id" FROM app_%d_%d.connections WHERE (json_data->>'user_from_id')::BIGINT = $1::BIGINT AND (json_data->>'enabled')::BOOL = true`
-	listUsersBySocialIDQuery              = `SELECT json_data FROM app_%d_%d.users WHERE (json_data->>'enabled')::BOOL = true AND (json_data->>'deleted')::BOOL = false AND json_data->'social_ids'->>'%s' IN (?)`
+	createConnectionQuery = `INSERT INTO app_%d_%d.connections(json_data) VALUES ($1)`
+
+	selectConnectionQuery = `SELECT json_data
+		FROM app_%d_%d.connections
+		WHERE (json_data->>'user_from_id')::BIGINT = $1::BIGINT
+			AND (json_data->>'user_to_id')::BIGINT = $2::BIGINT
+			AND json_data->>'type' = $3::TEXT
+			AND (json_data->>'enabled')::BOOL = true
+		LIMIT 1`
+
+	updateConnectionQuery = `UPDATE
+	app_%d_%d.connections
+	SET json_data = $1
+	WHERE (json_data->>'user_from_id')::BIGINT = $2::BIGINT
+		AND (json_data->>'user_to_id')::BIGINT = $3::BIGINT
+		AND json_data->>'type' = $4::TEXT
+		AND (json_data->>'enabled')::BOOL = true`
+
+	followsQuery = `SELECT
+		json_data
+		FROM app_%d_%d.connections
+		WHERE (json_data->>'user_from_id')::BIGINT = $1::BIGINT
+			AND json_data->>'type' = '` + string(entity.ConnectionTypeFollow) + `'
+			AND (json_data->>'enabled')::BOOL = true`
+
+	followersQuery = `SELECT
+		json_data
+		FROM app_%d_%d.connections
+		WHERE (json_data->>'user_to_id')::BIGINT = $1::BIGINT
+			AND json_data->>'type' = '` + string(entity.ConnectionTypeFollow) + `'
+			AND (json_data->>'enabled')::BOOL = true`
+
+	friendConnectionsQuery = `SELECT
+		json_data->>'user_from_id'
+		FROM app_%d_%d.connections
+		WHERE (json_data->>'user_to_id')::BIGINT = $1::BIGINT AND
+			json_data->>'type' = '` + string(entity.ConnectionTypeFriend) + `' AND
+			json_data->>'state' = '` + string(entity.ConnectionStateConfirmed) + `'
+			AND (json_data->>'enabled')::BOOL = true`
+
+	friendAndFollowingConnectionsQuery = `SELECT
+		json_data
+		FROM app_%d_%d.connections
+		WHERE (json_data->>'user_from_id')::BIGINT = $1::BIGINT
+			AND (json_data->>'enabled')::BOOL = true`
+
+	friendAndFollowingConnectionsIDsQuery = `SELECT
+		json_data->>'user_to_id' as "user_id"
+		FROM app_%d_%d.connections
+		WHERE (json_data->>'user_from_id')::BIGINT = $1::BIGINT
+			AND (json_data->>'enabled')::BOOL = true`
+
+	listUserIDssBySocialIDQuery = `SELECT
+		json_data->>'id'
+		FROM app_%d_%d.users
+		WHERE (json_data->>'enabled')::BOOL = true
+			AND (json_data->>'deleted')::BOOL = false
+			AND json_data->'social_ids'->>'%s' IN (?)`
 
 	getUsersRelationQuery = `SELECT
-  json_data ->> 'user_from_id' AS "from",
-  json_data ->> 'user_to_id'   AS "to",
-  json_data ->> 'type'         AS "type"
-FROM app_%d_%d.connections
-WHERE json_data @> '{"enabled": true}'
-      AND (((json_data->>'user_from_id')::BIGINT = $1::BIGINT AND (json_data->>'user_to_id')::BIGINT = $2::BIGINT) OR
-           (json_data->>'user_from_id')::BIGINT = $2::BIGINT AND (json_data->>'user_to_id')::BIGINT = $1::BIGINT)`
+		json_data ->> 'user_from_id' AS "from",
+		json_data ->> 'user_to_id'   AS "to",
+		json_data ->> 'type'         AS "type"
+		FROM app_%d_%d.connections
+		WHERE json_data ->>'state' = '` + string(entity.ConnectionStateConfirmed) + `'
+			AND (((json_data->>'user_from_id')::BIGINT = $1::BIGINT AND (json_data->>'user_to_id')::BIGINT = $2::BIGINT) OR
+				((json_data->>'user_from_id')::BIGINT = $2::BIGINT AND (json_data->>'user_to_id')::BIGINT = $1::BIGINT))
+			AND (json_data->>'enabled')::BOOL = true`
 
 	connectionExistsQuery = `SELECT
-  (count(*) > 0) :: BOOL AS "exists"
-FROM app_%d_%d.connections
-WHERE (json_data->>'user_from_id')::BIGINT = $1::BIGINT AND (json_data->>'user_to_id')::BIGINT = $2::BIGINT AND json_data @> json_build_object('type', $3::TEXT, 'enabled', true)::JSONB;`
+		(count(*) > 0) :: BOOL AS "exists"
+		FROM app_%d_%d.connections
+		WHERE (json_data->>'user_from_id')::BIGINT = $1::BIGINT
+			AND (json_data->>'user_to_id')::BIGINT = $2::BIGINT
+			AND json_data->>'type' = $3::TEXT
+			AND (json_data->>'enabled')::BOOL = true`
+
+	userConnectionsByStateQuery = `SELECT
+		json_data
+		FROM app_%d_%d.connections
+		WHERE ((json_data->>'user_to_id')::BIGINT = $1::BIGINT OR (json_data->>'user_from_id')::BIGINT = $1::BIGINT)
+			AND json_data->>'state' = $2::TEXT
+			AND (json_data->>'enabled')::BOOL = true`
 )
 
 func (c *connection) Create(accountID, applicationID int64, connection *entity.Connection) []errors.Error {
-	// Check if the connection already exists between users
-	exists, er := c.Read(accountID, applicationID, connection.UserFromID, connection.UserToID)
-	if er != nil && er[0].Code() != errmsg.ErrConnectionNotFound.Code() {
-		return er
+	if !connection.IsValidState() {
+		return []errors.Error{errmsg.ErrInternalConnectionCreation.UpdateInternalMessage("got connection state: " + string(connection.State)).SetCurrentLocation()}
 	}
 
-	// If it exists and it's not enabled then enable it
-	if exists != nil && !exists.Enabled {
-		exists.Enabled = true
-		connection, er = c.Update(accountID, applicationID, *exists, *exists, true)
-		if er != nil {
-			return er
-		}
+	timeNow := time.Now()
+	connection.CreatedAt, connection.UpdatedAt = &timeNow, &timeNow
+	connection.Enabled = entity.PTrue
+	connectionJSON, err := json.Marshal(connection)
+	if err != nil {
+		return []errors.Error{errmsg.ErrInternalConnectionCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
+	}
+	_, err = c.mainPg.Exec(appSchema(createConnectionQuery, accountID, applicationID), string(connectionJSON))
+	if err != nil {
+		return []errors.Error{errmsg.ErrInternalConnectionCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
+	}
 
-		// If it doesn't exists then create it
-	} else if exists == nil {
-		timeNow := time.Now()
-		connection.CreatedAt, connection.UpdatedAt = &timeNow, &timeNow
-		connection.Enabled = true
-		connectionJSON, err := json.Marshal(connection)
+	if connection.Type == entity.ConnectionTypeFriend {
+		reverseConnection := *connection
+		reverseConnection.UserFromID, reverseConnection.UserToID = connection.UserToID, connection.UserFromID
+		connectionJSON, err := json.Marshal(reverseConnection)
 		if err != nil {
 			return []errors.Error{errmsg.ErrInternalConnectionCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 		}
@@ -77,47 +137,13 @@ func (c *connection) Create(accountID, applicationID int64, connection *entity.C
 		}
 	}
 
-	// if the connection is of type friend then reverse the roles and create the other connection
-	if connection.Type == entity.ConnectionTypeFriend {
-		connection.UserFromID, connection.UserToID = connection.UserToID, connection.UserFromID
-
-		// Check if the connection exists
-		exists, er := c.Read(accountID, applicationID, connection.UserFromID, connection.UserToID)
-		if er != nil && er[0].Code() != errmsg.ErrConnectionNotFound.Code() {
-			return er
-		}
-
-		// If it exists but it's not enabled then enable it
-		if exists != nil && !exists.Enabled {
-			exists.Enabled = true
-			connection, er = c.Update(accountID, applicationID, *exists, *exists, true)
-			connection.UserFromID, connection.UserToID = connection.UserToID, connection.UserFromID
-			return er
-		}
-
-		// If it doesn't exists then create it
-		if exists == nil {
-			connectionJSON, err := json.Marshal(connection)
-			if err != nil {
-				return []errors.Error{errmsg.ErrInternalConnectionCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
-			}
-			_, err = c.mainPg.Exec(appSchema(createConnectionQuery, accountID, applicationID), string(connectionJSON))
-			if err != nil {
-				return []errors.Error{errmsg.ErrInternalConnectionCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
-			}
-		}
-
-		// Switch back so we have the original IDs in place
-		connection.UserFromID, connection.UserToID = connection.UserToID, connection.UserFromID
-	}
-
 	return nil
 }
 
-func (c *connection) Read(accountID, applicationID int64, userFromID, userToID uint64) (*entity.Connection, []errors.Error) {
+func (c *connection) Read(accountID, applicationID int64, userFromID, userToID uint64, connectionType entity.ConnectionTypeType) (*entity.Connection, []errors.Error) {
 	var JSONData string
 	err := c.pg.SlaveDatastore(-1).
-		QueryRow(appSchema(selectConnectionQuery, accountID, applicationID), userFromID, userToID).
+		QueryRow(appSchema(selectConnectionQuery, accountID, applicationID), userFromID, userToID, string(connectionType)).
 		Scan(&JSONData)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -135,7 +161,12 @@ func (c *connection) Read(accountID, applicationID int64, userFromID, userToID u
 	return connection, nil
 }
 
-func (c *connection) Update(accountID, applicationID int64, existingConnection, updatedConnection entity.Connection, retrieve bool) (*entity.Connection, []errors.Error) {
+func (c *connection) Update(
+	accountID, applicationID int64,
+	existingConnection, updatedConnection entity.Connection,
+	retrieve bool,
+) (*entity.Connection, []errors.Error) {
+
 	timeNow := time.Now()
 	updatedConnection.UpdatedAt = &timeNow
 	connectionJSON, err := json.Marshal(updatedConnection)
@@ -145,7 +176,7 @@ func (c *connection) Update(accountID, applicationID int64, existingConnection, 
 
 	_, err = c.mainPg.Exec(
 		appSchema(updateConnectionQuery, accountID, applicationID),
-		string(connectionJSON), existingConnection.UserFromID, existingConnection.UserToID)
+		string(connectionJSON), existingConnection.UserFromID, existingConnection.UserToID, string(existingConnection.Type))
 	if err != nil {
 		return nil, []errors.Error{errmsg.ErrInternalConnectionUpdate.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
@@ -157,22 +188,31 @@ func (c *connection) Update(accountID, applicationID int64, existingConnection, 
 	return &updatedConnection, nil
 }
 
-func (c *connection) Delete(accountID, applicationID int64, connection *entity.Connection) []errors.Error {
-	connection.Enabled = false
-	_, err := c.Update(accountID, applicationID, *connection, *connection, false)
+func (c *connection) Delete(accountID, applicationID int64, userFromID, userToID uint64, connectionType entity.ConnectionTypeType) []errors.Error {
+	existingConnection, err := c.Read(accountID, applicationID, userFromID, userToID, connectionType)
 	if err != nil {
 		return err
 	}
 
-	if connection.Type == entity.ConnectionTypeFriend {
-		connection.UserFromID, connection.UserToID = connection.UserToID, connection.UserFromID
-		_, err = c.Update(accountID, applicationID, *connection, *connection, false)
+	existingConnection.Enabled = entity.PFalse
+	_, err = c.Update(accountID, applicationID, *existingConnection, *existingConnection, false)
+	if err != nil {
+		return err
 	}
 
-	return err
+	if connectionType == entity.ConnectionTypeFriend {
+		existingConn := *existingConnection
+		existingConn.UserFromID, existingConn.UserToID = existingConn.UserToID, existingConn.UserFromID
+		_, err = c.Update(accountID, applicationID, existingConn, existingConn, false)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
-func (c *connection) List(accountID, applicationID int64, userID uint64) (users []*entity.ApplicationUser, er []errors.Error) {
+func (c *connection) Following(accountID, applicationID int64, userID uint64) (userIDs []uint64, er []errors.Error) {
 	rows, err := c.pg.SlaveDatastore(-1).
 		Query(appSchema(followsQuery, accountID, applicationID), userID)
 	if err != nil {
@@ -191,23 +231,13 @@ func (c *connection) List(accountID, applicationID int64, userID uint64) (users 
 		if err != nil {
 			return nil, []errors.Error{errmsg.ErrInternalFollowingList.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 		}
-		user, er := c.appUser.Read(accountID, applicationID, conn.UserToID, false)
-		if er != nil {
-			if er[0].Code() == errmsg.ErrApplicationUserNotFound.Code() {
-				continue
-			}
-			return nil, er
-		}
-
-		users = append(users, user)
+		userIDs = append(userIDs, conn.UserToID)
 	}
 
-	return users, nil
+	return userIDs, nil
 }
 
-func (c *connection) FollowedBy(accountID, applicationID int64, userID uint64) ([]*entity.ApplicationUser, []errors.Error) {
-	users := []*entity.ApplicationUser{}
-
+func (c *connection) FollowedBy(accountID, applicationID int64, userID uint64) (userIDs []uint64, er []errors.Error) {
 	rows, err := c.pg.SlaveDatastore(-1).
 		Query(appSchema(followersQuery, accountID, applicationID), userID)
 	if err != nil {
@@ -225,23 +255,13 @@ func (c *connection) FollowedBy(accountID, applicationID int64, userID uint64) (
 		if err != nil {
 			return nil, []errors.Error{errmsg.ErrInternalFollowersList.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 		}
-		user, er := c.appUser.Read(accountID, applicationID, conn.UserFromID, false)
-		if er != nil {
-			if er[0].Code() == errmsg.ErrApplicationUserNotFound.Code() {
-				continue
-			}
-			return nil, er
-		}
-
-		users = append(users, user)
+		userIDs = append(userIDs, conn.UserFromID)
 	}
 
-	return users, nil
+	return userIDs, nil
 }
 
-func (c *connection) Friends(accountID, applicationID int64, userID uint64) ([]*entity.ApplicationUser, []errors.Error) {
-	users := []*entity.ApplicationUser{}
-
+func (c *connection) Friends(accountID, applicationID int64, userID uint64) (userIDs []uint64, er []errors.Error) {
 	rows, err := c.pg.SlaveDatastore(-1).
 		Query(appSchema(friendConnectionsQuery, accountID, applicationID), userID)
 	if err != nil {
@@ -249,33 +269,19 @@ func (c *connection) Friends(accountID, applicationID int64, userID uint64) ([]*
 	}
 	defer rows.Close()
 	for rows.Next() {
-		var JSONData string
-		err := rows.Scan(&JSONData)
+		var userFromID uint64
+		err := rows.Scan(&userFromID)
 		if err != nil {
 			return nil, []errors.Error{errmsg.ErrInternalFriendsList.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
-		}
-		conn := &entity.Connection{}
-		err = json.Unmarshal([]byte(JSONData), conn)
-		if err != nil {
-			return nil, []errors.Error{errmsg.ErrInternalFriendsList.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
-		}
-		user, er := c.appUser.Read(accountID, applicationID, conn.UserFromID, false)
-		if er != nil {
-			if er[0].Code() == errmsg.ErrApplicationUserNotFound.Code() {
-				continue
-			}
-			return nil, er
 		}
 
-		users = append(users, user)
+		userIDs = append(userIDs, userFromID)
 	}
 
-	return users, nil
+	return userIDs, nil
 }
 
-func (c *connection) FriendsAndFollowing(accountID, applicationID int64, userID uint64) ([]*entity.ApplicationUser, []errors.Error) {
-	users := []*entity.ApplicationUser{}
-
+func (c *connection) FriendsAndFollowing(accountID, applicationID int64, userID uint64) (users []uint64, er []errors.Error) {
 	rows, err := c.pg.SlaveDatastore(-1).
 		Query(appSchema(friendAndFollowingConnectionsQuery, accountID, applicationID), userID)
 	if err != nil {
@@ -294,15 +300,8 @@ func (c *connection) FriendsAndFollowing(accountID, applicationID int64, userID 
 		if err != nil {
 			return nil, []errors.Error{errmsg.ErrInternalFriendsList.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 		}
-		user, er := c.appUser.Read(accountID, applicationID, conn.UserToID, false)
-		if er != nil {
-			if er[0].Code() == errmsg.ErrApplicationUserNotFound.Code() {
-				continue
-			}
-			return nil, er
-		}
 
-		users = append(users, user)
+		users = append(users, conn.UserToID)
 	}
 
 	return users, nil
@@ -330,41 +329,12 @@ func (c *connection) FriendsAndFollowingIDs(accountID, applicationID int64, user
 	return users, nil
 }
 
-func (c *connection) Confirm(accountID, applicationID int64, connection *entity.Connection, retrieve bool) (*entity.Connection, []errors.Error) {
-	connection.Enabled = true
-	timeNow := time.Now()
-	connection.ConfirmedAt, connection.UpdatedAt = &timeNow, &timeNow
-
-	conn, err := c.Update(accountID, applicationID, *connection, *connection, retrieve)
-	if err != nil {
-		return conn, err
-	}
-
-	if connection.Type == entity.ConnectionTypeFriend {
-		con := *connection
-		con.UserFromID, con.UserToID = connection.UserToID, connection.UserFromID
-		_, err = c.Update(accountID, applicationID, con, con, retrieve)
-	}
-
-	return conn, err
-}
-
-func (c *connection) WriteEventsToList(accountID, applicationID int64, connection *entity.Connection) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
-}
-
-func (c *connection) DeleteEventsFromLists(accountID, applicationID int64, userFromID, userToID uint64) (err []errors.Error) {
-	return []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
-}
-
-func (c *connection) SocialConnect(accountID, applicationID int64, user *entity.ApplicationUser, platform string, socialFriendsIDs []string, connectionType string) ([]*entity.ApplicationUser, []errors.Error) {
-	users := []*entity.ApplicationUser{}
-
+func (c *connection) SocialConnect(accountID, applicationID int64, user *entity.ApplicationUser, platform string, socialFriendsIDs []string, connectionType entity.ConnectionTypeType, connectionState entity.ConnectionStateType) (users []uint64, er []errors.Error) {
 	if len(socialFriendsIDs) == 0 {
-		return users, nil
+		return
 	}
 
-	query, args, err := sqlx.In(fmt.Sprintf(listUsersBySocialIDQuery, accountID, applicationID, platform), socialFriendsIDs)
+	query, args, err := sqlx.In(fmt.Sprintf(listUserIDssBySocialIDQuery, accountID, applicationID, platform), socialFriendsIDs)
 	if err != nil {
 		return nil, []errors.Error{errmsg.ErrServerInternalError.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
@@ -377,23 +347,18 @@ func (c *connection) SocialConnect(accountID, applicationID int64, user *entity.
 	}
 	defer dbUsers.Close()
 	for dbUsers.Next() {
-		var JSONData string
-		err := dbUsers.Scan(&JSONData)
+		var userID uint64
+		err := dbUsers.Scan(&userID)
 		if err != nil {
 			return nil, []errors.Error{errmsg.ErrInternalConnectingUsers.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 		}
-		user := &entity.ApplicationUser{}
-		err = json.Unmarshal([]byte(JSONData), user)
-		if err != nil {
-			return nil, []errors.Error{errmsg.ErrInternalConnectingUsers.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
-		}
-		users = append(users, user)
+		users = append(users, userID)
 	}
 
-	return c.AutoConnectSocialFriends(accountID, applicationID, user, connectionType, users)
+	return c.CreateMultiple(accountID, applicationID, user, connectionType, connectionState, users)
 }
 
-func (c *connection) AutoConnectSocialFriends(accountID, applicationID int64, user *entity.ApplicationUser, connectionType string, ourStoredUsersIDs []*entity.ApplicationUser) ([]*entity.ApplicationUser, []errors.Error) {
+func (c *connection) CreateMultiple(accountID, applicationID int64, user *entity.ApplicationUser, connectionType entity.ConnectionTypeType, connectionState entity.ConnectionStateType, ourStoredUsersIDs []uint64) ([]uint64, []errors.Error) {
 	if len(ourStoredUsersIDs) == 0 {
 		return ourStoredUsersIDs, nil
 	}
@@ -401,10 +366,10 @@ func (c *connection) AutoConnectSocialFriends(accountID, applicationID int64, us
 	for idx := range ourStoredUsersIDs {
 		connection := &entity.Connection{
 			UserFromID: user.ID,
-			UserToID:   ourStoredUsersIDs[idx].ID,
+			UserToID:   ourStoredUsersIDs[idx],
 			Type:       connectionType,
+			State:      connectionState,
 		}
-		connection.Enabled = true
 
 		if err := c.Create(accountID, applicationID, connection); err != nil {
 			if err[0].Code() != errmsg.ErrConnectionAlreadyExists.Code() {
@@ -417,9 +382,10 @@ func (c *connection) AutoConnectSocialFriends(accountID, applicationID int64, us
 		}
 
 		connection = &entity.Connection{
-			UserFromID: ourStoredUsersIDs[idx].ID,
+			UserFromID: ourStoredUsersIDs[idx],
 			UserToID:   user.ID,
 			Type:       connectionType,
+			State:      connectionState,
 		}
 
 		if err := c.Create(accountID, applicationID, connection); err != nil {
@@ -433,8 +399,14 @@ func (c *connection) AutoConnectSocialFriends(accountID, applicationID int64, us
 }
 
 func (c *connection) Relation(accountID, applicationID int64, userFromID, userToID uint64) (*entity.Relation, []errors.Error) {
+	rel := &entity.Relation{
+		IsFriend:   entity.PFalse,
+		IsFollowed: entity.PFalse,
+		IsFollower: entity.PFalse,
+	}
+
 	if userFromID == userToID {
-		return &entity.Relation{}, nil
+		return rel, nil
 	}
 
 	relations, err := c.pg.SlaveDatastore(-1).
@@ -447,11 +419,6 @@ func (c *connection) Relation(accountID, applicationID int64, userFromID, userTo
 	}
 	defer relations.Close()
 
-	rel := &entity.Relation{
-		IsFriend:   entity.PFalse,
-		IsFollowed: entity.PFalse,
-		IsFollower: entity.PFalse,
-	}
 	var (
 		relationFrom, relationTo uint64
 		relationType             string
@@ -462,15 +429,15 @@ func (c *connection) Relation(accountID, applicationID int64, userFromID, userTo
 			return nil, []errors.Error{errmsg.ErrInternalConnectingUsers.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 		}
 
-		if relationType == entity.ConnectionTypeFriend {
+		if entity.ConnectionTypeType(relationType) == entity.ConnectionTypeFriend {
 			rel.IsFriend = entity.PTrue
 		}
 
-		if relationFrom == userFromID && relationTo == userToID && relationType == entity.ConnectionTypeFollow {
+		if relationFrom == userFromID && relationTo == userToID && entity.ConnectionTypeType(relationType) == entity.ConnectionTypeFollow {
 			rel.IsFollowed = entity.PTrue
 		}
 
-		if relationFrom == userToID && relationTo == userFromID && relationType == entity.ConnectionTypeFollow {
+		if relationFrom == userToID && relationTo == userFromID && entity.ConnectionTypeType(relationType) == entity.ConnectionTypeFollow {
 			rel.IsFollower = entity.PTrue
 		}
 	}
@@ -478,10 +445,10 @@ func (c *connection) Relation(accountID, applicationID int64, userFromID, userTo
 	return rel, nil
 }
 
-func (c *connection) Exists(accountID, applicationID int64, userFromID, userToID uint64, connType string) (bool, []errors.Error) {
+func (c *connection) Exists(accountID, applicationID int64, userFromID, userToID uint64, connType entity.ConnectionTypeType) (bool, []errors.Error) {
 	exists := false
 	err := c.pg.SlaveDatastore(-1).
-		QueryRow(appSchema(connectionExistsQuery, accountID, applicationID), userFromID, userToID, connType).
+		QueryRow(appSchema(connectionExistsQuery, accountID, applicationID), userFromID, userToID, string(connType)).
 		Scan(&exists)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -491,6 +458,32 @@ func (c *connection) Exists(accountID, applicationID int64, userFromID, userToID
 	}
 
 	return exists, nil
+}
+
+func (c *connection) ConnectionsByState(accountID, applicationID int64, userID uint64, state entity.ConnectionStateType) ([]*entity.Connection, []errors.Error) {
+	var connections []*entity.Connection
+	rows, err := c.pg.SlaveDatastore(-1).
+		Query(appSchema(userConnectionsByStateQuery, accountID, applicationID), userID, string(state))
+	if err != nil {
+		return nil, []errors.Error{errmsg.ErrInternalApplicationUserList.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var JSONData string
+		err := rows.Scan(&JSONData)
+		if err != nil {
+			return nil, []errors.Error{errmsg.ErrInternalFriendsList.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
+		}
+		connection := &entity.Connection{}
+		err = json.Unmarshal([]byte(JSONData), connection)
+		if err != nil {
+			return nil, []errors.Error{errmsg.ErrInternalConnectionRead.UpdateInternalMessage("got error: " + err.Error()).SetCurrentLocation()}
+		}
+
+		connections = append(connections, connection)
+	}
+
+	return connections, nil
 }
 
 // NewConnection returns a new connection handler with PostgreSQL as storage driver

@@ -1,4 +1,3 @@
-// +build postgres
 // +build !bench
 
 package server_test
@@ -23,9 +22,10 @@ func (s *ConnectionSuite) TestCreateConnectionAfterDisable(c *C) {
 	LoginApplicationUser(accounts[0].ID, application.ID, userFrom)
 
 	payload := fmt.Sprintf(
-		`{"user_from_id":%d, "user_to_id":%d, "type": "`+entity.ConnectionTypeFriend+`"}`,
+		`{"user_from_id":%d, "user_to_id":%d, "type": %q}`,
 		userFrom.ID,
 		userTo.ID,
+		entity.ConnectionTypeFriend,
 	)
 
 	routeName := "createCurrentUserConnection"
@@ -42,10 +42,9 @@ func (s *ConnectionSuite) TestCreateConnectionAfterDisable(c *C) {
 	c.Assert(connection.UserFromID, Equals, userFrom.ID)
 	c.Assert(connection.UserToID, Equals, userTo.ID)
 	c.Assert(connection.Type, Equals, entity.ConnectionTypeFriend)
-	c.Assert(connection.Enabled, Equals, true)
 
 	routeName = "deleteCurrentUserConnection"
-	route = getComposedRoute(routeName, userTo.ID)
+	route = getComposedRoute(routeName, entity.ConnectionTypeFriend, userTo.ID)
 	code, _, err = runRequest(routeName, route, "", signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusNoContent)
@@ -64,7 +63,6 @@ func (s *ConnectionSuite) TestCreateConnectionAfterDisable(c *C) {
 	c.Assert(connection.UserFromID, Equals, userFrom.ID)
 	c.Assert(connection.UserToID, Equals, userTo.ID)
 	c.Assert(connection.Type, Equals, entity.ConnectionTypeFriend)
-	c.Assert(connection.Enabled, Equals, true)
 }
 
 func (s *ConnectionSuite) TestCreateFollowConnectionWithUserGeneratedEvent(c *C) {
@@ -76,9 +74,10 @@ func (s *ConnectionSuite) TestCreateFollowConnectionWithUserGeneratedEvent(c *C)
 	LoginApplicationUser(accounts[0].ID, application.ID, userFrom)
 
 	payload := fmt.Sprintf(
-		`{"user_from_id":%d, "user_to_id":%d, "type": "`+entity.ConnectionTypeFollow+`"}`,
+		`{"user_from_id":%d, "user_to_id":%d, "type": %q}`,
 		userFrom.ID,
 		userTo.ID,
+		entity.ConnectionTypeFollow,
 	)
 
 	routeName := "createCurrentUserConnection"
@@ -95,7 +94,6 @@ func (s *ConnectionSuite) TestCreateFollowConnectionWithUserGeneratedEvent(c *C)
 	c.Assert(connection.UserFromID, Equals, userFrom.ID)
 	c.Assert(connection.UserToID, Equals, userTo.ID)
 	c.Assert(connection.Type, Equals, entity.ConnectionTypeFollow)
-	c.Assert(connection.Enabled, Equals, true)
 
 	payload = fmt.Sprintf(
 		`{"type":%q, "target":{"id": "%d", "type": "tg_user"}, "visibility": %d}`,

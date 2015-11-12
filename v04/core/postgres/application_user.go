@@ -33,6 +33,13 @@ const (
   		AND (json_data->>'deleted')::BOOL = FALSE
 	LIMIT 1`
 
+	selectApplicationUserExistsByIDQuery = `SELECT true
+	FROM app_%d_%d.users
+	WHERE (json_data->>'id')::BIGINT = $1::BIGINT
+  		AND (json_data->>'enabled')::BOOL = TRUE
+  		AND (json_data->>'deleted')::BOOL = FALSE
+	LIMIT 1`
+
 	updateApplicationUserByIDQuery = `UPDATE app_%d_%d.users
 	SET json_data = $1
 	WHERE (json_data->>'id')::BIGINT = $2::BIGINT`
@@ -88,11 +95,11 @@ const (
 
 	selectApplicationUserCountsQuery = `SELECT
   (SELECT count(*) FROM app_%d_%d.connections
-    WHERE (json_data->>'user_from_id')::BIGINT = $1::BIGINT AND (json_data->>'enabled')::BOOL = true AND json_data->>'type' = '` + entity.ConnectionTypeFriend + `') AS "friends",
+    WHERE (json_data->>'user_from_id')::BIGINT = $1::BIGINT AND json_data->>'state' = '` + string(entity.ConnectionStateConfirmed) + `' AND json_data->>'type' = '` + string(entity.ConnectionTypeFriend) + `') AS "friends",
   (SELECT count(*) FROM app_%d_%d.connections
-    WHERE (json_data->>'user_to_id')::BIGINT = $1::BIGINT AND (json_data->>'enabled')::BOOL = true AND json_data->>'type' = '` + entity.ConnectionTypeFollow + `') AS "follower",
+    WHERE (json_data->>'user_to_id')::BIGINT = $1::BIGINT AND json_data->>'state' = '` + string(entity.ConnectionStateConfirmed) + `' AND json_data->>'type' = '` + string(entity.ConnectionTypeFollow) + `') AS "follower",
   (SELECT count(*) FROM app_%d_%d.connections
-    WHERE (json_data->>'user_from_id')::BIGINT = $1::BIGINT AND (json_data->>'enabled')::BOOL = true AND json_data->>'type' = '` + entity.ConnectionTypeFollow + `') AS "followed"`
+    WHERE (json_data->>'user_from_id')::BIGINT = $1::BIGINT AND json_data->>'state' = '` + string(entity.ConnectionStateConfirmed) + `' AND json_data->>'type' = '` + string(entity.ConnectionTypeFollow) + `') AS "followed"`
 )
 
 func (au *applicationUser) Create(accountID, applicationID int64, user *entity.ApplicationUser) []errors.Error {
@@ -100,8 +107,9 @@ func (au *applicationUser) Create(accountID, applicationID int64, user *entity.A
 		return []errors.Error{errmsg.ErrInternalApplicationUserIDMissing.SetCurrentLocation()}
 	}
 	connectionType := user.SocialConnectionType
+	connectionState := user.SocialConnectionState
 	user.SocialConnectionType = ""
-	user.Activated = true
+	user.SocialConnectionState = ""
 	user.Enabled = true
 	user.Deleted = entity.PFalse
 
@@ -126,7 +134,7 @@ func (au *applicationUser) Create(accountID, applicationID int64, user *entity.A
 	}
 
 	for platform := range user.SocialIDs {
-		_, err := au.conn.SocialConnect(accountID, applicationID, user, platform, user.SocialConnectionsIDs[platform], connectionType)
+		_, err := au.conn.SocialConnect(accountID, applicationID, user, platform, user.SocialConnectionsIDs[platform], connectionType, connectionState)
 		if err != nil {
 			return err
 		}
@@ -421,14 +429,11 @@ func (au *applicationUser) ExistsByUsername(accountID, applicationID int64, user
 }
 
 func (au *applicationUser) ExistsByID(accountID, applicationID int64, userID uint64) (bool, []errors.Error) {
-	var (
-		JSONData string
-		lastRead time.Time
-	)
+	var exists bool
 
 	err := au.pg.SlaveDatastore(-1).
-		QueryRow(appSchema(selectApplicationUserByIDQuery, accountID, applicationID), userID).
-		Scan(&JSONData, &lastRead)
+		QueryRow(appSchema(selectApplicationUserExistsByIDQuery, accountID, applicationID), userID).
+		Scan(&exists)
 	if err == sql.ErrNoRows {
 		return false, nil
 	}
