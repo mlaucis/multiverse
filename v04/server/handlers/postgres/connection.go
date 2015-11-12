@@ -444,11 +444,25 @@ func (conn *connection) CreateFollow(ctx *context.Context) []errors.Error {
 }
 
 func (conn *connection) doCreateConnection(ctx *context.Context, connection *entity.Connection) []errors.Error {
-	existingConnection, err := conn.storage.Read(ctx.OrganizationID, ctx.ApplicationID, ctx.ApplicationUserID, connection.UserToID, connection.Type)
+	existingConnectionFrom, err := conn.storage.Read(ctx.OrganizationID, ctx.ApplicationID, ctx.ApplicationUserID, connection.UserToID, connection.Type)
 	if err != nil {
 		if err[0].Code() != errmsg.ErrConnectionNotFound.Code() {
 			return err
 		}
+	}
+
+	existingConnectionTo, err := conn.storage.Read(ctx.OrganizationID, ctx.ApplicationID, connection.UserToID, ctx.ApplicationUserID, connection.Type)
+	if err != nil {
+		if err[0].Code() != errmsg.ErrConnectionNotFound.Code() {
+			return err
+		}
+	}
+
+	var existingConnection *entity.Connection
+	if existingConnectionFrom != nil {
+		existingConnection = existingConnectionFrom
+	} else if existingConnectionTo != nil {
+		existingConnection = existingConnectionTo
 	}
 
 	if existingConnection != nil {
