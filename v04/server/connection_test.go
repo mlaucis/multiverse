@@ -1826,22 +1826,24 @@ func (s *ConnectionSuite) TestCreateFriendConnectionWithState(c *C) {
 	}
 
 	scenarios := []struct {
-		Payload      entity.Connection
-		ResponseCode int
-		Response     entity.Connection
+		Payload       entity.Connection
+		RequestSigner uint64
+		ResponseCode  int
+		Response      entity.Connection
 	}{
 		// 0
 		{
 			Payload: entity.Connection{
 				UserFromID: users[0].ID,
 				UserToID:   users[1].ID,
-				State:      "pending",
+				State:      entity.ConnectionStatePending,
 			},
-			ResponseCode: 201,
+			RequestSigner: users[0].ID,
+			ResponseCode:  http.StatusCreated,
 			Response: entity.Connection{
 				UserFromID: users[0].ID,
 				UserToID:   users[1].ID,
-				State:      "pending",
+				State:      entity.ConnectionStatePending,
 			},
 		},
 		// 1
@@ -1849,13 +1851,14 @@ func (s *ConnectionSuite) TestCreateFriendConnectionWithState(c *C) {
 			Payload: entity.Connection{
 				UserFromID: users[0].ID,
 				UserToID:   users[1].ID,
-				State:      "confirmed",
+				State:      entity.ConnectionStateConfirmed,
 			},
-			ResponseCode: 201,
+			RequestSigner: users[0].ID,
+			ResponseCode:  http.StatusForbidden,
 			Response: entity.Connection{
 				UserFromID: users[0].ID,
 				UserToID:   users[1].ID,
-				State:      "confirmed",
+				State:      entity.ConnectionStateConfirmed,
 			},
 		},
 
@@ -1864,13 +1867,14 @@ func (s *ConnectionSuite) TestCreateFriendConnectionWithState(c *C) {
 			Payload: entity.Connection{
 				UserFromID: users[0].ID,
 				UserToID:   users[2].ID,
-				State:      "pending",
+				State:      entity.ConnectionStatePending,
 			},
-			ResponseCode: 201,
+			RequestSigner: users[0].ID,
+			ResponseCode:  http.StatusCreated,
 			Response: entity.Connection{
 				UserFromID: users[0].ID,
 				UserToID:   users[2].ID,
-				State:      "pending",
+				State:      entity.ConnectionStatePending,
 			},
 		},
 		// 3
@@ -1878,27 +1882,30 @@ func (s *ConnectionSuite) TestCreateFriendConnectionWithState(c *C) {
 			Payload: entity.Connection{
 				UserFromID: users[0].ID,
 				UserToID:   users[2].ID,
-				State:      "rejected",
+				State:      entity.ConnectionStateRejected,
 			},
-			ResponseCode: 201,
+			RequestSigner: users[0].ID,
+			ResponseCode:  http.StatusForbidden,
 			Response: entity.Connection{
 				UserFromID: users[0].ID,
 				UserToID:   users[2].ID,
-				State:      "rejected",
+				State:      entity.ConnectionStateRejected,
 			},
 		},
+
 		// 4
 		{
 			Payload: entity.Connection{
 				UserFromID: users[0].ID,
-				UserToID:   users[4].ID,
-				State:      "pending",
+				UserToID:   users[3].ID,
+				State:      entity.ConnectionStatePending,
 			},
-			ResponseCode: 201,
+			RequestSigner: users[0].ID,
+			ResponseCode:  http.StatusCreated,
 			Response: entity.Connection{
 				UserFromID: users[0].ID,
-				UserToID:   users[4].ID,
-				State:      "pending",
+				UserToID:   users[3].ID,
+				State:      entity.ConnectionStatePending,
 			},
 		},
 		// 5
@@ -1906,13 +1913,14 @@ func (s *ConnectionSuite) TestCreateFriendConnectionWithState(c *C) {
 			Payload: entity.Connection{
 				UserFromID: users[4].ID,
 				UserToID:   users[0].ID,
-				State:      "confirmed",
+				State:      entity.ConnectionStateConfirmed,
 			},
-			ResponseCode: 201,
+			RequestSigner: users[4].ID,
+			ResponseCode:  http.StatusCreated,
 			Response: entity.Connection{
 				UserFromID: users[4].ID,
 				UserToID:   users[0].ID,
-				State:      "confirmed",
+				State:      entity.ConnectionStateConfirmed,
 			},
 		},
 
@@ -1921,13 +1929,14 @@ func (s *ConnectionSuite) TestCreateFriendConnectionWithState(c *C) {
 			Payload: entity.Connection{
 				UserFromID: users[0].ID,
 				UserToID:   users[5].ID,
-				State:      "pending",
+				State:      entity.ConnectionStatePending,
 			},
-			ResponseCode: 201,
+			RequestSigner: users[0].ID,
+			ResponseCode:  http.StatusCreated,
 			Response: entity.Connection{
 				UserFromID: users[0].ID,
 				UserToID:   users[5].ID,
-				State:      "pending",
+				State:      entity.ConnectionStatePending,
 			},
 		},
 		// 7
@@ -1935,13 +1944,14 @@ func (s *ConnectionSuite) TestCreateFriendConnectionWithState(c *C) {
 			Payload: entity.Connection{
 				UserFromID: users[0].ID,
 				UserToID:   users[5].ID,
-				State:      "pending",
+				State:      entity.ConnectionStateRejected,
 			},
-			ResponseCode: 201,
+			RequestSigner: users[0].ID,
+			ResponseCode:  http.StatusForbidden,
 			Response: entity.Connection{
 				UserFromID: users[0].ID,
 				UserToID:   users[5].ID,
-				State:      "pending",
+				State:      entity.ConnectionStateRejected,
 			},
 		},
 
@@ -1950,13 +1960,14 @@ func (s *ConnectionSuite) TestCreateFriendConnectionWithState(c *C) {
 			Payload: entity.Connection{
 				UserFromID: users[0].ID,
 				UserToID:   users[6].ID,
-				State:      "pending",
+				State:      entity.ConnectionStatePending,
 			},
-			ResponseCode: 201,
+			RequestSigner: users[0].ID,
+			ResponseCode:  http.StatusCreated,
 			Response: entity.Connection{
 				UserFromID: users[0].ID,
 				UserToID:   users[6].ID,
-				State:      "pending",
+				State:      entity.ConnectionStatePending,
 			},
 		},
 		// 9
@@ -1964,13 +1975,14 @@ func (s *ConnectionSuite) TestCreateFriendConnectionWithState(c *C) {
 			Payload: entity.Connection{
 				UserFromID: users[7].ID,
 				UserToID:   users[0].ID,
-				State:      "rejected",
+				State:      entity.ConnectionStatePending,
 			},
-			ResponseCode: 201,
+			RequestSigner: users[7].ID,
+			ResponseCode:  http.StatusCreated,
 			Response: entity.Connection{
 				UserFromID: users[7].ID,
 				UserToID:   users[0].ID,
-				State:      "rejected",
+				State:      entity.ConnectionStatePending,
 			},
 		},
 		// 10
@@ -1978,13 +1990,14 @@ func (s *ConnectionSuite) TestCreateFriendConnectionWithState(c *C) {
 			Payload: entity.Connection{
 				UserFromID: users[0].ID,
 				UserToID:   users[7].ID,
-				State:      "pending",
+				State:      entity.ConnectionStateConfirmed,
 			},
-			ResponseCode: 201,
+			RequestSigner: users[0].ID,
+			ResponseCode:  http.StatusCreated,
 			Response: entity.Connection{
 				UserFromID: users[0].ID,
 				UserToID:   users[7].ID,
-				State:      "pending",
+				State:      entity.ConnectionStateConfirmed,
 			},
 		},
 	}
@@ -2002,10 +2015,13 @@ func (s *ConnectionSuite) TestCreateFriendConnectionWithState(c *C) {
 		payload := string(jsonPayload)
 		routeName := "createCurrentUserFriendConnectionAlias"
 		route := getComposedRoute(routeName)
-		code, body, err := runRequest(routeName, route, payload, signRequest(scenario.Payload.UserFromID))
+		code, body, err := runRequest(routeName, route, payload, signRequest(scenario.RequestSigner))
 		c.Assert(err, IsNil)
 
 		c.Assert(code, Equals, scenario.ResponseCode)
+		if code > 299 {
+			continue
+		}
 		c.Assert(body, Not(Equals), "")
 
 		connection := &entity.Connection{}

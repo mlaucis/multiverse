@@ -349,7 +349,7 @@ func (c *Connection) IsValidState() bool {
 }
 
 // TransferState will take care of transfering the connection state to the new state
-func (c *Connection) TransferState(newState ConnectionStateType) []errors.Error {
+func (c *Connection) TransferState(newState ConnectionStateType, issuerUserID uint64) []errors.Error {
 	if !IsValidConectionState(newState) {
 		return []errors.Error{errmsg.ErrConnectionStateInvalid.
 			UpdateInternalMessage("got connection state: " + string(newState)).
@@ -357,19 +357,19 @@ func (c *Connection) TransferState(newState ConnectionStateType) []errors.Error 
 	}
 
 	if c.State == "" {
-		return c.transferEmpty(newState)
+		return c.transferEmpty(newState, issuerUserID)
 	}
 
 	if c.State == ConnectionStatePending {
-		return c.transferPending(newState)
+		return c.transferPending(newState, issuerUserID)
 	}
 
 	if c.State == ConnectionStateConfirmed {
-		return c.transferConfirmed(newState)
+		return c.transferConfirmed(newState, issuerUserID)
 	}
 
 	if c.State == ConnectionStateRejected {
-		return c.transferRejected(newState)
+		return c.transferRejected(newState, issuerUserID)
 	}
 
 	return []errors.Error{errmsg.ErrConnectionStateInvalid.
@@ -384,39 +384,53 @@ func IsValidConectionState(state ConnectionStateType) bool {
 		state == ConnectionStateRejected
 }
 
-func (c *Connection) transferEmpty(newState ConnectionStateType) []errors.Error {
+func (c *Connection) transferEmpty(newState ConnectionStateType, issuerUserID uint64) []errors.Error {
 	c.State = newState
 	return nil
 }
 
-func (c *Connection) transferPending(newState ConnectionStateType) []errors.Error {
-	if newState == ConnectionStateConfirmed ||
-		newState == ConnectionStateRejected {
-		c.State = newState
-		return nil
+func (c *Connection) transferPending(newState ConnectionStateType, issuerUserID uint64) []errors.Error {
+	if newState != ConnectionStateConfirmed &&
+		newState != ConnectionStateRejected {
+		return []errors.Error{errmsg.ErrConnectionStateNotAllowed.
+			UpdateInternalMessage("failed to transfer connection to new state: " + string(newState) + " from state: " + string(c.State)).
+			SetCurrentLocation()}
 	}
-	return []errors.Error{errmsg.ErrConnectionStateNotAllowed.
-		UpdateInternalMessage("failed to transfer connection to new state: " + string(newState) + " from state: " + string(c.State)).
-		SetCurrentLocation()}
+
+	if issuerUserID != c.UserToID {
+		return []errors.Error{errmsg.ErrConnectionStateTransferNotAllowed.SetCurrentLocation()}
+	}
+
+	c.State = newState
+	return nil
 }
 
-func (c *Connection) transferConfirmed(newState ConnectionStateType) []errors.Error {
-	if newState == ConnectionStateRejected {
-		c.State = newState
-		return nil
+func (c *Connection) transferConfirmed(newState ConnectionStateType, issuerUserID uint64) []errors.Error {
+	if newState != ConnectionStateRejected {
+		return []errors.Error{errmsg.ErrConnectionStateNotAllowed.
+			UpdateInternalMessage("failed to transfer connection to new state: " + string(newState) + " from state: " + string(c.State)).
+			SetCurrentLocation()}
 	}
-	return []errors.Error{errmsg.ErrConnectionStateNotAllowed.
-		UpdateInternalMessage("failed to transfer connection to new state: " + string(newState) + " from state: " + string(c.State)).
-		SetCurrentLocation()}
+
+	if issuerUserID != c.UserToID {
+		return []errors.Error{errmsg.ErrConnectionStateTransferNotAllowed.SetCurrentLocation()}
+	}
+
+	c.State = newState
+	return nil
 }
 
-func (c *Connection) transferRejected(newState ConnectionStateType) []errors.Error {
-	if newState == ConnectionStatePending ||
-		newState == ConnectionStateConfirmed {
-		c.State = newState
-		return nil
+func (c *Connection) transferRejected(newState ConnectionStateType, issuerUserID uint64) []errors.Error {
+	if newState != ConnectionStateConfirmed {
+		return []errors.Error{errmsg.ErrConnectionStateNotAllowed.
+			UpdateInternalMessage("failed to transfer connection to new state: " + string(newState) + " from state: " + string(c.State)).
+			SetCurrentLocation()}
 	}
-	return []errors.Error{errmsg.ErrConnectionStateNotAllowed.
-		UpdateInternalMessage("failed to transfer connection to new state: " + string(newState) + " from state: " + string(c.State)).
-		SetCurrentLocation()}
+
+	if issuerUserID != c.UserToID {
+		return []errors.Error{errmsg.ErrConnectionStateTransferNotAllowed.SetCurrentLocation()}
+	}
+
+	c.State = newState
+	return nil
 }
