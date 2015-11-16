@@ -15,7 +15,7 @@ import (
 	"github.com/tapglue/multiverse/config"
 	"github.com/tapglue/multiverse/errors"
 	"github.com/tapglue/multiverse/tgflake"
-	v02_server "github.com/tapglue/multiverse/v02/server"
+	"github.com/tapglue/multiverse/server"
 	v02_postgres "github.com/tapglue/multiverse/v02/storage/postgres"
 
 	"github.com/jmoiron/sqlx"
@@ -176,7 +176,7 @@ func init() {
 	v02PostgresClient = v02_postgres.New(conf.Postgres)
 	db = v02PostgresClient.MainDatastore()
 
-	v02_server.SetupFlakes(v02PostgresClient)
+	server.SetupFlakes(db)
 }
 
 func main() {

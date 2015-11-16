@@ -31,6 +31,7 @@ _testmain.go
 # Custom
 *.bak
 config.json
+config_*.json
 *.rdb
 *.aof
 
