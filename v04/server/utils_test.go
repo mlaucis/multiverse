@@ -544,6 +544,22 @@ func CorrectDeployBench(
 	return organizations
 }
 
+func setProductionApp(c *C, application *entity.Application) {
+	application.InProduction = true
+
+	if coreAppRedis != nil {
+		_, err := coreAppRedis.Update(*application, *application, false)
+		if err != nil {
+			c.Fatal(err)
+		}
+	}
+
+	_, err := coreApp.Update(*application, *application, false)
+	if err != nil {
+		c.Fatal(err)
+	}
+}
+
 func populateEventsForUsers(orgID, appID int64, eventsPerUser int) {
 	existingUsersRows, err := v03PostgresClient.SlaveDatastore(-1).
 		Query(fmt.Sprintf("SELECT json_data->>'id' FROM app_%d_%d.users ORDER BY json_data->>'created_at' ASC", orgID, appID))

@@ -779,8 +779,9 @@ func (s *ConnectionSuite) TestCreateFriendConnectionAfterDeletingTheSameFriendCo
 	userFrom := application.Users[0]
 	userTo := application.Users[1]
 
-	payload := fmt.Sprintf(`{"user_to_id":%d,  "type": %q}`, userTo.ID, entity.ConnectionTypeFriend)
+	setProductionApp(c, application)
 
+	payload := fmt.Sprintf(`{"user_to_id":%d,  "type": %q}`, userTo.ID, entity.ConnectionTypeFriend)
 	routeName := "createCurrentUserConnection"
 	route := getComposedRoute(routeName)
 	code, body, err := runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
@@ -791,7 +792,6 @@ func (s *ConnectionSuite) TestCreateFriendConnectionAfterDeletingTheSameFriendCo
 	connection := &entity.Connection{}
 	er := json.Unmarshal([]byte(body), connection)
 	c.Assert(er, IsNil)
-
 	c.Assert(connection.UserFromID, Equals, userFrom.ID)
 	c.Assert(connection.UserToID, Equals, userTo.ID)
 	c.Assert(connection.Type, Equals, entity.ConnectionTypeFriend)
@@ -809,7 +809,6 @@ func (s *ConnectionSuite) TestCreateFriendConnectionAfterDeletingTheSameFriendCo
 	}{}
 	er = json.Unmarshal([]byte(body), &userConnections)
 	c.Assert(er, IsNil)
-
 	c.Assert(len(userConnections.Users), Equals, 1)
 	c.Assert(userConnections.UsersCount, Equals, 1)
 	c.Assert(userConnections.Users[0].ID, Equals, userTo.ID)
@@ -828,7 +827,6 @@ func (s *ConnectionSuite) TestCreateFriendConnectionAfterDeletingTheSameFriendCo
 	}{}
 	er = json.Unmarshal([]byte(body), &userConnections)
 	c.Assert(er, IsNil)
-
 	c.Assert(len(userConnections.Users), Equals, 1)
 	c.Assert(userConnections.UsersCount, Equals, 1)
 	c.Assert(userConnections.Users[0].ID, Equals, userFrom.ID)
@@ -850,7 +848,6 @@ func (s *ConnectionSuite) TestCreateFriendConnectionAfterDeletingTheSameFriendCo
 	connection = &entity.Connection{}
 	er = json.Unmarshal([]byte(body), connection)
 	c.Assert(er, IsNil)
-
 	c.Assert(connection.UserFromID, Equals, userFrom.ID)
 	c.Assert(connection.UserToID, Equals, userTo.ID)
 	c.Assert(connection.Type, Equals, entity.ConnectionTypeFriend)
@@ -868,7 +865,6 @@ func (s *ConnectionSuite) TestCreateFriendConnectionAfterDeletingTheSameFriendCo
 	}{}
 	er = json.Unmarshal([]byte(body), &userConnections)
 	c.Assert(er, IsNil)
-
 	c.Assert(len(userConnections.Users), Equals, 1)
 	c.Assert(userConnections.UsersCount, Equals, 1)
 	c.Assert(userConnections.Users[0].ID, Equals, userTo.ID)
@@ -887,7 +883,6 @@ func (s *ConnectionSuite) TestCreateFriendConnectionAfterDeletingTheSameFriendCo
 	}{}
 	er = json.Unmarshal([]byte(body), &userConnections)
 	c.Assert(er, IsNil)
-
 	c.Assert(len(userConnections.Users), Equals, 1)
 	c.Assert(userConnections.UsersCount, Equals, 1)
 	c.Assert(userConnections.Users[0].ID, Equals, userFrom.ID)
@@ -906,10 +901,33 @@ func (s *ConnectionSuite) TestCreateFriendConnectionAfterDeletingTheSameFriendCo
 	}{}
 	er = json.Unmarshal([]byte(body), &response)
 	c.Assert(er, IsNil)
-
 	c.Assert(response.Count, Equals, 1)
 	c.Assert(len(response.Events), Equals, 1)
 	c.Assert(response.Events[0].ID, Equals, userTo.Events[len(userTo.Events)-1].ID)
+
+	routeName = "deleteCurrentUserConnection"
+	route = getComposedRoute(routeName, entity.ConnectionTypeFriend, userTo.ID)
+	code, _, err = runRequest(routeName, route, "", signApplicationRequest(application, userFrom, true, true))
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusNoContent)
+
+	userFrom, userTo = userTo, userFrom
+
+	payload = fmt.Sprintf(`{"user_to_id":%d,  "type": %q}`, userTo.ID, entity.ConnectionTypeFriend)
+	routeName = "createCurrentUserConnection"
+	route = getComposedRoute(routeName)
+	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusCreated)
+	c.Assert(body, Not(Equals), "")
+
+	connection = &entity.Connection{}
+	er = json.Unmarshal([]byte(body), connection)
+	c.Assert(er, IsNil)
+
+	c.Assert(connection.UserFromID, Equals, userFrom.ID)
+	c.Assert(connection.UserToID, Equals, userTo.ID)
+	c.Assert(connection.Type, Equals, entity.ConnectionTypeFriend)
 }
 
 // Test to create connections if users are already connected
@@ -1088,13 +1106,9 @@ func (s *ConnectionSuite) TestDeleteConnection_OK(c *C) {
 	userFrom := application.Users[0]
 	userTo := application.Users[1]
 
-	LoginApplicationUser(account.ID, application.ID, userFrom)
-
 	routeName := "deleteCurrentUserConnection"
 	route := getComposedRoute(routeName, entity.ConnectionTypeFollow, userTo.ID)
 	code, _, err := runRequest(routeName, route, "", signApplicationRequest(application, userFrom, true, true))
-	c.Assert(err, IsNil)
-
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusNoContent)
 }
@@ -2037,19 +2051,9 @@ func (s *ConnectionSuite) TestCreateFriendConnectionWithState(c *C) {
 func (s *ConnectionSuite) TestGetConnectionsByState(c *C) {
 	accounts := CorrectDeploy(1, 0, 1, 4, 0, false, true)
 	application := accounts[0].Applications[0]
-	application.InProduction = true
 	users := application.Users
 
-	if coreAppRedis != nil {
-		_, err := coreAppRedis.Update(*application, *application, false)
-		if err != nil {
-			c.Fatal(err)
-		}
-	}
-	_, err := coreApp.Update(*application, *application, false)
-	if err != nil {
-		c.Fatal(err)
-	}
+	setProductionApp(c, application)
 
 	userFrom := users[0]
 	userToPending := users[1]
@@ -2064,7 +2068,7 @@ func (s *ConnectionSuite) TestGetConnectionsByState(c *C) {
 		Type:     entity.ConnectionTypeFriend,
 		State:    entity.ConnectionStatePending,
 	})
-	c.Assert(err, IsNil)
+	c.Assert(er, IsNil)
 
 	payload := string(jsonPayload)
 	code, body, errr := runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
@@ -2086,7 +2090,7 @@ func (s *ConnectionSuite) TestGetConnectionsByState(c *C) {
 		Type:     entity.ConnectionTypeFriend,
 		State:    entity.ConnectionStateConfirmed,
 	})
-	c.Assert(err, IsNil)
+	c.Assert(er, IsNil)
 
 	payload = string(jsonPayload)
 	code, body, errr = runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
@@ -2108,7 +2112,7 @@ func (s *ConnectionSuite) TestGetConnectionsByState(c *C) {
 		Type:     entity.ConnectionTypeFriend,
 		State:    entity.ConnectionStateRejected,
 	})
-	c.Assert(err, IsNil)
+	c.Assert(er, IsNil)
 
 	payload = string(jsonPayload)
 	code, body, errr = runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
