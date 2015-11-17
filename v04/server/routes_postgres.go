@@ -478,7 +478,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "deleteConnection",
 			Method: "DELETE",
-			Path:   fmt.Sprintf("/users/%s/connections/%s", applicationUserID, applicationUserToID),
+			Path:   fmt.Sprintf("/users/%s/connections/%s/%s", applicationUserID, connectionType, applicationUserToID),
 			Handlers: []RouteFunc{
 				postgresConnectionHandler.Delete,
 			},

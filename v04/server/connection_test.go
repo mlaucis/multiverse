@@ -1100,15 +1100,22 @@ func (s *ConnectionSuite) TestUpdateConnectionDisableAndCheckLists(c *C) {
 
 // Test a correct deleteCurrentUserConnection request
 func (s *ConnectionSuite) TestDeleteConnection_OK(c *C) {
-	accounts := CorrectDeploy(1, 0, 1, 2, 0, true, true)
+	accounts := CorrectDeploy(1, 0, 1, 3, 0, true, true)
 	account := accounts[0]
 	application := account.Applications[0]
 	userFrom := application.Users[0]
 	userTo := application.Users[1]
+	userTo2 := application.Users[2]
 
 	routeName := "deleteCurrentUserConnection"
 	route := getComposedRoute(routeName, entity.ConnectionTypeFollow, userTo.ID)
 	code, _, err := runRequest(routeName, route, "", signApplicationRequest(application, userFrom, true, true))
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusNoContent)
+
+	routeName = "deleteConnection"
+	route = getComposedRoute(routeName, userFrom.ID, entity.ConnectionTypeFollow, userTo2.ID)
+	code, _, err = runRequest(routeName, route, "", signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusNoContent)
 }
