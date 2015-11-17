@@ -527,6 +527,12 @@ func (evt *event) usersFromEvents(ctx *context.Context, events []*entity.Event) 
 	eventUsers := map[uint64]bool{}
 	for idx := range events {
 		eventUsers[events[idx].UserID] = true
+		if events[idx].Target != nil &&
+			events[idx].Target.Type == "tg_user" {
+			if userID, ok := events[idx].Target.ID.(uint64); ok {
+				eventUsers[userID] = true
+			}
+		}
 	}
 
 	usrs := []uint64{}
