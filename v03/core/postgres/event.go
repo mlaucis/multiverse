@@ -227,14 +227,17 @@ func (e *event) List(accountID, applicationID int64, userID, currentUserID uint6
 	var query string
 	if userID == currentUserID {
 		query = listAllEventsByUserIDQuery
-	} else if _, err := e.c.Read(accountID, applicationID, currentUserID, userID); err != nil {
-		if err[0].Code() == errmsg.ErrConnectionNotFound.Code() {
-			query = listPublicEventsByUserIDQuery
-		} else {
-			return []*entity.Event{}, err
-		}
 	} else {
-		query = listConnectionEventsByUserIDQuery
+		relation, errs := e.c.Relation(accountID, applicationID, currentUserID, userID)
+		if errs != nil {
+			return nil, errs
+		}
+
+		if *relation.IsFriend || *relation.IsFollowed {
+			query = listConnectionEventsByUserIDQuery
+		} else {
+			query = listPublicEventsByUserIDQuery
+		}
 	}
 
 	rows, err := e.pg.SlaveDatastore(-1).
