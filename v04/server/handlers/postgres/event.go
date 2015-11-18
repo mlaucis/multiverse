@@ -223,7 +223,7 @@ func (evt *event) List(ctx *context.Context) (err []errors.Error) {
 
 	var events []*entity.Event
 
-	if events, err = evt.storage.List(accountID, applicationID, userID, userID); err != nil {
+	if events, err = evt.storage.List(accountID, applicationID, userID, ctx.ApplicationUserID); err != nil {
 		return
 	}
 
