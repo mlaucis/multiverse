@@ -21,3 +21,11 @@ resource "cloudflare_record" "gambify" {
   type   = "CNAME"
   ttl    = 1
 }
+
+resource "cloudflare_record" "stepz" {
+  domain = "${var.cloudflare_domain}"
+  name   = "stepz"
+  value  = "${aws_elb.frontend.dns_name}"
+  type   = "CNAME"
+  ttl    = 1
+}
