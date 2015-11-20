@@ -19,6 +19,7 @@ import (
 
 type event struct {
 	appUser core.ApplicationUser
+	conn    core.Connection
 	storage core.Event
 }
 
@@ -286,10 +287,11 @@ func (evt *event) Feed(ctx *context.Context) (err []errors.Error) {
 	resp.EventsCount = len(resp.Events)
 
 	status := http.StatusOK
+
 	if resp.EventsCount == 0 {
 		status = http.StatusNoContent
 	} else {
-		resp.Users, err = evt.usersFromEvents(ctx, resp.Events)
+		resp.Users, err = evt.usersFromEvents(ctx, ctx.ApplicationUserID, resp.Events)
 		if err != nil {
 			return
 		}
@@ -460,7 +462,7 @@ func (evt *event) Search(ctx *context.Context) (err []errors.Error) {
 	}
 
 	if resp.EventsCount != 0 {
-		resp.Users, err = evt.usersFromEvents(ctx, resp.Events)
+		resp.Users, err = evt.usersFromEvents(ctx, ctx.ApplicationUserID, resp.Events)
 		if err != nil {
 			return
 		}
@@ -494,7 +496,7 @@ func (evt *event) UnreadFeed(ctx *context.Context) (err []errors.Error) {
 	if resp.UnreadCount == 0 {
 		status = http.StatusNoContent
 	} else {
-		resp.Users, err = evt.usersFromEvents(ctx, resp.Events)
+		resp.Users, err = evt.usersFromEvents(ctx, ctx.ApplicationUserID, resp.Events)
 		if err != nil {
 			return
 		}
@@ -522,7 +524,7 @@ func (evt *event) UnreadFeedCount(ctx *context.Context) (err []errors.Error) {
 	return
 }
 
-func (evt *event) usersFromEvents(ctx *context.Context, events []*entity.Event) (users map[string]*entity.ApplicationUser, err []errors.Error) {
+func (evt *event) usersFromEvents(ctx *context.Context, currentUserID uint64, events []*entity.Event) (users map[string]*entity.ApplicationUser, err []errors.Error) {
 	users = map[string]*entity.ApplicationUser{}
 	eventUsers := map[uint64]bool{}
 	for idx := range events {
@@ -551,13 +553,23 @@ func (evt *event) usersFromEvents(ctx *context.Context, events []*entity.Event) 
 
 	response.SanitizeApplicationUsersMap(users)
 
+	for idx := range users {
+		relation, err := evt.conn.Relation(ctx.OrganizationID, ctx.ApplicationID, currentUserID, users[idx].ID)
+		if err != nil {
+			return nil, err
+		} else if relation != nil {
+			users[idx].Relation = *relation
+		}
+	}
+
 	return
 }
 
 // NewEvent returns a new event handler
-func NewEvent(storage core.Event, appUser core.ApplicationUser) handlers.Event {
+func NewEvent(storage core.Event, appUser core.ApplicationUser, conn core.Connection) handlers.Event {
 	return &event{
 		storage: storage,
 		appUser: appUser,
+		conn:    conn,
 	}
 }

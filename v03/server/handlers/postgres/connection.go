@@ -126,6 +126,10 @@ func (conn *connection) List(ctx *context.Context) (err []errors.Error) {
 
 	response.SanitizeApplicationUsers(users)
 
+	if err := conn.addRelationInformation(ctx, userID, users); err != nil {
+		return err
+	}
+
 	resp := struct {
 		Users      []*entity.ApplicationUser `json:"users"`
 		UsersCount int                       `json:"users_count"`
@@ -155,6 +159,10 @@ func (conn *connection) CurrentUserList(ctx *context.Context) (err []errors.Erro
 	}
 
 	response.SanitizeApplicationUsers(users)
+
+	if err := conn.addRelationInformation(ctx, ctx.ApplicationUserID, users); err != nil {
+		return err
+	}
 
 	resp := struct {
 		Users      []*entity.ApplicationUser `json:"users"`
@@ -197,6 +205,10 @@ func (conn *connection) FollowedByList(ctx *context.Context) (err []errors.Error
 
 	response.SanitizeApplicationUsers(users)
 
+	if err := conn.addRelationInformation(ctx, userID, users); err != nil {
+		return err
+	}
+
 	resp := struct {
 		Users      []*entity.ApplicationUser `json:"users"`
 		UsersCount int                       `json:"users_count"`
@@ -225,6 +237,10 @@ func (conn *connection) CurrentUserFollowedByList(ctx *context.Context) (err []e
 	}
 
 	response.SanitizeApplicationUsers(users)
+
+	if err := conn.addRelationInformation(ctx, ctx.ApplicationUserID, users); err != nil {
+		return err
+	}
 
 	resp := struct {
 		Users      []*entity.ApplicationUser `json:"users"`
@@ -326,6 +342,10 @@ func (conn *connection) CreateSocial(ctx *context.Context) (err []errors.Error) 
 
 	response.SanitizeApplicationUsers(users)
 
+	if err := conn.addRelationInformation(ctx, user.ID, users); err != nil {
+		return err
+	}
+
 	resp := struct {
 		Users      []*entity.ApplicationUser `json:"users"`
 		UsersCount int                       `json:"users_count"`
@@ -362,6 +382,10 @@ func (conn *connection) Friends(ctx *context.Context) (err []errors.Error) {
 
 	response.SanitizeApplicationUsers(users)
 
+	if err := conn.addRelationInformation(ctx, userID, users); err != nil {
+		return err
+	}
+
 	resp := struct {
 		Users      []*entity.ApplicationUser `json:"users"`
 		UsersCount int                       `json:"users_count"`
@@ -386,6 +410,10 @@ func (conn *connection) CurrentUserFriends(ctx *context.Context) (err []errors.E
 	}
 
 	response.SanitizeApplicationUsers(users)
+
+	if err := conn.addRelationInformation(ctx, ctx.ApplicationUserID, users); err != nil {
+		return err
+	}
 
 	resp := struct {
 		Users      []*entity.ApplicationUser `json:"users"`
@@ -529,6 +557,18 @@ func (conn *connection) CreateAutoConnectionEvents(
 	}
 
 	return events, errs
+}
+
+func (conn *connection) addRelationInformation(ctx *context.Context, userID uint64, users []*entity.ApplicationUser) []errors.Error {
+	for idx := range users {
+		relation, err := conn.storage.Relation(ctx.OrganizationID, ctx.ApplicationID, userID, users[idx].ID)
+		if err != nil {
+			return err
+		} else if relation != nil {
+			users[idx].Relation = *relation
+		}
+	}
+	return nil
 }
 
 // NewConnection initializes a new connection with an application user

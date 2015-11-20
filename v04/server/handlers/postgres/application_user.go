@@ -46,12 +46,10 @@ func (appUser *applicationUser) Read(ctx *context.Context) (err []errors.Error) 
 	// maybe not the most efficient way to do it?
 	rel, err := appUser.conn.Relation(ctx.OrganizationID, ctx.ApplicationID, ctx.ApplicationUser.ID, user.ID)
 	if err != nil {
-		ctx.LogError(err)
+		return err
 	}
 	if rel != nil {
-		user.IsFriend = rel.IsFriend
-		user.IsFollower = rel.IsFollower
-		user.IsFollowed = rel.IsFollowed
+		user.Relation = *rel
 	}
 
 	user.Password = ""
@@ -183,6 +181,7 @@ func (appUser *applicationUser) Create(ctx *context.Context) (err []errors.Error
 
 	response.SanitizeApplicationUser(user)
 	user.SessionToken = sessionToken
+	appUser.storage.FriendStatistics(ctx.OrganizationID, ctx.ApplicationID, user)
 
 	ctx.W.Header().Set("Location", fmt.Sprintf("https://api.tapglue.com/0.3/users/%d", user.ID))
 	response.WriteResponse(ctx, user, http.StatusCreated, 0)
@@ -253,6 +252,8 @@ func (appUser *applicationUser) Login(ctx *context.Context) (err []errors.Error)
 	user.IsFollower = nil
 	user.IsFollowed = nil
 
+	appUser.storage.FriendStatistics(ctx.OrganizationID, ctx.ApplicationID, user)
+
 	ctx.W.Header().Set("Location", fmt.Sprintf("https://api.tapglue.com/0.3/users/%d", user.ID))
 	response.WriteResponse(ctx, user, http.StatusCreated, 0)
 	return
@@ -316,8 +317,8 @@ func (appUser *applicationUser) Search(ctx *context.Context) (err []errors.Error
 	for idx := range users {
 		relation, err := appUser.conn.Relation(ctx.OrganizationID, ctx.ApplicationID, ctx.ApplicationUserID, users[idx].ID)
 		if err != nil {
-			ctx.LogError(err)
-		} else {
+			return err
+		} else if relation != nil {
 			users[idx].Relation = *relation
 		}
 	}

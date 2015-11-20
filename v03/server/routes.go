@@ -125,7 +125,7 @@ func InitHandlers() {
 	postgresApplicationHandler = postgres.NewApplication(postgresApplication)
 	postgresApplicationUserHandler = postgres.NewApplicationUser(postgresApplicationUser, postgresConnection)
 	postgresConnectionHandler = postgres.NewConnection(postgresConnection, postgresApplicationUser, postgresEvent)
-	postgresEventHandler = postgres.NewEvent(postgresEvent, postgresApplicationUser)
+	postgresEventHandler = postgres.NewEvent(postgresEvent, postgresApplicationUser, postgresConnection)
 
 	redisApplicationHandler = redis.NewApplication(redisApplication, postgresApplication)
 }
