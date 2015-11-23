@@ -1888,9 +1888,6 @@ func (s *ConnectionSuite) TestCreateFriendsConnectionWithEvent(c *C) {
 	c.Assert(connection.Type, Equals, entity.ConnectionTypeFriend)
 	c.Assert(connection.Enabled, Equals, true)
 
-	// We need to wait a bit for the background event to be created
-	time.Sleep(10 * time.Millisecond)
-
 	routeName = "getCurrentUserFeed"
 	route = getComposedRoute(routeName)
 	code, body, err = runRequest(routeName, route, "", signApplicationRequest(application, userTo, true, true))
@@ -1898,18 +1895,29 @@ func (s *ConnectionSuite) TestCreateFriendsConnectionWithEvent(c *C) {
 	c.Assert(code, Equals, http.StatusOK)
 	c.Assert(body, Not(Equals), "")
 
-	response := struct {
-		Count  int                               `json:"unread_events_count"`
-		Events []entity.Event                    `json:"events"`
-		Users  map[string]entity.ApplicationUser `json:"users"`
-	}{}
+	response := entity.EventsResponseWithUnread{}
 	er = json.Unmarshal([]byte(body), &response)
 	c.Assert(er, IsNil)
 
-	c.Assert(response.Count, Equals, 1)
+	c.Assert(response.EventsCount, Equals, 1)
 	c.Assert(len(response.Events), Equals, 1)
-	c.Assert(len(response.Users), Equals, 1)
+	c.Assert(len(response.Users), Equals, 2)
 	c.Assert(response.Events[0].Type, Equals, "tg_friend")
+
+	routeName = "getCurrentUserEventList"
+	route = getComposedRoute(routeName)
+	code, body, err = runRequest(routeName, route, "", signApplicationRequest(application, userFrom, true, true))
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusOK)
+	c.Assert(body, Not(Equals), "")
+
+	response = entity.EventsResponseWithUnread{}
+	er = json.Unmarshal([]byte(body), &response)
+	c.Assert(er, IsNil)
+	c.Assert(response.EventsCount, Equals, 1)
+	c.Assert(response.UsersCount, Equals, 2)
+	c.Assert(response.EventsCount, Equals, len(response.Events))
+	c.Assert(response.UsersCount, Equals, len(response.Users))
 }
 
 func (s *ConnectionSuite) TestCreateFollowConnectionWithEvent(c *C) {
@@ -1962,7 +1970,7 @@ func (s *ConnectionSuite) TestCreateFollowConnectionWithEvent(c *C) {
 
 	c.Assert(response.Count, Equals, 1)
 	c.Assert(len(response.Events), Equals, 1)
-	c.Assert(len(response.Users), Equals, 1)
+	c.Assert(len(response.Users), Equals, 2)
 	c.Assert(response.Events[0].Type, Equals, "tg_follow")
 }
 
@@ -2026,6 +2034,6 @@ func (s *ConnectionSuite) TestCreateSocialConnectionWithEvent(c *C) {
 
 	c.Assert(response.Count, Equals, 1)
 	c.Assert(len(response.Events), Equals, 1)
-	c.Assert(len(response.Users), Equals, 1)
+	c.Assert(len(response.Users), Equals, 2)
 	c.Assert(response.Events[0].Type, Equals, "tg_friend")
 }

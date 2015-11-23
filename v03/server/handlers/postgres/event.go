@@ -541,7 +541,7 @@ func (evt *event) usersFromEvents(ctx *context.Context, currentUserID uint64, ev
 			if userID, ok := events[idx].Target.ID.(uint64); ok {
 				eventUsers[userID] = true
 			} else if userID, ok := events[idx].Target.ID.(string); ok {
-				if userID, err := strconv.ParseUint(userID, 10, 64); err != nil {
+				if userID, err := strconv.ParseUint(userID, 10, 64); err == nil {
 					eventUsers[userID] = true
 				}
 			}

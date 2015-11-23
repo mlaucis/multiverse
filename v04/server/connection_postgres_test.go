@@ -139,6 +139,6 @@ func (s *ConnectionSuite) TestCreateFollowConnectionWithUserGeneratedEvent(c *C)
 
 	c.Assert(response.Count, Equals, 1)
 	c.Assert(len(response.Events), Equals, 1)
-	c.Assert(len(response.Users), Equals, 1)
+	c.Assert(len(response.Users), Equals, 2)
 	c.Assert(response.Events[0].Type, Equals, "tg_follow")
 }
