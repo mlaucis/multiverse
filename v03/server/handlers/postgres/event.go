@@ -228,10 +228,7 @@ func (evt *event) List(ctx *context.Context) (err []errors.Error) {
 		return
 	}
 
-	resp := struct {
-		Events      []*entity.Event `json:"events"`
-		EventsCount int             `json:"events_count"`
-	}{
+	resp := entity.EventsResponse{
 		Events:      events,
 		EventsCount: len(events),
 	}
@@ -239,6 +236,13 @@ func (evt *event) List(ctx *context.Context) (err []errors.Error) {
 	status := http.StatusOK
 	if resp.EventsCount == 0 {
 		status = http.StatusNoContent
+	} else {
+		resp.Users, err = evt.usersFromEvents(ctx, userID, resp.Events)
+		if err != nil {
+			return
+		}
+
+		resp.UsersCount = len(resp.Users)
 	}
 
 	response.WriteResponse(ctx, resp, status, 10)
@@ -256,18 +260,21 @@ func (evt *event) CurrentUserList(ctx *context.Context) (err []errors.Error) {
 		return
 	}
 
-	resp := struct {
-		Events      []*entity.Event `json:"events"`
-		EventsCount int             `json:"events_count"`
-	}{
+	resp := entity.EventsResponse{
 		Events:      events,
 		EventsCount: len(events),
 	}
 
 	status := http.StatusOK
-
 	if resp.EventsCount == 0 {
 		status = http.StatusNoContent
+	} else {
+		resp.Users, err = evt.usersFromEvents(ctx, ctx.ApplicationUserID, resp.Events)
+		if err != nil {
+			return
+		}
+
+		resp.UsersCount = len(resp.Users)
 	}
 
 	response.WriteResponse(ctx, resp, status, 10)
