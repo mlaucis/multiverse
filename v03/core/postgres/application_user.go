@@ -95,11 +95,17 @@ const (
 
 	selectApplicationUserCountsQuery = `SELECT
   (SELECT count(*) FROM app_%d_%d.connections
-    WHERE (json_data->>'user_from_id')::BIGINT = $1::BIGINT AND (json_data->>'enabled')::BOOL = true AND json_data->>'type' = '` + entity.ConnectionTypeFriend + `') AS "friends",
+    WHERE (json_data->>'user_from_id')::BIGINT = $1::BIGINT AND
+          (json_data->>'enabled')::BOOL = true AND
+          json_data->>'type' = '` + entity.ConnectionTypeFriend + `') AS "friends",
   (SELECT count(*) FROM app_%d_%d.connections
-    WHERE (json_data->>'user_to_id')::BIGINT = $1::BIGINT AND (json_data->>'enabled')::BOOL = true AND json_data->>'type' = '` + entity.ConnectionTypeFollow + `') AS "follower",
+    WHERE (json_data->>'user_to_id')::BIGINT = $1::BIGINT AND
+          (json_data->>'enabled')::BOOL = true AND
+          json_data->>'type' = '` + entity.ConnectionTypeFollow + `') AS "follower",
   (SELECT count(*) FROM app_%d_%d.connections
-    WHERE (json_data->>'user_from_id')::BIGINT = $1::BIGINT AND (json_data->>'enabled')::BOOL = true AND json_data->>'type' = '` + entity.ConnectionTypeFollow + `') AS "followed"`
+    WHERE (json_data->>'user_from_id')::BIGINT = $1::BIGINT AND
+          (json_data->>'enabled')::BOOL = true AND
+          json_data->>'type' = '` + entity.ConnectionTypeFollow + `') AS "followed"`
 )
 
 func (au *applicationUser) Create(accountID, applicationID int64, user *entity.ApplicationUser) []errors.Error {
