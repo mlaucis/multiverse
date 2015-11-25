@@ -1,14 +1,53 @@
--- SELECT # users, events
+-- SELECT # users, connections, events, users which retrieved a feed all time
 SELECT
   (SELECT count(*)
    FROM app_309_443.users)  AS "users",
   (SELECT count(*)
-   FROM app_309_443.events) AS "events";
+   FROM app_309_443.sessions)  AS "sessions",
+  (SELECT count(*)
+   FROM app_309_443.connections)  AS "connections",
+  (SELECT count(*)
+   FROM app_309_443.events) AS "events",
+  (SELECT count(*)
+   FROM app_309_443.users
+   WHERE last_read <> '2015-05-01 01:23:45.000000') AS "users which retrieved a feed";
 
--- Users that retrieved the feed
-SELECT count(*)
-FROM app_309_443.users
-WHERE last_read <> '2015-05-01 01:23:45.000000';
+-- SELECT any activity in the last 30 days
+SELECT
+  (SELECT count(*)
+   FROM app_309_443.users
+   WHERE (json_data->>'updated_at')::TIMESTAMP > (current_date - interval '30 days'))  AS "users",
+  (SELECT count(*)
+   FROM app_309_443.sessions
+   WHERE (created_at)::TIMESTAMP > (current_date - interval '30 days'))  AS "sessions",
+  (SELECT count(*)
+   FROM app_309_443.connections
+   WHERE (json_data->>'updated_at')::TIMESTAMP > (current_date - interval '30 days'))  AS "connections",
+  (SELECT count(*)
+   FROM app_309_443.events
+   WHERE (json_data->>'updated_at')::TIMESTAMP > (current_date - interval '30 days')) AS "events",
+  (SELECT count(*)
+   FROM app_309_443.users
+   WHERE (last_read)::TIMESTAMP > (current_date - interval '30 days')) AS "users which retrieved a feed";
+
+-- SELECT creation activity in the last 30 days
+SELECT
+  (SELECT count(*)
+   FROM app_309_443.users
+   WHERE (json_data->>'created_at')::TIMESTAMP > (current_date - interval '30 days'))  AS "users",
+  (SELECT count(*)
+   FROM app_309_443.sessions
+   WHERE (created_at)::TIMESTAMP > (current_date - interval '30 days'))  AS "sessions",
+  (SELECT count(*)
+   FROM app_309_443.connections
+   WHERE (json_data->>'created_at')::TIMESTAMP > (current_date - interval '30 days'))  AS "connections",
+  (SELECT count(*)
+   FROM app_309_443.events
+   WHERE (json_data->>'created_at')::TIMESTAMP > (current_date - interval '30 days')) AS "events",
+  (SELECT count(*)
+   FROM app_309_443.users
+   WHERE (last_read)::TIMESTAMP > (current_date - interval '30 days')) AS "users which retrieved a feed";
+
 
 -- Users updated, created after the initial import or fetched a feed
 SELECT count(*)
