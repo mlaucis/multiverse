@@ -15,18 +15,18 @@ eval "$(GIMME_GO_VERSION=1.5.1 gimme)"
 echo "Installing go dependencies"
 go get github.com/tools/godep github.com/axw/gocov/gocov github.com/matm/gocov-html gopkg.in/check.v1
 
-declare -a STATIC_COMPONENTS=( "dashboard" "website" )
-for STATIC_COMPONENT in "${STATIC_COMPONENTS[@]}"
-do
-    echo "Installing ${STATIC_COMPONENT} dependencies"
-    mkdir -p /home/ubuntu/.${STATIC_COMPONENT}_node_modules
-    cd ${CWD}/${STATIC_COMPONENT}
-    mv /home/ubuntu/.${STATIC_COMPONENT}_node_modules node_modules
-    npm install
-done
-
-for STATIC_COMPONENT in "${STATIC_COMPONENTS[@]}"
-do
-    cd ${CWD}/${STATIC_COMPONENT}
-    cp -R node_modules /home/ubuntu/.${STATIC_COMPONENT}_node_modules
-done
+#declare -a STATIC_COMPONENTS=( "dashboard" "website" )
+#for STATIC_COMPONENT in "${STATIC_COMPONENTS[@]}"
+#do
+#    echo "Installing ${STATIC_COMPONENT} dependencies"
+#    mkdir -p /home/ubuntu/.${STATIC_COMPONENT}_node_modules
+#    cd ${CWD}/${STATIC_COMPONENT}
+#    mv /home/ubuntu/.${STATIC_COMPONENT}_node_modules node_modules
+#    npm install
+#done
+#
+#for STATIC_COMPONENT in "${STATIC_COMPONENTS[@]}"
+#do
+#    cd ${CWD}/${STATIC_COMPONENT}
+#    cp -R node_modules /home/ubuntu/.${STATIC_COMPONENT}_node_modules
+#done
