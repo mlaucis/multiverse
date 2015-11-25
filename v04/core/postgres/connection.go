@@ -69,10 +69,13 @@ const (
 			AND (json_data->>'enabled')::BOOL = true`
 
 	friendAndFollowingConnectionsIDsQuery = `SELECT
-		json_data->>'user_to_id' as "user_id"
+		json_data->>'user_to_id' as "user_to_id",
+		json_data->>'user_from_id' as "user_from_id"
 		FROM app_%d_%d.connections
-		WHERE (json_data->>'user_from_id')::BIGINT = $1::BIGINT
-			AND (json_data->>'enabled')::BOOL = true`
+		WHERE ((json_data->>'user_from_id')::BIGINT = $1::BIGINT
+				OR ((json_data->>'user_to_id')::BIGINT = $1::BIGINT AND json_data->>'type' = '` + string(entity.ConnectionTypeFriend) + `'))
+			AND (json_data->>'enabled')::BOOL = true
+			AND json_data->>'state' = '` + string(entity.ConnectionStateConfirmed) + `'`
 
 	listUserIDssBySocialIDQuery = `SELECT
 		json_data->>'id'
@@ -301,13 +304,18 @@ func (c *connection) FriendsAndFollowingIDs(accountID, applicationID int64, user
 
 	var users []uint64
 	for rows.Next() {
-		var user uint64
-		err := rows.Scan(&user)
+		var userToId, userFromId uint64
+		err := rows.Scan(&userToId, &userFromId)
 		if err != nil {
 			return nil, []errors.Error{errmsg.ErrInternalFriendsList.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 		}
 
-		users = append(users, user)
+		if userToId != userID {
+			users = append(users, userToId)
+		} else if userFromId != userID {
+			users = append(users, userFromId)
+		}
+
 	}
 
 	return users, nil
