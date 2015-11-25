@@ -95,7 +95,7 @@ const (
 
 	selectApplicationUserCountsQuery = `SELECT
   (SELECT count(*) FROM app_%d_%d.connections
-    WHERE (json_data->>'user_from_id')::BIGINT = $1::BIGINT AND
+    WHERE ((json_data->>'user_from_id')::BIGINT = $1::BIGINT OR (json_data->>'user_to_id')::BIGINT = $1::BIGINT) AND
            json_data->>'state' = '` + string(entity.ConnectionStateConfirmed) + `' AND
            json_data->>'type' = '` + string(entity.ConnectionTypeFriend) + `' AND
            (json_data->>'enabled')::BOOL = true) AS "friends",
