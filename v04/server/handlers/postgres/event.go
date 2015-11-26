@@ -222,9 +222,12 @@ func (evt *event) List(ctx *context.Context) (err []errors.Error) {
 		return []errors.Error{errmsg.ErrApplicationUserNotFound.SetCurrentLocation()}
 	}
 
+	conditions, err := core.NewEventFilter(ctx.Query.Get("where"))
+	if err != nil {
+		return err
+	}
 	var events []*entity.Event
-
-	if events, err = evt.storage.List(accountID, applicationID, userID, ctx.ApplicationUserID); err != nil {
+	if events, err = evt.storage.List(accountID, applicationID, userID, ctx.ApplicationUserID, conditions); err != nil {
 		return
 	}
 
@@ -250,13 +253,18 @@ func (evt *event) List(ctx *context.Context) (err []errors.Error) {
 }
 
 func (evt *event) CurrentUserList(ctx *context.Context) (err []errors.Error) {
-	var events []*entity.Event
+	conditions, err := core.NewEventFilter(ctx.Query.Get("where"))
+	if err != nil {
+		return err
+	}
 
+	var events []*entity.Event
 	if events, err = evt.storage.List(
 		ctx.OrganizationID,
 		ctx.ApplicationID,
 		ctx.ApplicationUserID,
-		ctx.ApplicationUserID); err != nil {
+		ctx.ApplicationUserID,
+		conditions); err != nil {
 		return
 	}
 
@@ -282,12 +290,17 @@ func (evt *event) CurrentUserList(ctx *context.Context) (err []errors.Error) {
 }
 
 func (evt *event) Feed(ctx *context.Context) (err []errors.Error) {
-	resp := entity.EventsResponseWithUnread{}
+	conditions, err := core.NewEventFilter(ctx.Query.Get("where"))
+	if err != nil {
+		return err
+	}
 
+	resp := entity.EventsResponseWithUnread{}
 	if resp.UnreadCount, resp.Events, err = evt.storage.UserFeed(
 		ctx.OrganizationID,
 		ctx.ApplicationID,
-		ctx.ApplicationUser); err != nil {
+		ctx.ApplicationUser,
+		conditions); err != nil {
 		return
 	}
 
@@ -452,10 +465,6 @@ func (evt *event) Search(ctx *context.Context) (err []errors.Error) {
 		if events, err = evt.storage.LocationSearch(ctx.OrganizationID, ctx.ApplicationID, ctx.ApplicationUserID, location); err != nil {
 			return
 		}
-	} else if objectKey := ctx.Query.Get("object"); objectKey != "" {
-		if events, err = evt.storage.ObjectSearch(ctx.OrganizationID, ctx.ApplicationID, ctx.ApplicationUserID, objectKey); err != nil {
-			return
-		}
 	} else {
 		err = []errors.Error{errmsg.ErrServerReqNoKnownSearchTermsSupplied.SetCurrentLocation()}
 	}
@@ -487,12 +496,17 @@ func (evt *event) Search(ctx *context.Context) (err []errors.Error) {
 }
 
 func (evt *event) UnreadFeed(ctx *context.Context) (err []errors.Error) {
-	resp := entity.EventsResponseWithUnread{}
+	conditions, err := core.NewEventFilter(ctx.Query.Get("where"))
+	if err != nil {
+		return err
+	}
 
+	resp := entity.EventsResponseWithUnread{}
 	if resp.UnreadCount, resp.Events, err = evt.storage.UnreadFeed(
 		ctx.OrganizationID,
 		ctx.ApplicationID,
-		ctx.ApplicationUser); err != nil {
+		ctx.ApplicationUser,
+		conditions); err != nil {
 		return
 	}
 
@@ -516,14 +530,19 @@ func (evt *event) UnreadFeed(ctx *context.Context) (err []errors.Error) {
 }
 
 func (evt *event) UnreadFeedCount(ctx *context.Context) (err []errors.Error) {
+	conditions, err := core.NewEventFilter(ctx.Query.Get("where"))
+	if err != nil {
+		return err
+	}
+
 	count := struct {
 		Count int `json:"unread_events_count"`
 	}{}
-
 	if count.Count, err = evt.storage.UnreadFeedCount(
 		ctx.OrganizationID,
 		ctx.ApplicationID,
-		ctx.ApplicationUser); err != nil {
+		ctx.ApplicationUser,
+		conditions); err != nil {
 		return
 	}
 

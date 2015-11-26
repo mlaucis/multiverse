@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 	"time"
@@ -935,6 +936,171 @@ func (s *EventSuite) TestGetFeedWithBackendToken_Bad(c *C) {
 	c.Assert(err, IsNil)
 	c.Assert(code, Equals, http.StatusBadRequest)
 	c.Assert(body, Not(Equals), "")
+}
+
+func (s *EventSuite) TestGetFeedWithTypeFilter(c *C) {
+	accounts := CorrectDeploy(1, 0, 1, 10, 10, true, true)
+	application := accounts[0].Applications[0]
+	userFrom := application.Users[0]
+
+	urlParams := url.Values{}
+	urlParams.Add("where", `{"type": {"eq": "love"}}`)
+
+	routeName := "getCurrentUserFeed"
+	route := getComposedRoute(routeName) + "?" + urlParams.Encode()
+	code, body, err := runRequest(routeName, route, "", signApplicationRequest(application, userFrom, true, true))
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusOK)
+	c.Assert(body, Not(Equals), "")
+
+	response := struct {
+		Count  int                               `json:"unread_events_count"`
+		Events []entity.Event                    `json:"events"`
+		Users  map[string]entity.ApplicationUser `json:"users"`
+	}{}
+	er := json.Unmarshal([]byte(body), &response)
+	c.Assert(er, IsNil)
+	c.Assert(response.Count, Equals, 8)
+	c.Assert(len(response.Events), Equals, 8)
+
+	for _, event := range response.Events {
+		c.Assert(event.Type, Equals, "love")
+	}
+
+	c.Assert(len(response.Users), Equals, 4)
+	for _, user := range response.Users {
+		c.Assert(user.Password, Equals, "")
+		c.Assert(user.Email, Not(Equals), "")
+		c.Assert(user.SessionToken, Equals, "")
+		c.Assert(user.FriendCount, IsNil)
+		c.Assert(user.FollowerCount, IsNil)
+		c.Assert(user.FollowedCount, IsNil)
+		c.Assert(user.CreatedAt, IsNil)
+		c.Assert(user.UpdatedAt, IsNil)
+		c.Assert(user.LastLogin, IsNil)
+		c.Assert(user.LastRead, IsNil)
+		c.Assert(user.Deleted, IsNil)
+	}
+}
+
+func (s *EventSuite) TestGetFeedWithObjectTypeFilter(c *C) {
+	accounts := CorrectDeploy(1, 0, 1, 10, 10, true, true)
+	application := accounts[0].Applications[0]
+	userFrom := application.Users[0]
+
+	urlParams := url.Values{}
+	urlParams.Add("where", `{"object": {"type": {"eq": "public-object"}}}`)
+
+	routeName := "getCurrentUserFeed"
+	route := getComposedRoute(routeName) + "?" + urlParams.Encode()
+	code, body, err := runRequest(routeName, route, "", signApplicationRequest(application, userFrom, true, true))
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusOK)
+	c.Assert(body, Not(Equals), "")
+
+	response := struct {
+		Count  int                               `json:"unread_events_count"`
+		Events []entity.Event                    `json:"events"`
+		Users  map[string]entity.ApplicationUser `json:"users"`
+	}{}
+	er := json.Unmarshal([]byte(body), &response)
+	c.Assert(er, IsNil)
+	c.Assert(response.Count, Equals, 8)
+	c.Assert(len(response.Events), Equals, 8)
+
+	for _, event := range response.Events {
+		c.Assert(event.Object.Type, Equals, "public-object")
+	}
+
+	c.Assert(len(response.Users), Equals, 4)
+	for _, user := range response.Users {
+		c.Assert(user.Password, Equals, "")
+		c.Assert(user.Email, Not(Equals), "")
+		c.Assert(user.SessionToken, Equals, "")
+		c.Assert(user.FriendCount, IsNil)
+		c.Assert(user.FollowerCount, IsNil)
+		c.Assert(user.FollowedCount, IsNil)
+		c.Assert(user.CreatedAt, IsNil)
+		c.Assert(user.UpdatedAt, IsNil)
+		c.Assert(user.LastLogin, IsNil)
+		c.Assert(user.LastRead, IsNil)
+		c.Assert(user.Deleted, IsNil)
+	}
+}
+
+func (s *EventSuite) TestGetFeedWithMetadataFilter(c *C) {
+	accounts := CorrectDeploy(1, 0, 1, 10, 10, true, true)
+	application := accounts[0].Applications[0]
+	userFrom := application.Users[0]
+
+	urlParams := url.Values{}
+	urlParams.Add("where", `{"metadata": {"custom_name": {"eq": "public-metadata"}}}`)
+
+	routeName := "getCurrentUserFeed"
+	route := getComposedRoute(routeName) + "?" + urlParams.Encode()
+	code, body, err := runRequest(routeName, route, "", signApplicationRequest(application, userFrom, true, true))
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusOK)
+	c.Assert(body, Not(Equals), "")
+
+	response := struct {
+		Count  int                               `json:"unread_events_count"`
+		Events []entity.Event                    `json:"events"`
+		Users  map[string]entity.ApplicationUser `json:"users"`
+	}{}
+	er := json.Unmarshal([]byte(body), &response)
+	c.Assert(er, IsNil)
+	c.Assert(response.Count, Equals, 8)
+	c.Assert(len(response.Events), Equals, 8)
+
+	for idx, event := range response.Events {
+		c.Logf("checking event: %d\n", idx)
+		c.Assert(event.Metadata.(map[string]interface{})["custom_name"].(string), Equals, "public-metadata")
+	}
+
+	c.Assert(len(response.Users), Equals, 4)
+	for idx, user := range response.Users {
+		c.Logf("checking user: %s\n", idx)
+		c.Assert(user.Password, Equals, "")
+		c.Assert(user.Email, Not(Equals), "")
+		c.Assert(user.SessionToken, Equals, "")
+		c.Assert(user.FriendCount, IsNil)
+		c.Assert(user.FollowerCount, IsNil)
+		c.Assert(user.FollowedCount, IsNil)
+		c.Assert(user.CreatedAt, IsNil)
+		c.Assert(user.UpdatedAt, IsNil)
+		c.Assert(user.LastLogin, IsNil)
+		c.Assert(user.LastRead, IsNil)
+		c.Assert(user.Deleted, IsNil)
+	}
+}
+
+func (s *EventSuite) TestGetEventListWithTypeFilter(c *C) {
+	accounts := CorrectDeploy(1, 0, 1, 2, 5, false, true)
+	application := accounts[0].Applications[0]
+	user := application.Users[0]
+
+	urlParams := url.Values{}
+	urlParams.Add("where", `{"type": {"eq": "love"}}`)
+
+	routeName := "getEventList"
+	route := getComposedRoute(routeName, user.ID) + "?" + urlParams.Encode()
+	code, body, err := runRequest(routeName, route, "", signApplicationRequest(application, user, true, true))
+	c.Assert(err, IsNil)
+	c.Assert(code, Equals, http.StatusOK)
+	c.Assert(body, Not(Equals), "")
+
+	response := struct {
+		Events      []*entity.Event `json:"events"`
+		EventsCount int             `json:"events_count"`
+	}{}
+	er := json.Unmarshal([]byte(body), &response)
+	c.Assert(er, IsNil)
+	c.Assert(response.EventsCount, Equals, 1)
+	for idx := range response.Events {
+		response.Events[idx].Type = "love"
+		response.Events[idx].UserID = user.ID
+	}
 }
 
 func BenchmarkCreateEvent1_Write(b *testing.B) {

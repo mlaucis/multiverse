@@ -43,6 +43,7 @@ const (
 		WHERE (json_data->>'user_id')::BIGINT = $1::BIGINT
 			AND ((json_data->>'visibility')::INT == 30 OR (json_data->>'visibility')::INT == 40)
 			AND (json_data->'enabled')::BOOL = true
+			%s
 		ORDER BY json_data->>'created_at' DESC LIMIT 200`
 
 	listConnectionEventsByUserIDQuery = `SELECT json_data
@@ -50,12 +51,14 @@ const (
 		WHERE (json_data->>'user_id')::BIGINT = $1::BIGINT
 			AND ((json_data->>'visibility')::INT = 20 OR (json_data->>'visibility')::INT = 30 OR (json_data->>'visibility')::INT = 40)
 			AND (json_data->>'enabled')::BOOL = true
+			%s
 		ORDER BY json_data->>'created_at' DESC LIMIT 200`
 
 	listAllEventsByUserIDQuery = `SELECT json_data
 		FROM app_%d_%d.events
 		WHERE (json_data->>'user_id')::BIGINT = $1::BIGINT
 			AND (json_data->>'enabled')::BOOL = true
+			%s
 		ORDER BY json_data->>'created_at' DESC LIMIT 200`
 
 	listEventsByUserFollowerIDQuery = `SELECT json_data
@@ -64,6 +67,7 @@ const (
 			OR ((json_data->>'visibility')::INT = 40 AND (json_data->>'user_id')::BIGINT != $1::BIGINT)
 			OR (json_data->'target'->>'id') = $2::TEXT)
 			AND (json_data->>'enabled')::BOOL = true
+			%s
 		ORDER BY json_data->>'created_at' DESC LIMIT 200`
 
 	listEventsNoUserFollowersQuery = `SELECT json_data
@@ -71,6 +75,7 @@ const (
 		WHERE (((json_data->>'visibility')::INT = 40 AND (json_data->>'user_id')::BIGINT != $1::BIGINT)
 			OR (json_data->'target'->>'id') = $2::TEXT)
 			AND (json_data->>'enabled')::BOOL = true
+			%s
 		ORDER BY json_data->>'created_at' DESC LIMIT 200`
 
 	listUnreadEventsByUserFollowerIDQuery = `SELECT json_data
@@ -80,6 +85,7 @@ const (
 			OR (json_data->'target'->>'id') = $2::TEXT)
 			AND json_data->>'created_at' > $3
 			AND (json_data->>'enabled')::BOOL = true
+			%s
 		ORDER BY json_data->>'created_at' DESC LIMIT 200`
 
 	listUnreadEventsNoUserFollowersQuery = `SELECT json_data
@@ -88,6 +94,7 @@ const (
 			OR (json_data->'target'->>'id') = $2::TEXT)
 			AND json_data->>'created_at' > $3
 			AND (json_data->>'enabled')::BOOL = true
+			%s
 		ORDER BY json_data->>'created_at' DESC LIMIT 200`
 
 	countUnreadEventsByUserFollowerIDQuery = `SELECT count(*) AS "events"
@@ -96,6 +103,7 @@ const (
 				OR ((json_data->>'visibility')::INT = 40 AND (json_data->>'user_id')::BIGINT != $1::BIGINT)
 				OR (json_data->'target'->>'id') = $2::TEXT)
 				AND json_data->>'created_at' > $3
+				%s
 				AND (json_data->>'enabled')::BOOL = true`
 
 	countUnreadEventsNoUserFollowersQuery = `SELECT count(*) AS "events"
@@ -103,6 +111,7 @@ const (
 			WHERE (((json_data->>'visibility')::INT = 40 AND (json_data->>'user_id')::BIGINT != $1::BIGINT)
 				OR (json_data->'target'->>'id') = $2::TEXT)
 				AND json_data->>'created_at' > $3
+				%s
 				AND (json_data->>'enabled')::BOOL = true`
 
 	updateApplicationUserLastReadQuery = `UPDATE app_%d_%d.users
@@ -221,16 +230,21 @@ func (e *event) Delete(accountID, applicationID int64, userID, eventID uint64) [
 	return err
 }
 
-func (e *event) List(accountID, applicationID int64, userID, currentUserID uint64) (events []*entity.Event, er []errors.Error) {
+func (e *event) List(accountID, applicationID int64, userID, currentUserID uint64, condition *core.EventCondition) (events []*entity.Event, er []errors.Error) {
 	events = []*entity.Event{}
+
+	requestCondition, requestParams, er := condition.Process(2)
+	if er != nil {
+		return nil, er
+	}
 
 	var query string
 	if userID == currentUserID {
 		query = listAllEventsByUserIDQuery
 	} else {
-		relation, er := e.conn.Relation(accountID, applicationID, currentUserID, userID)
-		if er != nil {
-			return nil, er
+		relation, errs := e.conn.Relation(accountID, applicationID, currentUserID, userID)
+		if errs != nil {
+			return nil, errs
 		}
 
 		if *relation.IsFriend || *relation.IsFollowed {
@@ -240,29 +254,60 @@ func (e *event) List(accountID, applicationID int64, userID, currentUserID uint6
 		}
 	}
 
-	rows, err := e.pg.SlaveDatastore(-1).
-		Query(appSchema(query, accountID, applicationID), userID)
+	query = fmt.Sprintf(query, accountID, applicationID, requestCondition)
+
+	var (
+		rows *sql.Rows
+		err  error
+	)
+
+	if len(requestParams) == 0 {
+		rows, err = e.pg.SlaveDatastore(-1).
+			Query(query, userID)
+	} else {
+		requestParams = append([]interface{}{userID}, requestParams...)
+		rows, err = e.pg.SlaveDatastore(-1).
+			Query(query, requestParams...)
+	}
+
 	if err != nil {
 		return events, []errors.Error{errmsg.ErrInternalEventsList.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 	return e.rowsToSlice(rows)
 }
 
-func (e *event) UserFeed(accountID, applicationID int64, user *entity.ApplicationUser) (count int, events []*entity.Event, er []errors.Error) {
-	condition, er := e.composeConnectionCondition(accountID, applicationID, user.ID, " OR ")
+func (e *event) UserFeed(accountID, applicationID int64, user *entity.ApplicationUser, condition *core.EventCondition) (count int, events []*entity.Event, er []errors.Error) {
+	connectionCondition, er := e.composeConnectionCondition(accountID, applicationID, user.ID, " OR ")
+	if er != nil {
+		return 0, nil, er
+	}
+
+	requestCondition, requestParams, er := condition.Process(3)
 	if er != nil {
 		return 0, nil, er
 	}
 
 	query := ""
-	if condition == "" {
-		query = fmt.Sprintf(listEventsNoUserFollowersQuery, accountID, applicationID)
+	if connectionCondition == "" {
+		query = fmt.Sprintf(listEventsNoUserFollowersQuery, accountID, applicationID, requestCondition)
 	} else {
-		query = fmt.Sprintf(listEventsByUserFollowerIDQuery, accountID, applicationID, condition)
+		query = fmt.Sprintf(listEventsByUserFollowerIDQuery, accountID, applicationID, connectionCondition, requestCondition)
 	}
 
-	rows, err := e.pg.SlaveDatastore(-1).
-		Query(query, user.ID, strconv.FormatUint(user.ID, 10))
+	var (
+		rows *sql.Rows
+		err  error
+	)
+
+	if len(requestParams) == 0 {
+		rows, err = e.pg.SlaveDatastore(-1).
+			Query(query, user.ID, strconv.FormatUint(user.ID, 10))
+	} else {
+		requestParams = append([]interface{}{user.ID, strconv.FormatUint(user.ID, 10)}, requestParams...)
+		rows, err = e.pg.SlaveDatastore(-1).
+			Query(query, requestParams...)
+	}
+
 	if err != nil {
 		return 0, nil, []errors.Error{errmsg.ErrInternalEventsList.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
@@ -289,28 +334,47 @@ func (e *event) UserFeed(accountID, applicationID int64, user *entity.Applicatio
 		events = append(events, event)
 	}
 
-	if err := e.updateApplicationUserLastRead(accountID, applicationID, user); err != nil {
-		return 0, nil, err
+	if len(requestParams) == 0 {
+		if err := e.updateApplicationUserLastRead(accountID, applicationID, user); err != nil {
+			return 0, nil, err
+		}
 	}
 
 	return unread, events, nil
 }
 
-func (e *event) UnreadFeed(accountID, applicationID int64, user *entity.ApplicationUser) (count int, events []*entity.Event, er []errors.Error) {
-	condition, er := e.composeConnectionCondition(accountID, applicationID, user.ID, " OR ")
+func (e *event) UnreadFeed(accountID, applicationID int64, user *entity.ApplicationUser, condition *core.EventCondition) (count int, events []*entity.Event, er []errors.Error) {
+	connectionCondition, er := e.composeConnectionCondition(accountID, applicationID, user.ID, " OR ")
+	if er != nil {
+		return 0, nil, er
+	}
+
+	requestCondition, requestParams, er := condition.Process(3)
 	if er != nil {
 		return 0, nil, er
 	}
 
 	query := ""
-	if condition == "" {
-		query = fmt.Sprintf(listUnreadEventsNoUserFollowersQuery, accountID, applicationID)
+	if connectionCondition == "" {
+		query = fmt.Sprintf(listUnreadEventsNoUserFollowersQuery, accountID, applicationID, requestCondition)
 	} else {
-		query = fmt.Sprintf(listUnreadEventsByUserFollowerIDQuery, accountID, applicationID, condition)
+		query = fmt.Sprintf(listUnreadEventsByUserFollowerIDQuery, accountID, applicationID, connectionCondition, requestCondition)
 	}
 
-	rows, err := e.pg.SlaveDatastore(-1).
-		Query(query, user.ID, strconv.FormatUint(user.ID, 10), user.LastRead)
+	var (
+		rows *sql.Rows
+		err  error
+	)
+
+	if len(requestParams) == 0 {
+		rows, err = e.pg.SlaveDatastore(-1).
+			Query(query, user.ID, strconv.FormatUint(user.ID, 10), user.LastRead)
+	} else {
+		requestParams = append([]interface{}{user.ID, strconv.FormatUint(user.ID, 10), user.LastRead}, requestParams...)
+		rows, err = e.pg.SlaveDatastore(-1).
+			Query(query, requestParams...)
+	}
+
 	if err != nil {
 		return 0, nil, []errors.Error{errmsg.ErrInternalEventsList.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
@@ -319,30 +383,47 @@ func (e *event) UnreadFeed(accountID, applicationID int64, user *entity.Applicat
 		return
 	}
 
-	if err := e.updateApplicationUserLastRead(accountID, applicationID, user); err != nil {
-		return 0, nil, err
+	if len(requestParams) == 0 {
+		if err := e.updateApplicationUserLastRead(accountID, applicationID, user); err != nil {
+			return 0, nil, err
+		}
 	}
 
 	return len(events), events, nil
 }
 
-func (e *event) UnreadFeedCount(accountID, applicationID int64, user *entity.ApplicationUser) (count int, err []errors.Error) {
-	condition, err := e.composeConnectionCondition(accountID, applicationID, user.ID, " OR ")
+func (e *event) UnreadFeedCount(accountID, applicationID int64, user *entity.ApplicationUser, condition *core.EventCondition) (count int, err []errors.Error) {
+	friendCondition, err := e.composeConnectionCondition(accountID, applicationID, user.ID, " OR ")
+	if err != nil {
+		return 0, err
+	}
+
+	requestCondition, requestParams, err := condition.Process(3)
 	if err != nil {
 		return 0, err
 	}
 
 	query := ""
-	if condition == "" {
-		query = fmt.Sprintf(countUnreadEventsNoUserFollowersQuery, accountID, applicationID)
+	if friendCondition == "" {
+		query = fmt.Sprintf(countUnreadEventsNoUserFollowersQuery, accountID, applicationID, requestCondition)
 	} else {
-		query = fmt.Sprintf(countUnreadEventsByUserFollowerIDQuery, accountID, applicationID, condition)
+		query = fmt.Sprintf(countUnreadEventsByUserFollowerIDQuery, accountID, applicationID, friendCondition, requestCondition)
 	}
 
 	unread := 0
-	er := e.pg.SlaveDatastore(-1).
-		QueryRow(query, user.ID, strconv.FormatUint(user.ID, 10), user.LastRead).
-		Scan(&unread)
+	var er error
+
+	if len(requestParams) == 0 {
+		er = e.pg.SlaveDatastore(-1).
+			QueryRow(query, user.ID, strconv.FormatUint(user.ID, 10), user.LastRead).
+			Scan(&unread)
+	} else {
+		requestParams = append([]interface{}{user.ID, strconv.FormatUint(user.ID, 10), user.LastRead}, requestParams...)
+		er = e.pg.SlaveDatastore(-1).
+			QueryRow(query, requestParams...).
+			Scan(&unread)
+	}
+
 	if er != nil {
 		return 0, []errors.Error{errmsg.ErrInternalEventsList.UpdateInternalMessage(er.Error()).SetCurrentLocation()}
 	}
@@ -389,10 +470,6 @@ func (e *event) GeoSearch(accountID, applicationID int64, currentUserID uint64, 
 		return nil, []errors.Error{errmsg.ErrInternalEventsList.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
 	return e.rowsToSlice(rows)
-}
-
-func (e *event) ObjectSearch(accountID, applicationID int64, currentUserID uint64, objectKey string) ([]*entity.Event, []errors.Error) {
-	return nil, []errors.Error{errmsg.ErrServerNotImplementedYet.SetCurrentLocation()}
 }
 
 func (e *event) LocationSearch(accountID, applicationID int64, currentUserID uint64, locationKey string) ([]*entity.Event, []errors.Error) {

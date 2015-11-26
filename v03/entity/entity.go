@@ -1,9 +1,7 @@
 //Package entity provides all the entities needed by the app to interact with the database
 package entity
 
-import (
-	"time"
-)
+import "time"
 
 type (
 	// OrgAppIDs holds the account and application IDs

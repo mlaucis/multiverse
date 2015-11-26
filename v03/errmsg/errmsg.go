@@ -122,6 +122,9 @@ var (
 	ErrServerUnsportedHandlerOperation = errors.New(http.StatusInternalServerError, 5503, "something went wrong", "handler does not support operation", false)
 	ErrServerInternalError             = errors.New(http.StatusInternalServerError, 5504, "something went wrong", "", false)
 	ErrTooManyRequests                 = errors.New(429, 5505, "Too Many Requests", "over quota", false)
+	ErrInvalidFieldTypeError           = errors.New(http.StatusBadRequest, 5006, "Unsupported or wrong field value", "field has wrong type", false)
+	ErrInvalidConditionLengthError     = errors.New(http.StatusBadRequest, 5007, "Invalid condition length", "condition lenght is invalid", false)
+	ErrInvalidFilterConditionError     = errors.New(http.StatusBadRequest, 5008, "Invalid filter condition", "condition is invalid", false)
 
 	// Account errors
 
