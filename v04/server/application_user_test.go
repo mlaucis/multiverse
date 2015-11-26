@@ -1430,6 +1430,16 @@ func (s *ApplicationUserSuite) TestSearch(c *C) {
 			Code:     http.StatusOK,
 			Response: []*entity.ApplicationUser{user2, user},
 		},
+		// 7
+		{
+			Payload:   "",
+			RouteName: "searchApplicationUser",
+			Route: getComposedRoute("searchApplicationUser") +
+				"?email=" + user.Email +
+				"&email=" + user2.Email,
+			Code:     http.StatusOK,
+			Response: []*entity.ApplicationUser{user2, user},
+		},
 	}
 
 	for idx := range iterations {

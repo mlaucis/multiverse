@@ -101,6 +101,13 @@ const (
 		AND (json_data->>'deleted')::BOOL = false
 	LIMIT 200`
 
+	searchApplicationUsersByEmailQuery = `SELECT json_data
+	FROM app_%d_%d.users
+	WHERE json_data->>'email' IN (?)
+		AND (json_data->>'enabled')::BOOL = true
+		AND (json_data->>'deleted')::BOOL = false
+	LIMIT 200`
+
 	selectApplicationUserCountsQuery = `SELECT
   (SELECT count(*) FROM app_%d_%d.connections
     WHERE ((json_data->>'user_from_id')::BIGINT = $1::BIGINT OR (json_data->>'user_to_id')::BIGINT = $1::BIGINT) AND
@@ -531,6 +538,40 @@ func (au *applicationUser) FilterBySocialIDs(
 	socialIDS []string) (user []*entity.ApplicationUser, err []errors.Error) {
 	users := []*entity.ApplicationUser{}
 	query, args, er := sqlx.In(fmt.Sprintf(searchApplicationUsersBySocialIDQuery, accountID, applicationID, socialPlatform), socialIDS)
+	if er != nil {
+		return nil, []errors.Error{errmsg.ErrServerInternalError.UpdateInternalMessage(er.Error()).SetCurrentLocation()}
+	}
+	query = sqlx.Rebind(sqlx.DOLLAR, query)
+
+	dbUsers, er := au.pg.SlaveDatastore(-1).
+		Query(query, args...)
+	if er != nil {
+		return nil, []errors.Error{errmsg.ErrInternalConnectingUsers.UpdateInternalMessage(er.Error()).SetCurrentLocation()}
+	}
+	defer dbUsers.Close()
+	for dbUsers.Next() {
+		var JSONData string
+		err := dbUsers.Scan(&JSONData)
+		if er != nil {
+			return nil, []errors.Error{errmsg.ErrInternalConnectingUsers.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
+		}
+		user := &entity.ApplicationUser{}
+		err = json.Unmarshal([]byte(JSONData), user)
+		if er != nil {
+			return nil, []errors.Error{errmsg.ErrInternalConnectingUsers.UpdateInternalMessage(er.Error()).SetCurrentLocation()}
+		}
+		users = append(users, user)
+	}
+
+	return users, nil
+}
+
+func (au *applicationUser) FilterByEmail(
+	accountID, applicationID int64,
+	currentUserID uint64,
+	emails []string) (user []*entity.ApplicationUser, err []errors.Error) {
+	users := []*entity.ApplicationUser{}
+	query, args, er := sqlx.In(fmt.Sprintf(searchApplicationUsersByEmailQuery, accountID, applicationID), emails)
 	if er != nil {
 		return nil, []errors.Error{errmsg.ErrServerInternalError.UpdateInternalMessage(er.Error()).SetCurrentLocation()}
 	}

@@ -312,6 +312,17 @@ func (appUser *applicationUser) Search(ctx *context.Context) (err []errors.Error
 			}
 			goto userProcessing
 		}
+
+		if len(ctx.Query["email"]) != 0 {
+			users, err = appUser.storage.FilterByEmail(
+				ctx.OrganizationID, ctx.ApplicationID,
+				ctx.ApplicationUserID,
+				ctx.Query["email"])
+			if err != nil {
+				return err
+			}
+			goto userProcessing
+		}
 		return
 	}
 
