@@ -1419,6 +1419,27 @@ func (s *ApplicationUserSuite) TestSearch(c *C) {
 			Code:      http.StatusNoContent,
 			Response:  []*entity.ApplicationUser{},
 		},
+		// 6
+		{
+			Payload:   "",
+			RouteName: "searchApplicationUser",
+			Route: getComposedRoute("searchApplicationUser") +
+				"?social_platform=facebook" +
+				"&socialid=" + user2.SocialIDs["facebook"] +
+				"&socialid=" + user.SocialIDs["facebook"],
+			Code:     http.StatusOK,
+			Response: []*entity.ApplicationUser{user2, user},
+		},
+		// 7
+		{
+			Payload:   "",
+			RouteName: "searchApplicationUser",
+			Route: getComposedRoute("searchApplicationUser") +
+				"?email=" + user.Email +
+				"&email=" + user2.Email,
+			Code:     http.StatusOK,
+			Response: []*entity.ApplicationUser{user2, user},
+		},
 	}
 
 	for idx := range iterations {

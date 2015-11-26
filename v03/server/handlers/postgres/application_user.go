@@ -297,9 +297,30 @@ func (appUser *applicationUser) Logout(ctx *context.Context) (err []errors.Error
 }
 
 func (appUser *applicationUser) Search(ctx *context.Context) (err []errors.Error) {
+	var users []*entity.ApplicationUser
+
 	query := ctx.Query.Get("q")
 	if query == "" {
-		response.WriteResponse(ctx, []*entity.ApplicationUser{}, http.StatusNoContent, 10)
+		if len(ctx.Query["socialid"]) != 0 && ctx.Query.Get("social_platform") != "" {
+			users, err = appUser.storage.FilterBySocialIDs(
+				ctx.OrganizationID, ctx.ApplicationID,
+				ctx.Query.Get("social_platform"),
+				ctx.Query["socialid"])
+			if err != nil {
+				return err
+			}
+			goto userProcessing
+		}
+
+		if len(ctx.Query["email"]) != 0 {
+			users, err = appUser.storage.FilterByEmail(
+				ctx.OrganizationID, ctx.ApplicationID,
+				ctx.Query["email"])
+			if err != nil {
+				return err
+			}
+			goto userProcessing
+		}
 		return
 	}
 
@@ -307,11 +328,12 @@ func (appUser *applicationUser) Search(ctx *context.Context) (err []errors.Error
 		return []errors.Error{errmsg.ErrApplicationUserSearchTypeMin3Chars.SetCurrentLocation()}
 	}
 
-	users, err := appUser.storage.Search(ctx.OrganizationID, ctx.ApplicationID, ctx.ApplicationUserID, query)
+	users, err = appUser.storage.Search(ctx.OrganizationID, ctx.ApplicationID, ctx.ApplicationUserID, query)
 	if err != nil {
-		return
+		return err
 	}
 
+userProcessing:
 	response.SanitizeApplicationUsers(users)
 
 	for idx := range users {
