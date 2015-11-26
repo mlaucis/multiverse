@@ -11,6 +11,23 @@ REVISION=`git rev-parse HEAD`
 cd /home/ubuntu/.go_workspace/src/github.com/tapglue/multiverse
 CWD=`pwd`
 
+if [ ${TEST_COMPONENT} == "object" ]
+then
+  go test \
+    -v \
+    -race \
+    ./controller
+
+  go test \
+    -v \
+    -race \
+    -tags integration \
+    ./service/object \
+    -postgres.url="postgres://ubuntu:unicode@127.0.0.1/circle_test?sslmode-disable"
+
+  exit 0
+fi
+
 if [ ${TEST_COMPONENT} == "redis" ]
 then
     cd ${CWD}/limiter/redis

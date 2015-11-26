@@ -25,6 +25,7 @@ test:
     - ln -nfs /home/ubuntu/multiverse /home/ubuntu/.go_workspace/src/github.com/tapglue/multiverse
     - ./bin/test_configs.sh intaker
   override:
+    - ./bin/run_tests.sh object
     - ./bin/run_tests.sh redis
     - ./bin/run_tests.sh intaker postgres
     - ./bin/run_tests.sh intaker redis

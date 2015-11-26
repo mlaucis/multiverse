@@ -6,9 +6,9 @@
 	],
 	"Deps": [
 		{
-			"ImportPath": "bitbucket.org/ww/goautoneg",
-			"Comment": "null-5",
-			"Rev": "75cd24fc2f2c2a2088577d12123ddee5f54e0675"
+			"ImportPath": "github.com/asaskevich/govalidator",
+			"Comment": "v2-37-gedd46cd",
+			"Rev": "edd46cdac249b001c7b7d88c6d43993ea875e8d8"
 		},
 		{
 			"ImportPath": "github.com/beorn7/perks/quantile",
@@ -23,8 +23,12 @@
 			"Rev": "1a6effc8b0a7bb1b21c683ea5645c4e0fb52f302"
 		},
 		{
+			"ImportPath": "github.com/go-kit/kit/log",
+			"Rev": "a8d4215d3019f035380e9e947245d2ee097a8179"
+		},
+		{
 			"ImportPath": "github.com/go-kit/kit/metrics",
-			"Rev": "bfab1cb7b5be79809ee483ab79219cbcd9c3dc21"
+			"Rev": "a8d4215d3019f035380e9e947245d2ee097a8179"
 		},
 		{
 			"ImportPath": "github.com/golang/protobuf/proto",
@@ -53,24 +57,26 @@
 			"Rev": "fc2b8d3a73c4867e51861bbdd5ae3c1f0869dd6a"
 		},
 		{
-			"ImportPath": "github.com/prometheus/client_golang/model",
-			"Comment": "0.6.0-17-g3b16b46",
-			"Rev": "3b16b46a713f181888e5e9a1205ccc34d6917fb9"
-		},
-		{
 			"ImportPath": "github.com/prometheus/client_golang/prometheus",
-			"Comment": "0.6.0-17-g3b16b46",
-			"Rev": "3b16b46a713f181888e5e9a1205ccc34d6917fb9"
-		},
-		{
-			"ImportPath": "github.com/prometheus/client_golang/text",
-			"Comment": "0.6.0-17-g3b16b46",
-			"Rev": "3b16b46a713f181888e5e9a1205ccc34d6917fb9"
+			"Comment": "0.7.0-64-g275368f",
+			"Rev": "275368fd9eb02bca5e452faad68e4411f8782842"
 		},
 		{
 			"ImportPath": "github.com/prometheus/client_model/go",
 			"Comment": "model-0.0.2-12-gfa8ad6f",
 			"Rev": "fa8ad6fec33561be4280a8f0514318c79d7f6cb6"
+		},
+		{
+			"ImportPath": "github.com/prometheus/common/expfmt",
+			"Rev": "50022896a67062a54a54f268fb6fe4bf90b34859"
+		},
+		{
+			"ImportPath": "github.com/prometheus/common/internal/bitbucket.org/ww/goautoneg",
+			"Rev": "50022896a67062a54a54f268fb6fe4bf90b34859"
+		},
+		{
+			"ImportPath": "github.com/prometheus/common/model",
+			"Rev": "50022896a67062a54a54f268fb6fe4bf90b34859"
 		},
 		{
 			"ImportPath": "github.com/prometheus/procfs",
@@ -93,8 +99,21 @@
 			"Rev": "81bf7719a6b7ce9b665598222362b50122dfc13b"
 		},
 		{
+			"ImportPath": "golang.org/x/net/context",
+			"Rev": "b4e17d61b15679caf2335da776c614169a1b4643"
+		},
+		{
 			"ImportPath": "gopkg.in/check.v1",
 			"Rev": "0305adc1f0cb317938b50af83119523bf903784e"
+		},
+		{
+			"ImportPath": "gopkg.in/logfmt.v0",
+			"Rev": "c50dc9aa845e681529d8e49d3dc11ec0195aacac"
+		},
+		{
+			"ImportPath": "gopkg.in/stack.v1",
+			"Comment": "v1.4.0",
+			"Rev": "0585967eab0016c8e4e2d55ac20585b469574cec"
 		}
 	]
 }
