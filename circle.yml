@@ -36,3 +36,5 @@ deployment:
     commands:
       - ./bin/make_release.sh intaker redis
       - ./bin/make_release.sh intaker postgres
+      - ./bin/make_release.sh corporate styleguide
+      - ./bin/make_release.sh corporate website

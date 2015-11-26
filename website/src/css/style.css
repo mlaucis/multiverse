@@ -3248,8 +3248,13 @@ body.pricing {
   background: #f5f5f5;
 }
 
+body.pricing header.major h2 {
+  margin-top: 4rem;
+}
+
 div.pricing {
-  margin-bottom: 5rem;
+  margin-bottom: 10rem;
+  margin-top: 10rem;
 }
 
 div.pricing h3 {
@@ -3357,9 +3362,6 @@ div.pricing .feature .left {
   opacity: 0.5;
   text-decoration: line-through;
 }
-.price:before {
-  content: '$';
-}
 
 .priceMonth {
     color: rgba(106,106,106,1);
@@ -3367,7 +3369,9 @@ div.pricing .feature .left {
     line-height: 1.1em;
     margin: 0 0 3rem 0;
 }
-
+.priceMonth.hide {
+  opacity: 0;
+}
 .priceMonth.producthunt {
   color: rgb(93,219,162);
 }
