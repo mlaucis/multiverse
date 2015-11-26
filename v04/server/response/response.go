@@ -20,7 +20,7 @@ import (
 
 const (
 	// APIVersion holds which API Version does this module holds
-	APIVersion = "0.3"
+	APIVersion = "0.4"
 
 	appRateLimitProduction int64 = 20000
 	appRateLimitStaging    int64 = 100
