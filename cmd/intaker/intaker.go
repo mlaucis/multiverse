@@ -8,6 +8,7 @@ import (
 	_ "expvar"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"log/syslog"
@@ -18,24 +19,38 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/tapglue/multiverse/config"
-	"github.com/tapglue/multiverse/errors"
-	"github.com/tapglue/multiverse/logger"
-	"github.com/tapglue/multiverse/server"
-
+	klog "github.com/go-kit/kit/log"
 	"github.com/prometheus/client_golang/prometheus"
+
+	"github.com/tapglue/multiverse/config"
+	"github.com/tapglue/multiverse/controller"
+	"github.com/tapglue/multiverse/errors"
+	gateway "github.com/tapglue/multiverse/gateway/http"
+	"github.com/tapglue/multiverse/limiter/redis"
+	tgLogger "github.com/tapglue/multiverse/logger"
+	"github.com/tapglue/multiverse/server"
+	"github.com/tapglue/multiverse/service/app"
+	"github.com/tapglue/multiverse/service/connection"
+	"github.com/tapglue/multiverse/service/object"
+	"github.com/tapglue/multiverse/service/user"
+	v04_postgres_core "github.com/tapglue/multiverse/v04/core/postgres"
+	v04_redis_core "github.com/tapglue/multiverse/v04/core/redis"
+	v04_postgres "github.com/tapglue/multiverse/v04/storage/postgres"
+	v04_redis "github.com/tapglue/multiverse/v04/storage/redis"
 )
 
 const (
 	// EnvConfigVar holds the name of the environment variable that holds the path to the config
-	EnvConfigVar = "TAPGLUE_INTAKER_CONFIG_PATH"
+	EnvConfigVar   = "TAPGLUE_INTAKER_CONFIG_PATH"
+	apiVersionNext = "0.4"
+	component      = "intaker"
 )
 
 var (
-	conf            *config.Config
-	startTime       time.Time
-	currentRevision string
-	forceNoSec      = flag.Bool("force-no-sec", false, "Force no sec enables launching the backend in production without security checks")
+	currentRevision = "0000000-dev"
+
+	conf      *config.Config
+	startTime time.Time
 )
 
 func init() {
@@ -50,6 +65,9 @@ func init() {
 }
 
 func main() {
+	var (
+		forceNoSec = flag.Bool("force-no-sec", false, "Force no sec enables launching the backend in production without security checks")
+	)
 	flag.Parse()
 
 	conf = config.NewConf(EnvConfigVar)
@@ -60,14 +78,16 @@ func main() {
 		}
 	}
 
-	// rsyslog will create the timestamps for us
-	log.SetFlags(0)
+	// Setup logging
+	var out io.Writer = os.Stdout
 
 	if conf.UseSysLog {
 		syslogWriter, err := syslog.New(syslog.LOG_INFO, "intaker")
 		if err == nil {
 			log.Printf("logging to syslog is enabled. Please tail your syslog for intaker app for further logs\n")
+			log.SetFlags(0) // rsyslog will create the timestamps for us
 			log.SetOutput(syslogWriter)
+			out = syslogWriter
 		} else {
 			log.Printf("%v\n", err)
 			log.Printf("logging to syslog failed reverting to stdout logging\n")
@@ -89,16 +109,128 @@ func main() {
 		panic("hostname is empty")
 	}
 
+	logger := klog.NewContext(
+		klog.NewJSONLogger(out),
+	).With(
+		"caller", klog.Caller(3),
+		"component", component,
+		"host", currentHostname,
+		"revision", currentRevision,
+	)
+
+	// Setup services
+	var (
+		pgClient    = v04_postgres.New(conf.Postgres)
+		redisClient = v04_redis.NewRedigoPool(conf.RateLimiter)
+		rApps       = v04_redis_core.NewApplication(redisClient)
+		rateLimiter = redis.NewLimiter(redisClient, "test:ratelimiter:app:")
+	)
+
+	var apps app.StrangleService
+	apps = v04_postgres_core.NewApplication(pgClient, rApps)
+	apps = app.InstrumentStrangleMiddleware(component, "postgres")(apps)
+	apps = app.LogStrangleMiddleware(logger, "postgres")(apps)
+
+	var connections connection.StrangleService
+	connections = v04_postgres_core.NewConnection(pgClient)
+	connections = connection.InstrumentMiddleware(component, "postgres")(connections)
+	connections = connection.LogStrangleMiddleware(logger, "postgres")(connections)
+
+	var objects object.Service
+	objects = object.NewPostgresService(pgClient.MainDatastore())
+	objects = object.InstrumentMiddleware(component, "postgres")(objects)
+	objects = object.LogMiddleware(logger, "postgres")(objects)
+
+	var users user.StrangleService
+	users = v04_postgres_core.NewApplicationUser(pgClient)
+	users = user.InstrumentMiddleware(component, "postgres")(users)
+	users = user.LogStrangleMiddleware(logger, "postgres")(users)
+
+	// Setup controllers
+	objectController := controller.NewObjectController(connections, objects)
+
+	// Setup middlewares
+	var (
+		withApp = gateway.Chain(
+			gateway.CtxPrepare(apiVersionNext),
+			gateway.Log(logger),
+			gateway.Instrument(component),
+			gateway.SecureHeaders(),
+			gateway.DebugHeaders(currentRevision, currentHostname),
+			gateway.Gzip(),
+			gateway.HasUserAgent(),
+			gateway.ValidateContent(),
+			gateway.CtxApp(apps),
+			gateway.RateLimit(rateLimiter),
+		)
+		withUser = gateway.Chain(
+			withApp,
+			gateway.CtxUser(users),
+		)
+	)
+
+	// Setup Server
 	server.Setup(conf, currentRevision, currentHostname)
 
-	// Get router
+	// Setup Router
 	router, mainLogChan, errorLogChan, err := server.GetRouter(conf.Environment, conf.Environment != "prod", conf.SkipSecurity)
 	if err != nil {
 		panic(err)
 	}
 
-	go logger.JSONLog(mainLogChan)
-	go logger.JSONLog(errorLogChan)
+	go tgLogger.JSONLog(mainLogChan)
+	go tgLogger.JSONLog(errorLogChan)
+
+	next := router.PathPrefix(fmt.Sprintf("/%s", apiVersionNext)).Subrouter()
+
+	next.Methods("POST").PathPrefix("/objects").Name("objectCreate").HandlerFunc(
+		gateway.Wrap(
+			withUser,
+			gateway.ObjectCreate(objectController),
+		),
+	)
+
+	next.Methods("DELETE").PathPrefix("/objects/{objectID:[0-9]+}").Name("objectDelete").HandlerFunc(
+		gateway.Wrap(
+			withUser,
+			gateway.ObjectDelete(objectController),
+		),
+	)
+
+	next.Methods("GET").PathPrefix("/objects/{objectID:[0-9]+}").Name("objectRetrieve").HandlerFunc(
+		gateway.Wrap(
+			withUser,
+			gateway.ObjectRetrieve(objectController),
+		),
+	)
+
+	next.Methods("PUT").PathPrefix("/objects/{objectID:[0-9]+}").Name("objectUpdate").HandlerFunc(
+		gateway.Wrap(
+			withUser,
+			gateway.ObjectUpdate(objectController),
+		),
+	)
+
+	next.Methods("GET").PathPrefix("/objects").Name("objectListAll").HandlerFunc(
+		gateway.Wrap(
+			withApp,
+			gateway.ObjectListAll(objectController),
+		),
+	)
+
+	next.Methods("GET").PathPrefix("/me/objects").Name("objectList").HandlerFunc(
+		gateway.Wrap(
+			withUser,
+			gateway.ObjectList(objectController),
+		),
+	)
+
+	next.Methods("GET").PathPrefix("/me/objects/connections").Name("objectListConnections").HandlerFunc(
+		gateway.Wrap(
+			withUser,
+			gateway.ObjectListConnections(objectController),
+		),
+	)
 
 	server := &http.Server{
 		Addr:           conf.ListenHostPort,

@@ -2,10 +2,16 @@
 package entity
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/tapglue/multiverse/errors"
 	"github.com/tapglue/multiverse/v04/errmsg"
+)
+
+const (
+	rateLimitProduction = 20000
+	rateLimitStaging    = 100
 )
 
 type (
@@ -84,22 +90,6 @@ type (
 		PublicAccountID string `json:"account_id"`
 		SessionToken    string `json:"-"`
 		UserCommon
-		Common
-	}
-
-	// Application structure
-	Application struct {
-		ID           int64              `json:"-"`
-		OrgID        int64              `json:"-"`
-		PublicID     string             `json:"id"`
-		PublicOrgID  string             `json:"account_id"`
-		AuthToken    string             `json:"token"`
-		BackendToken string             `json:"backend_token"`
-		Name         string             `json:"name"`
-		Description  string             `json:"description"`
-		URL          string             `json:"url"`
-		InProduction bool               `json:"in_production"`
-		Users        []*ApplicationUser `json:"-"`
 		Common
 	}
 
@@ -284,6 +274,37 @@ type (
 	// ConnectionTypeType represents the type of a connection type
 	ConnectionTypeType string
 )
+
+// Application structure
+type Application struct {
+	ID           int64              `json:"-"`
+	OrgID        int64              `json:"-"`
+	PublicID     string             `json:"id"`
+	PublicOrgID  string             `json:"account_id"`
+	AuthToken    string             `json:"token"`
+	BackendToken string             `json:"backend_token"`
+	Name         string             `json:"name"`
+	Description  string             `json:"description"`
+	URL          string             `json:"url"`
+	InProduction bool               `json:"in_production"`
+	Users        []*ApplicationUser `json:"-"`
+	Common
+}
+
+// Limit returns the desired rate limit for an Application varies by production
+// state.
+func (a *Application) Limit() int64 {
+	if a.InProduction {
+		return rateLimitProduction
+	}
+
+	return rateLimitStaging
+}
+
+// Namespace returrs the prefix for bucketing entities by Application.
+func (a *Application) Namespace() string {
+	return fmt.Sprintf("app_%d_%d", a.ID, a.OrgID)
+}
 
 const (
 	// EventPrivate flags that the event is private
