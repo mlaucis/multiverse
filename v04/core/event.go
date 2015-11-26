@@ -19,8 +19,11 @@ type Event interface {
 	// Delete deletes the event matching the IDs or an error
 	Delete(accountID, applicationID int64, userID, eventID uint64) []errors.Error
 
+	// ListUser returns all events from a certain user
+	ListUser(accountID, applicationID int64, userID, currentUserID uint64, condition *EventCondition) (events []*entity.Event, err []errors.Error)
+
 	// List returns all events from a certain user
-	List(accountID, applicationID int64, userID, currentUserID uint64, condition *EventCondition) (events []*entity.Event, err []errors.Error)
+	List(accountID, applicationID int64, userID uint64, condition *EventCondition) (events []*entity.Event, err []errors.Error)
 
 	// ConnectionList returns all events from connections
 	UserFeed(accountID, applicationID int64, user *entity.ApplicationUser, condition *EventCondition) (count int, events []*entity.Event, err []errors.Error)

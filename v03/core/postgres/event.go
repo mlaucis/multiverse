@@ -61,6 +61,27 @@ const (
 			%s
 		ORDER BY json_data->>'created_at' DESC LIMIT 200`
 
+	listAllEventsWithUserEventsAndWithUserFollowersEventsQuery = `SELECT json_data
+		FROM app_%d_%d.events
+		WHERE ((%s AND (json_data->>'visibility')::INT = 20)
+			OR (json_data->>'user_id')::BIGINT = $1::BIGINT
+			OR (json_data->>'visibility')::INT = 30
+			OR (json_data->>'visibility')::INT = 40
+			OR (json_data->'target'->>'id') = $2::TEXT)
+			AND (json_data->>'enabled')::BOOL = true
+			%s
+		ORDER BY json_data->>'created_at' DESC LIMIT 200`
+
+	listAllEventsWithUserEventsAndNoUserFollowersEventsQuery = `SELECT json_data
+		FROM app_%d_%d.events
+		WHERE ((json_data->>'user_id')::BIGINT = $1::BIGINT
+				OR (json_data->>'visibility')::INT = 30
+				OR (json_data->>'visibility')::INT = 40
+				OR (json_data->'target'->>'id') = $2::TEXT)
+			AND (json_data->>'enabled')::BOOL = true
+			%s
+		ORDER BY json_data->>'created_at' DESC LIMIT 200`
+
 	listEventsByUserFollowerIDQuery = `SELECT json_data
 		FROM app_%d_%d.events
 		WHERE ((%s AND ((json_data->>'visibility')::INT = 20 OR (json_data->>'visibility')::INT = 30))
@@ -230,7 +251,7 @@ func (e *event) Delete(accountID, applicationID int64, userID, eventID uint64) [
 	return err
 }
 
-func (e *event) List(accountID, applicationID int64, userID, currentUserID uint64, condition *core.EventCondition) (events []*entity.Event, er []errors.Error) {
+func (e *event) ListUser(accountID, applicationID int64, userID, currentUserID uint64, condition *core.EventCondition) (events []*entity.Event, er []errors.Error) {
 	events = []*entity.Event{}
 
 	requestCondition, requestParams, er := condition.Process(2)
@@ -273,6 +294,45 @@ func (e *event) List(accountID, applicationID int64, userID, currentUserID uint6
 	if err != nil {
 		return events, []errors.Error{errmsg.ErrInternalEventsList.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}
+	return e.rowsToSlice(rows)
+}
+
+func (e *event) List(accountID, applicationID int64, userID uint64, condition *core.EventCondition) (events []*entity.Event, er []errors.Error) {
+	connectionCondition, er := e.composeConnectionCondition(accountID, applicationID, userID, " OR ")
+	if er != nil {
+		return nil, er
+	}
+
+	requestCondition, requestParams, er := condition.Process(3)
+	if er != nil {
+		return nil, er
+	}
+
+	query := ""
+	if connectionCondition == "" {
+		query = fmt.Sprintf(listAllEventsWithUserEventsAndNoUserFollowersEventsQuery, accountID, applicationID, requestCondition)
+	} else {
+		query = fmt.Sprintf(listAllEventsWithUserEventsAndWithUserFollowersEventsQuery, accountID, applicationID, connectionCondition, requestCondition)
+	}
+
+	var (
+		rows *sql.Rows
+		err  error
+	)
+
+	if len(requestParams) == 0 {
+		rows, err = e.pg.SlaveDatastore(-1).
+			Query(query, userID, strconv.FormatUint(userID, 10))
+	} else {
+		requestParams = append([]interface{}{userID, strconv.FormatUint(userID, 10)}, requestParams...)
+		rows, err = e.pg.SlaveDatastore(-1).
+			Query(query, requestParams...)
+	}
+
+	if err != nil {
+		return nil, []errors.Error{errmsg.ErrInternalEventsList.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
+	}
+	defer rows.Close()
 	return e.rowsToSlice(rows)
 }
 

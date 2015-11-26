@@ -227,7 +227,7 @@ func (evt *event) List(ctx *context.Context) (err []errors.Error) {
 		return err
 	}
 	var events []*entity.Event
-	if events, err = evt.storage.List(accountID, applicationID, userID, ctx.ApplicationUserID, conditions); err != nil {
+	if events, err = evt.storage.ListUser(accountID, applicationID, userID, ctx.ApplicationUserID, conditions); err != nil {
 		return
 	}
 
@@ -259,7 +259,7 @@ func (evt *event) CurrentUserList(ctx *context.Context) (err []errors.Error) {
 	}
 
 	var events []*entity.Event
-	if events, err = evt.storage.List(
+	if events, err = evt.storage.ListUser(
 		ctx.OrganizationID,
 		ctx.ApplicationID,
 		ctx.ApplicationUserID,
@@ -440,7 +440,14 @@ func (evt *event) Search(ctx *context.Context) (err []errors.Error) {
 		}
 	}
 
-	if ctx.Query.Get("lat") != "" && ctx.Query.Get("lon") != "" {
+	conditions, err := core.NewEventFilter(ctx.Query.Get("where"))
+	if err != nil {
+		return err
+	}
+
+	if conditions != nil {
+		events, err = evt.storage.List(ctx.OrganizationID, ctx.ApplicationID, ctx.ApplicationUserID, conditions)
+	} else if ctx.Query.Get("lat") != "" && ctx.Query.Get("lon") != "" {
 		if radius == 0 && nearest == 0 {
 			return []errors.Error{errmsg.ErrEventGeoRadiusAndNearestMissing.SetCurrentLocation()}
 		}
@@ -462,9 +469,7 @@ func (evt *event) Search(ctx *context.Context) (err []errors.Error) {
 			radius,
 			nearest)
 	} else if location := ctx.Query.Get("location"); location != "" {
-		if events, err = evt.storage.LocationSearch(ctx.OrganizationID, ctx.ApplicationID, ctx.ApplicationUserID, location); err != nil {
-			return
-		}
+		events, err = evt.storage.LocationSearch(ctx.OrganizationID, ctx.ApplicationID, ctx.ApplicationUserID, location)
 	} else {
 		err = []errors.Error{errmsg.ErrServerReqNoKnownSearchTermsSupplied.SetCurrentLocation()}
 	}
