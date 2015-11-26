@@ -49,6 +49,33 @@ SELECT
    WHERE (last_read)::TIMESTAMP > (current_date - interval '30 days')) AS "users which retrieved a feed";
 
 
+-- Select acive users since a date
+SELECT COUNT(DISTINCT USERID)
+FROM (SELECT DISTINCT (json_data ->> 'id')::BIGINT AS USERID
+      FROM app_309_443.users
+      WHERE
+        ((json_data ->> 'updated_at') :: DATE > '2015-10-14 00:00:00' OR
+         (json_data ->> 'created_at') :: DATE > '2015-10-14 00:00:00') OR
+        last_read > '2015-10-14 00:00:00'
+      UNION ALL
+      SELECT DISTINCT (user_id)::BIGINT AS USERID
+      FROM app_309_443.sessions
+      WHERE
+        (created_at) :: DATE > '2015-10-14 00:00:00'
+      UNION ALL
+      SELECT DISTINCT (json_data ->> 'user_from_id')::BIGINT AS USERID
+      FROM app_309_443.connections
+      WHERE
+        ((json_data ->> 'updated_at') :: DATE > '2015-10-14 00:00:00' OR
+         (json_data ->> 'created_at') :: DATE > '2015-10-14 00:00:00')
+      UNION ALL
+      SELECT DISTINCT (json_data ->> 'user_id')::BIGINT AS USERID
+      FROM app_309_443.events
+      WHERE
+        ((json_data ->> 'updated_at') :: DATE > '2015-10-14 00:00:00' OR
+         (json_data ->> 'created_at') :: DATE > '2015-10-14 00:00:00')
+     ) AS "counts";
+
 -- Users updated, created after the initial import or fetched a feed
 SELECT count(*)
 FROM app_309_443.users
