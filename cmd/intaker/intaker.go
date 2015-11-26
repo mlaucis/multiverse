@@ -218,17 +218,17 @@ func main() {
 		),
 	)
 
-	next.Methods("GET").PathPrefix("/me/objects").Name("objectList").HandlerFunc(
-		gateway.Wrap(
-			withUser,
-			gateway.ObjectList(objectController),
-		),
-	)
-
 	next.Methods("GET").PathPrefix("/me/objects/connections").Name("objectListConnections").HandlerFunc(
 		gateway.Wrap(
 			withUser,
 			gateway.ObjectListConnections(objectController),
+		),
+	)
+
+	next.Methods("GET").PathPrefix("/me/objects").Name("objectList").HandlerFunc(
+		gateway.Wrap(
+			withUser,
+			gateway.ObjectList(objectController),
 		),
 	)
 
