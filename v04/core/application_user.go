@@ -62,8 +62,8 @@ type ApplicationUser interface {
 	FriendStatistics(accountID, applicationID int64, appUser *entity.ApplicationUser) []errors.Error
 
 	// FilterBySocialIDs filters users by their social ID
-	FilterBySocialIDs(accountID, applicationID int64, currentUserID uint64, socialPlatform string, socialIDs []string) (user []*entity.ApplicationUser, err []errors.Error)
+	FilterBySocialIDs(accountID, applicationID int64, socialPlatform string, socialIDs []string) (user []*entity.ApplicationUser, err []errors.Error)
 
 	// FilterByEmail filters users by their email
-	FilterByEmail(accountID, applicationID int64, currentUserID uint64, emails []string) (user []*entity.ApplicationUser, err []errors.Error)
+	FilterByEmail(accountID, applicationID int64, emails []string) (user []*entity.ApplicationUser, err []errors.Error)
 }

@@ -304,7 +304,6 @@ func (appUser *applicationUser) Search(ctx *context.Context) (err []errors.Error
 		if len(ctx.Query["socialid"]) != 0 && ctx.Query.Get("social_platform") != "" {
 			users, err = appUser.storage.FilterBySocialIDs(
 				ctx.OrganizationID, ctx.ApplicationID,
-				ctx.ApplicationUserID,
 				ctx.Query.Get("social_platform"),
 				ctx.Query["socialid"])
 			if err != nil {
@@ -316,7 +315,6 @@ func (appUser *applicationUser) Search(ctx *context.Context) (err []errors.Error
 		if len(ctx.Query["email"]) != 0 {
 			users, err = appUser.storage.FilterByEmail(
 				ctx.OrganizationID, ctx.ApplicationID,
-				ctx.ApplicationUserID,
 				ctx.Query["email"])
 			if err != nil {
 				return err
