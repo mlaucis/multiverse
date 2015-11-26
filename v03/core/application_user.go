@@ -60,4 +60,7 @@ type ApplicationUser interface {
 
 	// Read friend and follower statistics for a user
 	FriendStatistics(accountID, applicationID int64, appUser *entity.ApplicationUser) []errors.Error
+
+	// FilterBySocialIDs filters users by their social ID
+	FilterBySocialIDs(accountID, applicationID int64, currentUserID uint64, socialPlatform string, socialIDs []string) (user []*entity.ApplicationUser, err []errors.Error)
 }
