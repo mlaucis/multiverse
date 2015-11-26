@@ -20,7 +20,7 @@ type logStrangleService struct {
 func LogStrangleMiddleware(logger log.Logger, store string) StrangleMiddleware {
 	return func(next StrangleService) StrangleService {
 		logger = log.NewContext(logger).With(
-			"service", "connection",
+			"service", "app",
 			"store", store,
 		)
 
