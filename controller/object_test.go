@@ -213,7 +213,7 @@ func TestObjectControllerUpdate(t *testing.T) {
 
 	created.OwnerID = 0
 
-	_, err = c.Update(app, created)
+	_, err = c.Update(app, created.ID, created)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -255,7 +255,7 @@ func TestObjectControllerUpdateMissing(t *testing.T) {
 		}
 	)
 
-	_, err := c.Update(app, post)
+	_, err := c.Update(app, post.ID, post)
 	if have, want := err, ErrNotFound; have != want {
 		t.Errorf("have %v, want %v", have, want)
 	}

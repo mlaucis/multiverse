@@ -184,9 +184,7 @@ func ObjectUpdate(c *controller.ObjectController) Handler {
 			return
 		}
 
-		object.ID = id
-
-		updated, err := c.Update(app, object)
+		updated, err := c.Update(app, id, object)
 		if err != nil {
 			if err == controller.ErrNotFound {
 				respondError(w, http.StatusNotFound, 0, err)
@@ -209,11 +207,11 @@ type responseObject struct {
 	Location    string              `json:"location"`
 	Longitude   float64             `json:"longitude"`
 	ObjectID    string              `json:"tg_object_id,omitempty"`
-	OwnerID     string              `json:"owner_id"`
 	Tags        []string            `json:"tags"`
 	TargetID    string              `json:"target_id,omitempty"`
 	Type        string              `json:"type"`
 	UpdatedAt   time.Time           `json:"updated_at"`
+	UserID      string              `json:"user_id"`
 	Visibility  object.Visibility   `json:"visibility"`
 }
 
@@ -225,11 +223,11 @@ func fromObject(o *object.Object) *responseObject {
 		Latitude:    o.Latitude,
 		Location:    o.Location,
 		Longitude:   o.Longitude,
-		OwnerID:     strconv.FormatUint(o.OwnerID, 10),
 		Tags:        o.Tags,
 		TargetID:    o.TargetID,
 		Type:        o.Type,
 		UpdatedAt:   o.UpdatedAt,
+		UserID:      strconv.FormatUint(o.OwnerID, 10),
 		Visibility:  o.Visibility,
 	}
 

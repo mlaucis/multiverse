@@ -128,10 +128,11 @@ func (c *ObjectController) Retrieve(
 // Update stores the new object in the service.
 func (c *ObjectController) Update(
 	app *v04_entity.Application,
+	id uint64,
 	o *object.Object,
 ) (*object.Object, error) {
 	os, err := c.objects.Query(app.Namespace(), object.QueryOptions{
-		ID: &o.ID,
+		ID: &id,
 	})
 	if err != nil {
 		return nil, err
@@ -142,6 +143,7 @@ func (c *ObjectController) Update(
 	}
 
 	// Preserve ownership infomration.
+	o.ID = id
 	o.OwnerID = os[0].OwnerID
 
 	return c.objects.Put(app.Namespace(), o)
