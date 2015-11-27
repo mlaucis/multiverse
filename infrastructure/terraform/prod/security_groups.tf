@@ -351,6 +351,36 @@ resource "aws_security_group_rule" "private_ssh_in" {
   source_security_group_id  = "${aws_security_group.nat.id}"
 }
 
+resource "aws_security_group_rule" "private_ses_redis_out1" {
+  from_port                 = 25
+  to_port                   = 25
+  type                      = "egress"
+  protocol                  = "tcp"
+  security_group_id         = "${aws_security_group.private.id}"
+  source_security_group_id  = "${aws_security_group.nat.id}"
+}
+
+
+resource "aws_security_group_rule" "private_ses_redis_out2" {
+  from_port                 = 465
+  to_port                   = 465
+  type                      = "egress"
+  protocol                  = "tcp"
+  security_group_id         = "${aws_security_group.private.id}"
+  source_security_group_id  = "${aws_security_group.nat.id}"
+}
+
+
+resource "aws_security_group_rule" "private_ses_redis_out3" {
+  from_port                 = 587
+  to_port                   = 587
+  type                      = "egress"
+  protocol                  = "tcp"
+  security_group_id         = "${aws_security_group.private.id}"
+  source_security_group_id  = "${aws_security_group.nat.id}"
+}
+
+
 resource "aws_security_group" "service" {
   description = "Service node firewall rules"
   name        = "service"
@@ -395,4 +425,64 @@ resource "aws_security_group_rule" "service_redis_out" {
   protocol                  = "tcp"
   security_group_id         = "${aws_security_group.service.id}"
   source_security_group_id  = "${aws_security_group.platform.id}"
+}
+
+resource "aws_security_group_rule" "nat_ses1_in" {
+  from_port                 = 25
+  to_port                   = 25
+  type                      = "ingress"
+  protocol                  = "tcp"
+  security_group_id         = "${aws_security_group.nat.id}"
+  source_security_group_id  = "${aws_security_group.private.id}"
+}
+
+resource "aws_security_group_rule" "nat_ses1_out" {
+  from_port         = 25
+  to_port           = 25
+  type              = "egress"
+  protocol          = "tcp"
+  security_group_id = "${aws_security_group.nat.id}"
+  cidr_blocks = [
+    "0.0.0.0/0"
+  ]
+}
+
+resource "aws_security_group_rule" "nat_ses2_in" {
+  from_port                 = 465
+  to_port                   = 465
+  type                      = "ingress"
+  protocol                  = "tcp"
+  security_group_id         = "${aws_security_group.nat.id}"
+  source_security_group_id  = "${aws_security_group.private.id}"
+}
+
+resource "aws_security_group_rule" "nat_ses2_out" {
+  from_port         = 465
+  to_port           = 465
+  type              = "egress"
+  protocol          = "tcp"
+  security_group_id = "${aws_security_group.nat.id}"
+  cidr_blocks = [
+    "0.0.0.0/0"
+  ]
+}
+
+resource "aws_security_group_rule" "nat_ses3_in" {
+  from_port                 = 587
+  to_port                   = 587
+  type                      = "ingress"
+  protocol                  = "tcp"
+  security_group_id         = "${aws_security_group.nat.id}"
+  source_security_group_id  = "${aws_security_group.private.id}"
+}
+
+resource "aws_security_group_rule" "nat_ses3_out" {
+  from_port         = 587
+  to_port           = 587
+  type              = "egress"
+  protocol          = "tcp"
+  security_group_id = "${aws_security_group.nat.id}"
+  cidr_blocks = [
+    "0.0.0.0/0"
+  ]
 }
