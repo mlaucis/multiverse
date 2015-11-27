@@ -2,7 +2,9 @@
 package entity
 
 import (
+	"encoding/json"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/tapglue/multiverse/errors"
@@ -93,6 +95,22 @@ type (
 		Common
 	}
 
+	// Application structure
+	Application struct {
+		ID           int64              `json:"-"`
+		OrgID        int64              `json:"-"`
+		PublicID     string             `json:"id"`
+		PublicOrgID  string             `json:"account_id"`
+		AuthToken    string             `json:"token"`
+		BackendToken string             `json:"backend_token"`
+		Name         string             `json:"name"`
+		Description  string             `json:"description"`
+		URL          string             `json:"url"`
+		InProduction bool               `json:"in_production"`
+		Users        []*ApplicationUser `json:"-"`
+		Common
+	}
+
 	// ApplicationUser structure
 	ApplicationUser struct {
 		ID                    uint64              `json:"id"`
@@ -113,10 +131,10 @@ type (
 		Common
 	}
 
-	// ApplicationUserWithIDs holds the application user structure with the added account and application ids
-	ApplicationUserWithIDs struct {
-		OrgAppIDs
-		ApplicationUser
+	// PresentationApplicationUser holds the struct used to represent the user to the outside world
+	PresentationApplicationUser struct {
+		IDString string `json:"id_string"`
+		*ApplicationUser
 	}
 
 	// Connection structure holds the connections of the users
@@ -130,10 +148,11 @@ type (
 		UpdatedAt  *time.Time          `json:"updated_at,omitempty"`
 	}
 
-	// ConnectionWithIDs holds the connection structure with the added account and application ids
-	ConnectionWithIDs struct {
-		OrgAppIDs
-		Connection
+	// PresentationConnection holds the struct used to represent the connection to the outside world
+	PresentationConnection struct {
+		UserFromIDString string `json:"user_from_id_string"`
+		UserToIDString   string `json:"user_to_id_string"`
+		*Connection
 	}
 
 	// Relation holds the relation between two users
@@ -141,35 +160,6 @@ type (
 		IsFriend   *bool `json:"is_friend,omitempty"`
 		IsFollower *bool `json:"is_follower,omitempty"`
 		IsFollowed *bool `json:"is_followed,omitempty"`
-	}
-
-	// Device structure
-	Device struct {
-		ID           string `json:"id"`
-		UUID         string `json:"uuid,omitempty"`
-		IDFA         string `json:"idfa,omitempty"`
-		IDFV         string `json:"idfv,omitempty"`
-		GPSAdID      string `json:"gps_adid,omitempty"`
-		AndroidID    string `json:"android_id,omitempty"`
-		PushToken    string `json:"push_token,omitempty"`
-		MAC          string `json:"mac,omitempty"`
-		MACMD5       string `json:"mac_md5,omitempty"`
-		MACSHA1      string `json:"mac_sha1,omitempty"`
-		Platform     string `json:"platfrom"`
-		OSVersion    string `json:"os_version"`
-		Browser      string `json:"browser,omitempty"`
-		Model        string `json:"model"`
-		Manufacturer string `json:"manufacturer"`
-		AppVersion   string `json:"app_version"`
-		SDKVersion   string `json:"sdk_version"`
-		Timezone     string `json:"timezone"`
-		Language     string `json:"language"`
-		Country      string `json:"country,omitempty"`
-		City         string `json:"city,omitempty"`
-		IP           string `json:"ip,omitempty"`
-		Carrier      string `json:"carrier,omitempty"`
-		Network      string `json:"network,omitempty"`
-		Common
 	}
 
 	// Event structure
@@ -191,10 +181,11 @@ type (
 		Common
 	}
 
-	// EventWithIDs holds the event structure with the added account and application ids
-	EventWithIDs struct {
-		OrgAppIDs
-		Event
+	// PresentationEvent holds the struct used to represent the event to the outside world
+	PresentationEvent struct {
+		IDString     string `json:"id_string"`
+		UserIDString string `json:"user_id_string"`
+		*Event
 	}
 
 	// LoginPayload defines how the login payload should look like
@@ -210,31 +201,16 @@ type (
 
 	// EventsResponse represents the common structure for responses which contains events
 	EventsResponse struct {
-		Events      []*Event                    `json:"events"`
-		Users       map[string]*ApplicationUser `json:"users"`
-		EventsCount int                         `json:"events_count"`
-		UsersCount  int                         `json:"users_count"`
+		Events      []*PresentationEvent                    `json:"events"`
+		Users       map[string]*PresentationApplicationUser `json:"users"`
+		EventsCount int                                     `json:"events_count"`
+		UsersCount  int                                     `json:"users_count"`
 	}
 
 	// EventsResponseWithUnread represents the common structure for responses which contains events and have an unread count
 	EventsResponseWithUnread struct {
 		EventsResponse
 		UnreadCount int `json:"unread_events_count"`
-	}
-
-	// AutoConnectSocialFriends holds the informatin that we have for auto-connecting social frieds
-	AutoConnectSocialFriends struct {
-		User              *ApplicationUserWithIDs `json:"user"`
-		Type              string                  `json:"type"`
-		OurStoredUsersIDs []*ApplicationUser      `json:"our_stored_users_ids"`
-	}
-
-	// SocialConnection holds the social connection information
-	SocialConnection struct {
-		User             *ApplicationUserWithIDs `json:"user"`
-		Platform         string                  `json:"platform"`
-		Type             string                  `json:"type"`
-		SocialFriendsIDs []string                `json:"social_friends_ids"`
 	}
 
 	// ErrorResponse holds the structure of an error what's reported back to the user
@@ -260,12 +236,12 @@ type (
 
 	// ConnectionsByStateResponse is used as a response to the API query to return the connections in a certain state
 	ConnectionsByStateResponse struct {
-		IncomingConnections      []*Connection      `json:"incoming"`
-		OutgoingConnections      []*Connection      `json:"outgoing"`
-		Users                    []*ApplicationUser `json:"users"`
-		IncomingConnectionsCount int                `json:"incoming_connections_count"`
-		OutgoingConnectionsCount int                `json:"outgoing_connections_count"`
-		UsersCount               int                `json:"users_count"`
+		IncomingConnections      []*PresentationConnection      `json:"incoming"`
+		OutgoingConnections      []*PresentationConnection      `json:"outgoing"`
+		Users                    []*PresentationApplicationUser `json:"users"`
+		IncomingConnectionsCount int                            `json:"incoming_connections_count"`
+		OutgoingConnectionsCount int                            `json:"outgoing_connections_count"`
+		UsersCount               int                            `json:"users_count"`
 	}
 
 	// ConnectionStateType represents the type of a connection state
@@ -274,37 +250,6 @@ type (
 	// ConnectionTypeType represents the type of a connection type
 	ConnectionTypeType string
 )
-
-// Application structure
-type Application struct {
-	ID           int64              `json:"-"`
-	OrgID        int64              `json:"-"`
-	PublicID     string             `json:"id"`
-	PublicOrgID  string             `json:"account_id"`
-	AuthToken    string             `json:"token"`
-	BackendToken string             `json:"backend_token"`
-	Name         string             `json:"name"`
-	Description  string             `json:"description"`
-	URL          string             `json:"url"`
-	InProduction bool               `json:"in_production"`
-	Users        []*ApplicationUser `json:"-"`
-	Common
-}
-
-// Limit returns the desired rate limit for an Application varies by production
-// state.
-func (a *Application) Limit() int64 {
-	if a.InProduction {
-		return rateLimitProduction
-	}
-
-	return rateLimitStaging
-}
-
-// Namespace returrs the prefix for bucketing entities by Application.
-func (a *Application) Namespace() string {
-	return fmt.Sprintf("app_%d_%d", a.ID, a.OrgID)
-}
 
 const (
 	// EventPrivate flags that the event is private
@@ -350,6 +295,55 @@ func init() {
 	fl := false
 	PTrue = &tr
 	PFalse = &fl
+}
+
+// Limit returns the desired rate limit for an Application varies by production
+// state.
+func (a *Application) Limit() int64 {
+	if a.InProduction {
+		return rateLimitProduction
+	}
+
+	return rateLimitStaging
+}
+
+// Namespace returrs the prefix for bucketing entities by Application.
+func (a *Application) Namespace() string {
+	return fmt.Sprintf("app_%d_%d", a.ID, a.OrgID)
+}
+
+func (u *PresentationApplicationUser) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		IDString string `json:"id_string"`
+		*ApplicationUser
+	}{
+		IDString:        strconv.FormatUint(u.ID, 10),
+		ApplicationUser: u.ApplicationUser,
+	})
+}
+
+func (conn *PresentationConnection) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		UserFromIDString string `json:"user_from_id_string"`
+		UserToIDString   string `json:"user_to_id_string"`
+		*Connection
+	}{
+		UserFromIDString: strconv.FormatUint(conn.UserFromID, 10),
+		UserToIDString:   strconv.FormatUint(conn.UserToID, 10),
+		Connection:       conn.Connection,
+	})
+}
+
+func (e *PresentationEvent) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		IDString     string `json:"id_string"`
+		UserIDString string `json:"user_id_string"`
+		*Event
+	}{
+		IDString:     strconv.FormatUint(e.ID, 10),
+		UserIDString: strconv.FormatUint(e.UserID, 10),
+		Event:        e.Event,
+	})
 }
 
 func (e SortableEventsByDistance) Len() int      { return len(e) }

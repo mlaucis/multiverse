@@ -56,7 +56,7 @@ func (appUser *applicationUser) Read(ctx *context.Context) (err []errors.Error) 
 	user.Deleted = nil
 	user.CreatedAt, user.UpdatedAt, user.LastLogin, user.LastRead = nil, nil, nil, nil
 
-	response.WriteResponse(ctx, user, http.StatusOK, 10)
+	response.WriteResponse(ctx, &entity.PresentationApplicationUser{ApplicationUser: user}, http.StatusOK, 10)
 	return
 }
 
@@ -70,7 +70,7 @@ func (appUser *applicationUser) ReadCurrent(ctx *context.Context) (err []errors.
 
 	appUser.storage.FriendStatistics(ctx.OrganizationID, ctx.ApplicationID, user)
 
-	response.WriteResponse(ctx, user, http.StatusOK, 10)
+	response.WriteResponse(ctx, &entity.PresentationApplicationUser{ApplicationUser: user}, http.StatusOK, 10)
 	return
 }
 
@@ -108,7 +108,7 @@ func (appUser *applicationUser) UpdateCurrent(ctx *context.Context) (err []error
 	updatedUser.Password = ""
 	appUser.storage.FriendStatistics(ctx.OrganizationID, ctx.ApplicationID, updatedUser)
 
-	response.WriteResponse(ctx, updatedUser, http.StatusCreated, 0)
+	response.WriteResponse(ctx, &entity.PresentationApplicationUser{ApplicationUser: updatedUser}, http.StatusCreated, 0)
 	return
 }
 
@@ -184,7 +184,7 @@ func (appUser *applicationUser) Create(ctx *context.Context) (err []errors.Error
 	appUser.storage.FriendStatistics(ctx.OrganizationID, ctx.ApplicationID, user)
 
 	ctx.W.Header().Set("Location", fmt.Sprintf("https://api.tapglue.com/0.3/users/%d", user.ID))
-	response.WriteResponse(ctx, user, http.StatusCreated, 0)
+	response.WriteResponse(ctx, &entity.PresentationApplicationUser{ApplicationUser: user}, http.StatusCreated, 0)
 	return
 }
 
@@ -255,7 +255,7 @@ func (appUser *applicationUser) Login(ctx *context.Context) (err []errors.Error)
 	appUser.storage.FriendStatistics(ctx.OrganizationID, ctx.ApplicationID, user)
 
 	ctx.W.Header().Set("Location", fmt.Sprintf("https://api.tapglue.com/0.3/users/%d", user.ID))
-	response.WriteResponse(ctx, user, http.StatusCreated, 0)
+	response.WriteResponse(ctx, &entity.PresentationApplicationUser{ApplicationUser: user}, http.StatusCreated, 0)
 	return
 }
 
@@ -336,20 +336,24 @@ func (appUser *applicationUser) Search(ctx *context.Context) (err []errors.Error
 userProcessing:
 	response.SanitizeApplicationUsers(users)
 
+	usersWithIDString := make([]*entity.PresentationApplicationUser, len(users))
 	for idx := range users {
 		relation, err := appUser.conn.Relation(ctx.OrganizationID, ctx.ApplicationID, ctx.ApplicationUserID, users[idx].ID)
 		if err != nil {
 			return err
 		} else if relation != nil {
 			users[idx].Relation = *relation
+			usersWithIDString[idx] = &entity.PresentationApplicationUser{
+				ApplicationUser: users[idx],
+			}
 		}
 	}
 
 	resp := struct {
-		Users      []*entity.ApplicationUser `json:"users"`
-		UsersCount int                       `json:"users_count"`
+		Users      []*entity.PresentationApplicationUser `json:"users"`
+		UsersCount int                                   `json:"users_count"`
 	}{
-		Users:      users,
+		Users:      usersWithIDString,
 		UsersCount: len(users),
 	}
 

@@ -24,14 +24,3 @@ func SanitizeApplicationUsers(users []*entity.ApplicationUser) {
 		users[idx].CreatedAt, users[idx].UpdatedAt, users[idx].LastLogin, users[idx].LastRead = nil, nil, nil, nil
 	}
 }
-
-// SanitizeApplicationUsersMap sanitizes a map of application users
-func SanitizeApplicationUsersMap(users map[string]*entity.ApplicationUser) {
-	for idx := range users {
-		users[idx].Password = ""
-		users[idx].Deleted = nil
-		users[idx].SessionToken = ""
-		users[idx].FriendCount, users[idx].FollowerCount, users[idx].FollowedCount = nil, nil, nil
-		users[idx].CreatedAt, users[idx].UpdatedAt, users[idx].LastLogin, users[idx].LastRead = nil, nil, nil, nil
-	}
-}
