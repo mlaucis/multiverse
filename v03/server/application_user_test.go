@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -338,13 +339,15 @@ func (s *ApplicationUserSuite) TestGetUser_OK(c *C) {
 
 	c.Assert(body, Not(Equals), "")
 
-	receivedUser := &entity.ApplicationUser{}
+	receivedUser := &entity.PresentationApplicationUser{}
 	er := json.Unmarshal([]byte(body), receivedUser)
 	c.Assert(er, IsNil)
 	c.Assert(receivedUser.Username, Equals, user.Username)
 	c.Assert(receivedUser.IsFriend, IsNil)
 	c.Assert(receivedUser.IsFollower, IsNil)
 	c.Assert(receivedUser.IsFollowed, IsNil)
+	c.Assert(receivedUser.IDString, Not(Equals), "")
+	c.Assert(receivedUser.IDString, Equals, strconv.FormatUint(receivedUser.ID, 10))
 	c.Assert(receivedUser.CreatedAt, Not(IsNil))
 	c.Assert(receivedUser.UpdatedAt, Not(IsNil))
 
@@ -356,7 +359,7 @@ func (s *ApplicationUserSuite) TestGetUser_OK(c *C) {
 	c.Assert(code, Equals, http.StatusOK)
 	c.Assert(body, Not(Equals), "")
 
-	receivedUser = &entity.ApplicationUser{}
+	receivedUser = &entity.PresentationApplicationUser{}
 	er = json.Unmarshal([]byte(body), receivedUser)
 	c.Assert(er, IsNil)
 	c.Assert(receivedUser.Username, Equals, user2.Username)
@@ -376,7 +379,7 @@ func (s *ApplicationUserSuite) TestGetUser_OK(c *C) {
 	c.Assert(code, Equals, http.StatusOK)
 	c.Assert(body, Not(Equals), "")
 
-	receivedUser = &entity.ApplicationUser{}
+	receivedUser = &entity.PresentationApplicationUser{}
 	er = json.Unmarshal([]byte(body), receivedUser)
 	c.Assert(er, IsNil)
 	c.Assert(receivedUser.Username, Equals, user10.Username)

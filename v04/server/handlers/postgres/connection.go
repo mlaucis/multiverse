@@ -62,7 +62,7 @@ func (conn *connection) Update(ctx *context.Context) (err []errors.Error) {
 		return
 	}
 
-	response.WriteResponse(ctx, updatedConnection, http.StatusCreated, 0)
+	response.WriteResponse(ctx, &entity.PresentationConnection{Connection: updatedConnection}, http.StatusCreated, 0)
 	return
 }
 
@@ -155,10 +155,10 @@ func (conn *connection) FollowingList(ctx *context.Context) (err []errors.Error)
 	}
 
 	resp := struct {
-		Users      []*entity.ApplicationUser `json:"users"`
-		UsersCount int                       `json:"users_count"`
+		Users      []*entity.PresentationApplicationUser `json:"users"`
+		UsersCount int                                   `json:"users_count"`
 	}{
-		Users:      users,
+		Users:      conn.presentationUsers(users),
 		UsersCount: len(users),
 	}
 
@@ -190,10 +190,10 @@ func (conn *connection) CurrentUserFollowingList(ctx *context.Context) (err []er
 	}
 
 	resp := struct {
-		Users      []*entity.ApplicationUser `json:"users"`
-		UsersCount int                       `json:"users_count"`
+		Users      []*entity.PresentationApplicationUser `json:"users"`
+		UsersCount int                                   `json:"users_count"`
 	}{
-		Users:      users,
+		Users:      conn.presentationUsers(users),
 		UsersCount: len(users),
 	}
 
@@ -238,10 +238,10 @@ func (conn *connection) FollowedByList(ctx *context.Context) (err []errors.Error
 	}
 
 	resp := struct {
-		Users      []*entity.ApplicationUser `json:"users"`
-		UsersCount int                       `json:"users_count"`
+		Users      []*entity.PresentationApplicationUser `json:"users"`
+		UsersCount int                                   `json:"users_count"`
 	}{
-		Users:      users,
+		Users:      conn.presentationUsers(users),
 		UsersCount: len(users),
 	}
 
@@ -272,10 +272,10 @@ func (conn *connection) CurrentUserFollowedByList(ctx *context.Context) (err []e
 	}
 
 	resp := struct {
-		Users      []*entity.ApplicationUser `json:"users"`
-		UsersCount int                       `json:"users_count"`
+		Users      []*entity.PresentationApplicationUser `json:"users"`
+		UsersCount int                                   `json:"users_count"`
 	}{
-		Users:      users,
+		Users:      conn.presentationUsers(users),
 		UsersCount: len(users),
 	}
 
@@ -346,10 +346,10 @@ func (conn *connection) CreateSocial(ctx *context.Context) (err []errors.Error) 
 	}
 
 	resp := struct {
-		Users      []*entity.ApplicationUser `json:"users"`
-		UsersCount int                       `json:"users_count"`
+		Users      []*entity.PresentationApplicationUser `json:"users"`
+		UsersCount int                                   `json:"users_count"`
 	}{
-		Users:      users,
+		Users:      conn.presentationUsers(users),
 		UsersCount: len(users),
 	}
 
@@ -391,10 +391,10 @@ func (conn *connection) Friends(ctx *context.Context) (err []errors.Error) {
 	}
 
 	resp := struct {
-		Users      []*entity.ApplicationUser `json:"users"`
-		UsersCount int                       `json:"users_count"`
+		Users      []*entity.PresentationApplicationUser `json:"users"`
+		UsersCount int                                   `json:"users_count"`
 	}{
-		Users:      users,
+		Users:      conn.presentationUsers(users),
 		UsersCount: len(users),
 	}
 
@@ -430,10 +430,10 @@ func (conn *connection) CurrentUserFriends(ctx *context.Context) (err []errors.E
 	}
 
 	resp := struct {
-		Users      []*entity.ApplicationUser `json:"users"`
-		UsersCount int                       `json:"users_count"`
+		Users      []*entity.PresentationApplicationUser `json:"users"`
+		UsersCount int                                   `json:"users_count"`
 	}{
-		Users:      users,
+		Users:      conn.presentationUsers(users),
 		UsersCount: len(users),
 	}
 
@@ -652,9 +652,9 @@ func (conn *connection) doGetUserConnectionsByState(ctx *context.Context, userID
 	}
 
 	resp := entity.ConnectionsByStateResponse{
-		IncomingConnections: incomingConnections,
-		OutgoingConnections: outgoingConnections,
-		Users:               users,
+		IncomingConnections: conn.presentationConnections(incomingConnections),
+		OutgoingConnections: conn.presentationConnections(outgoingConnections),
+		Users:               conn.presentationUsers(users),
 		IncomingConnectionsCount: len(incomingConnections),
 		OutgoingConnectionsCount: len(outgoingConnections),
 		UsersCount:               len(users),
@@ -679,6 +679,28 @@ func (conn *connection) addRelationInformation(ctx *context.Context, userID uint
 		}
 	}
 	return nil
+}
+
+func (conn *connection) presentationUsers(users []*entity.ApplicationUser) []*entity.PresentationApplicationUser {
+	usrs := make([]*entity.PresentationApplicationUser, len(users))
+	for idx := range users {
+		usrs[idx] = &entity.PresentationApplicationUser{
+			ApplicationUser: users[idx],
+		}
+	}
+
+	return usrs
+}
+
+func (conn *connection) presentationConnections(connections []*entity.Connection) []*entity.PresentationConnection {
+	conns := make([]*entity.PresentationConnection, len(connections))
+	for idx := range connections {
+		conns[idx] = &entity.PresentationConnection{
+			Connection: connections[idx],
+		}
+	}
+
+	return conns
 }
 
 // NewConnection initializes a new connection with an application user

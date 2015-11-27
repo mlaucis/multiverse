@@ -232,7 +232,7 @@ func (evt *event) List(ctx *context.Context) (err []errors.Error) {
 	}
 
 	resp := entity.EventsResponse{
-		Events:      events,
+		Events:      evt.presentationEvent(events),
 		EventsCount: len(events),
 	}
 
@@ -258,7 +258,7 @@ func (evt *event) CurrentUserList(ctx *context.Context) (err []errors.Error) {
 		return err
 	}
 
-	var events []*entity.Event
+	events := []*entity.Event{}
 	if events, err = evt.storage.ListUser(
 		ctx.OrganizationID,
 		ctx.ApplicationID,
@@ -269,7 +269,7 @@ func (evt *event) CurrentUserList(ctx *context.Context) (err []errors.Error) {
 	}
 
 	resp := entity.EventsResponse{
-		Events:      events,
+		Events:      evt.presentationEvent(events),
 		EventsCount: len(events),
 	}
 
@@ -296,7 +296,8 @@ func (evt *event) Feed(ctx *context.Context) (err []errors.Error) {
 	}
 
 	resp := entity.EventsResponseWithUnread{}
-	if resp.UnreadCount, resp.Events, err = evt.storage.UserFeed(
+	events := []*entity.Event{}
+	if resp.UnreadCount, events, err = evt.storage.UserFeed(
 		ctx.OrganizationID,
 		ctx.ApplicationID,
 		ctx.ApplicationUser,
@@ -304,6 +305,7 @@ func (evt *event) Feed(ctx *context.Context) (err []errors.Error) {
 		return
 	}
 
+	resp.Events = evt.presentationEvent(events)
 	resp.EventsCount = len(resp.Events)
 
 	status := http.StatusOK
@@ -400,7 +402,7 @@ func (evt *event) CurrentUserCreate(ctx *context.Context) (err []errors.Error) {
 	}
 
 	ctx.W.Header().Set("Location", fmt.Sprintf("https://api.tapglue.com/0.3/me/events/%d", event.ID))
-	response.WriteResponse(ctx, event, http.StatusCreated, 0)
+	response.WriteResponse(ctx, &entity.PresentationEvent{Event: event}, http.StatusCreated, 0)
 	return
 }
 
@@ -478,7 +480,7 @@ func (evt *event) Search(ctx *context.Context) (err []errors.Error) {
 	}
 
 	resp := entity.EventsResponse{
-		Events:      events,
+		Events:      evt.presentationEvent(events),
 		EventsCount: len(events),
 	}
 
@@ -507,7 +509,8 @@ func (evt *event) UnreadFeed(ctx *context.Context) (err []errors.Error) {
 	}
 
 	resp := entity.EventsResponseWithUnread{}
-	if resp.UnreadCount, resp.Events, err = evt.storage.UnreadFeed(
+	events := []*entity.Event{}
+	if resp.UnreadCount, events, err = evt.storage.UnreadFeed(
 		ctx.OrganizationID,
 		ctx.ApplicationID,
 		ctx.ApplicationUser,
@@ -515,6 +518,7 @@ func (evt *event) UnreadFeed(ctx *context.Context) (err []errors.Error) {
 		return
 	}
 
+	resp.Events = evt.presentationEvent(events)
 	resp.EventsCount = len(resp.Events)
 
 	status := http.StatusOK
@@ -555,8 +559,8 @@ func (evt *event) UnreadFeedCount(ctx *context.Context) (err []errors.Error) {
 	return
 }
 
-func (evt *event) usersFromEvents(ctx *context.Context, currentUserID uint64, events []*entity.Event) (users map[string]*entity.ApplicationUser, err []errors.Error) {
-	users = map[string]*entity.ApplicationUser{}
+func (evt *event) usersFromEvents(ctx *context.Context, currentUserID uint64, events []*entity.PresentationEvent) (users map[string]*entity.PresentationApplicationUser, err []errors.Error) {
+	users = map[string]*entity.PresentationApplicationUser{}
 	eventUsers := map[uint64]bool{}
 	for idx := range events {
 		eventUsers[events[idx].UserID] = true
@@ -581,23 +585,33 @@ func (evt *event) usersFromEvents(ctx *context.Context, currentUserID uint64, ev
 	if err != nil {
 		return
 	}
+	response.SanitizeApplicationUsers(urs)
 
 	for idx := range urs {
-		users[strconv.FormatUint(urs[idx].ID, 10)] = urs[idx]
-	}
-
-	response.SanitizeApplicationUsersMap(users)
-
-	for idx := range users {
-		relation, err := evt.conn.Relation(ctx.OrganizationID, ctx.ApplicationID, currentUserID, users[idx].ID)
+		relation, err := evt.conn.Relation(ctx.OrganizationID, ctx.ApplicationID, currentUserID, urs[idx].ID)
 		if err != nil {
 			return nil, err
 		} else if relation != nil {
-			users[idx].Relation = *relation
+			urs[idx].Relation = *relation
 		}
+		users[strconv.FormatUint(urs[idx].ID, 10)] = &entity.PresentationApplicationUser{
+			ApplicationUser: urs[idx],
+		}
+
 	}
 
 	return
+}
+
+func (evt *event) presentationEvent(events []*entity.Event) []*entity.PresentationEvent {
+	eventsWithIDString := make([]*entity.PresentationEvent, len(events))
+	for idx := range events {
+		eventsWithIDString[idx] = &entity.PresentationEvent{
+			Event: events[idx],
+		}
+	}
+
+	return eventsWithIDString
 }
 
 // NewEvent returns a new event handler
