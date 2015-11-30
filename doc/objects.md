@@ -66,7 +66,5 @@ In the following the requirements for the MVP are listed.
 
 ## Events on objects
 
-- [ ] Add `tg_object_id` to events
-- [ ] Remove `target_id` from events
-- [ ] Add target to objects
-- [ ] Make `tg_object_id` a filterable key in event-filtering 
+- [x] Add `tg_object_id` to events
+- [x] Make `tg_object_id` a filterable key in event-filtering 

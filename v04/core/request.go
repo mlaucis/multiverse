@@ -11,7 +11,7 @@ import (
 )
 
 type (
-	// RequestFilters holds down the possible filtering values for the fields
+	// RequestCondition holds down the possible filtering values for the fields
 	RequestCondition struct {
 		Eq  interface{}   `json:"eq,omitempty"`
 		Neq interface{}   `json:"neq,omitempty"`
@@ -33,7 +33,8 @@ type (
 			ID   *RequestCondition `json:"id,omitempty"`
 			Type *RequestCondition `json:"type,omitempty"`
 		} `json:"object,omitempty"`
-		Target *struct {
+		ObjectID *RequestCondition `json:"tg_object_id"`
+		Target   *struct {
 			ID   *RequestCondition `json:"id,omitempty"`
 			Type *RequestCondition `json:"type,omitempty"`
 		} `json:"target,omitempty"`
@@ -214,6 +215,10 @@ func (e *EventCondition) conditions(startPlaceholderID int) (query string, param
 	}
 
 	if err := checkSimpleField(e.Location, `json_data->>'location'`); err != nil {
+		return "", []interface{}{}, 0, err
+	}
+
+	if err := checkSimpleField(e.ObjectID, `json_data->>'object_id'`); err != nil {
 		return "", []interface{}{}, 0, err
 	}
 

@@ -366,28 +366,30 @@ func (evt *event) Create(ctx *context.Context) (err []errors.Error) {
 
 func (evt *event) CurrentUserCreate(ctx *context.Context) (err []errors.Error) {
 	var (
-		event = &entity.Event{}
-		er    error
+		pe = &entity.PresentationEvent{}
+		er error
 	)
 
-	if er = json.Unmarshal(ctx.Body, &event); er != nil {
+	if er = json.Unmarshal(ctx.Body, pe); er != nil {
 		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error()).SetCurrentLocation()}
 	}
 
-	event.UserID = ctx.ApplicationUserID
-	if event.Visibility == 0 {
-		event.Visibility = entity.EventPublic
+	ev := pe.Event
+
+	ev.UserID = ctx.ApplicationUserID
+	if pe.Visibility == 0 {
+		ev.Visibility = entity.EventPublic
 	}
 
 	if err = validator.CreateEvent(
 		evt.appUser,
 		ctx.OrganizationID,
 		ctx.ApplicationID,
-		event); err != nil {
+		ev); err != nil {
 		return
 	}
 
-	event.ID, er = tgflake.FlakeNextID(ctx.ApplicationID, "events")
+	ev.ID, er = tgflake.FlakeNextID(ctx.ApplicationID, "events")
 	if er != nil {
 		return []errors.Error{errmsg.ErrServerInternalError.UpdateInternalMessage(er.Error()).SetCurrentLocation()}
 	}
@@ -396,13 +398,13 @@ func (evt *event) CurrentUserCreate(ctx *context.Context) (err []errors.Error) {
 		ctx.OrganizationID,
 		ctx.ApplicationID,
 		ctx.ApplicationUserID,
-		event)
+		ev)
 	if err != nil {
 		return
 	}
 
-	ctx.W.Header().Set("Location", fmt.Sprintf("https://api.tapglue.com/0.3/me/events/%d", event.ID))
-	response.WriteResponse(ctx, &entity.PresentationEvent{Event: event}, http.StatusCreated, 0)
+	ctx.W.Header().Set("Location", fmt.Sprintf("https://api.tapglue.com/0.3/me/events/%d", ev.ID))
+	response.WriteResponse(ctx, &entity.PresentationEvent{Event: pe.Event}, http.StatusCreated, 0)
 	return
 }
 
