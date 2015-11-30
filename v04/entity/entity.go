@@ -175,6 +175,7 @@ type (
 		DistanceFromTarget float64       `json:"-"`
 		Visibility         uint8         `json:"visibility,omitempty"`
 		Object             *Object       `json:"object"`
+		ObjectID           uint64        `json:"object_id"`
 		Target             *Object       `json:"target,omitempty"`
 		Instrument         *Object       `json:"instrument,omitempty"`
 		Participant        []Participant `json:"participant,omitempty"`
@@ -184,6 +185,7 @@ type (
 	// PresentationEvent holds the struct used to represent the event to the outside world
 	PresentationEvent struct {
 		IDString     string `json:"id_string"`
+		TGObjectID   string `json:"tg_object_id"`
 		UserIDString string `json:"user_id_string"`
 		*Event
 	}
@@ -264,7 +266,7 @@ const (
 	// EventGlobal flags that the event is public and visibile in the WHOLE app (use it with consideration)
 	EventGlobal = 40
 
-	// ConnectionTypeFollow is a friend connection
+	// ConnectionTypeFriend is a friend connection
 	ConnectionTypeFriend ConnectionTypeType = "friend"
 
 	// ConnectionTypeFollow is a follow connection
@@ -337,13 +339,71 @@ func (conn *PresentationConnection) MarshalJSON() ([]byte, error) {
 func (e *PresentationEvent) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
 		IDString     string `json:"id_string"`
+		TGObjectID   string `json:"tg_object_id"`
 		UserIDString string `json:"user_id_string"`
 		*Event
 	}{
 		IDString:     strconv.FormatUint(e.ID, 10),
+		TGObjectID:   strconv.FormatUint(e.Event.ObjectID, 10),
 		UserIDString: strconv.FormatUint(e.UserID, 10),
 		Event:        e.Event,
 	})
+}
+
+func (e *PresentationEvent) UnmarshalJSON(raw []byte) error {
+	r := struct {
+		ID           uint64        `json:"id"`
+		IDString     string        `json:"id_string"`
+		UserID       uint64        `json:"user_id"`
+		UserIDString string        `json:"user_id_string"`
+		Type         string        `json:"type"`
+		Language     string        `json:"language,omitempty"`
+		Priority     string        `json:"priority,omitempty"`
+		Location     string        `json:"location,omitempty"`
+		Latitude     float64       `json:"latitude,omitempty"`
+		Longitude    float64       `json:"longitude,omitempty"`
+		Visibility   uint8         `json:"visibility,omitempty"`
+		Object       *Object       `json:"object"`
+		ObjectID     string        `json:"tg_object_id"`
+		Target       *Object       `json:"target,omitempty"`
+		Instrument   *Object       `json:"instrument,omitempty"`
+		Participant  []Participant `json:"participant,omitempty"`
+	}{}
+
+	err := json.Unmarshal(raw, &r)
+	if err != nil {
+		return err
+	}
+
+	e.IDString = r.IDString
+	e.TGObjectID = r.ObjectID
+	e.UserIDString = r.UserIDString
+	e.Event = &Event{
+		ID:          r.ID,
+		UserID:      r.UserID,
+		Type:        r.Type,
+		Language:    r.Language,
+		Priority:    r.Priority,
+		Location:    r.Location,
+		Latitude:    r.Latitude,
+		Longitude:   r.Longitude,
+		Visibility:  r.Visibility,
+		Object:      r.Object,
+		Target:      r.Target,
+		Instrument:  r.Instrument,
+		Participant: r.Participant,
+	}
+
+	if r.ObjectID != "" {
+		id, err := strconv.ParseUint(r.ObjectID, 10, 64)
+		if err != nil {
+			return err
+		}
+
+		e.Event.ObjectID = id
+	}
+
+	return nil
 }
 
 func (e SortableEventsByDistance) Len() int      { return len(e) }

@@ -45,6 +45,7 @@ In the following the requirements for the MVP are listed.
   - [x] All objects
   - [x] Connections objects
   - [x] My own objects
+- [ ] Events on objects
 
 ## Model
 
@@ -62,3 +63,8 @@ In the following the requirements for the MVP are listed.
   - video
   - audio
   - url
+
+## Events on objects
+
+- [x] Add `tg_object_id` to events
+- [x] Make `tg_object_id` a filterable key in event-filtering 

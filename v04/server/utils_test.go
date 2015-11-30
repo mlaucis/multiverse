@@ -390,6 +390,7 @@ func AddCorrectUserEvents(orgID, applicationID int64, user *entity.ApplicationUs
 	for i := 0; i < numberOfEventsPerUser; i++ {
 		result[i] = CorrectEvent(applicationID)
 		result[i].Visibility = uint8(i%4*10 + 10)
+		result[i].ObjectID = 123
 		result[i].UserID = user.ID
 		if result[i].Visibility == entity.EventPublic {
 			result[i].Location = fmt.Sprintf("location-all-%d", i+1)

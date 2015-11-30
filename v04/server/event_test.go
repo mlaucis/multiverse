@@ -1097,9 +1097,40 @@ func (s *EventSuite) TestGetEventListWithTypeFilter(c *C) {
 	er := json.Unmarshal([]byte(body), &response)
 	c.Assert(er, IsNil)
 	c.Assert(response.EventsCount, Equals, 1)
-	for idx := range response.Events {
-		response.Events[idx].Type = "love"
-		response.Events[idx].UserID = user.ID
+	for _, ev := range response.Events {
+		c.Assert(ev.Type, Equals, "love")
+		c.Assert(ev.UserID, Equals, user.ID)
+	}
+}
+
+func (s *EventSuite) TestEventsWithObjectIDFilter(c *C) {
+	var (
+		orgs  = CorrectDeploy(1, 0, 1, 2, 5, false, true)
+		app   = orgs[0].Applications[0]
+		user  = app.Users[0]
+		ps    = url.Values{}
+		rName = "getEventList"
+	)
+
+	ps.Set("where", `{ "tg_object_id": { "eq": 123 } }`)
+	route := getComposedRoute(rName, user.ID) + "?" + ps.Encode()
+
+	code, body, errs := runRequest(rName, route, "", signApplicationRequest(app, user, true, true))
+	c.Assert(errs, IsNil)
+	c.Assert(code, Equals, http.StatusOK)
+	c.Assert(body, Not(Equals), "")
+
+	res := struct {
+		Events      []*entity.PresentationEvent `json:"events"`
+		EventsCount int                         `json:"events_count"`
+	}{}
+
+	err := json.Unmarshal([]byte(body), &res)
+	c.Assert(err, IsNil)
+	c.Assert(res.EventsCount, Equals, 5)
+
+	for _, ev := range res.Events {
+		c.Assert(ev.Event.ObjectID, Equals, uint64(123))
 	}
 }
 
