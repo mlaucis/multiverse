@@ -83,7 +83,7 @@ func PostListAll(c *controller.PostController, users user.StrangleService) Handl
 			return
 		}
 
-		respondJSON(w, http.StatusOK, payloadPosts{
+		respondJSON(w, http.StatusOK, &payloadPosts{
 			posts: ps,
 			users: us,
 		})
@@ -115,7 +115,7 @@ func PostListMe(c *controller.PostController, users user.StrangleService) Handle
 			return
 		}
 
-		respondJSON(w, http.StatusOK, payloadPosts{
+		respondJSON(w, http.StatusOK, &payloadPosts{
 			posts: ps,
 			users: us,
 		})
@@ -150,7 +150,7 @@ func PostListMeConnections(
 			return
 		}
 
-		respondJSON(w, http.StatusOK, payloadPosts{
+		respondJSON(w, http.StatusOK, &payloadPosts{
 			posts: ps,
 			users: us,
 		})
