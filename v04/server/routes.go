@@ -35,11 +35,11 @@ const (
 	organizationID      = "{accountID}"
 	memberID            = "{accountUserID}"
 	applicationID       = "{applicationID}"
-	applicationUserID   = "{applicationUserID}"
-	applicationUserToID = "{applicationUserToID}"
+	applicationUserID   = "{applicationUserID:[0-9]+}"
+	applicationUserToID = "{applicationUserToID:[0-9]+}"
 	connectionType      = "{connectionType}"
 	connectionState     = "{connectionState}"
-	eventID             = "{eventID}"
+	eventID             = "{eventID:[0-9]+}"
 )
 
 var (
