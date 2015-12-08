@@ -81,6 +81,7 @@ type Object struct {
 	Location    string       `json:"location"`
 	Longitude   float64      `json:"longitude"`
 	ObjectID    uint64       `json:"object_id"`
+	Owned       bool         `json:"owned"`
 	OwnerID     uint64       `json:"owner_id"`
 	Tags        []string     `json:"tags"`
 	TargetID    string       `json:"target_id"`
@@ -99,6 +100,10 @@ func (o *Object) Validate() error {
 		if err := a.Validate(); err != nil {
 			return err
 		}
+	}
+
+	if o.OwnerID == 0 {
+		return ErrInvalidObject
 	}
 
 	if len(o.Tags) > 5 {
@@ -122,6 +127,8 @@ type QueryOptions struct {
 	ID           *uint64
 	ObjectIDs    []uint64
 	OwnerIDs     []uint64
+	Owned        *bool
+	Types        []string
 	Visibilities []Visibility
 }
 

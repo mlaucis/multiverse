@@ -71,6 +71,16 @@ func testCreateSet(objectID uint64) []*Object {
 		})
 	}
 
+	for i := 0; i < 13; i++ {
+		set = append(set, &Object{
+			OwnerID:    4,
+			ObjectID:   objectID,
+			Owned:      true,
+			Type:       "tg_comment",
+			Visibility: VisibilityConnection,
+		})
+	}
+
 	return set
 }
 
@@ -79,6 +89,8 @@ func testServiceQuery(t *testing.T, p prepareFunc) {
 		namespace  = "service_query"
 		service    = p(namespace, t)
 		testObject = *testArticle
+
+		owned bool
 	)
 
 	article, err := service.Put(namespace, &testObject)
@@ -110,6 +122,7 @@ func testServiceQuery(t *testing.T, p prepareFunc) {
 		ObjectIDs: []uint64{
 			article.ID,
 		},
+		Owned: &owned,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -130,6 +143,33 @@ func testServiceQuery(t *testing.T, p prepareFunc) {
 	}
 
 	if have, want := len(os), 11; have != want {
+		t.Errorf("have %v, want %v", have, want)
+	}
+
+	owned = true
+
+	os, err = service.Query(namespace, QueryOptions{
+		Owned: &owned,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if have, want := len(os), 13; have != want {
+		t.Errorf("have %v, want %v", have, want)
+	}
+
+	os, err = service.Query(namespace, QueryOptions{
+		Owned: &owned,
+		Types: []string{
+			"tg_comment",
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if have, want := len(os), 13; have != want {
 		t.Errorf("have %v, want %v", have, want)
 	}
 

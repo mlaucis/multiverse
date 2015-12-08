@@ -25,20 +25,21 @@ type (
 
 	// EventCondition holds the possible event fields to be filtered
 	EventCondition struct {
-		Type     *RequestCondition `json:"type,omitempty"`
-		Language *RequestCondition `json:"language,omitempty"`
+		Language *RequestCondition             `json:"language,omitempty"`
+		Location *RequestCondition             `json:"location,omitempty"`
+		Metadata *map[string]*RequestCondition `json:"metadata,omitempty"`
+		ObjectID *RequestCondition             `json:"tg_object_id"`
+		Owned    *RequestCondition
 		Priority *RequestCondition `json:"priority,omitempty"`
-		Location *RequestCondition `json:"location,omitempty"`
+		Type     *RequestCondition `json:"type,omitempty"`
 		Object   *struct {
 			ID   *RequestCondition `json:"id,omitempty"`
 			Type *RequestCondition `json:"type,omitempty"`
 		} `json:"object,omitempty"`
-		ObjectID *RequestCondition `json:"tg_object_id"`
-		Target   *struct {
+		Target *struct {
 			ID   *RequestCondition `json:"id,omitempty"`
 			Type *RequestCondition `json:"type,omitempty"`
 		} `json:"target,omitempty"`
-		Metadata *map[string]*RequestCondition `json:"metadata,omitempty"`
 	}
 )
 

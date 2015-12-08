@@ -6,5 +6,7 @@ import "errors"
 var (
 	ErrInvalidAttachment = errors.New("invalid attachment")
 	ErrInvalidObject     = errors.New("invalid object")
+	ErrMissingReference  = errors.New("referenced object missing")
 	ErrNamespaceNotFound = errors.New("namespace not found")
+	ErrNotFound          = errors.New("object not found")
 )

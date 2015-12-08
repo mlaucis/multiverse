@@ -67,12 +67,14 @@ var createApplicationNamespaceQuery = []string{
 	`CREATE INDEX conection_from_id ON app_%d_%d.connections USING btree ((((json_data ->> 'user_from_id'::text))::bigint))`,
 	`CREATE INDEX conection_to_id ON app_%d_%d.connections USING btree ((((json_data ->> 'user_to_id'::text))::bigint))`,
 
+	`CREATE INDEX event_created_at ON app_%d_%d.events USING btree ((json_data ->> 'created_at'))`,
 	`CREATE INDEX event_id ON app_%d_%d.events USING btree (((json_data ->> 'id') :: BIGINT))`,
+	`CREATE INDEX event_object_id ON app_%d_%d.events USING btree (((json_data ->> 'object_id') :: BIGINT))`,
+	`CREATE INDEX event_owned ON app_%d_%d.events USING btree (((json_data ->> 'owned') :: BOOl))`,
+	`CREATE INDEX event_target_id ON app_%d_%d.events USING BTREE (((json_data -> 'target'->>'id') :: TEXT))`,
+	`CREATE INDEX event_type ON app_%d_%d.events USING BTREE (((json_data -> 'type') :: TEXT))`,
 	`CREATE INDEX event_user_id ON app_%d_%d.events USING btree (((json_data ->> 'user_id') :: BIGINT))`,
 	`CREATE INDEX event_visibility ON app_%d_%d.events USING btree (((json_data ->> 'visibility') :: INT))`,
-	`CREATE INDEX event_target_id ON app_%d_%d.events USING BTREE (((json_data -> 'target'->>'id') :: TEXT))`,
-	`CREATE INDEX event_created_at ON app_%d_%d.events USING btree ((json_data ->> 'created_at'))`,
-	`CREATE INDEX event_object_id ON app_%d_%d.events USING btree (((json_data ->> 'object_id') :: BIGINT))`,
 	`CREATE INDEX ON app_%d_%d.events USING GIST (geo)`,
 }
 
