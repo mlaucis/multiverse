@@ -23,7 +23,9 @@ const (
 	pgClauseID         = `AND (json_data->>'id')::BIGINT = ?::BIGINT`
 	pgClauseObjectID   = `AND (json_data->>'object_id')::BIGINT IN (?)`
 	pgClauseOwnerID    = `AND (json_data->>'owner_id')::BIGINT IN (?)`
+	pgClauseOwned      = `AND (json_data->>'owned')::BOOL = ?::BOOL`
 	pgClauseTargetID   = `AND (json_data->>'target_id')::TEXT IN (?)`
+	pgClauseType       = `AND (json_data->>'type')::TEXT IN (?)`
 	pgClauseVisibility = `AND (json_data->>'visibility')::INT IN (?)`
 	pgOrderCreatedAt   = `ORDER BY json_data->>'created_at' DESC LIMIT 200`
 
@@ -43,8 +45,12 @@ const (
 		USING btree (((json_data->>'object_id') :: BIGINT))`
 	pgCreateIndexOwnerID = `CREATE INDEX object_owner_id ON %s.objects
 		USING btree (((json_data ->> 'owner_id') :: BIGINT))`
+	pgCreateIndexOwned = `CREATE INDEX object_owned ON %s.objects
+		USING btree (((json_data ->> 'owned') :: BOOL))`
 	pgCreateIndexTargetID = `CREATE INDEX object_target_id ON %s.objects
 		USING btree (((json_data->>'target_id') :: TEXT))`
+	pgCreateIndexType = `CREATE INDEX obect_type ON %s.objects
+		USING btree (((json_data->>'type') :: TEXT))`
 	pgCreateIndexVisibility = `CREATE INDEX object_visibility ON %s.objects
 		USING btree (((json_data ->> 'visibility') :: INT))`
 	pgGuardIndex = `DO $$
@@ -89,8 +95,8 @@ func (s *pgService) Put(ns string, object *Object) (*Object, error) {
 			return nil, err
 		}
 
-		if len(os) == 0 {
-			return nil, fmt.Errorf("target object doesn't exist")
+		if len(os) != 1 {
+			return nil, ErrMissingReference
 		}
 	}
 
@@ -107,7 +113,7 @@ func (s *pgService) Put(ns string, object *Object) (*Object, error) {
 		}
 
 		if len(os) == 0 {
-			return nil, fmt.Errorf("object doesn't exist")
+			return nil, ErrNotFound
 		}
 
 		object.CreatedAt = os[0].CreatedAt
@@ -181,6 +187,32 @@ func (s *pgService) Query(ns string, opts QueryOptions) ([]*Object, error) {
 		}
 
 		clause, _, err := sqlx.In(pgClauseObjectID, ps)
+		if err != nil {
+			return nil, err
+		}
+
+		clauses = append(clauses, clause)
+		params = append(params, ps...)
+	}
+
+	if opts.Owned != nil {
+		clause, _, err := sqlx.In(pgClauseOwned, []interface{}{*opts.Owned})
+		if err != nil {
+			return nil, err
+		}
+
+		clauses = append(clauses, clause)
+		params = append(params, *opts.Owned)
+	}
+
+	if len(opts.Types) > 0 {
+		ps := []interface{}{}
+
+		for _, id := range opts.Types {
+			ps = append(ps, id)
+		}
+
+		clause, _, err := sqlx.In(pgClauseType, ps)
 		if err != nil {
 			return nil, err
 		}

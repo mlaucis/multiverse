@@ -36,7 +36,7 @@ func (s *memService) Put(namespace string, object *Object) (*Object, error) {
 		}
 
 		if !keep {
-			return nil, ErrInvalidObject
+			return nil, ErrMissingReference
 		}
 	}
 
@@ -56,10 +56,10 @@ func (s *memService) Put(namespace string, object *Object) (*Object, error) {
 				keep = true
 				object.CreatedAt = o.CreatedAt
 			}
+		}
 
-			if !keep {
-				return nil, ErrInvalidObject
-			}
+		if !keep {
+			return nil, ErrNotFound
 		}
 	}
 
@@ -82,6 +82,12 @@ func (s *memService) Query(namespace string, opts QueryOptions) ([]*Object, erro
 			continue
 		}
 
+		if opts.Owned != nil {
+			if object.Owned != *opts.Owned {
+				continue
+			}
+		}
+
 		if opts.ID != nil && id != *opts.ID {
 			continue
 		}
@@ -91,6 +97,10 @@ func (s *memService) Query(namespace string, opts QueryOptions) ([]*Object, erro
 		}
 
 		if !inIDs(object.ObjectID, opts.ObjectIDs) {
+			continue
+		}
+
+		if !inTypes(object.Type, opts.Types) {
 			continue
 		}
 
@@ -145,6 +155,23 @@ func inIDs(id uint64, ids []uint64) bool {
 
 	for _, i := range ids {
 		if id == i {
+			keep = true
+			break
+		}
+	}
+
+	return keep
+}
+
+func inTypes(ty string, ts []string) bool {
+	if len(ts) == 0 {
+		return true
+	}
+
+	keep := false
+
+	for _, t := range ts {
+		if ty == t {
 			keep = true
 			break
 		}

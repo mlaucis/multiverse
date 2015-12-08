@@ -19,7 +19,7 @@ func LogMiddleware(logger log.Logger, store string) ServiceMiddleware {
 	return func(next Service) Service {
 		logger = log.NewContext(logger).With(
 			"service", "object",
-			"store", "postgres",
+			"store", store,
 		)
 
 		return &logService{next, logger}

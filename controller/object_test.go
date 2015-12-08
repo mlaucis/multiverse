@@ -36,8 +36,9 @@ func TestObjectControllerCreate(t *testing.T) {
 
 func TestObjectControllerDelete(t *testing.T) {
 	var (
-		app, _, c = testSetupObjectController(t)
-		article   = &object.Object{
+		app, owner, c = testSetupObjectController(t)
+		article       = &object.Object{
+			OwnerID:    owner.ID,
 			Type:       "article",
 			Visibility: object.VisibilityPublic,
 		}
@@ -168,12 +169,11 @@ func TestObjectControllerRetrieve(t *testing.T) {
 	var (
 		app, owner, c = testSetupObjectController(t)
 		review        = &object.Object{
+			OwnerID:    owner.ID,
 			Type:       "review",
 			Visibility: object.VisibilityPublic,
 		}
 	)
-
-	review.OwnerID = owner.ID
 
 	created, err := c.objects.Put(app.Namespace(), review)
 	if err != nil {

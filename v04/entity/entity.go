@@ -176,6 +176,7 @@ type (
 		Visibility         uint8         `json:"visibility,omitempty"`
 		Object             *Object       `json:"object"`
 		ObjectID           uint64        `json:"object_id"`
+		Owned              bool          `json:"owned"`
 		Target             *Object       `json:"target,omitempty"`
 		Instrument         *Object       `json:"instrument,omitempty"`
 		Participant        []Participant `json:"participant,omitempty"`

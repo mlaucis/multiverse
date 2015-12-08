@@ -13,9 +13,6 @@ import (
 	"github.com/tapglue/multiverse/service/object"
 )
 
-// Handler is the gateway specific http.HandlerFunc expecting a context.Context.
-type Handler func(context.Context, http.ResponseWriter, *http.Request)
-
 // ObjectCreate stores the object from the payload in the object.Service.
 func ObjectCreate(c *controller.ObjectController) Handler {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {

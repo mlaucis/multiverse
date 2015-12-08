@@ -25,7 +25,7 @@ import (
 	"github.com/tapglue/multiverse/config"
 	"github.com/tapglue/multiverse/controller"
 	"github.com/tapglue/multiverse/errors"
-	gateway "github.com/tapglue/multiverse/gateway/http"
+	handler "github.com/tapglue/multiverse/handler/http"
 	"github.com/tapglue/multiverse/limiter/redis"
 	tgLogger "github.com/tapglue/multiverse/logger"
 	"github.com/tapglue/multiverse/server"
@@ -147,25 +147,29 @@ func main() {
 	users = user.LogStrangleMiddleware(logger, "postgres")(users)
 
 	// Setup controllers
-	objectController := controller.NewObjectController(connections, objects)
+	var (
+		commentController = controller.NewCommentController(objects)
+		objectController  = controller.NewObjectController(connections, objects)
+		postController    = controller.NewPostController(connections, objects)
+	)
 
 	// Setup middlewares
 	var (
-		withApp = gateway.Chain(
-			gateway.CtxPrepare(apiVersionNext),
-			gateway.Log(logger),
-			gateway.Instrument(component),
-			gateway.SecureHeaders(),
-			gateway.DebugHeaders(currentRevision, currentHostname),
-			gateway.Gzip(),
-			gateway.HasUserAgent(),
-			gateway.ValidateContent(),
-			gateway.CtxApp(apps),
-			gateway.RateLimit(rateLimiter),
+		withApp = handler.Chain(
+			handler.CtxPrepare(apiVersionNext),
+			handler.Log(logger),
+			handler.Instrument(component),
+			handler.SecureHeaders(),
+			handler.DebugHeaders(currentRevision, currentHostname),
+			handler.Gzip(),
+			handler.HasUserAgent(),
+			handler.ValidateContent(),
+			handler.CtxApp(apps),
+			handler.RateLimit(rateLimiter),
 		)
-		withUser = gateway.Chain(
+		withUser = handler.Chain(
 			withApp,
-			gateway.CtxUser(users),
+			handler.CtxUser(users),
 		)
 	)
 
@@ -184,51 +188,135 @@ func main() {
 	next := router.PathPrefix(fmt.Sprintf("/%s", apiVersionNext)).Subrouter()
 
 	next.Methods("POST").PathPrefix("/objects").Name("objectCreate").HandlerFunc(
-		gateway.Wrap(
+		handler.Wrap(
 			withUser,
-			gateway.ObjectCreate(objectController),
+			handler.ObjectCreate(objectController),
 		),
 	)
 
 	next.Methods("DELETE").PathPrefix("/objects/{objectID:[0-9]+}").Name("objectDelete").HandlerFunc(
-		gateway.Wrap(
+		handler.Wrap(
 			withUser,
-			gateway.ObjectDelete(objectController),
+			handler.ObjectDelete(objectController),
 		),
 	)
 
 	next.Methods("GET").PathPrefix("/objects/{objectID:[0-9]+}").Name("objectRetrieve").HandlerFunc(
-		gateway.Wrap(
+		handler.Wrap(
 			withUser,
-			gateway.ObjectRetrieve(objectController),
+			handler.ObjectRetrieve(objectController),
 		),
 	)
 
 	next.Methods("PUT").PathPrefix("/objects/{objectID:[0-9]+}").Name("objectUpdate").HandlerFunc(
-		gateway.Wrap(
+		handler.Wrap(
 			withUser,
-			gateway.ObjectUpdate(objectController),
+			handler.ObjectUpdate(objectController),
 		),
 	)
 
 	next.Methods("GET").PathPrefix("/objects").Name("objectListAll").HandlerFunc(
-		gateway.Wrap(
+		handler.Wrap(
 			withApp,
-			gateway.ObjectListAll(objectController),
+			handler.ObjectListAll(objectController),
 		),
 	)
 
 	next.Methods("GET").PathPrefix("/me/objects/connections").Name("objectListConnections").HandlerFunc(
-		gateway.Wrap(
+		handler.Wrap(
 			withUser,
-			gateway.ObjectListConnections(objectController),
+			handler.ObjectListConnections(objectController),
 		),
 	)
 
 	next.Methods("GET").PathPrefix("/me/objects").Name("objectList").HandlerFunc(
-		gateway.Wrap(
+		handler.Wrap(
 			withUser,
-			gateway.ObjectList(objectController),
+			handler.ObjectList(objectController),
+		),
+	)
+
+	next.Methods("POST").PathPrefix("/posts/{postID:[0-9]+}/comments").Name("commentCreate").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.CommentCreate(commentController),
+		),
+	)
+
+	next.Methods("DELETE").PathPrefix("/posts/{postID:[0-9]+}/comments/{commentID:[0-9]+}").Name("commentDelete").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.CommentDelete(commentController),
+		),
+	)
+
+	next.Methods("GET").PathPrefix("/posts/{postID:[0-9]+}/comments/{commentID:[0-9]+}").Name("commentRetrieve").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.CommentRetrieve(commentController),
+		),
+	)
+
+	next.Methods("PUT").PathPrefix("/posts/{postID:[0-9]+}/comments/{commentID:[0-9]+}").Name("commentUpdate").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.CommentUpdate(commentController),
+		),
+	)
+
+	next.Methods("GET").PathPrefix("/posts/{postID:[0-9]+}/comments").Name("commentList").HandlerFunc(
+		handler.Wrap(
+			withApp,
+			handler.CommentList(commentController, users),
+		),
+	)
+
+	next.Methods("POST").PathPrefix("/posts").Name("postCreate").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.PostCreate(postController),
+		),
+	)
+
+	next.Methods("DELETE").PathPrefix("/posts/{postID:[0-9]+}").Name("postDelete").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.PostDelete(postController),
+		),
+	)
+
+	next.Methods("GET").PathPrefix("/posts/{postID:[0-9]+}").Name("postRetrieve").HandlerFunc(
+		handler.Wrap(
+			withApp,
+			handler.PostRetrieve(postController),
+		),
+	)
+
+	next.Methods("PUT").PathPrefix("/posts/{postID:[0-9]+}").Name("postUpdate").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.PostUpdate(postController),
+		),
+	)
+
+	next.Methods("GET").PathPrefix("/posts").Name("postListAll").HandlerFunc(
+		handler.Wrap(
+			withApp,
+			handler.PostListAll(postController, users),
+		),
+	)
+
+	next.Methods("GET").PathPrefix("/me/posts/connections").Name("postListConnections").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.PostListMeConnections(postController, users),
+		),
+	)
+
+	next.Methods("GET").PathPrefix("/me/posts").Name("postListMe").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.PostListMe(postController, users),
 		),
 	)
 
