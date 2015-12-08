@@ -26,13 +26,13 @@ func PostCreate(c *controller.PostController) Handler {
 
 		err := json.NewDecoder(r.Body).Decode(p)
 		if err != nil {
-			respondError(w, http.StatusBadRequest, 0, err)
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
 		}
 
 		post, err := c.Create(app, p.post, user)
 		if err != nil {
-			respondError(w, http.StatusInternalServerError, 0, err)
+			respondError(w, 0, err)
 			return
 		}
 
@@ -47,13 +47,13 @@ func PostDelete(c *controller.PostController) Handler {
 
 		id, err := strconv.ParseUint(mux.Vars(r)["postID"], 10, 64)
 		if err != nil {
-			respondError(w, http.StatusBadRequest, 0, err)
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
 		}
 
 		err = c.Delete(app, id)
 		if err != nil {
-			respondError(w, http.StatusInternalServerError, 0, err)
+			respondError(w, 0, err)
 			return
 		}
 
@@ -68,17 +68,22 @@ func PostListAll(c *controller.PostController, users user.StrangleService) Handl
 
 		ps, err := c.ListAll(app)
 		if err != nil {
-			respondError(w, http.StatusInternalServerError, 0, err)
+			respondError(w, 0, err)
+			return
+		}
+
+		if len(ps) == 0 {
+			respondJSON(w, http.StatusNoContent, nil)
 			return
 		}
 
 		us, err := extractUsers(app, ps, users)
 		if err != nil {
-			respondError(w, http.StatusInternalServerError, 0, err)
+			respondError(w, 0, err)
 			return
 		}
 
-		respondJSON(w, http.StatusOK, payloadPosts{
+		respondJSON(w, http.StatusOK, &payloadPosts{
 			posts: ps,
 			users: us,
 		})
@@ -95,17 +100,22 @@ func PostListMe(c *controller.PostController, users user.StrangleService) Handle
 
 		ps, err := c.ListUser(app, user.ID)
 		if err != nil {
-			respondError(w, http.StatusInternalServerError, 0, err)
+			respondError(w, 0, err)
+			return
+		}
+
+		if len(ps) == 0 {
+			respondJSON(w, http.StatusNoContent, nil)
 			return
 		}
 
 		us, err := extractUsers(app, ps, users)
 		if err != nil {
-			respondError(w, http.StatusInternalServerError, 0, err)
+			respondError(w, 0, err)
 			return
 		}
 
-		respondJSON(w, http.StatusOK, payloadPosts{
+		respondJSON(w, http.StatusOK, &payloadPosts{
 			posts: ps,
 			users: us,
 		})
@@ -125,17 +135,22 @@ func PostListMeConnections(
 
 		ps, err := c.ListUserConnections(app, user.ID)
 		if err != nil {
-			respondError(w, http.StatusInternalServerError, 0, err)
+			respondError(w, 0, err)
+			return
+		}
+
+		if len(ps) == 0 {
+			respondJSON(w, http.StatusNoContent, nil)
 			return
 		}
 
 		us, err := extractUsers(app, ps, users)
 		if err != nil {
-			respondError(w, http.StatusInternalServerError, 0, err)
+			respondError(w, 0, err)
 			return
 		}
 
-		respondJSON(w, http.StatusOK, payloadPosts{
+		respondJSON(w, http.StatusOK, &payloadPosts{
 			posts: ps,
 			users: us,
 		})
@@ -149,18 +164,13 @@ func PostRetrieve(c *controller.PostController) Handler {
 
 		id, err := strconv.ParseUint(mux.Vars(r)["postID"], 10, 64)
 		if err != nil {
-			respondError(w, http.StatusBadRequest, 0, err)
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
 		}
 
 		post, err := c.Retrieve(app, id)
 		if err != nil {
-			if err == controller.ErrNotFound {
-				respondError(w, http.StatusNotFound, 0, err)
-				return
-			}
-
-			respondError(w, http.StatusInternalServerError, 0, err)
+			respondError(w, 0, err)
 			return
 		}
 
@@ -179,24 +189,19 @@ func PostUpdate(c *controller.PostController) Handler {
 
 		id, err := strconv.ParseUint(mux.Vars(r)["postID"], 10, 64)
 		if err != nil {
-			respondError(w, http.StatusBadRequest, 0, err)
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
 		}
 
 		err = json.NewDecoder(r.Body).Decode(&p)
 		if err != nil {
-			respondError(w, http.StatusBadRequest, 0, err)
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
 		}
 
 		updated, err := c.Update(app, user, id, p.post)
 		if err != nil {
-			if err == controller.ErrNotFound {
-				respondError(w, http.StatusNotFound, 0, err)
-				return
-			}
-
-			respondError(w, http.StatusInternalServerError, 0, err)
+			respondError(w, 0, err)
 			return
 		}
 

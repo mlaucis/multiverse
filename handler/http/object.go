@@ -24,13 +24,13 @@ func ObjectCreate(c *controller.ObjectController) Handler {
 
 		err := json.NewDecoder(r.Body).Decode(ro)
 		if err != nil {
-			respondError(w, http.StatusInternalServerError, 0, err)
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
 		}
 
 		object, err := c.Create(app, ro.Object, user)
 		if err != nil {
-			respondError(w, http.StatusInternalServerError, 0, err)
+			respondError(w, 0, err)
 			return
 		}
 
@@ -45,13 +45,13 @@ func ObjectDelete(c *controller.ObjectController) Handler {
 
 		id, err := strconv.ParseUint(mux.Vars(r)["objectID"], 10, 64)
 		if err != nil {
-			respondError(w, http.StatusInternalServerError, 0, err)
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
 		}
 
 		err = c.Delete(app, id)
 		if err != nil {
-			respondError(w, http.StatusInternalServerError, 0, err)
+			respondError(w, 0, err)
 			return
 		}
 
@@ -69,7 +69,7 @@ func ObjectList(c *controller.ObjectController) Handler {
 
 		os, err := c.List(app, user.ID)
 		if err != nil {
-			respondError(w, http.StatusInternalServerError, 0, err)
+			respondError(w, 0, err)
 			return
 		}
 
@@ -88,7 +88,7 @@ func ObjectListAll(c *controller.ObjectController) Handler {
 
 		os, err := c.ListAll(app)
 		if err != nil {
-			respondError(w, http.StatusInternalServerError, 0, err)
+			respondError(w, 0, err)
 			return
 		}
 
@@ -111,7 +111,7 @@ func ObjectListConnections(c *controller.ObjectController) Handler {
 
 		os, err := c.ListConnections(app, user.ID)
 		if err != nil {
-			respondError(w, http.StatusInternalServerError, 0, err)
+			respondError(w, 0, err)
 			return
 		}
 
@@ -130,18 +130,13 @@ func ObjectRetrieve(c *controller.ObjectController) Handler {
 
 		id, err := strconv.ParseUint(mux.Vars(r)["objectID"], 10, 64)
 		if err != nil {
-			respondError(w, http.StatusInternalServerError, 0, err)
+			respondError(w, 0, err)
 			return
 		}
 
 		object, err := c.Retrieve(app, id)
 		if err != nil {
-			if err == controller.ErrNotFound {
-				respondError(w, http.StatusNotFound, 0, err)
-				return
-			}
-
-			respondError(w, http.StatusInternalServerError, 0, err)
+			respondError(w, 0, err)
 			return
 		}
 
@@ -159,24 +154,19 @@ func ObjectUpdate(c *controller.ObjectController) Handler {
 
 		id, err := strconv.ParseUint(mux.Vars(r)["objectID"], 10, 64)
 		if err != nil {
-			respondError(w, http.StatusInternalServerError, 0, err)
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
 		}
 
 		err = json.NewDecoder(r.Body).Decode(ro)
 		if err != nil {
-			respondError(w, http.StatusInternalServerError, 0, err)
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
 		}
 
 		updated, err := c.Update(app, id, ro.Object)
 		if err != nil {
-			if err == controller.ErrNotFound {
-				respondError(w, http.StatusNotFound, 0, err)
-				return
-			}
-
-			respondError(w, http.StatusInternalServerError, 0, err)
+			respondError(w, 0, err)
 			return
 		}
 

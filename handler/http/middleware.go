@@ -2,7 +2,6 @@ package http
 
 import (
 	"compress/gzip"
-	"fmt"
 	"io"
 	"net/http"
 	"strconv"
@@ -22,9 +21,6 @@ import (
 	"github.com/tapglue/multiverse/service/user"
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
-
-// Middleware can be used to chain Handlers with different responsibilities.
-type Middleware func(Handler) Handler
 
 // CORS adds the standard set of CORS headers.
 func CORS() Middleware {
@@ -51,7 +47,7 @@ func CtxApp(apps app.StrangleService) Middleware {
 		return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 			token, _, ok := r.BasicAuth()
 			if !ok {
-				respondError(w, http.StatusUnauthorized, 1001, fmt.Errorf("application user not found"))
+				respondError(w, 1001, wrapError(ErrUnauthorized, "application user not found"))
 				return
 			}
 
@@ -63,7 +59,7 @@ func CtxApp(apps app.StrangleService) Middleware {
 			if len(token) == 32 {
 				app, errs = apps.FindByApplicationToken(token)
 				if errs != nil {
-					respondError(w, http.StatusInternalServerError, 0, errs[0])
+					respondError(w, 0, errs[0])
 					return
 				}
 
@@ -71,7 +67,7 @@ func CtxApp(apps app.StrangleService) Middleware {
 			} else if len(token) == 44 {
 				app, errs = apps.FindByBackendToken(token)
 				if errs != nil {
-					respondError(w, http.StatusInternalServerError, 0, errs[0])
+					respondError(w, 0, errs[0])
 					return
 				}
 
@@ -79,7 +75,7 @@ func CtxApp(apps app.StrangleService) Middleware {
 			}
 
 			if app == nil {
-				respondError(w, http.StatusUnauthorized, 1001, fmt.Errorf("application user not found"))
+				respondError(w, 1001, wrapError(ErrUnauthorized, "application user not found"))
 				return
 			}
 
@@ -120,12 +116,12 @@ func CtxUser(users user.StrangleService) Middleware {
 
 			_, token, ok := r.BasicAuth()
 			if !ok {
-				respondError(w, http.StatusUnauthorized, 4007, fmt.Errorf("error while reading user credentials"))
+				respondError(w, 4007, wrapError(ErrUnauthorized, "error while reading user credentials"))
 				return
 			}
 
 			if token == "" {
-				respondError(w, http.StatusUnauthorized, 4013, fmt.Errorf("session token missing from request"))
+				respondError(w, 4013, wrapError(ErrUnauthorized, "session token missing from request"))
 				return
 			}
 
@@ -137,7 +133,7 @@ func CtxUser(users user.StrangleService) Middleware {
 
 				user, errs = users.FindBySession(app.OrgID, app.ID, token)
 				if errs != nil {
-					respondError(w, http.StatusInternalServerError, 0, errs[0])
+					respondError(w, 0, errs[0])
 					return
 				}
 			case tokenBackend:
@@ -145,17 +141,17 @@ func CtxUser(users user.StrangleService) Middleware {
 
 				id, err := strconv.ParseUint(token, 10, 64)
 				if err != nil {
-					respondError(w, http.StatusInternalServerError, 0, err)
+					respondError(w, 0, err)
 					return
 				}
 
 				user, errs = users.Read(app.OrgID, app.ID, id, false)
 				if errs != nil {
-					respondError(w, http.StatusInternalServerError, 0, errs[0])
+					respondError(w, 0, errs[0])
 					return
 				}
 			default:
-				respondError(w, http.StatusUnauthorized, 4007, fmt.Errorf("error while reading user credentials"))
+				respondError(w, 4007, wrapError(ErrUnauthorized, "error while reading user credentials"))
 				return
 			}
 
@@ -200,7 +196,7 @@ func HasUserAgent() Middleware {
 	return func(next Handler) Handler {
 		return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 			if r.Header.Get("User-Agent") == "" {
-				respondError(w, http.StatusBadRequest, 5002, fmt.Errorf("User-Agent header must be set"))
+				respondError(w, 5002, wrapError(ErrBadRequest, "User-Agent header must be set"))
 				return
 			}
 
@@ -323,7 +319,7 @@ func RateLimit(limits limiter.Limiter) Middleware {
 
 			quota, expires, err := limits.Request(l)
 			if err != nil {
-				respondError(w, http.StatusInternalServerError, 0, err)
+				respondError(w, 0, err)
 				return
 			}
 
@@ -332,7 +328,7 @@ func RateLimit(limits limiter.Limiter) Middleware {
 			w.Header().Set("X-Ratelimit-Reset", strconv.FormatInt(expires.Unix(), 10))
 
 			if quota < 0 {
-				respondError(w, 429, 0, fmt.Errorf("Request quota exceeded"))
+				respondError(w, 0, wrapError(ErrLimitExceeded, "request quota exceeded"))
 				return
 			}
 
@@ -367,29 +363,29 @@ func ValidateContent() Middleware {
 			}
 
 			if cl := r.Header.Get("Content-Length"); cl == "" {
-				respondError(w, http.StatusBadRequest, 5004, fmt.Errorf("Content-Length header missing"))
+				respondError(w, 5004, wrapError(ErrBadRequest, "Content-Length header missing"))
 				return
 			} else if l, err := strconv.ParseInt(cl, 10, 64); err != nil {
-				respondError(w, http.StatusBadRequest, 5003, fmt.Errorf("Content-Length header is invalid"))
+				respondError(w, 5003, wrapError(ErrBadRequest, "Content-Length header is invalid"))
 				return
 			} else if l != r.ContentLength {
-				respondError(w, http.StatusBadRequest, 5005, fmt.Errorf("Content-Length header size mismatch"))
+				respondError(w, 5005, wrapError(ErrBadRequest, "Content-Length header size mismatch"))
 				return
 			} else if r.ContentLength > 4096 {
-				respondError(w, http.StatusBadRequest, 5011, fmt.Errorf("payload too big"))
+				respondError(w, 5011, wrapError(ErrBadRequest, "payload too big"))
 				return
 			}
 
 			if ct := r.Header.Get("Content-Type"); ct == "" {
-				respondError(w, http.StatusBadRequest, 5007, fmt.Errorf("Content-Type header missing"))
+				respondError(w, 5007, wrapError(ErrBadRequest, "Content-Type header missing"))
 				return
 			} else if ct != "application/json" && ct != "application/json; charset=UTF-8" {
-				respondError(w, http.StatusBadRequest, 5006, fmt.Errorf("Content-Type header missmatch"))
+				respondError(w, 5006, wrapError(ErrBadRequest, "Content-Type header missmatch"))
 				return
 			}
 
 			if r.Body == nil {
-				respondError(w, http.StatusBadRequest, 5012, fmt.Errorf("empty request body"))
+				respondError(w, 5012, wrapError(ErrBadRequest, "empty request body"))
 				return
 			}
 

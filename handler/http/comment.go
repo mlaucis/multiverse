@@ -26,24 +26,19 @@ func CommentCreate(c *controller.CommentController) Handler {
 
 		postID, err := strconv.ParseUint(mux.Vars(r)["postID"], 10, 64)
 		if err != nil {
-			respondError(w, http.StatusBadRequest, 0, err)
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
 		}
 
 		err = json.NewDecoder(r.Body).Decode(p)
 		if err != nil {
-			respondError(w, http.StatusBadRequest, 0, err)
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
 		}
 
 		comment, err := c.Create(app, user, postID, p.content)
 		if err != nil {
-			if err == controller.ErrNotFound {
-				respondError(w, http.StatusNotFound, 0, err)
-				return
-			}
-
-			respondError(w, http.StatusInternalServerError, 0, err)
+			respondError(w, 0, err)
 			return
 		}
 
@@ -61,19 +56,19 @@ func CommentDelete(c *controller.CommentController) Handler {
 
 		postID, err := strconv.ParseUint(mux.Vars(r)["postID"], 10, 64)
 		if err != nil {
-			respondError(w, http.StatusBadRequest, 0, err)
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
 		}
 
 		commentID, err := strconv.ParseUint(mux.Vars(r)["commentID"], 10, 64)
 		if err != nil {
-			respondError(w, http.StatusBadRequest, 0, err)
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
 		}
 
 		err = c.Delete(app, user, postID, commentID)
 		if err != nil {
-			respondError(w, http.StatusInternalServerError, 0, err)
+			respondError(w, 0, err)
 			return
 		}
 
@@ -91,19 +86,23 @@ func CommentList(
 
 		postID, err := strconv.ParseUint(mux.Vars(r)["postID"], 10, 64)
 		if err != nil {
-			respondError(w, http.StatusBadRequest, 0, err)
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
 		}
 
 		cs, err := c.List(app, postID)
 		if err != nil {
-			respondError(w, http.StatusInternalServerError, 0, err)
+			respondError(w, 0, err)
 			return
+		}
+
+		if len(cs) == 0 {
+			respondJSON(w, http.StatusNoContent, nil)
 		}
 
 		us, err := extractUsers(app, cs, users)
 		if err != nil {
-			respondError(w, http.StatusInternalServerError, 0, err)
+			respondError(w, 0, err)
 			return
 		}
 
@@ -124,19 +123,19 @@ func CommentRetrieve(c *controller.CommentController) Handler {
 
 		postID, err := strconv.ParseUint(mux.Vars(r)["postID"], 10, 64)
 		if err != nil {
-			respondError(w, http.StatusBadRequest, 0, err)
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
 		}
 
 		commentID, err := strconv.ParseUint(mux.Vars(r)["commentID"], 10, 64)
 		if err != nil {
-			respondError(w, http.StatusBadRequest, 0, err)
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
 		}
 
 		comment, err := c.Retrieve(app, user, postID, commentID)
 		if err != nil {
-			respondError(w, http.StatusInternalServerError, 0, err)
+			respondError(w, 0, err)
 			return
 		}
 
@@ -155,25 +154,25 @@ func CommentUpdate(c *controller.CommentController) Handler {
 
 		postID, err := strconv.ParseUint(mux.Vars(r)["postID"], 10, 64)
 		if err != nil {
-			respondError(w, http.StatusBadRequest, 0, err)
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
 		}
 
 		commentID, err := strconv.ParseUint(mux.Vars(r)["commentID"], 10, 64)
 		if err != nil {
-			respondError(w, http.StatusBadRequest, 0, err)
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
 		}
 
 		err = json.NewDecoder(r.Body).Decode(p)
 		if err != nil {
-			respondError(w, http.StatusBadRequest, 0, err)
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
 		}
 
 		comment, err := c.Update(app, user, postID, commentID, p.content)
 		if err != nil {
-			respondError(w, http.StatusInternalServerError, 0, err)
+			respondError(w, 0, err)
 			return
 		}
 
