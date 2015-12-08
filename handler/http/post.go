@@ -247,6 +247,7 @@ func (p *payloadPost) MarshalJSON() ([]byte, error) {
 			Tags:        o.Tags,
 			UpdatedAt:   o.UpdatedAt,
 			UserID:      strconv.FormatUint(o.OwnerID, 10),
+			Visibility:  o.Visibility,
 		}
 	)
 

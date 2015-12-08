@@ -166,7 +166,7 @@ func (c *PostController) Update(
 	id uint64,
 	post *object.Object,
 ) (*object.Object, error) {
-	os, err := c.objects.Query(app.Namespace(), object.QueryOptions{
+	ps, err := c.objects.Query(app.Namespace(), object.QueryOptions{
 		ID: &id,
 		OwnerIDs: []uint64{
 			owner.ID,
@@ -180,13 +180,15 @@ func (c *PostController) Update(
 		return nil, err
 	}
 
-	if len(os) != 1 {
+	if len(ps) != 1 {
 		return nil, ErrNotFound
 	}
 
-	// Preserve ownership information.
-	post.ID = id
-	post.OwnerID = owner.ID
+	// Preserve information.
+	p := ps[0]
+	p.Attachments = post.Attachments
+	p.Tags = post.Tags
+	p.Visibility = post.Visibility
 
-	return c.objects.Put(app.Namespace(), post)
+	return c.objects.Put(app.Namespace(), p)
 }
