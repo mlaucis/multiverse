@@ -103,19 +103,19 @@ func (o *Object) Validate() error {
 	}
 
 	if o.OwnerID == 0 {
-		return ErrInvalidObject
+		return wrapError(ErrInvalidObject, "missing owner")
 	}
 
 	if len(o.Tags) > 5 {
-		return ErrInvalidObject
+		return wrapError(ErrInvalidObject, "too many tags")
 	}
 
 	if o.Type == "" {
-		return ErrInvalidObject
+		return wrapError(ErrInvalidObject, "missing type")
 	}
 
 	if o.Visibility < 10 || o.Visibility > 50 {
-		return ErrInvalidObject
+		return wrapError(ErrInvalidObject, "unsupported visibility")
 	}
 
 	return nil

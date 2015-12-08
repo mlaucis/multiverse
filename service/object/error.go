@@ -1,6 +1,9 @@
 package object
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 // Common errors for Object validation and Service.
 var (
@@ -10,3 +13,11 @@ var (
 	ErrNamespaceNotFound = errors.New("namespace not found")
 	ErrNotFound          = errors.New("object not found")
 )
+
+func wrapError(err error, format string, args ...interface{}) error {
+	return fmt.Errorf(
+		"%s: %s",
+		err.Error(),
+		fmt.Sprintf(format, args...),
+	)
+}
