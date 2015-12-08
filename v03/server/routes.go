@@ -35,9 +35,9 @@ const (
 	organizationID      = "{accountID}"
 	memberID            = "{accountUserID}"
 	applicationID       = "{applicationID}"
-	applicationUserID   = "{applicationUserID}"
-	applicationUserToID = "{applicationUserToID}"
-	eventID             = "{eventID}"
+	applicationUserID   = "{applicationUserID:[0-9]+}"
+	applicationUserToID = "{applicationUserToID:[0-9]+}"
+	eventID             = "{eventID:[0-9]+}"
 )
 
 var (
