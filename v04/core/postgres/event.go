@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/tapglue/multiverse/errors"
+	"github.com/tapglue/multiverse/tgflake"
 	"github.com/tapglue/multiverse/v04/core"
 	"github.com/tapglue/multiverse/v04/entity"
 	"github.com/tapglue/multiverse/v04/errmsg"
@@ -175,7 +176,12 @@ const (
 
 func (e *event) Create(accountID, applicationID int64, currentUserID uint64, event *entity.Event) []errors.Error {
 	if event.ID == 0 {
-		return []errors.Error{errmsg.ErrInternalEventMissingID.SetCurrentLocation()}
+		var err error
+		event.ID, err = tgflake.FlakeNextID(applicationID, "events")
+		if err != nil {
+			return []errors.Error{errmsg.ErrServerInternalError.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
+		}
+
 	}
 	event.Enabled = true
 	timeNow := time.Now()

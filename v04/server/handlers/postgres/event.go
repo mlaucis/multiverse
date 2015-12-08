@@ -7,7 +7,6 @@ import (
 	"strconv"
 
 	"github.com/tapglue/multiverse/errors"
-	"github.com/tapglue/multiverse/tgflake"
 	"github.com/tapglue/multiverse/v04/context"
 	"github.com/tapglue/multiverse/v04/core"
 	"github.com/tapglue/multiverse/v04/entity"
@@ -387,11 +386,6 @@ func (evt *event) CurrentUserCreate(ctx *context.Context) (err []errors.Error) {
 		ctx.ApplicationID,
 		ev); err != nil {
 		return
-	}
-
-	ev.ID, er = tgflake.FlakeNextID(ctx.ApplicationID, "events")
-	if er != nil {
-		return []errors.Error{errmsg.ErrServerInternalError.UpdateInternalMessage(er.Error()).SetCurrentLocation()}
 	}
 
 	err = evt.storage.Create(
