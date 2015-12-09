@@ -264,7 +264,7 @@ func (e *event) Delete(accountID, applicationID int64, userID, eventID uint64) [
 }
 
 func (e *event) ListAll(orgID, appID int64, condition core.EventCondition) ([]*entity.Event, []errors.Error) {
-	requestCondition, requestParams, er := condition.Process(2)
+	requestCondition, requestParams, er := condition.Process(1)
 	if er != nil {
 		return nil, er
 	}
