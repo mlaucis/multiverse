@@ -376,12 +376,15 @@ func ValidateContent() Middleware {
 				return
 			}
 
-			if ct := r.Header.Get("Content-Type"); ct == "" {
-				respondError(w, 5007, wrapError(ErrBadRequest, "Content-Type header missing"))
-				return
-			} else if ct != "application/json" && ct != "application/json; charset=UTF-8" {
-				respondError(w, 5006, wrapError(ErrBadRequest, "Content-Type header missmatch"))
-				return
+			// Enforece content type checking for requests with payload.
+			if r.ContentLength > 0 {
+				if ct := r.Header.Get("Content-Type"); ct == "" {
+					respondError(w, 5007, wrapError(ErrBadRequest, "Content-Type header missing"))
+					return
+				} else if ct != "application/json" && ct != "application/json; charset=UTF-8" {
+					respondError(w, 5006, wrapError(ErrBadRequest, "Content-Type header missmatch"))
+					return
+				}
 			}
 
 			if r.Body == nil {
