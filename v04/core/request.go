@@ -25,15 +25,16 @@ type (
 
 	// EventCondition holds the possible event fields to be filtered
 	EventCondition struct {
-		Language *RequestCondition             `json:"language,omitempty"`
-		Location *RequestCondition             `json:"location,omitempty"`
-		Metadata *map[string]*RequestCondition `json:"metadata,omitempty"`
-		ObjectID *RequestCondition             `json:"tg_object_id"`
-		Owned    *RequestCondition
-		Priority *RequestCondition `json:"priority,omitempty"`
-		Type     *RequestCondition `json:"type,omitempty"`
-		UserID   *RequestCondition
-		Object   *struct {
+		Language   *RequestCondition             `json:"language,omitempty"`
+		Location   *RequestCondition             `json:"location,omitempty"`
+		Metadata   *map[string]*RequestCondition `json:"metadata,omitempty"`
+		ObjectID   *RequestCondition             `json:"tg_object_id"`
+		Owned      *RequestCondition
+		Priority   *RequestCondition `json:"priority,omitempty"`
+		Type       *RequestCondition `json:"type,omitempty"`
+		UserID     *RequestCondition
+		Visibility *RequestCondition
+		Object     *struct {
 			ID   *RequestCondition `json:"id,omitempty"`
 			Type *RequestCondition `json:"type,omitempty"`
 		} `json:"object,omitempty"`
@@ -56,6 +57,8 @@ func (s *RequestCondition) condition(fieldName string, paramID int) (cond string
 		case int:
 			fieldType = "BIGINT"
 		case int64:
+			fieldType = "BIGINT"
+		case uint64:
 			fieldType = "BIGINT"
 		case float64:
 			// Unfortunately here is where the JSON spec or parser go against common sense and default to FLOAT
@@ -224,6 +227,10 @@ func (e *EventCondition) conditions(startPlaceholderID int) (query string, param
 		return "", []interface{}{}, 0, err
 	}
 
+	if err := checkSimpleField(e.Owned, `json_data->>'owned'`); err != nil {
+		return "", []interface{}{}, 0, err
+	}
+
 	if e.Object != nil {
 		if err := checkSimpleField(e.Object.ID, `json_data->'object'->>'id'`); err != nil {
 			return "", []interface{}{}, 0, err
@@ -243,6 +250,10 @@ func (e *EventCondition) conditions(startPlaceholderID int) (query string, param
 	}
 
 	if err := checkSimpleField(e.UserID, `json_data->>'user_id'`); err != nil {
+		return "", []interface{}{}, 0, err
+	}
+
+	if err := checkSimpleField(e.Visibility, `json_data->>'visibility'`); err != nil {
 		return "", []interface{}{}, 0, err
 	}
 
