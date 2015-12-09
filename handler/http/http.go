@@ -8,6 +8,8 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/tapglue/multiverse/controller"
+	"github.com/tapglue/multiverse/service/user"
+	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
 
 // Handler is the gateway specific http.HandlerFunc expecting a context.Context.
@@ -36,6 +38,16 @@ func Wrap(
 	return func(w http.ResponseWriter, r *http.Request) {
 		middleware(handler)(context.Background(), w, r)
 	}
+}
+
+func mapUsers(us user.Users) map[string]*v04_entity.ApplicationUser {
+	m := map[string]*v04_entity.ApplicationUser{}
+
+	for _, u := range us {
+		m[strconv.FormatUint(u.ID, 10)] = u
+	}
+
+	return m
 }
 
 func respondError(w http.ResponseWriter, code int, err error) {

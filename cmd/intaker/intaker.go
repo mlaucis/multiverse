@@ -31,6 +31,7 @@ import (
 	"github.com/tapglue/multiverse/server"
 	"github.com/tapglue/multiverse/service/app"
 	"github.com/tapglue/multiverse/service/connection"
+	"github.com/tapglue/multiverse/service/event"
 	"github.com/tapglue/multiverse/service/object"
 	"github.com/tapglue/multiverse/service/user"
 	v04_postgres_core "github.com/tapglue/multiverse/v04/core/postgres"
@@ -136,6 +137,11 @@ func main() {
 	connections = connection.InstrumentMiddleware(component, "postgres")(connections)
 	connections = connection.LogStrangleMiddleware(logger, "postgres")(connections)
 
+	var events event.StrangleService
+	events = v04_postgres_core.NewEvent(pgClient)
+	events = event.InstrumentStrangleMiddleware(component, "postgres")(events)
+	events = event.LogStrangleMiddleware(logger, "postgres")(events)
+
 	var objects object.Service
 	objects = object.NewPostgresService(pgClient.MainDatastore())
 	objects = object.InstrumentMiddleware(component, "postgres")(objects)
@@ -149,6 +155,7 @@ func main() {
 	// Setup controllers
 	var (
 		commentController = controller.NewCommentController(objects)
+		likeController    = controller.NewLikeController(events, objects)
 		objectController  = controller.NewObjectController(connections, objects)
 		postController    = controller.NewPostController(connections, objects)
 	)
@@ -268,6 +275,27 @@ func main() {
 		handler.Wrap(
 			withApp,
 			handler.CommentList(commentController, users),
+		),
+	)
+
+	next.Methods("POST").PathPrefix("/posts/{postID:[0-9]+}/likes").Name("likeCreate").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.LikeCreate(likeController),
+		),
+	)
+
+	next.Methods("DELETE").PathPrefix("/posts/{postID:[0-9]+}/likes").Name("likeDelete").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.LikeDelete(likeController),
+		),
+	)
+
+	next.Methods("GET").PathPrefix("/posts/{postID:[0-9]+}/likes").Name("likeList").HandlerFunc(
+		handler.Wrap(
+			withApp,
+			handler.LikeList(likeController, users),
 		),
 	)
 
