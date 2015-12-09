@@ -40,6 +40,11 @@ func Wrap(
 	}
 }
 
+type apiError struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+}
+
 func mapUsers(us user.Users) map[string]*v04_entity.ApplicationUser {
 	m := map[string]*v04_entity.ApplicationUser{}
 
@@ -67,10 +72,10 @@ func respondError(w http.ResponseWriter, code int, err error) {
 	}
 
 	respondJSON(w, statusCode, struct {
-		Errors map[string]string `json:"errors"`
+		Errors []apiError `json:"errors"`
 	}{
-		Errors: map[string]string{
-			strconv.Itoa(code): err.Error(),
+		Errors: []apiError{
+			{Code: code, Message: err.Error()},
 		},
 	})
 }
