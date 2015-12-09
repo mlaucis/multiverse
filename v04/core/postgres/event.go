@@ -62,6 +62,12 @@ const (
 			%s
 		ORDER BY json_data->>'created_at' DESC LIMIT 200`
 
+	listAllEventsQuery = `SELECT json_data
+		FROM app_%d_%d.events
+		WHERE (json_data->>'enabled')::BOOL = true
+			%s
+		ORDER BY json_data->>'created_at' DESC LIMIT 200`
+
 	listAllEventsWithUserEventsAndWithUserFollowersEventsQuery = `SELECT json_data
 		FROM app_%d_%d.events
 		WHERE ((%s AND (json_data->>'visibility')::INT = 20)
@@ -255,6 +261,22 @@ func (e *event) Delete(accountID, applicationID int64, userID, eventID uint64) [
 	_, err = e.Update(accountID, applicationID, userID, *event, *event, false)
 
 	return err
+}
+
+func (e *event) ListAll(orgID, appID int64, condition core.EventCondition) ([]*entity.Event, []errors.Error) {
+	requestCondition, requestParams, er := condition.Process(2)
+	if er != nil {
+		return nil, er
+	}
+
+	query := fmt.Sprintf(listAllEventsQuery, orgID, appID, requestCondition)
+
+	rows, err := e.pg.SlaveDatastore(-1).Query(query, requestParams...)
+	if err != nil {
+		return nil, []errors.Error{errmsg.ErrInternalEventsList.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
+	}
+
+	return e.rowsToSlice(rows)
 }
 
 func (e *event) ListUser(accountID, applicationID int64, userID, currentUserID uint64, condition *core.EventCondition) (events []*entity.Event, er []errors.Error) {

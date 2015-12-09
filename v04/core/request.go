@@ -32,6 +32,7 @@ type (
 		Owned    *RequestCondition
 		Priority *RequestCondition `json:"priority,omitempty"`
 		Type     *RequestCondition `json:"type,omitempty"`
+		UserID   *RequestCondition
 		Object   *struct {
 			ID   *RequestCondition `json:"id,omitempty"`
 			Type *RequestCondition `json:"type,omitempty"`
@@ -239,6 +240,10 @@ func (e *EventCondition) conditions(startPlaceholderID int) (query string, param
 		if err := checkSimpleField(e.Target.Type, `json_data->'target'->>'type'`); err != nil {
 			return "", []interface{}{}, 0, err
 		}
+	}
+
+	if err := checkSimpleField(e.UserID, `json_data->>'user_id'`); err != nil {
+		return "", []interface{}{}, 0, err
 	}
 
 	if e.Metadata != nil {
