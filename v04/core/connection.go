@@ -23,7 +23,7 @@ type Connection interface {
 	// Update updates a connection in the database and returns the updated connection user or an error
 	Update(
 		accountID, applicationID int64,
-		existingConnection, updatedConnection entity.Connection,
+		existingConnection, updatedConnection *entity.Connection,
 		retrieve bool,
 	) (connection *entity.Connection, err []errors.Error)
 

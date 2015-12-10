@@ -153,7 +153,7 @@ func (c *connection) Read(accountID, applicationID int64, userFromID, userToID u
 
 func (c *connection) Update(
 	accountID, applicationID int64,
-	existingConnection, updatedConnection entity.Connection,
+	existingConnection, updatedConnection *entity.Connection,
 	retrieve bool,
 ) (*entity.Connection, []errors.Error) {
 
@@ -175,7 +175,7 @@ func (c *connection) Update(
 		return nil, nil
 	}
 
-	return &updatedConnection, nil
+	return updatedConnection, nil
 }
 
 func (c *connection) Delete(accountID, applicationID int64, userFromID, userToID uint64, connectionType entity.ConnectionTypeType) []errors.Error {
@@ -185,7 +185,7 @@ func (c *connection) Delete(accountID, applicationID int64, userFromID, userToID
 	}
 
 	existingConnection.Enabled = entity.PFalse
-	_, err = c.Update(accountID, applicationID, *existingConnection, *existingConnection, false)
+	_, err = c.Update(accountID, applicationID, existingConnection, existingConnection, false)
 	if err != nil {
 		return err
 	}

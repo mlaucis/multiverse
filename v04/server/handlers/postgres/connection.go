@@ -33,10 +33,13 @@ func (conn *connection) Update(ctx *context.Context) (err []errors.Error) {
 		return []errors.Error{errmsg.ErrApplicationUserIDInvalid.SetCurrentLocation()}
 	}
 
-	var connection entity.Connection
-	if er := json.Unmarshal(ctx.Body, &connection); er != nil {
+	p := &entity.PresentationConnection{}
+
+	if er := json.Unmarshal(ctx.Body, p); er != nil {
 		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error()).SetCurrentLocation()}
 	}
+
+	connection := p.Connection
 
 	connection.UserFromID = userFromID
 	connection.UserToID = userToID
@@ -52,12 +55,12 @@ func (conn *connection) Update(ctx *context.Context) (err []errors.Error) {
 		return []errors.Error{errmsg.ErrConnectionUsersNotConnected.SetCurrentLocation()}
 	}
 
-	err = validator.UpdateConnection(conn.appUser, accountID, applicationID, existingConnection, &connection)
+	err = validator.UpdateConnection(conn.appUser, accountID, applicationID, existingConnection, connection)
 	if err != nil {
 		return
 	}
 
-	updatedConnection, err := conn.storage.Update(accountID, applicationID, *existingConnection, connection, false)
+	updatedConnection, err := conn.storage.Update(accountID, applicationID, existingConnection, connection, false)
 	if err != nil {
 		return
 	}
@@ -108,13 +111,16 @@ func (conn *connection) Delete(ctx *context.Context) (err []errors.Error) {
 
 func (conn *connection) Create(ctx *context.Context) (err []errors.Error) {
 	var (
-		connection = &entity.Connection{}
-		er         error
+		p = &entity.PresentationConnection{}
+
+		er error
 	)
 
-	if er = json.Unmarshal(ctx.Body, connection); er != nil {
+	if er = json.Unmarshal(ctx.Body, p); er != nil {
 		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error()).SetCurrentLocation()}
 	}
+
+	connection := p.Connection
 
 	connection.UserFromID = ctx.ApplicationUserID
 
@@ -448,13 +454,16 @@ func (conn *connection) CurrentUserFriends(ctx *context.Context) (err []errors.E
 
 func (conn *connection) CreateFriend(ctx *context.Context) []errors.Error {
 	var (
-		connection = &entity.Connection{}
-		er         error
+		p = &entity.PresentationConnection{}
+
+		er error
 	)
 
-	if er = json.Unmarshal(ctx.Body, connection); er != nil {
+	if er = json.Unmarshal(ctx.Body, p); er != nil {
 		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error()).SetCurrentLocation()}
 	}
+
+	connection := p.Connection
 
 	connection.Type = entity.ConnectionTypeFriend
 	connection.UserFromID = ctx.ApplicationUserID
@@ -463,13 +472,16 @@ func (conn *connection) CreateFriend(ctx *context.Context) []errors.Error {
 
 func (conn *connection) CreateFollow(ctx *context.Context) []errors.Error {
 	var (
-		connection = &entity.Connection{}
-		er         error
+		p = &entity.PresentationConnection{}
+
+		er error
 	)
 
-	if er = json.Unmarshal(ctx.Body, connection); er != nil {
+	if er = json.Unmarshal(ctx.Body, p); er != nil {
 		return []errors.Error{errmsg.ErrServerReqBadJSONReceived.UpdateMessage(er.Error()).SetCurrentLocation()}
 	}
+
+	connection := p.Connection
 
 	connection.Type = entity.ConnectionTypeFollow
 	connection.UserFromID = ctx.ApplicationUserID
@@ -508,7 +520,7 @@ func (conn *connection) doCreateConnection(ctx *context.Context, connection *ent
 			}
 		}
 
-		_, err = conn.storage.Update(ctx.OrganizationID, ctx.ApplicationID, *existingConnection, *existingConnection, false)
+		_, err = conn.storage.Update(ctx.OrganizationID, ctx.ApplicationID, existingConnection, existingConnection, false)
 		if err != nil {
 			return err
 		}
