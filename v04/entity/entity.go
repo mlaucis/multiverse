@@ -337,6 +337,51 @@ func (conn *PresentationConnection) MarshalJSON() ([]byte, error) {
 	})
 }
 
+func (p *PresentationConnection) UnmarshalJSON(raw []byte) error {
+	f := struct {
+		State            ConnectionStateType `json:"state"`
+		Type             ConnectionTypeType  `json:"type"`
+		UserFromID       uint64              `json:"user_from_id"`
+		UserFromIDString string              `json:"user_from_id_string"`
+		UserToID         uint64              `json:"user_to_id"`
+		UserToIDString   string              `json:"user_to_id_string"`
+	}{}
+
+	err := json.Unmarshal(raw, &f)
+	if err != nil {
+		return err
+	}
+
+	p.Connection = &Connection{
+		State:      f.State,
+		Type:       f.Type,
+		UserFromID: f.UserFromID,
+		UserToID:   f.UserToID,
+	}
+	p.UserFromIDString = f.UserFromIDString
+	p.UserToIDString = f.UserToIDString
+
+	if f.UserFromID == 0 && f.UserFromIDString != "" {
+		id, err := strconv.ParseUint(p.UserFromIDString, 10, 64)
+		if err != nil {
+			return err
+		}
+
+		p.Connection.UserFromID = id
+	}
+
+	if f.UserToID == 0 && f.UserToIDString != "" {
+		id, err := strconv.ParseUint(p.UserToIDString, 10, 64)
+		if err != nil {
+			return err
+		}
+
+		p.Connection.UserToID = id
+	}
+
+	return nil
+}
+
 func (e *PresentationEvent) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
 		IDString     string `json:"id_string"`
