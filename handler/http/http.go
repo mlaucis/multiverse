@@ -45,11 +45,13 @@ type apiError struct {
 	Message string `json:"message"`
 }
 
-func mapUsers(us user.Users) map[string]*v04_entity.ApplicationUser {
-	m := map[string]*v04_entity.ApplicationUser{}
+func mapUsers(us user.Users) map[string]*v04_entity.PresentationApplicationUser {
+	m := map[string]*v04_entity.PresentationApplicationUser{}
 
 	for _, u := range us {
-		m[strconv.FormatUint(u.ID, 10)] = u
+		m[strconv.FormatUint(u.ID, 10)] = &v04_entity.PresentationApplicationUser{
+			ApplicationUser: u,
+		}
 	}
 
 	return m

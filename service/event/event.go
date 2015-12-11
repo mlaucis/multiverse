@@ -20,6 +20,18 @@ func (es Events) IDs() []uint64 {
 	return ids
 }
 
+func (es Events) Len() int {
+	return len(es)
+}
+
+func (es Events) Less(i, j int) bool {
+	return es[i].CreatedAt.Before(*es[j].CreatedAt)
+}
+
+func (es Events) Swap(i, j int) {
+	es[i], es[j] = es[j], es[i]
+}
+
 // UserIDs returns UserID for every Event.
 func (es Events) UserIDs() []uint64 {
 	ids := []uint64{}

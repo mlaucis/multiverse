@@ -149,12 +149,13 @@ func main() {
 
 	var users user.StrangleService
 	users = v04_postgres_core.NewApplicationUser(pgClient)
-	users = user.InstrumentMiddleware(component, "postgres")(users)
+	users = user.InstrumentStrangleMiddleware(component, "postgres")(users)
 	users = user.LogStrangleMiddleware(logger, "postgres")(users)
 
 	// Setup controllers
 	var (
 		commentController = controller.NewCommentController(objects)
+		feedController    = controller.NewFeedController(connections, events, objects, users)
 		likeController    = controller.NewLikeController(events, objects)
 		objectController  = controller.NewObjectController(connections, objects)
 		postController    = controller.NewPostController(connections, objects)
@@ -193,6 +194,27 @@ func main() {
 	go tgLogger.JSONLog(errorLogChan)
 
 	next := router.PathPrefix(fmt.Sprintf("/%s", apiVersionNext)).Subrouter()
+
+	next.Methods("GET").PathPrefix("/me/feed/events").Name("feedEvents").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.FeedEvents(feedController, users),
+		),
+	)
+
+	next.Methods("GET").PathPrefix("/me/feed/posts").Name("feedPosts").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.FeedPosts(feedController, users),
+		),
+	)
+
+	next.Methods("GET").PathPrefix("/me/feed").Name("feedNews").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.FeedNews(feedController, users),
+		),
+	)
 
 	next.Methods("POST").PathPrefix("/objects").Name("objectCreate").HandlerFunc(
 		handler.Wrap(
@@ -331,13 +353,6 @@ func main() {
 		handler.Wrap(
 			withApp,
 			handler.PostListAll(postController, users),
-		),
-	)
-
-	next.Methods("GET").PathPrefix("/me/posts/connections").Name("postListConnections").HandlerFunc(
-		handler.Wrap(
-			withUser,
-			handler.PostListMeConnections(postController, users),
 		),
 	)
 

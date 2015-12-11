@@ -312,7 +312,7 @@ func (a *Application) Limit() int64 {
 
 // Namespace returrs the prefix for bucketing entities by Application.
 func (a *Application) Namespace() string {
-	return fmt.Sprintf("app_%d_%d", a.ID, a.OrgID)
+	return fmt.Sprintf("app_%d_%d", a.OrgID, a.ID)
 }
 
 func (u *PresentationApplicationUser) MarshalJSON() ([]byte, error) {

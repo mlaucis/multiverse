@@ -100,7 +100,7 @@ func CommentList(
 			respondJSON(w, http.StatusNoContent, nil)
 		}
 
-		us, err := extractUsers(app, cs, users)
+		us, err := user.UsersFromIDs(users, app, cs.OwnerIDs()...)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -224,8 +224,8 @@ func (p *payloadComment) UnmarshalJSON(raw []byte) error {
 }
 
 type payloadComments struct {
-	comments []*object.Object
-	users    map[string]*v04_entity.ApplicationUser
+	comments object.Objects
+	users    user.Users
 }
 
 func (p *payloadComments) MarshalJSON() ([]byte, error) {
@@ -236,14 +236,14 @@ func (p *payloadComments) MarshalJSON() ([]byte, error) {
 	}
 
 	return json.Marshal(struct {
-		Comments      []*payloadComment                      `json:"comments"`
-		CommentsCount int                                    `json:"comments_count"`
-		Users         map[string]*v04_entity.ApplicationUser `json:"users"`
-		UsersCount    int                                    `json:"users_count"`
+		Comments      []*payloadComment                                  `json:"comments"`
+		CommentsCount int                                                `json:"comments_count"`
+		Users         map[string]*v04_entity.PresentationApplicationUser `json:"users"`
+		UsersCount    int                                                `json:"users_count"`
 	}{
 		Comments:      cs,
 		CommentsCount: len(cs),
-		Users:         p.users,
+		Users:         mapUsers(p.users),
 		UsersCount:    len(p.users),
 	})
 }
