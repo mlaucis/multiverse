@@ -270,6 +270,15 @@ func (au *applicationUser) Update(accountID, applicationID int64, existingUser, 
 	return &updatedUser, nil
 }
 
+func (au *applicationUser) UpdateLastRead(orgID, appID int64, userID uint64) []errors.Error {
+	_, err := au.mainPg.Exec(appSchema(updateApplicationUserLastReadQuery, orgID, appID), time.Now().UTC(), userID)
+	if err != nil {
+		return []errors.Error{errmsg.ErrInternalApplicationUpdate.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
+	}
+
+	return nil
+}
+
 func (au *applicationUser) Delete(accountID, applicationID int64, userID uint64) []errors.Error {
 	user, err := au.Read(accountID, applicationID, userID, false)
 	if err != nil {

@@ -19,6 +19,9 @@ type ApplicationUser interface {
 	// Update updates a user in the database and returns the updates user or an error
 	Update(accountID, applicationID int64, existingUser, updatedUser entity.ApplicationUser, retrieve bool) (usr *entity.ApplicationUser, err []errors.Error)
 
+	// UpdateLastRead advances the last_read pointer to the current time.
+	UpdateLastRead(orgID, appID int64, userID uint64) []errors.Error
+
 	// Delete deletes the user matching the IDs or an error
 	Delete(accountID, applicationID int64, userID uint64) (err []errors.Error)
 

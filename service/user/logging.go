@@ -1,6 +1,7 @@
 package user
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 
@@ -29,14 +30,16 @@ func LogStrangleMiddleware(logger log.Logger, store string) StrangleMiddleware {
 	}
 }
 
-func (s *logStrangleService) FindBySession(orgID, appID int64, key string) (user *v04_entity.ApplicationUser, errs []errors.Error) {
+func (s *logStrangleService) FindBySession(
+	orgID, appID int64,
+	key string,
+) (user *v04_entity.ApplicationUser, errs []errors.Error) {
 	defer func(begin time.Time) {
 		ps := []interface{}{
-			"app", strconv.FormatInt(appID, 10),
 			"duration", time.Since(begin),
 			"key", key,
 			"method", "FindBySession",
-			"org", strconv.FormatInt(orgID, 10),
+			"namespace", namespace(orgID, appID),
 		}
 
 		if errs != nil {
@@ -49,14 +52,17 @@ func (s *logStrangleService) FindBySession(orgID, appID int64, key string) (user
 	return s.StrangleService.FindBySession(orgID, appID, key)
 }
 
-func (s *logStrangleService) Read(orgID, appID int64, id uint64, stats bool) (user *v04_entity.ApplicationUser, errs []errors.Error) {
+func (s *logStrangleService) Read(
+	orgID, appID int64,
+	id uint64,
+	stats bool,
+) (user *v04_entity.ApplicationUser, errs []errors.Error) {
 	defer func(begin time.Time) {
 		ps := []interface{}{
-			"app", strconv.FormatInt(appID, 10),
 			"duration", time.Since(begin),
 			"id", strconv.FormatUint(id, 10),
 			"method", "Read",
-			"org", strconv.FormatInt(orgID, 10),
+			"namespace", namespace(orgID, appID),
 		}
 
 		if errs != nil {
@@ -67,4 +73,30 @@ func (s *logStrangleService) Read(orgID, appID int64, id uint64, stats bool) (us
 	}(time.Now())
 
 	return s.StrangleService.Read(orgID, appID, id, stats)
+}
+
+func (s *logStrangleService) UpdateLastRead(
+	orgID, appID int64,
+	id uint64,
+) (errs []errors.Error) {
+	defer func(begin time.Time) {
+		ps := []interface{}{
+			"duration", time.Since(begin),
+			"id", strconv.FormatUint(id, 10),
+			"method", "UpdateLastRead",
+			"namespace", namespace(orgID, appID),
+		}
+
+		if errs != nil {
+			ps = append(ps, "err", errs[0])
+		}
+
+		_ = s.logger.Log(ps...)
+	}(time.Now())
+
+	return s.StrangleService.UpdateLastRead(orgID, appID, id)
+}
+
+func namespace(orgID, appID int64) string {
+	return fmt.Sprintf("app_%d_%d", orgID, appID)
 }

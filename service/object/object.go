@@ -121,6 +121,19 @@ func (o *Object) Validate() error {
 	return nil
 }
 
+// Objects is an Object collection.
+type Objects []*Object
+
+func (os Objects) OwnerIDs() []uint64 {
+	ids := []uint64{}
+
+	for _, o := range os {
+		ids = append(ids, o.OwnerID)
+	}
+
+	return ids
+}
+
 // QueryOptions are passed to narrow down query for objects.
 type QueryOptions struct {
 	Deleted      bool

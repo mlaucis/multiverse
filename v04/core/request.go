@@ -28,20 +28,20 @@ type (
 		Language   *RequestCondition             `json:"language,omitempty"`
 		Location   *RequestCondition             `json:"location,omitempty"`
 		Metadata   *map[string]*RequestCondition `json:"metadata,omitempty"`
+		Object     *ObjectCondition              `json:"object,omitempty"`
 		ObjectID   *RequestCondition             `json:"tg_object_id"`
 		Owned      *RequestCondition
 		Priority   *RequestCondition `json:"priority,omitempty"`
+		Target     *ObjectCondition  `json:"target,omitempty"`
 		Type       *RequestCondition `json:"type,omitempty"`
 		UserID     *RequestCondition
 		Visibility *RequestCondition
-		Object     *struct {
-			ID   *RequestCondition `json:"id,omitempty"`
-			Type *RequestCondition `json:"type,omitempty"`
-		} `json:"object,omitempty"`
-		Target *struct {
-			ID   *RequestCondition `json:"id,omitempty"`
-			Type *RequestCondition `json:"type,omitempty"`
-		} `json:"target,omitempty"`
+	}
+
+	// ObjectCondition holds the fields for object based queries.
+	ObjectCondition struct {
+		ID   *RequestCondition `json:"id,omitempty"`
+		Type *RequestCondition `json:"type,omitempty"`
 	}
 )
 
@@ -154,7 +154,7 @@ func (s *RequestCondition) condition(fieldName string, paramID int) (cond string
 			}
 
 			condition = append(condition, fmt.Sprintf("(%s)::%s IN (%s)", fieldName, inType, strings.Join(buffer, ", ")))
-			params = append(params, s.In)
+			params = append(params, s.In...)
 		}
 	}
 

@@ -147,36 +147,6 @@ func TestPostControllerListUser(t *testing.T) {
 	}
 }
 
-func TestPostControllerListUserConnections(t *testing.T) {
-	app, owner, c := testSetupPostController(t)
-
-	ps, err := c.ListUserConnections(app, owner.ID)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if have, want := len(ps), 0; have != want {
-		t.Errorf("have %v, want %v", have, want)
-	}
-
-	for _, post := range testPostSet(owner.ID) {
-		_, err = c.objects.Put(app.Namespace(), post)
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	ps, err = c.ListUserConnections(app, owner.ID)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// FIXME(xla): Populate connections service with proper IDs.
-	if have, want := len(ps), 0; have != want {
-		t.Errorf("have %v, want %v", have, want)
-	}
-}
-
 func TestPostControllerRetrieve(t *testing.T) {
 	var (
 		app, owner, c = testSetupPostController(t)

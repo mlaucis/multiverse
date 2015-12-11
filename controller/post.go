@@ -75,7 +75,7 @@ func (c *PostController) Delete(app *v04_entity.Application, id uint64) error {
 // ListAll returns all objects which are of type post.
 func (c *PostController) ListAll(
 	app *v04_entity.Application,
-) ([]*object.Object, error) {
+) (object.Objects, error) {
 	return c.objects.Query(app.Namespace(), object.QueryOptions{
 		Owned: &defaultOwned,
 		Types: []string{
@@ -92,7 +92,7 @@ func (c *PostController) ListAll(
 func (c *PostController) ListUser(
 	app *v04_entity.Application,
 	userID uint64,
-) ([]*object.Object, error) {
+) (object.Objects, error) {
 	return c.objects.Query(app.Namespace(), object.QueryOptions{
 		OwnerIDs: []uint64{
 			userID,
@@ -100,34 +100,6 @@ func (c *PostController) ListUser(
 		Owned: &defaultOwned,
 		Types: []string{
 			typePost,
-		},
-	})
-}
-
-// ListUserConnections returns all posts of the users connections.
-func (c *PostController) ListUserConnections(
-	app *v04_entity.Application,
-	userID uint64,
-) ([]*object.Object, error) {
-	ids, errs := c.connections.FriendsAndFollowingIDs(app.OrgID, app.ID, userID)
-	if errs != nil {
-		return nil, errs[0]
-	}
-
-	if len(ids) == 0 {
-		return []*object.Object{}, nil
-	}
-
-	return c.objects.Query(app.Namespace(), object.QueryOptions{
-		OwnerIDs: ids,
-		Owned:    &defaultOwned,
-		Types: []string{
-			typePost,
-		},
-		Visibilities: []object.Visibility{
-			object.VisibilityConnection,
-			object.VisibilityPublic,
-			object.VisibilityGlobal,
 		},
 	})
 }

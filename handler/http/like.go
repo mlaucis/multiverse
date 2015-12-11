@@ -10,6 +10,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/tapglue/multiverse/controller"
+	"github.com/tapglue/multiverse/service/event"
 	"github.com/tapglue/multiverse/service/user"
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
@@ -84,7 +85,7 @@ func LikeList(c *controller.LikeController, users user.StrangleService) Handler 
 			return
 		}
 
-		us, err := user.UsersFromIDs(users, app.OrgID, app.ID, ls.UserIDs()...)
+		us, err := user.UsersFromIDs(users, app, ls.UserIDs()...)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -92,7 +93,7 @@ func LikeList(c *controller.LikeController, users user.StrangleService) Handler 
 
 		respondJSON(w, http.StatusOK, &payloadLikes{
 			likes: ls,
-			users: mapUsers(us),
+			users: us,
 		})
 	}
 }
@@ -125,8 +126,8 @@ func (p *payloadLike) MarshalJSON() ([]byte, error) {
 }
 
 type payloadLikes struct {
-	likes []*v04_entity.Event
-	users map[string]*v04_entity.ApplicationUser
+	likes event.Events
+	users user.Users
 }
 
 func (p *payloadLikes) MarshalJSON() ([]byte, error) {
@@ -137,14 +138,14 @@ func (p *payloadLikes) MarshalJSON() ([]byte, error) {
 	}
 
 	return json.Marshal(struct {
-		Likes      []*payloadLike                         `json:"likes"`
-		LikesCount int                                    `json:"likes_count"`
-		Users      map[string]*v04_entity.ApplicationUser `json:"users"`
-		UsersCount int                                    `json:"users_count"`
+		Likes      []*payloadLike                                     `json:"likes"`
+		LikesCount int                                                `json:"likes_count"`
+		Users      map[string]*v04_entity.PresentationApplicationUser `json:"users"`
+		UsersCount int                                                `json:"users_count"`
 	}{
 		Likes:      ls,
 		LikesCount: len(ls),
-		Users:      p.users,
+		Users:      mapUsers(p.users),
 		UsersCount: len(p.users),
 	})
 }

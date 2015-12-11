@@ -143,8 +143,8 @@ const (
 				AND (json_data->>'enabled')::BOOL = true`
 
 	updateApplicationUserLastReadQuery = `UPDATE app_%d_%d.users
-		SET last_read = now()
-		WHERE (json_data->>'id')::BIGINT = $1::BIGINT
+		SET last_read = $1
+		WHERE (json_data->>'id')::BIGINT = $2::BIGINT
 			AND (json_data->>'enabled')::BOOL = true`
 
 	listEventsByLocationQuery = `SELECT json_data
@@ -579,7 +579,7 @@ func (e *event) LocationSearch(accountID, applicationID int64, currentUserID uin
 }
 
 func (e *event) updateApplicationUserLastRead(accountID, applicationID int64, user *entity.ApplicationUser) []errors.Error {
-	_, err := e.mainPg.Exec(appSchema(updateApplicationUserLastReadQuery, accountID, applicationID), user.ID)
+	_, err := e.mainPg.Exec(appSchema(updateApplicationUserLastReadQuery, accountID, applicationID), time.Now().UTC(), user.ID)
 	if err != nil {
 		return []errors.Error{errmsg.ErrInternalApplicationUpdate.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 	}

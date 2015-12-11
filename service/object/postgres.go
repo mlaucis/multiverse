@@ -142,7 +142,16 @@ func (s *pgService) Put(ns string, object *Object) (*Object, error) {
 	if err != nil {
 		// FIXME(xla): This is a defensive measure until we have proper Setup of
 		// namespaces for all dependent services of an app.
-		return s.guardWithoutSetup(err, object, ns, query, params...)
+		if pgWrapError(err) == ErrNamespaceNotFound {
+			if err := s.Setup(ns); err != nil {
+				return nil, err
+			}
+			if _, err := s.db.Exec(wrapNamespace(query, ns), params...); err != nil {
+				return nil, err
+			}
+		} else {
+			return nil, err
+		}
 	}
 
 	return object, nil
@@ -239,7 +248,27 @@ func (s *pgService) Query(ns string, opts QueryOptions) ([]*Object, error) {
 
 	clauses = append(clauses, pgOrderCreatedAt)
 
-	return s.queryObjects(strings.Join(clauses, "\n"), params...)
+	os, err := s.queryObjects(strings.Join(clauses, "\n"), params...)
+	if err != nil {
+		// FIXME(xla): This is a defensive measure until we have proper Setup of
+		// namespaces for all dependent services of an app.
+		if pgWrapError(err) == ErrNamespaceNotFound {
+			if err := s.Setup(ns); err != nil {
+				return nil, err
+			}
+
+			os, err := s.queryObjects(strings.Join(clauses, "\n"), params...)
+			if err != nil {
+				return nil, err
+			}
+
+			return os, nil
+		}
+
+		return nil, err
+	}
+
+	return os, nil
 }
 
 // Remove issues a hard delete of the object with the id given.

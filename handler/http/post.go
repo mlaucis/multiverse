@@ -77,7 +77,7 @@ func PostListAll(c *controller.PostController, users user.StrangleService) Handl
 			return
 		}
 
-		us, err := extractUsers(app, ps, users)
+		us, err := user.UsersFromIDs(users, app, ps.OwnerIDs()...)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -94,11 +94,11 @@ func PostListAll(c *controller.PostController, users user.StrangleService) Handl
 func PostListMe(c *controller.PostController, users user.StrangleService) Handler {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		var (
-			app  = appFromContext(ctx)
-			user = userFromContext(ctx)
+			app         = appFromContext(ctx)
+			currentUser = userFromContext(ctx)
 		)
 
-		ps, err := c.ListUser(app, user.ID)
+		ps, err := c.ListUser(app, currentUser.ID)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -109,42 +109,7 @@ func PostListMe(c *controller.PostController, users user.StrangleService) Handle
 			return
 		}
 
-		us, err := extractUsers(app, ps, users)
-		if err != nil {
-			respondError(w, 0, err)
-			return
-		}
-
-		respondJSON(w, http.StatusOK, &payloadPosts{
-			posts: ps,
-			users: us,
-		})
-	}
-}
-
-// PostListMeConnections returns all posts from a users social graph.
-func PostListMeConnections(
-	c *controller.PostController,
-	users user.StrangleService,
-) Handler {
-	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-		var (
-			app  = appFromContext(ctx)
-			user = userFromContext(ctx)
-		)
-
-		ps, err := c.ListUserConnections(app, user.ID)
-		if err != nil {
-			respondError(w, 0, err)
-			return
-		}
-
-		if len(ps) == 0 {
-			respondJSON(w, http.StatusNoContent, nil)
-			return
-		}
-
-		us, err := extractUsers(app, ps, users)
+		us, err := user.UsersFromIDs(users, app, ps.OwnerIDs()...)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -209,25 +174,6 @@ func PostUpdate(c *controller.PostController) Handler {
 	}
 }
 
-func extractUsers(
-	app *v04_entity.Application,
-	os []*object.Object,
-	users user.StrangleService,
-) (map[string]*v04_entity.ApplicationUser, error) {
-	us := map[string]*v04_entity.ApplicationUser{}
-
-	for _, o := range os {
-		user, errs := users.Read(app.OrgID, app.ID, o.OwnerID, false)
-		if errs != nil {
-			return nil, errs[0]
-		}
-
-		us[strconv.FormatUint(user.ID, 10)] = user
-	}
-
-	return us, nil
-}
-
 type postFields struct {
 	Attachments []object.Attachment `json:"attachments"`
 	CreatedAt   time.Time           `json:"created_at,omitempty"`
@@ -277,8 +223,8 @@ func (p *payloadPost) UnmarshalJSON(raw []byte) error {
 }
 
 type payloadPosts struct {
-	posts []*object.Object
-	users map[string]*v04_entity.ApplicationUser
+	posts object.Objects
+	users user.Users
 }
 
 func (p *payloadPosts) MarshalJSON() ([]byte, error) {
@@ -289,14 +235,14 @@ func (p *payloadPosts) MarshalJSON() ([]byte, error) {
 	}
 
 	return json.Marshal(struct {
-		Posts      []*payloadPost                         `json:"posts"`
-		PostsCount int                                    `json:"posts_count"`
-		Users      map[string]*v04_entity.ApplicationUser `json:"users"`
-		UsersCount int                                    `json:"users_count"`
+		Posts      []*payloadPost                                     `json:"posts"`
+		PostsCount int                                                `json:"posts_count"`
+		Users      map[string]*v04_entity.PresentationApplicationUser `json:"users"`
+		UsersCount int                                                `json:"users_count"`
 	}{
 		Posts:      ps,
 		PostsCount: len(ps),
-		Users:      p.users,
+		Users:      mapUsers(p.users),
 		UsersCount: len(p.users),
 	})
 }

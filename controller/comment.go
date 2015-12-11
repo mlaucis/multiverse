@@ -98,7 +98,7 @@ func (c *CommentController) Delete(
 func (c *CommentController) List(
 	app *v04_entity.Application,
 	postID uint64,
-) ([]*object.Object, error) {
+) (object.Objects, error) {
 	return c.objects.Query(app.Namespace(), object.QueryOptions{
 		ObjectIDs: []uint64{
 			postID,
