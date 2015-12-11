@@ -781,7 +781,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "getCurrentUserFeed",
 			Method: "GET",
-			Path:   "/me/feed",
+			Path:   "/deprecated/me/feed",
 			Handlers: []RouteFunc{
 				postgresEventHandler.Feed,
 			},
