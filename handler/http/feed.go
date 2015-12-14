@@ -11,6 +11,7 @@ import (
 	"github.com/tapglue/multiverse/service/object"
 	"github.com/tapglue/multiverse/service/user"
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
+	"github.com/tapglue/multiverse/v04/server/response"
 )
 
 // FeedEvents returns the events of the current user driven by the social and
@@ -38,6 +39,8 @@ func FeedEvents(c *controller.FeedController, users user.StrangleService) Handle
 			respondError(w, 0, err)
 			return
 		}
+
+		response.SanitizeApplicationUsers([]*v04_entity.ApplicationUser(us))
 
 		respondJSON(w, http.StatusOK, &payloadFeedEvents{
 			events: es,
@@ -76,6 +79,8 @@ func FeedNews(c *controller.FeedController, users user.StrangleService) Handler 
 			return
 		}
 
+		response.SanitizeApplicationUsers([]*v04_entity.ApplicationUser(us))
+
 		respondJSON(w, http.StatusOK, &payloadFeedNews{
 			currentUser: currentUser,
 			events:      es,
@@ -110,6 +115,8 @@ func FeedPosts(c *controller.FeedController, users user.StrangleService) Handler
 			respondError(w, 0, err)
 			return
 		}
+
+		response.SanitizeApplicationUsers([]*v04_entity.ApplicationUser(us))
 
 		respondJSON(w, http.StatusOK, &payloadFeedPosts{posts: ps, users: us})
 	}
