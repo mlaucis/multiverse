@@ -541,6 +541,14 @@ func (conn *connection) doCreateConnection(ctx *context.Context, connection *ent
 	}
 
 createResponse:
+
+	if connection.State == entity.ConnectionStateConfirmed {
+		_, err := conn.CreateAutoConnectionEvent(ctx, connection)
+		if err != nil {
+			ctx.LogError(err)
+		}
+	}
+
 	response.WriteResponse(ctx, connection, http.StatusCreated, 0)
 	return nil
 }
@@ -549,7 +557,7 @@ func (conn *connection) CreateAutoConnectionEvent(ctx *context.Context, connecti
 	event := &entity.Event{
 		UserID:     connection.UserFromID,
 		Type:       "tg_" + string(connection.Type),
-		Visibility: entity.EventPrivate,
+		Visibility: entity.EventConnections,
 		Target: &entity.Object{
 			ID:   strconv.FormatUint(connection.UserToID, 10),
 			Type: "tg_user",
