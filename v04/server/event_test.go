@@ -944,7 +944,7 @@ func (s *EventSuite) TestGetFeedWithTypeFilter(c *C) {
 	userFrom := application.Users[0]
 
 	urlParams := url.Values{}
-	urlParams.Add("where", `{"type": {"eq": "love"}}`)
+	urlParams.Add("where", `{"type": {"in": ["love"]}}`)
 
 	routeName := "getCurrentUserFeed"
 	route := getComposedRoute(routeName) + "?" + urlParams.Encode()
