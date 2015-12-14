@@ -1,4 +1,6 @@
 machine:
+  environment:
+    GOOROT: /home/ubuntu/.gimme/versions/go1.5.2.linux.amd64
   services:
     - docker
     - redis

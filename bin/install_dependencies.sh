@@ -2,15 +2,15 @@
 
 set -e
 
-export PATH=/home/ubuntu/.gimme/versions/go1.5.1.linux.amd64/bin:${PATH}
+export PATH=/home/ubuntu/.gimme/versions/go1.5.2.linux.amd64/bin:${PATH}
 CWD=`pwd`
 
 echo "Installing gimme"
 sudo curl -sL -o /usr/local/bin/gimme https://raw.githubusercontent.com/travis-ci/gimme/master/gimme
 sudo chmod +x /usr/local/bin/gimme
 
-echo "Installing go 1.5.1"
-eval "$(GIMME_GO_VERSION=1.5.1 gimme)"
+echo "Installing go 1.5.2"
+eval "$(GIMME_GO_VERSION=1.5.2 gimme)"
 
 echo "Installing go dependencies"
 go get github.com/tools/godep github.com/axw/gocov/gocov github.com/matm/gocov-html gopkg.in/check.v1
