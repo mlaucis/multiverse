@@ -2,6 +2,8 @@
 
 set -e
 
+export PATH=/home/ubuntu/.gimme/versions/go1.5.2.linux.amd64/bin:${PATH}
+
 rm -f /home/ubuntu/.go_workspace/src/github.com/tapglue/multiverse
 exit 0
 

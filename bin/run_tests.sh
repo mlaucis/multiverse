@@ -5,7 +5,7 @@ set -ex
 TEST_COMPONENT=${1}
 TEST_TARGET=${2}
 
-export PATH=/home/ubuntu/.gimme/versions/go1.5.1.linux.amd64/bin:${PATH}
+export PATH=/home/ubuntu/.gimme/versions/go1.5.2.linux.amd64/bin:${PATH}
 export GOPATH=`godep path`:${GOPATH}
 REVISION=`git rev-parse HEAD`
 cd /home/ubuntu/.go_workspace/src/github.com/tapglue/multiverse
