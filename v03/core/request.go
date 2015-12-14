@@ -11,7 +11,7 @@ import (
 )
 
 type (
-	// RequestFilters holds down the possible filtering values for the fields
+	// RequestCondition holds down the possible filtering values for the fields
 	RequestCondition struct {
 		Eq  interface{}   `json:"eq,omitempty"`
 		Neq interface{}   `json:"neq,omitempty"`
@@ -25,19 +25,21 @@ type (
 
 	// EventCondition holds the possible event fields to be filtered
 	EventCondition struct {
-		Type     *RequestCondition `json:"type,omitempty"`
-		Language *RequestCondition `json:"language,omitempty"`
-		Priority *RequestCondition `json:"priority,omitempty"`
-		Location *RequestCondition `json:"location,omitempty"`
-		Object   *struct {
-			ID   *RequestCondition `json:"id,omitempty"`
-			Type *RequestCondition `json:"type,omitempty"`
-		} `json:"object,omitempty"`
-		Target *struct {
-			ID   *RequestCondition `json:"id,omitempty"`
-			Type *RequestCondition `json:"type,omitempty"`
-		} `json:"target,omitempty"`
-		Metadata *map[string]*RequestCondition `json:"metadata,omitempty"`
+		Language   *RequestCondition             `json:"language,omitempty"`
+		Location   *RequestCondition             `json:"location,omitempty"`
+		Metadata   *map[string]*RequestCondition `json:"metadata,omitempty"`
+		Object     *ObjectCondition              `json:"object,omitempty"`
+		Priority   *RequestCondition             `json:"priority,omitempty"`
+		Target     *ObjectCondition              `json:"target,omitempty"`
+		Type       *RequestCondition             `json:"type,omitempty"`
+		UserID     *RequestCondition
+		Visibility *RequestCondition
+	}
+
+	// ObjectCondition holds the fields for object based queries.
+	ObjectCondition struct {
+		ID   *RequestCondition `json:"id,omitempty"`
+		Type *RequestCondition `json:"type,omitempty"`
 	}
 )
 
@@ -53,6 +55,8 @@ func (s *RequestCondition) condition(fieldName string, paramID int) (cond string
 		case int:
 			fieldType = "BIGINT"
 		case int64:
+			fieldType = "BIGINT"
+		case uint64:
 			fieldType = "BIGINT"
 		case float64:
 			// Unfortunately here is where the JSON spec or parser go against common sense and default to FLOAT
@@ -148,7 +152,7 @@ func (s *RequestCondition) condition(fieldName string, paramID int) (cond string
 			}
 
 			condition = append(condition, fmt.Sprintf("(%s)::%s IN (%s)", fieldName, inType, strings.Join(buffer, ", ")))
-			params = append(params, s.In)
+			params = append(params, s.In...)
 		}
 	}
 
@@ -233,6 +237,14 @@ func (e *EventCondition) conditions(startPlaceholderID int) (query string, param
 		if err := checkSimpleField(e.Target.Type, `json_data->'target'->>'type'`); err != nil {
 			return "", []interface{}{}, 0, err
 		}
+	}
+
+	if err := checkSimpleField(e.UserID, `json_data->>'user_id'`); err != nil {
+		return "", []interface{}{}, 0, err
+	}
+
+	if err := checkSimpleField(e.Visibility, `json_data->>'visibility'`); err != nil {
+		return "", []interface{}{}, 0, err
 	}
 
 	if e.Metadata != nil {
