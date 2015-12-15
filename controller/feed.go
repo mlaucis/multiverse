@@ -63,6 +63,8 @@ func (c *FeedController) Events(
 
 	es = append(es, ts...)
 
+	es = c.distinctEvents(es)
+
 	sort.Sort(es)
 
 	return es, nil
@@ -102,6 +104,8 @@ func (c *FeedController) News(
 	if err != nil {
 		return nil, nil, err
 	}
+
+	es = c.distinctEvents(es)
 
 	errs = c.users.UpdateLastRead(app.OrgID, app.ID, user.ID)
 	if errs != nil {
@@ -221,4 +225,24 @@ func (c *FeedController) targetUserEvents(
 	}
 
 	return ts, nil
+}
+
+func (c *FeedController) distinctEvents(source event.Events) event.Events {
+	result := event.Events{}
+
+	found := false
+	for idx := range source {
+		found = false
+		for resIdx := range result {
+			if source[idx].ID == result[resIdx].ID {
+				found = true
+				break
+			}
+		}
+		if !found {
+			result = append(result, source[idx])
+		}
+	}
+
+	return result
 }
