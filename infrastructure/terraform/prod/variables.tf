@@ -7,11 +7,11 @@ variable "private-s3" {
 }
 
 variable "ami_frontend" {
-  default = "ami-94e5e389"
+  default = "ami-c63c21aa"
 }
 
 variable "ami_backend" {
-  default = "ami-94e5e389"
+  default = "ami-c63c21aa"
 }
 
 variable "ami_corporate" {
@@ -19,7 +19,7 @@ variable "ami_corporate" {
 }
 
 variable "ami_bastion" {
-  default = "ami-94e5e389"
+  default = "ami-c63c21aa"
 }
 
 variable "ami_nat" {

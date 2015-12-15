@@ -47,6 +47,11 @@ resource "aws_elb" "corporate" {
     "${aws_security_group.loadbalancer.id}",
   ]
 
+  access_logs {
+    bucket = "tapglue-logs"
+    interval = 5
+  }
+
   listener {
     lb_port           = 80
     lb_protocol       = "http"
