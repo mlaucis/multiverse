@@ -46,6 +46,11 @@ resource "aws_elb" "frontend" {
     "${aws_security_group.loadbalancer.id}",
   ]
 
+  access_logs {
+    bucket = "tapglue-logs"
+    interval = 5
+  }
+
   listener {
     instance_port     = 8083
     instance_protocol = "https"
