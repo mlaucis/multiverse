@@ -25,7 +25,7 @@ func (es Events) Len() int {
 }
 
 func (es Events) Less(i, j int) bool {
-	return es[i].CreatedAt.Before(*es[j].CreatedAt)
+	return es[i].CreatedAt.After(*es[j].CreatedAt)
 }
 
 func (es Events) Swap(i, j int) {
