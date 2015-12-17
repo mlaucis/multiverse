@@ -87,7 +87,14 @@ func (conn *connection) Delete(ctx *context.Context) (err []errors.Error) {
 
 	existingConnection, err := conn.storage.Read(accountID, applicationID, userFromID, userToID, connectionType)
 	if err != nil {
-		return
+		if connectionType == entity.ConnectionTypeFriend && err[0].Code() == errmsg.ErrConnectionNotFound.Code() {
+			existingConnection, err = conn.storage.Read(accountID, applicationID, userToID, userFromID, connectionType)
+			if err != nil {
+				return
+			}
+		} else {
+			return
+		}
 	}
 
 	if existingConnection == nil {
@@ -100,7 +107,7 @@ func (conn *connection) Delete(ctx *context.Context) (err []errors.Error) {
 		}
 	}
 
-	err = conn.storage.Delete(accountID, applicationID, userFromID, userToID, connectionType)
+	err = conn.storage.Delete(accountID, applicationID, existingConnection.UserFromID, existingConnection.UserToID, connectionType)
 	if err != nil {
 		return
 	}
