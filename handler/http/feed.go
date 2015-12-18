@@ -10,6 +10,7 @@ import (
 	"github.com/tapglue/multiverse/service/event"
 	"github.com/tapglue/multiverse/service/object"
 	"github.com/tapglue/multiverse/service/user"
+	v04_core "github.com/tapglue/multiverse/v04/core"
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
 	"github.com/tapglue/multiverse/v04/server/response"
 )
@@ -23,7 +24,13 @@ func FeedEvents(c *controller.FeedController, users user.StrangleService) Handle
 			currentUser = userFromContext(ctx)
 		)
 
-		es, err := c.Events(app, currentUser)
+		where, errs := v04_core.NewEventFilter(r.URL.Query().Get("where"))
+		if errs != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, errs[0].Error()))
+			return
+		}
+
+		es, err := c.Events(app, currentUser, where)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -58,7 +65,13 @@ func FeedNews(c *controller.FeedController, users user.StrangleService) Handler 
 			currentUser = userFromContext(ctx)
 		)
 
-		es, ps, err := c.News(app, currentUser)
+		where, errs := v04_core.NewEventFilter(r.URL.Query().Get("where"))
+		if errs != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, errs[0].Error()))
+			return
+		}
+
+		es, ps, err := c.News(app, currentUser, where)
 		if err != nil {
 			respondError(w, 0, err)
 			return

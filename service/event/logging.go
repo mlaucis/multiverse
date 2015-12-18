@@ -63,7 +63,7 @@ func (s *logStrangleService) Delete(
 	defer func(begin time.Time) {
 		ps := []interface{}{
 			"duration", time.Since(begin),
-			"id", strconv.FormatUint(eventID, 10),
+			"event_id", strconv.FormatUint(eventID, 10),
 			"method", "Delete",
 			"namespace", namespace(orgID, appID),
 			"user_id", strconv.FormatUint(userID, 10),
@@ -89,6 +89,7 @@ func (s *logStrangleService) ListAll(
 			"duration", time.Since(begin),
 			"method", "ListAll",
 			"namespace", namespace(orgID, appID),
+			"result_size", strconv.Itoa(len(es)),
 		}
 
 		if errs != nil {

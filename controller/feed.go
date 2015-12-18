@@ -8,6 +8,7 @@ import (
 	"github.com/tapglue/multiverse/service/object"
 	"github.com/tapglue/multiverse/service/user"
 	"github.com/tapglue/multiverse/v04/core"
+	v04_core "github.com/tapglue/multiverse/v04/core"
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
 
@@ -38,25 +39,26 @@ func NewFeedController(
 func (c *FeedController) Events(
 	app *v04_entity.Application,
 	user *v04_entity.ApplicationUser,
+	condition *v04_core.EventCondition,
 ) (event.Events, error) {
 	ids, errs := c.connections.FriendsAndFollowingIDs(app.OrgID, app.ID, user.ID)
 	if errs != nil {
 		return nil, errs[0]
 	}
 
-	es, err := c.connectionEvents(app, ids...)
+	es, err := c.connectionEvents(app, condition, ids...)
 	if err != nil {
 		return nil, err
 	}
 
-	gs, err := c.globalEvents(app)
+	gs, err := c.globalEvents(app, condition)
 	if err != nil {
 		return nil, err
 	}
 
 	es = append(es, gs...)
 
-	ts, err := c.targetUserEvents(app, user.ID)
+	ts, err := c.targetUserEvents(app, user.ID, condition)
 	if err != nil {
 		return nil, err
 	}
@@ -75,25 +77,26 @@ func (c *FeedController) Events(
 func (c *FeedController) News(
 	app *v04_entity.Application,
 	user *v04_entity.ApplicationUser,
+	condition *v04_core.EventCondition,
 ) (event.Events, object.Objects, error) {
 	ids, errs := c.connections.FriendsAndFollowingIDs(app.OrgID, app.ID, user.ID)
 	if errs != nil {
 		return nil, nil, errs[0]
 	}
 
-	es, err := c.connectionEvents(app, ids...)
+	es, err := c.connectionEvents(app, condition, ids...)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	gs, err := c.globalEvents(app)
+	gs, err := c.globalEvents(app, condition)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	es = append(es, gs...)
 
-	ts, err := c.targetUserEvents(app, user.ID)
+	ts, err := c.targetUserEvents(app, user.ID, condition)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -137,7 +140,11 @@ func (c *FeedController) Posts(
 	return c.connectionPosts(app, ids...)
 }
 
-func (c *FeedController) connectionEvents(app *v04_entity.Application, ids ...uint64) (event.Events, error) {
+func (c *FeedController) connectionEvents(
+	app *v04_entity.Application,
+	cond *v04_core.EventCondition,
+	ids ...uint64,
+) (event.Events, error) {
 	if len(ids) == 0 {
 		return event.Events{}, nil
 	}
@@ -148,23 +155,28 @@ func (c *FeedController) connectionEvents(app *v04_entity.Application, ids ...ui
 		condIDs = append(condIDs, id)
 	}
 
-	es, errs := c.events.ListAll(app.OrgID, app.ID, core.EventCondition{
-		Owned: &core.RequestCondition{
-			In: []interface{}{
-				true,
-				false,
-			},
+	condition := v04_core.EventCondition{}
+	if cond != nil {
+		condition = *cond
+	}
+
+	condition.Owned = &core.RequestCondition{
+		In: []interface{}{
+			true,
+			false,
 		},
-		Visibility: &core.RequestCondition{
-			In: []interface{}{
-				int(v04_entity.EventConnections),
-				int(v04_entity.EventPublic),
-			},
+	}
+	condition.Visibility = &core.RequestCondition{
+		In: []interface{}{
+			int(v04_entity.EventConnections),
+			int(v04_entity.EventPublic),
 		},
-		UserID: &core.RequestCondition{
-			In: condIDs,
-		},
-	})
+	}
+	condition.UserID = &core.RequestCondition{
+		In: condIDs,
+	}
+
+	es, errs := c.events.ListAll(app.OrgID, app.ID, condition)
 	if errs != nil {
 		return nil, errs[0]
 	}
@@ -193,12 +205,20 @@ func (c *FeedController) connectionPosts(
 	})
 }
 
-func (c *FeedController) globalEvents(app *v04_entity.Application) (event.Events, error) {
-	gs, errs := c.events.ListAll(app.OrgID, app.ID, core.EventCondition{
-		Visibility: &core.RequestCondition{
-			Eq: int(v04_entity.EventGlobal),
-		},
-	})
+func (c *FeedController) globalEvents(
+	app *v04_entity.Application,
+	cond *v04_core.EventCondition,
+) (event.Events, error) {
+	condition := v04_core.EventCondition{}
+	if cond != nil {
+		condition = *cond
+	}
+
+	condition.Visibility = &core.RequestCondition{
+		Eq: int(v04_entity.EventGlobal),
+	}
+
+	gs, errs := c.events.ListAll(app.OrgID, app.ID, condition)
 	if errs != nil {
 		return nil, errs[0]
 	}
@@ -209,17 +229,23 @@ func (c *FeedController) globalEvents(app *v04_entity.Application) (event.Events
 func (c *FeedController) targetUserEvents(
 	app *v04_entity.Application,
 	targetID uint64,
+	cond *v04_core.EventCondition,
 ) (event.Events, error) {
-	ts, errs := c.events.ListAll(app.OrgID, app.ID, core.EventCondition{
-		Target: &core.ObjectCondition{
-			ID: &core.RequestCondition{
-				Eq: targetID,
-			},
-			Type: &core.RequestCondition{
-				Eq: user.TargetType,
-			},
+	condition := v04_core.EventCondition{}
+	if cond != nil {
+		condition = *cond
+	}
+
+	condition.Target = &core.ObjectCondition{
+		ID: &core.RequestCondition{
+			Eq: targetID,
 		},
-	})
+		Type: &core.RequestCondition{
+			Eq: user.TargetType,
+		},
+	}
+
+	ts, errs := c.events.ListAll(app.OrgID, app.ID, condition)
 	if errs != nil {
 		return nil, errs[0]
 	}
