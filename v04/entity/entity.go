@@ -11,6 +11,9 @@ import (
 	"github.com/tapglue/multiverse/v04/errmsg"
 )
 
+// TypeTargetUser is the canonical identifier for internal user representations.
+const TypeTargetUser = "tg_user"
+
 const (
 	rateLimitProduction = 20000
 	rateLimitStaging    = 100

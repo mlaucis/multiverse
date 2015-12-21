@@ -1,6 +1,8 @@
 package event
 
 import (
+	"strconv"
+
 	"github.com/tapglue/multiverse/errors"
 	"github.com/tapglue/multiverse/v04/core"
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
@@ -38,6 +40,18 @@ func (es Events) UserIDs() []uint64 {
 
 	for _, e := range es {
 		ids = append(ids, e.UserID)
+
+		// Extract user ids from target as well.
+		if e.Target != nil && e.Target.Type == v04_entity.TypeTargetUser {
+			id, err := strconv.ParseUint(e.Target.ID.(string), 10, 64)
+			if err != nil {
+				// We fail silently here for now until we find a way to log this. As the
+				// only effect is that we don't add a potential user to the map
+				continue
+			}
+
+			ids = append(ids, id)
+		}
 	}
 
 	return ids
