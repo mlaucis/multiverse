@@ -4,7 +4,7 @@ import (
 	"strconv"
 
 	"github.com/tapglue/multiverse/errors"
-	"github.com/tapglue/multiverse/v04/core"
+	v04_core "github.com/tapglue/multiverse/v04/core"
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
 
@@ -64,7 +64,7 @@ type StrangleService interface {
 	Delete(orgID, appID int64, userID, eventID uint64) []errors.Error
 	ListAll(
 		orgID, appID int64,
-		condition core.EventCondition,
+		condition v04_core.EventCondition,
 	) ([]*v04_entity.Event, []errors.Error)
 }
 

@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/tapglue/multiverse/service/connection"
+	"github.com/tapglue/multiverse/service/event"
 	"github.com/tapglue/multiverse/service/object"
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
@@ -94,7 +95,7 @@ func TestPostControllerDelete(t *testing.T) {
 func TestPostControllerListAll(t *testing.T) {
 	app, owner, c := testSetupPostController(t)
 
-	ps, err := c.ListAll(app)
+	ps, err := c.ListAll(app, owner)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -110,7 +111,7 @@ func TestPostControllerListAll(t *testing.T) {
 		}
 	}
 
-	ps, err = c.ListAll(app)
+	ps, err = c.ListAll(app, owner)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -250,7 +251,11 @@ func testSetupPostController(
 		t.Fatal(err)
 	}
 
-	return app, user, NewPostController(connection.NewNopService(), objects)
+	return app, user, NewPostController(
+		connection.NewNopService(),
+		event.NewNopService(),
+		objects,
+	)
 }
 
 func testPost(ownerID uint64) *Post {

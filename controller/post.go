@@ -2,7 +2,9 @@ package controller
 
 import (
 	"github.com/tapglue/multiverse/service/connection"
+	"github.com/tapglue/multiverse/service/event"
 	"github.com/tapglue/multiverse/service/object"
+	v04_core "github.com/tapglue/multiverse/v04/core"
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
 
@@ -12,6 +14,8 @@ var defaultOwned = true
 
 // Post is the intermediate representation for posts.
 type Post struct {
+	IsLiked bool
+
 	*object.Object
 }
 
@@ -42,16 +46,19 @@ func fromObjects(os object.Objects) Posts {
 // PostController bundles the business constraints for posts.
 type PostController struct {
 	connections connection.StrangleService
+	events      event.StrangleService
 	objects     object.Service
 }
 
 // NewPostController returns a controller instance.
 func NewPostController(
 	connections connection.StrangleService,
+	events event.StrangleService,
 	objects object.Service,
 ) *PostController {
 	return &PostController{
 		connections: connections,
+		events:      events,
 		objects:     objects,
 	}
 }
@@ -107,6 +114,7 @@ func (c *PostController) Delete(app *v04_entity.Application, id uint64) error {
 // ListAll returns all objects which are of type post.
 func (c *PostController) ListAll(
 	app *v04_entity.Application,
+	user *v04_entity.ApplicationUser,
 ) (Posts, error) {
 	os, err := c.objects.Query(app.Namespace(), object.QueryOptions{
 		Owned: &defaultOwned,
@@ -122,7 +130,12 @@ func (c *PostController) ListAll(
 		return nil, err
 	}
 
-	return fromObjects(os), err
+	ps, err := enrichIsLiked(app, user.ID, c.events, fromObjects(os))
+	if err != nil {
+		return nil, err
+	}
+
+	return ps, nil
 }
 
 // ListUser returns all posts for the given user id as visible by the
@@ -168,7 +181,12 @@ func (c *PostController) ListUser(
 		return nil, err
 	}
 
-	return fromObjects(os), nil
+	ps, err := enrichIsLiked(app, connectionID, c.events, fromObjects(os))
+	if err != nil {
+		return nil, err
+	}
+
+	return ps, nil
 }
 
 // Retrieve returns the Post for the given id.
@@ -235,4 +253,34 @@ func (c *PostController) Update(
 	}
 
 	return &Post{Object: o}, nil
+}
+
+func enrichIsLiked(
+	app *v04_entity.Application,
+	userID uint64,
+	events event.StrangleService,
+	ps Posts,
+) (Posts, error) {
+	for _, p := range ps {
+		es, errs := events.ListAll(app.OrgID, app.ID, v04_core.EventCondition{
+			ObjectID: &v04_core.RequestCondition{
+				Eq: p.ID,
+			},
+			Type: &v04_core.RequestCondition{
+				Eq: typeLike,
+			},
+			UserID: &v04_core.RequestCondition{
+				Eq: userID,
+			},
+		})
+		if errs != nil {
+			return nil, errs[0]
+		}
+
+		if len(es) == 1 {
+			p.IsLiked = true
+		}
+	}
+
+	return ps, nil
 }

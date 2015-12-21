@@ -7,7 +7,6 @@ import (
 	"github.com/tapglue/multiverse/service/event"
 	"github.com/tapglue/multiverse/service/object"
 	"github.com/tapglue/multiverse/service/user"
-	"github.com/tapglue/multiverse/v04/core"
 	v04_core "github.com/tapglue/multiverse/v04/core"
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
@@ -108,6 +107,11 @@ func (c *FeedController) News(
 		return nil, nil, err
 	}
 
+	ps, err = enrichIsLiked(app, user.ID, c.events, ps)
+	if err != nil {
+		return nil, nil, err
+	}
+
 	es = c.distinctEvents(es)
 
 	errs = c.users.UpdateLastRead(app.OrgID, app.ID, user.ID)
@@ -137,7 +141,12 @@ func (c *FeedController) Posts(
 		return nil, errs[0]
 	}
 
-	return c.connectionPosts(app, ids...)
+	ps, err := c.connectionPosts(app, ids...)
+	if err != nil {
+		return nil, err
+	}
+
+	return enrichIsLiked(app, user.ID, c.events, ps)
 }
 
 func (c *FeedController) connectionEvents(
@@ -160,19 +169,19 @@ func (c *FeedController) connectionEvents(
 		condition = *cond
 	}
 
-	condition.Owned = &core.RequestCondition{
+	condition.Owned = &v04_core.RequestCondition{
 		In: []interface{}{
 			true,
 			false,
 		},
 	}
-	condition.Visibility = &core.RequestCondition{
+	condition.Visibility = &v04_core.RequestCondition{
 		In: []interface{}{
 			int(v04_entity.EventConnections),
 			int(v04_entity.EventPublic),
 		},
 	}
-	condition.UserID = &core.RequestCondition{
+	condition.UserID = &v04_core.RequestCondition{
 		In: condIDs,
 	}
 
@@ -219,7 +228,7 @@ func (c *FeedController) globalEvents(
 		condition = *cond
 	}
 
-	condition.Visibility = &core.RequestCondition{
+	condition.Visibility = &v04_core.RequestCondition{
 		Eq: int(v04_entity.EventGlobal),
 	}
 
@@ -241,11 +250,11 @@ func (c *FeedController) targetUserEvents(
 		condition = *cond
 	}
 
-	condition.Target = &core.ObjectCondition{
-		ID: &core.RequestCondition{
+	condition.Target = &v04_core.ObjectCondition{
+		ID: &v04_core.RequestCondition{
 			Eq: targetID,
 		},
-		Type: &core.RequestCondition{
+		Type: &v04_core.RequestCondition{
 			Eq: user.TargetType,
 		},
 	}

@@ -158,7 +158,7 @@ func main() {
 		feedController    = controller.NewFeedController(connections, events, objects, users)
 		likeController    = controller.NewLikeController(events, objects)
 		objectController  = controller.NewObjectController(connections, objects)
-		postController    = controller.NewPostController(connections, objects)
+		postController    = controller.NewPostController(connections, events, objects)
 	)
 
 	// Setup middlewares
