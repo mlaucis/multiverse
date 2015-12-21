@@ -8,7 +8,6 @@ import (
 
 	"github.com/tapglue/multiverse/controller"
 	"github.com/tapglue/multiverse/service/event"
-	"github.com/tapglue/multiverse/service/object"
 	"github.com/tapglue/multiverse/service/user"
 	v04_core "github.com/tapglue/multiverse/v04/core"
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
@@ -163,7 +162,7 @@ func (p *payloadFeedEvents) MarshalJSON() ([]byte, error) {
 type payloadFeedNews struct {
 	currentUser *v04_entity.ApplicationUser
 	events      event.Events
-	posts       object.Objects
+	posts       controller.Posts
 	users       user.Users
 }
 
@@ -218,7 +217,7 @@ func (p *payloadFeedNews) MarshalJSON() ([]byte, error) {
 }
 
 type payloadFeedPosts struct {
-	posts object.Objects
+	posts controller.Posts
 	users user.Users
 }
 

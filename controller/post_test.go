@@ -13,14 +13,16 @@ import (
 func TestPostControllerCreate(t *testing.T) {
 	var (
 		app, owner, c = testSetupPostController(t)
-		post          = &object.Object{
-			Attachments: []object.Attachment{
-				object.NewTextAttachment("body", "Test body."),
+		post          = &Post{
+			Object: &object.Object{
+				Attachments: []object.Attachment{
+					object.NewTextAttachment("body", "Test body."),
+				},
+				Tags: []string{
+					"review",
+				},
+				Visibility: object.VisibilityPublic,
 			},
-			Tags: []string{
-				"review",
-			},
-			Visibility: object.VisibilityPublic,
 		}
 	)
 
@@ -41,7 +43,7 @@ func TestPostControllerCreate(t *testing.T) {
 		t.Fatalf("have %v, want %v", have, want)
 	}
 
-	if have, want := rs[0], created; !reflect.DeepEqual(have, want) {
+	if have, want := rs[0], created.Object; !reflect.DeepEqual(have, want) {
 		t.Errorf("have %v, want %v", have, want)
 	}
 }
@@ -52,7 +54,7 @@ func TestPostControllerDelete(t *testing.T) {
 		post          = testPost(owner.ID)
 	)
 
-	created, err := c.objects.Put(app.Namespace(), post)
+	created, err := c.objects.Put(app.Namespace(), post.Object)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -153,7 +155,7 @@ func TestPostControllerRetrieve(t *testing.T) {
 		post          = testPost(owner.ID)
 	)
 
-	created, err := c.objects.Put(app.Namespace(), post)
+	created, err := c.objects.Put(app.Namespace(), post.Object)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -163,7 +165,7 @@ func TestPostControllerRetrieve(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if have, want := r, created; !reflect.DeepEqual(have, want) {
+	if have, want := r.Object, created; !reflect.DeepEqual(have, want) {
 		t.Fatalf("have %v, want %v", have, want)
 	}
 
@@ -179,14 +181,14 @@ func TestPostControllerUpdate(t *testing.T) {
 		post          = testPost(owner.ID)
 	)
 
-	created, err := c.objects.Put(app.Namespace(), post)
+	created, err := c.objects.Put(app.Namespace(), post.Object)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	created.OwnerID = 0
 
-	_, err = c.Update(app, owner, created.ID, created)
+	_, err = c.Update(app, owner, created.ID, &Post{Object: created})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -251,18 +253,20 @@ func testSetupPostController(
 	return app, user, NewPostController(connection.NewNopService(), objects)
 }
 
-func testPost(ownerID uint64) *object.Object {
-	return &object.Object{
-		Attachments: []object.Attachment{
-			object.NewTextAttachment("body", "Test body."),
+func testPost(ownerID uint64) *Post {
+	return &Post{
+		Object: &object.Object{
+			Attachments: []object.Attachment{
+				object.NewTextAttachment("body", "Test body."),
+			},
+			OwnerID: ownerID,
+			Owned:   true,
+			Tags: []string{
+				"review",
+			},
+			Type:       typePost,
+			Visibility: object.VisibilityPublic,
 		},
-		OwnerID: ownerID,
-		Owned:   true,
-		Tags: []string{
-			"review",
-		},
-		Type:       typePost,
-		Visibility: object.VisibilityPublic,
 	}
 }
 

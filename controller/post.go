@@ -10,6 +10,35 @@ const typePost = "tg_post"
 
 var defaultOwned = true
 
+// Post is the intermediate representation for posts.
+type Post struct {
+	*object.Object
+}
+
+// Posts is a collection of Post.
+type Posts []*Post
+
+// OwnerIDs extracts the OwnerID of every post.
+func (ps Posts) OwnerIDs() []uint64 {
+	ids := []uint64{}
+
+	for _, p := range ps {
+		ids = append(ids, p.OwnerID)
+	}
+
+	return ids
+}
+
+func fromObjects(os object.Objects) Posts {
+	ps := Posts{}
+
+	for _, o := range os {
+		ps = append(ps, &Post{Object: o})
+	}
+
+	return ps
+}
+
 // PostController bundles the business constraints for posts.
 type PostController struct {
 	connections connection.StrangleService
@@ -31,20 +60,23 @@ func NewPostController(
 // and stores it in the Object service.
 func (c *PostController) Create(
 	app *v04_entity.Application,
-	post *object.Object,
+	post *Post,
 	owner *v04_entity.ApplicationUser,
-) (*object.Object, error) {
+) (*Post, error) {
 	post.OwnerID = owner.ID
 	post.Owned = defaultOwned
 	post.Type = typePost
 
-	return c.objects.Put(app.Namespace(), post)
+	o, err := c.objects.Put(app.Namespace(), post.Object)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Post{Object: o}, nil
 }
 
 // Delete marks a Post as deleted and updates it in the service.
 func (c *PostController) Delete(app *v04_entity.Application, id uint64) error {
-	var o *object.Object
-
 	os, err := c.objects.Query(app.Namespace(), object.QueryOptions{
 		ID:    &id,
 		Owned: &defaultOwned,
@@ -61,7 +93,7 @@ func (c *PostController) Delete(app *v04_entity.Application, id uint64) error {
 		return nil
 	}
 
-	o = os[0]
+	o := os[0]
 	o.Deleted = true
 
 	_, err = c.objects.Put(app.Namespace(), o)
@@ -75,8 +107,8 @@ func (c *PostController) Delete(app *v04_entity.Application, id uint64) error {
 // ListAll returns all objects which are of type post.
 func (c *PostController) ListAll(
 	app *v04_entity.Application,
-) (object.Objects, error) {
-	return c.objects.Query(app.Namespace(), object.QueryOptions{
+) (Posts, error) {
+	os, err := c.objects.Query(app.Namespace(), object.QueryOptions{
 		Owned: &defaultOwned,
 		Types: []string{
 			typePost,
@@ -86,6 +118,11 @@ func (c *PostController) ListAll(
 			object.VisibilityGlobal,
 		},
 	})
+	if err != nil {
+		return nil, err
+	}
+
+	return fromObjects(os), err
 }
 
 // ListUser returns all posts for the given user id as visible by the
@@ -94,7 +131,7 @@ func (c *PostController) ListUser(
 	app *v04_entity.Application,
 	connectionID uint64,
 	userID uint64,
-) (object.Objects, error) {
+) (Posts, error) {
 	vs := []object.Visibility{
 		object.VisibilityPublic,
 		object.VisibilityGlobal,
@@ -117,7 +154,7 @@ func (c *PostController) ListUser(
 		vs = append(vs, object.VisibilityConnection, object.VisibilityPrivate)
 	}
 
-	return c.objects.Query(app.Namespace(), object.QueryOptions{
+	os, err := c.objects.Query(app.Namespace(), object.QueryOptions{
 		OwnerIDs: []uint64{
 			userID,
 		},
@@ -127,13 +164,18 @@ func (c *PostController) ListUser(
 		},
 		Visibilities: vs,
 	})
+	if err != nil {
+		return nil, err
+	}
+
+	return fromObjects(os), nil
 }
 
 // Retrieve returns the Post for the given id.
 func (c *PostController) Retrieve(
 	app *v04_entity.Application,
 	id uint64,
-) (*object.Object, error) {
+) (*Post, error) {
 	os, err := c.objects.Query(app.Namespace(), object.QueryOptions{
 		ID:    &id,
 		Owned: &defaultOwned,
@@ -153,7 +195,7 @@ func (c *PostController) Retrieve(
 		return nil, ErrNotFound
 	}
 
-	return os[0], nil
+	return &Post{Object: os[0]}, nil
 }
 
 // Update  stores the new post with the service.
@@ -161,8 +203,8 @@ func (c *PostController) Update(
 	app *v04_entity.Application,
 	owner *v04_entity.ApplicationUser,
 	id uint64,
-	post *object.Object,
-) (*object.Object, error) {
+	post *Post,
+) (*Post, error) {
 	ps, err := c.objects.Query(app.Namespace(), object.QueryOptions{
 		ID: &id,
 		OwnerIDs: []uint64{
@@ -187,5 +229,10 @@ func (c *PostController) Update(
 	p.Tags = post.Tags
 	p.Visibility = post.Visibility
 
-	return c.objects.Put(app.Namespace(), p)
+	o, err := c.objects.Put(app.Namespace(), p)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Post{Object: o}, nil
 }
