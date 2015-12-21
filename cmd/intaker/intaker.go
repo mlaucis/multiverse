@@ -363,7 +363,7 @@ func main() {
 		),
 	)
 
-	next.Methods("GET").PathPrefix("/users/{userID:[]}/posts").Name("postList").HandlerFunc(
+	next.Methods("GET").PathPrefix("/users/{userID:[0-9]+}/posts").Name("postList").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.PostList(postController, users),
