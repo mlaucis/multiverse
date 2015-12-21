@@ -102,9 +102,12 @@ func PostList(c *controller.PostController, users user.StrangleService) Handler 
 // PostListAll returns all publicly visible posts.
 func PostListAll(c *controller.PostController, users user.StrangleService) Handler {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-		app := appFromContext(ctx)
+		var (
+			app         = appFromContext(ctx)
+			currentUser = userFromContext(ctx)
+		)
 
-		ps, err := c.ListAll(app)
+		ps, err := c.ListAll(app, currentUser)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -234,6 +237,7 @@ func (p *payloadPost) MarshalJSON() ([]byte, error) {
 			Attachments: o.Attachments,
 			CreatedAt:   o.CreatedAt,
 			ID:          strconv.FormatUint(o.ID, 10),
+			IsLiked:     o.IsLiked,
 			Tags:        o.Tags,
 			UpdatedAt:   o.UpdatedAt,
 			UserID:      strconv.FormatUint(o.OwnerID, 10),
@@ -252,7 +256,7 @@ func (p *payloadPost) UnmarshalJSON(raw []byte) error {
 		return err
 	}
 
-	p.post = &controller.Post{}
+	p.post = &controller.Post{Object: &object.Object{}}
 	p.post.Attachments = f.Attachments
 	p.post.Tags = f.Tags
 	p.post.Visibility = f.Visibility
