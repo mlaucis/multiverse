@@ -78,7 +78,7 @@ func (c *FeedController) News(
 	app *v04_entity.Application,
 	user *v04_entity.ApplicationUser,
 	condition *v04_core.EventCondition,
-) (event.Events, object.Objects, error) {
+) (event.Events, Posts, error) {
 	ids, errs := c.connections.FriendsAndFollowingIDs(app.OrgID, app.ID, user.ID)
 	if errs != nil {
 		return nil, nil, errs[0]
@@ -131,7 +131,7 @@ func (c *FeedController) News(
 func (c *FeedController) Posts(
 	app *v04_entity.Application,
 	user *v04_entity.ApplicationUser,
-) (object.Objects, error) {
+) (Posts, error) {
 	ids, errs := c.connections.FriendsAndFollowingIDs(app.OrgID, app.ID, user.ID)
 	if errs != nil {
 		return nil, errs[0]
@@ -187,12 +187,12 @@ func (c *FeedController) connectionEvents(
 func (c *FeedController) connectionPosts(
 	app *v04_entity.Application,
 	ids ...uint64,
-) (object.Objects, error) {
+) (Posts, error) {
 	if len(ids) == 0 {
-		return object.Objects{}, nil
+		return Posts{}, nil
 	}
 
-	return c.objects.Query(app.Namespace(), object.QueryOptions{
+	os, err := c.objects.Query(app.Namespace(), object.QueryOptions{
 		OwnerIDs: ids,
 		Owned:    &defaultOwned,
 		Types: []string{
@@ -203,6 +203,11 @@ func (c *FeedController) connectionPosts(
 			object.VisibilityPublic,
 		},
 	})
+	if err != nil {
+		return nil, err
+	}
+
+	return fromObjects(os), nil
 }
 
 func (c *FeedController) globalEvents(

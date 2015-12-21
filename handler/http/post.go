@@ -216,6 +216,7 @@ type postFields struct {
 	Attachments []object.Attachment `json:"attachments"`
 	CreatedAt   time.Time           `json:"created_at,omitempty"`
 	ID          string              `json:"id"`
+	IsLiked     bool                `json:"is_liked"`
 	Tags        []string            `json:"tags,omitempty"`
 	UpdatedAt   time.Time           `json:"updated_at,omitempty"`
 	UserID      string              `json:"user_id"`
@@ -223,7 +224,7 @@ type postFields struct {
 }
 
 type payloadPost struct {
-	post *object.Object
+	post *controller.Post
 }
 
 func (p *payloadPost) MarshalJSON() ([]byte, error) {
@@ -251,17 +252,16 @@ func (p *payloadPost) UnmarshalJSON(raw []byte) error {
 		return err
 	}
 
-	p.post = &object.Object{
-		Attachments: f.Attachments,
-		Tags:        f.Tags,
-		Visibility:  f.Visibility,
-	}
+	p.post = &controller.Post{}
+	p.post.Attachments = f.Attachments
+	p.post.Tags = f.Tags
+	p.post.Visibility = f.Visibility
 
 	return nil
 }
 
 type payloadPosts struct {
-	posts object.Objects
+	posts controller.Posts
 	users user.Users
 }
 

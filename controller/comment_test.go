@@ -12,7 +12,7 @@ import (
 func TestCommentControllerCreate(t *testing.T) {
 	app, owner, c := testSetupCommentController(t)
 
-	post, err := c.objects.Put(app.Namespace(), testPost(owner.ID))
+	post, err := c.objects.Put(app.Namespace(), testPost(owner.ID).Object)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -50,7 +50,7 @@ func TestCommentControllerCreate(t *testing.T) {
 func TestCommentControllerDelete(t *testing.T) {
 	app, owner, c := testSetupCommentController(t)
 
-	post, err := c.objects.Put(app.Namespace(), testPost(owner.ID))
+	post, err := c.objects.Put(app.Namespace(), testPost(owner.ID).Object)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -95,7 +95,7 @@ func TestCommentControllerDelete(t *testing.T) {
 func TestCommentControllerList(t *testing.T) {
 	app, owner, c := testSetupCommentController(t)
 
-	post, err := c.objects.Put(app.Namespace(), testPost(owner.ID))
+	post, err := c.objects.Put(app.Namespace(), testPost(owner.ID).Object)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -129,7 +129,7 @@ func TestCommentControllerList(t *testing.T) {
 func TestCommentControllerRetrieve(t *testing.T) {
 	app, owner, c := testSetupCommentController(t)
 
-	post, err := c.objects.Put(app.Namespace(), testPost(owner.ID))
+	post, err := c.objects.Put(app.Namespace(), testPost(owner.ID).Object)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -157,7 +157,7 @@ func TestCommentControllerRetrieve(t *testing.T) {
 func TestCommentControllerUpdate(t *testing.T) {
 	app, owner, c := testSetupCommentController(t)
 
-	post, err := c.objects.Put(app.Namespace(), testPost(owner.ID))
+	post, err := c.objects.Put(app.Namespace(), testPost(owner.ID).Object)
 	if err != nil {
 		t.Fatal(err)
 	}
