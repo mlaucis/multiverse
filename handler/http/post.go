@@ -61,6 +61,44 @@ func PostDelete(c *controller.PostController) Handler {
 	}
 }
 
+// PostList returns all posts for a user as visible by the current user.
+func PostList(c *controller.PostController, users user.StrangleService) Handler {
+	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+		var (
+			app         = appFromContext(ctx)
+			currentUser = userFromContext(ctx)
+		)
+
+		userID, err := strconv.ParseUint(mux.Vars(r)["userID"], 10, 64)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		ps, err := c.ListUser(app, currentUser.ID, userID)
+		if err != nil {
+			respondError(w, 0, err)
+			return
+		}
+
+		if len(ps) == 0 {
+			respondJSON(w, http.StatusNoContent, nil)
+			return
+		}
+
+		us, err := user.UsersFromIDs(users, app, ps.OwnerIDs()...)
+		if err != nil {
+			respondError(w, 0, err)
+			return
+		}
+
+		respondJSON(w, http.StatusOK, &payloadPosts{
+			posts: ps,
+			users: us,
+		})
+	}
+}
+
 // PostListAll returns all publicly visible posts.
 func PostListAll(c *controller.PostController, users user.StrangleService) Handler {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
@@ -98,7 +136,7 @@ func PostListMe(c *controller.PostController, users user.StrangleService) Handle
 			currentUser = userFromContext(ctx)
 		)
 
-		ps, err := c.ListUser(app, currentUser.ID)
+		ps, err := c.ListUser(app, currentUser.ID, currentUser.ID)
 		if err != nil {
 			respondError(w, 0, err)
 			return

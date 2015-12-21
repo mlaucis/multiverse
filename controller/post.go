@@ -88,11 +88,35 @@ func (c *PostController) ListAll(
 	})
 }
 
-// ListUser returns all posts for the given user id.
+// ListUser returns all posts for the given user id as visible by the
+// connection user id.
 func (c *PostController) ListUser(
 	app *v04_entity.Application,
+	connectionID uint64,
 	userID uint64,
 ) (object.Objects, error) {
+	vs := []object.Visibility{
+		object.VisibilityPublic,
+		object.VisibilityGlobal,
+	}
+
+	// Check relation and include connection visibility.
+	if connectionID != userID {
+		r, errs := c.connections.Relation(app.OrgID, app.ID, connectionID, userID)
+		if errs != nil {
+			return nil, errs[0]
+		}
+
+		if (r.IsFriend != nil && *r.IsFriend) || (r.IsFollower != nil && *r.IsFollower) {
+			vs = append(vs, object.VisibilityConnection)
+		}
+	}
+
+	// We want all visibilities if the connection and target are the same.
+	if connectionID == userID {
+		vs = append(vs, object.VisibilityConnection, object.VisibilityPrivate)
+	}
+
 	return c.objects.Query(app.Namespace(), object.QueryOptions{
 		OwnerIDs: []uint64{
 			userID,
@@ -101,6 +125,7 @@ func (c *PostController) ListUser(
 		Types: []string{
 			typePost,
 		},
+		Visibilities: vs,
 	})
 }
 
