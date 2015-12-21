@@ -1,7 +1,6 @@
 package connection
 
 import (
-	"strconv"
 	"strings"
 	"time"
 
@@ -10,12 +9,13 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/tapglue/multiverse/errors"
+	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
 
 const (
-	fieldApp    = "app"
-	fieldMethod = "method"
-	fieldStore  = "store"
+	fieldMethod    = "method"
+	fieldNamespace = "namespace"
+	fieldStore     = "store"
 )
 
 type instrumentStrangleService struct {
@@ -31,7 +31,7 @@ type instrumentStrangleService struct {
 // Prometheus metrics.
 func InstrumentMiddleware(ns string, store string) StrangleMiddleware {
 	var (
-		fieldKeys = []string{fieldApp, fieldMethod, fieldStore}
+		fieldKeys = []string{fieldMethod, fieldNamespace, fieldStore}
 		namespace = strings.Replace(ns, "-", "_", -1)
 		subsytem  = "service_connection"
 
@@ -72,30 +72,61 @@ func InstrumentMiddleware(ns string, store string) StrangleMiddleware {
 	}
 }
 
-func (s *instrumentStrangleService) FriendsAndFollowingIDs(orgID, appID int64, id uint64) (ids []uint64, errs []errors.Error) {
+func (s *instrumentStrangleService) FriendsAndFollowingIDs(
+	orgID, appID int64,
+	id uint64,
+) (ids []uint64, errs []errors.Error) {
 	defer func(begin time.Time) {
-		var (
-			a = metrics.Field{
-				Key:   fieldApp,
-				Value: strconv.FormatInt(appID, 10),
-			}
-			m = metrics.Field{
-				Key:   fieldMethod,
-				Value: "FriendsAndFollowingIDs",
-			}
-			store = metrics.Field{
-				Key:   fieldStore,
-				Value: s.store,
-			}
-		)
-
+		var err error
 		if errs != nil {
-			s.errCount.With(a).With(m).With(store).Add(1)
+			err = errs[0]
 		}
-
-		s.opCount.With(a).With(m).With(store).Add(1)
-		s.opLatency.With(a).With(m).With(store).Observe(time.Since(begin))
+		s.track(orgID, appID, begin, "FriendsAndFollowingIDs", err)
 	}(time.Now())
 
 	return s.StrangleService.FriendsAndFollowingIDs(orgID, appID, id)
+}
+
+func (s *instrumentStrangleService) Relation(
+	orgID, appID int64,
+	from, to uint64,
+) (r *v04_entity.Relation, errs []errors.Error) {
+	defer func(begin time.Time) {
+		var err error
+		if errs != nil {
+			err = errs[0]
+		}
+		s.track(orgID, appID, begin, "Relation", err)
+	}(time.Now())
+
+	return s.StrangleService.Relation(orgID, appID, from, to)
+}
+
+func (s *instrumentStrangleService) track(
+	orgID, appID int64,
+	begin time.Time,
+	method string,
+	err error,
+) {
+	var (
+		m = metrics.Field{
+			Key:   fieldMethod,
+			Value: method,
+		}
+		n = metrics.Field{
+			Key:   fieldNamespace,
+			Value: namespace(orgID, appID),
+		}
+		store = metrics.Field{
+			Key:   fieldStore,
+			Value: s.store,
+		}
+	)
+
+	if err != nil {
+		s.errCount.With(m).With(n).With(store).Add(1)
+	}
+
+	s.opCount.With(m).With(n).With(store).Add(1)
+	s.opLatency.With(m).With(n).With(store).Observe(time.Since(begin))
 }

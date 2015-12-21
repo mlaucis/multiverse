@@ -363,6 +363,13 @@ func main() {
 		),
 	)
 
+	next.Methods("GET").PathPrefix("/users/{userID:[]}/posts").Name("postList").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.PostList(postController, users),
+		),
+	)
+
 	server := &http.Server{
 		Addr:           conf.ListenHostPort,
 		Handler:        router,

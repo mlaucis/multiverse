@@ -121,7 +121,7 @@ func TestPostControllerListAll(t *testing.T) {
 func TestPostControllerListUser(t *testing.T) {
 	app, owner, c := testSetupPostController(t)
 
-	ps, err := c.ListUser(app, owner.ID)
+	ps, err := c.ListUser(app, owner.ID, owner.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -137,7 +137,7 @@ func TestPostControllerListUser(t *testing.T) {
 		}
 	}
 
-	ps, err = c.ListUser(app, owner.ID)
+	ps, err = c.ListUser(app, owner.ID, owner.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
