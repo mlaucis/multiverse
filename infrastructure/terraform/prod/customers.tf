@@ -1,3 +1,11 @@
+resource "cloudflare_record" "adrenalynmapp" {
+  domain = "${var.cloudflare_domain}"
+  name   = "adrenalynmapp"
+  value  = "${aws_elb.frontend.dns_name}"
+  type   = "CNAME"
+  ttl    = 1
+}
+
 resource "cloudflare_record" "dailyme" {
   domain = "${var.cloudflare_domain}"
   name   = "dailyme"
