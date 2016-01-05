@@ -116,7 +116,7 @@ func (conn *connection) Delete(ctx *context.Context) (err []errors.Error) {
 	return
 }
 
-func (conn *connection) Create(ctx *context.Context) (err []errors.Error) {
+func (conn *connection) Create(ctx *context.Context) []errors.Error {
 	var (
 		p = &entity.PresentationConnection{}
 
@@ -131,7 +131,14 @@ func (conn *connection) Create(ctx *context.Context) (err []errors.Error) {
 
 	connection.UserFromID = ctx.ApplicationUserID
 
-	return conn.doCreateConnection(ctx, connection)
+	switch connection.Type {
+	case entity.ConnectionTypeFollow, entity.ConnectionTypeFriend:
+		return conn.create(ctx, connection)
+	default:
+		return []errors.Error{errmsg.ErrConnectionTypeIsWrong.UpdateMessage("unexpected connection type " + string(connection.Type)).SetCurrentLocation()}
+	}
+
+	return nil
 }
 
 func (conn *connection) FollowingList(ctx *context.Context) (err []errors.Error) {
@@ -474,7 +481,7 @@ func (conn *connection) CreateFriend(ctx *context.Context) []errors.Error {
 
 	connection.Type = entity.ConnectionTypeFriend
 	connection.UserFromID = ctx.ApplicationUserID
-	return conn.doCreateConnection(ctx, connection)
+	return conn.create(ctx, connection)
 }
 
 func (conn *connection) CreateFollow(ctx *context.Context) []errors.Error {
@@ -492,72 +499,100 @@ func (conn *connection) CreateFollow(ctx *context.Context) []errors.Error {
 
 	connection.Type = entity.ConnectionTypeFollow
 	connection.UserFromID = ctx.ApplicationUserID
-	return conn.doCreateConnection(ctx, connection)
+	return conn.create(ctx, connection)
 }
 
-func (conn *connection) doCreateConnection(ctx *context.Context, connection *entity.Connection) []errors.Error {
-	existingConnectionFrom, err := conn.storage.Read(ctx.OrganizationID, ctx.ApplicationID, ctx.ApplicationUserID, connection.UserToID, connection.Type)
-	if err != nil {
-		if err[0].Code() != errmsg.ErrConnectionNotFound.Code() {
-			return err
-		}
+func (conn *connection) create(
+	ctx *context.Context,
+	connection *entity.Connection,
+) (errs []errors.Error) {
+	from, to, errs := conn.getConnectionPair(ctx, connection)
+	if errs != nil {
+		return errs
 	}
 
-	existingConnectionTo, err := conn.storage.Read(ctx.OrganizationID, ctx.ApplicationID, connection.UserToID, ctx.ApplicationUserID, connection.Type)
-	if err != nil {
-		if err[0].Code() != errmsg.ErrConnectionNotFound.Code() {
-			return err
-		}
-	}
-
-	var existingConnection *entity.Connection
-	if existingConnectionFrom != nil {
-		existingConnection = existingConnectionFrom
-	} else if existingConnectionTo != nil {
-		existingConnection = existingConnectionTo
-	}
-
-	if existingConnection != nil {
-		if (connection.State == "" && existingConnection.State == entity.ConnectionStateConfirmed) ||
-			(connection.State == existingConnection.State) {
-			goto createResponse
-		} else {
-			if err := existingConnection.TransferState(connection.State, ctx.ApplicationUserID); err != nil {
-				return err
+	defer func() {
+		if errs == nil && connection.State == entity.ConnectionStateConfirmed {
+			_, errs := conn.CreateAutoConnectionEvent(ctx, connection)
+			if errs != nil {
+				ctx.LogError(errs)
 			}
 		}
+	}()
 
-		_, err = conn.storage.Update(ctx.OrganizationID, ctx.ApplicationID, existingConnection, existingConnection, false)
-		if err != nil {
-			return err
-		}
-	} else {
+	if connection.Type == entity.ConnectionTypeFriend && from == nil && to != nil {
+		from = to
+	}
+
+	if from == nil {
 		if connection.State == "" {
 			connection.TransferState(entity.ConnectionStateConfirmed, ctx.ApplicationUserID)
 		}
 
-		err = validator.CreateConnection(conn.appUser, ctx.OrganizationID, ctx.ApplicationID, connection)
-		if err != nil {
-			return err
+		errs := validator.CreateConnection(conn.appUser, ctx.OrganizationID, ctx.ApplicationID, connection)
+		if errs != nil {
+			return errs
 		}
 
-		err = conn.storage.Create(ctx.OrganizationID, ctx.ApplicationID, connection)
-		if err != nil {
-			return err
+		errs = conn.storage.Create(ctx.OrganizationID, ctx.ApplicationID, connection)
+		if errs != nil {
+			return errs
 		}
+
+		response.WriteResponse(ctx, connection, http.StatusCreated, 0)
+		return nil
 	}
 
-createResponse:
-
-	if connection.State == entity.ConnectionStateConfirmed {
-		_, err := conn.CreateAutoConnectionEvent(ctx, connection)
-		if err != nil {
-			ctx.LogError(err)
-		}
+	if connection.State == "" || connection.State == from.State {
+		response.WriteResponse(ctx, connection, http.StatusOK, 0)
+		return nil
 	}
 
-	response.WriteResponse(ctx, connection, http.StatusCreated, 0)
+	errs = from.TransferState(connection.State, ctx.ApplicationUserID)
+	if errs != nil {
+		return errs
+	}
+
+	_, errs = conn.storage.Update(ctx.OrganizationID, ctx.ApplicationID, from, from, false)
+	if errs != nil {
+		return errs
+	}
+
+	response.WriteResponse(ctx, connection, http.StatusOK, 0)
 	return nil
+}
+
+func (conn *connection) getConnectionPair(
+	ctx *context.Context,
+	connection *entity.Connection,
+) (*entity.Connection, *entity.Connection, []errors.Error) {
+	from, err := conn.storage.Read(
+		ctx.OrganizationID,
+		ctx.ApplicationID,
+		ctx.ApplicationUserID,
+		connection.UserToID,
+		connection.Type,
+	)
+	if err != nil {
+		if err[0].Code() != errmsg.ErrConnectionNotFound.Code() {
+			return nil, nil, err
+		}
+	}
+
+	to, err := conn.storage.Read(
+		ctx.OrganizationID,
+		ctx.ApplicationID,
+		connection.UserToID,
+		ctx.ApplicationUserID,
+		connection.Type,
+	)
+	if err != nil {
+		if err[0].Code() != errmsg.ErrConnectionNotFound.Code() {
+			return nil, nil, err
+		}
+	}
+
+	return from, to, nil
 }
 
 func (conn *connection) CreateAutoConnectionEvent(ctx *context.Context, connection *entity.Connection) (*entity.Event, []errors.Error) {
