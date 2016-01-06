@@ -108,22 +108,11 @@ const (
 		AND (json_data->>'deleted')::BOOL = false
 	LIMIT 200`
 
-	selectApplicationUserCountsQuery = `SELECT
-  (SELECT count(*) FROM app_%d_%d.connections
-    WHERE ((json_data->>'user_from_id')::BIGINT = $1::BIGINT OR (json_data->>'user_to_id')::BIGINT = $1::BIGINT) AND
-           json_data->>'state' = '` + string(entity.ConnectionStateConfirmed) + `' AND
-           json_data->>'type' = '` + string(entity.ConnectionTypeFriend) + `' AND
-           (json_data->>'enabled')::BOOL = true) AS "friends",
-  (SELECT count(*) FROM app_%d_%d.connections
-    WHERE (json_data->>'user_to_id')::BIGINT = $1::BIGINT AND
-           json_data->>'state' = '` + string(entity.ConnectionStateConfirmed) + `' AND
-           json_data->>'type' = '` + string(entity.ConnectionTypeFollow) + `' AND
-           (json_data->>'enabled')::BOOL = true) AS "follower",
-  (SELECT count(*) FROM app_%d_%d.connections
-    WHERE (json_data->>'user_from_id')::BIGINT = $1::BIGINT AND
-          json_data->>'state' = '` + string(entity.ConnectionStateConfirmed) + `' AND
-          json_data->>'type' = '` + string(entity.ConnectionTypeFollow) + `' AND
-          (json_data->>'enabled')::BOOL = true) AS "followed"`
+	selectUsersCountQuery = `SELECT count(*)
+		FROM app_%d_%d.users
+		WHERE (json_data->>'id')::BIGINT IN (?)
+		AND (json_data->>'enabled')::BOOL = true::BOOL
+		AND (json_data->>'deleted')::BOOL = false::BOOL`
 )
 
 func (au *applicationUser) Create(accountID, applicationID int64, user *entity.ApplicationUser) []errors.Error {
@@ -530,13 +519,52 @@ func (au *applicationUser) destroyAllUserSession(accountID, applicationID int64,
 	return nil
 }
 
-func (au *applicationUser) FriendStatistics(accountID, applicationID int64, appUser *entity.ApplicationUser) []errors.Error {
-	err := au.pg.SlaveDatastore(-1).
-		QueryRow(appSchemaWithParams(selectApplicationUserCountsQuery, accountID, applicationID, accountID, applicationID, accountID, applicationID), appUser.ID).
-		Scan(&appUser.FriendCount, &appUser.FollowerCount, &appUser.FollowedCount)
-	if err != nil {
-		return []errors.Error{errmsg.ErrInternalApplicationUserRead.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
+func (au *applicationUser) FriendStatistics(
+	orgID, appID int64,
+	user *entity.ApplicationUser,
+) []errors.Error {
+	ids, errs := au.conn.Following(orgID, appID, user.ID)
+	if errs != nil {
+		return errs
 	}
+
+	followedCount, err := au.countUsers(orgID, appID, ids...)
+	if err != nil {
+		return []errors.Error{
+			errmsg.ErrInternalApplicationUserRead.UpdateInternalMessage(err.Error()).SetCurrentLocation(),
+		}
+	}
+
+	user.FollowedCount = &followedCount
+
+	ids, errs = au.conn.FollowedBy(orgID, appID, user.ID)
+	if errs != nil {
+		return errs
+	}
+
+	followerCount, err := au.countUsers(orgID, appID, ids...)
+	if err != nil {
+		return []errors.Error{
+			errmsg.ErrInternalApplicationUserRead.UpdateInternalMessage(err.Error()).SetCurrentLocation(),
+		}
+	}
+
+	user.FollowerCount = &followerCount
+
+	ids, errs = au.conn.Friends(orgID, appID, user.ID)
+	if errs != nil {
+		return errs
+	}
+
+	friendsCount, err := au.countUsers(orgID, appID, ids...)
+	if err != nil {
+		return []errors.Error{
+			errmsg.ErrInternalApplicationUserRead.UpdateInternalMessage(err.Error()).SetCurrentLocation(),
+		}
+	}
+
+	user.FriendCount = &friendsCount
+
 	return nil
 }
 
@@ -609,6 +637,37 @@ func (au *applicationUser) FilterByEmail(
 	}
 
 	return users, nil
+}
+
+func (au *applicationUser) countUsers(
+	orgID, appID int64,
+	ids ...uint64,
+) (int64, error) {
+	if len(ids) == 0 {
+		return 0, nil
+	}
+
+	ps := []interface{}{}
+
+	for _, id := range ids {
+		ps = append(ps, id)
+	}
+
+	query, _, err := sqlx.In(selectUsersCountQuery, ps)
+	if err != nil {
+		return -1, err
+	}
+
+	query = sqlx.Rebind(sqlx.DOLLAR, query)
+
+	var count int64
+
+	err = au.pg.SlaveDatastore(-1).Get(&count, appSchema(query, orgID, appID), ps...)
+	if err != nil {
+		return -1, err
+	}
+
+	return count, nil
 }
 
 // NewApplicationUser returns a new application user handler with PostgreSQL as storage driver
