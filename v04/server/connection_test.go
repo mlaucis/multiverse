@@ -165,7 +165,7 @@ func (s *ConnectionSuite) TestCreateConnectionTwice(c *C) {
 	code, body, err = runRequest(routeName, route, payload, signApplicationRequest(application, userFrom, true, true))
 	c.Assert(err, IsNil)
 
-	c.Assert(code, Equals, http.StatusCreated)
+	c.Assert(code, Equals, http.StatusOK)
 	c.Assert(body, Not(Equals), "")
 
 	connection = &entity.Connection{}
@@ -2045,7 +2045,7 @@ func (s *ConnectionSuite) TestCreateFriendConnectionWithState(c *C) {
 				State:      entity.ConnectionStateConfirmed,
 			},
 			RequestSigner: users[0].ID,
-			ResponseCode:  http.StatusCreated,
+			ResponseCode:  http.StatusOK,
 			Response: &entity.Connection{
 				UserFromID: users[0].ID,
 				UserToID:   users[7].ID,
