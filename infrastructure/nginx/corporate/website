@@ -96,6 +96,29 @@ server {
         try_files /pricing.html =404;
     }
 
+    location /terms.html {
+        rewrite $(.*)$ /terms/ permanent;
+    }
+
+    location /terms {
+        rewrite $(.*)$ /terms/ permanent;
+    }
+
+    location /terms/ {
+        try_files /terms.html =404;
+    }
+
+    location /sla.html {
+        rewrite $(.*)$ /sla/ permanent;
+    }
+
+    location /sla {
+        rewrite $(.*)$ /sla/ permanent;
+    }
+
+    location /sla/ {
+        try_files /sla.html =404;
+    }
 
     location ^~ /blog {
         if ($http_user_agent ~* "ELB-HealthChecker" ) {

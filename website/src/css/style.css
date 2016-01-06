@@ -628,11 +628,28 @@ input[type="radio"] + label:before {
 
 ol {
     list-style: decimal;
-    margin: 0 0 2em 0;
-    padding-left: 1.25em;
+    counter-reset: item;
+    margin: 1.4em 0;
+    display: table;
 }
 ol li {
     padding-left: 0.25em;
+    font-weight: bold;
+    display: table-row;
+}
+ol > li > ol > li {
+    font-weight: normal;
+    text-align: justify;
+}
+ol > li > ol > li > ol {
+    list-style: lower-alpha;
+}
+ol li:before {
+    content: counters(item, ".") ". ";
+    text-align: right;
+    counter-increment: item;
+    display: table-cell;
+    padding-right: 0.4em;
 }
 ul {
     list-style: disc;
@@ -3530,4 +3547,11 @@ div.pricing .plan h4 {
 }
 .status-dot.critical {
   background: #ed5565;
+}
+
+/* SLA & Terms */
+
+.terms {
+  text-align: left;
+  display:inline-block;
 }
