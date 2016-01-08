@@ -1,5 +1,16 @@
 DROP SCHEMA IF EXISTS public CASCADE ;
 
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT *
+    FROM   pg_catalog.pg_user
+    WHERE  usename = 'tapglue'
+  ) THEN
+    CREATE ROLE tapglue SUPERUSER LOGIN;
+  END IF;
+END$$;
+
 CREATE SCHEMA IF NOT EXISTS public;
 
 CREATE EXTENSION postgis;
