@@ -41,7 +41,12 @@ func UsersFromIDs(
 
 		u, errs := s.Read(app.OrgID, app.ID, id, false)
 		if errs != nil {
-			return nil, errs[0]
+			// FIXME(xla): We can ignore returned errors for as this method is only
+			// used to construct user maps in responses and the logging wrapper of the
+			// user service takes care of error reporting. Yet it needs proper
+			// addressing as it is a dangerous assumption to believe the usage of this
+			// method will only be in one context.
+			continue
 		}
 
 		us = append(us, u)
