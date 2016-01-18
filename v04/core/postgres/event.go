@@ -43,7 +43,7 @@ const (
 		FROM app_%d_%d.events
 		WHERE (json_data->>'user_id')::BIGINT = $1::BIGINT
 			AND ((json_data->>'visibility')::INT = 30 OR (json_data->>'visibility')::INT = 40)
-			AND (json_data->'enabled')::BOOL = true
+			AND (json_data->>'enabled')::BOOL = true
 			%s
 		ORDER BY json_data->>'created_at' DESC LIMIT 200`
 
