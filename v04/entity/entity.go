@@ -417,6 +417,7 @@ func (e *PresentationEvent) UnmarshalJSON(raw []byte) error {
 		Target       *Object       `json:"target,omitempty"`
 		Instrument   *Object       `json:"instrument,omitempty"`
 		Participant  []Participant `json:"participant,omitempty"`
+		Common
 	}{}
 
 	err := json.Unmarshal(raw, &r)
@@ -441,6 +442,7 @@ func (e *PresentationEvent) UnmarshalJSON(raw []byte) error {
 		Target:      r.Target,
 		Instrument:  r.Instrument,
 		Participant: r.Participant,
+		Common:      r.Common,
 	}
 
 	if r.ObjectID != "" {
