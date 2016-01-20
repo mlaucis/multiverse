@@ -110,9 +110,13 @@ $ cd $GOPATH/src/github.com/tapglue/multiverse
 $ go get ./...
 ```
 
-## Create Database
+## Database
 
-We need to create the databases before we start our backend application.
+We need to start and create the databases before we start our backend application.
+
+### Launch Redis
+
+`redis-server /usr/local/etc/redis.conf`
 
 ### Launch Postgres
 
