@@ -47,7 +47,7 @@ Follow the instruction on the [Redis website](http://redis.io/download) to insta
 
 Postgres is the main database that is used to store all data related to:
 
-- organizations
+- orgs
 - members
 - apps
 - users
@@ -116,23 +116,38 @@ We need to start and create the databases before we start our backend applicatio
 
 ### Launch Redis
 
-`redis-server /usr/local/etc/redis.conf`
+
+```shell
+redis-server /usr/local/etc/redis.conf
+```
+
 
 ### Launch Postgres
 
-`postgres -D /usr/local/var/postgres/ -d 2 -t pl`
+```shell
+postgres -D /usr/local/var/postgres/ -d 2 -t pl
+```
 
-### Create Database for Tests
+### Create Databases for Tests & Development
 
-`createdb tapglue_test`
+```shell
+createdb tapglue_test
+```
 
-### Create Database for Development
-
-`createdb tapglue_dev`
+```shell
+createdb tapglue_dev
+```
 
 ### Create Schemas and test data
 
-`psql -E -d tapglue_test -f v04/resources/db/pgsql.sql`
+
+```shell
+psql -E -d tapglue_test -f v04/resources/db/pgsql.sql
+```
+
+```shell
+psql -E -d tapglue_dev -f v04/resources/db/pgsql.sql
+```
 
 ## Server configuration
 
@@ -226,20 +241,27 @@ Navigate to `cmd/intaker` and create a `config.json`
 ## Start server
 
 
-```
+```shell
 go run -tags postgres cmd/intaker/intaker.go
-
 ```
 
 ## Running tests
 
-Change to `v04/server` and run `CI=true go test -tags postgres -check.v ./...`
+Change to `v04/server` and run
+
+```shell
+CI=true go test -tags postgres -check.v ./...
+```
 
 Other tests from root directory:
 
-`go test -v ./controller/...`
+```shell
+go test -v ./controller/...
+```
 
-`go test -v -tags integration ./service/...`
+```shell
+go test -v -tags integration ./service/...
+```
 
 ## Coverage
 
