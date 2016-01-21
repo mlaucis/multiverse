@@ -169,7 +169,7 @@ func (conn *connection) FollowingList(ctx *context.Context) (err []errors.Error)
 
 	response.SanitizeApplicationUsers(users)
 
-	if err := conn.addRelationInformation(ctx, userID, users); err != nil {
+	if err := conn.addRelationInformation(ctx, ctx.ApplicationUserID, users); err != nil {
 		return err
 	}
 
@@ -252,7 +252,7 @@ func (conn *connection) FollowedByList(ctx *context.Context) (err []errors.Error
 
 	response.SanitizeApplicationUsers(users)
 
-	if err := conn.addRelationInformation(ctx, userID, users); err != nil {
+	if err := conn.addRelationInformation(ctx, ctx.ApplicationUserID, users); err != nil {
 		return err
 	}
 
@@ -360,7 +360,7 @@ func (conn *connection) CreateSocial(ctx *context.Context) (err []errors.Error) 
 
 	response.SanitizeApplicationUsers(users)
 
-	if err := conn.addRelationInformation(ctx, user.ID, users); err != nil {
+	if err := conn.addRelationInformation(ctx, ctx.ApplicationUserID, users); err != nil {
 		return err
 	}
 
@@ -405,7 +405,7 @@ func (conn *connection) Friends(ctx *context.Context) (err []errors.Error) {
 
 	response.SanitizeApplicationUsers(users)
 
-	if err := conn.addRelationInformation(ctx, userID, users); err != nil {
+	if err := conn.addRelationInformation(ctx, ctx.ApplicationUserID, users); err != nil {
 		return err
 	}
 
