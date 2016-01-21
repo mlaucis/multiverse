@@ -72,6 +72,22 @@ func InstrumentMiddleware(ns string, store string) StrangleMiddleware {
 	}
 }
 
+func (s *instrumentStrangleService) ConnectionsByState(
+	orgID, appID int64,
+	id uint64,
+	state v04_entity.ConnectionStateType,
+) (cs []*v04_entity.Connection, errs []errors.Error) {
+	defer func(begin time.Time) {
+		var err error
+		if errs != nil {
+			err = errs[0]
+		}
+		s.track(orgID, appID, begin, "ConnectionsByState", err)
+	}(time.Now())
+
+	return s.StrangleService.ConnectionsByState(orgID, appID, id, state)
+}
+
 func (s *instrumentStrangleService) FriendsAndFollowingIDs(
 	orgID, appID int64,
 	id uint64,

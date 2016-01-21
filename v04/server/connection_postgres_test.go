@@ -137,8 +137,8 @@ func (s *ConnectionSuite) TestCreateFollowConnectionWithUserGeneratedEvent(c *C)
 	er = json.Unmarshal([]byte(body), &response)
 	c.Assert(er, IsNil)
 
-	c.Assert(response.Count, Equals, 2)
-	c.Assert(len(response.Events), Equals, 2)
+	c.Assert(response.Count, Equals, 1)
+	c.Assert(len(response.Events), Equals, 1)
 	c.Assert(len(response.Users), Equals, 2)
 	c.Assert(response.Events[0].Type, Equals, "tg_follow")
 }

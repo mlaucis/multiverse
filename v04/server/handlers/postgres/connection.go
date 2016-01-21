@@ -6,7 +6,6 @@ import (
 	"strconv"
 
 	"github.com/tapglue/multiverse/errors"
-	"github.com/tapglue/multiverse/tgflake"
 	"github.com/tapglue/multiverse/v04/context"
 	"github.com/tapglue/multiverse/v04/core"
 	"github.com/tapglue/multiverse/v04/entity"
@@ -511,15 +510,6 @@ func (conn *connection) create(
 		return errs
 	}
 
-	defer func() {
-		if errs == nil && connection.State == entity.ConnectionStateConfirmed {
-			_, errs := conn.CreateAutoConnectionEvent(ctx, connection)
-			if errs != nil {
-				ctx.LogError(errs)
-			}
-		}
-	}()
-
 	if connection.Type == entity.ConnectionTypeFriend && from == nil && to != nil {
 		from = to
 	}
@@ -593,53 +583,6 @@ func (conn *connection) getConnectionPair(
 	}
 
 	return from, to, nil
-}
-
-func (conn *connection) CreateAutoConnectionEvent(ctx *context.Context, connection *entity.Connection) (*entity.Event, []errors.Error) {
-	event := &entity.Event{
-		UserID:     connection.UserFromID,
-		Type:       "tg_" + string(connection.Type),
-		Visibility: entity.EventConnections,
-		Target: &entity.Object{
-			ID:   strconv.FormatUint(connection.UserToID, 10),
-			Type: "tg_user",
-		},
-	}
-
-	var err error
-	event.ID, err = tgflake.FlakeNextID(ctx.ApplicationID, "events")
-	if err != nil {
-		return nil, []errors.Error{errmsg.ErrServerInternalError.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
-	}
-
-	accountID := ctx.OrganizationID
-	applicationID := ctx.ApplicationID
-
-	er := conn.event.Create(accountID, applicationID, connection.UserFromID, event)
-	return event, er
-}
-
-func (conn *connection) CreateAutoConnectionEvents(
-	ctx *context.Context,
-	user *entity.ApplicationUser, users []*entity.ApplicationUser,
-	connectionType entity.ConnectionTypeType) ([]*entity.Event, []errors.Error) {
-
-	events := []*entity.Event{}
-	errs := []errors.Error{}
-	for idx := range users {
-		connection := &entity.Connection{
-			UserFromID: user.ID,
-			UserToID:   users[idx].ID,
-			Type:       connectionType,
-		}
-
-		evt, err := conn.CreateAutoConnectionEvent(ctx, connection)
-
-		events = append(events, evt)
-		errs = append(errs, err...)
-	}
-
-	return events, errs
 }
 
 func (conn *connection) CurrentUserConnectionsByState(ctx *context.Context) []errors.Error {

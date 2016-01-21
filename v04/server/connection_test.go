@@ -99,37 +99,6 @@ func (s *ConnectionSuite) TestCreateConnection_OK(c *C) {
 	c.Assert(receivedUser.UpdatedAt, IsNil)
 	c.Assert(strings.Contains(body, `created_at":null`), Equals, false)
 	c.Assert(strings.Contains(body, `updated_at":null`), Equals, false)
-
-	routeName = "getCurrentUserFeed"
-	route = getComposedRoute(routeName)
-	code, body, err = runRequest(routeName, route, "", signApplicationRequest(application, userTo, true, true))
-	c.Assert(err, IsNil)
-	c.Assert(code, Equals, http.StatusOK)
-	c.Assert(body, Not(Equals), "")
-
-	response := entity.EventsResponseWithUnread{}
-	er = json.Unmarshal([]byte(body), &response)
-	c.Assert(er, IsNil)
-
-	c.Assert(response.EventsCount, Equals, 1)
-	c.Assert(len(response.Events), Equals, 1)
-	c.Assert(len(response.Users), Equals, 2)
-	c.Assert(response.Events[0].Type, Equals, "tg_friend")
-
-	routeName = "getCurrentUserEventList"
-	route = getComposedRoute(routeName)
-	code, body, err = runRequest(routeName, route, "", signApplicationRequest(application, userFrom, true, true))
-	c.Assert(err, IsNil)
-	c.Assert(code, Equals, http.StatusOK)
-	c.Assert(body, Not(Equals), "")
-
-	response = entity.EventsResponseWithUnread{}
-	er = json.Unmarshal([]byte(body), &response)
-	c.Assert(er, IsNil)
-	c.Assert(response.EventsCount, Equals, 1)
-	c.Assert(response.UsersCount, Equals, 2)
-	c.Assert(response.EventsCount, Equals, len(response.Events))
-	c.Assert(response.UsersCount, Equals, len(response.Users))
 }
 
 func (s *ConnectionSuite) TestCreateConnectionTwice(c *C) {

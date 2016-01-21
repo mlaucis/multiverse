@@ -3,7 +3,6 @@ package handlers
 import (
 	"github.com/tapglue/multiverse/errors"
 	"github.com/tapglue/multiverse/v04/context"
-	"github.com/tapglue/multiverse/v04/entity"
 )
 
 // Connection holds the routes for the connections
@@ -49,7 +48,4 @@ type Connection interface {
 
 	// CurrentUserConnectionsByState retrieves the user connections by state
 	CurrentUserConnectionsByState(*context.Context) []errors.Error
-
-	// CreateAutoConnectionEvent will create an event automatically when a new connection is made
-	CreateAutoConnectionEvent(*context.Context, *entity.Connection) (*entity.Event, []errors.Error)
 }

@@ -19,8 +19,21 @@ type Post struct {
 	*object.Object
 }
 
+// PostMap is the user collection indexed by their ids.
+type PostMap map[uint64]*Post
+
 // Posts is a collection of Post.
 type Posts []*Post
+
+func (ps Posts) toMap() PostMap {
+	pm := PostMap{}
+
+	for _, post := range ps {
+		pm[post.ID] = post
+	}
+
+	return pm
+}
 
 // OwnerIDs extracts the OwnerID of every post.
 func (ps Posts) OwnerIDs() []uint64 {
@@ -130,7 +143,9 @@ func (c *PostController) ListAll(
 		return nil, err
 	}
 
-	ps, err := enrichIsLiked(app, user.ID, c.events, fromObjects(os))
+	ps := fromObjects(os)
+
+	err = enrichIsLiked(c.events, app, user.ID, ps)
 	if err != nil {
 		return nil, err
 	}
@@ -181,7 +196,9 @@ func (c *PostController) ListUser(
 		return nil, err
 	}
 
-	ps, err := enrichIsLiked(app, connectionID, c.events, fromObjects(os))
+	ps := fromObjects(os)
+
+	err = enrichIsLiked(c.events, app, connectionID, ps)
 	if err != nil {
 		return nil, err
 	}
@@ -256,11 +273,11 @@ func (c *PostController) Update(
 }
 
 func enrichIsLiked(
+	events event.StrangleService,
 	app *v04_entity.Application,
 	userID uint64,
-	events event.StrangleService,
 	ps Posts,
-) (Posts, error) {
+) error {
 	for _, p := range ps {
 		es, errs := events.ListAll(app.OrgID, app.ID, v04_core.EventCondition{
 			ObjectID: &v04_core.RequestCondition{
@@ -274,7 +291,7 @@ func enrichIsLiked(
 			},
 		})
 		if errs != nil {
-			return nil, errs[0]
+			return errs[0]
 		}
 
 		if len(es) == 1 {
@@ -282,5 +299,5 @@ func enrichIsLiked(
 		}
 	}
 
-	return ps, nil
+	return nil
 }

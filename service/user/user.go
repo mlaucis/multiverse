@@ -19,18 +19,43 @@ type StrangleService interface {
 // StrangleMiddleware is a chainable behaviour modifier for StrangleService.
 type StrangleMiddleware func(StrangleService) StrangleService
 
-// Users is a User collection.
-type Users []*v04_entity.ApplicationUser
+// Map is a user collection with their id as index.
+type Map map[uint64]*v04_entity.ApplicationUser
+
+// List is a collection of users.
+type List []*v04_entity.ApplicationUser
+
+// IDs returns the list of user ids.
+func (l List) IDs() []uint64 {
+	ids := []uint64{}
+
+	for _, user := range l {
+		ids = append(ids, user.ID)
+	}
+
+	return ids
+}
+
+// ToMap turns the user list into a Map.
+func (l List) ToMap() Map {
+	m := Map{}
+
+	for _, user := range l {
+		m[user.ID] = user
+	}
+
+	return m
+}
 
 // UsersFromIDs gathers a user collection from the service for the given ids.
 func UsersFromIDs(
 	s StrangleService,
 	app *v04_entity.Application,
 	ids ...uint64,
-) (Users, error) {
+) (List, error) {
 	var (
 		seen = map[uint64]struct{}{}
-		us   = Users{}
+		us   = List{}
 	)
 
 	for _, id := range ids {
