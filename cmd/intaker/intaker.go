@@ -382,35 +382,28 @@ func main() {
 		server.TLSConfig = configTLS()
 	}
 
-	if conf.UseArtwork {
-		log.Printf(`
-
-88888888888                         888                        8888888          888             888
-    888                             888                          888            888             888
-    888                             888                          888            888             888
-    888   8888b.  88888b.   .d88b.  888 888  888  .d88b.         888   88888b.  888888  8888b.  888  888  .d88b.  888d888
-    888      "88b 888 "88b d88P"88b 888 888  888 d8P  Y8b        888   888 "88b 888        "88b 888 .88P d8P  Y8b 888P"
-    888  .d888888 888  888 888  888 888 888  888 88888888        888   888  888 888    .d888888 888888K  88888888 888
-    888  888  888 888 d88P Y88b 888 888 Y88b 888 Y8b.            888   888  888 Y88b.  888  888 888 "88b Y8b.     888
-    888  "Y888888 88888P"   "Y88888 888  "Y88888  "Y8888       8888888 888  888  "Y888 "Y888888 888  888  "Y8888  888
-                  888           888
-                  888      Y8b d88P
-                  888       "Y88P"
-
-`)
-	}
-
 	go func() {
 		http.Handle("/metrics", prometheus.Handler())
 
+		logger.Log(
+			"duration", time.Now().Sub(startTime),
+			"lifecycle", "start",
+			"listen", conf.TelemetryAddr,
+			"sub", "telemetry",
+		)
 		log.Fatal(http.ListenAndServe(conf.TelemetryAddr, nil))
 	}()
 
+	logger.Log(
+		"duration", time.Now().Sub(startTime),
+		"lifecycle", "start",
+		"listen", conf.ListenHostPort,
+		"sub", "api",
+	)
+
 	if conf.UseSSL {
-		log.Printf("Starting SSL server at \"%s\" in %s", conf.ListenHostPort, time.Now().Sub(startTime))
 		log.Fatal(server.ListenAndServeTLS("./self.crt", "./self.key"))
 	} else {
-		log.Printf("Starting NORMAL server at \"%s\" in %s", conf.ListenHostPort, time.Now().Sub(startTime))
 		log.Fatal(server.ListenAndServe())
 	}
 }
