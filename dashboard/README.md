@@ -1,10 +1,10 @@
 # Tapglue Dashboard
 
-Management Dashboard for users of tapglue.com.
+Management Dashboard for users of dashboard.tapglue.com.
 
 ## Requirements
 
-- node v0.10.39
+- node v5.4.1
 
 ## Installation
 
@@ -17,7 +17,7 @@ npm install
 ### Run
 
 ```
-npm run serve
+npm run watch
 ```
 
 ### Tests

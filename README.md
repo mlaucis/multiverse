@@ -11,13 +11,71 @@ See [Documentation](https://github.com/tapglue/multiverse/wiki) for entities, ap
 ## System Requirements
 
 - go (latest)
+- postgres
+- postgis
 - redis 2.8 or newer
 
-## Installation
+## Install Go
 
-Following steps are need to download and install this project.
+Go is the main language that is being used to develop our backend application.
 
-### Getting started
+### Manual Installation
+
+Follow the instruction on the [Go website](https://golang.org/doc/install) to install it manually.
+
+### Homebrew Installation
+
+`brew install go`
+
+### Configure GOPATH
+
+Make sure that your `GOPATH` is configured correctly. You can type `go env` to evaluate your setup.
+
+## Install Redis
+
+Redis is used as a cache to store information such as user sessions.
+
+### Manual Installation
+
+Follow the instruction on the [Redis website](http://redis.io/download) to install it manually.
+
+### Homebrew Installation
+
+`brew install redis`
+
+## Install Postgres
+
+Postgres is the main database that is used to store all data related to:
+
+- orgs
+- members
+- apps
+- users
+- connections
+- events
+- objects
+
+### Manual Installation
+
+Follow the instruction on the [Postgres website](http://www.postgresql.org/download/) to install it manually.
+
+### Homebrew Installation
+
+`brew install postgres`
+
+## Install Postgis
+
+PostGIS is a spatial database extender for Postgres. This can be used to create geo-based-feeds.
+
+### Manual Installation
+
+Follow the instruction on the [Postgis website](http://postgis.net/install/) to install it manually.
+
+### Homebrew Installation
+
+`brew install postgis`
+
+## Getting started
 
 Download the git repository to get started.
 
@@ -27,9 +85,19 @@ $ git clone git@github.com:tapglue/multiverse.git
 $ cd multiverse
 ```
 
-### Dependencies
+## Dependencies
 
-All dependecies should be fecthed correctly by running:
+You can install dependencies with `godep` or manually.
+
+### Godep Installation
+
+Go to the root directory and run `godep restore`
+
+All dependencies should be installed into your `GOPATH`.
+
+### Manual Installation
+
+All dependencies should be fetched correctly by running:
 
 ```shell
 $ go get github.com/tapglue/multiverse
@@ -42,46 +110,157 @@ $ cd $GOPATH/src/github.com/tapglue/multiverse
 $ go get ./...
 ```
 
-### Server configuration
+## Database
+
+We need to start and create the databases before we start our backend application.
+
+### Launch Redis
+
+
+```shell
+redis-server /usr/local/etc/redis.conf
+```
+
+
+### Launch Postgres
+
+```shell
+postgres -D /usr/local/var/postgres/ -d 2 -t pl
+```
+
+### Create Databases for Tests & Development
+
+```shell
+createdb tapglue_test
+```
+
+```shell
+createdb tapglue_dev
+```
+
+### Create Schemas and test data
+
+
+```shell
+psql -E -d tapglue_test -f v04/resources/db/pgsql.sql
+```
+
+```shell
+psql -E -d tapglue_dev -f v04/resources/db/pgsql.sql
+```
+
+## Server configuration
 
 Configure the server including ports and database settings in the [config.json](config.json).
+
+### Test Configuration
+
+Navigate to `v04/server` and create a `config.json`
 
 ```json
 {
   "env": "dev",
-  "use_artwork": false,
-  "listenHost": ":8082",
-  "newrelic": {
-    "key": "",
-    "name": "dev - tapglue",
-    "enabled": false
-  },
+  "listenHost": ":8083",
+  "skip_security": false,
+  "json_logs": true,
+  "use_syslog": false,
+  "use_ssl": false,
+  "use_low_sec": false,
   "redis": {
     "hosts": [
-      "127.0.0.1:6379"
+      "localhost:6379"
     ],
     "password": "",
     "db": 0,
     "pool_size": 30
+  },
+  "postgres": {
+    "database": "tapglue_test",
+    "master": {
+      "username": "whoami",
+      "password": "",
+      "host": "127.0.0.1",
+      "options": "sslmode=disable&connect_timeout=5"
+    },
+    "slaves": [
+      {
+        "username": "whoami",
+        "password": "",
+        "host": "127.0.0.1",
+        "options": "sslmode=disable&connect_timeout=5"
+      }
+    ]
   }
 }
 ```
 
-### Start server
+The username must be the one you are logged in with `whoami`
 
-```shell
-# obsolete, to be updated
-$ go run -race multi.go
+### Development Configuration
+
+Navigate to `cmd/intaker` and create a `config.json`
+
+```json
+{
+  "env": "dev",
+  "listenHost": ":8083",
+  "skip_security": false,
+  "json_logs": true,
+  "use_syslog": false,
+  "use_ssl": false,
+  "use_low_sec": false,
+  "redis": {
+    "hosts": [
+      "localhost:6379"
+    ],
+    "password": "",
+    "db": 0,
+    "pool_size": 30
+  },
+  "postgres": {
+    "database": "tapglue_dev",
+    "master": {
+      "username": "whoami",
+      "password": "",
+      "host": "127.0.0.1",
+      "options": "sslmode=disable&connect_timeout=5"
+    },
+    "slaves": [
+      {
+        "username": "whoami",
+        "password": "",
+        "host": "127.0.0.1",
+        "options": "sslmode=disable&connect_timeout=5"
+      }
+    ]
+  }
+}
+
 ```
 
-## Tests
+## Start server
+
 
 ```shell
-# obsolete, to be updated
-$ cd core
-$ go test -check.v
-$ cd ../server
-$ go test -check.v
+go run -tags postgres cmd/intaker/intaker.go
+```
+
+## Running tests
+
+Change to `v04/server` and run
+
+```shell
+CI=true go test -tags postgres -check.v ./...
+```
+
+Other tests from root directory:
+
+```shell
+go test -v ./controller/...
+```
+
+```shell
+go test -v -tags integration ./service/...
 ```
 
 ## Coverage
@@ -99,7 +278,7 @@ $ cd ../server
 $ go test -bench=. -benchmem
 ```
 
-## Profilling
+## Profiling
 
 ```shell
 $ bin/ab/*.sh
@@ -115,7 +294,6 @@ goimports -w ./.. && golint ./... && go vet ./...
 ## Deployment
 
 TBD
-
 
 ## Security test
 
