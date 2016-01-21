@@ -126,8 +126,8 @@ func (p *payloadLike) MarshalJSON() ([]byte, error) {
 }
 
 type payloadLikes struct {
-	likes event.Events
-	users user.Users
+	likes event.List
+	users user.List
 }
 
 func (p *payloadLikes) MarshalJSON() ([]byte, error) {

@@ -266,7 +266,7 @@ func (p *payloadPost) UnmarshalJSON(raw []byte) error {
 
 type payloadPosts struct {
 	posts controller.Posts
-	users user.Users
+	users user.List
 }
 
 func (p *payloadPosts) MarshalJSON() ([]byte, error) {

@@ -14,6 +14,12 @@ import (
 // TypeTargetUser is the canonical identifier for internal user representations.
 const TypeTargetUser = "tg_user"
 
+// TypeEvent is the canonical identifier for internal events.
+const (
+	TypeEventFriend = "tg_friend"
+	TypeEventFollow = "tg_follow"
+)
+
 const (
 	rateLimitProduction = 20000
 	rateLimitStaging    = 100
@@ -177,7 +183,7 @@ type (
 		Longitude          float64       `json:"longitude,omitempty"`
 		DistanceFromTarget float64       `json:"-"`
 		Visibility         uint8         `json:"visibility,omitempty"`
-		Object             *Object       `json:"object"`
+		Object             *Object       `json:"object,omitempty"`
 		ObjectID           uint64        `json:"object_id"`
 		Owned              bool          `json:"owned"`
 		Target             *Object       `json:"target,omitempty"`

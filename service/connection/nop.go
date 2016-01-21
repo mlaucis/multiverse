@@ -12,6 +12,14 @@ func NewNopService() StrangleService {
 	return &nopService{}
 }
 
+func (s *nopService) ConnectionsByState(
+	orgID, appID int64,
+	id uint64,
+	state v04_entity.ConnectionStateType,
+) ([]*v04_entity.Connection, []errors.Error) {
+	return nil, nil
+}
+
 func (s *nopService) FriendsAndFollowingIDs(
 	orgID, appID int64,
 	id uint64,

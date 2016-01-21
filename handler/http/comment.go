@@ -225,7 +225,7 @@ func (p *payloadComment) UnmarshalJSON(raw []byte) error {
 
 type payloadComments struct {
 	comments object.Objects
-	users    user.Users
+	users    user.List
 }
 
 func (p *payloadComments) MarshalJSON() ([]byte, error) {

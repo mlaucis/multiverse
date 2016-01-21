@@ -145,7 +145,7 @@ func (c *LikeController) Delete(
 func (c *LikeController) List(
 	app *v04_entity.Application,
 	postID uint64,
-) (event.Events, error) {
+) (event.List, error) {
 	ps, err := c.posts.Query(app.Namespace(), object.QueryOptions{
 		ID:    &postID,
 		Owned: &defaultOwned,

@@ -8,11 +8,11 @@ import (
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
 
-// Events is an Event collection.
-type Events []*v04_entity.Event
+// List is an Event collection.
+type List []*v04_entity.Event
 
 // IDs returns ID for every Event.
-func (es Events) IDs() []uint64 {
+func (es List) IDs() []uint64 {
 	ids := []uint64{}
 
 	for _, e := range es {
@@ -22,20 +22,20 @@ func (es Events) IDs() []uint64 {
 	return ids
 }
 
-func (es Events) Len() int {
+func (es List) Len() int {
 	return len(es)
 }
 
-func (es Events) Less(i, j int) bool {
+func (es List) Less(i, j int) bool {
 	return es[i].CreatedAt.After(*es[j].CreatedAt)
 }
 
-func (es Events) Swap(i, j int) {
+func (es List) Swap(i, j int) {
 	es[i], es[j] = es[j], es[i]
 }
 
 // UserIDs returns UserID for every Event.
-func (es Events) UserIDs() []uint64 {
+func (es List) UserIDs() []uint64 {
 	ids := []uint64{}
 
 	for _, e := range es {
