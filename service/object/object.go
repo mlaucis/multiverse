@@ -76,6 +76,7 @@ type Object struct {
 	Attachments []Attachment `json:"attachments"`
 	CreatedAt   time.Time    `json:"created_at"`
 	Deleted     bool         `json:"deleted"`
+	ExternalID  string       `json:"external_id"`
 	ID          uint64       `json:"id"`
 	Latitude    float64      `json:"latitude"`
 	Location    string       `json:"location"`
@@ -84,7 +85,6 @@ type Object struct {
 	Owned       bool         `json:"owned"`
 	OwnerID     uint64       `json:"owner_id"`
 	Tags        []string     `json:"tags"`
-	TargetID    string       `json:"target_id"`
 	Type        string       `json:"type"`
 	UpdatedAt   time.Time    `json:"updated_at"`
 	Visibility  Visibility   `json:"visibility"`
@@ -121,10 +121,11 @@ func (o *Object) Validate() error {
 	return nil
 }
 
-// Objects is an Object collection.
-type Objects []*Object
+// List is an Object collection.
+type List []*Object
 
-func (os Objects) OwnerIDs() []uint64 {
+// OwnerIDs returns all user ids of the associated object owners.
+func (os List) OwnerIDs() []uint64 {
 	ids := []uint64{}
 
 	for _, o := range os {
@@ -137,6 +138,7 @@ func (os Objects) OwnerIDs() []uint64 {
 // QueryOptions are passed to narrow down query for objects.
 type QueryOptions struct {
 	Deleted      bool
+	ExternalIDs  []string
 	ID           *uint64
 	ObjectIDs    []uint64
 	OwnerIDs     []uint64

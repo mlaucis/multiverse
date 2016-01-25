@@ -11,7 +11,6 @@ import (
 	"github.com/tapglue/multiverse/service/user"
 	v04_core "github.com/tapglue/multiverse/v04/core"
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
-	"github.com/tapglue/multiverse/v04/server/response"
 )
 
 // FeedEvents returns the events of the current user driven by the social and
@@ -114,16 +113,6 @@ func (p *payloadFeedEvents) MarshalJSON() ([]byte, error) {
 		es = append(es, &v04_entity.PresentationEvent{Event: e})
 	}
 
-	um := map[string]*v04_entity.PresentationApplicationUser{}
-
-	for id, u := range p.feed.UserMap {
-		response.SanitizeApplicationUser(u)
-
-		um[strconv.FormatUint(id, 10)] = &v04_entity.PresentationApplicationUser{
-			ApplicationUser: u,
-		}
-	}
-
 	return json.Marshal(struct {
 		Events      []*v04_entity.PresentationEvent                    `json:"events"`
 		EventsCount int                                                `json:"events_count"`
@@ -132,8 +121,8 @@ func (p *payloadFeedEvents) MarshalJSON() ([]byte, error) {
 	}{
 		Events:      es,
 		EventsCount: len(es),
-		Users:       um,
-		UsersCount:  len(um),
+		Users:       mapUserPresentation(p.feed.UserMap),
+		UsersCount:  len(p.feed.UserMap),
 	})
 }
 
@@ -177,16 +166,6 @@ func (p *payloadFeedNews) MarshalJSON() ([]byte, error) {
 		pm[strconv.FormatUint(id, 10)] = &payloadPost{post: post}
 	}
 
-	um := map[string]*v04_entity.PresentationApplicationUser{}
-
-	for id, u := range p.feed.UserMap {
-		response.SanitizeApplicationUser(u)
-
-		um[strconv.FormatUint(id, 10)] = &v04_entity.PresentationApplicationUser{
-			ApplicationUser: u,
-		}
-	}
-
 	return json.Marshal(struct {
 		Events            []*v04_entity.PresentationEvent                    `json:"events"`
 		EventsCount       int                                                `json:"events_count"`
@@ -207,8 +186,8 @@ func (p *payloadFeedNews) MarshalJSON() ([]byte, error) {
 		PostsCountUnread:  unreadPosts,
 		PostMap:           pm,
 		PostMapCount:      len(pm),
-		Users:             um,
-		UsersCount:        len(um),
+		Users:             mapUserPresentation(p.feed.UserMap),
+		UsersCount:        len(p.feed.UserMap),
 	})
 }
 
@@ -223,16 +202,6 @@ func (p *payloadFeedPosts) MarshalJSON() ([]byte, error) {
 		ps = append(ps, &payloadPost{post: p})
 	}
 
-	um := map[string]*v04_entity.PresentationApplicationUser{}
-
-	for id, u := range p.feed.UserMap {
-		response.SanitizeApplicationUser(u)
-
-		um[strconv.FormatUint(id, 10)] = &v04_entity.PresentationApplicationUser{
-			ApplicationUser: u,
-		}
-	}
-
 	return json.Marshal(struct {
 		Posts      []*payloadPost                                     `json:"posts"`
 		PostsCount int                                                `json:"posts_count"`
@@ -241,7 +210,7 @@ func (p *payloadFeedPosts) MarshalJSON() ([]byte, error) {
 	}{
 		Posts:      ps,
 		PostsCount: len(ps),
-		Users:      um,
-		UsersCount: len(um),
+		Users:      mapUserPresentation(p.feed.UserMap),
+		UsersCount: len(p.feed.UserMap),
 	})
 }

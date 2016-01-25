@@ -3,6 +3,7 @@ package user
 import (
 	"github.com/tapglue/multiverse/errors"
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
+	v04_errmsg "github.com/tapglue/multiverse/v04/errmsg"
 )
 
 // TargetType is the identifier used for events targeting a User.
@@ -47,6 +48,34 @@ func (l List) ToMap() Map {
 	return m
 }
 
+// MapFromIDs return a populated user map for the given list of ids.
+func MapFromIDs(
+	s StrangleService,
+	app *v04_entity.Application,
+	ids ...uint64,
+) (Map, error) {
+	um := Map{}
+
+	for _, id := range ids {
+		if _, ok := um[id]; ok {
+			continue
+		}
+
+		user, errs := s.Read(app.OrgID, app.ID, id, false)
+		if errs != nil {
+			// Check for existence.
+			if errs[0].Code() == v04_errmsg.ErrApplicationUserNotFound.Code() {
+				continue
+			}
+			return nil, errs[0]
+		}
+
+		um[user.ID] = user
+	}
+
+	return um, nil
+}
+
 // UsersFromIDs gathers a user collection from the service for the given ids.
 func UsersFromIDs(
 	s StrangleService,
@@ -66,12 +95,11 @@ func UsersFromIDs(
 
 		u, errs := s.Read(app.OrgID, app.ID, id, false)
 		if errs != nil {
-			// FIXME(xla): We can ignore returned errors for as this method is only
-			// used to construct user maps in responses and the logging wrapper of the
-			// user service takes care of error reporting. Yet it needs proper
-			// addressing as it is a dangerous assumption to believe the usage of this
-			// method will only be in one context.
-			continue
+			// Check for existence.
+			if errs[0].Code() == v04_errmsg.ErrApplicationUserNotFound.Code() {
+				continue
+			}
+			return nil, errs[0]
 		}
 
 		us = append(us, u)

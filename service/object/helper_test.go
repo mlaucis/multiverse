@@ -81,6 +81,16 @@ func testCreateSet(objectID uint64) []*Object {
 		})
 	}
 
+	for i := 0; i < 7; i++ {
+		set = append(set, &Object{
+			ExternalID: "external-input-123",
+			OwnerID:    5,
+			Owned:      true,
+			Type:       "tg_comment",
+			Visibility: VisibilityConnection,
+		})
+	}
+
 	return set
 }
 
@@ -155,7 +165,7 @@ func testServiceQuery(t *testing.T, p prepareFunc) {
 		t.Fatal(err)
 	}
 
-	if have, want := len(os), 13; have != want {
+	if have, want := len(os), 20; have != want {
 		t.Errorf("have %v, want %v", have, want)
 	}
 
@@ -169,7 +179,24 @@ func testServiceQuery(t *testing.T, p prepareFunc) {
 		t.Fatal(err)
 	}
 
-	if have, want := len(os), 13; have != want {
+	if have, want := len(os), 20; have != want {
+		t.Errorf("have %v, want %v", have, want)
+	}
+
+	os, err = service.Query(namespace, QueryOptions{
+		ExternalIDs: []string{
+			"external-input-123",
+		},
+		Owned: &owned,
+		Types: []string{
+			"tg_comment",
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if have, want := len(os), 7; have != want {
 		t.Errorf("have %v, want %v", have, want)
 	}
 

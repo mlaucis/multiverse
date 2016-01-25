@@ -19,13 +19,13 @@ type Post struct {
 	*object.Object
 }
 
+// PostList is a collection of Post.
+type PostList []*Post
+
 // PostMap is the user collection indexed by their ids.
 type PostMap map[uint64]*Post
 
-// Posts is a collection of Post.
-type Posts []*Post
-
-func (ps Posts) toMap() PostMap {
+func (ps PostList) toMap() PostMap {
 	pm := PostMap{}
 
 	for _, post := range ps {
@@ -36,7 +36,7 @@ func (ps Posts) toMap() PostMap {
 }
 
 // OwnerIDs extracts the OwnerID of every post.
-func (ps Posts) OwnerIDs() []uint64 {
+func (ps PostList) OwnerIDs() []uint64 {
 	ids := []uint64{}
 
 	for _, p := range ps {
@@ -46,8 +46,8 @@ func (ps Posts) OwnerIDs() []uint64 {
 	return ids
 }
 
-func fromObjects(os object.Objects) Posts {
-	ps := Posts{}
+func postsFromObjects(os object.List) PostList {
+	ps := PostList{}
 
 	for _, o := range os {
 		ps = append(ps, &Post{Object: o})
@@ -128,7 +128,7 @@ func (c *PostController) Delete(app *v04_entity.Application, id uint64) error {
 func (c *PostController) ListAll(
 	app *v04_entity.Application,
 	user *v04_entity.ApplicationUser,
-) (Posts, error) {
+) (PostList, error) {
 	os, err := c.objects.Query(app.Namespace(), object.QueryOptions{
 		Owned: &defaultOwned,
 		Types: []string{
@@ -143,7 +143,7 @@ func (c *PostController) ListAll(
 		return nil, err
 	}
 
-	ps := fromObjects(os)
+	ps := postsFromObjects(os)
 
 	err = enrichIsLiked(c.events, app, user.ID, ps)
 	if err != nil {
@@ -159,7 +159,7 @@ func (c *PostController) ListUser(
 	app *v04_entity.Application,
 	connectionID uint64,
 	userID uint64,
-) (Posts, error) {
+) (PostList, error) {
 	vs := []object.Visibility{
 		object.VisibilityPublic,
 		object.VisibilityGlobal,
@@ -196,7 +196,7 @@ func (c *PostController) ListUser(
 		return nil, err
 	}
 
-	ps := fromObjects(os)
+	ps := postsFromObjects(os)
 
 	err = enrichIsLiked(c.events, app, connectionID, ps)
 	if err != nil {
@@ -276,7 +276,7 @@ func enrichIsLiked(
 	events event.StrangleService,
 	app *v04_entity.Application,
 	userID uint64,
-	ps Posts,
+	ps PostList,
 ) error {
 	for _, p := range ps {
 		es, errs := events.ListAll(app.OrgID, app.ID, v04_core.EventCondition{

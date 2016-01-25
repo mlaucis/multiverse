@@ -10,6 +10,7 @@ import (
 	"github.com/tapglue/multiverse/controller"
 	"github.com/tapglue/multiverse/service/user"
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
+	v04_response "github.com/tapglue/multiverse/v04/server/response"
 )
 
 // Handler is the gateway specific http.HandlerFunc expecting a context.Context.
@@ -55,6 +56,22 @@ func mapUsers(us user.List) map[string]*v04_entity.PresentationApplicationUser {
 	}
 
 	return m
+}
+
+type payloadUserMap map[string]*v04_entity.PresentationApplicationUser
+
+func mapUserPresentation(um user.Map) payloadUserMap {
+	pm := payloadUserMap{}
+
+	for id, user := range um {
+		v04_response.SanitizeApplicationUser(user)
+
+		pm[strconv.FormatUint(id, 10)] = &v04_entity.PresentationApplicationUser{
+			ApplicationUser: user,
+		}
+	}
+
+	return pm
 }
 
 func respondError(w http.ResponseWriter, code int, err error) {

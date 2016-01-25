@@ -154,9 +154,9 @@ func main() {
 
 	// Setup controllers
 	var (
-		commentController = controller.NewCommentController(objects)
+		commentController = controller.NewCommentController(objects, users)
 		feedController    = controller.NewFeedController(connections, events, objects, users)
-		likeController    = controller.NewLikeController(events, objects)
+		likeController    = controller.NewLikeController(events, objects, users)
 		objectController  = controller.NewObjectController(connections, objects)
 		postController    = controller.NewPostController(connections, events, objects)
 	)
@@ -194,6 +194,62 @@ func main() {
 	go tgLogger.JSONLog(errorLogChan)
 
 	next := router.PathPrefix(fmt.Sprintf("/%s", apiVersionNext)).Subrouter()
+
+	next.Methods("POST").PathPrefix(`/externals/{externalID:[a-zA-Z0-9\-\_]+}/comments`).Name("externalCommentCreate").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.ExternalCommentCreate(commentController),
+		),
+	)
+
+	next.Methods("DELETE").PathPrefix(`/externals/{externalID:[a-zA-Z0-9\-\_]+}/comments/{commentID:[0-9]+}`).Name("externalCommentDelete").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.ExternalCommentDelete(commentController),
+		),
+	)
+
+	next.Methods("GET").PathPrefix(`/externals/{externalID:[a-zA-Z0-9\-\_]+}/comments/{commentID:[0-9]+}`).Name("externalCommentRetrieve").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.ExternalCommentRetrieve(commentController),
+		),
+	)
+
+	next.Methods("PUT").PathPrefix(`/externals/{externalID:[a-zA-Z0-9\-\_]+}/comments/{commentID:[0-9]+}`).Name("externalCommentUpdate").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.ExternalCommentUpdate(commentController),
+		),
+	)
+
+	next.Methods("GET").PathPrefix(`/externals/{externalID:[a-zA-Z0-9\-\_]+}/comments`).Name("externalCommentList").HandlerFunc(
+		handler.Wrap(
+			withApp,
+			handler.ExternalCommentList(commentController),
+		),
+	)
+
+	next.Methods("POST").PathPrefix(`/externals/{externalID:[a-zA-Z0-9\-\_]+}/likes`).Name("externalLikeCreate").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.ExternalLikeCreate(likeController),
+		),
+	)
+
+	next.Methods("DELETE").PathPrefix(`/externals/{externalID:[a-zA-Z0-9\-\_]+}/likes`).Name("externalLikeDelete").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.ExternalLikeDelete(likeController),
+		),
+	)
+
+	next.Methods("GET").PathPrefix(`/externals/{externalID:[a-zA-Z0-9\-\_]+}/likes`).Name("externalLikeList").HandlerFunc(
+		handler.Wrap(
+			withApp,
+			handler.ExternalLikeList(likeController),
+		),
+	)
 
 	next.Methods("GET").PathPrefix("/me/feed/events").Name("feedEvents").HandlerFunc(
 		handler.Wrap(
@@ -296,7 +352,7 @@ func main() {
 	next.Methods("GET").PathPrefix("/posts/{postID:[0-9]+}/comments").Name("commentList").HandlerFunc(
 		handler.Wrap(
 			withApp,
-			handler.CommentList(commentController, users),
+			handler.CommentList(commentController),
 		),
 	)
 
@@ -317,7 +373,7 @@ func main() {
 	next.Methods("GET").PathPrefix("/posts/{postID:[0-9]+}/likes").Name("likeList").HandlerFunc(
 		handler.Wrap(
 			withApp,
-			handler.LikeList(likeController, users),
+			handler.LikeList(likeController),
 		),
 	)
 
