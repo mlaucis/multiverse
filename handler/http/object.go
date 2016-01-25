@@ -187,7 +187,6 @@ type responseObjectFields struct {
 	Longitude   float64             `json:"longitude"`
 	ObjectID    string              `json:"tg_object_id,omitempty"`
 	Tags        []string            `json:"tags"`
-	TargetID    string              `json:"target_id,omitempty"`
 	Type        string              `json:"type"`
 	UpdatedAt   time.Time           `json:"updated_at,omitempty"`
 	UserID      string              `json:"user_id"`
@@ -205,7 +204,6 @@ func (ro *responseObject) MarshalJSON() ([]byte, error) {
 			Location:    o.Location,
 			Longitude:   o.Longitude,
 			Tags:        o.Tags,
-			TargetID:    o.TargetID,
 			Type:        o.Type,
 			UpdatedAt:   o.UpdatedAt,
 			UserID:      strconv.FormatUint(o.OwnerID, 10),
@@ -234,7 +232,6 @@ func (ro *responseObject) UnmarshalJSON(raw []byte) error {
 		Location:    f.Location,
 		Longitude:   f.Longitude,
 		Tags:        f.Tags,
-		TargetID:    f.TargetID,
 		Type:        f.Type,
 		Visibility:  f.Visibility,
 	}

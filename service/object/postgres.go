@@ -20,11 +20,11 @@ const (
 
 	pgSelectObjects = `SELECT json_data FROM %s.objects
 		WHERE (json_data->>'deleted')::BOOL = ?::BOOL`
+	pgClauseExternalID = `AND (json_data->>'external_id')::TEXT IN (?)`
 	pgClauseID         = `AND (json_data->>'id')::BIGINT = ?::BIGINT`
 	pgClauseObjectID   = `AND (json_data->>'object_id')::BIGINT IN (?)`
 	pgClauseOwnerID    = `AND (json_data->>'owner_id')::BIGINT IN (?)`
 	pgClauseOwned      = `AND (json_data->>'owned')::BOOL = ?::BOOL`
-	pgClauseTargetID   = `AND (json_data->>'target_id')::TEXT IN (?)`
 	pgClauseType       = `AND (json_data->>'type')::TEXT IN (?)`
 	pgClauseVisibility = `AND (json_data->>'visibility')::INT IN (?)`
 	pgOrderCreatedAt   = `ORDER BY json_data->>'created_at' DESC LIMIT 200`
@@ -39,6 +39,8 @@ const (
 	// http://dba.stackexchange.com/a/35626.
 	pgCreateIndexCreatedAt = `CREATE INDEX object_created_at ON %s.objects
 		USING btree ((json_data ->> 'created_at'))`
+	pgCreateIndexExternalID = `CREATE INDEX object_external_id ON %s.objects
+		USING btree (((json_data->>'external_id')::TEXT))`
 	pgCreateIndexID = `CREATE INDEX object_id ON %s.objects
 		USING btree (((json_data ->> 'id') :: BIGINT))`
 	pgCreateIndexObjectID = `CREATE INDEX object_object_id ON %s.objects
@@ -47,8 +49,6 @@ const (
 		USING btree (((json_data ->> 'owner_id') :: BIGINT))`
 	pgCreateIndexOwned = `CREATE INDEX object_owned ON %s.objects
 		USING btree (((json_data ->> 'owned') :: BOOL))`
-	pgCreateIndexTargetID = `CREATE INDEX object_target_id ON %s.objects
-		USING btree (((json_data->>'target_id') :: TEXT))`
 	pgCreateIndexType = `CREATE INDEX obect_type ON %s.objects
 		USING btree (((json_data->>'type') :: TEXT))`
 	pgCreateIndexVisibility = `CREATE INDEX object_visibility ON %s.objects
@@ -167,6 +167,22 @@ func (s *pgService) Query(ns string, opts QueryOptions) ([]*Object, error) {
 		}
 	)
 
+	if len(opts.ExternalIDs) > 0 {
+		ps := []interface{}{}
+
+		for _, id := range opts.ExternalIDs {
+			ps = append(ps, id)
+		}
+
+		clause, _, err := sqlx.In(pgClauseExternalID, ps)
+		if err != nil {
+			return nil, err
+		}
+
+		clauses = append(clauses, clause)
+		params = append(params, ps...)
+	}
+
 	if opts.ID != nil {
 		params = append(params, *opts.ID)
 		clauses = append(clauses, pgClauseID)
@@ -282,10 +298,12 @@ func (s *pgService) Setup(ns string) error {
 		wrapNamespace(pgCreateSchema, ns),
 		wrapNamespace(pgCreateTable, ns),
 		pgGuard("object_created_at", ns, pgCreateIndexCreatedAt),
+		pgGuard("object_external_id", ns, pgCreateIndexExternalID),
 		pgGuard("object_id", ns, pgCreateIndexID),
 		pgGuard("object_object_id", ns, pgCreateIndexObjectID),
+		pgGuard("object_owned", ns, pgCreateIndexOwned),
 		pgGuard("object_owner_id", ns, pgCreateIndexOwnerID),
-		pgGuard("object_target_id", ns, pgCreateIndexTargetID),
+		pgGuard("object_type", ns, pgCreateIndexType),
 		pgGuard("object_visibility", ns, pgCreateIndexVisibility),
 	}
 

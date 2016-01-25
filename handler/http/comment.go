@@ -12,7 +12,6 @@ import (
 	"github.com/tapglue/multiverse/controller"
 	"github.com/tapglue/multiverse/service/object"
 	"github.com/tapglue/multiverse/service/user"
-	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
 
 // CommentCreate passes the Comment from the payload to the controller.
@@ -77,10 +76,7 @@ func CommentDelete(c *controller.CommentController) Handler {
 }
 
 // CommentList returns all comments for the given a Post.
-func CommentList(
-	c *controller.CommentController,
-	users user.StrangleService,
-) Handler {
+func CommentList(c *controller.CommentController) Handler {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		app := appFromContext(ctx)
 
@@ -90,25 +86,19 @@ func CommentList(
 			return
 		}
 
-		cs, err := c.List(app, postID)
+		list, err := c.List(app, postID)
 		if err != nil {
 			respondError(w, 0, err)
 			return
 		}
 
-		if len(cs) == 0 {
+		if len(list.Comments) == 0 {
 			respondJSON(w, http.StatusNoContent, nil)
 		}
 
-		us, err := user.UsersFromIDs(users, app, cs.OwnerIDs()...)
-		if err != nil {
-			respondError(w, 0, err)
-			return
-		}
-
 		respondJSON(w, http.StatusOK, &payloadComments{
-			comments: cs,
-			users:    us,
+			comments: list.Comments,
+			users:    list.UserMap,
 		})
 	}
 }
@@ -180,13 +170,147 @@ func CommentUpdate(c *controller.CommentController) Handler {
 	}
 }
 
+// ExternalCommentCreate calls the symmetrical controller method.
+func ExternalCommentCreate(c *controller.CommentController) Handler {
+	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+		var (
+			externalID = mux.Vars(r)["externalID"]
+			app        = appFromContext(ctx)
+			user       = userFromContext(ctx)
+			p          = &payloadComment{}
+		)
+
+		err := json.NewDecoder(r.Body).Decode(p)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		comment, err := c.ExternalCreate(app, user, externalID, p.content)
+		if err != nil {
+			respondError(w, 0, err)
+			return
+		}
+
+		respondJSON(w, http.StatusCreated, &payloadComment{comment: comment})
+	}
+}
+
+// ExternalCommentDelete flags the comment as deleted.
+func ExternalCommentDelete(c *controller.CommentController) Handler {
+	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+		var (
+			externalID = mux.Vars(r)["externalID"]
+			app        = appFromContext(ctx)
+			user       = userFromContext(ctx)
+		)
+
+		commentID, err := strconv.ParseUint(mux.Vars(r)["commentID"], 10, 64)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		err = c.ExternalDelete(app, user, externalID, commentID)
+		if err != nil {
+			respondError(w, 0, err)
+			return
+		}
+
+		respondJSON(w, http.StatusNoContent, nil)
+	}
+}
+
+// ExternalCommentList returns all comments for the given a Post.
+func ExternalCommentList(c *controller.CommentController) Handler {
+	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+		var (
+			externalID = mux.Vars(r)["externalID"]
+			app        = appFromContext(ctx)
+		)
+
+		list, err := c.ExternalList(app, externalID)
+		if err != nil {
+			respondError(w, 0, err)
+			return
+		}
+
+		if len(list.Comments) == 0 {
+			respondJSON(w, http.StatusNoContent, nil)
+		}
+
+		respondJSON(w, http.StatusOK, &payloadComments{
+			comments: list.Comments,
+			users:    list.UserMap,
+		})
+	}
+}
+
+// ExternalCommentRetrieve returns the comment with the requested id.
+func ExternalCommentRetrieve(c *controller.CommentController) Handler {
+	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+		var (
+			externalID = mux.Vars(r)["externalID"]
+			app        = appFromContext(ctx)
+			user       = userFromContext(ctx)
+		)
+
+		commentID, err := strconv.ParseUint(mux.Vars(r)["commentID"], 10, 64)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		comment, err := c.ExternalRetrieve(app, user, externalID, commentID)
+		if err != nil {
+			respondError(w, 0, err)
+			return
+		}
+
+		respondJSON(w, http.StatusOK, &payloadComment{comment: comment})
+	}
+}
+
+// ExternalCommentUpdate replaces the value for a comment with the new values.
+func ExternalCommentUpdate(c *controller.CommentController) Handler {
+	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+		var (
+			externalID = mux.Vars(r)["externalID"]
+			app        = appFromContext(ctx)
+			user       = userFromContext(ctx)
+			p          = &payloadComment{}
+		)
+
+		commentID, err := strconv.ParseUint(mux.Vars(r)["commentID"], 10, 64)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		err = json.NewDecoder(r.Body).Decode(p)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		comment, err := c.ExternalUpdate(app, user, externalID, commentID, p.content)
+		if err != nil {
+			respondError(w, 0, err)
+			return
+		}
+
+		respondJSON(w, http.StatusOK, &payloadComment{comment: comment})
+	}
+}
+
 type commentFields struct {
-	Content   string    `json:"content"`
-	ID        string    `json:"id"`
-	PostID    string    `json:"post_id"`
-	UserID    string    `json:"user_id"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	Content    string    `json:"content"`
+	ExternalID string    `json:"external_id"`
+	ID         string    `json:"id"`
+	PostID     string    `json:"post_id"`
+	UserID     string    `json:"user_id"`
+	CreatedAt  time.Time `json:"created_at"`
+	UpdatedAt  time.Time `json:"updated_at"`
 }
 
 type payloadComment struct {
@@ -198,12 +322,13 @@ func (p *payloadComment) MarshalJSON() ([]byte, error) {
 	var (
 		c = p.comment
 		f = commentFields{
-			Content:   c.Attachments[0].Content,
-			ID:        strconv.FormatUint(c.ID, 10),
-			PostID:    strconv.FormatUint(c.ObjectID, 10),
-			UserID:    strconv.FormatUint(c.OwnerID, 10),
-			CreatedAt: c.CreatedAt,
-			UpdatedAt: c.UpdatedAt,
+			Content:    c.Attachments[0].Content,
+			ExternalID: c.ExternalID,
+			ID:         strconv.FormatUint(c.ID, 10),
+			PostID:     strconv.FormatUint(c.ObjectID, 10),
+			UserID:     strconv.FormatUint(c.OwnerID, 10),
+			CreatedAt:  c.CreatedAt,
+			UpdatedAt:  c.UpdatedAt,
 		}
 	)
 
@@ -224,8 +349,8 @@ func (p *payloadComment) UnmarshalJSON(raw []byte) error {
 }
 
 type payloadComments struct {
-	comments object.Objects
-	users    user.List
+	comments object.List
+	users    user.Map
 }
 
 func (p *payloadComments) MarshalJSON() ([]byte, error) {
@@ -236,14 +361,14 @@ func (p *payloadComments) MarshalJSON() ([]byte, error) {
 	}
 
 	return json.Marshal(struct {
-		Comments      []*payloadComment                                  `json:"comments"`
-		CommentsCount int                                                `json:"comments_count"`
-		Users         map[string]*v04_entity.PresentationApplicationUser `json:"users"`
-		UsersCount    int                                                `json:"users_count"`
+		Comments      []*payloadComment `json:"comments"`
+		CommentsCount int               `json:"comments_count"`
+		Users         payloadUserMap    `json:"users"`
+		UsersCount    int               `json:"users_count"`
 	}{
 		Comments:      cs,
 		CommentsCount: len(cs),
-		Users:         mapUsers(p.users),
+		Users:         mapUserPresentation(p.users),
 		UsersCount:    len(p.users),
 	})
 }

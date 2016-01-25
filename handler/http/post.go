@@ -12,7 +12,6 @@ import (
 	"github.com/tapglue/multiverse/controller"
 	"github.com/tapglue/multiverse/service/object"
 	"github.com/tapglue/multiverse/service/user"
-	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
 
 // PostCreate passes the Post from the payload to the controller.
@@ -265,7 +264,7 @@ func (p *payloadPost) UnmarshalJSON(raw []byte) error {
 }
 
 type payloadPosts struct {
-	posts controller.Posts
+	posts controller.PostList
 	users user.List
 }
 
@@ -277,10 +276,10 @@ func (p *payloadPosts) MarshalJSON() ([]byte, error) {
 	}
 
 	return json.Marshal(struct {
-		Posts      []*payloadPost                                     `json:"posts"`
-		PostsCount int                                                `json:"posts_count"`
-		Users      map[string]*v04_entity.PresentationApplicationUser `json:"users"`
-		UsersCount int                                                `json:"users_count"`
+		Posts      []*payloadPost `json:"posts"`
+		PostsCount int            `json:"posts_count"`
+		Users      payloadUserMap `json:"users"`
+		UsersCount int            `json:"users_count"`
 	}{
 		Posts:      ps,
 		PostsCount: len(ps),

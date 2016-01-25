@@ -64,7 +64,7 @@ func LikeDelete(c *controller.LikeController) Handler {
 }
 
 // LikeList returns all Likes for a post.
-func LikeList(c *controller.LikeController, users user.StrangleService) Handler {
+func LikeList(c *controller.LikeController) Handler {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		app := appFromContext(ctx)
 
@@ -80,20 +80,80 @@ func LikeList(c *controller.LikeController, users user.StrangleService) Handler 
 			return
 		}
 
-		if len(ls) == 0 {
+		if len(ls.Likes) == 0 {
 			respondJSON(w, http.StatusNoContent, nil)
 			return
 		}
 
-		us, err := user.UsersFromIDs(users, app, ls.UserIDs()...)
+		respondJSON(w, http.StatusOK, &payloadLikes{
+			likes: ls.Likes,
+			users: ls.UserMap,
+		})
+	}
+}
+
+// ExternalLikeCreate emits new like event for the external entity by the
+// current user.
+func ExternalLikeCreate(c *controller.LikeController) Handler {
+	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+		var (
+			externalID = mux.Vars(r)["externalID"]
+			app        = appFromContext(ctx)
+			user       = userFromContext(ctx)
+		)
+
+		like, err := c.ExternalCreate(app, user, externalID)
 		if err != nil {
 			respondError(w, 0, err)
 			return
 		}
 
+		respondJSON(w, http.StatusCreated, &payloadLike{like: like})
+	}
+}
+
+// ExternalLikeDelete removes an existing like event for the currentuser on the
+// external entity.
+func ExternalLikeDelete(c *controller.LikeController) Handler {
+	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+		var (
+			externalID = mux.Vars(r)["externalID"]
+			app        = appFromContext(ctx)
+			user       = userFromContext(ctx)
+		)
+
+		err := c.ExternalDelete(app, user, externalID)
+		if err != nil {
+			respondError(w, 0, err)
+			return
+		}
+
+		respondJSON(w, http.StatusNoContent, nil)
+	}
+}
+
+// ExternalLikeList returns all Likes for an external entity.
+func ExternalLikeList(c *controller.LikeController) Handler {
+	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+		var (
+			externalID = mux.Vars(r)["externalID"]
+			app        = appFromContext(ctx)
+		)
+
+		ls, err := c.ExternalList(app, externalID)
+		if err != nil {
+			respondError(w, 0, err)
+			return
+		}
+
+		if len(ls.Likes) == 0 {
+			respondJSON(w, http.StatusNoContent, nil)
+			return
+		}
+
 		respondJSON(w, http.StatusOK, &payloadLikes{
-			likes: ls,
-			users: us,
+			likes: ls.Likes,
+			users: ls.UserMap,
 		})
 	}
 }
@@ -127,7 +187,7 @@ func (p *payloadLike) MarshalJSON() ([]byte, error) {
 
 type payloadLikes struct {
 	likes event.List
-	users user.List
+	users user.Map
 }
 
 func (p *payloadLikes) MarshalJSON() ([]byte, error) {
@@ -138,14 +198,14 @@ func (p *payloadLikes) MarshalJSON() ([]byte, error) {
 	}
 
 	return json.Marshal(struct {
-		Likes      []*payloadLike                                     `json:"likes"`
-		LikesCount int                                                `json:"likes_count"`
-		Users      map[string]*v04_entity.PresentationApplicationUser `json:"users"`
-		UsersCount int                                                `json:"users_count"`
+		Likes      []*payloadLike `json:"likes"`
+		LikesCount int            `json:"likes_count"`
+		Users      payloadUserMap `json:"users"`
+		UsersCount int            `json:"users_count"`
 	}{
 		Likes:      ls,
 		LikesCount: len(ls),
-		Users:      mapUsers(p.users),
+		Users:      mapUserPresentation(p.users),
 		UsersCount: len(p.users),
 	})
 }

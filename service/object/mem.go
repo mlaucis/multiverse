@@ -88,6 +88,10 @@ func (s *memService) Query(namespace string, opts QueryOptions) ([]*Object, erro
 			}
 		}
 
+		if !inTypes(object.ExternalID, opts.ExternalIDs) {
+			continue
+		}
+
 		if opts.ID != nil && id != *opts.ID {
 			continue
 		}

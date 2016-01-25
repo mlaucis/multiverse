@@ -149,7 +149,7 @@ type source func() (event.List, error)
 // Feed is the composite to transport information relevant for a feed.
 type Feed struct {
 	Events  event.List
-	Posts   Posts
+	Posts   PostList
 	PostMap PostMap
 	UserMap user.Map
 }
@@ -384,9 +384,9 @@ func (c *FeedController) Posts(
 func (c *FeedController) connectionPosts(
 	app *v04_entity.Application,
 	ids ...uint64,
-) (Posts, error) {
+) (PostList, error) {
 	if len(ids) == 0 {
-		return Posts{}, nil
+		return PostList{}, nil
 	}
 
 	os, err := c.objects.Query(app.Namespace(), object.QueryOptions{
@@ -404,7 +404,7 @@ func (c *FeedController) connectionPosts(
 		return nil, err
 	}
 
-	return fromObjects(os), nil
+	return postsFromObjects(os), nil
 }
 
 func (c *FeedController) neighbours(
@@ -506,8 +506,8 @@ func extractPosts(
 	objects object.Service,
 	app *v04_entity.Application,
 	es event.List,
-) (Posts, error) {
-	ps := Posts{}
+) (PostList, error) {
+	ps := PostList{}
 
 	for _, event := range es {
 		if event.ObjectID == 0 {
