@@ -85,7 +85,7 @@ func PostList(c *controller.PostController, users user.StrangleService) Handler 
 			return
 		}
 
-		us, err := user.UsersFromIDs(users, app, ps.OwnerIDs()...)
+		us, err := user.ListFromIDs(users, app, ps.OwnerIDs()...)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -117,7 +117,7 @@ func PostListAll(c *controller.PostController, users user.StrangleService) Handl
 			return
 		}
 
-		us, err := user.UsersFromIDs(users, app, ps.OwnerIDs()...)
+		us, err := user.ListFromIDs(users, app, ps.OwnerIDs()...)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -149,7 +149,7 @@ func PostListMe(c *controller.PostController, users user.StrangleService) Handle
 			return
 		}
 
-		us, err := user.UsersFromIDs(users, app, ps.OwnerIDs()...)
+		us, err := user.ListFromIDs(users, app, ps.OwnerIDs()...)
 		if err != nil {
 			respondError(w, 0, err)
 			return

@@ -8,6 +8,16 @@ import (
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
 
+// Predefined time periods to use for aggregates.
+const (
+	ByDay   Period = "1 day"
+	ByWeek  Period = "1 week"
+	ByMonth Period = "1 month"
+)
+
+// Period is a pre-defined time duration.
+type Period string
+
 // List is an Event collection.
 type List []*v04_entity.Event
 
@@ -55,6 +65,13 @@ func (es List) UserIDs() []uint64 {
 	}
 
 	return ids
+}
+
+// AggregateService for event interactions.
+type AggregateService interface {
+	ActiveUserIDs(string, Period) ([]uint64, error)
+	Setup(string) error
+	Teardown(string) error
 }
 
 // StrangleService is an intermediate interface to understand the dependencies
