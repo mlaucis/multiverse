@@ -9,6 +9,8 @@ import (
 	"github.com/tapglue/multiverse/controller"
 	"github.com/tapglue/multiverse/service/event"
 	"github.com/tapglue/multiverse/service/user"
+	v04_entity "github.com/tapglue/multiverse/v04/entity"
+	v04_response "github.com/tapglue/multiverse/v04/server/response"
 )
 
 // RecommendUsersActiveDay returns a list of active users in the last day.
@@ -25,7 +27,12 @@ func RecommendUsersActiveDay(c *controller.RecommendationController) Handler {
 			return
 		}
 
-		respondJSON(w, http.StatusCreated, &payloadUsers{users: us})
+		if len(us) == 0 {
+			respondJSON(w, http.StatusNoContent, nil)
+			return
+		}
+
+		respondJSON(w, http.StatusOK, &payloadUsers{users: us})
 	}
 }
 
@@ -40,6 +47,11 @@ func RecommendUsersActiveWeek(c *controller.RecommendationController) Handler {
 		us, err := c.UsersActive(app, user, event.ByWeek)
 		if err != nil {
 			respondError(w, 0, err)
+			return
+		}
+
+		if len(us) == 0 {
+			respondJSON(w, http.StatusNoContent, nil)
 			return
 		}
 
@@ -61,6 +73,11 @@ func RecommendUsersActiveMonth(c *controller.RecommendationController) Handler {
 			return
 		}
 
+		if len(us) == 0 {
+			respondJSON(w, http.StatusNoContent, nil)
+			return
+		}
+
 		respondJSON(w, http.StatusCreated, &payloadUsers{users: us})
 	}
 }
@@ -70,5 +87,21 @@ type payloadUsers struct {
 }
 
 func (p *payloadUsers) MarshalJSON() ([]byte, error) {
-	return json.Marshal(struct{}{})
+	ps := []*v04_entity.PresentationApplicationUser{}
+
+	for _, user := range p.users {
+		v04_response.SanitizeApplicationUser(user)
+
+		ps = append(ps, &v04_entity.PresentationApplicationUser{
+			ApplicationUser: user,
+		})
+	}
+
+	return json.Marshal(struct {
+		Users      []*v04_entity.PresentationApplicationUser `json:"users"`
+		UsersCount int                                       `json:"users_count"`
+	}{
+		Users:      ps,
+		UsersCount: len(ps),
+	})
 }
