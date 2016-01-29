@@ -76,8 +76,8 @@ func MapFromIDs(
 	return um, nil
 }
 
-// UsersFromIDs gathers a user collection from the service for the given ids.
-func UsersFromIDs(
+// ListFromIDs gathers a user collection from the service for the given ids.
+func ListFromIDs(
 	s StrangleService,
 	app *v04_entity.Application,
 	ids ...uint64,

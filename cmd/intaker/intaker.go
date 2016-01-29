@@ -127,6 +127,9 @@ func main() {
 		rateLimiter = redis.NewLimiter(redisClient, "test:ratelimiter:app:")
 	)
 
+	var aggregateEvents event.AggregateService
+	aggregateEvents = event.NewPostgresService(pgClient.MainDatastore())
+
 	var apps app.StrangleService
 	apps = v04_postgres_core.NewApplication(pgClient, rApps)
 	apps = app.InstrumentStrangleMiddleware(component, "postgres")(apps)
@@ -154,11 +157,16 @@ func main() {
 
 	// Setup controllers
 	var (
-		commentController = controller.NewCommentController(objects, users)
-		feedController    = controller.NewFeedController(connections, events, objects, users)
-		likeController    = controller.NewLikeController(events, objects, users)
-		objectController  = controller.NewObjectController(connections, objects)
-		postController    = controller.NewPostController(connections, events, objects)
+		commentController        = controller.NewCommentController(objects, users)
+		feedController           = controller.NewFeedController(connections, events, objects, users)
+		likeController           = controller.NewLikeController(events, objects, users)
+		objectController         = controller.NewObjectController(connections, objects)
+		postController           = controller.NewPostController(connections, events, objects)
+		recommendationController = controller.NewRecommendationController(
+			connections,
+			aggregateEvents,
+			users,
+		)
 	)
 
 	// Setup middlewares
@@ -423,6 +431,27 @@ func main() {
 		handler.Wrap(
 			withUser,
 			handler.PostList(postController, users),
+		),
+	)
+
+	next.Methods("GET").PathPrefix("/recommendations/users/active/day").Name("recommendUsersActiveDay").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.RecommendUsersActiveDay(recommendationController),
+		),
+	)
+
+	next.Methods("GET").PathPrefix("/recommendations/users/active/week").Name("recommendUsersActiveWeek").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.RecommendUsersActiveWeek(recommendationController),
+		),
+	)
+
+	next.Methods("GET").PathPrefix("/recommendations/users/active/month").Name("recommendUsersActiveMonth").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.RecommendUsersActiveMonth(recommendationController),
 		),
 	)
 
