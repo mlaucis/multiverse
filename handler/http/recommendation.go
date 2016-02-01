@@ -55,7 +55,7 @@ func RecommendUsersActiveWeek(c *controller.RecommendationController) Handler {
 			return
 		}
 
-		respondJSON(w, http.StatusCreated, &payloadUsers{users: us})
+		respondJSON(w, http.StatusOK, &payloadUsers{users: us})
 	}
 }
 
@@ -78,7 +78,7 @@ func RecommendUsersActiveMonth(c *controller.RecommendationController) Handler {
 			return
 		}
 
-		respondJSON(w, http.StatusCreated, &payloadUsers{users: us})
+		respondJSON(w, http.StatusOK, &payloadUsers{users: us})
 	}
 }
 

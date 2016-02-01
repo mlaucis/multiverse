@@ -9,6 +9,9 @@ import (
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
 
+// conditionUser determines if the user should be filtered.
+type conditionUser func(*v04_entity.ApplicationUser) (bool, error)
+
 // RecommendationController bundles the business constriants for recommendations.
 type RecommendationController struct {
 	connections connection.StrangleService
@@ -45,25 +48,66 @@ func (c *RecommendationController) UsersActive(
 		return nil, err
 	}
 
+	us, err = filterUsers(
+		us,
+		conditionOrigin(origin),
+		conditionConnection(c.connections, app, origin),
+	)
+	if err != nil {
+		return nil, err
+	}
+
 	shuffleUsers(us)
 
 	return us, nil
 }
 
-func (c *RecommendationController) filterConnections(
+func conditionConnection(
+	connections connection.StrangleService,
 	app *v04_entity.Application,
 	origin *v04_entity.ApplicationUser,
-	recommends user.List,
-) (user.List, error) {
-	us := user.List{}
-
-	for _, user := range recommends {
-		r, errs := c.connections.Relation(app.OrgID, app.ID, origin.ID, user.ID)
+) conditionUser {
+	return func(user *v04_entity.ApplicationUser) (bool, error) {
+		r, errs := connections.Relation(app.OrgID, app.ID, origin.ID, user.ID)
 		if errs != nil {
-			return nil, errs[0]
+			return false, errs[0]
 		}
 
 		if r.IsFriend != nil && *r.IsFriend || (r.IsFollowed != nil && *r.IsFollowed) {
+			return true, nil
+		}
+
+		return false, nil
+	}
+}
+
+func conditionOrigin(
+	origin *v04_entity.ApplicationUser,
+) conditionUser {
+	return func(user *v04_entity.ApplicationUser) (bool, error) {
+		return origin.ID == user.ID, nil
+	}
+}
+
+func filterUsers(users user.List, cs ...conditionUser) (user.List, error) {
+	us := user.List{}
+
+	for _, user := range users {
+		keep := true
+
+		for _, condition := range cs {
+			ok, err := condition(user)
+			if err != nil {
+				return nil, err
+			}
+
+			if !ok {
+				keep = false
+				break
+			}
+		}
+
+		if !keep {
 			continue
 		}
 
