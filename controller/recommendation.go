@@ -96,22 +96,20 @@ func filterUsers(users user.List, cs ...conditionUser) (user.List, error) {
 		keep := true
 
 		for _, condition := range cs {
-			ok, err := condition(user)
+			drop, err := condition(user)
 			if err != nil {
 				return nil, err
 			}
 
-			if !ok {
+			if drop {
 				keep = false
 				break
 			}
 		}
 
-		if !keep {
-			continue
+		if keep {
+			us = append(us, user)
 		}
-
-		us = append(us, user)
 	}
 
 	return us, nil
