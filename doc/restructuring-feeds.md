@@ -35,6 +35,8 @@ The goal is to restructure the feed materializations to fulfill the requirements
 
 The following table shows an overview the new feed structure:
 
+### Graph Feeds
+
 | Name                          | Image         | Description | Endpoint current | Endpoint (0.5) |
 | ----------------------------- | --------------| ----------- | ---------------- | -------------- |
 | News Feed                     | ![Newsfeed](http://s24.postimg.org/va9af9gdh/newsfeed.png) | Contain all possible entries from within my network. | `/me/feed` | `/me/feed/news` |
@@ -43,11 +45,15 @@ The following table shows an overview the new feed structure:
 | Notification Connections Feed | ![Notificatons Connections](http://s15.postimg.org/q5q03is3v/graphfeed.png) | Contains connection and event entries from within my network. | ` ` | `me/feed/social` |
 | Notifications Me Feed         | ![Notificaitons Me](http://s14.postimg.org/e525flju9/mefeed.png) | Contains entries which target me or my content. | ` ` | `me/feed/self` |
 
+### User Feeds
+
 | Name                          |  Image         | Description | Endpoint current | Endpoint (0.5) |
 | ----------------------------- | -------------- | ----------- | ---------------- | -------------- |
 | User Activity Feed            | ![User Activity](http://s24.postimg.org/538k2of1h/userevents.png) | Contains entries which originate from me. | ` ` | `/me/activity` |
 | User Activity Posts Feed      | ![User Activity Posts](http://s16.postimg.org/89eh6eys5/userposts.png) | All posts of a user. | ` ` | `/me/activity/posts` |
 | User Activity Events Feed     | ![User Activity Events](http://s24.postimg.org/538k2of1h/userevents.png) | All activites of a user without users. | ` ` | `/me/activity/events` |
+
+### User Collections
 
 | Name                          |   Image         | Description | Endpoint current | Endpoint (0.5) |
 | ----------------------------- | --------------- | ----------- | ---------------- | -------------- |
