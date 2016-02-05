@@ -1,4 +1,5 @@
-import React, { Component, PropTypes, findDOMNode } from 'react'
+import React, { Component, PropTypes } from 'react'
+import { findDOMNode } from 'react-dom'
 
 import AccountStore from '../stores/AccountStore'
 import ApplicationStore from '../stores/ApplicationStore'
@@ -31,7 +32,7 @@ class InviteDeveloper extends Component {
     requestMemberInvite(email, firstName, lastName).then( () => {
       toggle()
     })
-  }
+  };
 
   viewDefault() {
     return (
@@ -112,7 +113,7 @@ class InviteDeveloper extends Component {
   toggleSuccess = () => {
     this._showSuccess = !this._showSuccess
     this.setState(this.getState())
-  }
+  };
 
   render() {
     let view = this.viewDefault()
@@ -130,7 +131,7 @@ class IntegrationResource extends Component {
     icon: PropTypes.string.isRequired,
     link: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired
-  }
+  };
 
   render() {
     let iconClass = `fa fa-${this.props.icon}`
@@ -151,7 +152,7 @@ class ProductResource extends Component {
     category: PropTypes.string.isRequired,
     link: PropTypes.string.isRequired,
     title: PropTypes.string.isRequired
-  }
+  };
 
   render() {
     return (
@@ -166,7 +167,7 @@ class ProductResource extends Component {
 class TestingApp extends Component {
   static propTypes = {
     app: PropTypes.object.isRequired
-  }
+  };
 
   componentDidMount() {
     setReadmeToken(this.props.app.token)
@@ -218,13 +219,13 @@ export default class Dashboard extends Component {
 
   handleChange = () => {
     this.setState(this.getState())
-  }
+  };
 
   handleClick = (event) => {
     event.preventDefault()
 
     this.setState(this.getState())
-  }
+  };
   render() {
     let reasonHref = 'http://www.tapglue.com/blog/' +
       'why-your-mobile-app-needs-a-social-activity-feed/'

@@ -6,10 +6,10 @@ describe('OnboardingStore', () => {
   let OnboardingStore
   let ConsoleDispatcher
   let callback
-  let persona = require('../OnboardingStore').personas.marketing
+  let persona = require('../OnboardingStore').default.personas.marketing
 
   beforeEach(() => {
-    OnboardingStore = require('../OnboardingStore')
+    OnboardingStore = require('../OnboardingStore').default
     ConsoleDispatcher = require('../../dispatcher/ConsoleDispatcher')
     callback = ConsoleDispatcher.register.mock.calls[0][0]
 
@@ -33,6 +33,7 @@ describe('OnboardingStore', () => {
   })
 
   it('updates its persona', () => {
+    console.log(OnboardingConstants)
     callback({
       type: OnboardingConstants.SELECT_PERSONA,
       persona: persona

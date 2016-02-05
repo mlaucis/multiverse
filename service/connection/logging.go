@@ -8,8 +8,51 @@ import (
 	"github.com/go-kit/kit/log"
 
 	"github.com/tapglue/multiverse/errors"
+	"github.com/tapglue/multiverse/platform/metrics"
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
+
+type logService struct {
+	Service
+
+	logger log.Logger
+}
+
+// LogMiddleware given a Logger wraps the next Service with logging capabilities.
+func LogMiddleware(logger log.Logger, store string) ServiceMiddleware {
+	return func(next Service) Service {
+		logger = log.NewContext(logger).With(
+			"service", "connection",
+			"store", store,
+		)
+
+		return &logService{next, logger}
+	}
+}
+
+func (s *logService) CreatedByDay(
+	ns string,
+	start, end time.Time,
+) (ts metrics.Timeseries, err error) {
+	defer func(begin time.Time) {
+		ps := []interface{}{
+			"datapoints", len(ts),
+			"duration", time.Since(begin),
+			"end", end.Format(metrics.BucketFormat),
+			"method", "CreatedByDay",
+			"namespace", ns,
+			"start", start.Format(metrics.BucketFormat),
+		}
+
+		if err != nil {
+			ps = append(ps, "err", err)
+		}
+
+		_ = s.logger.Log(ps...)
+	}(time.Now())
+
+	return s.Service.CreatedByDay(ns, start, end)
+}
 
 type logStrangleService struct {
 	StrangleService
@@ -41,7 +84,7 @@ func (s *logStrangleService) ConnectionsByState(
 			"duration", time.Since(begin),
 			"id", strconv.FormatUint(id, 10),
 			"method", "ConnectionsByState",
-			"namespace", namespace(orgID, appID),
+			"namespace", convertNamespace(orgID, appID),
 		}
 
 		if errs != nil {
@@ -54,13 +97,16 @@ func (s *logStrangleService) ConnectionsByState(
 	return s.StrangleService.ConnectionsByState(orgID, appID, id, state)
 }
 
-func (s *logStrangleService) FriendsAndFollowingIDs(orgID, appID int64, id uint64) (ids []uint64, errs []errors.Error) {
+func (s *logStrangleService) FriendsAndFollowingIDs(
+	orgID, appID int64,
+	id uint64,
+) (ids []uint64, errs []errors.Error) {
 	defer func(begin time.Time) {
 		ps := []interface{}{
 			"id", strconv.FormatUint(id, 10),
 			"duration", time.Since(begin),
 			"method", "FriendsAndFollowingIDs",
-			"namespace", namespace(orgID, appID),
+			"namespace", convertNamespace(orgID, appID),
 		}
 
 		if errs != nil {
@@ -82,7 +128,7 @@ func (s *logStrangleService) Relation(
 			"duration", time.Since(begin),
 			"from", strconv.FormatUint(from, 10),
 			"method", "Relation",
-			"namespace", namespace(orgID, appID),
+			"namespace", convertNamespace(orgID, appID),
 			"relation", r,
 			"to", strconv.FormatUint(to, 10),
 		}
@@ -97,6 +143,6 @@ func (s *logStrangleService) Relation(
 	return s.StrangleService.Relation(orgID, appID, from, to)
 }
 
-func namespace(orgID, appID int64) string {
+func convertNamespace(orgID, appID int64) string {
 	return fmt.Sprintf("app_%d_%d", orgID, appID)
 }

@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import { findDOMNode } from 'react-dom'
 import Router from 'react-router'
 
 let { RouteHandler } = Router
@@ -19,6 +20,10 @@ export default class Console extends Component {
   componentDidMount() {
     window.addEventListener('resize', this.handleResize)
 
+    if (this.state.windowHeight != this.getHeight) {
+      this.setState(this.getState())
+    }
+
     if (AccountStore.isAuthenticated) {
       requestAccount(AccountStore.user)
     }
@@ -28,9 +33,19 @@ export default class Console extends Component {
     window.removeEventListener('resize', this.handleResize)
   }
 
+  getHeight() {
+    return Math.max(
+      document.body.clientHeight,
+      document.body.offsetHeight,
+      document.body.scrollHeight,
+      window.innerHeight,
+    )
+  }
+
   getState() {
     return {
-      windowHeight: Math.max(window.innerHeight, document.body.clientHeight)
+      // FIXME(xla): Find a reliable way to determine the real height.
+      windowHeight: this.getHeight()
     }
   }
 
@@ -57,19 +72,19 @@ export default class Console extends Component {
         icon: 'Members',
         name: 'Members',
         route: 'MEMBERS'
+      },
+      {
+        disabled: false,
+        icon: 'Analytics',
+        name: 'Analytics',
+        route: 'ANALYTICS'
+      },
+      {
+        disabled: false,
+        icon: 'LogOut',
+        name: 'Logout',
+        route: 'AUTH_LOGOUT'
       }
-      // {
-      //   disabled: false,
-      //   icon: 'bar-chart',
-      //   name: 'Analytics',
-      //   route: 'APPS'
-      // },
-      // {
-      //   disabled: false,
-      //   icon: 'settings',
-      //   name: 'Settings',
-      //   route: 'APPS'
-      // }
     ]
 
     let style = {
@@ -82,8 +97,8 @@ export default class Console extends Component {
         <div className='sidebar-container grid__col-md-2 grid__col--bleed'>
           <Sidebar sections={sections}/>
         </div>
-        <div className="content grid__col-md-10 grid__col--bleed" style={style}>
-          <RouteHandler/>
+        <div className='content grid__col-md-10 grid__col--bleed' style={style}>
+          <RouteHandler ref='route'/>
         </div>
       </section>
     )

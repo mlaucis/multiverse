@@ -112,7 +112,7 @@ class ApplicationStore extends EventEmitter {
       default:
       // nothing to do
     }
-  }
+  };
 }
 
 export default new ApplicationStore

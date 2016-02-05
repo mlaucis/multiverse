@@ -1,4 +1,5 @@
 import AccountConstants from '../constants/AccountConstants'
+import AnalyticsConstants from '../constants/AnalyticsConstants'
 import ApplicationConstants from '../constants/ApplicationConstants'
 import MemberConstants from '../constants/MemberConstants'
 import OnboardingConstants from '../constants/OnboardingConstants'
@@ -12,6 +13,7 @@ import { appCreate, appDelete, appUpdate } from '../services/ApplicationService'
 import { login, logout } from '../services/AccountService'
 import { member, memberDelete, memberUpdate } from '../services/MemberService'
 import { members } from '../services/MemberService'
+import { metrics } from '../services/AnalyticsService'
 
 export function requestAccount(user) {
   return dispatchAsync(accountGet(user), {
@@ -72,7 +74,7 @@ export function requestApp(id, user) {
 }
 
 export function requestApps(user) {
-  dispatchAsync(apps(user), {
+  return dispatchAsync(apps(user), {
     request: ApplicationConstants.APPS_REQUEST,
     success: ApplicationConstants.APPS_SUCCESS,
     failure: ApplicationConstants.APPS_FAILURE
@@ -182,6 +184,14 @@ export function requestMembers(user) {
     success: MemberConstants.MEMBERS_SUCCESS,
     failure: MemberConstants.MEMBERS_FAILURE
   })
+}
+
+export function requestMetrics(app, start, end) {
+  return dispatchAsync(metrics(app, start, end), {
+    request: AnalyticsConstants.ANALYTICS_METRICS_REQUEST,
+    success: AnalyticsConstants.ANALYTICS_METRICS_SUCCESS,
+    failure: AnalyticsConstants.ANALYTICS_METRICS_FAILURE,
+  }, { end: end, start: start })
 }
 
 export function selectOptions(options) {

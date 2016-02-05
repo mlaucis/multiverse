@@ -27,13 +27,13 @@ class Profile extends Component {
 
   handleChange = () => {
     this.setState(this.getState())
-  }
+  };
 
   handleClick = (event) => {
     event.preventDefault()
 
     this.setState(this.getState())
-  }
+  };
 
   shouldComponentUpdate(props, state) {
     return !!state.user

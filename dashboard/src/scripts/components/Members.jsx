@@ -1,4 +1,5 @@
-import React, { Component, PropTypes, findDOMNode } from 'react'
+import React, { Component, PropTypes } from 'react'
+import { findDOMNode } from 'react-dom'
 
 import AccountStore from '../stores/AccountStore'
 import MemberStore from '../stores/MemberStore'
@@ -17,13 +18,13 @@ class MemberForm extends Component {
     onSubmit: PropTypes.func.isRequired,
     submitClass: PropTypes.string,
     submitLabel: PropTypes.string.isRequired
-  }
+  };
 
   handleClose = (event) => {
     event.preventDefault()
 
     this.props.onClose()
-  }
+  };
 
   handleSubmit = (event) => {
     event.preventDefault()
@@ -35,7 +36,7 @@ class MemberForm extends Component {
     }
 
     this.props.onSubmit(vals)
-  }
+  };
 
   render() {
     let submitClass = this.props.submitClass ?
@@ -117,7 +118,7 @@ class MemberForm extends Component {
 class Member extends Component {
   static propTypes = {
     member: PropTypes.object.isRequired
-  }
+  };
 
   constructor() {
     super()
@@ -138,11 +139,11 @@ class Member extends Component {
     event.preventDefault()
 
     requestMemberDelete(this.props.member.id, AccountStore.user)
-  }
+  };
 
   handleEdit = (vals) => {
     requestMemberUpdate(vals, this.props.member.id, AccountStore.account.id)
-  }
+  };
 
   viewDefault() {
     let member = this.props.member
@@ -228,12 +229,12 @@ class Member extends Component {
   toggleEdit = () => {
     this._showEdit = !this._showEdit
     this.setState(this.getState())
-  }
+  };
 
   toggleDelete = () => {
     this._showDelete = !this._showDelete
     this.setState(this.getState())
-  }
+  };
 
   render() {
     let view = this.viewDefault()
@@ -278,17 +279,17 @@ export default class Members extends Component {
 
   handleChange = () => {
     this.setState(this.getState())
-  }
+  };
 
   handleCreate = (vals) => {
     requestMemberCreate(vals, AccountStore.account.id).then(this.toggleCreate)
-  }
+  };
 
   toggleCreate = () => {
     this._showCreate = !this._showCreate
 
     this.setState(this.getState())
-  }
+  };
 
   render() {
     let head = this.state.showCreate ? (
@@ -317,11 +318,13 @@ export default class Members extends Component {
             {head}
             <table>
               <thead>
-                <th>Status</th>
-                <th>Email</th>
-                <th>First Name</th>
-                <th>Last Name</th>
-                <th></th>
+                <tr>
+                  <th>Status</th>
+                  <th>Email</th>
+                  <th>First Name</th>
+                  <th>Last Name</th>
+                  <th></th>
+                </tr>
               </thead>
               <tbody>
                 {members}

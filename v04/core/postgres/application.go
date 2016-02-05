@@ -105,6 +105,7 @@ func (app *application) Create(application *entity.Application, retrieve bool) (
 		if err != nil {
 			// TODO rollback the creation from the field if we fail to create all the stuff here
 			// TODO learn transactions :)
+			fmt.Printf("%#v\n", err)
 			return nil, []errors.Error{errmsg.ErrInternalApplicationCreation.UpdateInternalMessage(err.Error()).SetCurrentLocation()}
 		}
 	}

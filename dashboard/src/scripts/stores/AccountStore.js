@@ -147,7 +147,7 @@ class AccountStore extends EventEmitter {
       default:
       // nothing to do
     }
-  }
+  };
 }
 
 export default new AccountStore

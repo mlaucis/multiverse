@@ -26,7 +26,7 @@ describe('AccountStore', () => {
   }
 
   beforeEach(() => {
-    AccountStore = require('../AccountStore')
+    AccountStore = require('../AccountStore').default
     ConsoleDispatcher = require('../../dispatcher/ConsoleDispatcher')
     callback = ConsoleDispatcher.register.mock.calls[0][0]
 

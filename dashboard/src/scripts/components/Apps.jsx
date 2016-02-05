@@ -1,6 +1,7 @@
-import React, { Component, PropTypes, findDOMNode } from 'react'
+import React, { Component, PropTypes } from 'react'
+import { findDOMNode } from 'react-dom'
 
-import Clipboard from 'clipboard/dist/clipboard'
+import Clipboard from 'clipboard'
 
 import AccountStore from '../stores/AccountStore'
 import ApplicationStore from '../stores/ApplicationStore'
@@ -14,18 +15,19 @@ import CopyIcon from '../../icons/Apps_Icon_CopytoClipboard.svg?t=custom'
 class AppForm extends Component {
   static propTypes = {
     description: PropTypes.string,
+    errors: PropTypes.array,
     name: PropTypes.string,
     onClose: PropTypes.func,
     onSubmit: PropTypes.func.isRequired,
     submitClass: PropTypes.string,
     submitLabel: PropTypes.string.isRequired
-  }
+  };
 
   handleClose = (event) => {
     event.preventDefault()
 
     this.props.onClose()
-  }
+  };
 
   handleSubmit = (event) => {
     event.preventDefault()
@@ -34,7 +36,7 @@ class AppForm extends Component {
     let description = findDOMNode(this.refs.description).value
 
     this.props.onSubmit(name, description)
-  }
+  };
 
   render() {
     let c = this.props.submitClass ?
@@ -59,9 +61,15 @@ class AppForm extends Component {
           value={this.props.submitLabel}/>
       </div>
     )
+    let errors = this.props.errors.map( error => {
+      return <p key={error.code} className='error'>{error.message}</p>
+    })
 
     return (
       <form onSubmit={this.handleSubmit}>
+        <div className='group errors'>
+          {errors}
+        </div>
         <div className='group'>
           <input
             defaultValue={this.props.name}
@@ -102,7 +110,7 @@ export class App extends Component {
   static propTypes = {
     actions: PropTypes.bool,
     app: PropTypes.object.isRequired
-  }
+  };
 
   constructor() {
     super()
@@ -138,12 +146,12 @@ export class App extends Component {
     event.preventDefault()
 
     requestAppDelete(this.props.app.id, AccountStore.user)
-  }
+  };
 
   handleEdit = (name, description) => {
     requestAppUpdate(this.props.app.id, name, description, AccountStore.user)
       .then(this.toggleEdit)
-  }
+  };
 
   toggleActions = (event) => {
     event.preventDefault()
@@ -164,14 +172,14 @@ export class App extends Component {
 
       this.setState(this.getState())
     }
-  }
+  };
 
   toggleDelete = (event) => {
     event.preventDefault()
 
     this._showDelete = !this._showDelete
     this.setState(this.getState())
-  }
+  };
 
   toggleEdit = (event) => {
     if (event && event.preventDefault) {
@@ -180,7 +188,7 @@ export class App extends Component {
 
     this._showEdit = !this._showEdit
     this.setState(this.getState())
-  }
+  };
 
   viewDefault() {
     let app = this.props.app
@@ -341,21 +349,23 @@ export default class Apps extends Component {
 
   handleChange = () => {
     this.setState(this.getState())
-  }
+  };
 
   handleCreate = (name, description) => {
     requestAppCreate(name, description, AccountStore.user, true)
-  }
+  };
 
   render() {
     let apps = this.state.apps
     let appRows = []
     let createKey = 'app-create'
+    let errors = ApplicationStore.errors
     let len = Math.round(apps.length / 2)
     let createAppended = false
     let createApp = (
       <div className='card grid__col-sm-6' key={createKey}>
         <AppForm
+          errors={errors}
           onSubmit={this.handleCreate}
           submitLabel='Create'/>
       </div>
@@ -365,13 +375,13 @@ export default class Apps extends Component {
       let [ a, b ] = apps
       let rowKey = `app-row-${i}`
       let pair = [(
-        <App actions={true} app={a} key={a.id}/>
+        <App actions app={a} key={a.id}/>
       )]
 
       apps.shift()
 
       if (b) {
-        pair.push(<App actions={true} app={b} key={b.id}/>)
+        pair.push(<App actions app={b} key={b.id}/>)
 
         apps.shift()
       } else {

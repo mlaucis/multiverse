@@ -6,7 +6,7 @@ import { requestLogout } from '../../actions/ConsoleActionCreator'
 export default class Logout extends Component {
   static contextTypes = {
     router: PropTypes.func.isRequired
-  }
+  };
 
   componentDidMount() {
     if (!AccountStore.isAuthenticated) {

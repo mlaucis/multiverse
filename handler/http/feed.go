@@ -8,14 +8,13 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/tapglue/multiverse/controller"
-	"github.com/tapglue/multiverse/service/user"
 	v04_core "github.com/tapglue/multiverse/v04/core"
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
 
 // FeedEvents returns the events of the current user driven by the social and
 // interest graph.
-func FeedEvents(c *controller.FeedController, users user.StrangleService) Handler {
+func FeedEvents(c *controller.FeedController) Handler {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		var (
 			app         = appFromContext(ctx)
@@ -47,7 +46,7 @@ func FeedEvents(c *controller.FeedController, users user.StrangleService) Handle
 
 // FeedNews returns the superset aggregration of events and posts driven by the
 // social and interest graph of the current user.
-func FeedNews(c *controller.FeedController, users user.StrangleService) Handler {
+func FeedNews(c *controller.FeedController) Handler {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		var (
 			app         = appFromContext(ctx)
@@ -80,7 +79,7 @@ func FeedNews(c *controller.FeedController, users user.StrangleService) Handler 
 
 // FeedPosts returns the posts of the current user driven by the social and
 // interest graph.
-func FeedPosts(c *controller.FeedController, users user.StrangleService) Handler {
+func FeedPosts(c *controller.FeedController) Handler {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		var (
 			app         = appFromContext(ctx)

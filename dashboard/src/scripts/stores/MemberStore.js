@@ -107,7 +107,7 @@ class MemberStore extends EventEmitter {
       default:
       // nothing to do
     }
-  }
+  };
 }
 
 export default new MemberStore

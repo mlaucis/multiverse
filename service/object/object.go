@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/asaskevich/govalidator"
+	"github.com/tapglue/multiverse/platform/metrics"
 )
 
 // Attachment variants available for Objects.
@@ -149,6 +150,8 @@ type QueryOptions struct {
 
 // Service for object interactions.
 type Service interface {
+	metrics.BucketByDay
+
 	Put(namespace string, object *Object) (*Object, error)
 	Query(namespace string, opts QueryOptions) ([]*Object, error)
 	Remove(namespace string, id uint64) error

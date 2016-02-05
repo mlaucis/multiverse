@@ -2,8 +2,10 @@ package event
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/tapglue/multiverse/platform/metrics"
 )
 
 const (
@@ -17,6 +19,13 @@ const (
 	pgClauseByWeek  = `(json_data ->> 'updated_at')::DATE > current_date - interval '1 week'`
 	pgClauseByMonth = `(json_data ->> 'updated_at')::DATE > current_date - interval '1 month'`
 
+	pgCreatedByDay = `SELECT count(*), to_date(json_data->>'created_at', 'YYYY-MM-DD') as bucket
+		FROM %s.events
+		WHERE (json_data->>'created_at')::DATE >= '%s'
+		AND (json_data->>'created_at')::DATE <= '%s'
+		GROUP BY bucket
+		ORDER BY bucket`
+
 	pgCreateSchema = `CREATE SCHEMA IF NOT EXISTS %s`
 	pgCreateTable  = `CREATE TABLE IF NOT EXISTS %s.events
 		(json_data JSONB NOT NULL)`
@@ -28,7 +37,7 @@ type pgService struct {
 }
 
 // NewPostgresService returns a Postgres based Service implementation.
-func NewPostgresService(db *sqlx.DB) AggregateService {
+func NewPostgresService(db *sqlx.DB) Service {
 	return &pgService{db: db}
 }
 
@@ -76,6 +85,50 @@ func (s *pgService) ActiveUserIDs(
 	}
 
 	return ids, nil
+}
+
+func (s *pgService) CreatedByDay(
+	ns string,
+	start, end time.Time,
+) (metrics.Timeseries, error) {
+	query := fmt.Sprintf(
+		pgCreatedByDay,
+		ns,
+		start.Format(metrics.BucketFormat),
+		end.Format(metrics.BucketFormat),
+	)
+
+	rows, err := s.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	ts := []metrics.Datapoint{}
+	for rows.Next() {
+		var (
+			bucket time.Time
+			value  int
+		)
+
+		err := rows.Scan(&value, &bucket)
+		if err != nil {
+			return nil, err
+		}
+
+		ts = append(
+			ts,
+			metrics.Datapoint{
+				Bucket: bucket.Format(metrics.BucketFormat),
+				Value:  value,
+			},
+		)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return ts, nil
 }
 
 func (s *pgService) Setup(ns string) error {

@@ -1,10 +1,12 @@
 import '../styles/theme.less'
 
 import React, { Component } from 'react'
+import ReactDOM from 'react-dom'
 import Router from 'react-router'
 
 let { DefaultRoute, Route, RouteHandler } = Router
 
+import Analytics from './components/Analytics'
 import Apps from './components/Apps'
 import Auth from './components/Auth'
 import AuthLogin from './components/auth/Login'
@@ -96,11 +98,16 @@ let routes = (
         name='MEMBERS'
         path={RouteConstants.MEMBERS}
         handler={requireAuth(Members)}/>
+
+      <Route
+        name='ANALYTICS'
+        path={RouteConstants.ANALYTICS}
+        handler={requireAuth(Analytics)}/>
     </Route>
   </Route>
 )
 
 Router.run(routes, Router.HistoryLocation, (Root) => {
-  React.render(<Root/>, document.body)
+  ReactDOM.render(<Root/>, document.getElementById('container'))
   TrackingStore.trackPage()
 })
