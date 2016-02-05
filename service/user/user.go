@@ -2,6 +2,7 @@ package user
 
 import (
 	"github.com/tapglue/multiverse/errors"
+	"github.com/tapglue/multiverse/platform/metrics"
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
 	v04_errmsg "github.com/tapglue/multiverse/v04/errmsg"
 )
@@ -9,11 +10,26 @@ import (
 // TargetType is the identifier used for events targeting a User.
 const TargetType = "tg_user"
 
+// Service for user interactions.
+type Service interface {
+	metrics.BucketByDay
+}
+
+// ServiceMiddleware is a chainable behaviour modifier for Service.
+type ServiceMiddleware func(Service) Service
+
 // StrangleService is an intermediate interface to understand the dependencies
 // of new middlewares and controllers.
 type StrangleService interface {
-	FindBySession(orgID, appID int64, key string) (*v04_entity.ApplicationUser, []errors.Error)
-	Read(orgID, appID int64, id uint64, stats bool) (*v04_entity.ApplicationUser, []errors.Error)
+	FindBySession(
+		orgID, appID int64,
+		key string,
+	) (*v04_entity.ApplicationUser, []errors.Error)
+	Read(
+		orgID, appID int64,
+		id uint64,
+		stats bool,
+	) (*v04_entity.ApplicationUser, []errors.Error)
 	UpdateLastRead(orgID, appID int64, userID uint64) []errors.Error
 }
 

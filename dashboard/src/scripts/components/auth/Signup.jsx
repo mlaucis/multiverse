@@ -1,4 +1,5 @@
-import React, { Component, PropTypes, findDOMNode } from 'react'
+import React, { Component, PropTypes } from 'react'
+import  { findDOMNode } from 'react-dom'
 
 import { Link } from 'react-router'
 
@@ -12,7 +13,7 @@ class SignupForm extends Component {
   static propTypes = {
     errors: PropTypes.array,
     submit: PropTypes.func.isRequired
-  }
+  };
 
   constructor() {
     super()
@@ -42,7 +43,7 @@ class SignupForm extends Component {
       firstName: findDOMNode(this.refs.firstName).value,
       lastName: findDOMNode(this.refs.lastName).value
     })
-  }
+  };
 
   render() {
     let errors = this.props.errors.map( error => {
@@ -141,11 +142,11 @@ class SignupForm extends Component {
 export default class Signup extends Component {
   static contextTypes = {
     router: PropTypes.func.isRequired
-  }
+  };
 
   static propTypes = {
     query: PropTypes.object
-  }
+  };
 
   constructor() {
     super()
@@ -169,7 +170,7 @@ export default class Signup extends Component {
 
   _onChange = () => {
     this.setState(this.getState())
-  }
+  };
 
   handleSubmit = (values) => {
     let plan = this.props.query.plan || 'free'
@@ -198,7 +199,7 @@ export default class Signup extends Component {
         })
       })
     })
-  }
+  };
 
   render() {
     return (

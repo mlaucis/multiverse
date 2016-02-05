@@ -1,4 +1,5 @@
-import React, { Component, PropTypes, findDOMNode } from 'react'
+import React, { Component, PropTypes } from 'react'
+import { findDOMNode } from 'react-dom'
 
 import { Link } from 'react-router'
 
@@ -9,7 +10,7 @@ import { requestLogin } from '../../actions/ConsoleActionCreator'
 export class LoginForm extends Component {
   static propTypes = {
     errors: PropTypes.array
-  }
+  };
 
   handleSubmit = (event) => {
     event.preventDefault()
@@ -20,7 +21,7 @@ export class LoginForm extends Component {
     requestLogin(email, password).then( user => {
       requestAccount(user)
     })
-  }
+  };
 
   render() {
     let errors = this.props.errors.map( error => {
@@ -74,11 +75,11 @@ export class LoginForm extends Component {
 export default class Login extends Component {
   static contextTypes = {
     router: PropTypes.func.isRequired
-  }
+  };
 
   static propTypes = {
     query: PropTypes.object
-  }
+  };
 
   constructor() {
     super()
@@ -108,7 +109,7 @@ export default class Login extends Component {
 
       this.context.router.transitionTo(next)
     }
-  }
+  };
 
   render() {
     return <LoginForm errors={this.state.errors}/>

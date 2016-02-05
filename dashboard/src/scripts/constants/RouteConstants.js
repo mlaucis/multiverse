@@ -1,4 +1,5 @@
 export default {
+  ANALYTICS: 'analytics',
   APP: 'app/:id',
   APP_DASHBOARD: 'dashboard',
   APP_SETTINGS: 'settings',

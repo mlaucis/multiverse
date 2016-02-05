@@ -8,7 +8,8 @@ import (
 
 const (
 	ctxKeyApp       = "app"
-	ctxKeyLogger    = "logger"
+	ctxKeyMember    = "member"
+	ctxKeyOrg       = "org"
 	ctxKeyRoute     = "route"
 	ctxKeyTokenType = "tokenType"
 	ctxKeyUser      = "user"
@@ -24,6 +25,22 @@ func appFromContext(ctx context.Context) *v04_entity.Application {
 
 func appInContext(ctx context.Context, app *v04_entity.Application) context.Context {
 	return context.WithValue(ctx, ctxKeyApp, app)
+}
+
+func memberFromContext(ctx context.Context) *v04_entity.Member {
+	return ctx.Value(ctxKeyMember).(*v04_entity.Member)
+}
+
+func memberInContext(ctx context.Context, app *v04_entity.Member) context.Context {
+	return context.WithValue(ctx, ctxKeyMember, app)
+}
+
+func orgFromContext(ctx context.Context) *v04_entity.Organization {
+	return ctx.Value(ctxKeyOrg).(*v04_entity.Organization)
+}
+
+func orgInContext(ctx context.Context, app *v04_entity.Organization) context.Context {
+	return context.WithValue(ctx, ctxKeyOrg, app)
 }
 
 func routeFromContext(ctx context.Context) string {

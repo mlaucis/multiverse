@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/go-kit/kit/log"
+	"github.com/tapglue/multiverse/platform/metrics"
 )
 
 type logService struct {
@@ -24,6 +25,30 @@ func LogMiddleware(logger log.Logger, store string) ServiceMiddleware {
 
 		return &logService{next, logger}
 	}
+}
+
+func (s *logService) CreatedByDay(
+	ns string,
+	start, end time.Time,
+) (ts metrics.Timeseries, err error) {
+	defer func(begin time.Time) {
+		ps := []interface{}{
+			"datapoints", len(ts),
+			"duration", time.Since(begin),
+			"end", end,
+			"method", "CreatedByDay",
+			"namespace", ns,
+			"start", start,
+		}
+
+		if err != nil {
+			ps = append(ps, "err", err)
+		}
+
+		_ = s.logger.Log(ps...)
+	}(time.Now())
+
+	return s.Service.CreatedByDay(ns, start, end)
 }
 
 func (s *logService) Put(ns string, object *Object) (o *Object, err error) {

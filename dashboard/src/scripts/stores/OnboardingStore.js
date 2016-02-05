@@ -76,7 +76,7 @@ class OnboardingStore extends EventStore {
       default:
       // nothing to do
     }
-  }
+  };
 }
 
 export default new OnboardingStore

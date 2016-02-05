@@ -15,7 +15,7 @@ let localStorageMock = function () {
     },
 
     setItem: (key, value) => {
-      store[key] = value.toString()
+      store[key] = value
     }
   }
 }

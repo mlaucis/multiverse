@@ -8,7 +8,9 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
+
 	"github.com/tapglue/multiverse/platform/flake"
+	"github.com/tapglue/multiverse/platform/metrics"
 )
 
 const (
@@ -28,6 +30,13 @@ const (
 	pgClauseType       = `AND (json_data->>'type')::TEXT IN (?)`
 	pgClauseVisibility = `AND (json_data->>'visibility')::INT IN (?)`
 	pgOrderCreatedAt   = `ORDER BY json_data->>'created_at' DESC LIMIT 200`
+
+	pgCreatedByDay = `SELECT count(*), to_date(json_data->>'created_at', 'YYYY-MM-DD') as bucket
+		FROM %s.objects
+		WHERE (json_data->>'created_at')::DATE >= '%s'
+		AND (json_data->>'created_at')::DATE <= '%s'
+		GROUP BY bucket
+		ORDER BY bucket`
 
 	pgCreateSchema = `CREATE SCHEMA IF NOT EXISTS %s`
 	pgCreateTable  = `CREATE TABLE IF NOT EXISTS %s.objects
@@ -74,6 +83,62 @@ func NewPostgresService(db *sqlx.DB) Service {
 	return &pgService{
 		db: db,
 	}
+}
+
+func (s *pgService) CreatedByDay(
+	ns string,
+	start, end time.Time,
+) (metrics.Timeseries, error) {
+	query := fmt.Sprintf(
+		pgCreatedByDay,
+		ns,
+		start.Format(metrics.BucketFormat),
+		end.Format(metrics.BucketFormat),
+	)
+
+	rows, err := s.db.Query(query)
+	if err != nil {
+		// FIXME(xla): This is a defensive measure until we have proper Setup of
+		// namespaces for all dependent services of an app.
+		if pgWrapError(err) == ErrNamespaceNotFound {
+			if err := s.Setup(ns); err != nil {
+				return nil, err
+			}
+			rows, err = s.db.Query(query)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			return nil, err
+		}
+	}
+	defer rows.Close()
+
+	ts := []metrics.Datapoint{}
+	for rows.Next() {
+		var (
+			bucket time.Time
+			value  int
+		)
+
+		err := rows.Scan(&value, &bucket)
+		if err != nil {
+			return nil, err
+		}
+
+		ts = append(
+			ts,
+			metrics.Datapoint{
+				Bucket: bucket.Format(metrics.BucketFormat),
+				Value:  value,
+			},
+		)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return ts, nil
 }
 
 func (s *pgService) Put(ns string, object *Object) (*Object, error) {
@@ -330,30 +395,6 @@ func (s *pgService) Teardown(namespace string) error {
 	}
 
 	return nil
-}
-
-func (s *pgService) guardWithoutSetup(
-	err error,
-	object *Object,
-	ns, query string,
-	params ...interface{},
-) (*Object, error) {
-	err = pgWrapError(err)
-	if err == ErrNamespaceNotFound {
-		err := s.Setup(ns)
-		if err != nil {
-			return nil, err
-		}
-
-		_, err = s.db.Exec(wrapNamespace(query, ns), params...)
-		if err != nil {
-			return nil, err
-		}
-
-		return object, err
-	}
-
-	return nil, err
 }
 
 func (s *pgService) queryObjects(

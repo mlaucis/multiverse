@@ -18,6 +18,7 @@ export function dispatchAsync(promise, types, action = {}) {
   return new Promise( (resolve, reject) => {
     promise
       .then( response => {
+        console.log(success)
         dispatch(success, { ...action, response })
 
         resolve(response)
@@ -25,9 +26,12 @@ export function dispatchAsync(promise, types, action = {}) {
         return response
       })
       .catch( error => {
+        console.log(failure)
         console.error(error)
         dispatch(failure, { ...action, error })
 
+        // FIXME(xla): Understand why this leads to uncaught error if catch
+        //             handler downstream is not attached.
         reject(error)
       })
   })

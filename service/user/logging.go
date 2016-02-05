@@ -8,8 +8,51 @@ import (
 	"github.com/go-kit/kit/log"
 
 	"github.com/tapglue/multiverse/errors"
+	"github.com/tapglue/multiverse/platform/metrics"
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
+
+type logService struct {
+	Service
+
+	logger log.Logger
+}
+
+// LogMiddleware gien a Logger wraps the next Service with logging capabilities.
+func LogMiddleware(logger log.Logger, store string) ServiceMiddleware {
+	return func(next Service) Service {
+		logger = log.NewContext(logger).With(
+			"service", "user",
+			"store", store,
+		)
+
+		return &logService{next, logger}
+	}
+}
+
+func (s *logService) CreatedByDay(
+	ns string,
+	start, end time.Time,
+) (ts metrics.Timeseries, err error) {
+	defer func(begin time.Time) {
+		ps := []interface{}{
+			"datapoints", len(ts),
+			"duration", time.Since(begin),
+			"end", end.Format(metrics.BucketFormat),
+			"method", "CreatedByDay",
+			"namespace", ns,
+			"start", start.Format(metrics.BucketFormat),
+		}
+
+		if err != nil {
+			ps = append(ps, "err", err)
+		}
+
+		_ = s.logger.Log(ps...)
+	}(time.Now())
+
+	return s.Service.CreatedByDay(ns, start, end)
+}
 
 type logStrangleService struct {
 	StrangleService
@@ -39,7 +82,7 @@ func (s *logStrangleService) FindBySession(
 			"duration", time.Since(begin),
 			"key", key,
 			"method", "FindBySession",
-			"namespace", namespace(orgID, appID),
+			"namespace", convertNamespace(orgID, appID),
 		}
 
 		if errs != nil {
@@ -62,7 +105,7 @@ func (s *logStrangleService) Read(
 			"duration", time.Since(begin),
 			"id", strconv.FormatUint(id, 10),
 			"method", "Read",
-			"namespace", namespace(orgID, appID),
+			"namespace", convertNamespace(orgID, appID),
 		}
 
 		if errs != nil {
@@ -84,7 +127,7 @@ func (s *logStrangleService) UpdateLastRead(
 			"duration", time.Since(begin),
 			"id", strconv.FormatUint(id, 10),
 			"method", "UpdateLastRead",
-			"namespace", namespace(orgID, appID),
+			"namespace", convertNamespace(orgID, appID),
 		}
 
 		if errs != nil {
@@ -97,6 +140,6 @@ func (s *logStrangleService) UpdateLastRead(
 	return s.StrangleService.UpdateLastRead(orgID, appID, id)
 }
 
-func namespace(orgID, appID int64) string {
+func convertNamespace(orgID, appID int64) string {
 	return fmt.Sprintf("app_%d_%d", orgID, appID)
 }

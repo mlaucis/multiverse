@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/tapglue/multiverse/platform/flake"
+	"github.com/tapglue/multiverse/platform/metrics"
 )
 
 type memService struct {
@@ -15,6 +16,43 @@ func NewMemService() Service {
 	return &memService{
 		objects: map[string]map[uint64]*Object{},
 	}
+}
+
+func (s *memService) CreatedByDay(
+	ns string,
+	start, end time.Time,
+) (metrics.Timeseries, error) {
+	bucket, ok := s.objects[ns]
+	if !ok {
+		return nil, ErrNamespaceNotFound
+	}
+
+	counts := map[string]int{}
+
+	for _, object := range bucket {
+		if object.CreatedAt.Before(start) || object.CreatedAt.After(end) {
+			continue
+		}
+
+		b := object.CreatedAt.Format(metrics.BucketFormat)
+
+		if _, ok := counts[b]; !ok {
+			counts[b] = 0
+		}
+
+		counts[b]++
+	}
+
+	ts := metrics.Timeseries{}
+
+	for bucket, value := range counts {
+		ts = append(ts, metrics.Datapoint{
+			Bucket: bucket,
+			Value:  value,
+		})
+	}
+
+	return ts, nil
 }
 
 func (s *memService) Put(namespace string, object *Object) (*Object, error) {

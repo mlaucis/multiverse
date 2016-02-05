@@ -1,4 +1,5 @@
-import React, { Component, PropTypes, findDOMNode } from 'react'
+import React, { Component, PropTypes } from 'react'
+import { findDOMNode } from 'react-dom'
 import { Link } from 'react-router'
 
 import OnboardingStore from '../stores/OnboardingStore'
@@ -10,7 +11,7 @@ class OptionsSelect extends Component {
     nextStep: PropTypes.func.isRequired,
     options: PropTypes.object.isRequired,
     question: PropTypes.string.isRequired
-  }
+  };
 
   handleNext = (event) => {
     event.preventDefault()
@@ -31,7 +32,7 @@ class OptionsSelect extends Component {
 
     this.props.nextStep()
     selectOptions(selected)
-  }
+  };
 
   render() {
     let avatarURL = `/${this.props.avatar}`
@@ -65,7 +66,7 @@ class PersonaSelect extends Component {
   static propTypes = {
     nextStep: PropTypes.func.isRequired,
     personas: PropTypes.object.isRequired
-  }
+  };
 
   handleSelect = (name) => {
     let persona = this.props.personas[name]
@@ -75,7 +76,7 @@ class PersonaSelect extends Component {
       next()
       selectPersona(persona)
     }
-  }
+  };
 
   render() {
     let ps = Object.keys(this.props.personas).map( name => {
@@ -139,11 +140,11 @@ export default class Onboarding extends Component {
 
   handleChange = () => {
     this.setState(this.getState())
-  }
+  };
 
   nextStep = () => {
     this._step += 1
-  }
+  };
 
   showStep() {
     switch(this.state.step) {

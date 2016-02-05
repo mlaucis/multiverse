@@ -88,7 +88,7 @@ class TrackingStore extends EventStore {
           referrer: action.referrer,
           success: true
         })
-        if (twttr && twttr.conversion) {
+        if (typeof twttr !== 'undefined' && twttr.conversion) {
           twttr.conversion.trackPid('ntlyu', decamelizeKeys({
             twSaleAmount: 0,
             twOrderQuantity: 0
@@ -274,7 +274,7 @@ class TrackingStore extends EventStore {
       default:
       // nothing to do
     }
-  }
+  };
 }
 
 export default new TrackingStore

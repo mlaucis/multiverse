@@ -15,7 +15,7 @@ eval "$(GIMME_GO_VERSION=1.5.2 gimme)"
 echo "Installing go dependencies"
 go get github.com/tools/godep github.com/axw/gocov/gocov github.com/matm/gocov-html gopkg.in/check.v1
 
-declare -a STATIC_COMPONENTS=( "website" )
+declare -a STATIC_COMPONENTS=( "dashboard" "website" )
 for STATIC_COMPONENT in "${STATIC_COMPONENTS[@]}"
 do
     echo "Installing ${STATIC_COMPONENT} dependencies"

@@ -19,6 +19,8 @@ import (
 	"runtime"
 	"time"
 
+	"golang.org/x/net/context"
+
 	klog "github.com/go-kit/kit/log"
 	"github.com/prometheus/client_golang/prometheus"
 
@@ -32,7 +34,9 @@ import (
 	"github.com/tapglue/multiverse/service/app"
 	"github.com/tapglue/multiverse/service/connection"
 	"github.com/tapglue/multiverse/service/event"
+	"github.com/tapglue/multiverse/service/member"
 	"github.com/tapglue/multiverse/service/object"
+	"github.com/tapglue/multiverse/service/org"
 	"github.com/tapglue/multiverse/service/user"
 	v04_postgres_core "github.com/tapglue/multiverse/v04/core/postgres"
 	v04_redis_core "github.com/tapglue/multiverse/v04/core/redis"
@@ -135,57 +139,101 @@ func main() {
 	apps = app.InstrumentStrangleMiddleware(component, "postgres")(apps)
 	apps = app.LogStrangleMiddleware(logger, "postgres")(apps)
 
-	var connections connection.StrangleService
-	connections = v04_postgres_core.NewConnection(pgClient)
+	var connections connection.Service
+	connections = connection.NewPostgresService(pgClient.MainDatastore())
 	connections = connection.InstrumentMiddleware(component, "postgres")(connections)
-	connections = connection.LogStrangleMiddleware(logger, "postgres")(connections)
+	connections = connection.LogMiddleware(logger, "postgres")(connections)
 
-	var events event.StrangleService
-	events = v04_postgres_core.NewEvent(pgClient)
-	events = event.InstrumentStrangleMiddleware(component, "postgres")(events)
-	events = event.LogStrangleMiddleware(logger, "postgres")(events)
+	var conStrangle connection.StrangleService
+	conStrangle = v04_postgres_core.NewConnection(pgClient)
+	conStrangle = connection.InstrumentStrangleMiddleware(component, "postgres")(conStrangle)
+	conStrangle = connection.LogStrangleMiddleware(logger, "postgres")(conStrangle)
+
+	var events event.Service
+	events = event.NewPostgresService(pgClient.MainDatastore())
+	events = event.InstrumentMiddleware(component, "postgres")(events)
+	events = event.LogMiddleware(logger, "postgres")(events)
+
+	var eventStrangle event.StrangleService
+	eventStrangle = v04_postgres_core.NewEvent(pgClient)
+	eventStrangle = event.InstrumentStrangleMiddleware(component, "postgres")(eventStrangle)
+	eventStrangle = event.LogStrangleMiddleware(logger, "postgres")(eventStrangle)
+
+	var members member.StrangleService
+	members = v04_postgres_core.NewMember(pgClient)
+	members = member.InstrumentStrangleMiddleware(component, "postgres")(members)
+	members = member.LogStrangleMiddleware(logger, "postgres")(members)
 
 	var objects object.Service
 	objects = object.NewPostgresService(pgClient.MainDatastore())
 	objects = object.InstrumentMiddleware(component, "postgres")(objects)
 	objects = object.LogMiddleware(logger, "postgres")(objects)
 
-	var users user.StrangleService
-	users = v04_postgres_core.NewApplicationUser(pgClient)
-	users = user.InstrumentStrangleMiddleware(component, "postgres")(users)
-	users = user.LogStrangleMiddleware(logger, "postgres")(users)
+	var orgs org.StrangleService
+	orgs = v04_postgres_core.NewOrganization(pgClient)
+	orgs = org.InstrumentStrangleMiddleware(component, "postgres")(orgs)
+	orgs = org.LogStrangleMiddleware(logger, "postgres")(orgs)
+
+	var users user.Service
+	users = user.NewPostgresService(pgClient.MainDatastore())
+	users = user.InstrumentMiddleware(component, "postgres")(users)
+	users = user.LogMiddleware(logger, "postgres")(users)
+
+	var userStrangle user.StrangleService
+	userStrangle = v04_postgres_core.NewApplicationUser(pgClient)
+	userStrangle = user.InstrumentStrangleMiddleware(component, "postgres")(userStrangle)
+	userStrangle = user.LogStrangleMiddleware(logger, "postgres")(userStrangle)
 
 	// Setup controllers
 	var (
-		commentController        = controller.NewCommentController(objects, users)
-		feedController           = controller.NewFeedController(connections, events, objects, users)
-		likeController           = controller.NewLikeController(events, objects, users)
-		objectController         = controller.NewObjectController(connections, objects)
-		postController           = controller.NewPostController(connections, events, objects)
-		recommendationController = controller.NewRecommendationController(
+		analyticsController = controller.NewAnalyticsController(
+			apps,
 			connections,
-			aggregateEvents,
+			events,
+			objects,
 			users,
+		)
+		commentController        = controller.NewCommentController(objects, userStrangle)
+		feedController           = controller.NewFeedController(conStrangle, eventStrangle, objects, userStrangle)
+		likeController           = controller.NewLikeController(eventStrangle, objects, userStrangle)
+		objectController         = controller.NewObjectController(conStrangle, objects)
+		postController           = controller.NewPostController(conStrangle, eventStrangle, objects)
+		recommendationController = controller.NewRecommendationController(
+			conStrangle,
+			aggregateEvents,
+			userStrangle,
 		)
 	)
 
 	// Setup middlewares
 	var (
-		withApp = handler.Chain(
+		withConstraints = handler.Chain(
 			handler.CtxPrepare(apiVersionNext),
 			handler.Log(logger),
 			handler.Instrument(component),
 			handler.SecureHeaders(),
 			handler.DebugHeaders(currentRevision, currentHostname),
+			handler.CORS(),
 			handler.Gzip(),
 			handler.HasUserAgent(),
 			handler.ValidateContent(),
+		)
+		withOrg = handler.Chain(
+			withConstraints,
+			handler.CtxOrg(orgs),
+		)
+		withMember = handler.Chain(
+			withOrg,
+			handler.CtxMember(members),
+		)
+		withApp = handler.Chain(
+			withConstraints,
 			handler.CtxApp(apps),
 			handler.RateLimit(rateLimiter),
 		)
 		withUser = handler.Chain(
 			withApp,
-			handler.CtxUser(users),
+			handler.CtxUser(userStrangle),
 		)
 	)
 
@@ -259,24 +307,33 @@ func main() {
 		),
 	)
 
+	next.Methods("OPTIONS").PathPrefix("/").Name("CORS").HandlerFunc(
+		handler.Wrap(
+			withMember,
+			func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusOK)
+			},
+		),
+	)
+
 	next.Methods("GET").PathPrefix("/me/feed/events").Name("feedEvents").HandlerFunc(
 		handler.Wrap(
 			withUser,
-			handler.FeedEvents(feedController, users),
+			handler.FeedEvents(feedController),
 		),
 	)
 
 	next.Methods("GET").PathPrefix("/me/feed/posts").Name("feedPosts").HandlerFunc(
 		handler.Wrap(
 			withUser,
-			handler.FeedPosts(feedController, users),
+			handler.FeedPosts(feedController),
 		),
 	)
 
 	next.Methods("GET").PathPrefix("/me/feed").Name("feedNews").HandlerFunc(
 		handler.Wrap(
 			withUser,
-			handler.FeedNews(feedController, users),
+			handler.FeedNews(feedController),
 		),
 	)
 
@@ -326,6 +383,13 @@ func main() {
 		handler.Wrap(
 			withUser,
 			handler.ObjectList(objectController),
+		),
+	)
+
+	next.Methods("GET").PathPrefix(`/orgs/{orgID:[a-zA-Z0-9\-]+}/apps/{appID:[a-zA-Z0-9\-]+}/analytics`).Name("appAnalytics").HandlerFunc(
+		handler.Wrap(
+			withMember,
+			handler.AnalyticsApp(analyticsController),
 		),
 	)
 
@@ -416,21 +480,21 @@ func main() {
 	next.Methods("GET").PathPrefix("/posts").Name("postListAll").HandlerFunc(
 		handler.Wrap(
 			withApp,
-			handler.PostListAll(postController, users),
+			handler.PostListAll(postController, userStrangle),
 		),
 	)
 
 	next.Methods("GET").PathPrefix("/me/posts").Name("postListMe").HandlerFunc(
 		handler.Wrap(
 			withUser,
-			handler.PostListMe(postController, users),
+			handler.PostListMe(postController, userStrangle),
 		),
 	)
 
 	next.Methods("GET").PathPrefix("/users/{userID:[0-9]+}/posts").Name("postList").HandlerFunc(
 		handler.Wrap(
 			withUser,
-			handler.PostList(postController, users),
+			handler.PostList(postController, userStrangle),
 		),
 	)
 

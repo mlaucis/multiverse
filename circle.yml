@@ -7,7 +7,7 @@ machine:
     - postgresql
   node:
     version:
-      0.10.39
+      5.1.0
 dependencies:
   pre:
     - echo "" > ~/.gitconfig
@@ -39,5 +39,6 @@ deployment:
     commands:
       - ./bin/make_release.sh intaker redis
       - ./bin/make_release.sh intaker postgres
+      - ./bin/make_release.sh corporate dashboard
       - ./bin/make_release.sh corporate styleguide
       - ./bin/make_release.sh corporate website

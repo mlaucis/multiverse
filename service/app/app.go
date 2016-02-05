@@ -10,6 +10,7 @@ import (
 type StrangleService interface {
 	FindByApplicationToken(token string) (*v04_entity.Application, []errors.Error)
 	FindByBackendToken(token string) (*v04_entity.Application, []errors.Error)
+	FindByPublicID(publicID string) (*v04_entity.Application, []errors.Error)
 }
 
 // StrangleMiddleware is a chainable behaviour modifier for StrangleService.

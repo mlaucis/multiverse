@@ -8,9 +8,52 @@ import (
 	"github.com/go-kit/kit/log"
 
 	"github.com/tapglue/multiverse/errors"
+	"github.com/tapglue/multiverse/platform/metrics"
 	"github.com/tapglue/multiverse/v04/core"
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
+
+type logService struct {
+	Service
+
+	logger log.Logger
+}
+
+// LogMiddleware given a Logger wraps the next Service with logging capabilities.
+func LogMiddleware(logger log.Logger, store string) ServiceMiddleware {
+	return func(next Service) Service {
+		logger = log.NewContext(logger).With(
+			"service", "event",
+			"store", store,
+		)
+
+		return &logService{next, logger}
+	}
+}
+
+func (s *logService) CreatedByDay(
+	ns string,
+	start, end time.Time,
+) (ts metrics.Timeseries, err error) {
+	defer func(begin time.Time) {
+		ps := []interface{}{
+			"datapoints", len(ts),
+			"duration", time.Since(begin),
+			"end", end.Format(metrics.BucketFormat),
+			"method", "CreatedByDay",
+			"namespace", ns,
+			"start", start.Format(metrics.BucketFormat),
+		}
+
+		if err != nil {
+			ps = append(ps, "err", err)
+		}
+
+		_ = s.logger.Log(ps...)
+	}(time.Now())
+
+	return s.Service.CreatedByDay(ns, start, end)
+}
 
 type logStrangleService struct {
 	StrangleService
@@ -41,7 +84,7 @@ func (s *logStrangleService) Create(
 			"duration", time.Since(begin),
 			"event", event,
 			"method", "Create",
-			"namespace", namespace(orgID, appID),
+			"namespace", convertNamespace(orgID, appID),
 			"user_id", strconv.FormatUint(userID, 10),
 		}
 
@@ -65,7 +108,7 @@ func (s *logStrangleService) Delete(
 			"duration", time.Since(begin),
 			"event_id", strconv.FormatUint(eventID, 10),
 			"method", "Delete",
-			"namespace", namespace(orgID, appID),
+			"namespace", convertNamespace(orgID, appID),
 			"user_id", strconv.FormatUint(userID, 10),
 		}
 
@@ -88,7 +131,7 @@ func (s *logStrangleService) ListAll(
 			"condition", condition,
 			"duration", time.Since(begin),
 			"method", "ListAll",
-			"namespace", namespace(orgID, appID),
+			"namespace", convertNamespace(orgID, appID),
 			"result_size", strconv.Itoa(len(es)),
 		}
 
@@ -101,6 +144,6 @@ func (s *logStrangleService) ListAll(
 	return s.StrangleService.ListAll(orgID, appID, condition)
 }
 
-func namespace(orgID, appID int64) string {
+func convertNamespace(orgID, appID int64) string {
 	return fmt.Sprintf("app_%d_%d", orgID, appID)
 }

@@ -18,6 +18,8 @@ import (
 	"github.com/tapglue/multiverse/errors"
 	"github.com/tapglue/multiverse/limiter"
 	"github.com/tapglue/multiverse/service/app"
+	"github.com/tapglue/multiverse/service/member"
+	"github.com/tapglue/multiverse/service/org"
 	"github.com/tapglue/multiverse/service/user"
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
@@ -75,11 +77,64 @@ func CtxApp(apps app.StrangleService) Middleware {
 			}
 
 			if app == nil {
-				respondError(w, 1001, wrapError(ErrUnauthorized, "application user not found"))
+				respondError(w, 1001, wrapError(ErrUnauthorized, "application not found"))
 				return
 			}
 
 			next(appInContext(ctx, app), w, r)
+		}
+	}
+}
+
+// CtxMember extracts the member from the Authentication header and adds it to the
+// Context.
+func CtxMember(members member.StrangleService) Middleware {
+	return func(next Handler) Handler {
+		return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+			_, token, ok := r.BasicAuth()
+			if !ok {
+				respondError(w, 4005, wrapError(ErrUnauthorized, "error while reading org credentials"))
+				return
+			}
+
+			member, errs := members.FindBySession(token)
+			if errs != nil {
+				respondError(w, 0, errs[0])
+				return
+			}
+
+			if member == nil {
+				respondError(w, 7004, wrapError(ErrUnauthorized, "member not found"))
+				return
+			}
+
+			next(memberInContext(ctx, member), w, r)
+		}
+	}
+}
+
+// CtxOrg extracts the Org from the Authentication header.
+func CtxOrg(orgs org.StrangleService) Middleware {
+	return func(next Handler) Handler {
+		return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+			token, _, ok := r.BasicAuth()
+			if !ok {
+				respondError(w, 4004, wrapError(ErrUnauthorized, "error while reading org credentials"))
+				return
+			}
+
+			org, errs := orgs.FindByKey(token)
+			if errs != nil {
+				respondError(w, 0, errs[0])
+				return
+			}
+
+			if org == nil {
+				respondError(w, 6008, wrapError(ErrUnauthorized, "org not found"))
+				return
+			}
+
+			next(orgInContext(ctx, org), w, r)
 		}
 	}
 }

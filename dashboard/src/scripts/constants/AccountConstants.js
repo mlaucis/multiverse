@@ -1,4 +1,4 @@
-import keyMirror from 'react/lib/keyMirror'
+import keyMirror from 'keyMirror'
 
 export default keyMirror({
   ACCOUNT_KEY: null,
