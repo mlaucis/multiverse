@@ -25,25 +25,29 @@ Following overview show the new structure from a use-cases perspective.
 
 ## Goal
 
-The goal is to restructure the feed materializations to fullfill the requirements specified in the use-cases overview.
+The goal is to restructure the feed materializations to fulfill the requirements specified in the use-cases overview.
 
 ## API
+
+`The sections needs to be done...``
 
 The following table shows an overview the required changes:
 
 | Name                          | Description | Endpoint current | Endpoint (0.5) | Action |
-| ----------------------------- | ----- | ----------- | ---------------- | -------------- | ------ |
-| News Feed                     |
-| Posts Feed                    |
-| Notifications Feed            |
-| Notification Connections Feed |
-| Notifications Me Feed         |
-| User Activity Feed            |
-| User Posts Feed               |
-| User Events                   |
-| User Posts                    |
+| ----------------------------- | ----------- | ---------------- | -------------- | ------ |
+| News Feed                     | TBD | TBD | TBD | TBD |
+| Posts Feed                    | TBD | TBD | TBD | TBD |
+| Notifications Feed            | TBD | TBD | TBD | TBD |
+| Notification Connections Feed | TBD | TBD | TBD | TBD |
+| Notifications Me Feed         | TBD | TBD | TBD | TBD |
 
-| Name | Description | Endpoint current | Endpoint (0.5) | Action |
-| ----------- | ----- | ----------- | ---------------- | -------------- | ------ |
-| User Posts  |
-| User Events |
+| Name                          | Description | Endpoint current | Endpoint (0.5) | Action |
+| ----------------------------- | ----------- | ---------------- | -------------- | ------ |
+| User Activity Feed            | TBD | TBD | TBD | TBD |
+| User Activity Posts Feed      | TBD | TBD | TBD | TBD |
+| User Activity Events Feed     | TBD | TBD | TBD | TBD |
+
+| Name                          | Description | Endpoint current | Endpoint (0.5) | Action |
+| ----------------------------- | ----------- | ---------------- | -------------- | ------ |
+| User Posts  | TBD | TBD | TBD | TBD |
+| User Events | TBD | TBD | TBD | TBD |
