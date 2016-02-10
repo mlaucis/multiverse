@@ -1,4 +1,4 @@
-import keyMirror from 'keyMirror'
+import keyMirror from 'keymirror'
 
 let consts = keyMirror({
   ANALYTICS_METRICS_REQUEST: null,
