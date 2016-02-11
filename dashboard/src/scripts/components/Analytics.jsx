@@ -178,9 +178,9 @@ export default class Analytics extends Component {
   handleAppSelect = (app) => {
     this.app = app
 
-    this.handleRefresh()
-
     this.setState(this.getState())
+
+    this.handleRefresh()
   };
 
   handleChange = () => {
@@ -258,12 +258,10 @@ export default class Analytics extends Component {
     this.refreshing = true
     this.showRange = false
 
-    this.setState(this.getState())
-
     let end = this.range.endDate.format(FORMAT)
     let start = this.range.startDate.format(FORMAT)
 
-    requestMetrics(this.state.app.value, start, end).catch(err => {
+    requestMetrics(this.app.value, start, end).catch(err => {
       console.log(err)
       console.log(err.errors)
     })
