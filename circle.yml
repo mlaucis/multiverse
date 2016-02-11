@@ -1,4 +1,8 @@
 machine:
+  pre:
+    - sudo curl -L -o /usr/bin/docker 'https://s3-external-1.amazonaws.com/circle-downloads/docker-1.9.1-circleci'
+    - sudo chmod 0755 /usr/bin/docker
+    - sudo pip install --upgrade awscli
   environment:
     GOOROT: /home/ubuntu/.gimme/versions/go1.5.2.linux.amd64
   services:
@@ -31,6 +35,10 @@ test:
     - ./bin/run_tests.sh redis
     - ./bin/run_tests.sh intaker postgres
     - ./bin/run_tests.sh intaker redis
+    - ./infrastructure/containers/docker/test.sh object
+    - ./infrastructure/containers/docker/test.sh redis
+    - ./infrastructure/containers/docker/test.sh intaker postgres
+    - ./infrastructure/containers/docker/test.sh intaker redis
   post:
     - ./bin/process_coverage.sh
 deployment:
@@ -42,3 +50,4 @@ deployment:
       - ./bin/make_release.sh corporate dashboard
       - ./bin/make_release.sh corporate styleguide
       - ./bin/make_release.sh corporate website
+      - ./infrastructure/containers/docker/release_container.sh intaker docker_intaker_redis_${CIRCLE_BUILD_NUM} ./infrastructure/config/intaker_prod.json 

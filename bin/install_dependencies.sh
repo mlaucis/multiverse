@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 set -e
+set -o pipefail
 
 export PATH=/home/ubuntu/.gimme/versions/go1.5.2.linux.amd64/bin:${PATH}
 CWD=`pwd`

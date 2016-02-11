@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 set -ex
+set -o pipefail
 
 TEST_COMPONENT=${1}
 TEST_TARGET=${2}
