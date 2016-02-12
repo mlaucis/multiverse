@@ -3,21 +3,14 @@
 package object
 
 import (
-	"flag"
+	"fmt"
+	"os/user"
 	"reflect"
 	"testing"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
-
-var (
-	pgURL = flag.String("postgres.url", "postgres://tapglue@127.0.0.1:5432/tapglue_test?sslmode=disable&connect_timeout=5", "Postgres connection URL.")
-)
-
-func init() {
-	flag.Parse()
-}
 
 func TestPostgresServicePut(t *testing.T) {
 	var (
@@ -125,7 +118,17 @@ func TestPostgresServiceRemove(t *testing.T) {
 }
 
 func preparePostgres(namespace string, t *testing.T) Service {
-	db, err := sqlx.Connect("postgres", *pgURL)
+	user, err := user.Current()
+	if err != nil {
+		t.Fatal(t)
+	}
+
+	url := fmt.Sprintf(
+		"postgres://%s@127.0.0.1:5432/tapglue_test?sslmode=disable&connect_timeout=5",
+		user.Username,
+	)
+
+	db, err := sqlx.Connect("postgres", url)
 	if err != nil {
 		t.Fatal(err)
 	}
