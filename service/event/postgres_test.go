@@ -4,6 +4,7 @@ package event
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"os/user"
 	"reflect"
@@ -17,6 +18,8 @@ import (
 var (
 	day  = 24 * time.Hour
 	week = 7 * day
+
+	pgURL string
 )
 
 type testEvent struct {
@@ -106,17 +109,7 @@ func TestActiveUserIDs(t *testing.T) {
 }
 
 func preparePostgres(namespace string, t *testing.T) (Service, *sqlx.DB) {
-	user, err := user.Current()
-	if err != nil {
-		t.Fatal(t)
-	}
-
-	url := fmt.Sprintf(
-		"postgres://%s@127.0.0.1:5432/tapglue_test?sslmode=disable&connect_timeout=5",
-		user.Username,
-	)
-
-	db, err := sqlx.Connect("postgres", url)
+	db, err := sqlx.Connect("postgres", pgURL)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -134,4 +127,21 @@ func preparePostgres(namespace string, t *testing.T) (Service, *sqlx.DB) {
 	}
 
 	return s, db
+}
+
+func init() {
+	user, err := user.Current()
+	if err != nil {
+		panic(err)
+	}
+
+	d := fmt.Sprintf(
+		"postgres://%s@127.0.0.1:5432/tapglue_test?sslmode=disable&connect_timeout=5",
+		user.Username,
+	)
+
+	url := flag.String("postgres.url", d, "Postgres connection URL")
+	flag.Parse()
+
+	pgURL = *url
 }
