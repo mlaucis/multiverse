@@ -22,8 +22,7 @@ then
     -v \
     -race \
     -tags integration \
-    ./service/object \
-    -postgres.url="postgres://ubuntu:unicode@127.0.0.1/circle_test?sslmode-disable"
+    ./service/...
 
   exit 0
 fi
