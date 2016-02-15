@@ -112,6 +112,7 @@ resource "aws_db_instance" "master" {
   maintenance_window      = "sat:05:00-sat:06:30"
   parameter_group_name    = "${aws_db_parameter_group.master-prod.id}"
   apply_immediately       = true
+  skip_final_snapshot     = false
 }
 
 # Database slaves

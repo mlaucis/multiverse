@@ -85,8 +85,8 @@ resource "aws_elb" "monitoring" {
   ]
 
   subnets = [
-    "${aws_subnet.monitoring-a.id}",
-    "${aws_subnet.monitoring-b.id}",
+    "${aws_subnet.public-a.id}",
+    "${aws_subnet.public-b.id}",
   ]
 
   tags = {
