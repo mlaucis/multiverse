@@ -51,3 +51,4 @@ deployment:
       - ./bin/make_release.sh corporate styleguide
       - ./bin/make_release.sh corporate website
       - ./infrastructure/containers/docker/release_container.sh intaker docker_intaker_redis_${CIRCLE_BUILD_NUM} ./infrastructure/config/intaker_prod.json 
+      - ./infrastructure/containers/docker/release_container.sh corporate 

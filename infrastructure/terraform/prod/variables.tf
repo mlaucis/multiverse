@@ -18,6 +18,10 @@ variable "ami_corporate" {
   default = "ami-92c7ddfe"
 }
 
+variable "ami_container" {
+  default = "ami-c3253caf"
+}
+
 variable "ami_bastion" {
   default = "ami-c63c21aa"
 }

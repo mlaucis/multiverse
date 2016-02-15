@@ -20,8 +20,8 @@ ADD infrastructure/certs/origin-pull-ca.pem /tapglue/origin-pull-ca.pem
 ADD $CONFIG_FILE /tapglue/config.json
 
 # Binary
-ADD $BINARY_FILE /tapglue/application
+ADD $BINARY_FILE /tapglue/intaker
 
 # Runtime
 EXPOSE 8083 9000
-CMD ["/tapglue/application"]
+CMD ["/tapglue/intaker"]
