@@ -6,7 +6,7 @@ resource "aws_db_subnet_group" "corp-prod" {
     "${aws_subnet.corporate-b.id}"]
 }
 
-/** /
+/**/
 # Database master
 resource "aws_db_instance" "corp-master" {
   identifier              = "tapglue-corp-master"
@@ -15,15 +15,15 @@ resource "aws_db_instance" "corp-master" {
   #iops = 3000 # this should give us a boost in performance for production
   allocated_storage       = "5"
   engine                  = "mysql"
-  engine_version          = "5.6.23"
+  engine_version          = "5.6.27"
   instance_class          = "db.t2.small"
   # if you want to change to true, see the list of instance types that support storage encryption: http://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Overview.Encryption.html#d0e10116
   storage_encrypted       = false
   name                    = "${var.rds_corp_db_name}"
   username                = "${var.rds_corp_username}"
   password                = "${var.rds_corp_password}"
-  multi_az                = true
   # this should be true for production
+  multi_az                = true
   publicly_accessible     = false
   vpc_security_group_ids  = [
     "${aws_security_group.platform.id}",
