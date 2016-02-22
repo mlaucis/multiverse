@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="700px" height="250px" viewBox="0 0 700 250" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">
+    <!-- Generator: Sketch 3.3.2 (12043) - http://www.bohemiancoding.com/sketch -->
+    <title>Tapglue iOS SDK Teaser</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <path id="path-1" d="M3.98203977,93.0503713 L68.425661,54.8848623 C73.6984742,51.7621389 82.2485233,51.7628079 87.520207,54.8848623 L151.963828,93.0503713 C157.236641,96.1730947 157.235512,101.236699 151.963828,104.358753 L87.520207,142.524262 C82.2473937,145.646985 73.6973446,145.646316 68.425661,142.524262 L3.98203977,104.358753 C-1.29077352,101.23603 -1.28964393,96.1724257 3.98203977,93.0503713 Z"></path>
+        <path id="path-2" d="M3.98203977,66.8405889 L68.425661,28.6750799 C73.6984742,25.5523565 82.2485233,25.5530255 87.520207,28.6750799 L151.963828,66.8405889 C157.236641,69.9633123 157.235512,75.0269163 151.963828,78.1489707 L87.520207,116.31448 C82.2473937,119.437203 73.6973446,119.436534 68.425661,116.31448 L3.98203977,78.1489707 C-1.29077352,75.0262473 -1.28964393,69.9626434 3.98203977,66.8405889 Z"></path>
+        <path id="path-3" d="M3.98203977,40.6642021 L68.425661,2.4986931 C73.6984742,-0.624030287 82.2485233,-0.62336131 87.520207,2.4986931 L151.963828,40.6642021 C157.236641,43.7869255 157.235512,48.8505294 151.963828,51.9725838 L87.520207,90.1380929 C82.2473937,93.2608163 73.6973446,93.2601473 68.425661,90.1380929 L3.98203977,51.9725838 C-1.29077352,48.8498605 -1.28964393,43.7862565 3.98203977,40.6642021 Z"></path>
+    </defs>
+    <g id="04_iOS-SDK-released" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" sketch:type="MSPage">
+        <rect id="Rectangle-3" fill="#6EE1AF" sketch:type="MSShapeGroup" x="0" y="0" width="700" height="250" rx="5"></rect>
+        <g id="Layers-Copy" sketch:type="MSLayerGroup" transform="translate(50.000000, 52.000000)">
+            <g id="Rectangle-18">
+                <use fill="#FFFFFF" fill-rule="evenodd" sketch:type="MSShapeGroup" xlink:href="#path-1"></use>
+                <use fill="none" xlink:href="#path-1"></use>
+            </g>
+            <g id="Rectangle-18">
+                <use stroke="#6EE1AF" stroke-width="3" fill="#FFFFFF" fill-rule="evenodd" sketch:type="MSShapeGroup" xlink:href="#path-2"></use>
+                <use stroke="none" fill="none" xlink:href="#path-2"></use>
+            </g>
+            <g id="Rectangle-18">
+                <use stroke="#6EE1AF" stroke-width="3" fill="#FFFFFF" fill-rule="evenodd" sketch:type="MSShapeGroup" xlink:href="#path-3"></use>
+                <use stroke="none" fill="none" xlink:href="#path-3"></use>
+            </g>
+        </g>
+        <text id="Making-your-app-soci" sketch:type="MSTextLayer" font-family="Lato" font-size="35" font-weight="normal" fill="#FFFFFF">
+            <tspan x="286" y="118">Making your app social </tspan>
+            <tspan x="286" y="160">just got a lot easier.</tspan>
+        </text>
+    </g>
+</svg>
