@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="262px" height="60px" viewBox="0 0 262 60" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">
+    <!-- Generator: Sketch 3.3.2 (12043) - http://www.bohemiancoding.com/sketch -->
+    <title>SDK Button</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="04_iOS-SDK-released" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" sketch:type="MSPage">
+        <g id="SDK-Button" sketch:type="MSLayerGroup">
+            <rect id="Rectangle-1" fill="#6EE1AF" sketch:type="MSShapeGroup" x="0" y="0" width="262" height="60" rx="30"></rect>
+            <text id="Get-the-SDK" sketch:type="MSTextLayer" font-family="Lato" font-size="25" font-weight="normal" fill="#FFFFFF">
+                <tspan x="91" y="40">Get the SDK</tspan>
+            </text>
+            <g id="iOS-Icon" transform="translate(35.000000, 12.000000)">
+                <rect id="Rectangle-2" stroke="#FFFFFF" stroke-width="2" sketch:type="MSShapeGroup" x="0" y="0" width="36" height="36" rx="8"></rect>
+                <text id="iOS" sketch:type="MSTextLayer" font-family="Helvetica Neue" font-size="14.097561" font-weight="normal" fill="#FFFFFF">
+                    <tspan x="6" y="23">iOS</tspan>
+                </text>
+            </g>
+        </g>
+    </g>
+</svg>
