@@ -8,7 +8,7 @@ server {
     #ssl_client_certificate /home/tapglue/ssl/origin-pull-ca.pem;
     #ssl_verify_client on;
 
-    server_name dashboard.tapglue.com containe-dashboard.tapglue.com;
+    server_name dashboard.tapglue.com container-dashboard.tapglue.com;
 
     root /home/tapglue/releases/corporate/dashboard/build;
 
