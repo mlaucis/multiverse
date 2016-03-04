@@ -3,7 +3,7 @@
 set -ex
 set -o pipefail
 
-CONTAINER_NAME=${2}
+CONTAINER_NAME=${1}
 PROJECT_DIR="${PWD}"
 
 if [ "${CONTAINER_NAME}" == "corporate" ]; then
@@ -23,7 +23,7 @@ if [ "${CONTAINER_NAME}" == "corporate" ]; then
 fi
 
 if [ "${CONTAINER_NAME}" == "intaker" ]; then
-    BINARY_FILE=${1}
+    BINARY_FILE=${2}
     CONFIG_FILE=${3}
 
     docker build -f ${PROJECT_DIR}/infrastructure/containers/docker/intaker.docker \
