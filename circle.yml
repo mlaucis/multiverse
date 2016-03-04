@@ -34,6 +34,7 @@ test:
     - ./bin/run_tests.sh object
     - ./bin/run_tests.sh redis
     - ./bin/run_tests.sh intaker postgres
+    - ./bin/run_tests.sh intaker redis
   post:
     - ./bin/process_coverage.sh
 deployment:
