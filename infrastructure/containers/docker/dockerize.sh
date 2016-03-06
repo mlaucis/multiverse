@@ -8,7 +8,7 @@ PROJECT_DIR="${PWD}"
 
 if [ "${CONTAINER_NAME}" == "corporate" ]; then
     # Build the static things
-    declare -a STATIC_COMPONENTS=( "dashboard" "website" )
+    declare -a STATIC_COMPONENTS=( "dashboard" )
     for STATIC_COMPONENT in "${STATIC_COMPONENTS[@]}"
     do
         cd ${PROJECT_DIR}/${STATIC_COMPONENT}

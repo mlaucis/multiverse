@@ -9,6 +9,7 @@ resource "aws_ecr_repository" "corporate" {
 }
 
 resource "aws_ecr_repository_policy" "deployment" {
+  provider = "aws.us-east-1"
   repository = "${aws_ecr_repository.intaker.name}"
   policy     = <<EOF
 {
@@ -203,12 +204,12 @@ resource "aws_elb" "container-frontend" {
   }
 }
 
-resource "aws_elb" "container-corporate" {
+resource "aws_elb" "container-dashboard" {
   connection_draining         = true
   connection_draining_timeout = 10
   cross_zone_load_balancing   = true
   idle_timeout                = 30
-  name                        = "container-corporate-prod"
+  name                        = "container-dashboard-prod"
   subnets                     = [
     "${aws_subnet.public-a.id}",
     "${aws_subnet.public-b.id}",
@@ -236,12 +237,12 @@ resource "aws_elb" "container-corporate" {
     healthy_threshold   = 2
     interval            = 5
     timeout             = 2
-    target              = "HTTPS:8083/health-45016490610398192"
+    target              = "HTTPS:8081/"
     unhealthy_threshold = 2
   }
 
   tags {
-    Name = "container-corporate"
+    Name = "container-dashboard"
   }
 }
 
@@ -276,13 +277,13 @@ resource "aws_ecs_task_definition" "intaker" {
 EOF
 }
 
-resource "aws_ecs_task_definition" "corporate" {
-  family                = "corporate"
+resource "aws_ecs_task_definition" "dashboard" {
+  family                = "dashboard"
   container_definitions = <<EOF
 [
   {
-    "name": "corporate",
-    "image": "775034650473.dkr.ecr.us-east-1.amazonaws.com/corporate:1632",
+    "name": "dashboard",
+    "image": "775034650473.dkr.ecr.us-east-1.amazonaws.com/corporate:1669",
     "cpu": 512,
     "memory": 512,
     "essential": true,
@@ -319,18 +320,18 @@ resource "aws_ecs_service" "intaker" {
   }
 }
 
-resource "aws_ecs_service" "corporate" {
-  name            = "corporate"
+resource "aws_ecs_service" "dashboard" {
+  name            = "dashboard"
   cluster         = "${aws_ecs_cluster.production-intaker.id}"
-  task_definition = "${aws_ecs_task_definition.corporate.arn}"
+  task_definition = "${aws_ecs_task_definition.dashboard.arn}"
   desired_count   = 1
   iam_role = "${aws_iam_role.tapglueEcsElbRole.arn}"
   depends_on = [
     "aws_iam_role_policy.tapglueEcsElbRolePolicy"]
 
   load_balancer = {
-    elb_name = "${aws_elb.container-corporate.id}"
-    container_name = "corporate"
+    elb_name = "${aws_elb.container-dashboard.id}"
+    container_name = "dashboard"
     container_port = 443
   }
 }
@@ -338,7 +339,8 @@ resource "aws_ecs_service" "corporate" {
 resource "aws_iam_instance_profile" "container-frontend" {
   name  = "container-frontend"
   roles = [
-    "${aws_iam_role.tapglueEcsInstanceRole.name}"]
+    "${aws_iam_role.tapglueEcsInstanceRole.name}"
+  ]
 }
 
 resource "aws_launch_configuration" "container-frontend" {
@@ -368,7 +370,7 @@ sudo echo '*.* @@logs-01.loggly.com:514;LogglyFormat' >> /etc/rsyslog.d/22-loggl
 sudo service rsyslog restart
 
 EOF
-  
+
   # TODO make this forward the logs of Docker to Loggly
 
   lifecycle {
@@ -396,7 +398,7 @@ resource "aws_autoscaling_group" "container-frontend" {
   launch_configuration      = "${aws_launch_configuration.container-frontend.name}"
   load_balancers            = [
     "${aws_elb.container-frontend.name}",
-    "${aws_elb.container-corporate.name}"]
+    "${aws_elb.container-dashboard.name}"]
   termination_policies      = [
     "OldestInstance",
     "OldestLaunchConfiguration",
@@ -410,17 +412,19 @@ resource "aws_autoscaling_group" "container-frontend" {
 }
 
 resource "cloudflare_record" "container-api" {
-  domain = "${var.cloudflare_domain}"
-  name   = "container-api"
-  value  = "${aws_elb.container-frontend.dns_name}"
-  type   = "CNAME"
-  ttl    = 1
+  domain  = "${var.cloudflare_domain}"
+  name    = "container-api"
+  value   = "${aws_elb.container-frontend.dns_name}"
+  type    = "CNAME"
+  ttl     = 1
+  proxied = true
 }
 
-resource "cloudflare_record" "container-corporate" {
-  domain = "${var.cloudflare_domain}"
-  name   = "container-corporate"
-  value  = "${aws_elb.container-corporate.dns_name}"
-  type   = "CNAME"
-  ttl    = 1
+resource "cloudflare_record" "container-dashboard" {
+  domain  = "${var.cloudflare_domain}"
+  name    = "container-dashboard"
+  value   = "${aws_elb.container-dashboard.dns_name}"
+  type    = "CNAME"
+  ttl     = 1
+  proxied = true
 }
