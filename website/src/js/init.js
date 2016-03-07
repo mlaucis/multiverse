@@ -63,6 +63,7 @@
 					width: 200,
 					html: 	'<ul>' +
 							'<li><a href="/">Home</a></li>' +
+							'<li><a href="/features/">Features</a></li>' +
   						'<li><a href="/news-feed/">News Feed</a></li>' +
   						'<li><a href="/users/">Users</a></li>' +
   						'<li><a href="/connections/">Connections</a></li>' +
