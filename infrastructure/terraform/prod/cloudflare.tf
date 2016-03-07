@@ -21,15 +21,6 @@ resource "cloudflare_record" "website-prod" {
   proxied = true
 }
 
-resource "cloudflare_record" "dashboard-prod" {
-  domain  = "${var.cloudflare_domain}"
-  name    = "dashboard"
-  value   = "${aws_elb.corporate.dns_name}"
-  type    = "CNAME"
-  ttl     = 1
-  proxied = true
-}
-
 resource "cloudflare_record" "styleguide-prod" {
   domain  = "${var.cloudflare_domain}"
   name    = "styleguide"

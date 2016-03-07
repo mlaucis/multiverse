@@ -254,7 +254,7 @@ resource "aws_ecs_task_definition" "dashboard" {
 [
   {
     "name": "dashboard",
-    "image": "775034650473.dkr.ecr.us-east-1.amazonaws.com/dashboard:1669",
+    "image": "775034650473.dkr.ecr.us-east-1.amazonaws.com/dashboard:1673",
     "cpu": 256,
     "memory": 256,
     "essential": true,
@@ -298,7 +298,7 @@ resource "aws_ecs_task_definition" "gateway-http" {
 [
   {
     "name": "gateway-http",
-    "image": "775034650473.dkr.ecr.us-east-1.amazonaws.com/gateway-http:1632",
+    "image": "775034650473.dkr.ecr.us-east-1.amazonaws.com/gateway-http:1673",
     "cpu": 1024,
     "memory": 2048,
     "essential": true,
@@ -419,7 +419,7 @@ resource "aws_autoscaling_group" "service" {
 
 resource "cloudflare_record" "dashboard" {
   domain  = "${var.cloudflare_domain}"
-  name    = "dashboard-ecs"
+  name    = "dashboard"
   value   = "${aws_elb.dashboard.dns_name}"
   type    = "CNAME"
   ttl     = 1
