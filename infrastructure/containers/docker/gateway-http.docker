@@ -1,5 +1,5 @@
 FROM alpine:3.3
-MAINTAINER Florin Patan "florin@tapglue.com"
+MAINTAINER Tapglue "docker@tapglue.com"
 
 ARG BINARY_FILE
 ARG CONFIG_FILE
@@ -20,8 +20,8 @@ ADD infrastructure/certs/origin-pull-ca.pem /tapglue/origin-pull-ca.pem
 ADD $CONFIG_FILE /tapglue/config.json
 
 # Binary
-ADD $BINARY_FILE /tapglue/intaker
+ADD $BINARY_FILE /tapglue/gateway-http
 
 # Runtime
 EXPOSE 8083 9000
-CMD ["/tapglue/intaker"]
+CMD ["/tapglue/gateway-http"]

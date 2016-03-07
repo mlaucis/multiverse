@@ -6,27 +6,39 @@ set -o pipefail
 CONTAINER_NAME=${1}
 PROJECT_DIR="${PWD}"
 
-if [ "${CONTAINER_NAME}" == "corporate" ]; then
-    # Build the static things
-    declare -a STATIC_COMPONENTS=( "dashboard" )
-    for STATIC_COMPONENT in "${STATIC_COMPONENTS[@]}"
-    do
-        cd ${PROJECT_DIR}/${STATIC_COMPONENT}
-        npm run clean
-        npm run bundle
-    done
+PROJECT_NAME='github.com/tapglue/multiverse'
+VENDOR_DIR='Godeps/_workspace'
 
-    docker build -f ${PROJECT_DIR}/infrastructure/containers/docker/corporate.docker \
+REVISION=`git rev-parse HEAD`
+
+CONTAINER_GOPATH='/go'
+CONTAINER_PROJECT_DIR="${CONTAINER_GOPATH}/src/${PROJECT_NAME}"
+CONTAINER_PROJECT_GOPATH="${CONTAINER_PROJECT_DIR}/${VENDOR_DIR}:${CONTAINER_GOPATH}"
+
+if [ "${CONTAINER_NAME}" == "dashboard" ]; then
+    cd ${PROJECT_DIR}/dashboard
+    npm run clean
+    npm run bundle
+
+    docker build -f ${PROJECT_DIR}/infrastructure/containers/docker/dashboard.docker \
         -t ${CONTAINER_NAME}:${CIRCLE_BUILD_NUM} \
         "${PROJECT_DIR}"
     exit 0
 fi
 
-if [ "${CONTAINER_NAME}" == "intaker" ]; then
+if [ "${CONTAINER_NAME}" == "gateway-http" ]; then
     BINARY_FILE=${2}
     CONFIG_FILE=${3}
 
-    docker build -f ${PROJECT_DIR}/infrastructure/containers/docker/intaker.docker \
+    docker run --rm \
+        -v ${PROJECT_DIR}:${CONTAINER_PROJECT_DIR} \
+        -e GOPATH=${CONTAINER_PROJECT_GOPATH} \
+        -e GODEBUG=netdns=go \
+        -w "${CONTAINER_PROJECT_DIR}" \
+        golang:1.5.3-alpine \
+        go build -v -ldflags "-X main.currentRevision=${REVISION}" -tags postgres -o ${BINARY_FILE} cmd/intaker/intaker.go
+
+    docker build -f ${PROJECT_DIR}/infrastructure/containers/docker/gateway-http.docker \
         -t ${CONTAINER_NAME}:${CIRCLE_BUILD_NUM} \
         --build-arg BINARY_FILE=${BINARY_FILE} \
         --build-arg CONFIG_FILE=${CONFIG_FILE} \

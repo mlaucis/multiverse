@@ -1,5 +1,5 @@
 FROM nginx:1.9.11
-MAINTAINER Florin Patan "florin@tapglue.com"
+MAINTAINER Tapglue "docker@tapglue.com"
 
 RUN rm -rf /var/lib/apt/lists/* && \
     rm -rf /usr/share/man/?? && \
@@ -9,7 +9,7 @@ RUN rm -rf /var/lib/apt/lists/* && \
 # Create tapglue user
 RUN useradd -r -d /home/tapglue -s /bin/false tapglue
 
-# Add various configs (in order of frequency of changes
+# Add various configs (in order of frequency of changes)
 ADD infrastructure/nginx/corporate/container-nginx.conf /etc/nginx/nginx.conf
 ADD infrastructure/nginx/corporate/default /etc/nginx/sites/default
 ADD infrastructure/nginx/corporate/dashboard /etc/nginx/sites/dashboard
