@@ -49,8 +49,8 @@ type (
 		Username         string     `json:"user_name"`
 		OriginalPassword string     `json:"-"`
 		Password         string     `json:"password,omitempty"`
-		FirstName        string     `json:"first_name,omitempty"`
-		LastName         string     `json:"last_name,omitempty"`
+		FirstName        string     `json:"first_name"`
+		LastName         string     `json:"last_name"`
 		Email            string     `json:"email,omitempty"`
 		URL              string     `json:"url,omitempty"`
 		LastLogin        *time.Time `json:"last_login,omitempty"`
