@@ -1,0 +1,25 @@
+FROM nginx:1.9.11
+MAINTAINER Tapglue "docker@tapglue.com"
+
+RUN rm -rf /var/lib/apt/lists/* && \
+    rm -rf /usr/share/man/?? && \
+    rm -rf /usr/share/man/??_* && \
+    rm /etc/nginx/conf.d/default.conf
+
+# Create tapglue user
+RUN useradd -r -d /home/tapglue -s /bin/false tapglue
+
+# Add various configs (in order of frequency of changes)
+ADD infrastructure/nginx/corporate/container-nginx.conf /etc/nginx/nginx.conf
+ADD infrastructure/nginx/corporate/default /etc/nginx/sites/default
+ADD infrastructure/nginx/corporate/dashboard /etc/nginx/sites/dashboard
+
+ADD infrastructure/certs/self/self.crt /home/tapglue/ssl/self.crt
+ADD infrastructure/certs/self/self.key /home/tapglue/ssl/self.key
+
+COPY dashboard/build /home/tapglue/releases/corporate/dashboard/build
+
+# Runtime
+EXPOSE 80 443
+
+CMD ["nginx", "-g", "daemon off;"]

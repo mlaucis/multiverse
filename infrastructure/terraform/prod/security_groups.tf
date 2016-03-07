@@ -27,8 +27,8 @@ resource "aws_security_group_rule" "gateway_https_in" {
 }
 
 resource "aws_security_group_rule" "gateway_service_in" {
-  from_port                 = 8083
-  to_port                   = 8083
+  from_port                 = 8080
+  to_port                   = 8085
   type                      = "ingress"
   protocol                  = "tcp"
   security_group_id         = "${aws_security_group.gateway.id}"
@@ -122,8 +122,8 @@ resource "aws_security_group_rule" "loadbalancer_https_out" {
 }
 
 resource "aws_security_group_rule" "loadbalancer_service_out" {
-  from_port                 = 8083
-  to_port                   = 8083
+  from_port                 = 8080
+  to_port                   = 8085
   type                      = "egress"
   protocol                  = "tcp"
   security_group_id         = "${aws_security_group.loadbalancer.id}"

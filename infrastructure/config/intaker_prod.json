@@ -1,0 +1,43 @@
+{
+  "env": "prod",
+  "listenHost": ":8083",
+  "telemetry_addr": ":9000",
+  "skip_security": false,
+  "json_logs": true,
+  "use_ssl": true,
+  "use_syslog": true,
+  "use_low_sec": false,
+  "cache_app": {
+    "hosts": [
+      "cache-app.tapglue.int:6379"
+    ],
+    "password": "",
+    "db": 0,
+    "pool_size": 30
+  },
+  "rate_limiter": {
+    "hosts": [
+      "rate-limiter.tapglue.int:6379"
+    ],
+    "password": "",
+    "db": 0,
+    "pool_size": 30
+  },
+  "postgres": {
+    "database": "tapglue",
+    "master": {
+      "username": "tapglue",
+      "password": "gFthJy858iXOIA3IM0GARIuFYdIWkeCHJc0vto",
+      "host": "db-master.tapglue.int",
+      "options": "sslmode=require&connect_timeout=5"
+    },
+    "slaves": [
+      {
+        "username": "tapglue",
+        "password": "gFthJy858iXOIA3IM0GARIuFYdIWkeCHJc0vto",
+        "host": "db-slave1.tapglue.int",
+        "options": "sslmode=require&connect_timeout=5"
+      }
+    ]
+  }
+}

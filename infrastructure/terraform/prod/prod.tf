@@ -2,6 +2,11 @@ provider "aws" {
   region = "${var.vpc-region}"
 }
 
+provider "aws" {
+  alias  = "us-east-1"
+  region = "us-east-1"
+}
+
 resource "aws_vpc" "tapglue" {
   cidr_block           = "10.0.0.0/16"
   enable_dns_support   = true

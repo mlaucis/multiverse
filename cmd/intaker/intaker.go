@@ -16,6 +16,7 @@ import (
 	"net/http"
 	_ "net/http/pprof"
 	"os"
+	"path/filepath"
 	"runtime"
 	"time"
 
@@ -54,6 +55,7 @@ const (
 var (
 	currentRevision = "0000000-dev"
 
+	apppath   string
 	conf      *config.Config
 	startTime time.Time
 )
@@ -67,6 +69,9 @@ func init() {
 	// Seed random generator
 	mr.Seed(time.Now().UTC().UnixNano())
 
+	cwd, _ := os.Getwd();
+	apppath, _ = filepath.Abs(filepath.Join(cwd, string(filepath.Separator)))
+	apppath += string(filepath.Separator)
 }
 
 func main() {
@@ -551,7 +556,7 @@ func main() {
 	)
 
 	if conf.UseSSL {
-		log.Fatal(server.ListenAndServeTLS("./self.crt", "./self.key"))
+		log.Fatal(server.ListenAndServeTLS(apppath + "self.crt", apppath + "self.key"))
 	} else {
 		log.Fatal(server.ListenAndServe())
 	}
@@ -587,7 +592,7 @@ func configTLS() *tls.Config {
 }
 
 func loadCertificates() *x509.CertPool {
-	pem, err := ioutil.ReadFile("./root-ca.pem")
+	pem, err := ioutil.ReadFile(apppath + "root-ca.pem")
 	if err != nil {
 		panic(err)
 	}
@@ -601,7 +606,7 @@ func loadCertificates() *x509.CertPool {
 }
 
 func loadClientCertificates() *x509.CertPool {
-	pem, err := ioutil.ReadFile("./origin-pull-ca.pem")
+	pem, err := ioutil.ReadFile(apppath + "origin-pull-ca.pem")
 	if err != nil {
 		panic(err)
 	}
