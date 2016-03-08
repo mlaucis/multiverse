@@ -10,7 +10,7 @@ resource "cloudflare_record" "adrenalynmapp" {
 resource "cloudflare_record" "dailyme" {
   domain  = "${var.cloudflare_domain}"
   name    = "dailyme"
-  value   = "${aws_elb.frontend.dns_name}"
+  value   = "${aws_elb.gateway-http.dns_name}"
   type    = "CNAME"
   ttl     = 1
   proxied = true
