@@ -19,11 +19,11 @@ type Post struct {
 	*object.Object
 }
 
-// PostList is a collection of Post.
-type PostList []*Post
-
 // PostMap is the user collection indexed by their ids.
 type PostMap map[uint64]*Post
+
+// PostList is a collection of Post.
+type PostList []*Post
 
 func (ps PostList) toMap() PostMap {
 	pm := PostMap{}
@@ -33,6 +33,18 @@ func (ps PostList) toMap() PostMap {
 	}
 
 	return pm
+}
+
+func (ps PostList) Len() int {
+	return len(ps)
+}
+
+func (ps PostList) Less(i, j int) bool {
+	return ps[i].CreatedAt.After(ps[j].CreatedAt)
+}
+
+func (ps PostList) Swap(i, j int) {
+	ps[i], ps[j] = ps[j], ps[i]
 }
 
 // OwnerIDs extracts the OwnerID of every post.

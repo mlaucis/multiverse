@@ -39,6 +39,15 @@ type StrangleMiddleware func(StrangleService) StrangleService
 // Map is a user collection with their id as index.
 type Map map[uint64]*v04_entity.ApplicationUser
 
+// Merge combines two maps.
+func (m Map) Merge(x Map) Map {
+	for id, user := range x {
+		m[id] = user
+	}
+
+	return m
+}
+
 // List is a collection of users.
 type List []*v04_entity.ApplicationUser
 

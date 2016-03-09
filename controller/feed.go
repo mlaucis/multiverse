@@ -12,6 +12,7 @@ import (
 	v04_core "github.com/tapglue/multiverse/v04/core"
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
 	"github.com/tapglue/multiverse/v04/errmsg"
+	v04_errmsg "github.com/tapglue/multiverse/v04/errmsg"
 )
 
 // affiliations is the composite structure to map connections to users.
@@ -336,6 +337,22 @@ func (c *FeedController) News(
 		return nil, err
 	}
 
+	gs, err := c.globalPosts(app)
+	if err != nil {
+		return nil, err
+	}
+
+	gum, err := extractUsersFromPosts(c.users, app, gs)
+	if err != nil {
+		return nil, err
+	}
+
+	um = um.Merge(gum)
+
+	ps = append(ps, gs...)
+
+	sort.Sort(ps)
+
 	err = enrichIsLiked(c.events, app, origin.ID, ps)
 	if err != nil {
 		return nil, err
@@ -370,6 +387,20 @@ func (c *FeedController) Posts(
 		return nil, err
 	}
 
+	gs, err := c.globalPosts(app)
+	if err != nil {
+		return nil, err
+	}
+
+	um, err := extractUsersFromPosts(c.users, app, gs)
+	if err != nil {
+		return nil, err
+	}
+
+	ps = append(ps, gs...)
+
+	sort.Sort(ps)
+
 	err = enrichIsLiked(c.events, app, origin.ID, ps)
 	if err != nil {
 		return nil, err
@@ -377,7 +408,7 @@ func (c *FeedController) Posts(
 
 	return &Feed{
 		Posts:   ps,
-		UserMap: am.users().ToMap(),
+		UserMap: am.users().ToMap().Merge(um),
 	}, nil
 }
 
@@ -398,6 +429,25 @@ func (c *FeedController) connectionPosts(
 		Visibilities: []object.Visibility{
 			object.VisibilityConnection,
 			object.VisibilityPublic,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return postsFromObjects(os), nil
+}
+
+func (c *FeedController) globalPosts(
+	app *v04_entity.Application,
+) (PostList, error) {
+	os, err := c.objects.Query(app.Namespace(), object.QueryOptions{
+		Owned: &defaultOwned,
+		Types: []string{
+			typePost,
+		},
+		Visibilities: []object.Visibility{
+			object.VisibilityGlobal,
 		},
 	})
 	if err != nil {
@@ -529,6 +579,33 @@ func extractPosts(
 	}
 
 	return ps, nil
+}
+
+func extractUsersFromPosts(
+	users user.StrangleService,
+	app *v04_entity.Application,
+	ps PostList,
+) (user.Map, error) {
+	um := user.Map{}
+
+	for _, id := range ps.OwnerIDs() {
+		if _, ok := um[id]; ok {
+			continue
+		}
+
+		user, errs := users.Read(app.OrgID, app.ID, id, false)
+		if errs != nil {
+			// Check for existence
+			if errs[0].Code() == v04_errmsg.ErrApplicationUserNotFound.Code() {
+				continue
+			}
+			return nil, errs[0]
+		}
+
+		um[id] = user
+	}
+
+	return um, nil
 }
 
 // fillupUsers given a map of users and events fills up all missing users.
