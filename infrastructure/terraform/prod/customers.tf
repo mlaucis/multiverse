@@ -28,7 +28,7 @@ resource "cloudflare_record" "dawanda" {
 resource "cloudflare_record" "gambify" {
   domain  = "${var.cloudflare_domain}"
   name    = "gambify"
-  value   = "${aws_elb.frontend.dns_name}"
+  value   = "${aws_elb.gateway-http.dns_name}"
   type    = "CNAME"
   ttl     = 1
   proxied = true
