@@ -350,6 +350,7 @@ func Log(logger log.Logger) Middleware {
 
 			logger.Log(
 				"duration_ns", time.Since(begin),
+				"query", r.URL.Query(),
 				"request", reqr,
 				"response", resr,
 				"route", route,

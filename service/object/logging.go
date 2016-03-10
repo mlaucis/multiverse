@@ -51,13 +51,14 @@ func (s *logService) CreatedByDay(
 	return s.Service.CreatedByDay(ns, start, end)
 }
 
-func (s *logService) Put(ns string, object *Object) (o *Object, err error) {
+func (s *logService) Put(ns string, input *Object) (output *Object, err error) {
 	defer func(begin time.Time) {
 		ps := []interface{}{
 			"duration", time.Since(begin),
-			"method", "put",
+			"input", input,
+			"method", "Put",
 			"namespace", ns,
-			"object", object,
+			"output", output,
 		}
 
 		if err != nil {
@@ -67,14 +68,14 @@ func (s *logService) Put(ns string, object *Object) (o *Object, err error) {
 		_ = s.logger.Log(ps...)
 	}(time.Now())
 
-	return s.Service.Put(ns, object)
+	return s.Service.Put(ns, input)
 }
 
 func (s *logService) Query(ns string, opts QueryOptions) (os []*Object, err error) {
 	defer func(begin time.Time) {
 		ps := []interface{}{
 			"duration", time.Since(begin),
-			"method", "query",
+			"method", "Query",
 			"namespace", ns,
 			"opts", opts,
 			"size", len(os),
@@ -95,7 +96,7 @@ func (s *logService) Remove(ns string, id uint64) (err error) {
 		ps := []interface{}{
 			"duration", time.Since(begin),
 			"id", strconv.FormatUint(id, 10),
-			"method", "remove",
+			"method", "Remove",
 			"namespace", ns,
 			"id", id,
 		}
@@ -114,7 +115,7 @@ func (s *logService) Setup(ns string) (err error) {
 	defer func(begin time.Time) {
 		ps := []interface{}{
 			"duration", time.Since(begin),
-			"method", "setup",
+			"method", "Setup",
 			"namespace", ns,
 		}
 

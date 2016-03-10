@@ -1,16 +1,11 @@
 package event
 
 import (
-	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/go-kit/kit/log"
 
-	"github.com/tapglue/multiverse/errors"
 	"github.com/tapglue/multiverse/platform/metrics"
-	"github.com/tapglue/multiverse/v04/core"
-	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
 
 type logService struct {
@@ -29,6 +24,26 @@ func LogMiddleware(logger log.Logger, store string) ServiceMiddleware {
 
 		return &logService{next, logger}
 	}
+}
+
+func (s *logService) ActiveUserIDs(ns string, p Period) (ids []uint64, err error) {
+	defer func(begin time.Time) {
+		ps := []interface{}{
+			"datapoints", len(ids),
+			"duration", time.Since(begin),
+			"method", "ActiveUserIDs",
+			"namespace", ns,
+			"period", p,
+		}
+
+		if err != nil {
+			ps = append(ps, "err", err)
+		}
+
+		_ = s.logger.Log(ps...)
+	}(time.Now())
+
+	return s.Service.ActiveUserIDs(ns, p)
 }
 
 func (s *logService) CreatedByDay(
@@ -55,95 +70,78 @@ func (s *logService) CreatedByDay(
 	return s.Service.CreatedByDay(ns, start, end)
 }
 
-type logStrangleService struct {
-	StrangleService
-
-	logger log.Logger
-}
-
-// LogStrangleMiddleware given a Logger wraps the next StrangleService with
-// logging capabilities.
-func LogStrangleMiddleware(logger log.Logger, store string) StrangleMiddleware {
-	return func(next StrangleService) StrangleService {
-		logger = log.NewContext(logger).With(
-			"service", "event",
-			"store", store,
-		)
-
-		return &logStrangleService{next, logger}
-	}
-}
-
-func (s *logStrangleService) Create(
-	orgID, appID int64,
-	userID uint64,
-	event *v04_entity.Event,
-) (errs []errors.Error) {
+func (s *logService) Put(ns string, input *Event) (output *Event, err error) {
 	defer func(begin time.Time) {
 		ps := []interface{}{
 			"duration", time.Since(begin),
-			"event", event,
-			"method", "Create",
-			"namespace", convertNamespace(orgID, appID),
-			"user_id", strconv.FormatUint(userID, 10),
+			"input", input,
+			"method", "Put",
+			"namespace", ns,
+			"output", output,
 		}
 
-		if errs != nil {
-			ps = append(ps, "err", errs[0])
+		if err != nil {
+			ps = append(ps, "err", err)
 		}
 
 		_ = s.logger.Log(ps...)
 	}(time.Now())
 
-	return s.StrangleService.Create(orgID, appID, userID, event)
+	return s.Service.Put(ns, input)
 }
 
-func (s *logStrangleService) Delete(
-	orgID, appID int64,
-	userID uint64,
-	eventID uint64,
-) (errs []errors.Error) {
+func (s *logService) Query(ns string, opts QueryOptions) (list List, err error) {
 	defer func(begin time.Time) {
 		ps := []interface{}{
+			"datapoints", len(list),
 			"duration", time.Since(begin),
-			"event_id", strconv.FormatUint(eventID, 10),
-			"method", "Delete",
-			"namespace", convertNamespace(orgID, appID),
-			"user_id", strconv.FormatUint(userID, 10),
+			"method", "Query",
+			"namespace", ns,
+			"opts", opts,
 		}
 
-		if errs != nil {
-			ps = append(ps, "err", errs[0])
+		if err != nil {
+			ps = append(ps, "err", err)
 		}
 
 		_ = s.logger.Log(ps...)
 	}(time.Now())
 
-	return s.StrangleService.Delete(orgID, appID, userID, eventID)
+	return s.Service.Query(ns, opts)
 }
 
-func (s *logStrangleService) ListAll(
-	orgID, appID int64,
-	condition core.EventCondition,
-) (es []*v04_entity.Event, errs []errors.Error) {
+func (s *logService) Setup(ns string) (err error) {
 	defer func(begin time.Time) {
 		ps := []interface{}{
-			"condition", condition,
 			"duration", time.Since(begin),
-			"method", "ListAll",
-			"namespace", convertNamespace(orgID, appID),
-			"result_size", strconv.Itoa(len(es)),
+			"method", "Setup",
+			"namespace", ns,
 		}
 
-		if errs != nil {
-			ps = append(ps, "err", errs[0])
+		if err != nil {
+			ps = append(ps, "err", err)
 		}
 
 		_ = s.logger.Log(ps...)
 	}(time.Now())
-	return s.StrangleService.ListAll(orgID, appID, condition)
+
+	return s.Service.Setup(ns)
 }
 
-func convertNamespace(orgID, appID int64) string {
-	return fmt.Sprintf("app_%d_%d", orgID, appID)
+func (s *logService) Teardown(ns string) (err error) {
+	defer func(begin time.Time) {
+		ps := []interface{}{
+			"duration", time.Since(begin),
+			"method", "teardown",
+			"namespace", ns,
+		}
+
+		if err != nil {
+			ps = append(ps, "err", err)
+		}
+
+		_ = s.logger.Log(ps...)
+	}(time.Now())
+
+	return s.Service.Teardown(ns)
 }

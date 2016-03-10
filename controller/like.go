@@ -4,7 +4,6 @@ import (
 	"github.com/tapglue/multiverse/service/event"
 	"github.com/tapglue/multiverse/service/object"
 	"github.com/tapglue/multiverse/service/user"
-	v04_core "github.com/tapglue/multiverse/v04/core"
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
 
@@ -12,6 +11,8 @@ const (
 	typeExternal = "tg_external"
 	typeLike     = "tg_like"
 )
+
+var defaultEnabled = true
 
 // LikeFeed is a collection of likes with their referenced users.
 type LikeFeed struct {
@@ -21,14 +22,14 @@ type LikeFeed struct {
 
 // LikeController bundles the business constraints for likes on posts.
 type LikeController struct {
-	events event.StrangleService
+	events event.Service
 	posts  object.Service
 	users  user.StrangleService
 }
 
 // NewLikeController returns a controller instance.
 func NewLikeController(
-	events event.StrangleService,
+	events event.Service,
 	posts object.Service,
 	users user.StrangleService,
 ) *LikeController {
@@ -45,7 +46,7 @@ func (c *LikeController) Create(
 	app *v04_entity.Application,
 	owner *v04_entity.ApplicationUser,
 	postID uint64,
-) (*v04_entity.Event, error) {
+) (*event.Event, error) {
 	ps, err := c.posts.Query(app.Namespace(), object.QueryOptions{
 		ID:    &postID,
 		Owned: &defaultOwned,
@@ -57,48 +58,54 @@ func (c *LikeController) Create(
 		return nil, err
 	}
 
-	if len(ps) != 1 {
+	if len(ps) == 0 {
 		return nil, ErrNotFound
 	}
 
 	post := ps[0]
 
-	es, errs := c.events.ListAll(app.OrgID, app.ID, v04_core.EventCondition{
-		ObjectID: &v04_core.RequestCondition{
-			Eq: postID,
+	es, err := c.events.Query(app.Namespace(), event.QueryOptions{
+		ObjectIDs: []uint64{
+			postID,
 		},
-		Owned: &v04_core.RequestCondition{
-			Eq: true,
+		Owned: &defaultOwned,
+		Types: []string{
+			typeLike,
 		},
-		Type: &v04_core.RequestCondition{
-			Eq: typeLike,
-		},
-		UserID: &v04_core.RequestCondition{
-			Eq: owner.ID,
+		UserIDs: []uint64{
+			owner.ID,
 		},
 	})
-	if errs != nil {
-		return nil, errs[0]
+	if err != nil {
+		return nil, err
 	}
 
-	if len(es) == 1 {
+	if len(es) > 0 && es[0].Enabled == true {
 		return es[0], nil
 	}
 
-	ev := &v04_entity.Event{
-		ObjectID:   postID,
-		Owned:      true,
-		Type:       typeLike,
-		UserID:     owner.ID,
-		Visibility: uint8(post.Visibility),
+	var like *event.Event
+
+	if len(es) == 0 {
+		like = &event.Event{
+			Enabled:    true,
+			ObjectID:   postID,
+			Owned:      true,
+			Type:       typeLike,
+			UserID:     owner.ID,
+			Visibility: event.Visibility(post.Visibility),
+		}
+	} else {
+		like = es[0]
+		like.Enabled = true
 	}
 
-	errs = c.events.Create(app.OrgID, app.ID, owner.ID, ev)
-	if errs != nil {
-		return nil, errs[0]
+	like, err = c.events.Put(app.Namespace(), like)
+	if err != nil {
+		return nil, err
 	}
 
-	return ev, nil
+	return like, nil
 }
 
 // Delete removes an existing like event for the given user on the post.
@@ -122,31 +129,33 @@ func (c *LikeController) Delete(
 		return ErrNotFound
 	}
 
-	es, errs := c.events.ListAll(app.OrgID, app.ID, v04_core.EventCondition{
-		ObjectID: &v04_core.RequestCondition{
-			Eq: postID,
+	es, err := c.events.Query(app.Namespace(), event.QueryOptions{
+		Enabled: &defaultEnabled,
+		ObjectIDs: []uint64{
+			postID,
 		},
-		Owned: &v04_core.RequestCondition{
-			Eq: true,
+		Owned: &defaultOwned,
+		Types: []string{
+			typeLike,
 		},
-		Type: &v04_core.RequestCondition{
-			Eq: typeLike,
-		},
-		UserID: &v04_core.RequestCondition{
-			Eq: owner.ID,
+		UserIDs: []uint64{
+			owner.ID,
 		},
 	})
-	if errs != nil {
-		return errs[0]
+	if err != nil {
+		return err
 	}
 
 	if len(es) == 0 {
 		return nil
 	}
 
-	errs = c.events.Delete(app.OrgID, app.ID, owner.ID, es[0].ID)
-	if errs != nil {
-		return errs[0]
+	like := es[0]
+	like.Enabled = false
+
+	like, err = c.events.Put(app.Namespace(), like)
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -176,22 +185,18 @@ func (c *LikeController) List(
 		return nil, ErrNotFound
 	}
 
-	es, errs := c.events.ListAll(app.OrgID, app.ID, v04_core.EventCondition{
-		ObjectID: &v04_core.RequestCondition{
-			Eq: postID,
+	es, err := c.events.Query(app.Namespace(), event.QueryOptions{
+		Enabled: &defaultEnabled,
+		ObjectIDs: []uint64{
+			postID,
 		},
-		Owned: &v04_core.RequestCondition{
-			Eq: true,
-		},
-		Type: &v04_core.RequestCondition{
-			Eq: typeLike,
+		Owned: &defaultOwned,
+		Types: []string{
+			typeLike,
 		},
 	})
-	if errs != nil {
-		return nil, errs[0]
-	}
 
-	um, err := user.MapFromIDs(c.users, app, event.List(es).UserIDs()...)
+	um, err := user.MapFromIDs(c.users, app, es.UserIDs()...)
 	if err != nil {
 		return nil, err
 	}
@@ -208,51 +213,55 @@ func (c *LikeController) ExternalCreate(
 	app *v04_entity.Application,
 	owner *v04_entity.ApplicationUser,
 	externalID string,
-) (*v04_entity.Event, error) {
-	es, errs := c.events.ListAll(app.OrgID, app.ID, v04_core.EventCondition{
-		Object: &v04_core.ObjectCondition{
-			ID: &v04_core.RequestCondition{
-				Eq: externalID,
-			},
-			Type: &v04_core.RequestCondition{
-				Eq: typeExternal,
-			},
+) (*event.Event, error) {
+	es, err := c.events.Query(app.Namespace(), event.QueryOptions{
+		ExternalObjectIDs: []string{
+			externalID,
 		},
-		Owned: &v04_core.RequestCondition{
-			Eq: true,
+		ExternalObjectTypes: []string{
+			typeExternal,
 		},
-		Type: &v04_core.RequestCondition{
-			Eq: typeLike,
+		Owned: &defaultOwned,
+		Types: []string{
+			typeLike,
 		},
-		UserID: &v04_core.RequestCondition{
-			Eq: owner.ID,
+		UserIDs: []uint64{
+			owner.ID,
 		},
 	})
-	if errs != nil {
-		return nil, errs[0]
+	if err != nil {
+		return nil, err
 	}
 
-	if len(es) == 1 {
+	if len(es) > 0 && es[0].Enabled == true {
 		return es[0], nil
 	}
 
-	ev := &v04_entity.Event{
-		Object: &v04_entity.Object{
-			ID:   externalID,
-			Type: typeExternal,
-		},
-		Owned:      true,
-		Type:       typeLike,
-		UserID:     owner.ID,
-		Visibility: v04_entity.EventConnections,
+	var like *event.Event
+
+	if len(es) == 0 {
+		like = &event.Event{
+			Enabled: true,
+			Object: &event.Object{
+				ID:   externalID,
+				Type: typeExternal,
+			},
+			Owned:      true,
+			Type:       typeLike,
+			UserID:     owner.ID,
+			Visibility: event.VisibilityConnection,
+		}
+	} else {
+		like = es[0]
+		like.Enabled = true
 	}
 
-	errs = c.events.Create(app.OrgID, app.ID, owner.ID, ev)
-	if errs != nil {
-		return nil, errs[0]
+	like, err = c.events.Put(app.Namespace(), like)
+	if err != nil {
+		return nil, err
 	}
 
-	return ev, nil
+	return like, nil
 }
 
 // ExternalDelete removes an existing like event for the given user on the
@@ -262,36 +271,36 @@ func (c *LikeController) ExternalDelete(
 	owner *v04_entity.ApplicationUser,
 	externalID string,
 ) error {
-	es, errs := c.events.ListAll(app.OrgID, app.ID, v04_core.EventCondition{
-		Object: &v04_core.ObjectCondition{
-			ID: &v04_core.RequestCondition{
-				Eq: externalID,
-			},
-			Type: &v04_core.RequestCondition{
-				Eq: typeExternal,
-			},
+	es, err := c.events.Query(app.Namespace(), event.QueryOptions{
+		Enabled: &defaultEnabled,
+		ExternalObjectIDs: []string{
+			externalID,
 		},
-		Owned: &v04_core.RequestCondition{
-			Eq: true,
+		ExternalObjectTypes: []string{
+			typeExternal,
 		},
-		Type: &v04_core.RequestCondition{
-			Eq: typeLike,
+		Owned: &defaultOwned,
+		Types: []string{
+			typeLike,
 		},
-		UserID: &v04_core.RequestCondition{
-			Eq: owner.ID,
+		UserIDs: []uint64{
+			owner.ID,
 		},
 	})
-	if errs != nil {
-		return errs[0]
+	if err != nil {
+		return err
 	}
 
 	if len(es) == 0 {
 		return nil
 	}
 
-	errs = c.events.Delete(app.OrgID, app.ID, owner.ID, es[0].ID)
-	if errs != nil {
-		return errs[0]
+	like := es[0]
+	like.Enabled = false
+
+	like, err = c.events.Put(app.Namespace(), like)
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -302,27 +311,24 @@ func (c *LikeController) ExternalList(
 	app *v04_entity.Application,
 	externalID string,
 ) (*LikeFeed, error) {
-	es, errs := c.events.ListAll(app.OrgID, app.ID, v04_core.EventCondition{
-		Object: &v04_core.ObjectCondition{
-			ID: &v04_core.RequestCondition{
-				Eq: externalID,
-			},
-			Type: &v04_core.RequestCondition{
-				Eq: typeExternal,
-			},
+	es, err := c.events.Query(app.Namespace(), event.QueryOptions{
+		Enabled: &defaultEnabled,
+		ExternalObjectIDs: []string{
+			externalID,
 		},
-		Owned: &v04_core.RequestCondition{
-			Eq: true,
+		ExternalObjectTypes: []string{
+			typeExternal,
 		},
-		Type: &v04_core.RequestCondition{
-			Eq: typeLike,
+		Owned: &defaultOwned,
+		Types: []string{
+			typeLike,
 		},
 	})
-	if errs != nil {
-		return nil, errs[0]
+	if err != nil {
+		return nil, err
 	}
 
-	um, err := user.MapFromIDs(c.users, app, event.List(es).UserIDs()...)
+	um, err := user.MapFromIDs(c.users, app, es.UserIDs()...)
 	if err != nil {
 		return nil, err
 	}

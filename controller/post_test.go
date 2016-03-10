@@ -240,20 +240,26 @@ func testSetupPostController(
 			ID:    rand.Int63(),
 			OrgID: rand.Int63(),
 		}
+		events  = event.NewMemService()
 		objects = object.NewMemService()
 		user    = &v04_entity.ApplicationUser{
 			ID: uint64(rand.Int63()),
 		}
 	)
 
-	err := objects.Setup(app.Namespace())
+	err := events.Setup(app.Namespace())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = objects.Setup(app.Namespace())
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	return app, user, NewPostController(
 		connection.NewNopService(),
-		event.NewNopService(),
+		events,
 		objects,
 	)
 }

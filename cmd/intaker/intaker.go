@@ -69,7 +69,7 @@ func init() {
 	// Seed random generator
 	mr.Seed(time.Now().UTC().UnixNano())
 
-	cwd, _ := os.Getwd();
+	cwd, _ := os.Getwd()
 	apppath, _ = filepath.Abs(filepath.Join(cwd, string(filepath.Separator)))
 	apppath += string(filepath.Separator)
 }
@@ -159,11 +159,6 @@ func main() {
 	events = event.InstrumentMiddleware(component, "postgres")(events)
 	events = event.LogMiddleware(logger, "postgres")(events)
 
-	var eventStrangle event.StrangleService
-	eventStrangle = v04_postgres_core.NewEvent(pgClient)
-	eventStrangle = event.InstrumentStrangleMiddleware(component, "postgres")(eventStrangle)
-	eventStrangle = event.LogStrangleMiddleware(logger, "postgres")(eventStrangle)
-
 	var members member.StrangleService
 	members = v04_postgres_core.NewMember(pgClient)
 	members = member.InstrumentStrangleMiddleware(component, "postgres")(members)
@@ -199,10 +194,11 @@ func main() {
 			users,
 		)
 		commentController        = controller.NewCommentController(objects, userStrangle)
-		feedController           = controller.NewFeedController(conStrangle, eventStrangle, objects, userStrangle)
-		likeController           = controller.NewLikeController(eventStrangle, objects, userStrangle)
+		eventController          = controller.NewEventController(conStrangle, events, objects, userStrangle)
+		feedController           = controller.NewFeedController(conStrangle, events, objects, userStrangle)
+		likeController           = controller.NewLikeController(events, objects, userStrangle)
 		objectController         = controller.NewObjectController(conStrangle, objects)
-		postController           = controller.NewPostController(conStrangle, eventStrangle, objects)
+		postController           = controller.NewPostController(conStrangle, events, objects)
 		recommendationController = controller.NewRecommendationController(
 			conStrangle,
 			aggregateEvents,
@@ -255,6 +251,13 @@ func main() {
 	go tgLogger.JSONLog(errorLogChan)
 
 	next := router.PathPrefix(fmt.Sprintf("/%s", apiVersionNext)).Subrouter()
+
+	next.Methods("GET").PathPrefix(`/users/{userID:[0-9]+}/events`).Name("eventListUser").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.EventListUser(eventController),
+		),
+	)
 
 	next.Methods("POST").PathPrefix(`/externals/{externalID:[a-zA-Z0-9\-\_]+}/comments`).Name("externalCommentCreate").HandlerFunc(
 		handler.Wrap(
@@ -556,7 +559,7 @@ func main() {
 	)
 
 	if conf.UseSSL {
-		log.Fatal(server.ListenAndServeTLS(apppath + "self.crt", apppath + "self.key"))
+		log.Fatal(server.ListenAndServeTLS(apppath+"self.crt", apppath+"self.key"))
 	} else {
 		log.Fatal(server.ListenAndServe())
 	}

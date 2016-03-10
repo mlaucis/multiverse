@@ -96,7 +96,7 @@ func TestConditionDuplicate(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	es = append(es, &v04_entity.Event{
+	es = append(es, &event.Event{
 		ID: 5,
 	})
 
@@ -205,7 +205,7 @@ func TestSourceConnection(t *testing.T) {
 	}
 }
 
-func testConditionEven(idx int, event *v04_entity.Event) bool {
+func testConditionEven(idx int, event *event.Event) bool {
 	return idx%2 == 0
 }
 
@@ -214,12 +214,12 @@ func testSourceLen(n int) source {
 		es := event.List{}
 
 		for i := 0; i < n; i++ {
-			es = append(es, &v04_entity.Event{
+			es = append(es, &event.Event{
 				ID:       uint64(i + 1),
 				ObjectID: uint64(i),
-				Target: &v04_entity.Object{
+				Target: &event.Target{
 					ID:   strconv.FormatUint(uint64(i+1), 10),
-					Type: v04_entity.TypeTargetUser,
+					Type: event.TargetUser,
 				},
 				UserID: uint64(i + 1),
 			})
