@@ -7,10 +7,10 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"golang.org/x/net/context"
+
 	"github.com/tapglue/multiverse/controller"
 	"github.com/tapglue/multiverse/service/event"
-
-	"golang.org/x/net/context"
 )
 
 // EventListMe returns all events for the current user.

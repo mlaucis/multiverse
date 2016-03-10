@@ -12,6 +12,21 @@ func NewNopService() StrangleService {
 	return &nopService{}
 }
 
+func (s *nopService) FilterByEmail(
+	orgID, appID int64,
+	emails []string,
+) ([]*v04_entity.ApplicationUser, []errors.Error) {
+	return nil, nil
+}
+
+func (s *nopService) FilterBySocialIDs(
+	orgID, appID int64,
+	platform string,
+	ids []string,
+) ([]*v04_entity.ApplicationUser, []errors.Error) {
+	return nil, nil
+}
+
 func (s *nopService) FindBySession(
 	orgID, appID int64,
 	key string,
