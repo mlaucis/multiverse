@@ -2,12 +2,15 @@ package http
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
 	"golang.org/x/net/context"
 
 	"github.com/tapglue/multiverse/controller"
+	"github.com/tapglue/multiverse/service/event"
+	"github.com/tapglue/multiverse/service/user"
 	v04_core "github.com/tapglue/multiverse/v04/core"
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
@@ -21,13 +24,13 @@ func FeedEvents(c *controller.FeedController) Handler {
 			currentUser = userFromContext(ctx)
 		)
 
-		where, errs := v04_core.NewEventFilter(r.URL.Query().Get("where"))
-		if errs != nil {
-			respondError(w, 0, wrapError(ErrBadRequest, errs[0].Error()))
+		opts, err := whereToOpts(r.URL.Query().Get("where"))
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
 		}
 
-		feed, err := c.Events(app, currentUser, where)
+		feed, err := c.Events(app, currentUser, opts)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -39,7 +42,9 @@ func FeedEvents(c *controller.FeedController) Handler {
 		}
 
 		respondJSON(w, http.StatusOK, &payloadFeedEvents{
-			feed: feed,
+			events:  feed.Events,
+			postMap: feed.PostMap,
+			userMap: feed.UserMap,
 		})
 	}
 }
@@ -53,13 +58,13 @@ func FeedNews(c *controller.FeedController) Handler {
 			currentUser = userFromContext(ctx)
 		)
 
-		where, errs := v04_core.NewEventFilter(r.URL.Query().Get("where"))
-		if errs != nil {
-			respondError(w, 0, wrapError(ErrBadRequest, errs[0].Error()))
+		opts, err := whereToOpts(r.URL.Query().Get("where"))
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
 		}
 
-		feed, err := c.News(app, currentUser, where)
+		feed, err := c.News(app, currentUser, opts)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -102,26 +107,38 @@ func FeedPosts(c *controller.FeedController) Handler {
 }
 
 type payloadFeedEvents struct {
-	feed *controller.Feed
+	events  event.List
+	postMap controller.PostMap
+	userMap user.Map
 }
 
 func (p *payloadFeedEvents) MarshalJSON() ([]byte, error) {
-	es := []*v04_entity.PresentationEvent{}
+	es := []*payloadEvent{}
 
-	for _, e := range p.feed.Events {
-		es = append(es, &v04_entity.PresentationEvent{Event: e})
+	for _, e := range p.events {
+		es = append(es, &payloadEvent{event: e})
+	}
+
+	pm := map[string]*payloadPost{}
+
+	for id, post := range p.postMap {
+		pm[strconv.FormatUint(id, 10)] = &payloadPost{post: post}
 	}
 
 	return json.Marshal(struct {
-		Events      []*v04_entity.PresentationEvent                    `json:"events"`
-		EventsCount int                                                `json:"events_count"`
-		Users       map[string]*v04_entity.PresentationApplicationUser `json:"users"`
-		UsersCount  int                                                `json:"users_count"`
+		Events       []*payloadEvent                                    `json:"events"`
+		EventsCount  int                                                `json:"events_count"`
+		PostMap      map[string]*payloadPost                            `json:"post_map"`
+		PostMapCount int                                                `json:"post_map_count"`
+		Users        map[string]*v04_entity.PresentationApplicationUser `json:"users"`
+		UsersCount   int                                                `json:"users_count"`
 	}{
-		Events:      es,
-		EventsCount: len(es),
-		Users:       mapUserPresentation(p.feed.UserMap),
-		UsersCount:  len(p.feed.UserMap),
+		Events:       es,
+		EventsCount:  len(es),
+		PostMap:      pm,
+		PostMapCount: len(pm),
+		Users:        mapUserPresentation(p.userMap),
+		UsersCount:   len(p.userMap),
 	})
 }
 
@@ -132,12 +149,12 @@ type payloadFeedNews struct {
 
 func (p *payloadFeedNews) MarshalJSON() ([]byte, error) {
 	var (
-		es           = []*v04_entity.PresentationEvent{}
+		es           = []*payloadEvent{}
 		unreadEvents = 0
 	)
 
 	for _, ev := range p.feed.Events {
-		es = append(es, &v04_entity.PresentationEvent{Event: ev})
+		es = append(es, &payloadEvent{event: ev})
 
 		if p.currentUser.LastRead != nil &&
 			ev.CreatedAt.After(*p.currentUser.LastRead) {
@@ -166,7 +183,7 @@ func (p *payloadFeedNews) MarshalJSON() ([]byte, error) {
 	}
 
 	return json.Marshal(struct {
-		Events            []*v04_entity.PresentationEvent                    `json:"events"`
+		Events            []*payloadEvent                                    `json:"events"`
 		EventsCount       int                                                `json:"events_count"`
 		EventsCountUnread int                                                `json:"events_count_unread"`
 		Posts             []*payloadPost                                     `json:"posts"`
@@ -212,4 +229,97 @@ func (p *payloadFeedPosts) MarshalJSON() ([]byte, error) {
 		Users:      mapUserPresentation(p.feed.UserMap),
 		UsersCount: len(p.feed.UserMap),
 	})
+}
+
+func whereToOpts(input string) (*event.QueryOptions, error) {
+	cond, errs := v04_core.NewEventFilter(input)
+	if errs != nil {
+		return nil, errs[0]
+	}
+
+	if cond == nil {
+		return nil, nil
+	}
+
+	opts := event.QueryOptions{}
+
+	if cond.Object != nil && cond.Object.ID != nil {
+		if cond.Object.ID.Eq != nil {
+			id, ok := cond.Object.ID.Eq.(string)
+			if !ok {
+				return nil, fmt.Errorf("error in where param")
+			}
+
+			opts.ExternalObjectIDs = []string{
+				id,
+			}
+		}
+
+		if cond.Object.ID.In != nil {
+			opts.ExternalObjectIDs = []string{}
+
+			for _, input := range cond.Object.ID.In {
+				id, ok := input.(string)
+				if !ok {
+					return nil, fmt.Errorf("error in where param")
+				}
+
+				opts.ExternalObjectIDs = append(opts.ExternalObjectIDs, id)
+			}
+		}
+	}
+
+	if cond.Object != nil && cond.Object.Type != nil {
+		if cond.Object.Type.Eq != nil {
+			t, ok := cond.Object.Type.Eq.(string)
+			if !ok {
+				return nil, fmt.Errorf("error in where param")
+			}
+
+			opts.ExternalObjectTypes = []string{
+				t,
+			}
+		}
+
+		if cond.Object.Type.In != nil {
+			opts.ExternalObjectTypes = []string{}
+
+			for _, input := range cond.Object.Type.In {
+				t, ok := input.(string)
+				if !ok {
+					return nil, fmt.Errorf("error in where param")
+				}
+
+				opts.ExternalObjectTypes = append(opts.ExternalObjectTypes, t)
+			}
+		}
+	}
+
+	if cond.Type != nil {
+		if cond.Type.Eq != nil {
+			t, ok := cond.Type.Eq.(string)
+			if !ok {
+				return nil, fmt.Errorf("error in where param")
+			}
+
+			opts.Types = []string{
+				t,
+			}
+		}
+
+		if cond.Type.In != nil {
+			opts.Types = []string{}
+
+			for _, input := range cond.Type.In {
+				t, ok := input.(string)
+				if !ok {
+					return nil, fmt.Errorf("error in where param")
+				}
+
+				opts.Types = append(opts.Types, t)
+			}
+		}
+	}
+
+	return &opts, nil
 }

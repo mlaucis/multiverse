@@ -635,7 +635,7 @@ func SetupRoutes() []*Route {
 	// Event
 	routes = append(routes,
 		&Route{
-			Name:   "updateUserEvent",
+			Name:   "UpdateUserEvent",
 			Method: "PUT",
 			Path:   fmt.Sprintf("/users/%s/events/%s", applicationUserID, eventID),
 			Handlers: []RouteFunc{
@@ -741,7 +741,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "getEventList",
 			Method: "GET",
-			Path:   fmt.Sprintf("/users/%s/events", applicationUserID),
+			Path:   fmt.Sprintf("/deprecated/users/%s/events", applicationUserID),
 			Handlers: []RouteFunc{
 				postgresEventHandler.List,
 			},

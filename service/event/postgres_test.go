@@ -22,15 +22,10 @@ var (
 	pgURL string
 )
 
-type testEvent struct {
-	UserID    uint64    `json:"user_id"`
-	UpdatedAt time.Time `json:"updated_at"`
-}
-
-func TestActiveUserIDs(t *testing.T) {
+func TestPostgresActiveUserIDs(t *testing.T) {
 	var (
 		ns     = "active_user"
-		insert = wrapNamespace(`INSERT INTO %s.events(json_data) VALUES($1)`, ns)
+		insert = wrapNamespace(pgInsertEvent, ns)
 		s, db  = preparePostgres(ns, t)
 	)
 
@@ -52,10 +47,12 @@ func TestActiveUserIDs(t *testing.T) {
 	for id, periods := range testSet {
 		for d, amount := range periods {
 			for i := 0; i < amount; i++ {
-				data, err := json.Marshal(&testEvent{
-					UserID:    id,
-					UpdatedAt: time.Now().Add(-d),
-				})
+				ev := testEvent()
+
+				ev.UserID = id
+				ev.UpdatedAt = time.Now().Add(-d)
+
+				data, err := json.Marshal(ev)
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -106,6 +103,20 @@ func TestActiveUserIDs(t *testing.T) {
 	if have, want := ids, []uint64{456, 321, 123}; !reflect.DeepEqual(have, want) {
 		t.Errorf("have %v, want %v", have, want)
 	}
+}
+
+func TestPostgresPut(t *testing.T) {
+	testServicePut(func(ns string, t *testing.T) Service {
+		s, _ := preparePostgres(ns, t)
+		return s
+	}, t)
+}
+
+func TestPostgresQuery(t *testing.T) {
+	testServiceQuery(func(ns string, t *testing.T) Service {
+		s, _ := preparePostgres(ns, t)
+		return s
+	}, t)
 }
 
 func preparePostgres(namespace string, t *testing.T) (Service, *sqlx.DB) {

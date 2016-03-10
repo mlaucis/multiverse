@@ -4,7 +4,6 @@ import (
 	"github.com/tapglue/multiverse/service/connection"
 	"github.com/tapglue/multiverse/service/event"
 	"github.com/tapglue/multiverse/service/object"
-	v04_core "github.com/tapglue/multiverse/v04/core"
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
 
@@ -71,14 +70,14 @@ func postsFromObjects(os object.List) PostList {
 // PostController bundles the business constraints for posts.
 type PostController struct {
 	connections connection.StrangleService
-	events      event.StrangleService
+	events      event.Service
 	objects     object.Service
 }
 
 // NewPostController returns a controller instance.
 func NewPostController(
 	connections connection.StrangleService,
-	events event.StrangleService,
+	events event.Service,
 	objects object.Service,
 ) *PostController {
 	return &PostController{
@@ -285,25 +284,25 @@ func (c *PostController) Update(
 }
 
 func enrichIsLiked(
-	events event.StrangleService,
+	events event.Service,
 	app *v04_entity.Application,
 	userID uint64,
 	ps PostList,
 ) error {
 	for _, p := range ps {
-		es, errs := events.ListAll(app.OrgID, app.ID, v04_core.EventCondition{
-			ObjectID: &v04_core.RequestCondition{
-				Eq: p.ID,
+		es, err := events.Query(app.Namespace(), event.QueryOptions{
+			ObjectIDs: []uint64{
+				p.ID,
 			},
-			Type: &v04_core.RequestCondition{
-				Eq: typeLike,
+			Types: []string{
+				typeLike,
 			},
-			UserID: &v04_core.RequestCondition{
-				Eq: userID,
+			UserIDs: []uint64{
+				userID,
 			},
 		})
-		if errs != nil {
-			return errs[0]
+		if err != nil {
+			return err
 		}
 
 		if len(es) == 1 {

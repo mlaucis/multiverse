@@ -1,11 +1,12 @@
 package event
 
 import (
+	"fmt"
 	"strconv"
+	"time"
 
-	"github.com/tapglue/multiverse/errors"
 	"github.com/tapglue/multiverse/platform/metrics"
-	v04_core "github.com/tapglue/multiverse/v04/core"
+	"github.com/tapglue/multiverse/platform/service"
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
 
@@ -16,11 +17,48 @@ const (
 	ByMonth Period = "1 month"
 )
 
-// Period is a pre-defined time duration.
-type Period string
+// Visibility variants available for Events.
+const (
+	VisibilityPrivate Visibility = (iota + 1) * 10
+	VisibilityConnection
+	VisibilityPublic
+	VisibilityGlobal
+)
+
+// TG reserved keywords for types.
+const (
+	TargetUser = "tg_user"
+)
+
+// AggregateService for event interactions.
+type AggregateService interface {
+	ActiveUserIDs(string, Period) ([]uint64, error)
+}
+
+// Event is the buidling block to express interaction on internal/external
+// objects.
+type Event struct {
+	Enabled    bool       `json:"enabled"`
+	ID         uint64     `json:"id"`
+	Language   string     `json:"language,omitempty"`
+	Object     *Object    `json:"object,omitempty"`
+	ObjectID   uint64     `json:"object_id"`
+	Owned      bool       `json:"owned"`
+	Target     *Target    `json:"target"`
+	Type       string     `json:"type"`
+	UserID     uint64     `json:"user_id"`
+	Visibility Visibility `json:"visibility"`
+	CreatedAt  time.Time  `json:"created_at"`
+	UpdatedAt  time.Time  `json:"updated_at"`
+}
+
+// Validate performs semantic checks on the passed Event values for correctness.
+func (e Event) Validate() error {
+	return nil
+}
 
 // List is an Event collection.
-type List []*v04_entity.Event
+type List []*Event
 
 // IDs returns ID for every Event.
 func (es List) IDs() []uint64 {
@@ -38,7 +76,7 @@ func (es List) Len() int {
 }
 
 func (es List) Less(i, j int) bool {
-	return es[i].CreatedAt.After(*es[j].CreatedAt)
+	return es[i].CreatedAt.After(es[j].CreatedAt)
 }
 
 func (es List) Swap(i, j int) {
@@ -54,7 +92,7 @@ func (es List) UserIDs() []uint64 {
 
 		// Extract user ids from target as well.
 		if e.Target != nil && e.Target.Type == v04_entity.TypeTargetUser {
-			id, err := strconv.ParseUint(e.Target.ID.(string), 10, 64)
+			id, err := strconv.ParseUint(e.Target.ID, 10, 64)
 			if err != nil {
 				// We fail silently here for now until we find a way to log this. As the
 				// only effect is that we don't add a potential user to the map
@@ -68,35 +106,52 @@ func (es List) UserIDs() []uint64 {
 	return ids
 }
 
-// AggregateService for event interactions.
-type AggregateService interface {
-	ActiveUserIDs(string, Period) ([]uint64, error)
-	Setup(string) error
-	Teardown(string) error
+// Object describes an external entity whcih can have a type and an id.
+type Object struct {
+	ID   string `json:"id"`
+	Type string `json:"type"`
 }
+
+// QueryOptions are used to narrow down Event queries.
+type QueryOptions struct {
+	Enabled             *bool
+	ExternalObjectIDs   []string
+	ExternalObjectTypes []string
+	IDs                 []uint64
+	ObjectIDs           []uint64
+	Owned               *bool
+	TargetIDs           []string
+	TargetTypes         []string
+	Types               []string
+	UserIDs             []uint64
+	Visibilities        []Visibility
+}
+
+// Target describes the person addressed in an event. To be phased out.
+type Target struct {
+	ID   string `json:"id"`
+	Type string `json:"type"`
+}
+
+// Period is a pre-defined time duration.
+type Period string
 
 // Service for event interactions.
 type Service interface {
+	AggregateService
 	metrics.BucketByDay
+	service.Lifecycle
 
-	ActiveUserIDs(string, Period) ([]uint64, error)
-	Setup(string) error
-	Teardown(string) error
+	Put(namespace string, event *Event) (*Event, error)
+	Query(namespace string, opts QueryOptions) (List, error)
 }
 
 // ServiceMiddleware is a chainable behaviour modifier for Service.
 type ServiceMiddleware func(Service) Service
 
-// StrangleService is an intermediate interface to understand the dependencies
-// of new middlewares and controllers.
-type StrangleService interface {
-	Create(orgID, appID int64, userID uint64, event *v04_entity.Event) []errors.Error
-	Delete(orgID, appID int64, userID, eventID uint64) []errors.Error
-	ListAll(
-		orgID, appID int64,
-		condition v04_core.EventCondition,
-	) ([]*v04_entity.Event, []errors.Error)
-}
+// Visibility determines the visibility of Objects when consumed.
+type Visibility uint8
 
-// StrangleMiddleware is a chainable behaviour modifier for StrangleService.
-type StrangleMiddleware func(StrangleService) StrangleService
+func flakeNamespace(ns string) string {
+	return fmt.Sprintf("%s_%s", ns, "events")
+}

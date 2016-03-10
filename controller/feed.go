@@ -9,7 +9,6 @@ import (
 	"github.com/tapglue/multiverse/service/event"
 	"github.com/tapglue/multiverse/service/object"
 	"github.com/tapglue/multiverse/service/user"
-	v04_core "github.com/tapglue/multiverse/v04/core"
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
 	"github.com/tapglue/multiverse/v04/errmsg"
 	v04_errmsg "github.com/tapglue/multiverse/v04/errmsg"
@@ -142,7 +141,7 @@ func (a affiliations) users() user.List {
 
 // condition given an index and event determines if the Event should be kept in
 // the list.
-type condition func(int, *v04_entity.Event) bool
+type condition func(int, *event.Event) bool
 
 // source represents an event generator of varying origin.
 type source func() (event.List, error)
@@ -158,7 +157,7 @@ type Feed struct {
 // FeedController bundles the business constraints for feeds.
 type FeedController struct {
 	connections connection.StrangleService
-	events      event.StrangleService
+	events      event.Service
 	objects     object.Service
 	users       user.StrangleService
 }
@@ -166,7 +165,7 @@ type FeedController struct {
 // NewFeedController returns a controller instance.
 func NewFeedController(
 	connections connection.StrangleService,
-	events event.StrangleService,
+	events event.Service,
 	objects object.Service,
 	users user.StrangleService,
 ) *FeedController {
@@ -182,7 +181,7 @@ func NewFeedController(
 func (c *FeedController) Events(
 	app *v04_entity.Application,
 	origin *v04_entity.ApplicationUser,
-	cond *v04_core.EventCondition,
+	opts *event.QueryOptions,
 ) (*Feed, error) {
 	am, err := c.neighbours(app, origin, nil)
 	if err != nil {
@@ -193,11 +192,11 @@ func (c *FeedController) Events(
 		neighbours = am.filterFollowers(origin.ID)
 		sources    = []source{
 			sourceConnection(append(am.followers(origin.ID), am.friends(origin.ID)...)),
-			sourceGlobal(c.events, app, cond),
+			sourceGlobal(c.events, app, opts),
 			sourceNeighbours(
 				c.events,
 				app,
-				cond,
+				opts,
 				am.filterFollowers(origin.ID).userIDs()...,
 			),
 		}
@@ -240,7 +239,7 @@ func (c *FeedController) Events(
 		conditionPostMissing(pm),
 	)
 
-	um, err := fillupUsers(c.users, app, origin, us.ToMap(), es)
+	um, err := fillupUsers(c.users, app, origin.ID, us.ToMap(), es)
 	if err != nil {
 		return nil, err
 	}
@@ -263,7 +262,7 @@ func (c *FeedController) Events(
 func (c *FeedController) News(
 	app *v04_entity.Application,
 	origin *v04_entity.ApplicationUser,
-	cond *v04_core.EventCondition,
+	opts *event.QueryOptions,
 ) (*Feed, error) {
 	am, err := c.neighbours(app, origin, nil)
 	if err != nil {
@@ -274,11 +273,11 @@ func (c *FeedController) News(
 		neighbours = am.filterFollowers(origin.ID)
 		sources    = []source{
 			sourceConnection(append(am.followers(origin.ID), am.friends(origin.ID)...)),
-			sourceGlobal(c.events, app, cond),
+			sourceGlobal(c.events, app, opts),
 			sourceNeighbours(
 				c.events,
 				app,
-				cond,
+				opts,
 				am.filterFollowers(origin.ID).userIDs()...,
 			),
 		}
@@ -321,7 +320,7 @@ func (c *FeedController) News(
 		conditionPostMissing(pm),
 	)
 
-	um, err := fillupUsers(c.users, app, origin, us.ToMap(), es)
+	um, err := fillupUsers(c.users, app, origin.ID, us.ToMap(), es)
 	if err != nil {
 		return nil, err
 	}
@@ -522,7 +521,7 @@ func collect(sources ...source) (event.List, error) {
 func conditionDuplicate() condition {
 	seen := map[uint64]struct{}{}
 
-	return func(idx int, event *v04_entity.Event) bool {
+	return func(idx int, event *event.Event) bool {
 		if event.ID == 0 {
 			return false
 		}
@@ -540,7 +539,7 @@ func conditionDuplicate() condition {
 // conditionPostMissing reports true when the ObjectID of the event can't be
 // found in the given ids.
 func conditionPostMissing(pm PostMap) condition {
-	return func(idx int, event *v04_entity.Event) bool {
+	return func(idx int, event *event.Event) bool {
 		if event.ObjectID == 0 {
 			return false
 		}
@@ -612,12 +611,12 @@ func extractUsersFromPosts(
 func fillupUsers(
 	users user.StrangleService,
 	app *v04_entity.Application,
-	origin *v04_entity.ApplicationUser,
+	originID uint64,
 	um user.Map,
 	es event.List,
 ) (user.Map, error) {
 	for _, id := range es.UserIDs() {
-		if _, ok := um[id]; ok || id == origin.ID {
+		if _, ok := um[id]; ok || id == originID {
 			continue
 		}
 
@@ -687,21 +686,17 @@ func sourceConnection(cs connection.List) source {
 				return nil, err
 			}
 
-			es = append(es, &v04_entity.Event{
-				ID:    id,
-				Owned: true,
-				Target: &v04_entity.Object{
+			es = append(es, &event.Event{
+				Enabled: true,
+				ID:      id,
+				Owned:   true,
+				Target: &event.Target{
 					ID:   strconv.FormatUint(con.UserToID, 10),
-					Type: v04_entity.TypeTargetUser,
+					Type: event.TargetUser,
 				},
 				Type:       t,
 				UserID:     con.UserFromID,
-				Visibility: v04_entity.EventPrivate,
-				Common: v04_entity.Common{
-					Enabled:   true,
-					CreatedAt: con.UpdatedAt,
-					UpdatedAt: con.UpdatedAt,
-				},
+				Visibility: event.VisibilityPrivate,
 			})
 		}
 
@@ -713,23 +708,23 @@ func sourceConnection(cs connection.List) source {
 
 // sourceGlobal returns all events for app with visibility EventGlobal.
 func sourceGlobal(
-	events event.StrangleService,
+	events event.Service,
 	app *v04_entity.Application,
-	cond *v04_core.EventCondition,
+	options *event.QueryOptions,
 ) source {
-	condition := v04_core.EventCondition{}
-	if cond != nil {
-		condition = *cond
+	opts := event.QueryOptions{}
+	if options != nil {
+		opts = *options
 	}
 
-	condition.Visibility = &v04_core.RequestCondition{
-		Eq: int(v04_entity.EventGlobal),
+	opts.Visibilities = []event.Visibility{
+		event.VisibilityGlobal,
 	}
 
 	return func() (event.List, error) {
-		es, errs := events.ListAll(app.OrgID, app.ID, condition)
-		if errs != nil {
-			return nil, errs[0]
+		es, err := events.Query(app.Namespace(), opts)
+		if err != nil {
+			return nil, err
 		}
 
 		return es, nil
@@ -738,9 +733,9 @@ func sourceGlobal(
 
 // connectionUsers returns all events owned by the given user ids.
 func sourceNeighbours(
-	events event.StrangleService,
+	events event.Service,
 	app *v04_entity.Application,
-	cond *v04_core.EventCondition,
+	options *event.QueryOptions,
 	ids ...uint64,
 ) source {
 	if len(ids) == 0 {
@@ -749,37 +744,21 @@ func sourceNeighbours(
 		}
 	}
 
-	condIDs := []interface{}{}
-
-	for _, id := range ids {
-		condIDs = append(condIDs, id)
+	opts := event.QueryOptions{}
+	if options != nil {
+		opts = *options
 	}
 
-	condition := v04_core.EventCondition{}
-	if cond != nil {
-		condition = *cond
+	opts.Visibilities = []event.Visibility{
+		event.VisibilityConnection,
+		event.VisibilityPublic,
 	}
-
-	condition.Owned = &v04_core.RequestCondition{
-		In: []interface{}{
-			true,
-			false,
-		},
-	}
-	condition.Visibility = &v04_core.RequestCondition{
-		In: []interface{}{
-			int(v04_entity.EventConnections),
-			int(v04_entity.EventPublic),
-		},
-	}
-	condition.UserID = &v04_core.RequestCondition{
-		In: condIDs,
-	}
+	opts.UserIDs = ids
 
 	return func() (event.List, error) {
-		es, errs := events.ListAll(app.OrgID, app.ID, condition)
-		if errs != nil {
-			return nil, errs[0]
+		es, err := events.Query(app.Namespace(), opts)
+		if err != nil {
+			return nil, err
 		}
 
 		return es, nil

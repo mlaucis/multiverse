@@ -12,7 +12,6 @@ import (
 	"github.com/tapglue/multiverse/controller"
 	"github.com/tapglue/multiverse/service/event"
 	"github.com/tapglue/multiverse/service/user"
-	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
 
 // LikeCreate emits new like event for the post by the current user.
@@ -167,7 +166,7 @@ type likeFields struct {
 }
 
 type payloadLike struct {
-	like *v04_entity.Event
+	like *event.Event
 }
 
 func (p *payloadLike) MarshalJSON() ([]byte, error) {
@@ -177,8 +176,8 @@ func (p *payloadLike) MarshalJSON() ([]byte, error) {
 			ID:        strconv.FormatUint(l.ID, 10),
 			PostID:    strconv.FormatUint(l.ObjectID, 10),
 			UserID:    strconv.FormatUint(l.UserID, 10),
-			CreatedAt: *l.CreatedAt,
-			UpdatedAt: *l.UpdatedAt,
+			CreatedAt: l.CreatedAt,
+			UpdatedAt: l.UpdatedAt,
 		}
 	)
 
