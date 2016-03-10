@@ -754,7 +754,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "getCurrentUserEventList",
 			Method: "GET",
-			Path:   "/me/events",
+			Path:   "/deprecated/me/events",
 			Handlers: []RouteFunc{
 				postgresEventHandler.CurrentUserList,
 			},
