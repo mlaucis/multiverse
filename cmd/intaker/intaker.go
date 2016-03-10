@@ -252,6 +252,13 @@ func main() {
 
 	next := router.PathPrefix(fmt.Sprintf("/%s", apiVersionNext)).Subrouter()
 
+	next.Methods("GET").PathPrefix("/me/events").Name("eventListMe").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.EventListMe(eventController),
+		),
+	)
+
 	next.Methods("GET").PathPrefix(`/users/{userID:[0-9]+}/events`).Name("eventListUser").HandlerFunc(
 		handler.Wrap(
 			withUser,

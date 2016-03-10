@@ -51,13 +51,21 @@ func (c *EventController) ListUser(
 		}
 	)
 
-	r, errs := c.connections.Relation(app.OrgID, app.ID, originID, userID)
-	if errs != nil {
-		return nil, errs[0]
-	}
+	if originID == userID {
+		opts.Visibilities = append(
+			opts.Visibilities,
+			event.VisibilityConnection,
+			event.VisibilityPrivate,
+		)
+	} else {
+		r, errs := c.connections.Relation(app.OrgID, app.ID, originID, userID)
+		if errs != nil {
+			return nil, errs[0]
+		}
 
-	if (r.IsFriend != nil && *r.IsFriend) || (r.IsFollowed != nil && *r.IsFollowed) {
-		opts.Visibilities = append(opts.Visibilities, event.VisibilityConnection)
+		if (r.IsFriend != nil && *r.IsFriend) || (r.IsFollowed != nil && *r.IsFollowed) {
+			opts.Visibilities = append(opts.Visibilities, event.VisibilityConnection)
+		}
 	}
 
 	es, err := c.events.Query(app.Namespace(), opts)

@@ -13,6 +13,33 @@ import (
 	"golang.org/x/net/context"
 )
 
+// EventListMe returns all events for the current user.
+func EventListMe(c *controller.EventController) Handler {
+	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+		var (
+			app         = appFromContext(ctx)
+			currentUser = userFromContext(ctx)
+		)
+
+		l, err := c.ListUser(app, currentUser.ID, currentUser.ID)
+		if err != nil {
+			respondError(w, 0, err)
+			return
+		}
+
+		if len(l.Events) == 0 {
+			respondJSON(w, http.StatusNoContent, nil)
+			return
+		}
+
+		respondJSON(w, http.StatusOK, &payloadFeedEvents{
+			events:  l.Events,
+			postMap: l.PostMap,
+			userMap: l.UserMap,
+		})
+	}
+}
+
 // EventListUser returns all events as visible by the current user,
 func EventListUser(c *controller.EventController) Handler {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
