@@ -37,7 +37,7 @@ resource "cloudflare_record" "gambify" {
 resource "cloudflare_record" "stepz" {
   domain  = "${var.cloudflare_domain}"
   name    = "stepz"
-  value   = "${aws_elb.frontend.dns_name}"
+  value   = "${aws_elb.gateway-http.dns_name}"
   type    = "CNAME"
   ttl     = 1
   proxied = true
