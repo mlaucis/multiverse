@@ -298,7 +298,7 @@ resource "aws_ecs_task_definition" "gateway-http" {
 [
   {
     "name": "gateway-http",
-    "image": "775034650473.dkr.ecr.us-east-1.amazonaws.com/gateway-http:1698",
+    "image": "775034650473.dkr.ecr.us-east-1.amazonaws.com/gateway-http:1706",
     "cpu": 512,
     "memory": 2048,
     "essential": true,
