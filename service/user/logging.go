@@ -73,6 +73,53 @@ func LogStrangleMiddleware(logger log.Logger, store string) StrangleMiddleware {
 	}
 }
 
+func (s *logStrangleService) FilterByEmail(
+	orgID, appID int64,
+	emails []string,
+) (users []*v04_entity.ApplicationUser, errs []errors.Error) {
+	defer func(begin time.Time) {
+		ps := []interface{}{
+			"datapoints", len(users),
+			"duration", time.Since(begin),
+			"inputs", len(emails),
+			"method", "FitlerByEmail",
+			"namespace", convertNamespace(orgID, appID),
+		}
+
+		if errs != nil {
+			ps = append(ps, "err", errs[0])
+		}
+
+		_ = s.logger.Log(ps...)
+	}(time.Now())
+
+	return s.StrangleService.FilterByEmail(orgID, appID, emails)
+}
+
+func (s *logStrangleService) FilterBySocialIDs(
+	orgID, appID int64,
+	platform string,
+	ids []string,
+) (users []*v04_entity.ApplicationUser, errs []errors.Error) {
+	defer func(begin time.Time) {
+		ps := []interface{}{
+			"datapoints", len(users),
+			"duration", time.Since(begin),
+			"inputs", len(ids),
+			"method", "FitlerBySocialIDs",
+			"namespace", convertNamespace(orgID, appID),
+		}
+
+		if errs != nil {
+			ps = append(ps, "err", errs[0])
+		}
+
+		_ = s.logger.Log(ps...)
+	}(time.Now())
+
+	return s.StrangleService.FilterBySocialIDs(orgID, appID, platform, ids)
+}
+
 func (s *logStrangleService) FindBySession(
 	orgID, appID int64,
 	key string,

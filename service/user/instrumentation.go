@@ -187,6 +187,37 @@ func InstrumentStrangleMiddleware(ns string, store string) StrangleMiddleware {
 	}
 }
 
+func (s *instrumentStrangleService) FilterByEmail(
+	orgID, appID int64,
+	emails []string,
+) (users []*v04_entity.ApplicationUser, errs []errors.Error) {
+	defer func(begin time.Time) {
+		var err error
+		if errs != nil {
+			err = errs[0]
+		}
+		s.track(orgID, appID, begin, "FilterByEmail", err)
+	}(time.Now())
+
+	return s.StrangleService.FilterByEmail(orgID, appID, emails)
+}
+
+func (s *instrumentStrangleService) FilterBySocialIDs(
+	orgID, appID int64,
+	platform string,
+	ids []string,
+) (users []*v04_entity.ApplicationUser, errs []errors.Error) {
+	defer func(begin time.Time) {
+		var err error
+		if errs != nil {
+			err = errs[0]
+		}
+		s.track(orgID, appID, begin, "FilterBySocialIDs", err)
+	}(time.Now())
+
+	return s.StrangleService.FilterBySocialIDs(orgID, appID, platform, ids)
+}
+
 func (s *instrumentStrangleService) FindBySession(
 	orgID, appID int64,
 	key string,

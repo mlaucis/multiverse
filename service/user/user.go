@@ -21,6 +21,15 @@ type ServiceMiddleware func(Service) Service
 // StrangleService is an intermediate interface to understand the dependencies
 // of new middlewares and controllers.
 type StrangleService interface {
+	FilterByEmail(
+		orgID, appID int64,
+		emails []string,
+	) ([]*v04_entity.ApplicationUser, []errors.Error)
+	FilterBySocialIDs(
+		orgID, appID int64,
+		platform string,
+		ids []string,
+	) ([]*v04_entity.ApplicationUser, []errors.Error)
 	FindBySession(
 		orgID, appID int64,
 		key string,

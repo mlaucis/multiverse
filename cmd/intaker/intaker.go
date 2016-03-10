@@ -204,6 +204,7 @@ func main() {
 			aggregateEvents,
 			userStrangle,
 		)
+		userController = controller.NewUserController(conStrangle, userStrangle)
 	)
 
 	// Setup middlewares
@@ -531,6 +532,20 @@ func main() {
 		handler.Wrap(
 			withUser,
 			handler.RecommendUsersActiveMonth(recommendationController),
+		),
+	)
+
+	next.Methods("POST").PathPrefix("/users/search/emails").Name("userSearchEmails").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.UserSearchEmails(userController),
+		),
+	)
+
+	next.Methods("POST").PathPrefix(`/users/search/{platform:[a-z]+}`).Name("userSearchPlatform").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.UserSearchPlatform(userController),
 		),
 	)
 
