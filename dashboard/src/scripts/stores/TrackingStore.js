@@ -62,6 +62,9 @@ class TrackingStore extends EventStore {
   handleAction = (action) => {
     waitFor([ AccountStore.dispatchToken ])
 
+    let account = AccountStore.account
+    let user = AccountStore.user
+
     switch (action.type) {
       case AccountConstants.ACCOUNTUSER_CREATE_FAILURE:
         this.trackEvent('Member signed up', {
@@ -104,17 +107,17 @@ class TrackingStore extends EventStore {
 
         break
       case AccountConstants.LOGIN_SUCCESS:
-        let me = action.response
-
         this.trackEvent('Member logged in', {
+          email: user.email,
           eventId: 2,
-          memberId: me.id,
+          memberId: user.id,
           success: true
         })
 
         break
       case AccountConstants.LOGOUT_FAILURE:
         this.trackEvent('Member logged out', {
+          email: action.user.email,
           eventId: 3,
           memberId: action.user.id,
           success: false
@@ -123,6 +126,7 @@ class TrackingStore extends EventStore {
         break
       case AccountConstants.LOGOUT_SUCCESS:
         this.trackEvent('Member logged out', {
+          email: action.user.email,
           eventId: 3,
           memberId: action.user.id,
           success: true
@@ -131,6 +135,7 @@ class TrackingStore extends EventStore {
         break
       case ApplicationConstants.APP_CREATE_FAILURE:
         this.trackEvent('Application created', {
+          email: user.email,
           eventId: 7,
           appName: action.name,
           appDescription: action.description,
@@ -141,6 +146,7 @@ class TrackingStore extends EventStore {
         break
       case ApplicationConstants.APP_CREATE_SUCCESS:
         this.trackEvent('Application created', {
+          email: user.email,
           eventId: 7,
           appId: action.response.id,
           appName: action.name,
@@ -152,6 +158,7 @@ class TrackingStore extends EventStore {
         break
       case ApplicationConstants.APP_EDIT_FAILURE:
         this.trackEvent('Application edited', {
+          email: user.email,
           eventId: 8,
           appId: action.id,
           appName: action.name,
@@ -163,6 +170,7 @@ class TrackingStore extends EventStore {
         break
       case ApplicationConstants.APP_EDIT_SUCCESS:
         this.trackEvent('Application edited', {
+          email: user.email,
           eventId: 8,
           appId: action.id,
           appName: action.name,
@@ -174,6 +182,7 @@ class TrackingStore extends EventStore {
         break
       case ApplicationConstants.APP_DELETE_FAILURE:
         this.trackEvent('Application deleted', {
+          email: user.email,
           eventId: 9,
           appId: action.id,
           success: false
@@ -182,6 +191,7 @@ class TrackingStore extends EventStore {
         break
       case ApplicationConstants.APP_DELETE_SUCCESS:
         this.trackEvent('Application deleted', {
+          email: user.email,
           eventId: 9,
           appId: action.id,
           success: true
@@ -190,6 +200,7 @@ class TrackingStore extends EventStore {
         break
       case MemberConstants.MEMBER_CREATE_FAILURE:
         this.trackEvent('Member created', {
+          email: user.email,
           eventId: 10,
           success: false
         })
@@ -199,6 +210,7 @@ class TrackingStore extends EventStore {
         let member = action.response
 
         this.trackEvent('Member created', {
+          email: user.email,
           eventId: 10,
           memberId: member.id,
           success: true
@@ -207,6 +219,7 @@ class TrackingStore extends EventStore {
         break
       case MemberConstants.MEMBER_DELETE_FAILURE:
         this.trackEvent('Member deleted', {
+          email: user.email,
           eventId: 11,
           memberId: action.id,
           success: false
@@ -215,6 +228,7 @@ class TrackingStore extends EventStore {
         break
       case MemberConstants.MEMBER_DELETE_SUCCESS:
         this.trackEvent('Member deleted', {
+          email: user.email,
           eventId: 11,
           memberId: action.id,
           success: true
@@ -222,10 +236,8 @@ class TrackingStore extends EventStore {
 
         break
       case MemberConstants.MEMBER_INVITE_FAILURE:
-        let _account = AccountStore.account
-        let _user = AccountStore.user
-
         this.trackEvent('Member invited', {
+          email: user.email,
           eventId: 12,
           invitee: {
             email: action.email,
@@ -234,23 +246,21 @@ class TrackingStore extends EventStore {
           },
           inviter: {
             email: _user.email,
-            firstName: _user.firstName,
-            id: _user.id,
-            lastName: _user.lastName
+            firstName: user.firstName,
+            id: user.id,
+            lastName: user.lastName
           },
           org: {
-            id: _account.id,
-            name: _account.name
+            id: account.id,
+            name: account.name
           },
           success: false
         })
 
         break
       case MemberConstants.MEMBER_INVITE_SUCCESS:
-        let account = AccountStore.account
-        let user = AccountStore.user
-
         this.trackEvent('Member invited', {
+          email: user.email,
           eventId: 12,
           invitee: {
             email: action.email,
