@@ -245,9 +245,9 @@ func whereToOpts(input string) (*event.QueryOptions, error) {
 
 	if cond.Object != nil && cond.Object.ID != nil {
 		if cond.Object.ID.Eq != nil {
-			id, ok := cond.Object.ID.Eq.(string)
-			if !ok {
-				return nil, fmt.Errorf("error in where param")
+			id, err := parseID(cond.Object.ID.Eq)
+			if err != nil {
+				return nil, err
 			}
 
 			opts.ExternalObjectIDs = []string{
@@ -259,9 +259,9 @@ func whereToOpts(input string) (*event.QueryOptions, error) {
 			opts.ExternalObjectIDs = []string{}
 
 			for _, input := range cond.Object.ID.In {
-				id, ok := input.(string)
-				if !ok {
-					return nil, fmt.Errorf("error in where param")
+				id, err := parseID(input)
+				if err != nil {
+					return nil, err
 				}
 
 				opts.ExternalObjectIDs = append(opts.ExternalObjectIDs, id)

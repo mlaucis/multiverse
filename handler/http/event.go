@@ -2,6 +2,7 @@ package http
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -205,11 +206,11 @@ func (p *payloadEvent) MarshalJSON() ([]byte, error) {
 
 func (p *payloadEvent) UnmarshalJSON(raw []byte) error {
 	f := struct {
-		Language   string        `json:"language"`
-		Object     *event.Object `json:"object"`
-		Target     *event.Target `json:"target,omitempty"`
-		Type       string        `json:"type"`
-		Visibility uint8         `json:"visibility"`
+		Language   string         `json:"language"`
+		Object     *payloadObject `json:"object"`
+		Target     *event.Target  `json:"target,omitempty"`
+		Type       string         `json:"type"`
+		Visibility uint8          `json:"visibility"`
 	}{}
 
 	err := json.Unmarshal(raw, &f)
@@ -219,13 +220,72 @@ func (p *payloadEvent) UnmarshalJSON(raw []byte) error {
 
 	e := &event.Event{
 		Language:   f.Language,
-		Object:     f.Object,
 		Target:     f.Target,
 		Type:       f.Type,
 		Visibility: event.Visibility(f.Visibility),
 	}
 
+	if f.Object != nil {
+		e.Object = &event.Object{
+			ID:   f.Object.ID,
+			Type: f.Object.Type,
+			URL:  f.Object.URL,
+		}
+	}
+
 	p.event = e
 
 	return nil
+}
+
+type payloadObject struct {
+	ID   string
+	Type string
+	URL  string
+}
+
+func (p *payloadObject) UnmarshalJSON(raw []byte) error {
+	f := struct {
+		ID   interface{} `json:"id"`
+		Type string      `json:"type"`
+		URL  string      `json:"url"`
+	}{}
+
+	err := json.Unmarshal(raw, &f)
+	if err != nil {
+		return err
+	}
+
+	p.Type = f.Type
+	p.URL = f.URL
+
+	id, err := parseID(f.ID)
+	if err != nil {
+		return err
+	}
+
+	p.ID = id
+
+	return nil
+}
+
+func parseID(input interface{}) (string, error) {
+	var id string
+
+	switch t := input.(type) {
+	case float64:
+		id = fmt.Sprintf("%d", int64(t))
+	case int:
+		id = strconv.Itoa(t)
+	case int64:
+		id = strconv.FormatInt(t, 10)
+	case uint64:
+		id = strconv.FormatUint(t, 10)
+	case string:
+		id = t
+	default:
+		return "", fmt.Errorf("unexpected value for id")
+	}
+
+	return id, nil
 }

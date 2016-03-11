@@ -122,6 +122,7 @@ func (es List) UserIDs() []uint64 {
 type Object struct {
 	ID   string `json:"id"`
 	Type string `json:"type"`
+	URL  string `json:"url"`
 }
 
 // QueryOptions are used to narrow down Event queries.
