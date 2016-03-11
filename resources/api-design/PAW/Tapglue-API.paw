@@ -5603,12 +5603,12 @@
         <attribute name="redirectauthorization" type="bool">0</attribute>
         <attribute name="method" type="string">PUT</attribute>
         <attribute name="followredirects" type="bool">0</attribute>
-        <attribute name="body" type="string">[{"data":{"json":"{\\"type\\":\\"like1\\",\\"object\\":{\\"id\\":\\"picture1\\",\\"type\\":\\"picture\\",\\"display_names\\":{\\"en\\":\\"Picture 1\\",\\"de\\":\\"Bild 1\\"}},\\"metadata\\":{\\"category\\":\\"landscape\\",\\"key\\":\\"value\\"}}"},"identifier":"com.luckymarmot.JSONDynamicValue"}]</attribute>
+        <attribute name="body" type="string">[{"data":{"json":"{\\"type\\":\\"like1\\",\\"object\\":{\\"id\\":\\"picture1\\",\\"type\\":\\"picture\\",\\"display_names\\":{\\"en\\":\\"Picture 1\\",\\"de\\":\\"Bild 1\\"}},\\"metadata\\":{\\"category\\":\\"landscape\\",\\"key\\":\\"value\\"},\\"visibility\\":30}"},"identifier":"com.luckymarmot.JSONDynamicValue"}]</attribute>
         <attribute name="order" type="int64">2</attribute>
         <attribute name="name" type="string">Update Event</attribute>
         <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z607"></relationship>
         <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
-        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z214 z229 z317 z405 z304"></relationship>
+        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z405 z229 z317 z214 z304"></relationship>
     </object>
     <object type="LMREQUEST" id="z658">
         <attribute name="uuid" type="string">A3158AF3-399A-4D18-B2CB-4EB8B6F8D53E</attribute>

@@ -9,7 +9,10 @@ type prepareFunc func(namespace string, t *testing.T) Service
 
 func testEvent() *Event {
 	return &Event{
-		Enabled: true,
+		Enabled:    true,
+		Type:       "rate",
+		UserID:     1,
+		Visibility: VisibilityConnection,
 	}
 }
 
