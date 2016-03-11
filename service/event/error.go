@@ -7,6 +7,7 @@ import (
 
 // Common erorrs for Event service implementations.
 var (
+	ErrInvalidEvent      = errors.New("invalid event")
 	ErrNamespaceNotFound = errors.New("namespace not found")
 	ErrNotFound          = errors.New("event not found")
 )

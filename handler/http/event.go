@@ -13,6 +13,55 @@ import (
 	"github.com/tapglue/multiverse/service/event"
 )
 
+// EventCreate stores a new event for the current user.
+func EventCreate(c *controller.EventController) Handler {
+	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+		var (
+			app         = appFromContext(ctx)
+			currentUser = userFromContext(ctx)
+			p           = payloadEvent{}
+		)
+
+		err := json.NewDecoder(r.Body).Decode(&p)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		event, err := c.Create(app, currentUser.ID, p.event)
+		if err != nil {
+			respondError(w, 0, err)
+			return
+		}
+
+		respondJSON(w, http.StatusCreated, &payloadEvent{event: event})
+	}
+}
+
+// EventDelete marks an event as disabled.
+func EventDelete(c *controller.EventController) Handler {
+	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+		var (
+			app         = appFromContext(ctx)
+			currentUser = userFromContext(ctx)
+		)
+
+		id, err := strconv.ParseUint(mux.Vars(r)["id"], 10, 64)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		err = c.Delete(app, currentUser.ID, id)
+		if err != nil {
+			respondError(w, 0, err)
+			return
+		}
+
+		respondJSON(w, http.StatusNoContent, nil)
+	}
+}
+
 // EventListMe returns all events for the current user.
 func EventListMe(c *controller.EventController) Handler {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
@@ -21,7 +70,13 @@ func EventListMe(c *controller.EventController) Handler {
 			currentUser = userFromContext(ctx)
 		)
 
-		l, err := c.ListUser(app, currentUser.ID, currentUser.ID)
+		opts, err := whereToOpts(r.URL.Query().Get("where"))
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		l, err := c.List(app, currentUser.ID, currentUser.ID, opts)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -54,7 +109,7 @@ func EventListUser(c *controller.EventController) Handler {
 			return
 		}
 
-		l, err := c.ListUser(app, currentUser.ID, userID)
+		l, err := c.List(app, currentUser.ID, userID, nil)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -70,6 +125,37 @@ func EventListUser(c *controller.EventController) Handler {
 			postMap: l.PostMap,
 			userMap: l.UserMap,
 		})
+	}
+}
+
+// EventUpdate replaces an event with new values.
+func EventUpdate(c *controller.EventController) Handler {
+	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+		var (
+			app         = appFromContext(ctx)
+			currentUser = userFromContext(ctx)
+			p           = payloadEvent{}
+		)
+
+		id, err := strconv.ParseUint(mux.Vars(r)["id"], 10, 64)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		err = json.NewDecoder(r.Body).Decode(&p)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		event, err := c.Update(app, currentUser.ID, id, p.event)
+		if err != nil {
+			respondError(w, 0, err)
+			return
+		}
+
+		respondJSON(w, http.StatusOK, &payloadEvent{event: event})
 	}
 }
 
@@ -115,4 +201,31 @@ func (p *payloadEvent) MarshalJSON() ([]byte, error) {
 	}
 
 	return json.Marshal(f)
+}
+
+func (p *payloadEvent) UnmarshalJSON(raw []byte) error {
+	f := struct {
+		Language   string        `json:"language"`
+		Object     *event.Object `json:"object"`
+		Target     *event.Target `json:"target,omitempty"`
+		Type       string        `json:"type"`
+		Visibility uint8         `json:"visibility"`
+	}{}
+
+	err := json.Unmarshal(raw, &f)
+	if err != nil {
+		return err
+	}
+
+	e := &event.Event{
+		Language:   f.Language,
+		Object:     f.Object,
+		Target:     f.Target,
+		Type:       f.Type,
+		Visibility: event.Visibility(f.Visibility),
+	}
+
+	p.event = e
+
+	return nil
 }

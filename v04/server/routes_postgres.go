@@ -650,7 +650,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "updateCurrentUserEvent",
 			Method: "PUT",
-			Path:   fmt.Sprintf("/me/events/%s", eventID),
+			Path:   fmt.Sprintf("/deprecated/me/events/%s", eventID),
 			Handlers: []RouteFunc{
 				postgresEventHandler.CurrentUserUpdate,
 			},
@@ -676,7 +676,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "deleteCurrentUserEvent",
 			Method: "DELETE",
-			Path:   fmt.Sprintf("/me/events/%s", eventID),
+			Path:   fmt.Sprintf("/deprecated/me/events/%s", eventID),
 			Handlers: []RouteFunc{
 				postgresEventHandler.CurrentUserDelete,
 			},
@@ -702,7 +702,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "createCurrentUserEvent",
 			Method: "POST",
-			Path:   "/me/events",
+			Path:   "/deprecated/me/events",
 			Handlers: []RouteFunc{
 				postgresEventHandler.CurrentUserCreate,
 			},

@@ -31,25 +31,77 @@ func NewEventController(
 	}
 }
 
-// ListUser returns the events of a user as seen by the origin user.
-func (c *EventController) ListUser(
+// Create stores a new event for the origin user.
+func (c *EventController) Create(
+	app *v04_entity.Application,
+	originID uint64,
+	input *event.Event,
+) (*event.Event, error) {
+	input.Enabled = true
+	input.UserID = originID
+
+	event, err := c.events.Put(app.Namespace(), input)
+	if err != nil {
+		return nil, err
+	}
+
+	return event, nil
+}
+
+// Delete marks an event as disabled.
+func (c *EventController) Delete(
+	app *v04_entity.Application,
+	originID uint64,
+	id uint64,
+) error {
+	es, err := c.events.Query(app.Namespace(), event.QueryOptions{
+		Enabled: &defaultEnabled,
+		IDs: []uint64{
+			id,
+		},
+		UserIDs: []uint64{
+			originID,
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	if len(es) == 0 {
+		return ErrNotFound
+	}
+
+	event := es[0]
+	event.Enabled = false
+
+	_, err = c.events.Put(app.Namespace(), event)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// List returns the events of a user as seen by the origin user.
+func (c *EventController) List(
 	app *v04_entity.Application,
 	originID uint64,
 	userID uint64,
+	options *event.QueryOptions,
 ) (*Feed, error) {
-	var (
-		enabled = true
-		opts    = event.QueryOptions{
-			Enabled: &enabled,
-			UserIDs: []uint64{
-				userID,
-			},
-			Visibilities: []event.Visibility{
-				event.VisibilityGlobal,
-				event.VisibilityPublic,
-			},
-		}
-	)
+	opts := event.QueryOptions{}
+	if options != nil {
+		opts = *options
+	}
+
+	opts.Enabled = &defaultEnabled
+	opts.UserIDs = []uint64{
+		userID,
+	}
+	opts.Visibilities = []event.Visibility{
+		event.VisibilityGlobal,
+		event.VisibilityPublic,
+	}
 
 	if originID == userID {
 		opts.Visibilities = append(
@@ -93,4 +145,43 @@ func (c *EventController) ListUser(
 		PostMap: ps.toMap(),
 		UserMap: um.Merge(pum),
 	}, nil
+}
+
+// Update stores an event with new values.
+func (c *EventController) Update(
+	app *v04_entity.Application,
+	originID uint64,
+	id uint64,
+	input *event.Event,
+) (*event.Event, error) {
+	es, err := c.events.Query(app.Namespace(), event.QueryOptions{
+		Enabled: &defaultEnabled,
+		IDs: []uint64{
+			id,
+		},
+		UserIDs: []uint64{
+			originID,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if len(es) == 0 {
+		return nil, ErrNotFound
+	}
+
+	e := es[0]
+	e.Language = input.Language
+	e.Object = input.Object
+	e.Target = input.Target
+	e.Type = input.Type
+	e.Visibility = input.Visibility
+
+	event, err := c.events.Put(app.Namespace(), e)
+	if err != nil {
+		return nil, err
+	}
+
+	return event, nil
 }

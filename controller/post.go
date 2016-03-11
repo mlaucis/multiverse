@@ -244,7 +244,7 @@ func (c *PostController) Retrieve(
 	return &Post{Object: os[0]}, nil
 }
 
-// Update  stores the new post with the service.
+// Update stores a post with the new values.
 func (c *PostController) Update(
 	app *v04_entity.Application,
 	owner *v04_entity.ApplicationUser,

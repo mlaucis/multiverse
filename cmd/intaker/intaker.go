@@ -253,10 +253,31 @@ func main() {
 
 	next := router.PathPrefix(fmt.Sprintf("/%s", apiVersionNext)).Subrouter()
 
-	next.Methods("GET").PathPrefix("/me/events").Name("eventListMe").HandlerFunc(
+	next.Methods("DELETE").PathPrefix(`/me/events/{id:[0-9]+}`).Name("deleteEvent").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.EventDelete(eventController),
+		),
+	)
+
+	next.Methods("PUT").PathPrefix(`/me/events/{id:[0-9]+}`).Name("updateEvent").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.EventUpdate(eventController),
+		),
+	)
+
+	next.Methods("GET").PathPrefix(`/me/events`).Name("eventListMe").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.EventListMe(eventController),
+		),
+	)
+
+	next.Methods("POST").PathPrefix(`/me/events`).Name("eventCreate").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.EventCreate(eventController),
 		),
 	)
 

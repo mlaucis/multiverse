@@ -54,6 +54,18 @@ type Event struct {
 
 // Validate performs semantic checks on the passed Event values for correctness.
 func (e Event) Validate() error {
+	if e.Type == "" {
+		return wrapError(ErrInvalidEvent, "missing type")
+	}
+
+	if e.UserID == 0 {
+		return wrapError(ErrInvalidEvent, "missing owner")
+	}
+
+	if e.Visibility < 10 || e.Visibility > 50 {
+		return wrapError(ErrInvalidEvent, "visibility not supported")
+	}
+
 	return nil
 }
 
