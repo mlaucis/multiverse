@@ -12,6 +12,14 @@ import (
 	"github.com/tapglue/multiverse/platform/metrics"
 )
 
+// Analytics is the endpoint for devices to submit usage data.
+func Analytics() Handler {
+	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("ok"))
+	}
+}
+
 // AnalyticsApp returns the analytics data for an app controlled by the
 // passed where clause.
 func AnalyticsApp(c *controller.AnalyticsController) Handler {
