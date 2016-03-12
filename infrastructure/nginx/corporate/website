@@ -96,6 +96,18 @@ server {
         try_files /features.html =404;
     }
 
+    location /elements.html {
+        rewrite $(.*)$ /elements/ permanent;
+    }
+
+    location /elements {
+        rewrite $(.*)$ /elements/ permanent;
+    }
+
+    location /elements/ {
+        try_files /elements.html =404;
+    }
+
     location /pricing.html {
         rewrite $(.*)$ /pricing/ permanent;
     }
