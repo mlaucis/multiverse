@@ -253,6 +253,30 @@ header.major p {
     float: left;
     vertical-align: middle;
 }
+.elementsfeatures h3 {
+  font-size: 3.4rem;
+  text-align: center;
+}
+.elementsfeatures h4 {
+  color: #474747;
+  font-weight: 400;
+}
+.elementsfeatures h3,
+.elementsfeatures h4 {
+  margin-bottom: 0 !important;
+}
+.elementsfeatures p {
+    color: #858585;
+    font-size: 2rem;
+    font-weight: 300;
+    text-align: left;
+    line-height: 1.5em;
+    margin-bottom: 1rem;
+}
+.elementsfeatures img {
+    float: left;
+    vertical-align: middle;
+}
 .benefits .benefit-right {
     float: right;
 }
@@ -1252,6 +1276,16 @@ body.landing #header .has-submenu:after {
 }
 
 #bannergreen.extraspace h3{
+  color: #ffffff;
+  font-weight: 300;
+  line-height: 3rem;
+}
+
+#bannergreen.extraspaceelement {
+  padding: 16rem 0 0 0;
+}
+
+#bannergreen.extraspaceelements h3{
   color: #ffffff;
   font-weight: 300;
   line-height: 3rem;
