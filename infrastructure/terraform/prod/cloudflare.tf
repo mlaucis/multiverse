@@ -6,7 +6,7 @@ provider "cloudflare" {
 resource "cloudflare_record" "api-prod" {
   domain  = "${var.cloudflare_domain}"
   name    = "api"
-  value   = "${aws_elb.frontend.dns_name}"
+  value   = "${aws_elb.gateway-http.dns_name}"
   type    = "CNAME"
   ttl     = 1
   proxied = true
