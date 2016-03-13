@@ -1,11 +1,9 @@
 package connection
 
 import (
-	"strings"
 	"time"
 
 	kitmetrics "github.com/go-kit/kit/metrics"
-	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
 	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/tapglue/multiverse/errors"
@@ -13,70 +11,25 @@ import (
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
 
-const (
-	fieldMethod    = "method"
-	fieldNamespace = "namespace"
-	fieldStore     = "store"
-	subsytem  = "service_connection"
-)
-
-var (
-	fieldKeys = []string{fieldMethod, fieldNamespace, fieldStore}
-
-	namespace         string
-	errCount, opCount kitmetrics.Counter
-	opLatency         kitmetrics.TimeHistogram
-)
+const serviceName = "connection"
 
 type instrumentService struct {
 	Service
 
 	errCount  kitmetrics.Counter
 	opCount   kitmetrics.Counter
-	opLatency kitmetrics.TimeHistogram
+	opLatency *prometheus.HistogramVec
 	store     string
 }
 
 // InstrumentMiddleware observes key aspects of Service operations and exposes
 // Prometheus metrics.
-func InstrumentMiddleware(ns, store string) ServiceMiddleware {
-	if namespace == "" {
-		namespace = strings.Replace(ns, "-", "_", -1)
-	}
-
-	if errCount == nil {
-		errCount = kitprometheus.NewCounter(prometheus.CounterOpts{
-			Namespace: namespace,
-			Subsystem: subsytem,
-			Name:      "err_count",
-			Help:      "Number of failed operations",
-		}, fieldKeys)
-	}
-
-	if opCount == nil {
-		opCount = kitprometheus.NewCounter(prometheus.CounterOpts{
-			Namespace: namespace,
-			Subsystem: subsytem,
-			Name:      "op_count",
-			Help:      "Number of operations performed",
-		}, fieldKeys)
-	}
-
-	if opLatency == nil {
-		opLatency = kitmetrics.NewTimeHistogram(
-			time.Second,
-			kitprometheus.NewHistogram(
-				prometheus.HistogramOpts{
-					Namespace: namespace,
-					Subsystem: subsytem,
-					Name:      "op_latency_seconds",
-					Help:      "Distribution of op duration in seconds",
-				},
-				fieldKeys,
-			),
-		)
-	}
-
+func InstrumentMiddleware(
+	store string,
+	errCount kitmetrics.Counter,
+	opCount kitmetrics.Counter,
+	opLatency *prometheus.HistogramVec,
+) ServiceMiddleware {
 	return func(next Service) Service {
 		return &instrumentService{
 			errCount:  errCount,
@@ -107,25 +60,35 @@ func (s *instrumentService) track(
 ) {
 	var (
 		m = kitmetrics.Field{
-			Key:   fieldMethod,
+			Key:   metrics.FieldMethod,
 			Value: method,
 		}
 		ns = kitmetrics.Field{
-			Key:   fieldNamespace,
+			Key:   metrics.FieldNamespace,
 			Value: namespace,
 		}
+		service = kitmetrics.Field{
+			Key:   metrics.FieldService,
+			Value: serviceName,
+		}
 		store = kitmetrics.Field{
-			Key:   fieldStore,
+			Key:   metrics.FieldStore,
 			Value: s.store,
 		}
 	)
 
 	if err != nil {
-		s.errCount.With(m).With(ns).With(store).Add(1)
+		s.errCount.With(m).With(ns).With(service).With(store).Add(1)
 	}
 
-	s.opCount.With(m).With(ns).With(store).Add(1)
-	s.opLatency.With(m).With(ns).With(store).Observe(time.Since(begin))
+	s.opCount.With(m).With(ns).With(service).With(store).Add(1)
+
+	s.opLatency.With(prometheus.Labels{
+		metrics.FieldMethod:    method,
+		metrics.FieldNamespace: namespace,
+		metrics.FieldService:   serviceName,
+		metrics.FieldStore:     s.store,
+	}).Observe(time.Since(begin).Seconds())
 }
 
 type instrumentStrangleService struct {
@@ -133,50 +96,18 @@ type instrumentStrangleService struct {
 
 	errCount  kitmetrics.Counter
 	opCount   kitmetrics.Counter
-	opLatency kitmetrics.TimeHistogram
+	opLatency *prometheus.HistogramVec
 	store     string
 }
 
 // InstrumentStrangleMiddleware observes key aspects of Service operations and
 // exposes Prometheus metrics.
-func InstrumentStrangleMiddleware(ns string, store string) StrangleMiddleware {
-	if namespace == "" {
-		namespace = strings.Replace(ns, "-", "_", -1)
-	}
-
-	if errCount == nil {
-		errCount = kitprometheus.NewCounter(prometheus.CounterOpts{
-			Namespace: namespace,
-			Subsystem: subsytem,
-			Name:      "err_count",
-			Help:      "Number of failed operations",
-		}, fieldKeys)
-	}
-
-	if opCount == nil {
-		opCount = kitprometheus.NewCounter(prometheus.CounterOpts{
-			Namespace: namespace,
-			Subsystem: subsytem,
-			Name:      "op_count",
-			Help:      "Number of operations performed",
-		}, fieldKeys)
-	}
-
-	if opLatency == nil {
-		opLatency = kitmetrics.NewTimeHistogram(
-			time.Second,
-			kitprometheus.NewHistogram(
-				prometheus.HistogramOpts{
-					Namespace: namespace,
-					Subsystem: subsytem,
-					Name:      "op_latency_seconds",
-					Help:      "Distribution of op duration in seconds",
-				},
-				fieldKeys,
-			),
-		)
-	}
-
+func InstrumentStrangleMiddleware(
+	store string,
+	errCount kitmetrics.Counter,
+	opCount kitmetrics.Counter,
+	opLatency *prometheus.HistogramVec,
+) StrangleMiddleware {
 	return func(next StrangleService) StrangleService {
 		return &instrumentStrangleService{
 			errCount:        errCount,
@@ -242,23 +173,33 @@ func (s *instrumentStrangleService) track(
 ) {
 	var (
 		m = kitmetrics.Field{
-			Key:   fieldMethod,
+			Key:   metrics.FieldMethod,
 			Value: method,
 		}
 		n = kitmetrics.Field{
-			Key:   fieldNamespace,
+			Key:   metrics.FieldNamespace,
 			Value: convertNamespace(orgID, appID),
 		}
+		service = kitmetrics.Field{
+			Key:   metrics.FieldService,
+			Value: serviceName,
+		}
 		store = kitmetrics.Field{
-			Key:   fieldStore,
+			Key:   metrics.FieldStore,
 			Value: s.store,
 		}
 	)
 
 	if err != nil {
-		s.errCount.With(m).With(n).With(store).Add(1)
+		s.errCount.With(m).With(n).With(service).With(store).Add(1)
 	}
 
-	s.opCount.With(m).With(n).With(store).Add(1)
-	s.opLatency.With(m).With(n).With(store).Observe(time.Since(begin))
+	s.opCount.With(m).With(n).With(service).With(store).Add(1)
+
+	s.opLatency.With(prometheus.Labels{
+		metrics.FieldMethod:    method,
+		metrics.FieldNamespace: convertNamespace(orgID, appID),
+		metrics.FieldService:   serviceName,
+		metrics.FieldStore:     s.store,
+	}).Observe(time.Since(begin).Seconds())
 }

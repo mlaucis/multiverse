@@ -13,7 +13,7 @@ import (
 var (
 	namespace    = "api"
 	subsystem    = "intaker"
-	fieldKeys    = []string{"route", "api_version", "status", "user_agent"}
+	fieldKeys    = []string{"route", "api_version", "status"}
 	requestCount = kitprometheus.NewCounter(prometheus.CounterOpts{
 		Namespace: namespace,
 		Subsystem: subsystem,
@@ -62,15 +62,11 @@ func metricHandler(route, apiVersion string, next http.HandlerFunc) http.Handler
 				Key:   "status",
 				Value: strconv.Itoa(rc.statusCode),
 			}
-			uaField = metrics.Field{
-				Key:   "user_agent",
-				Value: r.Header.Get("User-Agent"),
-			}
 		)
 
-		requestCount.With(routeNameField).With(routeVersionField).With(statusField).With(uaField).Add(1)
-		requestLatency.With(routeNameField).With(routeVersionField).With(statusField).With(uaField).Observe(time.Since(begin))
-		responseBytes.With(routeNameField).With(routeVersionField).With(statusField).With(uaField).Add(uint64(rc.bytesWritten))
+		requestCount.With(routeNameField).With(routeVersionField).With(statusField).Add(1)
+		requestLatency.With(routeNameField).With(routeVersionField).With(statusField).Observe(time.Since(begin))
+		responseBytes.With(routeNameField).With(routeVersionField).With(statusField).Add(uint64(rc.bytesWritten))
 	}
 }
 

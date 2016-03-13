@@ -1,65 +1,35 @@
 package org
 
 import (
-	"strings"
 	"time"
 
-	"github.com/go-kit/kit/metrics"
-	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
+	kitmetrics "github.com/go-kit/kit/metrics"
 	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/tapglue/multiverse/errors"
+	"github.com/tapglue/multiverse/platform/metrics"
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
 
-const (
-	fieldMethod = "method"
-	fieldStore  = "store"
-)
+const serviceName = "org"
 
 type instrumentStrangleService struct {
 	StrangleService
 
-	errCount  metrics.Counter
-	opCount   metrics.Counter
-	opLatency metrics.TimeHistogram
+	errCount  kitmetrics.Counter
+	opCount   kitmetrics.Counter
+	opLatency *prometheus.HistogramVec
 	store     string
 }
 
 // InstrumentStrangleMiddleware observes key aspects of Service operations and
 // exposes Prometheus metrics.
-func InstrumentStrangleMiddleware(ns, store string) StrangleMiddleware {
-	var (
-		fieldKeys = []string{fieldMethod, fieldStore}
-		namespace = strings.Replace(ns, "-", "_", -1)
-		subsytem  = "service_org"
-
-		errCount = kitprometheus.NewCounter(prometheus.CounterOpts{
-			Namespace: namespace,
-			Subsystem: subsytem,
-			Name:      "err_count",
-			Help:      "Number of failed operations",
-		}, fieldKeys)
-		opCount = kitprometheus.NewCounter(prometheus.CounterOpts{
-			Namespace: namespace,
-			Subsystem: subsytem,
-			Name:      "op_count",
-			Help:      "Number of operations performed",
-		}, fieldKeys)
-		opLatency = metrics.NewTimeHistogram(
-			time.Second,
-			kitprometheus.NewHistogram(
-				prometheus.HistogramOpts{
-					Namespace: namespace,
-					Subsystem: subsytem,
-					Name:      "op_latency_seconds",
-					Help:      "Distribution of op duration in seconds",
-				},
-				fieldKeys,
-			),
-		)
-	)
-
+func InstrumentStrangleMiddleware(
+	store string,
+	errCount kitmetrics.Counter,
+	opCount kitmetrics.Counter,
+	opLatency *prometheus.HistogramVec,
+) StrangleMiddleware {
 	return func(next StrangleService) StrangleService {
 		return &instrumentStrangleService{
 			errCount:        errCount,
@@ -76,22 +46,32 @@ func (s *instrumentStrangleService) FindByKey(
 ) (org *v04_entity.Organization, errs []errors.Error) {
 	defer func(begin time.Time) {
 		var (
-			m = metrics.Field{
-				Key:   fieldMethod,
+			m = kitmetrics.Field{
+				Key:   metrics.FieldMethod,
 				Value: "FindByKey",
 			}
-			store = metrics.Field{
-				Key:   fieldStore,
+			service = kitmetrics.Field{
+				Key:   metrics.FieldService,
+				Value: serviceName,
+			}
+			store = kitmetrics.Field{
+				Key:   metrics.FieldStore,
 				Value: s.store,
 			}
 		)
 
 		if errs != nil {
-			s.errCount.With(m).With(store).Add(1)
+			s.errCount.With(m).With(service).With(store).Add(1)
 		}
 
-		s.opCount.With(m).With(store).Add(1)
-		s.opLatency.With(m).With(store).Observe(time.Since(begin))
+		s.opCount.With(m).With(service).With(store).Add(1)
+
+		s.opLatency.With(prometheus.Labels{
+			metrics.FieldMethod:    "FindByKey",
+			metrics.FieldNamespace: "",
+			metrics.FieldService:   serviceName,
+			metrics.FieldStore:     s.store,
+		}).Observe(time.Since(begin).Seconds())
 	}(time.Now())
 
 	return s.StrangleService.FindByKey(key)
