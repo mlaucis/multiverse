@@ -37,7 +37,7 @@ var generalRoutes = map[string]generalRoute{
 	},
 	"analytics": {
 		name:    "analytics",
-		path:    "/analytics",
+		path:    "/deprecated/analytics",
 		method:  "POST",
 		handler: analyticsHandler,
 	},

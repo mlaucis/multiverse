@@ -253,6 +253,16 @@ func main() {
 
 	next := router.PathPrefix(fmt.Sprintf("/%s", apiVersionNext)).Subrouter()
 
+	next.Methods("POST").PathPrefix(`/analytics`).Name("analytics").HandlerFunc(
+		handler.Wrap(
+			handler.Chain(
+				withConstraints,
+				handler.CtxApp(apps),
+			),
+			handler.Analytics(),
+		),
+	)
+
 	next.Methods("DELETE").PathPrefix(`/me/events/{id:[0-9]+}`).Name("deleteEvent").HandlerFunc(
 		handler.Wrap(
 			withUser,
