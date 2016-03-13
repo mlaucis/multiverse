@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/garyburd/redigo/redis"
+	"github.com/jmoiron/sqlx"
 	"golang.org/x/net/context"
 
 	"github.com/tapglue/multiverse/controller"
@@ -12,6 +14,8 @@ import (
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
 	v04_response "github.com/tapglue/multiverse/v04/server/response"
 )
+
+const pgHealthcheck = `SELECT 1`
 
 // Handler is the gateway specific http.HandlerFunc expecting a context.Context.
 type Handler func(context.Context, http.ResponseWriter, *http.Request)
@@ -38,6 +42,42 @@ func Wrap(
 ) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		middleware(handler)(context.Background(), w, r)
+	}
+}
+
+// Health checks for liveliness of backing servicesa and responds with status.
+func Health(pg *sqlx.DB, rClient *redis.Pool) Handler {
+	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+		res := struct {
+			Healthy  bool            `json:"healthy"`
+			Services map[string]bool `json:"services"`
+		}{
+			Healthy: true,
+			Services: map[string]bool{
+				"postgres": true,
+				"redis":    true,
+			},
+		}
+
+		if _, err := pg.Exec(pgHealthcheck); err != nil {
+			res.Healthy = false
+			res.Services["postgres"] = false
+
+			respondJSON(w, 500, &res)
+			return
+		}
+
+		conn := rClient.Get()
+		if err := conn.Err(); err != nil {
+			res.Healthy = false
+			res.Services["redis"] = false
+
+			respondJSON(w, 500, &res)
+			return
+		}
+		defer conn.Close()
+
+		respondJSON(w, http.StatusOK, &res)
 	}
 }
 

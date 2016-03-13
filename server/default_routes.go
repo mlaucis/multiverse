@@ -43,7 +43,7 @@ var generalRoutes = map[string]generalRoute{
 	},
 	"healthcheck": {
 		name:    "healthcheck",
-		path:    "/health-45016490610398192",
+		path:    "/deprecated/health-45016490610398192",
 		method:  "GET",
 		handler: healthCheckHandler,
 	},

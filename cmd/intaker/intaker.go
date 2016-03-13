@@ -209,12 +209,18 @@ func main() {
 
 	// Setup middlewares
 	var (
-		withConstraints = handler.Chain(
+		withInstrument = handler.Chain(
 			handler.CtxPrepare(apiVersionNext),
 			handler.Log(logger),
 			handler.Instrument(component),
+		)
+		withHeaders = handler.Chain(
 			handler.SecureHeaders(),
 			handler.DebugHeaders(currentRevision, currentHostname),
+		)
+		withConstraints = handler.Chain(
+			withInstrument,
+			withHeaders,
 			handler.CORS(),
 			handler.Gzip(),
 			handler.HasUserAgent(),
@@ -258,6 +264,16 @@ func main() {
 				handler.CtxApp(apps),
 			),
 			handler.Analytics(),
+		),
+	)
+
+	router.Methods("GET").PathPrefix(`/health-45016490610398192`).Name("healthcheck").HandlerFunc(
+		handler.Wrap(
+			handler.Chain(
+				withInstrument,
+				withHeaders,
+			),
+			handler.Health(pgClient.MainDatastore(), redisClient),
 		),
 	)
 
