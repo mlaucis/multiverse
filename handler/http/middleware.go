@@ -275,17 +275,14 @@ func Instrument(
 			Name:      "request_count",
 			Help:      "Number of requests received",
 		}, fieldKeys)
-		requestLatency = metrics.NewTimeHistogram(
-			time.Second,
-			kitprometheus.NewHistogram(
-				prometheus.HistogramOpts{
-					Namespace: namespace,
-					Subsystem: subsystem,
-					Name:      "request_latency_seconds",
-					Help:      "Total duration of requests in seconds",
-				},
-				fieldKeys,
-			),
+		requestLatency = prometheus.NewHistogramVec(
+			prometheus.HistogramOpts{
+				Namespace: namespace,
+				Subsystem: subsystem,
+				Name:      "request_latency_seconds",
+				Help:      "Total duration of requests in seconds",
+			},
+			fieldKeys,
 		)
 		responseBytes = kitprometheus.NewCounter(prometheus.CounterOpts{
 			Namespace: namespace,
@@ -295,35 +292,42 @@ func Instrument(
 		}, fieldKeys)
 	)
 
+	prometheus.MustRegister(requestLatency)
+
 	return func(next Handler) Handler {
 		return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 			var (
 				begin     = time.Now()
 				resr      = &responseRecorder{ResponseWriter: w}
 				routeName = routeFromContext(ctx)
-				v         = versionFromContext(ctx)
+				version   = versionFromContext(ctx)
 			)
 
 			next(ctx, resr, r)
 
 			var (
-				route = metrics.Field{
+				status = strconv.Itoa(resr.StatusCode)
+				route  = metrics.Field{
 					Key:   "route",
 					Value: routeName,
 				}
-				status = metrics.Field{
+				s = metrics.Field{
 					Key:   "status",
-					Value: strconv.Itoa(resr.StatusCode),
+					Value: status,
 				}
-				version = metrics.Field{
+				v = metrics.Field{
 					Key:   "version",
-					Value: v,
+					Value: version,
 				}
 			)
 
-			requestCount.With(route).With(status).With(version).Add(1)
-			requestLatency.With(route).With(status).With(version).Observe(time.Since(begin))
-			responseBytes.With(route).With(status).With(version).Add(uint64(resr.ContentLength))
+			requestCount.With(route).With(s).With(v).Add(1)
+			responseBytes.With(route).With(s).With(v).Add(uint64(resr.ContentLength))
+			requestLatency.With(prometheus.Labels{
+				"route":   routeName,
+				"status":  status,
+				"version": version,
+			}).Observe(time.Since(begin).Seconds())
 		}
 	}
 }

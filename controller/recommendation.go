@@ -22,7 +22,7 @@ type RecommendationController struct {
 // NewRecommendationController returns a controller instance.
 func NewRecommendationController(
 	connections connection.StrangleService,
-	events event.AggregateService,
+	events event.Service,
 	users user.StrangleService,
 ) *RecommendationController {
 	return &RecommendationController{

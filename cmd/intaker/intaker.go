@@ -23,6 +23,7 @@ import (
 	"golang.org/x/net/context"
 
 	klog "github.com/go-kit/kit/log"
+	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
 	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/tapglue/multiverse/config"
@@ -31,6 +32,7 @@ import (
 	handler "github.com/tapglue/multiverse/handler/http"
 	"github.com/tapglue/multiverse/limiter/redis"
 	tgLogger "github.com/tapglue/multiverse/logger"
+	"github.com/tapglue/multiverse/platform/metrics"
 	"github.com/tapglue/multiverse/server"
 	"github.com/tapglue/multiverse/service/app"
 	"github.com/tapglue/multiverse/service/connection"
@@ -47,9 +49,10 @@ import (
 
 const (
 	// EnvConfigVar holds the name of the environment variable that holds the path to the config
-	EnvConfigVar   = "TAPGLUE_INTAKER_CONFIG_PATH"
-	apiVersionNext = "0.4"
-	component      = "intaker"
+	EnvConfigVar     = "TAPGLUE_INTAKER_CONFIG_PATH"
+	apiVersionNext   = "0.4"
+	component        = "intaker"
+	subsystemService = "service"
 )
 
 var (
@@ -128,6 +131,40 @@ func main() {
 		"revision", currentRevision,
 	)
 
+	// Setup instrumenation
+	serviceFieldKeys := []string{
+		metrics.FieldMethod,
+		metrics.FieldNamespace,
+		metrics.FieldService,
+		metrics.FieldStore,
+	}
+
+	serviceErrCount := kitprometheus.NewCounter(prometheus.CounterOpts{
+		Namespace: component,
+		Subsystem: subsystemService,
+		Name:      "err_count",
+		Help:      "Number of failed service operations",
+	}, serviceFieldKeys)
+
+	serviceOpCount := kitprometheus.NewCounter(prometheus.CounterOpts{
+		Namespace: component,
+		Subsystem: subsystemService,
+		Name:      "op_count",
+		Help:      "Number of service operations performed",
+	}, serviceFieldKeys)
+
+	serviceOpLatency := prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: component,
+			Subsystem: subsystemService,
+			Name:      "op_latency_seconds",
+			Help:      "Distribution of service op duration in seconds",
+		},
+		serviceFieldKeys,
+	)
+
+	prometheus.MustRegister(serviceOpLatency)
+
 	// Setup services
 	var (
 		pgClient    = v04_postgres.New(conf.Postgres)
@@ -136,52 +173,49 @@ func main() {
 		rateLimiter = redis.NewLimiter(redisClient, "test:ratelimiter:app:")
 	)
 
-	var aggregateEvents event.AggregateService
-	aggregateEvents = event.NewPostgresService(pgClient.MainDatastore())
-
 	var apps app.StrangleService
 	apps = v04_postgres_core.NewApplication(pgClient, rApps)
-	apps = app.InstrumentStrangleMiddleware(component, "postgres")(apps)
+	apps = app.InstrumentStrangleMiddleware("postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(apps)
 	apps = app.LogStrangleMiddleware(logger, "postgres")(apps)
 
 	var connections connection.Service
 	connections = connection.NewPostgresService(pgClient.MainDatastore())
-	connections = connection.InstrumentMiddleware(component, "postgres")(connections)
+	connections = connection.InstrumentMiddleware("postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(connections)
 	connections = connection.LogMiddleware(logger, "postgres")(connections)
 
 	var conStrangle connection.StrangleService
 	conStrangle = v04_postgres_core.NewConnection(pgClient)
-	conStrangle = connection.InstrumentStrangleMiddleware(component, "postgres")(conStrangle)
+	conStrangle = connection.InstrumentStrangleMiddleware("postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(conStrangle)
 	conStrangle = connection.LogStrangleMiddleware(logger, "postgres")(conStrangle)
 
 	var events event.Service
 	events = event.NewPostgresService(pgClient.MainDatastore())
-	events = event.InstrumentMiddleware(component, "postgres")(events)
+	events = event.InstrumentMiddleware("postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(events)
 	events = event.LogMiddleware(logger, "postgres")(events)
 
 	var members member.StrangleService
 	members = v04_postgres_core.NewMember(pgClient)
-	members = member.InstrumentStrangleMiddleware(component, "postgres")(members)
+	members = member.InstrumentStrangleMiddleware("postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(members)
 	members = member.LogStrangleMiddleware(logger, "postgres")(members)
 
 	var objects object.Service
 	objects = object.NewPostgresService(pgClient.MainDatastore())
-	objects = object.InstrumentMiddleware(component, "postgres")(objects)
+	objects = object.InstrumentMiddleware("postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(objects)
 	objects = object.LogMiddleware(logger, "postgres")(objects)
 
 	var orgs org.StrangleService
 	orgs = v04_postgres_core.NewOrganization(pgClient)
-	orgs = org.InstrumentStrangleMiddleware(component, "postgres")(orgs)
+	orgs = org.InstrumentStrangleMiddleware("postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(orgs)
 	orgs = org.LogStrangleMiddleware(logger, "postgres")(orgs)
 
 	var users user.Service
 	users = user.NewPostgresService(pgClient.MainDatastore())
-	users = user.InstrumentMiddleware(component, "postgres")(users)
+	users = user.InstrumentMiddleware("postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(users)
 	users = user.LogMiddleware(logger, "postgres")(users)
 
 	var userStrangle user.StrangleService
 	userStrangle = v04_postgres_core.NewApplicationUser(pgClient)
-	userStrangle = user.InstrumentStrangleMiddleware(component, "postgres")(userStrangle)
+	userStrangle = user.InstrumentStrangleMiddleware("postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(userStrangle)
 	userStrangle = user.LogStrangleMiddleware(logger, "postgres")(userStrangle)
 
 	// Setup controllers
@@ -201,7 +235,7 @@ func main() {
 		postController           = controller.NewPostController(conStrangle, events, objects)
 		recommendationController = controller.NewRecommendationController(
 			conStrangle,
-			aggregateEvents,
+			events,
 			userStrangle,
 		)
 		userController = controller.NewUserController(conStrangle, userStrangle)

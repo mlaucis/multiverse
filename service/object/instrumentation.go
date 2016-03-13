@@ -1,64 +1,33 @@
 package object
 
 import (
-	"strings"
 	"time"
 
-	"github.com/go-kit/kit/metrics"
-	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
+	kitmetrics "github.com/go-kit/kit/metrics"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/tapglue/multiverse/platform/metrics"
 )
 
-const (
-	fieldMethod    = "method"
-	fieldNamespace = "namespace"
-	fieldStore     = "store"
-)
+const serviceName = "object"
 
 type instrumentService struct {
 	Service
 
-	errCount  metrics.Counter
-	opCount   metrics.Counter
-	opLatency metrics.TimeHistogram
+	errCount  kitmetrics.Counter
+	opCount   kitmetrics.Counter
+	opLatency *prometheus.HistogramVec
 	store     string
 }
 
 // InstrumentMiddleware observes key aspects of Service operations and exposes
 // Prometheus metrics.
-func InstrumentMiddleware(ns string, store string) ServiceMiddleware {
+func InstrumentMiddleware(
+	store string,
+	errCount kitmetrics.Counter,
+	opCount kitmetrics.Counter,
+	opLatency *prometheus.HistogramVec,
+) ServiceMiddleware {
 	return func(next Service) Service {
-		var (
-			fieldKeys = []string{fieldMethod, fieldNamespace, fieldStore}
-			namespace = strings.Replace(ns, "-", "_", -1)
-			subsytem  = "service_object"
-
-			errCount = kitprometheus.NewCounter(prometheus.CounterOpts{
-				Namespace: namespace,
-				Subsystem: subsytem,
-				Name:      "err_count",
-				Help:      "Number of failed operations",
-			}, fieldKeys)
-			opCount = kitprometheus.NewCounter(prometheus.CounterOpts{
-				Namespace: namespace,
-				Subsystem: subsytem,
-				Name:      "op_count",
-				Help:      "Number of operations performed",
-			}, fieldKeys)
-			opLatency = metrics.NewTimeHistogram(
-				time.Second,
-				kitprometheus.NewHistogram(
-					prometheus.HistogramOpts{
-						Namespace: namespace,
-						Subsystem: subsytem,
-						Name:      "op_latency_seconds",
-						Help:      "Distribution of op duration in seconds",
-					},
-					fieldKeys,
-				),
-			)
-		)
-
 		return &instrumentService{
 			errCount:  errCount,
 			opCount:   opCount,
@@ -116,24 +85,34 @@ func (s *instrumentService) track(
 	err error,
 ) {
 	var (
-		m = metrics.Field{
-			Key:   fieldMethod,
+		m = kitmetrics.Field{
+			Key:   metrics.FieldMethod,
 			Value: method,
 		}
-		ns = metrics.Field{
-			Key:   fieldNamespace,
+		n = kitmetrics.Field{
+			Key:   metrics.FieldNamespace,
 			Value: namespace,
 		}
-		store = metrics.Field{
-			Key:   fieldStore,
+		service = kitmetrics.Field{
+			Key:   metrics.FieldService,
+			Value: serviceName,
+		}
+		store = kitmetrics.Field{
+			Key:   metrics.FieldStore,
 			Value: s.store,
 		}
 	)
 
 	if err != nil {
-		s.errCount.With(m).With(ns).With(store).Add(1)
+		s.errCount.With(m).With(n).With(service).With(store).Add(1)
 	}
 
-	s.opCount.With(m).With(ns).With(store).Add(1)
-	s.opLatency.With(m).With(ns).With(store).Observe(time.Since(begin))
+	s.opCount.With(m).With(n).With(service).With(store).Add(1)
+
+	s.opLatency.With(prometheus.Labels{
+		metrics.FieldMethod:    method,
+		metrics.FieldNamespace: namespace,
+		metrics.FieldService:   serviceName,
+		metrics.FieldStore:     s.store,
+	}).Observe(time.Since(begin).Seconds())
 }
