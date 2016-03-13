@@ -24,7 +24,7 @@ resource "aws_autoscaling_group" "frontend" {
     "${aws_subnet.frontend-b.id}"]
   name                      = "frontend"
   max_size                  = 30
-  min_size                  = 2
+  min_size                  = 0
   health_check_type         = "ELB"
   health_check_grace_period = 60
   force_delete              = false
