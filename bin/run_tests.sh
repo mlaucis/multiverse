@@ -43,29 +43,29 @@ then
     declare -A TEST_MATRIX=( \
         ["intaker_postgres_v02"]=false \
         ["intaker_postgres_v03"]=true \
-        ["intaker_postgres_v04"]=true \
-        ["intaker_redis_v02"]=false \
-        ["intaker_redis_v03"]=true \
-        ["intaker_redis_v04"]=true \
-    )
-
-    declare -A BUILD_MATRIX=( \
-        ["intaker_postgres"]=true \
-        ["intaker_redis"]=true \
-    )
-else
-    declare -A TEST_MATRIX=( \
-        ["intaker_postgres_v02"]=false \
-        ["intaker_postgres_v03"]=true \
-        ["intaker_postgres_v04"]=true \
+        ["intaker_postgres_v04"]=false \
         ["intaker_redis_v02"]=false \
         ["intaker_redis_v03"]=false \
         ["intaker_redis_v04"]=false \
     )
 
     declare -A BUILD_MATRIX=( \
-        ["intaker_postgres"]=true \
-        ["intaker_redis"]=true \
+        ["intaker_postgres"]=false \
+        ["intaker_redis"]=false \
+    )
+else
+    declare -A TEST_MATRIX=( \
+        ["intaker_postgres_v02"]=false \
+        ["intaker_postgres_v03"]=true \
+        ["intaker_postgres_v04"]=false \
+        ["intaker_redis_v02"]=false \
+        ["intaker_redis_v03"]=false \
+        ["intaker_redis_v04"]=false \
+    )
+
+    declare -A BUILD_MATRIX=( \
+        ["intaker_postgres"]=false \
+        ["intaker_redis"]=false \
     )
 fi
 

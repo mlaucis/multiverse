@@ -34,14 +34,12 @@ test:
     - ./bin/run_tests.sh object
     - ./bin/run_tests.sh redis
     - ./bin/run_tests.sh intaker postgres
-    - ./bin/run_tests.sh intaker redis
   post:
     - ./bin/process_coverage.sh
 deployment:
   s3:
     branch: /.*/
     commands:
-      - ./bin/make_release.sh intaker redis
       - ./bin/make_release.sh corporate styleguide
       - ./bin/make_release.sh corporate website
       - ./infrastructure/containers/docker/release_container.sh gateway-http gateway-http_${CIRCLE_BUILD_NUM} ./infrastructure/config/intaker_prod.json
