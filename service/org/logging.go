@@ -34,7 +34,7 @@ func (s *logStrangleService) FindByKey(
 ) (org *v04_entity.Organization, errs []errors.Error) {
 	defer func(begin time.Time) {
 		ps := []interface{}{
-			"duration", time.Since(begin),
+			"duration_ns", time.Since(begin),
 			"key", key,
 			"method", "FindByKey",
 		}

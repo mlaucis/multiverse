@@ -37,7 +37,7 @@ func (s *logService) CreatedByDay(
 	defer func(begin time.Time) {
 		ps := []interface{}{
 			"datapoints", len(ts),
-			"duration", time.Since(begin),
+			"duration_ns", time.Since(begin),
 			"end", end.Format(metrics.BucketFormat),
 			"method", "CreatedByDay",
 			"namespace", ns,
@@ -80,7 +80,7 @@ func (s *logStrangleService) FilterByEmail(
 	defer func(begin time.Time) {
 		ps := []interface{}{
 			"datapoints", len(users),
-			"duration", time.Since(begin),
+			"duration_ns", time.Since(begin),
 			"inputs", len(emails),
 			"method", "FitlerByEmail",
 			"namespace", convertNamespace(orgID, appID),
@@ -104,7 +104,7 @@ func (s *logStrangleService) FilterBySocialIDs(
 	defer func(begin time.Time) {
 		ps := []interface{}{
 			"datapoints", len(users),
-			"duration", time.Since(begin),
+			"duration_ns", time.Since(begin),
 			"inputs", len(ids),
 			"method", "FitlerBySocialIDs",
 			"namespace", convertNamespace(orgID, appID),
@@ -126,7 +126,7 @@ func (s *logStrangleService) FindBySession(
 ) (user *v04_entity.ApplicationUser, errs []errors.Error) {
 	defer func(begin time.Time) {
 		ps := []interface{}{
-			"duration", time.Since(begin),
+			"duration_ns", time.Since(begin),
 			"key", key,
 			"method", "FindBySession",
 			"namespace", convertNamespace(orgID, appID),
@@ -149,7 +149,7 @@ func (s *logStrangleService) Read(
 ) (user *v04_entity.ApplicationUser, errs []errors.Error) {
 	defer func(begin time.Time) {
 		ps := []interface{}{
-			"duration", time.Since(begin),
+			"duration_ns", time.Since(begin),
 			"id", strconv.FormatUint(id, 10),
 			"method", "Read",
 			"namespace", convertNamespace(orgID, appID),
@@ -171,7 +171,7 @@ func (s *logStrangleService) UpdateLastRead(
 ) (errs []errors.Error) {
 	defer func(begin time.Time) {
 		ps := []interface{}{
-			"duration", time.Since(begin),
+			"duration_ns", time.Since(begin),
 			"id", strconv.FormatUint(id, 10),
 			"method", "UpdateLastRead",
 			"namespace", convertNamespace(orgID, appID),

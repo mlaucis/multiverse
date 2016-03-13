@@ -37,7 +37,7 @@ func (s *logService) CreatedByDay(
 	defer func(begin time.Time) {
 		ps := []interface{}{
 			"datapoints", len(ts),
-			"duration", time.Since(begin),
+			"duration_ns", time.Since(begin),
 			"end", end.Format(metrics.BucketFormat),
 			"method", "CreatedByDay",
 			"namespace", ns,
@@ -81,7 +81,7 @@ func (s *logStrangleService) ConnectionsByState(
 	defer func(begin time.Time) {
 		ps := []interface{}{
 			"connections", strconv.Itoa(len(cs)),
-			"duration", time.Since(begin),
+			"duration_ns", time.Since(begin),
 			"id", strconv.FormatUint(id, 10),
 			"method", "ConnectionsByState",
 			"namespace", convertNamespace(orgID, appID),
@@ -104,7 +104,7 @@ func (s *logStrangleService) FriendsAndFollowingIDs(
 	defer func(begin time.Time) {
 		ps := []interface{}{
 			"id", strconv.FormatUint(id, 10),
-			"duration", time.Since(begin),
+			"duration_ns", time.Since(begin),
 			"method", "FriendsAndFollowingIDs",
 			"namespace", convertNamespace(orgID, appID),
 		}
@@ -125,7 +125,7 @@ func (s *logStrangleService) Relation(
 ) (r *v04_entity.Relation, errs []errors.Error) {
 	defer func(begin time.Time) {
 		ps := []interface{}{
-			"duration", time.Since(begin),
+			"duration_ns", time.Since(begin),
 			"from", strconv.FormatUint(from, 10),
 			"method", "Relation",
 			"namespace", convertNamespace(orgID, appID),
