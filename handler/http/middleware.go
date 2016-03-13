@@ -427,7 +427,7 @@ func ValidateContent() Middleware {
 			} else if l != r.ContentLength {
 				respondError(w, 5005, wrapError(ErrBadRequest, "Content-Length header size mismatch"))
 				return
-			} else if r.ContentLength > 4096 {
+			} else if r.ContentLength > 32768 {
 				respondError(w, 5011, wrapError(ErrBadRequest, "payload too big"))
 				return
 			}
