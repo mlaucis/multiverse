@@ -268,7 +268,7 @@ func Instrument(
 	var (
 		namespace    = strings.Replace(ns, "-", "_", -1)
 		subsystem    = "handler"
-		fieldKeys    = []string{"version", "route", "status", "user_agent"}
+		fieldKeys    = []string{"version", "route", "status"}
 		requestCount = kitprometheus.NewCounter(prometheus.CounterOpts{
 			Namespace: namespace,
 			Subsystem: subsystem,
@@ -315,19 +315,15 @@ func Instrument(
 					Key:   "status",
 					Value: strconv.Itoa(resr.StatusCode),
 				}
-				userAgent = metrics.Field{
-					Key:   "user_agent",
-					Value: r.Header.Get("User-Agent"),
-				}
 				version = metrics.Field{
 					Key:   "version",
 					Value: v,
 				}
 			)
 
-			requestCount.With(route).With(status).With(userAgent).With(version).Add(1)
-			requestLatency.With(route).With(status).With(userAgent).With(version).Observe(time.Since(begin))
-			responseBytes.With(route).With(status).With(userAgent).With(version).Add(uint64(resr.ContentLength))
+			requestCount.With(route).With(status).With(version).Add(1)
+			requestLatency.With(route).With(status).With(version).Observe(time.Since(begin))
+			responseBytes.With(route).With(status).With(version).Add(uint64(resr.ContentLength))
 		}
 	}
 }
