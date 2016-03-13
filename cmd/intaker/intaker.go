@@ -251,9 +251,7 @@ func main() {
 	go tgLogger.JSONLog(mainLogChan)
 	go tgLogger.JSONLog(errorLogChan)
 
-	next := router.PathPrefix(fmt.Sprintf("/%s", apiVersionNext)).Subrouter()
-
-	next.Methods("POST").PathPrefix(`/analytics`).Name("analytics").HandlerFunc(
+	router.Methods("POST").PathPrefix(`/analytics`).Name("analytics").HandlerFunc(
 		handler.Wrap(
 			handler.Chain(
 				withConstraints,
@@ -262,6 +260,8 @@ func main() {
 			handler.Analytics(),
 		),
 	)
+
+	next := router.PathPrefix(fmt.Sprintf("/%s", apiVersionNext)).Subrouter()
 
 	next.Methods("DELETE").PathPrefix(`/me/events/{id:[0-9]+}`).Name("deleteEvent").HandlerFunc(
 		handler.Wrap(
