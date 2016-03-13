@@ -22,6 +22,7 @@ var (
 )
 
 func (s *BenchSuite) TestCreateUsers(c *C) {
+	t.SkipNow()
 	if !flag.Parsed() {
 		flag.Parse()
 	}
@@ -49,6 +50,7 @@ func (s *BenchSuite) TestCreateUsers(c *C) {
 }
 
 func (s *BenchSuite) TestCreateUserEvents(c *C) {
+	t.SkipNow()
 	if !flag.Parsed() {
 		flag.Parse()
 	}
