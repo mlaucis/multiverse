@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-// Common erorrs for Event service implementations.
+// Common errors for Event service implementations.
 var (
 	ErrInvalidEvent      = errors.New("invalid event")
 	ErrNamespaceNotFound = errors.New("namespace not found")

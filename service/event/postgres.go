@@ -32,7 +32,10 @@ const (
 	pgClauseUserIDs             = `(json_data->>'user_id')::BIGINT IN (?)`
 	pgClauseVisibilities        = `(json_data->>'visibility')::INT IN (?)`
 
-	pgActiveByPeriod = `SELECT (json_data ->> 'user_id')::BIGINT AS userid, COUNT(*)
+	pgActiveByPeriod = `
+		set time zone utc;
+		SELECT
+			(json_data ->> 'user_id')::BIGINT AS userid, COUNT(*)
     FROM %s.events
       WHERE
         %s

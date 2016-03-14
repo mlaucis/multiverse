@@ -50,7 +50,7 @@ func TestPostgresActiveUserIDs(t *testing.T) {
 				ev := testEvent()
 
 				ev.UserID = id
-				ev.UpdatedAt = time.Now().Add(-d)
+				ev.UpdatedAt = time.Now().Add(-d).UTC()
 
 				data, err := json.Marshal(ev)
 				if err != nil {
