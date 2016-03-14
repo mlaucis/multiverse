@@ -46,21 +46,6 @@ resource "aws_instance" "monitoring0" {
   }
 }
 
-resource "aws_instance" "monitoring1" {
-  ami           = "${var.monitoring_ami}"
-  instance_type = "${var.monitoring_instance_type}"
-  subnet_id     = "${aws_subnet.monitoring-b.id}"
-
-  security_groups = [
-    "${aws_security_group.platform.id}",
-    "${aws_security_group.private.id}",
-  ]
-
-  tags {
-    Name = "monitoring1"
-  }
-}
-
 resource "aws_elb" "monitoring" {
   cross_zone_load_balancing   = true
   connection_draining         = true
