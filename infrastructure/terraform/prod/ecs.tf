@@ -254,7 +254,7 @@ resource "aws_ecs_task_definition" "dashboard" {
 [
   {
     "name": "dashboard",
-    "image": "775034650473.dkr.ecr.us-east-1.amazonaws.com/dashboard:1750",
+    "image": "775034650473.dkr.ecr.us-east-1.amazonaws.com/dashboard:1751",
     "cpu": 256,
     "memory": 256,
     "essential": true,
@@ -298,7 +298,7 @@ resource "aws_ecs_task_definition" "gateway-http" {
 [
   {
     "name": "gateway-http",
-    "image": "775034650473.dkr.ecr.us-east-1.amazonaws.com/gateway-http:1750",
+    "image": "775034650473.dkr.ecr.us-east-1.amazonaws.com/gateway-http:1751",
     "cpu": 512,
     "memory": 2048,
     "essential": true,
