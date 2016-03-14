@@ -359,17 +359,30 @@ resource "aws_launch_configuration" "service" {
 #!/bin/bash
 echo ECS_CLUSTER=service >> /etc/ecs/ecs.config
 
-sudo echo '$WorkDirectory /var/spool/rsyslog # where to place spool files' > /etc/rsyslog.d/22-loggly.conf
+# Install loggly security credentials
+mkdir -pv /etc/rsyslog.d/keys/ca.d
+cd /etc/rsyslog.d/keys/ca.d/
+curl -O https://logdog.loggly.com/media/logs-01.loggly.com_sha12.crt
+
+# Rsyslog for Loggly
+
+sudo echo '$template LogglyFormat,"<%pri%>%protocol-version% %timestamp:::date-rfc3339% %HOSTNAME% %app-name% %procid% %msgid% [d2e7097f-25aa-497a-a9e3-d691bd4ec7ab@41058 tag=\"service\"] %msg%\n"' > /etc/rsyslog.d/22-loggly.conf
+
+# Setup disk assisted queues
+sudo echo '$WorkDirectory /var/spool/rsyslog # where to place spool files' >> /etc/rsyslog.d/22-loggly.conf
 sudo echo '$ActionQueueFileName fwdRule1     # unique name prefix for spool files' >> /etc/rsyslog.d/22-loggly.conf
 sudo echo '$ActionQueueMaxDiskSpace 100m     # 1gb space limit (use as much as possible)' >> /etc/rsyslog.d/22-loggly.conf
 sudo echo '$ActionQueueSaveOnShutdown on     # save messages to disk on shutdown' >> /etc/rsyslog.d/22-loggly.conf
 sudo echo '$ActionQueueType LinkedList       # run asynchronously' >> /etc/rsyslog.d/22-loggly.conf
 sudo echo '$ActionResumeRetryCount -1        # infinite retries if host is down' >> /etc/rsyslog.d/22-loggly.conf
-sudo echo '' >> /etc/rsyslog.d/22-loggly.conf
-sudo echo '$template LogglyFormat,"<%pri%>%protocol-version% %timestamp:::date-rfc3339% %HOSTNAME% %app-name% %procid% %msgid% [d2e7097f-25aa-497a-a9e3-d691bd4ec7ab@41058 tag=\"service\"] %msg%\n"' >> /etc/rsyslog.d/22-loggly.conf
-sudo echo '' >> /etc/rsyslog.d/22-loggly.conf
-sudo echo '# Send messages to Loggly over TCP using the template.' >> /etc/rsyslog.d/22-loggly.conf
-sudo echo '*.* @@logs-01.loggly.com:514;LogglyFormat' >> /etc/rsyslog.d/22-loggly.conf
+
+# RsyslogGnuTLS
+sudo echo '$DefaultNetstreamDriverCAFile /etc/rsyslog.d/keys/ca.d/logs-01.loggly.com_sha12.crt' >> /etc/rsyslog.d/22-loggly.conf
+sudo echo '$ActionSendStreamDriver gtls' >> /etc/rsyslog.d/22-loggly.conf
+sudo echo '$ActionSendStreamDriverMode 1' >> /etc/rsyslog.d/22-loggly.conf
+sudo echo '$ActionSendStreamDriverAuthMode x509/name' >> /etc/rsyslog.d/22-loggly.conf
+sudo echo '$ActionSendStreamDriverPermittedPeer *.loggly.com' >> /etc/rsyslog.d/22-loggly.conf
+sudo echo '*.* @@logs-01.loggly.com:6514;LogglyFormat' >> /etc/rsyslog.d/22-loggly.conf
 
 sudo service rsyslog restart
 
