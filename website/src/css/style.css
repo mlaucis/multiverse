@@ -249,9 +249,15 @@ body[class!=demo] .featurebenefits h3,
     line-height: 1.5em;
     margin-bottom: 1rem;
 }
+
+body.demo .featurebenefits {
+  padding-top: 4rem;
+  padding-bottom: 12rem;
+}
 body.demo .featurebenefits p {
   margin-bottom: 2rem;
 }
+
 .featurebenefits img {
     float: left;
     vertical-align: middle;
@@ -3517,11 +3523,16 @@ div.pricing .plan.feature.free section p {
   margin: 0;
 }
 
-div.pricing .plan {
+div.pricing .plan,
+body.demo div.plan {
   background: #fff;
   border: 0.2rem solid rgba(228, 228, 228, 1);
   border-radius: 0.3rem;
   padding: 2rem 0rem 4rem 0rem;
+}
+
+body.demo div.plan {
+  padding: 2rem 2rem 4rem 2rem;
 }
 
 div.pricing .plan .row {
