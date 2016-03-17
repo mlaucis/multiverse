@@ -3681,3 +3681,11 @@ div.pricing .plan h4 {
 .techstars {
   margin-top: 1.4em;
 }
+
+/* Elements */
+
+.elementsimage {
+   border:3px solid #DCDCDC;
+   border-radius: 10px;
+   margin-bottom: 4em;
+}

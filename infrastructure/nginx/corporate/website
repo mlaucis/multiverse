@@ -108,6 +108,18 @@ server {
         try_files /elements.html =404;
     }
 
+    location /demo.html {
+        rewrite $(.*)$ /demo/ permanent;
+    }
+
+    location /demo {
+        rewrite $(.*)$ /demo/ permanent;
+    }
+
+    location /demo/ {
+        try_files /demo.html =404;
+    }
+
     location /pricing.html {
         rewrite $(.*)$ /pricing/ permanent;
     }
