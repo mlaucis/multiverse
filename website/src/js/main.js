@@ -59,6 +59,7 @@ function extractReferrer() {
   });
 
   var $demoForm = $('form#demoForm');
+  var $success = $demoForm.find('.success-feedback');
 
   $demoForm.on('submit', function(ev) {
     ev.preventDefault();
@@ -69,13 +70,13 @@ function extractReferrer() {
       lastName: $demoForm.find('#lastName').val(),
       email: $demoForm.find('#email').val(),
       phone: $demoForm.find('#phone').val(),
-      // company: {
-      //   name: $demoForm.find('#company').val()
-      // }
       company: $demoForm.find('#company').val()
     }
 
     analytics.identify(props.email, props);
     analytics.track('Demo requested', props);
+
+    $demoForm.find('.uniform').slideUp(360);
+    $success.slideDown(360);
   });
 })(jQuery);

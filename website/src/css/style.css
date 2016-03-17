@@ -254,8 +254,12 @@ body[class!=demo] .featurebenefits h3,
 }
 
 body.demo .featurebenefits {
+  min-height: 80rem;
   padding-top: 4rem;
   padding-bottom: 12rem;
+}
+body.demo .featurebenefits .success-feedback h3 {
+  text-align: center;
 }
 body.demo .featurebenefits p {
   margin-bottom: 2rem;
@@ -3559,7 +3563,10 @@ body.demo div.plan {
 }
 
 body.demo div.plan {
-  padding: 2rem;
+  padding: 3rem 2rem 2rem 2rem;
+}
+body.demo form .success-feedback {
+  display: none;
 }
 
 div.pricing .plan .row {
