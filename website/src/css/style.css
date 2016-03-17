@@ -205,7 +205,7 @@ header.major h2 {
   margin-bottom: 4rem;
 }
 header.major h3 {
-    font-size: 2em;
+    font-size: 2rem;
     padding-bottom: 0.4em;
     margin-bottom: 0.5em;
 }
@@ -262,6 +262,15 @@ body.demo .featurebenefits p {
     float: left;
     vertical-align: middle;
 }
+
+body.elements section.style1 {
+  background-color: rgb(255, 255, 255);
+}
+
+body.elements section.style2 {
+  padding-bottom: 8rem;
+}
+
 .elementsfeatures h3 {
   font-size: 3.4rem;
   text-align: center;
