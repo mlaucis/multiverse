@@ -237,7 +237,7 @@ header.major p {
   color: #474747;
   font-weight: 400;
 }
-.featurebenefits h3,
+body[class!=demo] .featurebenefits h3,
 .featurebenefits h4 {
   margin-bottom: 0 !important;
 }
@@ -248,6 +248,9 @@ header.major p {
     text-align: left;
     line-height: 1.5em;
     margin-bottom: 1rem;
+}
+body.demo .featurebenefits p {
+  margin-bottom: 2rem;
 }
 .featurebenefits img {
     float: left;
@@ -348,6 +351,12 @@ select:focus,
 textarea:focus {
     border-color: #2C97DE;
     box-shadow: 0 0 0 2px rgba(44, 151, 222, 0.2);
+}
+select option:first-child {
+  color: #858585;
+}
+option[disabled] {
+  color: #858585;
 }
 .select-wrapper {
     text-decoration: none;
@@ -1273,6 +1282,10 @@ body.landing #header .has-submenu:after {
 
 #bannergreen.extraspace {
   padding: 16rem 0 14rem 0;
+}
+
+body.demo #bannergreen.extraspace {
+  padding-bottom: 1.5rem;
 }
 
 #bannergreen.extraspace h3{
@@ -3688,4 +3701,8 @@ div.pricing .plan h4 {
    border:3px solid #DCDCDC;
    border-radius: 10px;
    margin-bottom: 4em;
+}
+
+body.demo section#one {
+  padding-bottom: 5rem !important;
 }

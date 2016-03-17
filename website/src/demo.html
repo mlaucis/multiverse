@@ -38,8 +38,7 @@
         <script src="/js/analytics.js"></script>
 
     </head>
-    <body class='landing reset'>
-
+    <body class='landing demo reset'>
       <header id="header">
         <div class='container'>
           <h1>
@@ -94,46 +93,48 @@
               <div class="row featurebenefits">
                   <section class="12u$ placeholder-s">
                   </section>
-                  <section class="5u 12u(medium)">
-                    <h3>Context</h3>
-                    <p>Context.</p>
+                  <section class="6u 12u(medium)">
+                    <h3>Learn how to build social products</h3>
+                    <p>Spend time with one of our team members and get insights on how to build social features into your product.</p>
+                    <p>Understand how these features will help you increase engagement and retention and how our platform fits into your needs.</p>
+                    <p>To get started, fill out the form to the right. We will contact you shortly to schedule your demo.</p>
                   </section>
-                  <section class="7u$ 12u(medium)">
-
-                    <!-- Contact Form -->
-
-                        <div class="container 50%">
-                          <h3>Join us for a live demo.</h3>
-                            <form method="post" id="feedbackForm" onsubmit="feedbackSubmit();return false;">
-                                <div class="row uniform">
-                                    <div class="6u 12u$(small)">
-                                        <input name="firstName" id="firstName" value="" placeholder="First name" type="text" required>
-                                    </div>
-                                    <div class="6u$ 12u$(small)">
-                                        <input name="lastName" id="lastName" value="" placeholder="Last name" type="text" required>
-                                    </div>
-                                    <div class="12u$ 12u$(small)">
-                                        <input name="email" id="email" value="" placeholder="Email" type="email" required>
-                                    </div>
-                                    <div class="12u$ 12u$(small)">
-                                        <input name="phone" id="phone" value="" placeholder="Phone" type="text">
-                                    </div>
-                                    <div class="12u$ 12u$(small)">
-                                        <input name="company" id="company" value="" placeholder="Company" type="text" required>
-                                    </div>
-                                    <div class="12u$ 12u$(small)">
-                                        <input name="companySize" id="companySize" value="" placeholder="Company Size" type="text" required>
-                                    </div>
-                                    <div class="12u$">
-                                      <input value="Request your demo" class="btn-default big" type="submit">
-                                    </div>
-                                </div>
-                                <div class="success-feedback">
-                                </div>
-                            </form>
-
-                        </div>
-
+                  <section class="6u$ 12u(medium)">
+                    <div class="container 50%">
+                      <form method="post" id="demoForm">
+                          <div class="row uniform">
+                              <div class="6u 12u$(small)">
+                                  <input name="firstName" id="firstName" value="" placeholder="First name" type="text" required>
+                              </div>
+                              <div class="6u$ 12u$(small)">
+                                  <input name="lastName" id="lastName" value="" placeholder="Last name" type="text" required>
+                              </div>
+                              <div class="12u$">
+                                  <input name="email" id="email" value="" placeholder="Email" type="email" required>
+                              </div>
+                              <div class="12u$">
+                                  <input name="phone" id="phone" value="" placeholder="Phone" type="text">
+                              </div>
+                              <div class="12u$">
+                                  <input name="company" id="company" value="" placeholder="Company" type="text" required>
+                              </div>
+                              <div class="12u$">
+                                <select name="companySize" required>
+                                  <option disabled selected>Company Size</option>
+                                  <option label="1-50" value="small"></option>
+                                  <option label="51-100" value="medium"></option>
+                                  <option label="101-200" value="large"></option>
+                                  <option label="201+" value="enterprise"></option>
+                                </select>
+                              </div>
+                              <div class="12u$">
+                                <input value="Request your demo" class="btn-default big" type="submit">
+                              </div>
+                          </div>
+                          <div class="success-feedback">
+                          </div>
+                      </form>
+                    </div>
                   </section>
               </div>
           </div>

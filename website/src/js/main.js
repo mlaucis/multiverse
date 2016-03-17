@@ -57,4 +57,25 @@ function extractReferrer() {
       $('.status-dot').addClass(data.status.indicator);
     }
   });
+
+  var $demoForm = $('form#demoForm');
+
+  $demoForm.on('submit', function(ev) {
+    ev.preventDefault();
+    ev.stopPropagation();
+
+    var props = {
+      firstName: $demoForm.find('#firstName').val(),
+      lastName: $demoForm.find('#lastName').val(),
+      email: $demoForm.find('#email').val(),
+      phone: $demoForm.find('#phone').val(),
+      // company: {
+      //   name: $demoForm.find('#company').val()
+      // }
+      company: $demoForm.find('#company').val()
+    }
+
+    analytics.identify(props.email, props);
+    analytics.track('Demo requested', props);
+  });
 })(jQuery);
