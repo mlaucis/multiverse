@@ -209,6 +209,9 @@ header.major h3 {
     padding-bottom: 0.4em;
     margin-bottom: 0.5em;
 }
+body.elements header.major h3 {
+  color: rgb(133, 133, 133);
+}
 header.major p {
     font-size: 1.8rem;
     line-height: 1.5em;
@@ -367,10 +370,8 @@ textarea:focus {
     border-color: #2C97DE;
     box-shadow: 0 0 0 2px rgba(44, 151, 222, 0.2);
 }
-select option:first-child {
-  color: #858585;
-}
-option[disabled] {
+
+select, option:disabled {
   color: #858585;
 }
 .select-wrapper {
@@ -1104,7 +1105,15 @@ body.reset {
 #header nav > ul > li a.btn-default {
   font-size: 1.2rem;
 }
-#header nav > ul > li a.btn-default:hover {
+#header nav > ul > li a.btn-default:not(.outline) {
+  border: 0.1rem solid rgb(53, 76, 81);
+  color: rgba(255, 255, 255, 0.8);
+}
+#header nav > ul > li a.btn-default:not(.outline):hover {
+  border-color: rgb(73, 106, 111);
+  color: rgb(255, 255, 255);
+}
+#header nav > ul > li a.outline.btn-default:hover {
   color: rgba(255, 255, 255, 1);
 }
 
@@ -1208,10 +1217,19 @@ body.landing #header nav > ul > li a {
 body.landing #header nav > ul > li a:hover {
   color: rgba(255, 255, 255, 1);
 }
-body.landing #header nav > ul > li a.btn-default {
+body.landing #header nav > ul > li a.btn-default:not(.outline) {
+  background-color: rgba(255, 255, 255, 0.8);
+  border: 0.1rem solid transparent;
+  color: rgba(63, 91, 96, 0.8);
+}
+body.landing #header nav > ul > li a.btn-default:not(.outline):hover {
+  background: rgba(255, 255, 255, 1);
+  color: rgb(53, 76, 81);
+}
+body.landing #header nav > ul > li a.outline.btn-default {
   border: 0.1rem solid rgba(255, 255, 255, 0.6);
 }
-body.landing #header nav > ul > li a.btn-default:hover {
+body.landing #header nav > ul > li a.outline.btn-default:hover {
   border: 0.1rem solid rgba(255, 255, 255, 0);
 }
 body.landing #header .has-submenu:after {
@@ -3706,6 +3724,7 @@ div.pricing .plan h4 {
 }
 
 .usecaseimagecenter {
+  background-color: rgb(255, 255, 255);
   margin-bottom: 3em;
 }
 
