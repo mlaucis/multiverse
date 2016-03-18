@@ -1109,13 +1109,23 @@ body.reset {
 #header nav > ul > li a.btn-default {
   font-size: 1.2rem;
 }
+.btn-default:not(.outline),
+.btn-default:not(.outline).big {
+  background-color: rgb(73, 106, 111);
+  border: 0.1rem solid rgb(73, 106, 111);
+  color: rgba(255, 255, 255, 0.8);
+}
+.btn-default:not(.outline):hover,
+.btn-default:not(.outline).big:hover {
+  background-color: rgb(53, 76, 81);
+  border-color: rgb(53, 76, 81);
+  color: rgb(255, 255, 255);
+}
 #header nav > ul > li a.btn-default:not(.outline) {
-  border: 0.1rem solid rgb(53, 76, 81);
   color: rgba(255, 255, 255, 0.8);
 }
 #header nav > ul > li a.btn-default:not(.outline):hover {
-  border-color: rgb(73, 106, 111);
-  color: rgb(255, 255, 255);
+  color: rgba(255, 255, 255);
 }
 #header nav > ul > li a.outline.btn-default:hover {
   color: rgba(255, 255, 255, 1);
