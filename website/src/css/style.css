@@ -205,9 +205,12 @@ header.major h2 {
   margin-bottom: 4rem;
 }
 header.major h3 {
-    font-size: 2em;
+    font-size: 2rem;
     padding-bottom: 0.4em;
     margin-bottom: 0.5em;
+}
+body.elements header.major h3 {
+  color: rgb(133, 133, 133);
 }
 header.major p {
     font-size: 1.8rem;
@@ -237,7 +240,7 @@ header.major p {
   color: #474747;
   font-weight: 400;
 }
-.featurebenefits h3,
+body[class!=demo] .featurebenefits h3,
 .featurebenefits h4 {
   margin-bottom: 0 !important;
 }
@@ -249,7 +252,53 @@ header.major p {
     line-height: 1.5em;
     margin-bottom: 1rem;
 }
+
+body.demo .featurebenefits {
+  min-height: 80rem;
+  padding-top: 4rem;
+  padding-bottom: 12rem;
+}
+body.demo .featurebenefits .success-feedback h3 {
+  text-align: center;
+}
+body.demo .featurebenefits p {
+  margin-bottom: 2rem;
+}
+
 .featurebenefits img {
+    float: left;
+    vertical-align: middle;
+}
+
+body.elements section.style1 {
+  background-color: rgb(255, 255, 255);
+}
+
+body.elements section.style2 {
+  padding-bottom: 8rem;
+}
+
+.elementsfeatures h3 {
+  font-size: 3.4rem;
+  text-align: center;
+}
+.elementsfeatures h4 {
+  color: #474747;
+  font-weight: 400;
+}
+.elementsfeatures h3,
+.elementsfeatures h4 {
+  margin-bottom: 0 !important;
+}
+.elementsfeatures p {
+    color: #858585;
+    font-size: 2rem;
+    font-weight: 300;
+    text-align: left;
+    line-height: 1.5em;
+    margin-bottom: 1rem;
+}
+.elementsfeatures img {
     float: left;
     vertical-align: middle;
 }
@@ -324,6 +373,10 @@ select:focus,
 textarea:focus {
     border-color: #2C97DE;
     box-shadow: 0 0 0 2px rgba(44, 151, 222, 0.2);
+}
+
+select, option:disabled {
+  color: #858585;
 }
 .select-wrapper {
     text-decoration: none;
@@ -1056,7 +1109,25 @@ body.reset {
 #header nav > ul > li a.btn-default {
   font-size: 1.2rem;
 }
-#header nav > ul > li a.btn-default:hover {
+.btn-default:not(.outline),
+.btn-default:not(.outline).big {
+  background-color: rgb(73, 106, 111);
+  border: 0.1rem solid rgb(73, 106, 111);
+  color: rgba(255, 255, 255, 0.8);
+}
+.btn-default:not(.outline):hover,
+.btn-default:not(.outline).big:hover {
+  background-color: rgb(53, 76, 81);
+  border-color: rgb(53, 76, 81);
+  color: rgb(255, 255, 255);
+}
+#header nav > ul > li a.btn-default:not(.outline) {
+  color: rgba(255, 255, 255, 0.8);
+}
+#header nav > ul > li a.btn-default:not(.outline):hover {
+  color: rgba(255, 255, 255);
+}
+#header nav > ul > li a.outline.btn-default:hover {
   color: rgba(255, 255, 255, 1);
 }
 
@@ -1160,10 +1231,19 @@ body.landing #header nav > ul > li a {
 body.landing #header nav > ul > li a:hover {
   color: rgba(255, 255, 255, 1);
 }
-body.landing #header nav > ul > li a.btn-default {
+body.landing #header nav > ul > li a.btn-default:not(.outline) {
+  background-color: rgba(255, 255, 255, 0.8);
+  border: 0.1rem solid transparent;
+  color: rgba(63, 91, 96, 0.8);
+}
+body.landing #header nav > ul > li a.btn-default:not(.outline):hover {
+  background: rgba(255, 255, 255, 1);
+  color: rgb(53, 76, 81);
+}
+body.landing #header nav > ul > li a.outline.btn-default {
   border: 0.1rem solid rgba(255, 255, 255, 0.6);
 }
-body.landing #header nav > ul > li a.btn-default:hover {
+body.landing #header nav > ul > li a.outline.btn-default:hover {
   border: 0.1rem solid rgba(255, 255, 255, 0);
 }
 body.landing #header .has-submenu:after {
@@ -1251,7 +1331,21 @@ body.landing #header .has-submenu:after {
   padding: 16rem 0 14rem 0;
 }
 
+body.demo #bannergreen.extraspace {
+  padding-bottom: 1.5rem;
+}
+
 #bannergreen.extraspace h3{
+  color: #ffffff;
+  font-weight: 300;
+  line-height: 3rem;
+}
+
+#bannergreen.extraspaceelement {
+  padding: 16rem 0 0 0;
+}
+
+#bannergreen.extraspaceelements h3{
   color: #ffffff;
   font-weight: 300;
   line-height: 3rem;
@@ -3470,11 +3564,19 @@ div.pricing .plan.feature.free section p {
   margin: 0;
 }
 
-div.pricing .plan {
+div.pricing .plan,
+body.demo div.plan {
   background: #fff;
   border: 0.2rem solid rgba(228, 228, 228, 1);
   border-radius: 0.3rem;
   padding: 2rem 0rem 4rem 0rem;
+}
+
+body.demo div.plan {
+  padding: 3rem 2rem 2rem 2rem;
+}
+body.demo form .success-feedback {
+  display: none;
 }
 
 div.pricing .plan .row {
@@ -3639,6 +3741,7 @@ div.pricing .plan h4 {
 }
 
 .usecaseimagecenter {
+  background-color: rgb(255, 255, 255);
   margin-bottom: 3em;
 }
 
@@ -3646,4 +3749,16 @@ div.pricing .plan h4 {
 
 .techstars {
   margin-top: 1.4em;
+}
+
+/* Elements */
+
+.elementsimage {
+   border:3px solid #DCDCDC;
+   border-radius: 10px;
+   margin-bottom: 4em;
+}
+
+body.demo section#one {
+  padding-bottom: 5rem !important;
 }

@@ -10,7 +10,7 @@
             <plist version="1.0">
                 <dict>
                     <key>NSPersistenceFrameworkVersion</key>
-                    <integer>641</integer>
+                    <integer>526</integer>
                     <key>NSStoreModelVersionHashes</key>
                     <dict>
                         <key>LMCookieJar</key>
@@ -5926,12 +5926,12 @@
         <attribute name="redirectauthorization" type="bool">0</attribute>
         <attribute name="method" type="string">POST</attribute>
         <attribute name="followredirects" type="bool">0</attribute>
-        <attribute name="body" type="string">[{"data":{"json":"{\\"visibility\\":30,\\"tags\\":[\\"landscape\\",\\"walk\\",\\"outise\\"],\\"attachments\\":[{\\"content\\":\\"http:\\\\\\/\\\\\\/image.url\\\\\\/image.png\\",\\"name\\":\\"image\\",\\"type\\":\\"url\\"},{\\"content\\":\\"I was outside today and the landscape looked great!\\",\\"name\\":\\"post\\",\\"type\\":\\"text\\"}]}"},"identifier":"com.luckymarmot.JSONDynamicValue"}]</attribute>
+        <attribute name="body" type="string">[{"data":{"json":"{\\"visibility\\":30,\\"tags\\":[\\"landscape\\",\\"walk\\",\\"outise\\"],\\"attachments\\":[{\\"content\\":\\"http:\\\\\\/\\\\\\/image.url\\\\\\/image.png\\",\\"name\\":\\"image\\",\\"type\\":\\"url\\"},{\\"content\\":\\"I was outside today and the landscape looked great!\\",\\"name\\":\\"post\\",\\"type\\":\\"text\\"}],\\"type\\":\\"deinemudda\\"}"},"identifier":"com.luckymarmot.JSONDynamicValue"}]</attribute>
         <attribute name="order" type="int64">0</attribute>
         <attribute name="name" type="string">Create Post</attribute>
         <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z599"></relationship>
         <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
-        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z392 z354 z532 z529 z558"></relationship>
+        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z392 z532 z354 z529 z558"></relationship>
     </object>
     <object type="LMREQUEST" id="z679">
         <attribute name="uuid" type="string">D2335114-AEAF-4A5C-A5C3-5F8A476896F6</attribute>
