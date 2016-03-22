@@ -4804,7 +4804,7 @@
         <attribute name="name" type="string">Create Connection</attribute>
         <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z595"></relationship>
         <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
-        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z213 z380 z299 z199 z582"></relationship>
+        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z199 z582 z380 z299 z213"></relationship>
     </object>
     <object type="LMREQUEST" id="z611">
         <attribute name="uuid" type="string">3F1F82F8-6BA1-430B-8C25-184F9F132531</attribute>
@@ -4942,7 +4942,7 @@
         <attribute name="name" type="string">Create Friend Connection</attribute>
         <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z592"></relationship>
         <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
-        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z294 z389 z564 z463 z367"></relationship>
+        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z389 z564 z463 z294 z367"></relationship>
     </object>
     <object type="LMREQUEST" id="z620">
         <attribute name="uuid" type="string">AB62CBDB-1F09-435E-8FA9-9E8722BFE0D4</attribute>
@@ -5524,12 +5524,11 @@
         <attribute name="redirectauthorization" type="bool">0</attribute>
         <attribute name="method" type="string">GET</attribute>
         <attribute name="followredirects" type="bool">0</attribute>
-        <attribute name="body" type="string">[{"data":{"json":"{}"},"identifier":"com.luckymarmot.JSONDynamicValue"}]</attribute>
         <attribute name="order" type="int64">0</attribute>
         <attribute name="name" type="string">Retrieve Friends</attribute>
         <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z605"></relationship>
         <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
-        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z322 z331 z562 z356"></relationship>
+        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z322 z356 z562 z331"></relationship>
     </object>
     <object type="LMREQUEST" id="z660">
         <attribute name="uuid" type="string">64A99FD0-41B5-4BCA-A8BB-81C72A688FC1</attribute>

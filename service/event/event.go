@@ -28,6 +28,8 @@ const (
 // TG reserved keywords for types.
 const (
 	TargetUser = "tg_user"
+	TypeFollow = "tg_follow"
+	TypeFriend = "tg_friend"
 )
 
 // AggregateService for event interactions.

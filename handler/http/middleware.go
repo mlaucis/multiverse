@@ -349,7 +349,7 @@ func Log(logger log.Logger) Middleware {
 			resr.Headers = w.Header()
 
 			logger.Log(
-				"duration_ns", time.Since(begin),
+				"duration_ns", time.Since(begin).Nanoseconds(),
 				"query", r.URL.Query(),
 				"request", reqr,
 				"response", resr,

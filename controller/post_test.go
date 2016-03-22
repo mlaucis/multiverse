@@ -258,7 +258,7 @@ func testSetupPostController(
 	}
 
 	return app, user, NewPostController(
-		connection.NewNopService(),
+		connection.NewMemService(),
 		events,
 		objects,
 	)

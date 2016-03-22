@@ -2,10 +2,12 @@ package controller
 
 import (
 	"fmt"
+	"math/rand"
 	"strconv"
 	"testing"
 	"time"
 
+	"github.com/tapglue/multiverse/service/connection"
 	"github.com/tapglue/multiverse/service/event"
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
@@ -15,24 +17,24 @@ func TestAffiliation(t *testing.T) {
 		from = uint64(123)
 		to   = uint64(321)
 		a    = affiliations{
-			&v04_entity.Connection{
-				UserFromID: from,
-				UserToID:   to,
-				Type:       v04_entity.ConnectionTypeFollow,
+			&connection.Connection{
+				FromID: from,
+				ToID:   to,
+				Type:   connection.TypeFollow,
 			}: &v04_entity.ApplicationUser{
 				ID: to,
 			},
-			&v04_entity.Connection{
-				UserFromID: to,
-				UserToID:   from,
-				Type:       v04_entity.ConnectionTypeFollow,
+			&connection.Connection{
+				FromID: to,
+				ToID:   from,
+				Type:   connection.TypeFollow,
 			}: &v04_entity.ApplicationUser{
 				ID: from,
 			},
-			&v04_entity.Connection{
-				UserFromID: from,
-				UserToID:   to,
-				Type:       v04_entity.ConnectionTypeFriend,
+			&connection.Connection{
+				FromID: from,
+				ToID:   to,
+				Type:   connection.TypeFriend,
 			}: &v04_entity.ApplicationUser{
 				ID: from,
 			},
@@ -140,49 +142,48 @@ func TestFilter(t *testing.T) {
 
 func TestSourceConnection(t *testing.T) {
 	var (
-		from = uint64(123)
-		to   = uint64(321)
-		now  = time.Now()
-		cs   = []*v04_entity.Connection{
+		from = uint64(rand.Int63())
+		to   = uint64(rand.Int63())
+		cs   = connection.List{
 			{
-				State:      v04_entity.ConnectionStateConfirmed,
-				Type:       v04_entity.ConnectionTypeFriend,
-				UserFromID: from,
-				UserToID:   to,
-				CreatedAt:  &now,
-				UpdatedAt:  &now,
+				State:     connection.StateConfirmed,
+				Type:      connection.TypeFriend,
+				FromID:    from,
+				ToID:      to,
+				CreatedAt: time.Now().UTC(),
+				UpdatedAt: time.Now().UTC(),
 			},
 			{
-				State:      v04_entity.ConnectionStatePending,
-				Type:       v04_entity.ConnectionTypeFollow,
-				UserFromID: from,
-				UserToID:   to,
-				CreatedAt:  &now,
-				UpdatedAt:  &now,
+				State:     connection.StatePending,
+				Type:      connection.TypeFollow,
+				FromID:    from,
+				ToID:      to,
+				CreatedAt: time.Now().UTC(),
+				UpdatedAt: time.Now().UTC(),
 			},
 			{
-				State:      v04_entity.ConnectionStateRejected,
-				Type:       v04_entity.ConnectionTypeFollow,
-				UserFromID: from,
-				UserToID:   to,
-				CreatedAt:  &now,
-				UpdatedAt:  &now,
+				State:     connection.StateRejected,
+				Type:      connection.TypeFollow,
+				FromID:    from,
+				ToID:      to,
+				CreatedAt: time.Now().UTC(),
+				UpdatedAt: time.Now().UTC(),
 			},
 			{
-				State:      v04_entity.ConnectionStateConfirmed,
-				Type:       v04_entity.ConnectionTypeFollow,
-				UserFromID: from,
-				UserToID:   to,
-				CreatedAt:  &now,
-				UpdatedAt:  &now,
+				State:     connection.StateConfirmed,
+				Type:      connection.TypeFollow,
+				FromID:    from,
+				ToID:      to,
+				CreatedAt: time.Now().UTC(),
+				UpdatedAt: time.Now().UTC(),
 			},
 			{
-				State:      v04_entity.ConnectionStateConfirmed,
-				Type:       v04_entity.ConnectionTypeFollow,
-				UserFromID: to,
-				UserToID:   from,
-				CreatedAt:  &now,
-				UpdatedAt:  &now,
+				State:     connection.StateConfirmed,
+				Type:      connection.TypeFollow,
+				FromID:    to,
+				ToID:      from,
+				CreatedAt: time.Now().UTC(),
+				UpdatedAt: time.Now().UTC(),
 			},
 		}
 	)
@@ -196,11 +197,11 @@ func TestSourceConnection(t *testing.T) {
 		t.Errorf("have %v, want %v", have, want)
 	}
 
-	if have, want := es[0].Type, v04_entity.TypeEventFriend; have != want {
+	if have, want := es[0].Type, event.TypeFollow; have != want {
 		t.Errorf("have %v, want %v", have, want)
 	}
 
-	if have, want := es[1].Type, v04_entity.TypeEventFollow; have != want {
+	if have, want := es[2].Type, event.TypeFriend; have != want {
 		t.Errorf("have %v, want %v", have, want)
 	}
 }

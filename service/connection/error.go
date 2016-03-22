@@ -1,4 +1,4 @@
-package controller
+package connection
 
 import (
 	"errors"
@@ -7,10 +7,9 @@ import (
 
 const errFmt = "%s: %s"
 
-// Common errors
+// Common errors for Connection service implementations and validations.
 var (
-	ErrInvalidEntity = errors.New("invalid entity")
-	ErrNotFound      = errors.New("resource not found")
+	ErrInvalidConnection = errors.New("invalid connection")
 )
 
 type Error struct {
@@ -18,13 +17,13 @@ type Error struct {
 	msg string
 }
 
-func (e *Error) Error() string {
+func (e Error) Error() string {
 	return e.msg
 }
 
-// IsInvalidEntity indciates if err is ErrInvalidEntity.
-func IsInvalidEntity(err error) bool {
-	return unwrapError(err) == ErrInvalidEntity
+// IsInvalidConnection indicates if err is ErrInvalidConnection.
+func IsInvalidConnection(err error) bool {
+	return unwrapError(err) == ErrInvalidConnection
 }
 
 func unwrapError(err error) error {

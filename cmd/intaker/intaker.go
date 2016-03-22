@@ -183,11 +183,6 @@ func main() {
 	connections = connection.InstrumentMiddleware("postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(connections)
 	connections = connection.LogMiddleware(logger, "postgres")(connections)
 
-	var conStrangle connection.StrangleService
-	conStrangle = v04_postgres_core.NewConnection(pgClient)
-	conStrangle = connection.InstrumentStrangleMiddleware("postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(conStrangle)
-	conStrangle = connection.LogStrangleMiddleware(logger, "postgres")(conStrangle)
-
 	var events event.Service
 	events = event.NewPostgresService(pgClient.MainDatastore())
 	events = event.InstrumentMiddleware("postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(events)
@@ -228,17 +223,18 @@ func main() {
 			users,
 		)
 		commentController        = controller.NewCommentController(objects, userStrangle)
-		eventController          = controller.NewEventController(conStrangle, events, objects, userStrangle)
-		feedController           = controller.NewFeedController(conStrangle, events, objects, userStrangle)
+		connectionController     = controller.NewConnectionController(connections, userStrangle)
+		eventController          = controller.NewEventController(connections, events, objects, userStrangle)
+		feedController           = controller.NewFeedController(connections, events, objects, userStrangle)
 		likeController           = controller.NewLikeController(events, objects, userStrangle)
-		objectController         = controller.NewObjectController(conStrangle, objects)
-		postController           = controller.NewPostController(conStrangle, events, objects)
+		objectController         = controller.NewObjectController(connections, objects)
+		postController           = controller.NewPostController(connections, events, objects)
 		recommendationController = controller.NewRecommendationController(
-			conStrangle,
+			connections,
 			events,
 			userStrangle,
 		)
-		userController = controller.NewUserController(conStrangle, userStrangle)
+		userController = controller.NewUserController(connections, userStrangle)
 	)
 
 	// Setup middlewares
@@ -300,6 +296,55 @@ func main() {
 	)
 
 	next := router.PathPrefix(fmt.Sprintf("/%s", apiVersionNext)).Subrouter()
+
+	next.Methods("GET").PathPrefix(`/me/connections/{state:[a-z]+}`).Name("getConnectionByState").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.ConnectionByState(connectionController),
+		),
+	)
+
+	next.Methods("DELETE").PathPrefix(`/me/connections/{type:[a-z]+}/{toID:[0-9]+}`).Name("deleteConnection").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.ConnectionDelete(connectionController),
+		),
+	)
+
+	next.Methods("POST").PathPrefix(`/me/connections/social`).Name("createSocialConnections").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.ConnectionSocial(connectionController),
+		),
+	)
+
+	next.Methods("PUT").PathPrefix(`/me/connections`).Name("updateConnection").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.ConnectionUpdate(connectionController),
+		),
+	)
+
+	next.Methods("GET").PathPrefix(`/me/followers`).Name("getFollowers").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.ConnectionFollowers(connectionController),
+		),
+	)
+
+	next.Methods("GET").PathPrefix(`/me/follows`).Name("getFollowings").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.ConnectionFollowings(connectionController),
+		),
+	)
+
+	next.Methods("GET").PathPrefix(`/me/friends`).Name("getFriends").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.ConnectionFriends(connectionController),
+		),
+	)
 
 	next.Methods("DELETE").PathPrefix(`/me/events/{id:[0-9]+}`).Name("deleteEvent").HandlerFunc(
 		handler.Wrap(

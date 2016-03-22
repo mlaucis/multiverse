@@ -8,13 +8,13 @@ import (
 
 // ObjectController bundles business contraints for objects.
 type ObjectController struct {
-	connections connection.StrangleService
+	connections connection.Service
 	objects     object.Service
 }
 
 // NewObjectController returns a controller instance.
 func NewObjectController(
-	connections connection.StrangleService,
+	connections connection.Service,
 	objects object.Service,
 ) *ObjectController {
 	return &ObjectController{
@@ -87,10 +87,42 @@ func (c *ObjectController) ListConnections(
 	app *v04_entity.Application,
 	originID uint64,
 ) ([]*object.Object, error) {
-	ids, errs := c.connections.FriendsAndFollowingIDs(app.OrgID, app.ID, originID)
-	if errs != nil {
-		return nil, errs[0]
+	cs, err := c.connections.Query(app.Namespace(), connection.QueryOptions{
+		Enabled: &defaultEnabled,
+		FromIDs: []uint64{
+			originID,
+		},
+		States: []connection.State{
+			connection.StateConfirmed,
+		},
+		Types: []connection.Type{
+			connection.TypeFriend,
+			connection.TypeFollow,
+		},
+	})
+	if err != nil {
+		return nil, err
 	}
+
+	ids := cs.ToIDs()
+
+	cs, err = c.connections.Query(app.Namespace(), connection.QueryOptions{
+		Enabled: &defaultEnabled,
+		ToIDs: []uint64{
+			originID,
+		},
+		States: []connection.State{
+			connection.StateConfirmed,
+		},
+		Types: []connection.Type{
+			connection.TypeFriend,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	ids = append(ids, cs.FromIDs()...)
 
 	if len(ids) == 0 {
 		return []*object.Object{}, nil

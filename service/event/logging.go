@@ -132,7 +132,7 @@ func (s *logService) Teardown(ns string) (err error) {
 	defer func(begin time.Time) {
 		ps := []interface{}{
 			"duration_ns", time.Since(begin),
-			"method", "teardown",
+			"method", "Teardown",
 			"namespace", ns,
 		}
 

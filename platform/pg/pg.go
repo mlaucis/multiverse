@@ -1,0 +1,49 @@
+package pg
+
+import (
+	"errors"
+	"fmt"
+
+	"github.com/lib/pq"
+)
+
+// ErrRelationNotFound is returned as equivalent to the Postgres error.
+var ErrRelationNotFound = errors.New("relation not found")
+
+// To ensure idempotence we want to create the index only if it doesn't exist,
+// while this feature is about to hit Postgres in 9.5 it is not yet available.
+// We fallback to a conditional create taken from:
+// http://dba.stackexchange.com/a/35626.
+const guardIndex = `DO $$
+		BEGIN
+		IF NOT EXISTS (
+			SELECT 1 FROM pg_indexes WHERE schemaname = '%s' AND indexname = '%s'
+		) THEN
+		%s;
+		END IF;
+		END$$;`
+
+// GuardIndex wraps an index creation query with a condition to prevent conflicts.
+func GuardIndex(namespace, index, query string) string {
+	return fmt.Sprintf(
+		guardIndex,
+		namespace,
+		index,
+		fmt.Sprintf(query, index, namespace),
+	)
+}
+
+// IsRelationNotFound indicates if err is ErrRelationNotFound.
+func IsRelationNotFound(err error) bool {
+	return err == ErrRelationNotFound
+}
+
+// WrapError check the given error if it indicates that the relation wasn't
+// present, otherwise returns the original error.
+func WrapError(err error) error {
+	if err, ok := err.(*pq.Error); ok && err.Code == "42P01" {
+		return ErrRelationNotFound
+	}
+
+	return err
+}

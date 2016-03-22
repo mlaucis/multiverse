@@ -10,7 +10,7 @@ import (
 
 // EventController bundles the business constraints of Events.
 type EventController struct {
-	connections connection.StrangleService
+	connections connection.Service
 	events      event.Service
 	objects     object.Service
 	users       user.StrangleService
@@ -18,7 +18,7 @@ type EventController struct {
 
 // NewEventController returns a controller instance.
 func NewEventController(
-	connections connection.StrangleService,
+	connections connection.Service,
 	events event.Service,
 	objects object.Service,
 	users user.StrangleService,
@@ -110,12 +110,12 @@ func (c *EventController) List(
 			event.VisibilityPrivate,
 		)
 	} else {
-		r, errs := c.connections.Relation(app.OrgID, app.ID, originID, userID)
-		if errs != nil {
-			return nil, errs[0]
+		r, err := queryRelation(c.connections, app, originID, userID)
+		if err != nil {
+			return nil, err
 		}
 
-		if (r.IsFriend != nil && *r.IsFriend) || (r.IsFollowed != nil && *r.IsFollowed) {
+		if r.isFriend || r.isFollowing {
 			opts.Visibilities = append(opts.Visibilities, event.VisibilityConnection)
 		}
 	}

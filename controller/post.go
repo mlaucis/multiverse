@@ -69,14 +69,14 @@ func postsFromObjects(os object.List) PostList {
 
 // PostController bundles the business constraints for posts.
 type PostController struct {
-	connections connection.StrangleService
+	connections connection.Service
 	events      event.Service
 	objects     object.Service
 }
 
 // NewPostController returns a controller instance.
 func NewPostController(
-	connections connection.StrangleService,
+	connections connection.Service,
 	events event.Service,
 	objects object.Service,
 ) *PostController {
@@ -178,12 +178,12 @@ func (c *PostController) ListUser(
 
 	// Check relation and include connection visibility.
 	if connectionID != userID {
-		r, errs := c.connections.Relation(app.OrgID, app.ID, connectionID, userID)
-		if errs != nil {
-			return nil, errs[0]
+		r, err := queryRelation(c.connections, app, connectionID, userID)
+		if err != nil {
+			return nil, err
 		}
 
-		if (r.IsFriend != nil && *r.IsFriend) || (r.IsFollower != nil && *r.IsFollower) {
+		if r.isFriend || r.isFollowing {
 			vs = append(vs, object.VisibilityConnection)
 		}
 	}

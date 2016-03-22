@@ -14,14 +14,14 @@ type conditionUser func(*v04_entity.ApplicationUser) (bool, error)
 
 // RecommendationController bundles the business constriants for recommendations.
 type RecommendationController struct {
-	connections connection.StrangleService
+	connections connection.Service
 	events      event.AggregateService
 	users       user.StrangleService
 }
 
 // NewRecommendationController returns a controller instance.
 func NewRecommendationController(
-	connections connection.StrangleService,
+	connections connection.Service,
 	events event.Service,
 	users user.StrangleService,
 ) *RecommendationController {
@@ -63,17 +63,17 @@ func (c *RecommendationController) UsersActive(
 }
 
 func conditionConnection(
-	connections connection.StrangleService,
+	connections connection.Service,
 	app *v04_entity.Application,
 	origin *v04_entity.ApplicationUser,
 ) conditionUser {
 	return func(user *v04_entity.ApplicationUser) (bool, error) {
-		r, errs := connections.Relation(app.OrgID, app.ID, origin.ID, user.ID)
-		if errs != nil {
-			return false, errs[0]
+		r, err := queryRelation(connections, app, origin.ID, user.ID)
+		if err != nil {
+			return false, err
 		}
 
-		if r.IsFriend != nil && *r.IsFriend || (r.IsFollowed != nil && *r.IsFollowed) {
+		if r.isFriend || r.isFollowing {
 			return true, nil
 		}
 

@@ -280,7 +280,7 @@ func testSetupObjectController(
 		t.Fatal(err)
 	}
 
-	return app, user, NewObjectController(connection.NewNopService(), objects)
+	return app, user, NewObjectController(connection.NewMemService(), objects)
 }
 
 func testArticleSet(id uint64) []*object.Object {

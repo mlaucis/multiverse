@@ -6,19 +6,16 @@ import (
 	kitmetrics "github.com/go-kit/kit/metrics"
 	"github.com/prometheus/client_golang/prometheus"
 
-	"github.com/tapglue/multiverse/errors"
 	"github.com/tapglue/multiverse/platform/metrics"
-	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
 
 const serviceName = "connection"
 
 type instrumentService struct {
-	Service
-
 	errCount  kitmetrics.Counter
 	opCount   kitmetrics.Counter
 	opLatency *prometheus.HistogramVec
+	next      Service
 	store     string
 }
 
@@ -35,7 +32,7 @@ func InstrumentMiddleware(
 			errCount:  errCount,
 			opCount:   opCount,
 			opLatency: opLatency,
-			Service:   next,
+			next:      next,
 			store:     store,
 		}
 	}
@@ -49,7 +46,45 @@ func (s *instrumentService) CreatedByDay(
 		s.track("CreatedByDay", ns, begin, err)
 	}(time.Now())
 
-	return s.Service.CreatedByDay(ns, start, end)
+	return s.next.CreatedByDay(ns, start, end)
+}
+
+func (s *instrumentService) Put(
+	ns string,
+	input *Connection,
+) (output *Connection, err error) {
+	defer func(begin time.Time) {
+		s.track("Put", ns, begin, err)
+	}(time.Now())
+
+	return s.next.Put(ns, input)
+}
+
+func (s *instrumentService) Query(
+	ns string,
+	opts QueryOptions,
+) (list List, err error) {
+	defer func(begin time.Time) {
+		s.track("Query", ns, begin, err)
+	}(time.Now())
+
+	return s.next.Query(ns, opts)
+}
+
+func (s *instrumentService) Setup(ns string) (err error) {
+	defer func(begin time.Time) {
+		s.track("Setup", ns, begin, err)
+	}(time.Now())
+
+	return s.next.Setup(ns)
+}
+
+func (s *instrumentService) Teardown(ns string) (err error) {
+	defer func(begin time.Time) {
+		s.track("Teardown", ns, begin, err)
+	}(time.Now())
+
+	return s.next.Teardown(ns)
 }
 
 func (s *instrumentService) track(
@@ -86,119 +121,6 @@ func (s *instrumentService) track(
 	s.opLatency.With(prometheus.Labels{
 		metrics.FieldMethod:    method,
 		metrics.FieldNamespace: namespace,
-		metrics.FieldService:   serviceName,
-		metrics.FieldStore:     s.store,
-	}).Observe(time.Since(begin).Seconds())
-}
-
-type instrumentStrangleService struct {
-	StrangleService
-
-	errCount  kitmetrics.Counter
-	opCount   kitmetrics.Counter
-	opLatency *prometheus.HistogramVec
-	store     string
-}
-
-// InstrumentStrangleMiddleware observes key aspects of Service operations and
-// exposes Prometheus metrics.
-func InstrumentStrangleMiddleware(
-	store string,
-	errCount kitmetrics.Counter,
-	opCount kitmetrics.Counter,
-	opLatency *prometheus.HistogramVec,
-) StrangleMiddleware {
-	return func(next StrangleService) StrangleService {
-		return &instrumentStrangleService{
-			errCount:        errCount,
-			opCount:         opCount,
-			opLatency:       opLatency,
-			StrangleService: next,
-			store:           store,
-		}
-	}
-}
-
-func (s *instrumentStrangleService) ConnectionsByState(
-	orgID, appID int64,
-	id uint64,
-	state v04_entity.ConnectionStateType,
-) (cs []*v04_entity.Connection, errs []errors.Error) {
-	defer func(begin time.Time) {
-		var err error
-		if errs != nil {
-			err = errs[0]
-		}
-		s.track(orgID, appID, begin, "ConnectionsByState", err)
-	}(time.Now())
-
-	return s.StrangleService.ConnectionsByState(orgID, appID, id, state)
-}
-
-func (s *instrumentStrangleService) FriendsAndFollowingIDs(
-	orgID, appID int64,
-	id uint64,
-) (ids []uint64, errs []errors.Error) {
-	defer func(begin time.Time) {
-		var err error
-		if errs != nil {
-			err = errs[0]
-		}
-		s.track(orgID, appID, begin, "FriendsAndFollowingIDs", err)
-	}(time.Now())
-
-	return s.StrangleService.FriendsAndFollowingIDs(orgID, appID, id)
-}
-
-func (s *instrumentStrangleService) Relation(
-	orgID, appID int64,
-	from, to uint64,
-) (r *v04_entity.Relation, errs []errors.Error) {
-	defer func(begin time.Time) {
-		var err error
-		if errs != nil {
-			err = errs[0]
-		}
-		s.track(orgID, appID, begin, "Relation", err)
-	}(time.Now())
-
-	return s.StrangleService.Relation(orgID, appID, from, to)
-}
-
-func (s *instrumentStrangleService) track(
-	orgID, appID int64,
-	begin time.Time,
-	method string,
-	err error,
-) {
-	var (
-		m = kitmetrics.Field{
-			Key:   metrics.FieldMethod,
-			Value: method,
-		}
-		n = kitmetrics.Field{
-			Key:   metrics.FieldNamespace,
-			Value: convertNamespace(orgID, appID),
-		}
-		service = kitmetrics.Field{
-			Key:   metrics.FieldService,
-			Value: serviceName,
-		}
-		store = kitmetrics.Field{
-			Key:   metrics.FieldStore,
-			Value: s.store,
-		}
-	)
-
-	if err != nil {
-		s.errCount.With(m).With(n).With(service).With(store).Add(1)
-	}
-
-	s.opCount.With(m).With(n).With(service).With(store).Add(1)
-
-	s.opLatency.With(prometheus.Labels{
-		metrics.FieldMethod:    method,
-		metrics.FieldNamespace: convertNamespace(orgID, appID),
 		metrics.FieldService:   serviceName,
 		metrics.FieldStore:     s.store,
 	}).Observe(time.Since(begin).Seconds())

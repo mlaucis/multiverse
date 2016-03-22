@@ -365,14 +365,8 @@ func (s *pgService) Query(ns string, opts QueryOptions) (List, error) {
 		}, " ")
 	}
 
-	query := fmt.Sprintf(
-		pgSelectEvents,
-		ns,
-		c,
-	)
-
-	query = strings.Join([]string{
-		query,
+	query := strings.Join([]string{
+		fmt.Sprintf(pgSelectEvents, ns, c),
 		pgOrderCreatedAt,
 	}, "\n")
 

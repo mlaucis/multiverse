@@ -413,7 +413,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "createCurrentUserConnection",
 			Method: "PUT",
-			Path:   "/me/connections",
+			Path:   "/deprecated/me/connections",
 			Handlers: []RouteFunc{
 				postgresConnectionHandler.Create,
 			},
@@ -491,7 +491,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "deleteCurrentUserConnection",
 			Method: "DELETE",
-			Path:   fmt.Sprintf("/me/connections/%s/%s", connectionType, applicationUserToID),
+			Path:   fmt.Sprintf("/deprecated/me/connections/%s/%s", connectionType, applicationUserToID),
 			Handlers: []RouteFunc{
 				postgresConnectionHandler.Delete,
 			},
@@ -517,7 +517,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "createCurrentUserSocialConnections",
 			Method: "POST",
-			Path:   "/me/connections/social",
+			Path:   "/deprecated/me/connections/social",
 			Handlers: []RouteFunc{
 				postgresConnectionHandler.CreateSocial,
 			},
@@ -543,7 +543,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "getCurrentUserFollows",
 			Method: "GET",
-			Path:   "/me/follows",
+			Path:   "/deprecated/me/follows",
 			Handlers: []RouteFunc{
 				postgresConnectionHandler.CurrentUserFollowingList,
 			},
@@ -569,7 +569,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "getCurrentUserFollowers",
 			Method: "GET",
-			Path:   "/me/followers",
+			Path:   "/deprecated/me/followers",
 			Handlers: []RouteFunc{
 				postgresConnectionHandler.CurrentUserFollowedByList,
 			},
@@ -595,7 +595,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "getCurrentUserFriends",
 			Method: "GET",
-			Path:   "/me/friends",
+			Path:   "/deprecated/me/friends",
 			Handlers: []RouteFunc{
 				postgresConnectionHandler.CurrentUserFriends,
 			},
@@ -621,7 +621,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "getCurrentUserConnectionsByState",
 			Method: "GET",
-			Path:   fmt.Sprintf("/me/connections/%s", connectionState),
+			Path:   fmt.Sprintf("/deprecated/me/connections/%s", connectionState),
 			Handlers: []RouteFunc{
 				postgresConnectionHandler.CurrentUserConnectionsByState,
 			},

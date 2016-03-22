@@ -8,13 +8,13 @@ import (
 
 // UserController bundles the business constraints of Users.
 type UserController struct {
-	connections connection.StrangleService
+	connections connection.Service
 	users       user.StrangleService
 }
 
 // NewUserController returns a controller instance.
 func NewUserController(
-	connections connection.StrangleService,
+	connections connection.Service,
 	users user.StrangleService,
 ) *UserController {
 	return &UserController{
@@ -34,14 +34,16 @@ func (c *UserController) ListByEmails(
 		return nil, errs[0]
 	}
 
-	for _, user := range us {
-		r, errs := c.connections.Relation(app.OrgID, app.ID, originID, user.ID)
-		if errs != nil {
-			return nil, errs[0]
+	for _, u := range us {
+		r, err := queryRelation(c.connections, app, originID, u.ID)
+		if err != nil {
+			return nil, err
 		}
 
-		if r != nil {
-			user.Relation = *r
+		u.Relation = v04_entity.Relation{
+			IsFriend:   &r.isFriend,
+			IsFollower: &r.isFollower,
+			IsFollowed: &r.isFollowing,
 		}
 	}
 
@@ -61,13 +63,15 @@ func (c *UserController) ListByPlatformIDs(
 	}
 
 	for _, user := range us {
-		r, errs := c.connections.Relation(app.OrgID, app.ID, originID, user.ID)
-		if errs != nil {
-			return nil, errs[0]
+		r, err := queryRelation(c.connections, app, originID, user.ID)
+		if err != nil {
+			return nil, err
 		}
 
-		if r != nil {
-			user.Relation = *r
+		user.Relation = v04_entity.Relation{
+			IsFriend:   &r.isFriend,
+			IsFollower: &r.isFollower,
+			IsFollowed: &r.isFollowing,
 		}
 	}
 

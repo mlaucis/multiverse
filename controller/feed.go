@@ -15,7 +15,7 @@ import (
 )
 
 // affiliations is the composite structure to map connections to users.
-type affiliations map[*v04_entity.Connection]*v04_entity.ApplicationUser
+type affiliations map[*connection.Connection]*v04_entity.ApplicationUser
 
 // connections returns only the connections of the affiliations.
 func (a affiliations) connections() connection.List {
@@ -33,11 +33,11 @@ func (a affiliations) followers(origin uint64) connection.List {
 	cs := connection.List{}
 
 	for con := range a {
-		if con.Type == v04_entity.ConnectionTypeFriend {
+		if con.Type == connection.TypeFriend {
 			continue
 		}
 
-		if con.UserFromID == origin {
+		if con.FromID == origin {
 			continue
 		}
 
@@ -52,11 +52,11 @@ func (a affiliations) followings(origin uint64) connection.List {
 	cs := connection.List{}
 
 	for con := range a {
-		if con.Type == v04_entity.ConnectionTypeFriend {
+		if con.Type == connection.TypeFriend {
 			continue
 		}
 
-		if con.UserToID == origin {
+		if con.ToID == origin {
 			continue
 		}
 
@@ -71,11 +71,11 @@ func (a affiliations) friends(origin uint64) connection.List {
 	cs := connection.List{}
 
 	for con := range a {
-		if con.Type == v04_entity.ConnectionTypeFollow {
+		if con.Type == connection.TypeFollow {
 			continue
 		}
 
-		if con.UserFromID != origin && con.UserToID != origin {
+		if con.FromID != origin && con.ToID != origin {
 			continue
 		}
 
@@ -91,7 +91,7 @@ func (a affiliations) filterFollowers(origin uint64) affiliations {
 	am := affiliations{}
 
 	for con, user := range a {
-		if con.Type == v04_entity.ConnectionTypeFollow && con.UserFromID != origin {
+		if con.Type == connection.TypeFollow && con.FromID != origin {
 			continue
 		}
 
@@ -156,7 +156,7 @@ type Feed struct {
 
 // FeedController bundles the business constraints for feeds.
 type FeedController struct {
-	connections connection.StrangleService
+	connections connection.Service
 	events      event.Service
 	objects     object.Service
 	users       user.StrangleService
@@ -164,7 +164,7 @@ type FeedController struct {
 
 // NewFeedController returns a controller instance.
 func NewFeedController(
-	connections connection.StrangleService,
+	connections connection.Service,
 	events event.Service,
 	objects object.Service,
 	users user.StrangleService,
@@ -458,31 +458,49 @@ func (c *FeedController) globalPosts(
 
 func (c *FeedController) neighbours(
 	app *v04_entity.Application,
-	u *v04_entity.ApplicationUser,
 	origin *v04_entity.ApplicationUser,
+	root *v04_entity.ApplicationUser,
 ) (affiliations, error) {
-	ucs, errs := c.connections.ConnectionsByState(
-		app.OrgID,
-		app.ID,
-		u.ID,
-		v04_entity.ConnectionStateConfirmed,
-	)
-	if errs != nil {
-		return nil, errs[0]
+	cs, err := c.connections.Query(app.Namespace(), connection.QueryOptions{
+		Enabled: &defaultEnabled,
+		FromIDs: []uint64{
+			origin.ID,
+		},
+		States: []connection.State{
+			connection.StateConfirmed,
+		},
+	})
+	if err != nil {
+		return nil, err
 	}
+
+	tcs, err := c.connections.Query(app.Namespace(), connection.QueryOptions{
+		Enabled: &defaultEnabled,
+		States: []connection.State{
+			connection.StateConfirmed,
+		},
+		ToIDs: []uint64{
+			origin.ID,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	cs = append(cs, tcs...)
 
 	am := affiliations{}
 
-	for _, con := range ucs {
-		if origin != nil &&
-			(con.UserToID == origin.ID || con.UserFromID == origin.ID) {
+	for _, con := range cs {
+		if root != nil &&
+			(con.ToID == root.ID || con.FromID == root.ID) {
 			continue
 		}
 
-		id := con.UserToID
+		id := con.ToID
 
-		if con.UserToID == u.ID {
-			id = con.UserFromID
+		if con.ToID == origin.ID {
+			id = con.FromID
 		}
 
 		user, errs := c.users.Read(app.OrgID, app.ID, id, false)
@@ -671,14 +689,14 @@ func sourceConnection(cs connection.List) source {
 		es := event.List{}
 
 		for _, con := range cs {
-			if con.State != v04_entity.ConnectionStateConfirmed {
+			if con.State != connection.StateConfirmed {
 				continue
 			}
 
-			t := v04_entity.TypeEventFollow
+			t := event.TypeFollow
 
-			if con.Type == v04_entity.ConnectionTypeFriend {
-				t = v04_entity.TypeEventFriend
+			if con.Type == connection.TypeFriend {
+				t = event.TypeFriend
 			}
 
 			id, err := flake.NextID("connection-events")
@@ -691,12 +709,14 @@ func sourceConnection(cs connection.List) source {
 				ID:      id,
 				Owned:   true,
 				Target: &event.Target{
-					ID:   strconv.FormatUint(con.UserToID, 10),
+					ID:   strconv.FormatUint(con.ToID, 10),
 					Type: event.TargetUser,
 				},
 				Type:       t,
-				UserID:     con.UserFromID,
+				UserID:     con.FromID,
 				Visibility: event.VisibilityPrivate,
+				CreatedAt:  con.CreatedAt,
+				UpdatedAt:  con.UpdatedAt,
 			})
 		}
 

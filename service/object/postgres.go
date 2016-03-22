@@ -11,6 +11,7 @@ import (
 
 	"github.com/tapglue/multiverse/platform/flake"
 	"github.com/tapglue/multiverse/platform/metrics"
+	"github.com/tapglue/multiverse/platform/pg"
 )
 
 const (
@@ -42,34 +43,22 @@ const (
 	pgCreateTable  = `CREATE TABLE IF NOT EXISTS %s.objects
 		(json_data JSONB NOT NULL)`
 
-	// To ensure idempotence we want to create the index only if it doesn't exist,
-	// while this feature is about to hit Postgres in 9.5 it is not yet available.
-	// We fallback to a conditional create taken from:
-	// http://dba.stackexchange.com/a/35626.
-	pgCreateIndexCreatedAt = `CREATE INDEX object_created_at ON %s.objects
-		USING btree ((json_data ->> 'created_at'))`
-	pgCreateIndexExternalID = `CREATE INDEX object_external_id ON %s.objects
+	pgCreateIndexCreatedAt = `CREATE INDEX %s ON %s.objects
+		USING btree ((json_data->>'created_at'))`
+	pgCreateIndexExternalID = `CREATE INDEX %s ON %s.objects
 		USING btree (((json_data->>'external_id')::TEXT))`
-	pgCreateIndexID = `CREATE INDEX object_id ON %s.objects
-		USING btree (((json_data ->> 'id') :: BIGINT))`
-	pgCreateIndexObjectID = `CREATE INDEX object_object_id ON %s.objects
-		USING btree (((json_data->>'object_id') :: BIGINT))`
-	pgCreateIndexOwnerID = `CREATE INDEX object_owner_id ON %s.objects
-		USING btree (((json_data ->> 'owner_id') :: BIGINT))`
-	pgCreateIndexOwned = `CREATE INDEX object_owned ON %s.objects
-		USING btree (((json_data ->> 'owned') :: BOOL))`
-	pgCreateIndexType = `CREATE INDEX obect_type ON %s.objects
-		USING btree (((json_data->>'type') :: TEXT))`
-	pgCreateIndexVisibility = `CREATE INDEX object_visibility ON %s.objects
-		USING btree (((json_data ->> 'visibility') :: INT))`
-	pgGuardIndex = `DO $$
-		BEGIN
-		IF NOT EXISTS (
-			SELECT 1 FROM pg_indexes WHERE schemaname = '%s' AND indexname = '%s'
-		) THEN
-		%s;
-		END IF;
-		END$$;`
+	pgCreateIndexID = `CREATE INDEX %s ON %s.objects
+		USING btree (((json_data->>'id')::BIGINT))`
+	pgCreateIndexObjectID = `CREATE INDEX %s ON %s.objects
+		USING btree (((json_data->>'object_id')::BIGINT))`
+	pgCreateIndexOwnerID = `CREATE INDEX %s ON %s.objects
+		USING btree (((json_data->>'owner_id')::BIGINT))`
+	pgCreateIndexOwned = `CREATE INDEX %s ON %s.objects
+		USING btree (((json_data->>'owned')::BOOL))`
+	pgCreateIndexType = `CREATE INDEX %s ON %s.objects
+		USING btree (((json_data->>'type')::TEXT))`
+	pgCreateIndexVisibility = `CREATE INDEX %s ON %s.objects
+		USING btree (((json_data->>'visibility')::INT))`
 
 	pgDropTable = `DROP TABLE IF EXISTS %s.objects`
 )
@@ -338,12 +327,7 @@ func (s *pgService) Query(ns string, opts QueryOptions) ([]*Object, error) {
 				return nil, err
 			}
 
-			os, err := s.queryObjects(strings.Join(clauses, "\n"), params...)
-			if err != nil {
-				return nil, err
-			}
-
-			return os, nil
+			return s.queryObjects(strings.Join(clauses, "\n"), params...)
 		}
 
 		return nil, err
@@ -362,14 +346,14 @@ func (s *pgService) Setup(ns string) error {
 	qs := []string{
 		wrapNamespace(pgCreateSchema, ns),
 		wrapNamespace(pgCreateTable, ns),
-		pgGuard("object_created_at", ns, pgCreateIndexCreatedAt),
-		pgGuard("object_external_id", ns, pgCreateIndexExternalID),
-		pgGuard("object_id", ns, pgCreateIndexID),
-		pgGuard("object_object_id", ns, pgCreateIndexObjectID),
-		pgGuard("object_owned", ns, pgCreateIndexOwned),
-		pgGuard("object_owner_id", ns, pgCreateIndexOwnerID),
-		pgGuard("object_type", ns, pgCreateIndexType),
-		pgGuard("object_visibility", ns, pgCreateIndexVisibility),
+		pg.GuardIndex(ns, "object_created_at", pgCreateIndexCreatedAt),
+		pg.GuardIndex(ns, "object_external_id", pgCreateIndexExternalID),
+		pg.GuardIndex(ns, "object_id", pgCreateIndexID),
+		pg.GuardIndex(ns, "object_object_id", pgCreateIndexObjectID),
+		pg.GuardIndex(ns, "object_owned", pgCreateIndexOwned),
+		pg.GuardIndex(ns, "object_owned_id", pgCreateIndexOwnerID),
+		pg.GuardIndex(ns, "object_type", pgCreateIndexType),
+		pg.GuardIndex(ns, "object_visibility", pgCreateIndexVisibility),
 	}
 
 	for _, query := range qs {
@@ -440,15 +424,6 @@ func (s *pgService) queryObjects(
 	}
 
 	return os, nil
-}
-
-func pgGuard(name, namespace, query string) string {
-	return fmt.Sprintf(
-		pgGuardIndex,
-		namespace,
-		name,
-		wrapNamespace(query, namespace),
-	)
 }
 
 func pgWrapError(err error) error {
