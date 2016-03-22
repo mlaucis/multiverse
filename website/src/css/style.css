@@ -302,6 +302,28 @@ body.elements section.style2 {
     float: left;
     vertical-align: middle;
 }
+
+.elementshero h2 {
+  font-size: 6rem !important;
+}
+
+.elementshero h3 {
+  font-size: 2.4rem !important;
+  margin-top: -3rem;
+  margin-bottom: 8rem !important;
+}
+
+.elementsbutton{
+  padding: 1.4em 1.4em !important;
+  
+}
+
+.centerfa {
+  vertical-align: middle;
+  line-height: inherit;
+  padding-right: .2em;
+}
+
 .benefits .benefit-right {
     float: right;
 }

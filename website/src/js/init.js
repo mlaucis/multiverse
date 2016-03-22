@@ -65,14 +65,13 @@
 							'<li><a href="/">Home</a></li>' +
 							'<li><a href="/features/">Features</a></li>' +
   						'<li><a href="/news-feed/">News Feed</a></li>' +
-  						'<li><a href="/users/">Users</a></li>' +
-  						'<li><a href="/connections/">Connections</a></li>' +
+							'<li><a href="/elements/">Elements</a></li>' +
 							'<li><a href="/pricing">Pricing</a></li>' +
   						'<li><a href="//developers.tapglue.com">Docs</a></li>' +
   						'<li><a href="/blog/">Blog</a></li>' +
   						'<li><a href="/about-us/">About us</a></li>' +
   					'</ul>' +
-						'<a href="//dashboard.tapglue.com/login" class="btn-default block navbtn">Login</a>' +
+						'<a href="/demo/" class="btn-default block navbtn">Demo</a>' +
 						'<a href="//dashboard.tapglue.com/signup" class="btn-default block navbtn">Signup</a>'
 				}
 			}
