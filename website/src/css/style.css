@@ -315,7 +315,7 @@ body.elements section.style2 {
 
 .elementsbutton{
   padding: 1.4em 1.4em !important;
-  
+
 }
 
 .centerfa {
@@ -1096,9 +1096,15 @@ body.reset {
   text-decoration: none;
 }
 #header h1 a svg {
-  fill: rgb(63, 91, 96);
   height: 100%;
   width: 100%;
+}
+#header h1 a svg g {
+  fill: rgb(63, 91, 96);
+}
+
+body.landing h1 a svg g {
+  fill: rgb(255, 255, 255);
 }
 
 #header nav {
