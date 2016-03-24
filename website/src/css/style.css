@@ -1103,7 +1103,7 @@ body.reset {
   fill: rgb(63, 91, 96);
 }
 
-body.landing h1 a svg g {
+body.landing #header h1 a svg g {
   fill: rgb(255, 255, 255);
 }
 
