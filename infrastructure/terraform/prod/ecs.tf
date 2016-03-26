@@ -348,13 +348,13 @@ resource "aws_iam_instance_profile" "service" {
 }
 
 resource "aws_launch_configuration" "service" {
+  associate_public_ip_address = false
+  ebs_optimized               = false
+  enable_monitoring           = true
+  iam_instance_profile        = "${aws_iam_instance_profile.service.name}"
   image_id                    = "${var.ami_container}"
   instance_type               = "m4.large"
-  associate_public_ip_address = false
-  enable_monitoring           = true
-  ebs_optimized               = false
-  iam_instance_profile        = "${aws_iam_instance_profile.service.name}"
-
+  key_name                    = "${aws_key_pair.debug.key_name}"
   user_data                   = <<EOF
 #!/bin/bash
 echo ECS_CLUSTER=service >> /etc/ecs/ecs.config
@@ -399,6 +399,11 @@ EOF
     "${aws_security_group.private.id}",
     "${aws_security_group.service.id}",
   ]
+}
+
+resource "aws_key_pair" "debug" {
+  key_name    = "debug"
+  public_key  = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCuFsJxH52k7iI4mseWljlbQhwIfbpVPuDCTOBo6YtI7xL3f3jfme4fqziwt+iqavRW2MgGsgoYGITNYstZa5zzT4Zo6CTZ0XpeLYZrrXQOxXrXjesRA478bCsU4gpCrPiy5Uzw3e2d1HLF/deLjnmREshzqaEQKoL8tzG51esBTIna+M5aWD0AGPFotO3J2sFTRnbAIxeVj4bKWAfaE2+WG1MX1VemDGeGrHmW6UbPoymHOD7Y5c/F00Bv+Pgk5LwCyRCvEzMLbl2GHpEJd3vcouwEToyADlN1rXc+85SfVtlwS8F3fX6vqjQ/2fMzG4syaDEeUJLsBcE2glNIwDH/ debug"
 }
 
 resource "aws_autoscaling_group" "service" {
