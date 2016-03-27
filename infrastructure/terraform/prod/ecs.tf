@@ -368,10 +368,10 @@ curl -O https://logdog.loggly.com/media/logs-01.loggly.com_sha12.crt
 
 # Rsyslog for Loggly
 
-sudo yum install rsyslog-gnutls
+sudo yum install -y rsyslog-gnutls
 sudo mkdir -p /var/spool/rsyslog
 
-sudo echo '$template LogglyFormat,"<%pri%>%protocol-version% %timestamp:::date-rfc3339% %HOSTNAME% %app-name% %procid% %msgid% [d2e7097f-25aa-497a-a9e3-d691bd4ec7ab@41058 tag=\"service\"] %msg%\n"' > /etc/rsyslog.d/22-loggly.conf
+sudo echo '$template LogglyFormat,"<%pri%>%protocol-version% %timestamp:::date-rfc3339% %HOSTNAME% %app-name% %procid% %msgid% [d2e7097f-25aa-497a-a9e3-d691bd4ec7ab@41058 tag=\"service.prod.eu-central-1\"] %msg%\n"' > /etc/rsyslog.d/22-loggly.conf
 
 # Setup disk assisted queues
 sudo echo '$WorkDirectory /var/spool/rsyslog # where to place spool files' >> /etc/rsyslog.d/22-loggly.conf
