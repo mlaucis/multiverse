@@ -1,14 +1,14 @@
 # Building iOS frameworks with storyboards, nibs and resources
 
-For the last month I have been working on creating [Tapglue Elements](https://github.com/tapglue/elements-ios), a framework on iOS for integrating full features into third party apps. This includes GUIs and graphical assets like images and also interacting with our current SDK which is responsible for networking and caching. One of the fundamental requirements was the support of the biggest dependency management tool out there for iOS: CocoaPods.
+For the last month we have been working on creating [Tapglue Elements](https://github.com/tapglue/elements-ios), a framework on iOS for integrating full features into third party apps. This includes GUIs and graphical assets like images and also interacting with our current SDK which is responsible for networking and caching. One of the fundamental requirements was the support of the biggest dependency management tool out there for iOS: CocoaPods.
 
-Too my big surprise there were not many examples of frameworks that do something similar to our goal, create a full feature with its own designs and UX to be integrated into third party apps. The most similar examples I found actually avoided using storyboards and xib files all together and did views purely in code. 
+Too our big surprise there were not many examples of frameworks that do something similar to our goal, create a full feature with its own designs and UX to be integrated into third party apps. The most similar examples we found actually avoided using storyboards and xib files all together and did views purely in code. 
 
-In this post my goal is to create a step-by-step guide on how to create a framework with storyboards, xibs, assets and localisation that works with CocoaPods. A project containing all the code can be found [here](https://github.com/nilsen340/ios-framework-with-storyboard).
+In this post our goal is to create a step-by-step guide on how to create a framework with storyboards, xibs, assets and localisation that works with CocoaPods. A project containing all the code can be found [here](https://github.com/nilsen340/ios-framework-with-storyboard).
 
 ## Setup
 
-To start I recommend using CocoaPods own template for creating frameworks by running
+To start we recommend using CocoaPods own template for creating frameworks by running
 
 `pod lib create MyFramework`
 
@@ -79,7 +79,7 @@ Pod::Spec.new do |s|
   s.homepage         = "https://github.com/<GITHUB_USERNAME>/MyFramework"
   # s.screenshots     = "www.example.com/screenshots_1", "www.example.com/screenshots_2"
   s.license          = 'MIT'
-  s.author           = { "John Nilsen" => "nilsen340@gmail.com" }
+  s.author           = { "John Nilsen" => "john@tapglue.com" }
   s.source           = { :git => "https://github.com/<GITHUB_USERNAME>/MyFramework.git", :tag => s.version.to_s }
   # s.social_media_url = 'https://twitter.com/<TWITTER_USERNAME>'
 
@@ -97,7 +97,7 @@ There are two significant changes here, on one side we filter the source files b
 
 Now we head over to the Example app and executes `pod install`. In Xcode the storyboards and xibs will now be displayed in a different group: `Resources`
 
-#Hooking the pod into the app
+## Hooking the pod into the app
 
 Since this is a framework we need to hook it up into the demo app to be able to see the results of our work. Lets start by adding a segue into our view controller. For this I will add a new class: `MyFramework` where we can add the segue call.
 
@@ -149,7 +149,7 @@ When running ti you should see something like this:
 
 ![alt tag](http://i.imgsafe.org/e1b361c.png)
 
-#Adding images into the mix
+## Adding images into the mix
 
 Lets improve our cell design by adding an image to it. First we create an asset catalog in the Classes folder of MyFramework. Then we press plus to add a image set. Then we add the following images.
 
@@ -174,7 +174,7 @@ Pod::Spec.new do |s|
   s.homepage         = "https://github.com/<GITHUB_USERNAME>/MyFramework"
   # s.screenshots     = "www.example.com/screenshots_1", "www.example.com/screenshots_2"
   s.license          = 'MIT'
-  s.author           = { "John Nilsen" => "nilsen340@gmail.com" }
+  s.author           = { "John Nilsen" => "john@tapglue.com" }
   s.source           = { :git => "https://github.com/<GITHUB_USERNAME>/MyFramework.git", :tag => s.version.to_s }
   # s.social_media_url = 'https://twitter.com/<TWITTER_USERNAME>'
 
@@ -194,9 +194,9 @@ Now run `pod install` from the Example folder and we're all set again!
 
 ## Tips
 
-Some of the minor issues I ran into were related to the pod not being updated when executing `pod spec lint`, I usually solved all of these doing a `pod cache clean --all` and executing `pod spec lint` again. 
+Some of the minor issues I ran into were related to the pod not being updated when executing `pod spec lint`, we usually solved all of these doing a `pod cache clean --all` and executing `pod spec lint` again. 
 
-When writing a framework like this I would recommend providing the view controllers themselves and not the segues, and provide delegation of the most relevant parts of the view controllers. Thats the approach we decided to use for [Tapglue elements](https://github.com/tapglue/Elements-ios)
+When writing a framework like this we would recommend providing the view controllers themselves and not the segues, and provide delegation of the most relevant parts of the view controllers. Thats the approach we decided to use for [Tapglue elements](https://github.com/tapglue/Elements-ios)
 
 ## Wrapping up
 
