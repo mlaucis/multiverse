@@ -1,10 +1,12 @@
+# Building iOS frameworks with storyboards, nibs and resources
+
 For the last month I have been working on creating [Tapglue Elements](https://github.com/tapglue/elements-ios), a framework on iOS for integrating full features into third party apps. This includes GUIs and graphical assets like images and also interacting with our current SDK which is responsible for networking and caching. One of the fundamental requirements was the support of the biggest dependency management tool out there for iOS: CocoaPods.
 
 Too my big surprise there were not many examples of frameworks that do something similar to our goal, create a full feature with its own designs and UX to be integrated into third party apps. The most similar examples I found actually avoided using storyboards and xib files all together and did views purely in code. 
 
 In this post my goal is to create a step-by-step guide on how to create a framework with storyboards, xibs, assets and localisation that works with CocoaPods. A project containing all the code can be found [here](https://github.com/nilsen340/ios-framework-with-storyboard).
 
-#Setup
+## Setup
 
 To start I recommend using CocoaPods own template for creating frameworks by running
 
@@ -20,7 +22,7 @@ This sets up a framework connected to a demo application you can then use to try
 
 This also generates the podspec for us, for now we'll just leave it the way it is. 
 
-#Lets get started!
+## Lets get started!
 
 Lets start by creating a storyboard and a view controller with a tableview. Embed your view controller in a `UINavigationViewController` and make the navigation view controller the initial view controller.
 
@@ -190,12 +192,12 @@ Notice the `resource_bundle` now includes extensions like `xcassets`, `json`, `i
 
 Now run `pod install` from the Example folder and we're all set again!
 
-#Tips
+## Tips
 
 Some of the minor issues I ran into were related to the pod not being updated when executing `pod spec lint`, I usually solved all of these doing a `pod cache clean --all` and executing `pod spec lint` again. 
 
 When writing a framework like this I would recommend providing the view controllers themselves and not the segues, and provide delegation of the most relevant parts of the view controllers. Thats the approach we decided to use for [Tapglue elements](https://github.com/tapglue/Elements-ios)
 
-#Wrapping up
+## Wrapping up
 
 Thats it! If you want further examples of how to implement this I recommend you read the [Tapglue Elements](https://github.com/tapglue/elements-ios) source code. 
