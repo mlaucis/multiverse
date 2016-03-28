@@ -153,7 +153,7 @@ When running ti you should see something like this:
 
 Lets improve our cell design by adding an image to it. First we create an asset catalog in the Classes folder of MyFramework. Then we press plus to add a image set. Then we add the following images.
 
-(link to logo images)
+[download images](https://github.com/nilsen340/ios-framework-with-storyboard/raw/master/tapglue-logo.zip)
 
 Lets redesign our cell to look like this
 
