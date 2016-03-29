@@ -564,7 +564,7 @@ func main() {
 
 	next.Methods("GET").PathPrefix("/posts").Name("postListAll").HandlerFunc(
 		handler.Wrap(
-			withApp,
+			withUser,
 			handler.PostListAll(postController, userStrangle),
 		),
 	)
