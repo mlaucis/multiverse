@@ -220,6 +220,26 @@ resource "aws_security_group_rule" "nat_syslog_out" {
   ]
 }
 
+resource "aws_security_group_rule" "nat_loggly_in" {
+  from_port                 = 6514
+  to_port                   = 6514
+  type                      = "ingress"
+  protocol                  = "udp"
+  security_group_id         = "${aws_security_group.nat.id}"
+  source_security_group_id  = "${aws_security_group.private.id}"
+}
+
+resource "aws_security_group_rule" "nat_loggly_out" {
+  from_port                 = 6514
+  to_port                   = 6514
+  type                      = "egress"
+  protocol                  = "udp"
+  security_group_id         = "${aws_security_group.nat.id}"
+  cidr_blocks = [
+    "0.0.0.0/0"
+  ]
+}
+
 resource "aws_security_group_rule" "nat_logzio_in" {
   from_port                 = 5000
   to_port                   = 5000
@@ -329,6 +349,15 @@ resource "aws_security_group_rule" "private_syslog_out" {
   to_port                   = 514
   type                      = "egress"
   protocol                  = "tcp"
+  security_group_id         = "${aws_security_group.private.id}"
+  source_security_group_id  = "${aws_security_group.nat.id}"
+}
+
+resource "aws_security_group_rule" "private_loggly_out" {
+  from_port                 = 6514
+  to_port                   = 6514
+  type                      = "egress"
+  protocol                  = "udp"
   security_group_id         = "${aws_security_group.private.id}"
   source_security_group_id  = "${aws_security_group.nat.id}"
 }
