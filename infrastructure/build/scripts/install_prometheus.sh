@@ -42,21 +42,21 @@ scrape_configs:
 
   - job_name: "node-exporter"
     ec2_sd_configs:
-      - region: "eu-central-1"
+      - region: "$AWS_REGION"
         access_key: AKIAJYTAYVGCJR6VNQLA
         secret_key: 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
         port: 9100
 
   - job_name: "services"
     ec2_sd_configs:
-      - region: "eu-central-1"
+      - region: "$AWS_REGION"
         access_key: AKIAJYTAYVGCJR6VNQLA
         secret_key: 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
         port: 9000
 ' | sudo tee /etc/prometheus/prometheus.yml > /dev/null
 
 # /etc/prometheus/api.rules
-ehco '
+echo '
 job:gateway_http_status:sum = sum(rate(intaker_handler_request_count [5m])) by (status)
 job:gateway_http_route:sum = sum(rate(intaker_handler_request_count [5m])) by (route)
 job:gateway_http_latency:apdex = ((sum(rate(intaker_handler_request_latency_seconds_bucket{le="0.05"}[5m])) + sum(rate(intaker_handler_request_latency_seconds_bucket{le="0.25"}[5m]))) / 2) / sum(rate(intaker_handler_request_latency_seconds_count[5m]))

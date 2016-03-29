@@ -7,17 +7,9 @@
   "use_ssl": true,
   "use_syslog": true,
   "use_low_sec": false,
-  "cache_app": {
-    "hosts": [
-      "cache-app.tapglue.int:6379"
-    ],
-    "password": "",
-    "db": 0,
-    "pool_size": 30
-  },
   "rate_limiter": {
     "hosts": [
-      "rate-limiter.tapglue.int:6379"
+      "cache.ratelimiter:6379"
     ],
     "password": "",
     "db": 0,
@@ -28,16 +20,8 @@
     "master": {
       "username": "tapglue",
       "password": "gFthJy858iXOIA3IM0GARIuFYdIWkeCHJc0vto",
-      "host": "db-master.tapglue.int",
+      "host": "db-master.service",
       "options": "sslmode=require&connect_timeout=5"
-    },
-    "slaves": [
-      {
-        "username": "tapglue",
-        "password": "gFthJy858iXOIA3IM0GARIuFYdIWkeCHJc0vto",
-        "host": "db-slave1.tapglue.int",
-        "options": "sslmode=require&connect_timeout=5"
-      }
-    ]
+    }
   }
 }
