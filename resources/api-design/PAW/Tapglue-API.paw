@@ -5379,19 +5379,20 @@
         <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z379 z432 z323 z197"></relationship>
     </object>
     <object type="LMREQUEST" id="z643">
+        <attribute name="body" type="string">[{"data":{"json":"{\\"emails\\":[\\"foo@bar.baz\\",\\"yolanda.rethman@thai.com\\"]}"},"identifier":"com.luckymarmot.JSONDynamicValue"}]</attribute>
         <attribute name="uuid" type="string">709531E7-1DF8-4795-B278-8E38C218BB4C</attribute>
-        <attribute name="url" type="string">[{"data":{"environmentVariable":"72EAC798-896C-41A3-9847-3B725EA1BB7E"},"identifier":"com.luckymarmot.EnvironmentVariableDynamicValue"},{"data":{"environmentVariable":"ECC38CD8-F39C-4630-A2B0-9A7AB93A5B34"},"identifier":"com.luckymarmot.EnvironmentVariableDynamicValue"},"?email=john.appleseed%40yahoo.fr\u2600email=dion.vartanian%40iowaemail.com\u2600email=nu.cardamone%40chance2mail.com"]</attribute>
+        <attribute name="url" type="string">[{"data":{"environmentVariable":"72EAC798-896C-41A3-9847-3B725EA1BB7E"},"identifier":"com.luckymarmot.EnvironmentVariableDynamicValue"},{"data":{"environmentVariable":"ECC38CD8-F39C-4630-A2B0-9A7AB93A5B34"},"identifier":"com.luckymarmot.EnvironmentVariableDynamicValue"},"\\/emails"]</attribute>
         <attribute name="storecookies" type="bool">1</attribute>
         <attribute name="sendcookies" type="bool">1</attribute>
         <attribute name="redirectmethod" type="bool">0</attribute>
         <attribute name="redirectauthorization" type="bool">0</attribute>
-        <attribute name="method" type="string">GET</attribute>
+        <attribute name="method" type="string">POST</attribute>
         <attribute name="followredirects" type="bool">0</attribute>
         <attribute name="order" type="int64">1</attribute>
         <attribute name="name" type="string">Search Users Multiple Emails</attribute>
         <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z602"></relationship>
         <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
-        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z338 z449 z390 z539"></relationship>
+        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z338 z390 z449 z539"></relationship>
     </object>
     <object type="LMREQUEST" id="z644">
         <attribute name="uuid" type="string">1D69DC94-D1FB-4882-A224-DD7F4CABB3A8</attribute>
