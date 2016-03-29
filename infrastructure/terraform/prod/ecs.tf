@@ -196,8 +196,8 @@ resource "aws_elb" "gateway-http" {
   health_check {
     healthy_threshold   = 2
     interval            = 5
-    timeout             = 2
     target              = "HTTPS:8083/health-45016490610398192"
+    timeout             = 2
     unhealthy_threshold = 2
   }
 

@@ -24,4 +24,3 @@ ADD $BINARY_FILE /tapglue/gateway-http
 
 # Runtime
 EXPOSE 8083 9000
-CMD ["/tapglue/gateway-http"]
