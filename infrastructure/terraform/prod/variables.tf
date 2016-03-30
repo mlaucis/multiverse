@@ -1,3 +1,17 @@
+variable "env" {
+  default = "prod-legacy"
+}
+
+variable "region" {
+  default = "eu-central-1"
+}
+
+variable "version" {
+  default = {
+    gateway-http = "1836"
+  }
+}
+
 variable "vpc-region" {
   default = "eu-central-1"
 }

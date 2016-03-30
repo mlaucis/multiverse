@@ -8,6 +8,32 @@ resource "aws_route53_zone" "tapglue-internal" {
   }
 }
 
+resource "aws_route53_zone" "env" {
+  comment = "zone to isolate DNS routes for ${var.env}.${var.region}"
+  name    = "${var.env}.${var.region}"
+  vpc_id  = "${aws_vpc.tapglue.id}"
+}
+
+resource "aws_route53_record" "ratelimiter-cache" {
+  name    = "cache.ratelimiter"
+  ttl     = "5"
+  type    = "CNAME"
+  zone_id = "${aws_route53_zone.env.id}"
+  records = [
+    "${aws_elasticache_cluster.rate-limiter.cache_nodes.0.address}",
+  ]
+}
+
+resource "aws_route53_record" "service-db" {
+  name    = "db-master.service"
+  ttl     = "5"
+  type    = "CNAME"
+  zone_id = "${aws_route53_zone.env.id}"
+  records = [
+    "${aws_db_instance.master.address}",
+  ]
+}
+
 resource "aws_route53_record" "db-master" {
   zone_id = "${aws_route53_zone.tapglue-internal.zone_id}"
   name    = "db-master"
@@ -15,7 +41,8 @@ resource "aws_route53_record" "db-master" {
 
   ttl     = "5"
   records = [
-    "${aws_db_instance.master.address}"]
+    "${aws_db_instance.master.address}",
+  ]
 }
 
 resource "aws_route53_record" "db-slave1" {
@@ -68,7 +95,8 @@ resource "aws_route53_record" "rate-limiter" {
 
   ttl     = "5"
   records = [
-    "${aws_elasticache_cluster.rate-limiter.cache_nodes.0.address}"]
+    "${aws_elasticache_cluster.rate-limiter.cache_nodes.0.address}",
+  ]
 }
 
 resource "aws_route53_record" "cache-app" {
