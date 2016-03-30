@@ -224,7 +224,7 @@ resource "aws_security_group_rule" "nat_loggly_in" {
   from_port                 = 6514
   to_port                   = 6514
   type                      = "ingress"
-  protocol                  = "udp"
+  protocol                  = "tcp"
   security_group_id         = "${aws_security_group.nat.id}"
   source_security_group_id  = "${aws_security_group.private.id}"
 }
@@ -233,7 +233,7 @@ resource "aws_security_group_rule" "nat_loggly_out" {
   from_port                 = 6514
   to_port                   = 6514
   type                      = "egress"
-  protocol                  = "udp"
+  protocol                  = "tcp"
   security_group_id         = "${aws_security_group.nat.id}"
   cidr_blocks = [
     "0.0.0.0/0"
@@ -357,7 +357,7 @@ resource "aws_security_group_rule" "private_loggly_out" {
   from_port                 = 6514
   to_port                   = 6514
   type                      = "egress"
-  protocol                  = "udp"
+  protocol                  = "tcp"
   security_group_id         = "${aws_security_group.private.id}"
   source_security_group_id  = "${aws_security_group.nat.id}"
 }
