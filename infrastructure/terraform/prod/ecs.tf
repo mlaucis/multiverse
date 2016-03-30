@@ -297,14 +297,20 @@ resource "aws_ecs_task_definition" "gateway-http" {
   container_definitions = <<EOF
 [
   {
-    "name": "gateway-http",
-    "image": "775034650473.dkr.ecr.us-east-1.amazonaws.com/gateway-http:1830",
+    "command": [
+      "./gateway-http"
+    ],
     "cpu": 512,
-    "memory": 2048,
+    "dnsSearchDomains": [
+      "${var.env}.${var.region}"
+    ],
     "essential": true,
-    "workingDirectory": "/tapglue/",
-    "readonlyRootFilesystem": true,
-    "privileged": false,
+    "image": "775034650473.dkr.ecr.us-east-1.amazonaws.com/gateway-http:${var.version.gateway-http}",
+    "logConfiguration": {
+      "logDriver": "syslog"
+    },
+    "memory": 2048,
+    "name": "gateway-http",
     "portMappings": [
       {
         "containerPort": 8083,
@@ -315,9 +321,8 @@ resource "aws_ecs_task_definition" "gateway-http" {
         "hostPort": 9000
       }
     ],
-    "logConfiguration": {
-      "logDriver": "syslog"
-    }
+    "readonlyRootFilesystem": true,
+    "workingDirectory": "/tapglue/"
   }
 ]
 EOF
