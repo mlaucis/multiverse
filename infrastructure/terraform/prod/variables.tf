@@ -8,7 +8,7 @@ variable "region" {
 
 variable "version" {
   default = {
-    gateway-http = "1838"
+    gateway-http = "1839"
   }
 }
 
