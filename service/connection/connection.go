@@ -67,7 +67,7 @@ func (l List) FromIDs() []uint64 {
 	ids := []uint64{}
 
 	for _, c := range l {
-		ids = append(ids, c.ToID)
+		ids = append(ids, c.FromID)
 	}
 
 	return ids
