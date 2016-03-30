@@ -13,6 +13,8 @@ import (
 	"github.com/tapglue/multiverse/controller"
 	"github.com/tapglue/multiverse/service/connection"
 	"github.com/tapglue/multiverse/service/user"
+	v04_entity "github.com/tapglue/multiverse/v04/entity"
+	v04_response "github.com/tapglue/multiverse/v04/server/response"
 )
 
 // ConnectionByState returns all connections for a user for a certain state.
@@ -296,16 +298,16 @@ type payloadConnections struct {
 
 func (p *payloadConnections) MarshalJSON() ([]byte, error) {
 	f := struct {
-		Incoming      []*payloadConnection `json:"incoming"`
-		IncomingCount int                  `json:"incoming_connections_count"`
-		Outgoing      []*payloadConnection `json:"outgoing"`
-		OutgoingCount int                  `json:"outgoing_connections_count"`
-		Users         payloadUserMap       `json:"users"`
-		UsersCount    int                  `json:"users_count"`
+		Incoming      []*payloadConnection                      `json:"incoming"`
+		IncomingCount int                                       `json:"incoming_connections_count"`
+		Outgoing      []*payloadConnection                      `json:"outgoing"`
+		OutgoingCount int                                       `json:"outgoing_connections_count"`
+		Users         []*v04_entity.PresentationApplicationUser `json:"users"`
+		UsersCount    int                                       `json:"users_count"`
 	}{
 		Incoming:   []*payloadConnection{},
 		Outgoing:   []*payloadConnection{},
-		Users:      mapUserPresentation(p.userMap),
+		Users:      []*v04_entity.PresentationApplicationUser{},
 		UsersCount: len(p.userMap),
 	}
 
@@ -315,6 +317,14 @@ func (p *payloadConnections) MarshalJSON() ([]byte, error) {
 		} else {
 			f.Incoming = append(f.Incoming, &payloadConnection{con: c})
 		}
+	}
+
+	for _, u := range p.userMap {
+		v04_response.SanitizeApplicationUser(u)
+
+		f.Users = append(f.Users, &v04_entity.PresentationApplicationUser{
+			ApplicationUser: u,
+		})
 	}
 
 	f.IncomingCount = len(f.Incoming)
