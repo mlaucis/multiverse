@@ -18,9 +18,9 @@ import (
 func CommentCreate(c *controller.CommentController) Handler {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		var (
-			app  = appFromContext(ctx)
-			user = userFromContext(ctx)
-			p    = &payloadComment{}
+			app         = appFromContext(ctx)
+			currentUser = userFromContext(ctx)
+			p           = &payloadComment{}
 		)
 
 		postID, err := strconv.ParseUint(mux.Vars(r)["postID"], 10, 64)
@@ -35,7 +35,7 @@ func CommentCreate(c *controller.CommentController) Handler {
 			return
 		}
 
-		comment, err := c.Create(app, user, postID, p.content)
+		comment, err := c.Create(app, currentUser.ID, postID, p.content)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -49,8 +49,8 @@ func CommentCreate(c *controller.CommentController) Handler {
 func CommentDelete(c *controller.CommentController) Handler {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		var (
-			app  = appFromContext(ctx)
-			user = userFromContext(ctx)
+			app         = appFromContext(ctx)
+			currentUser = userFromContext(ctx)
 		)
 
 		postID, err := strconv.ParseUint(mux.Vars(r)["postID"], 10, 64)
@@ -65,7 +65,7 @@ func CommentDelete(c *controller.CommentController) Handler {
 			return
 		}
 
-		err = c.Delete(app, user, postID, commentID)
+		err = c.Delete(app, currentUser.ID, postID, commentID)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -78,7 +78,10 @@ func CommentDelete(c *controller.CommentController) Handler {
 // CommentList returns all comments for the given a Post.
 func CommentList(c *controller.CommentController) Handler {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-		app := appFromContext(ctx)
+		var (
+			app         = appFromContext(ctx)
+			currentUser = userFromContext(ctx)
+		)
 
 		postID, err := strconv.ParseUint(mux.Vars(r)["postID"], 10, 64)
 		if err != nil {
@@ -86,7 +89,7 @@ func CommentList(c *controller.CommentController) Handler {
 			return
 		}
 
-		list, err := c.List(app, postID)
+		list, err := c.List(app, currentUser.ID, postID)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -107,8 +110,8 @@ func CommentList(c *controller.CommentController) Handler {
 func CommentRetrieve(c *controller.CommentController) Handler {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		var (
-			app  = appFromContext(ctx)
-			user = userFromContext(ctx)
+			app         = appFromContext(ctx)
+			currentUser = userFromContext(ctx)
 		)
 
 		postID, err := strconv.ParseUint(mux.Vars(r)["postID"], 10, 64)
@@ -123,7 +126,7 @@ func CommentRetrieve(c *controller.CommentController) Handler {
 			return
 		}
 
-		comment, err := c.Retrieve(app, user, postID, commentID)
+		comment, err := c.Retrieve(app, currentUser.ID, postID, commentID)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -137,9 +140,9 @@ func CommentRetrieve(c *controller.CommentController) Handler {
 func CommentUpdate(c *controller.CommentController) Handler {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		var (
-			app  = appFromContext(ctx)
-			user = userFromContext(ctx)
-			p    = &payloadComment{}
+			app         = appFromContext(ctx)
+			currentUser = userFromContext(ctx)
+			p           = &payloadComment{}
 		)
 
 		postID, err := strconv.ParseUint(mux.Vars(r)["postID"], 10, 64)
@@ -160,7 +163,7 @@ func CommentUpdate(c *controller.CommentController) Handler {
 			return
 		}
 
-		comment, err := c.Update(app, user, postID, commentID, p.content)
+		comment, err := c.Update(app, currentUser.ID, postID, commentID, p.content)
 		if err != nil {
 			respondError(w, 0, err)
 			return

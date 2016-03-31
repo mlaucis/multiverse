@@ -3,6 +3,8 @@ package http
 import (
 	"errors"
 	"fmt"
+
+	"github.com/tapglue/multiverse/controller"
 )
 
 // Errors used for protocol control flow.
@@ -32,6 +34,8 @@ func (e *Error) Error() string {
 func unwrapError(err error) error {
 	switch e := err.(type) {
 	case *Error:
+		return e.Err
+	case *controller.Error:
 		return e.Err
 	}
 

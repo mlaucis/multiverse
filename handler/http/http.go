@@ -128,6 +128,8 @@ func respondError(w http.ResponseWriter, code int, err error) {
 		statusCode = http.StatusUnauthorized
 	case e == controller.ErrNotFound:
 		statusCode = http.StatusNotFound
+	case e == controller.ErrUnauthorized:
+		statusCode = http.StatusNotFound
 	}
 
 	respondJSON(w, statusCode, struct {

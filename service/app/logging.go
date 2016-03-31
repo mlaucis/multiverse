@@ -31,7 +31,7 @@ func LogStrangleMiddleware(logger log.Logger, store string) StrangleMiddleware {
 func (s *logStrangleService) FindByApplicationToken(token string) (app *v04_entity.Application, errs []errors.Error) {
 	defer func(begin time.Time) {
 		ps := []interface{}{
-			"duration_ns", time.Since(begin),
+			"duration_ns", time.Since(begin).Nanoseconds(),
 			"method", "FindByApplicationToken",
 			"token", token,
 		}
@@ -49,7 +49,7 @@ func (s *logStrangleService) FindByApplicationToken(token string) (app *v04_enti
 func (s *logStrangleService) FindByBackendToken(token string) (app *v04_entity.Application, errs []errors.Error) {
 	defer func(begin time.Time) {
 		ps := []interface{}{
-			"duration_ns", time.Since(begin),
+			"duration_ns", time.Since(begin).Nanoseconds(),
 			"method", "FindByBackendToken",
 			"token", token,
 		}

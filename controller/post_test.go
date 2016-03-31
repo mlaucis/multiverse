@@ -60,12 +60,17 @@ func TestPostControllerDelete(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = c.Delete(app, created.ID)
+	err = c.Delete(app, owner.ID+1, created.ID)
+	if have, want := err, ErrUnauthorized; !IsUnauthorized(err) {
+		t.Errorf("have %v, want %v", have, want)
+	}
+
+	err = c.Delete(app, owner.ID, created.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = c.Retrieve(app, created.ID)
+	_, err = c.Retrieve(app, owner.ID, created.ID)
 	if have, want := err, ErrNotFound; have != want {
 		t.Fatalf("have %v, want %v", have, want)
 	}
@@ -86,7 +91,7 @@ func TestPostControllerDelete(t *testing.T) {
 		t.Fatalf("have %v, want %v", have, want)
 	}
 
-	err = c.Delete(app, created.ID)
+	err = c.Delete(app, owner.ID, created.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -95,7 +100,7 @@ func TestPostControllerDelete(t *testing.T) {
 func TestPostControllerListAll(t *testing.T) {
 	app, owner, c := testSetupPostController(t)
 
-	ps, err := c.ListAll(app, owner)
+	ps, err := c.ListAll(app, owner.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -111,7 +116,7 @@ func TestPostControllerListAll(t *testing.T) {
 		}
 	}
 
-	ps, err = c.ListAll(app, owner)
+	ps, err = c.ListAll(app, owner.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -161,7 +166,7 @@ func TestPostControllerRetrieve(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	r, err := c.Retrieve(app, created.ID)
+	r, err := c.Retrieve(app, owner.ID, created.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -170,7 +175,7 @@ func TestPostControllerRetrieve(t *testing.T) {
 		t.Fatalf("have %v, want %v", have, want)
 	}
 
-	_, err = c.Retrieve(app, created.ID-1)
+	_, err = c.Retrieve(app, owner.ID, created.ID-1)
 	if have, want := err, ErrNotFound; have != want {
 		t.Errorf("have %v, want %v", have, want)
 	}

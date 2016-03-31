@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"github.com/tapglue/multiverse/service/connection"
 	"github.com/tapglue/multiverse/service/object"
 	"github.com/tapglue/multiverse/service/user"
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
@@ -20,31 +21,35 @@ type CommentFeed struct {
 
 // CommentController bundles the business constraints for comemnts on posts.
 type CommentController struct {
-	objects object.Service
-	users   user.StrangleService
+	connections connection.Service
+	objects     object.Service
+	users       user.StrangleService
 }
 
 // NewCommentController returns a controller instance.
 func NewCommentController(
+	connections connection.Service,
 	objects object.Service,
 	users user.StrangleService,
 ) *CommentController {
 	return &CommentController{
-		objects: objects,
-		users:   users,
+		connections: connections,
+		objects:     objects,
+		users:       users,
 	}
 }
 
 // Create associates the given Comment with the Post passed by id.
 func (c *CommentController) Create(
 	app *v04_entity.Application,
-	owner *v04_entity.ApplicationUser,
+	origin uint64,
 	postID uint64,
 	content string,
 ) (*object.Object, error) {
 	ps, err := c.objects.Query(app.Namespace(), object.QueryOptions{
 		ID:    &postID,
 		Owned: &defaultOwned,
+		Types: []string{typePost},
 	})
 	if err != nil {
 		return nil, err
@@ -54,12 +59,16 @@ func (c *CommentController) Create(
 		return nil, ErrNotFound
 	}
 
+	if err := isPostVisible(c.connections, app, ps[0], origin); err != nil {
+		return nil, err
+	}
+
 	return c.objects.Put(app.Namespace(), &object.Object{
 		Attachments: []object.Attachment{
 			object.NewTextAttachment(attachmentContent, content),
 		},
 		ObjectID:   postID,
-		OwnerID:    owner.ID,
+		OwnerID:    origin,
 		Owned:      true,
 		Type:       typeComment,
 		Visibility: ps[0].Visibility,
@@ -69,7 +78,7 @@ func (c *CommentController) Create(
 // Delete flags the Comment as deleted.
 func (c *CommentController) Delete(
 	app *v04_entity.Application,
-	owner *v04_entity.ApplicationUser,
+	origin uint64,
 	postID uint64,
 	commentID uint64,
 ) error {
@@ -79,7 +88,7 @@ func (c *CommentController) Delete(
 			postID,
 		},
 		OwnerIDs: []uint64{
-			owner.ID,
+			origin,
 		},
 		Types: []string{
 			typeComment,
@@ -108,8 +117,26 @@ func (c *CommentController) Delete(
 // List returns all comemnts for the given post id.
 func (c *CommentController) List(
 	app *v04_entity.Application,
+	origin uint64,
 	postID uint64,
 ) (*CommentFeed, error) {
+	ps, err := c.objects.Query(app.Namespace(), object.QueryOptions{
+		ID:    &postID,
+		Owned: &defaultOwned,
+		Types: []string{typePost},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if len(ps) == 0 {
+		return nil, ErrNotFound
+	}
+
+	if err := isPostVisible(c.connections, app, ps[0], origin); err != nil {
+		return nil, err
+	}
+
 	cs, err := c.objects.Query(app.Namespace(), object.QueryOptions{
 		ObjectIDs: []uint64{
 			postID,
@@ -134,7 +161,7 @@ func (c *CommentController) List(
 // Retrieve returns the comment given id.
 func (c *CommentController) Retrieve(
 	app *v04_entity.Application,
-	owner *v04_entity.ApplicationUser,
+	origin uint64,
 	postID, commentID uint64,
 ) (*object.Object, error) {
 	cs, err := c.objects.Query(app.Namespace(), object.QueryOptions{
@@ -143,7 +170,7 @@ func (c *CommentController) Retrieve(
 			postID,
 		},
 		OwnerIDs: []uint64{
-			owner.ID,
+			origin,
 		},
 		Types: []string{
 			typeComment,
@@ -164,7 +191,7 @@ func (c *CommentController) Retrieve(
 // Update replaces the given comment with new values.
 func (c *CommentController) Update(
 	app *v04_entity.Application,
-	owner *v04_entity.ApplicationUser,
+	origin uint64,
 	postID, commentID uint64,
 	content string,
 ) (*object.Object, error) {
@@ -174,7 +201,7 @@ func (c *CommentController) Update(
 			postID,
 		},
 		OwnerIDs: []uint64{
-			owner.ID,
+			origin,
 		},
 		Owned: &defaultOwned,
 		Types: []string{
