@@ -11,15 +11,17 @@ const errFmt = "%s: %s"
 var (
 	ErrInvalidEntity = errors.New("invalid entity")
 	ErrNotFound      = errors.New("resource not found")
+	ErrUnauthorized  = errors.New("origin unauthorized")
 )
 
+// Error is a wraper used to transport controller specific errors.
 type Error struct {
-	err error
-	msg string
+	Err error
+	Msg string
 }
 
 func (e *Error) Error() string {
-	return e.msg
+	return e.Msg
 }
 
 // IsInvalidEntity indciates if err is ErrInvalidEntity.
@@ -27,10 +29,15 @@ func IsInvalidEntity(err error) bool {
 	return unwrapError(err) == ErrInvalidEntity
 }
 
+// IsUnauthorized indicates if err is ErrUnauthorized.
+func IsUnauthorized(err error) bool {
+	return unwrapError(err) == ErrUnauthorized
+}
+
 func unwrapError(err error) error {
 	switch e := err.(type) {
 	case *Error:
-		return e.err
+		return e.Err
 	}
 
 	return err
@@ -38,8 +45,8 @@ func unwrapError(err error) error {
 
 func wrapError(err error, format string, args ...interface{}) error {
 	return &Error{
-		err: err,
-		msg: fmt.Sprintf(
+		Err: err,
+		Msg: fmt.Sprintf(
 			errFmt,
 			err.Error(),
 			fmt.Sprintf(format, args...),

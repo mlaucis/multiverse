@@ -18,8 +18,8 @@ import (
 func LikeCreate(c *controller.LikeController) Handler {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		var (
-			app  = appFromContext(ctx)
-			user = userFromContext(ctx)
+			app         = appFromContext(ctx)
+			currentUser = userFromContext(ctx)
 		)
 
 		postID, err := strconv.ParseUint(mux.Vars(r)["postID"], 10, 64)
@@ -28,7 +28,7 @@ func LikeCreate(c *controller.LikeController) Handler {
 			return
 		}
 
-		like, err := c.Create(app, user, postID)
+		like, err := c.Create(app, currentUser.ID, postID)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -42,8 +42,8 @@ func LikeCreate(c *controller.LikeController) Handler {
 func LikeDelete(c *controller.LikeController) Handler {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		var (
-			app  = appFromContext(ctx)
-			user = userFromContext(ctx)
+			app         = appFromContext(ctx)
+			currentUser = userFromContext(ctx)
 		)
 
 		postID, err := strconv.ParseUint(mux.Vars(r)["postID"], 10, 64)
@@ -52,7 +52,7 @@ func LikeDelete(c *controller.LikeController) Handler {
 			return
 		}
 
-		err = c.Delete(app, user, postID)
+		err = c.Delete(app, currentUser.ID, postID)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -65,7 +65,10 @@ func LikeDelete(c *controller.LikeController) Handler {
 // LikeList returns all Likes for a post.
 func LikeList(c *controller.LikeController) Handler {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-		app := appFromContext(ctx)
+		var (
+			app         = appFromContext(ctx)
+			currentUser = userFromContext(ctx)
+		)
 
 		postID, err := strconv.ParseUint(mux.Vars(r)["postID"], 10, 64)
 		if err != nil {
@@ -73,7 +76,7 @@ func LikeList(c *controller.LikeController) Handler {
 			return
 		}
 
-		ls, err := c.List(app, postID)
+		ls, err := c.List(app, currentUser.ID, postID)
 		if err != nil {
 			respondError(w, 0, err)
 			return

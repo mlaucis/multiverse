@@ -107,7 +107,11 @@ func (c *PostController) Create(
 }
 
 // Delete marks a Post as deleted and updates it in the service.
-func (c *PostController) Delete(app *v04_entity.Application, id uint64) error {
+func (c *PostController) Delete(
+	app *v04_entity.Application,
+	origin uint64,
+	id uint64,
+) error {
 	os, err := c.objects.Query(app.Namespace(), object.QueryOptions{
 		ID:    &id,
 		Owned: &defaultOwned,
@@ -124,10 +128,15 @@ func (c *PostController) Delete(app *v04_entity.Application, id uint64) error {
 		return nil
 	}
 
-	o := os[0]
-	o.Deleted = true
+	post := os[0]
 
-	_, err = c.objects.Put(app.Namespace(), o)
+	if post.OwnerID != origin {
+		return wrapError(ErrUnauthorized, "not allowed to delete post")
+	}
+
+	post.Deleted = true
+
+	_, err = c.objects.Put(app.Namespace(), post)
 	if err != nil {
 		return err
 	}
@@ -138,7 +147,7 @@ func (c *PostController) Delete(app *v04_entity.Application, id uint64) error {
 // ListAll returns all objects which are of type post.
 func (c *PostController) ListAll(
 	app *v04_entity.Application,
-	user *v04_entity.ApplicationUser,
+	origin uint64,
 ) (PostList, error) {
 	os, err := c.objects.Query(app.Namespace(), object.QueryOptions{
 		Owned: &defaultOwned,
@@ -156,7 +165,7 @@ func (c *PostController) ListAll(
 
 	ps := postsFromObjects(os)
 
-	err = enrichIsLiked(c.events, app, user.ID, ps)
+	err = enrichIsLiked(c.events, app, origin, ps)
 	if err != nil {
 		return nil, err
 	}
@@ -168,7 +177,7 @@ func (c *PostController) ListAll(
 // connection user id.
 func (c *PostController) ListUser(
 	app *v04_entity.Application,
-	connectionID uint64,
+	origin uint64,
 	userID uint64,
 ) (PostList, error) {
 	vs := []object.Visibility{
@@ -177,8 +186,8 @@ func (c *PostController) ListUser(
 	}
 
 	// Check relation and include connection visibility.
-	if connectionID != userID {
-		r, err := queryRelation(c.connections, app, connectionID, userID)
+	if origin != userID {
+		r, err := queryRelation(c.connections, app, origin, userID)
 		if err != nil {
 			return nil, err
 		}
@@ -189,7 +198,7 @@ func (c *PostController) ListUser(
 	}
 
 	// We want all visibilities if the connection and target are the same.
-	if connectionID == userID {
+	if origin == userID {
 		vs = append(vs, object.VisibilityConnection, object.VisibilityPrivate)
 	}
 
@@ -209,7 +218,7 @@ func (c *PostController) ListUser(
 
 	ps := postsFromObjects(os)
 
-	err = enrichIsLiked(c.events, app, connectionID, ps)
+	err = enrichIsLiked(c.events, app, origin, ps)
 	if err != nil {
 		return nil, err
 	}
@@ -220,6 +229,7 @@ func (c *PostController) ListUser(
 // Retrieve returns the Post for the given id.
 func (c *PostController) Retrieve(
 	app *v04_entity.Application,
+	origin uint64,
 	id uint64,
 ) (*Post, error) {
 	os, err := c.objects.Query(app.Namespace(), object.QueryOptions{
@@ -228,10 +238,6 @@ func (c *PostController) Retrieve(
 		Types: []string{
 			typePost,
 		},
-		Visibilities: []object.Visibility{
-			object.VisibilityPublic,
-			object.VisibilityGlobal,
-		},
 	})
 	if err != nil {
 		return nil, err
@@ -239,6 +245,10 @@ func (c *PostController) Retrieve(
 
 	if len(os) != 1 {
 		return nil, ErrNotFound
+	}
+
+	if err := isPostVisible(c.connections, app, os[0], origin); err != nil {
+		return nil, err
 	}
 
 	return &Post{Object: os[0]}, nil
@@ -308,6 +318,37 @@ func enrichIsLiked(
 		if len(es) == 1 {
 			p.IsLiked = true
 		}
+	}
+
+	return nil
+}
+
+// isPostVisible given a post validates that the origin is allowed to see the
+// post.
+func isPostVisible(
+	connections connection.Service,
+	app *v04_entity.Application,
+	post *object.Object,
+	origin uint64,
+) error {
+	if origin == post.OwnerID {
+		return nil
+	}
+
+	switch post.Visibility {
+	case object.VisibilityGlobal, object.VisibilityPublic:
+		return nil
+	case object.VisibilityPrivate:
+		return ErrNotFound
+	}
+
+	r, err := queryRelation(connections, app, origin, post.OwnerID)
+	if err != nil {
+		return err
+	}
+
+	if !r.isFriend && !r.isFollowing {
+		return ErrNotFound
 	}
 
 	return nil

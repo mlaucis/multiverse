@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/tapglue/multiverse/service/connection"
 	"github.com/tapglue/multiverse/service/object"
 	"github.com/tapglue/multiverse/service/user"
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
@@ -18,7 +19,7 @@ func TestCommentControllerCreate(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	created, err := c.Create(app, owner, post.ID, "Do Like.")
+	created, err := c.Create(app, owner.ID, post.ID, "Do Like.")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -42,7 +43,7 @@ func TestCommentControllerCreate(t *testing.T) {
 		t.Errorf("have %v, want %v", have, want)
 	}
 
-	_, err = c.Create(app, owner, 0, "Do not like.")
+	_, err = c.Create(app, owner.ID, 0, "Do not like.")
 	if have, want := err, ErrNotFound; have != want {
 		t.Fatalf("have %v, want %v", have, want)
 	}
@@ -61,12 +62,12 @@ func TestCommentControllerDelete(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = c.Delete(app, owner, post.ID, created.ID)
+	err = c.Delete(app, owner.ID, post.ID, created.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = c.Retrieve(app, owner, post.ID, created.ID)
+	_, err = c.Retrieve(app, owner.ID, post.ID, created.ID)
 	if have, want := err, ErrNotFound; have != want {
 		t.Fatalf("have %v, want %v", have, want)
 	}
@@ -87,7 +88,7 @@ func TestCommentControllerDelete(t *testing.T) {
 		t.Fatalf("have %v, want %v", have, want)
 	}
 
-	err = c.Delete(app, owner, post.ID, created.ID)
+	err = c.Delete(app, owner.ID, post.ID, created.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -101,7 +102,7 @@ func TestCommentControllerList(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	list, err := c.List(app, post.ID)
+	list, err := c.List(app, owner.ID, post.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -117,7 +118,7 @@ func TestCommentControllerList(t *testing.T) {
 		}
 	}
 
-	list, err = c.List(app, post.ID)
+	list, err = c.List(app, owner.ID, post.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -140,7 +141,7 @@ func TestCommentControllerRetrieve(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	r, err := c.Retrieve(app, owner, post.ID, created.ID)
+	r, err := c.Retrieve(app, owner.ID, post.ID, created.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -149,7 +150,7 @@ func TestCommentControllerRetrieve(t *testing.T) {
 		t.Fatalf("have %v, want %v", have, want)
 	}
 
-	_, err = c.Retrieve(app, owner, post.ID, created.ID-1)
+	_, err = c.Retrieve(app, owner.ID, post.ID, created.ID-1)
 	if have, want := err, ErrNotFound; have != want {
 		t.Errorf("have %v, want %v", have, want)
 	}
@@ -163,7 +164,7 @@ func TestCommentControllerUpdate(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err = c.Update(app, owner, post.ID, 0, "Do not like.")
+	_, err = c.Update(app, owner.ID, post.ID, 0, "Do not like.")
 	if have, want := err, ErrNotFound; have != want {
 		t.Fatalf("have %v, want %v", have, want)
 	}
@@ -173,7 +174,7 @@ func TestCommentControllerUpdate(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	updated, err := c.Update(app, owner, post.ID, created.ID, "Do not like!")
+	updated, err := c.Update(app, owner.ID, post.ID, created.ID, "Do not like!")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -228,7 +229,7 @@ func TestCommentControllerExternalCreate(t *testing.T) {
 		t.Errorf("have %v, want %v", have, want)
 	}
 
-	_, err = c.Create(app, owner, 0, "Do not like.")
+	_, err = c.Create(app, owner.ID, 0, "Do not like.")
 	if have, want := err, ErrNotFound; have != want {
 		t.Fatalf("have %v, want %v", have, want)
 	}
@@ -387,9 +388,10 @@ func testSetupCommentController(
 			ID:    rand.Int63(),
 			OrgID: rand.Int63(),
 		}
-		objects = object.NewMemService()
-		users   = user.NewNopService()
-		user    = &v04_entity.ApplicationUser{
+		connections = connection.NewMemService()
+		objects     = object.NewMemService()
+		users       = user.NewNopService()
+		user        = &v04_entity.ApplicationUser{
 			ID: uint64(rand.Int63()),
 		}
 	)
@@ -399,7 +401,7 @@ func testSetupCommentController(
 		t.Fatal(err)
 	}
 
-	return app, user, NewCommentController(objects, users)
+	return app, user, NewCommentController(connections, objects, users)
 }
 
 func testComment(ownerID uint64, post *object.Object) *object.Object {

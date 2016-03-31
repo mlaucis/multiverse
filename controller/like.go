@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"github.com/tapglue/multiverse/service/connection"
 	"github.com/tapglue/multiverse/service/event"
 	"github.com/tapglue/multiverse/service/object"
 	"github.com/tapglue/multiverse/service/user"
@@ -22,21 +23,24 @@ type LikeFeed struct {
 
 // LikeController bundles the business constraints for likes on posts.
 type LikeController struct {
-	events event.Service
-	posts  object.Service
-	users  user.StrangleService
+	connections connection.Service
+	events      event.Service
+	posts       object.Service
+	users       user.StrangleService
 }
 
 // NewLikeController returns a controller instance.
 func NewLikeController(
+	connections connection.Service,
 	events event.Service,
 	posts object.Service,
 	users user.StrangleService,
 ) *LikeController {
 	return &LikeController{
-		events: events,
-		posts:  posts,
-		users:  users,
+		connections: connections,
+		events:      events,
+		posts:       posts,
+		users:       users,
 	}
 }
 
@@ -44,7 +48,7 @@ func NewLikeController(
 // a new event for it.
 func (c *LikeController) Create(
 	app *v04_entity.Application,
-	owner *v04_entity.ApplicationUser,
+	origin uint64,
 	postID uint64,
 ) (*event.Event, error) {
 	ps, err := c.posts.Query(app.Namespace(), object.QueryOptions{
@@ -64,6 +68,10 @@ func (c *LikeController) Create(
 
 	post := ps[0]
 
+	if err := isPostVisible(c.connections, app, post, origin); err != nil {
+		return nil, err
+	}
+
 	es, err := c.events.Query(app.Namespace(), event.QueryOptions{
 		ObjectIDs: []uint64{
 			postID,
@@ -73,7 +81,7 @@ func (c *LikeController) Create(
 			typeLike,
 		},
 		UserIDs: []uint64{
-			owner.ID,
+			origin,
 		},
 	})
 	if err != nil {
@@ -92,7 +100,7 @@ func (c *LikeController) Create(
 			ObjectID:   postID,
 			Owned:      true,
 			Type:       typeLike,
-			UserID:     owner.ID,
+			UserID:     origin,
 			Visibility: event.Visibility(post.Visibility),
 		}
 	} else {
@@ -111,7 +119,7 @@ func (c *LikeController) Create(
 // Delete removes an existing like event for the given user on the post.
 func (c *LikeController) Delete(
 	app *v04_entity.Application,
-	owner *v04_entity.ApplicationUser,
+	origin uint64,
 	postID uint64,
 ) error {
 	ps, err := c.posts.Query(app.Namespace(), object.QueryOptions{
@@ -129,6 +137,10 @@ func (c *LikeController) Delete(
 		return ErrNotFound
 	}
 
+	if err := isPostVisible(c.connections, app, ps[0], origin); err != nil {
+		return err
+	}
+
 	es, err := c.events.Query(app.Namespace(), event.QueryOptions{
 		Enabled: &defaultEnabled,
 		ObjectIDs: []uint64{
@@ -139,7 +151,7 @@ func (c *LikeController) Delete(
 			typeLike,
 		},
 		UserIDs: []uint64{
-			owner.ID,
+			origin,
 		},
 	})
 	if err != nil {
@@ -164,6 +176,7 @@ func (c *LikeController) Delete(
 // List returns all likes for the given post.
 func (c *LikeController) List(
 	app *v04_entity.Application,
+	origin uint64,
 	postID uint64,
 ) (*LikeFeed, error) {
 	ps, err := c.posts.Query(app.Namespace(), object.QueryOptions{
@@ -172,10 +185,6 @@ func (c *LikeController) List(
 		Types: []string{
 			typePost,
 		},
-		Visibilities: []object.Visibility{
-			object.VisibilityPublic,
-			object.VisibilityGlobal,
-		},
 	})
 	if err != nil {
 		return nil, err
@@ -183,6 +192,10 @@ func (c *LikeController) List(
 
 	if len(ps) != 1 {
 		return nil, ErrNotFound
+	}
+
+	if err := isPostVisible(c.connections, app, ps[0], origin); err != nil {
+		return nil, err
 	}
 
 	es, err := c.events.Query(app.Namespace(), event.QueryOptions{

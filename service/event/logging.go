@@ -30,7 +30,7 @@ func (s *logService) ActiveUserIDs(ns string, p Period) (ids []uint64, err error
 	defer func(begin time.Time) {
 		ps := []interface{}{
 			"datapoints", len(ids),
-			"duration_ns", time.Since(begin),
+			"duration_ns", time.Since(begin).Nanoseconds(),
 			"method", "ActiveUserIDs",
 			"namespace", ns,
 			"period", p,
@@ -53,7 +53,7 @@ func (s *logService) CreatedByDay(
 	defer func(begin time.Time) {
 		ps := []interface{}{
 			"datapoints", len(ts),
-			"duration_ns", time.Since(begin),
+			"duration_ns", time.Since(begin).Nanoseconds(),
 			"end", end.Format(metrics.BucketFormat),
 			"method", "CreatedByDay",
 			"namespace", ns,
@@ -73,7 +73,7 @@ func (s *logService) CreatedByDay(
 func (s *logService) Put(ns string, input *Event) (output *Event, err error) {
 	defer func(begin time.Time) {
 		ps := []interface{}{
-			"duration_ns", time.Since(begin),
+			"duration_ns", time.Since(begin).Nanoseconds(),
 			"input", input,
 			"method", "Put",
 			"namespace", ns,
@@ -94,7 +94,7 @@ func (s *logService) Query(ns string, opts QueryOptions) (list List, err error) 
 	defer func(begin time.Time) {
 		ps := []interface{}{
 			"datapoints", len(list),
-			"duration_ns", time.Since(begin),
+			"duration_ns", time.Since(begin).Nanoseconds(),
 			"method", "Query",
 			"namespace", ns,
 			"opts", opts,
@@ -113,7 +113,7 @@ func (s *logService) Query(ns string, opts QueryOptions) (list List, err error) 
 func (s *logService) Setup(ns string) (err error) {
 	defer func(begin time.Time) {
 		ps := []interface{}{
-			"duration_ns", time.Since(begin),
+			"duration_ns", time.Since(begin).Nanoseconds(),
 			"method", "Setup",
 			"namespace", ns,
 		}
@@ -131,7 +131,7 @@ func (s *logService) Setup(ns string) (err error) {
 func (s *logService) Teardown(ns string) (err error) {
 	defer func(begin time.Time) {
 		ps := []interface{}{
-			"duration_ns", time.Since(begin),
+			"duration_ns", time.Since(begin).Nanoseconds(),
 			"method", "Teardown",
 			"namespace", ns,
 		}

@@ -222,11 +222,11 @@ func main() {
 			objects,
 			users,
 		)
-		commentController        = controller.NewCommentController(objects, userStrangle)
+		commentController        = controller.NewCommentController(connections, objects, userStrangle)
 		connectionController     = controller.NewConnectionController(connections, userStrangle)
 		eventController          = controller.NewEventController(connections, events, objects, userStrangle)
 		feedController           = controller.NewFeedController(connections, events, objects, userStrangle)
-		likeController           = controller.NewLikeController(events, objects, userStrangle)
+		likeController           = controller.NewLikeController(connections, events, objects, userStrangle)
 		objectController         = controller.NewObjectController(connections, objects)
 		postController           = controller.NewPostController(connections, events, objects)
 		recommendationController = controller.NewRecommendationController(
@@ -553,7 +553,7 @@ func main() {
 
 	next.Methods("GET").PathPrefix("/posts/{postID:[0-9]+}/comments").Name("commentList").HandlerFunc(
 		handler.Wrap(
-			withApp,
+			withUser,
 			handler.CommentList(commentController),
 		),
 	)
@@ -574,7 +574,7 @@ func main() {
 
 	next.Methods("GET").PathPrefix("/posts/{postID:[0-9]+}/likes").Name("likeList").HandlerFunc(
 		handler.Wrap(
-			withApp,
+			withUser,
 			handler.LikeList(likeController),
 		),
 	)
@@ -595,7 +595,7 @@ func main() {
 
 	next.Methods("GET").PathPrefix("/posts/{postID:[0-9]+}").Name("postRetrieve").HandlerFunc(
 		handler.Wrap(
-			withApp,
+			withUser,
 			handler.PostRetrieve(postController),
 		),
 	)

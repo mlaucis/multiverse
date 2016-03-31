@@ -42,7 +42,10 @@ func PostCreate(c *controller.PostController) Handler {
 // PostDelete flags the Post as deleted.
 func PostDelete(c *controller.PostController) Handler {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-		app := appFromContext(ctx)
+		var (
+			app         = appFromContext(ctx)
+			currentUser = userFromContext(ctx)
+		)
 
 		id, err := strconv.ParseUint(mux.Vars(r)["postID"], 10, 64)
 		if err != nil {
@@ -50,7 +53,7 @@ func PostDelete(c *controller.PostController) Handler {
 			return
 		}
 
-		err = c.Delete(app, id)
+		err = c.Delete(app, currentUser.ID, id)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -106,7 +109,7 @@ func PostListAll(c *controller.PostController, users user.StrangleService) Handl
 			currentUser = userFromContext(ctx)
 		)
 
-		ps, err := c.ListAll(app, currentUser)
+		ps, err := c.ListAll(app, currentUser.ID)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -165,7 +168,10 @@ func PostListMe(c *controller.PostController, users user.StrangleService) Handle
 // PostRetrieve returns the requested Post.
 func PostRetrieve(c *controller.PostController) Handler {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-		app := appFromContext(ctx)
+		var (
+			app         = appFromContext(ctx)
+			currentUser = userFromContext(ctx)
+		)
 
 		id, err := strconv.ParseUint(mux.Vars(r)["postID"], 10, 64)
 		if err != nil {
@@ -173,7 +179,7 @@ func PostRetrieve(c *controller.PostController) Handler {
 			return
 		}
 
-		post, err := c.Retrieve(app, id)
+		post, err := c.Retrieve(app, currentUser.ID, id)
 		if err != nil {
 			respondError(w, 0, err)
 			return
