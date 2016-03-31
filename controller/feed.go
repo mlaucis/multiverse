@@ -10,7 +10,6 @@ import (
 	"github.com/tapglue/multiverse/service/object"
 	"github.com/tapglue/multiverse/service/user"
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
-	"github.com/tapglue/multiverse/v04/errmsg"
 	v04_errmsg "github.com/tapglue/multiverse/v04/errmsg"
 )
 
@@ -506,7 +505,7 @@ func (c *FeedController) neighbours(
 		user, errs := c.users.Read(app.OrgID, app.ID, id, false)
 		if errs != nil {
 			// Check for existence.
-			if errs[0].Code() == errmsg.ErrApplicationUserNotFound.Code() {
+			if errs[0].Code() == v04_errmsg.ErrApplicationUserNotFound.Code() {
 				continue
 			}
 			return nil, errs[0]
@@ -641,7 +640,7 @@ func fillupUsers(
 		user, errs := users.Read(app.OrgID, app.ID, id, false)
 		if errs != nil {
 			// Check for existence.
-			if errs[0].Code() == errmsg.ErrApplicationUserNotFound.Code() {
+			if errs[0].Code() == v04_errmsg.ErrApplicationUserNotFound.Code() {
 				continue
 			}
 			return nil, errs[0]

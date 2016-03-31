@@ -4,7 +4,7 @@ import (
 	"github.com/tapglue/multiverse/service/connection"
 	"github.com/tapglue/multiverse/service/user"
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
-	errmsg "github.com/tapglue/multiverse/v04/errmsg"
+	v04_errmsg "github.com/tapglue/multiverse/v04/errmsg"
 )
 
 // ConnectionFeed is the composite to transport information relevant for
@@ -223,7 +223,7 @@ func (c *ConnectionController) Update(
 ) (*connection.Connection, error) {
 	_, errs := c.users.Read(app.OrgID, app.ID, new.ToID, false)
 	if errs != nil {
-		if errs[0].Code() == errmsg.ErrApplicationUserNotFound.Code() {
+		if errs[0].Code() == v04_errmsg.ErrApplicationUserNotFound.Code() {
 			return nil, ErrNotFound
 		}
 		return nil, errs[0]
