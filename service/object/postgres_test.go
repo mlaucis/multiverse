@@ -15,6 +15,10 @@ import (
 
 var pgURL string
 
+func TestPostgresServiceCount(t *testing.T) {
+	testServiceCount(t, preparePostgres)
+}
+
 func TestPostgresServicePut(t *testing.T) {
 	var (
 		namespace = "service_put"
@@ -112,11 +116,6 @@ func TestPostgresServiceRemove(t *testing.T) {
 	err = service.Remove(namespace, created.ID)
 	if err != nil {
 		t.Fatal(err)
-	}
-
-	err = service.Remove("invalid_namespace", 123)
-	if have, want := err, ErrNamespaceNotFound; have != want {
-		t.Errorf("have %v, want %v", have, want)
 	}
 }
 

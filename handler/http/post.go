@@ -220,8 +220,14 @@ func PostUpdate(c *controller.PostController) Handler {
 	}
 }
 
+type postCounts struct {
+	Comments int `json:"comments"`
+	Likes    int `json:"likes"`
+}
+
 type postFields struct {
 	Attachments []object.Attachment `json:"attachments"`
+	Counts      postCounts          `json:"counts"`
 	CreatedAt   time.Time           `json:"created_at,omitempty"`
 	ID          string              `json:"id"`
 	IsLiked     bool                `json:"is_liked"`
@@ -240,13 +246,17 @@ func (p *payloadPost) MarshalJSON() ([]byte, error) {
 		o = p.post
 		f = postFields{
 			Attachments: o.Attachments,
-			CreatedAt:   o.CreatedAt,
-			ID:          strconv.FormatUint(o.ID, 10),
-			IsLiked:     o.IsLiked,
-			Tags:        o.Tags,
-			UpdatedAt:   o.UpdatedAt,
-			UserID:      strconv.FormatUint(o.OwnerID, 10),
-			Visibility:  o.Visibility,
+			Counts: postCounts{
+				Comments: o.Counts.Comments,
+				Likes:    o.Counts.Likes,
+			},
+			CreatedAt:  o.CreatedAt,
+			ID:         strconv.FormatUint(o.ID, 10),
+			IsLiked:    o.IsLiked,
+			Tags:       o.Tags,
+			UpdatedAt:  o.UpdatedAt,
+			UserID:     strconv.FormatUint(o.OwnerID, 10),
+			Visibility: o.Visibility,
 		}
 	)
 

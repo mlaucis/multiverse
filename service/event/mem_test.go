@@ -5,6 +5,10 @@ import (
 	"time"
 )
 
+func TestMemCount(t *testing.T) {
+	testServiceCount(prepareMem, t)
+}
+
 func TestMemCreatedByDay(t *testing.T) {
 	var (
 		namespace = "created-by-day"

@@ -2127,7 +2127,7 @@
         <relationship name="urlparameters" type="0/0" destination="LMKEYVALUE"></relationship>
     </object>
     <object type="LMKEYVALUE" id="z322">
-        <attribute name="value" type="string">[{"data":{"charset":"utf-8","username":[{"data":{"request":"39525D4C-E444-4868-9E81-D6004FD053B7","keyPath":["token"],"format":1},"identifier":"com.luckymarmot.ResponseBodyPathDynamicValue"}],"password":[{"data":{"value":"03019136723E2DBDC2F21CE2F533FCB44D0774104BEC71FA86EBBDA44031FA419C65BE18BDB11FD95F28BF41F9A2DDF7FA8E8C27A27B55FBE9EA7C05266C47815BFC2EF631A2D62D6893DD1AF4C433E281BF","keyUUID":"C79ADAE3-4D50-4D0D-9FC5-92850ECC9BAD","mode":0},"identifier":"com.luckymarmot.SecureDynamicValue"}]},"identifier":"com.luckymarmot.BasicAuthDynamicValue"}]</attribute>
+        <attribute name="value" type="string">[{"data":{"charset":"utf-8","username":[{"data":{"request":"39525D4C-E444-4868-9E81-D6004FD053B7","keyPath":["token"],"format":1},"identifier":"com.luckymarmot.ResponseBodyPathDynamicValue"}],"password":[{"data":{"value":"03019136723E2DBDC2F21CE2F533FCB44D07E5C04AC487CB1926B730479C8B002603BF0156D063EA0F14A8DA1DE14C48B0F843AF78F685A3E2D202A13CB244748E9B9CC28BBDA3B13C62818A98625D9F18AD","keyUUID":"1F7D1A7A-AE77-4940-A5D2-0D1AD521D392","mode":0},"identifier":"com.luckymarmot.SecureDynamicValue"}]},"identifier":"com.luckymarmot.BasicAuthDynamicValue"}]</attribute>
         <attribute name="order" type="int64">3</attribute>
         <attribute name="name" type="string">Authorization</attribute>
         <attribute name="enabled" type="bool">1</attribute>
@@ -2516,7 +2516,7 @@
         <relationship name="variable" type="1/1" destination="LMENVIRONMENTVARIABLE" idrefs="z152"></relationship>
     </object>
     <object type="LMKEYVALUE" id="z362">
-        <attribute name="value" type="string">[{"data":{"charset":"utf-8","username":[{"data":{"request":"A3EB4D01-EA9F-4BDF-81E8-246C45715FEF","keyPath":["backend_token"],"format":1},"identifier":"com.luckymarmot.ResponseBodyPathDynamicValue"}],"password":[{"data":{"value":"030108F2B244680459F89145531A349764DFDFAF041E01C9DC6AB21DD63C3BA3AA34885DFC934E8F11BDF9522281F727A841CB9D68E3DA9708DED8F9667355CBC41CA5825B1E3D385D89D187239725006778","keyUUID":"C79ADAE3-4D50-4D0D-9FC5-92850ECC9BAD","mode":0},"identifier":"com.luckymarmot.SecureDynamicValue"}]},"identifier":"com.luckymarmot.BasicAuthDynamicValue"}]</attribute>
+        <attribute name="value" type="string">[{"data":{"charset":"utf-8","username":[{"data":{"request":"A3EB4D01-EA9F-4BDF-81E8-246C45715FEF","keyPath":["backend_token"],"format":1},"identifier":"com.luckymarmot.ResponseBodyPathDynamicValue"}],"password":[{"data":{"value":"030108F2B244680459F89145531A349764DF3C91D396D682146173AF3AC6BDA93F10043744D4DE54ECBECE8624B0D0B6622A8C61AF905F2EDED493E3E2F2DA87441072E54F9CB9AEDFC13F1030FEEE8F591E","keyUUID":"1F7D1A7A-AE77-4940-A5D2-0D1AD521D392","mode":0},"identifier":"com.luckymarmot.SecureDynamicValue"}]},"identifier":"com.luckymarmot.BasicAuthDynamicValue"}]</attribute>
         <attribute name="order" type="int64">3</attribute>
         <attribute name="name" type="string">Authorization</attribute>
         <attribute name="enabled" type="bool">1</attribute>
@@ -2585,7 +2585,7 @@
         <relationship name="request" type="0/1" destination="LMREQUEST" idrefs="z766"></relationship>
     </object>
     <object type="LMKEYVALUE" id="z371">
-        <attribute name="value" type="string">[{"data":{"charset":"utf-8","username":[{"data":{"request":"A3EB4D01-EA9F-4BDF-81E8-246C45715FEF","keyPath":["backend_token"],"format":1},"identifier":"com.luckymarmot.ResponseBodyPathDynamicValue"}],"password":[{"data":{"value":"03017B08004BD724CC0309E577C075A981A08F1194D4F6370BB2166101518DF37E8A6BA2CFE688F2AF4205CEC20FCC1ACBDBAC70AC5ED414FEDD544A1A5350B4FB1149FE61B4296900E75D22E2B106639620","keyUUID":"C79ADAE3-4D50-4D0D-9FC5-92850ECC9BAD","mode":0},"identifier":"com.luckymarmot.SecureDynamicValue"}]},"identifier":"com.luckymarmot.BasicAuthDynamicValue"}]</attribute>
+        <attribute name="value" type="string">[{"data":{"charset":"utf-8","username":[{"data":{"request":"A3EB4D01-EA9F-4BDF-81E8-246C45715FEF","keyPath":["backend_token"],"format":1},"identifier":"com.luckymarmot.ResponseBodyPathDynamicValue"}],"password":[{"data":{"value":"03017B08004BD724CC0309E577C075A981A02C3EE712DE9056E60A3338DAD59065A0BB370A133FA749D885D9B6BFC49DE652466323E8C7401530F9E210094B578A9AEB45446AC1B9D16C2895472D8DC9DF15","keyUUID":"1F7D1A7A-AE77-4940-A5D2-0D1AD521D392","mode":0},"identifier":"com.luckymarmot.SecureDynamicValue"}]},"identifier":"com.luckymarmot.BasicAuthDynamicValue"}]</attribute>
         <attribute name="order" type="int64">3</attribute>
         <attribute name="name" type="string">Authorization</attribute>
         <attribute name="enabled" type="bool">1</attribute>

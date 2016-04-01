@@ -13,9 +13,16 @@ var defaultOwned = true
 
 // Post is the intermediate representation for posts.
 type Post struct {
+	Counts  PostCounts
 	IsLiked bool
 
 	*object.Object
+}
+
+// PostCounts bundles all connected entity counts.
+type PostCounts struct {
+	Comments int
+	Likes    int
 }
 
 // PostMap is the user collection indexed by their ids.
@@ -165,6 +172,11 @@ func (c *PostController) ListAll(
 
 	ps := postsFromObjects(os)
 
+	err = enrichCounts(c.events, c.objects, app, ps)
+	if err != nil {
+		return nil, err
+	}
+
 	err = enrichIsLiked(c.events, app, origin, ps)
 	if err != nil {
 		return nil, err
@@ -218,6 +230,11 @@ func (c *PostController) ListUser(
 
 	ps := postsFromObjects(os)
 
+	err = enrichCounts(c.events, c.objects, app, ps)
+	if err != nil {
+		return nil, err
+	}
+
 	err = enrichIsLiked(c.events, app, origin, ps)
 	if err != nil {
 		return nil, err
@@ -251,7 +268,19 @@ func (c *PostController) Retrieve(
 		return nil, err
 	}
 
-	return &Post{Object: os[0]}, nil
+	post := &Post{Object: os[0]}
+
+	err = enrichCounts(c.events, c.objects, app, PostList{post})
+	if err != nil {
+		return nil, err
+	}
+
+	err = enrichIsLiked(c.events, app, origin, PostList{post})
+	if err != nil {
+		return nil, err
+	}
+
+	return post, nil
 }
 
 // Update stores a post with the new values.
@@ -293,6 +322,47 @@ func (c *PostController) Update(
 	return &Post{Object: o}, nil
 }
 
+func enrichCounts(
+	events event.Service,
+	objects object.Service,
+	app *v04_entity.Application,
+	ps PostList,
+) error {
+	for _, p := range ps {
+		comments, err := objects.Count(app.Namespace(), object.QueryOptions{
+			ObjectIDs: []uint64{
+				p.ID,
+			},
+			Types: []string{
+				typeComment,
+			},
+		})
+		if err != nil {
+			return err
+		}
+
+		likes, err := events.Count(app.Namespace(), event.QueryOptions{
+			Enabled: &defaultEnabled,
+			ObjectIDs: []uint64{
+				p.ID,
+			},
+			Types: []string{
+				typeLike,
+			},
+		})
+		if err != nil {
+			return err
+		}
+
+		p.Counts = PostCounts{
+			Comments: comments,
+			Likes:    likes,
+		}
+	}
+
+	return nil
+}
+
 func enrichIsLiked(
 	events event.Service,
 	app *v04_entity.Application,
@@ -301,6 +371,7 @@ func enrichIsLiked(
 ) error {
 	for _, p := range ps {
 		es, err := events.Query(app.Namespace(), event.QueryOptions{
+			Enabled: &defaultEnabled,
 			ObjectIDs: []uint64{
 				p.ID,
 			},

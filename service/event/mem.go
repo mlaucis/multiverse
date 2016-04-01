@@ -20,7 +20,16 @@ func NewMemService() Service {
 }
 
 func (s *memService) ActiveUserIDs(ns string, p Period) ([]uint64, error) {
-	return nil, nil
+	return nil, fmt.Errorf("ActiveUserIDs not implemented")
+}
+
+func (s *memService) Count(ns string, opts QueryOptions) (count int, err error) {
+	bucket, ok := s.events[ns]
+	if !ok {
+		return 0, ErrNamespaceNotFound
+	}
+
+	return len(filterList(bucket, opts)), nil
 }
 
 func (s *memService) CreatedByDay(
@@ -101,9 +110,34 @@ func (s *memService) Query(ns string, opts QueryOptions) (List, error) {
 		return nil, ErrNamespaceNotFound
 	}
 
+	return filterList(bucket, opts), nil
+}
+
+func (s *memService) Setup(ns string) error {
+	if _, ok := s.events[ns]; !ok {
+		s.events[ns] = map[uint64]*Event{}
+	}
+
+	return nil
+}
+
+func (s *memService) Teardown(ns string) error {
+	if _, ok := s.events[ns]; ok {
+		delete(s.events, ns)
+	}
+
+	return nil
+}
+
+func copy(e *Event) *Event {
+	old := *e
+	return &old
+}
+
+func filterList(em Map, opts QueryOptions) List {
 	es := List{}
 
-	for id, event := range bucket {
+	for id, event := range em {
 		if opts.Enabled != nil && event.Enabled != *opts.Enabled {
 			continue
 		}
@@ -161,28 +195,7 @@ func (s *memService) Query(ns string, opts QueryOptions) (List, error) {
 		es = append(es, event)
 	}
 
-	return es, nil
-}
-
-func (s *memService) Setup(ns string) error {
-	if _, ok := s.events[ns]; !ok {
-		s.events[ns] = map[uint64]*Event{}
-	}
-
-	return nil
-}
-
-func (s *memService) Teardown(ns string) error {
-	if _, ok := s.events[ns]; ok {
-		delete(s.events, ns)
-	}
-
-	return nil
-}
-
-func copy(e *Event) *Event {
-	old := *e
-	return &old
+	return es
 }
 
 func inIDs(id uint64, ids []uint64) bool {

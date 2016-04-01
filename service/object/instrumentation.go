@@ -11,9 +11,8 @@ import (
 const serviceName = "object"
 
 type instrumentService struct {
-	Service
-
 	errCount  kitmetrics.Counter
+	next      Service
 	opCount   kitmetrics.Counter
 	opLatency *prometheus.HistogramVec
 	store     string
@@ -30,12 +29,31 @@ func InstrumentMiddleware(
 	return func(next Service) Service {
 		return &instrumentService{
 			errCount:  errCount,
+			next:      next,
 			opCount:   opCount,
 			opLatency: opLatency,
-			Service:   next,
 			store:     store,
 		}
 	}
+}
+
+func (s *instrumentService) Count(ns string, opts QueryOptions) (count int, err error) {
+	defer func(begin time.Time) {
+		s.track("Count", ns, begin, err)
+	}(time.Now())
+
+	return s.next.Count(ns, opts)
+}
+
+func (s *instrumentService) CreatedByDay(
+	ns string,
+	start, end time.Time,
+) (ts metrics.Timeseries, err error) {
+	defer func(begin time.Time) {
+		s.track("CreatedByDay", ns, begin, err)
+	}(time.Now())
+
+	return s.next.CreatedByDay(ns, start, end)
 }
 
 func (s *instrumentService) Put(ns string, object *Object) (o *Object, err error) {
@@ -43,7 +61,7 @@ func (s *instrumentService) Put(ns string, object *Object) (o *Object, err error
 		s.track("put", ns, begin, err)
 	}(time.Now())
 
-	return s.Service.Put(ns, object)
+	return s.next.Put(ns, object)
 }
 
 func (s *instrumentService) Query(ns string, opts QueryOptions) (os []*Object, err error) {
@@ -51,7 +69,7 @@ func (s *instrumentService) Query(ns string, opts QueryOptions) (os []*Object, e
 		s.track("query", ns, begin, err)
 	}(time.Now())
 
-	return s.Service.Query(ns, opts)
+	return s.next.Query(ns, opts)
 }
 
 func (s *instrumentService) Remove(ns string, id uint64) (err error) {
@@ -59,7 +77,7 @@ func (s *instrumentService) Remove(ns string, id uint64) (err error) {
 		s.track("remove", ns, begin, err)
 	}(time.Now())
 
-	return s.Service.Remove(ns, id)
+	return s.next.Remove(ns, id)
 }
 
 func (s *instrumentService) Setup(ns string) (err error) {
@@ -67,7 +85,7 @@ func (s *instrumentService) Setup(ns string) (err error) {
 		s.track("setup", ns, begin, err)
 	}(time.Now())
 
-	return s.Service.Setup(ns)
+	return s.next.Setup(ns)
 }
 
 func (s *instrumentService) Teardown(ns string) (err error) {
@@ -75,7 +93,7 @@ func (s *instrumentService) Teardown(ns string) (err error) {
 		s.track("teardown", ns, begin, err)
 	}(time.Now())
 
-	return s.Service.Teardown(ns)
+	return s.next.Teardown(ns)
 }
 
 func (s *instrumentService) track(

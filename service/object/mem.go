@@ -18,6 +18,15 @@ func NewMemService() Service {
 	}
 }
 
+func (s *memService) Count(ns string, opts QueryOptions) (int, error) {
+	bucket, ok := s.objects[ns]
+	if !ok {
+		return 0, ErrNamespaceNotFound
+	}
+
+	return len(filterMap(bucket, opts)), nil
+}
+
 func (s *memService) CreatedByDay(
 	ns string,
 	start, end time.Time,
@@ -113,47 +122,7 @@ func (s *memService) Query(namespace string, opts QueryOptions) ([]*Object, erro
 		return nil, ErrNamespaceNotFound
 	}
 
-	os := []*Object{}
-
-	for id, object := range bucket {
-		if object.Deleted != opts.Deleted {
-			continue
-		}
-
-		if opts.Owned != nil {
-			if object.Owned != *opts.Owned {
-				continue
-			}
-		}
-
-		if !inTypes(object.ExternalID, opts.ExternalIDs) {
-			continue
-		}
-
-		if opts.ID != nil && id != *opts.ID {
-			continue
-		}
-
-		if !inIDs(object.OwnerID, opts.OwnerIDs) {
-			continue
-		}
-
-		if !inIDs(object.ObjectID, opts.ObjectIDs) {
-			continue
-		}
-
-		if !inTypes(object.Type, opts.Types) {
-			continue
-		}
-
-		if !inVisibilities(object.Visibility, opts.Visibilities) {
-			continue
-		}
-
-		os = append(os, object)
-	}
-
-	return os, nil
+	return filterMap(bucket, opts), nil
 }
 
 func (s *memService) Remove(namespace string, id uint64) error {
@@ -203,6 +172,50 @@ func inIDs(id uint64, ids []uint64) bool {
 	}
 
 	return keep
+}
+
+func filterMap(om Map, opts QueryOptions) List {
+	os := []*Object{}
+
+	for id, object := range om {
+		if object.Deleted != opts.Deleted {
+			continue
+		}
+
+		if opts.Owned != nil {
+			if object.Owned != *opts.Owned {
+				continue
+			}
+		}
+
+		if !inTypes(object.ExternalID, opts.ExternalIDs) {
+			continue
+		}
+
+		if opts.ID != nil && id != *opts.ID {
+			continue
+		}
+
+		if !inIDs(object.OwnerID, opts.OwnerIDs) {
+			continue
+		}
+
+		if !inIDs(object.ObjectID, opts.ObjectIDs) {
+			continue
+		}
+
+		if !inTypes(object.Type, opts.Types) {
+			continue
+		}
+
+		if !inVisibilities(object.Visibility, opts.Visibilities) {
+			continue
+		}
+
+		os = append(os, object)
+	}
+
+	return os
 }
 
 func inTypes(ty string, ts []string) bool {

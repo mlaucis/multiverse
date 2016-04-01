@@ -7,6 +7,129 @@ import (
 
 type prepareFunc func(namespace string, t *testing.T) Service
 
+func testServiceCount(p prepareFunc, t *testing.T) {
+	var (
+		namespace         = "service_count"
+		service           = p(namespace, t)
+		enabled           = true
+		externalID        = "external-id-123"
+		objectID   uint64 = 321
+		owned             = false
+	)
+
+	for _, e := range testList(objectID, externalID) {
+		_, err := service.Put(namespace, e)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	count, err := service.Count(namespace, QueryOptions{
+		Enabled: &enabled,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if have, want := count, 42; have != want {
+		t.Errorf("have %v, want %v", have, want)
+	}
+
+	count, err = service.Count(namespace, QueryOptions{
+		ObjectIDs: []uint64{
+			objectID,
+		},
+		Owned: &owned,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if have, want := count, 5; have != want {
+		t.Errorf("have %v, want %v", have, want)
+	}
+
+	count, err = service.Count(namespace, QueryOptions{
+		UserIDs: []uint64{
+			1,
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if have, want := count, 5; have != want {
+		t.Errorf("have %v, want %v", have, want)
+	}
+
+	count, err = service.Count(namespace, QueryOptions{
+		Visibilities: []Visibility{
+			VisibilityPublic,
+			VisibilityGlobal,
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if have, want := count, 10; have != want {
+		t.Errorf("have %v, want %v", have, want)
+	}
+
+	owned = true
+
+	count, err = service.Count(namespace, QueryOptions{
+		Owned: &owned,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if have, want := count, 11; have != want {
+		t.Errorf("have %v, want %v", have, want)
+	}
+
+	count, err = service.Count(namespace, QueryOptions{
+		Owned: &owned,
+		Types: []string{
+			"tg_like",
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if have, want := count, 6; have != want {
+		t.Errorf("have %v, want %v", have, want)
+	}
+
+	count, err = service.Count(namespace, QueryOptions{
+		ExternalObjectIDs: []string{
+			externalID,
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if have, want := count, 11; have != want {
+		t.Errorf("have %v, want %v", have, want)
+	}
+
+	count, err = service.Count(namespace, QueryOptions{
+		ExternalObjectTypes: []string{
+			"restaurant",
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if have, want := count, 11; have != want {
+		t.Errorf("have %v, want %v", have, want)
+	}
+}
+
 func testEvent() *Event {
 	return &Event{
 		Enabled:    true,
@@ -142,11 +265,6 @@ func testServicePut(p prepareFunc, t *testing.T) {
 		t.Fatalf("have %v, want %v", have, want)
 	}
 	if have, want := list[0], updated; !reflect.DeepEqual(have, want) {
-		t.Errorf("have %v, want %v", have, want)
-	}
-
-	_, err = service.Put("invalid", event)
-	if have, want := err, ErrNamespaceNotFound; have != want {
 		t.Errorf("have %v, want %v", have, want)
 	}
 }
