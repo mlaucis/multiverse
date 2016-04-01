@@ -31,12 +31,12 @@ func TestPostgresActiveUserIDs(t *testing.T) {
 
 	testSet := map[uint64]map[time.Duration]int{
 		123: map[time.Duration]int{
-			time.Hour: 13,
-			day:       3,
+			0:   13,
+			day: 3,
 		},
 		321: map[time.Duration]int{
-			time.Hour: 3,
-			day:       15,
+			0:   3,
+			day: 15,
 		},
 		456: map[time.Duration]int{
 			day:  3,
