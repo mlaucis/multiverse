@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/lib/pq"
 	"github.com/tapglue/multiverse/platform/flake"
 	"github.com/tapglue/multiverse/platform/metrics"
+	"github.com/tapglue/multiverse/platform/pg"
 )
 
 const (
@@ -19,7 +19,9 @@ const (
 	pgDeleteEvent = `DELETE FROM %s.events
 		WHERE (json_data->>'id')::BIGINT = $1::BIGINT`
 
-	pgSelectEvents = `SELECT json_data FROM %s.events
+	pgCountEvents = `SELECT count(json_data) FROM %s.events
+		%s`
+	pgListEvents = `SELECT json_data FROM %s.events
 		%s`
 
 	pgClauseEnabled             = `(json_data->>'enabled')::BOOL = ?::BOOL`
@@ -113,6 +115,15 @@ func (s *pgService) ActiveUserIDs(
 	}
 
 	return ids, nil
+}
+
+func (s *pgService) Count(ns string, opts QueryOptions) (count int, err error) {
+	clauses, params, err := convertOpts(opts)
+	if err != nil {
+		return 0, err
+	}
+
+	return s.countEvents(ns, clauses, params...)
 }
 
 func (s *pgService) CreatedByDay(
@@ -219,158 +230,12 @@ func (s *pgService) Put(ns string, event *Event) (*Event, error) {
 }
 
 func (s *pgService) Query(ns string, opts QueryOptions) (List, error) {
-	var (
-		clauses = []string{}
-		params  = []interface{}{}
-	)
-
-	if opts.Enabled != nil {
-		clause, _, err := sqlx.In(pgClauseEnabled, []interface{}{*opts.Enabled})
-		if err != nil {
-			return nil, err
-		}
-
-		clauses = append(clauses, clause)
-		params = append(params, *opts.Enabled)
+	clauses, params, err := convertOpts(opts)
+	if err != nil {
+		return nil, err
 	}
 
-	if len(opts.ExternalObjectIDs) > 0 {
-		ps := []interface{}{}
-
-		for _, id := range opts.ExternalObjectIDs {
-			ps = append(ps, id)
-		}
-
-		clause, _, err := sqlx.In(pgClauseExternalObjectIDs, ps)
-		if err != nil {
-			return nil, err
-		}
-
-		clauses = append(clauses, clause)
-		params = append(params, ps...)
-	}
-
-	if len(opts.ExternalObjectTypes) > 0 {
-		ps := []interface{}{}
-
-		for _, t := range opts.ExternalObjectTypes {
-			ps = append(ps, t)
-		}
-
-		clause, _, err := sqlx.In(pgClauseExternalObjectTypes, ps)
-		if err != nil {
-			return nil, err
-		}
-
-		clauses = append(clauses, clause)
-		params = append(params, ps...)
-	}
-
-	if len(opts.IDs) > 0 {
-		ps := []interface{}{}
-
-		for _, id := range opts.IDs {
-			ps = append(ps, id)
-		}
-
-		clause, _, err := sqlx.In(pgClauseIDs, ps)
-		if err != nil {
-			return nil, err
-		}
-
-		clauses = append(clauses, clause)
-		params = append(params, ps...)
-	}
-
-	if len(opts.ObjectIDs) > 0 {
-		ps := []interface{}{}
-
-		for _, id := range opts.ObjectIDs {
-			ps = append(ps, id)
-		}
-
-		clause, _, err := sqlx.In(pgClauseObjectIDs, ps)
-		if err != nil {
-			return nil, err
-		}
-
-		clauses = append(clauses, clause)
-		params = append(params, ps...)
-	}
-
-	if opts.Owned != nil {
-		clause, _, err := sqlx.In(pgClauseOwned, []interface{}{*opts.Owned})
-		if err != nil {
-			return nil, err
-		}
-
-		clauses = append(clauses, clause)
-		params = append(params, *opts.Owned)
-	}
-
-	if len(opts.Types) > 0 {
-		ps := []interface{}{}
-
-		for _, t := range opts.Types {
-			ps = append(ps, t)
-		}
-
-		clause, _, err := sqlx.In(pgClauseTypes, ps)
-		if err != nil {
-			return nil, err
-		}
-
-		clauses = append(clauses, clause)
-		params = append(params, ps...)
-	}
-
-	if len(opts.UserIDs) > 0 {
-		ps := []interface{}{}
-
-		for _, id := range opts.UserIDs {
-			ps = append(ps, id)
-		}
-
-		clause, _, err := sqlx.In(pgClauseUserIDs, ps)
-		if err != nil {
-			return nil, err
-		}
-
-		clauses = append(clauses, clause)
-		params = append(params, ps...)
-	}
-
-	if len(opts.Visibilities) > 0 {
-		ps := []interface{}{}
-
-		for _, v := range opts.Visibilities {
-			ps = append(ps, v)
-		}
-
-		clause, _, err := sqlx.In(pgClauseVisibilities, ps)
-		if err != nil {
-			return nil, err
-		}
-
-		clauses = append(clauses, clause)
-		params = append(params, ps...)
-	}
-
-	c := strings.Join(clauses, "\nAND ")
-
-	if len(clauses) > 0 {
-		c = strings.Join([]string{
-			"WHERE",
-			c,
-		}, " ")
-	}
-
-	query := strings.Join([]string{
-		fmt.Sprintf(pgSelectEvents, ns, c),
-		pgOrderCreatedAt,
-	}, "\n")
-
-	return s.queryEvents(query, params...)
+	return s.listEvents(ns, clauses, params...)
 }
 
 func (s *pgService) Setup(ns string) error {
@@ -404,19 +269,73 @@ func (s *pgService) Teardown(ns string) error {
 	return nil
 }
 
-func (s *pgService) queryEvents(query string, params ...interface{}) (List, error) {
+func (s *pgService) countEvents(
+	ns string,
+	clauses []string,
+	params ...interface{},
+) (int, error) {
+	c := strings.Join(clauses, "\nAND")
+
+	if len(clauses) > 0 {
+		c = fmt.Sprintf("WHERE %s", c)
+	}
+
+	count := 0
+
+	err := s.db.Get(
+		&count,
+		sqlx.Rebind(sqlx.DOLLAR, fmt.Sprintf(pgCountEvents, ns, c)),
+		params...,
+	)
+	if err != nil && pg.IsRelationNotFound(pg.WrapError(err)) {
+		if err := s.Setup(ns); err != nil {
+			return 0, err
+		}
+
+		err = s.db.Get(
+			&count,
+			sqlx.Rebind(sqlx.DOLLAR, fmt.Sprintf(pgCountEvents, ns, c)),
+			params...,
+		)
+	}
+
+	return count, err
+}
+
+func (s *pgService) listEvents(
+	ns string,
+	clauses []string,
+	params ...interface{},
+) (List, error) {
+	c := strings.Join(clauses, "\nAND")
+
+	if len(clauses) > 0 {
+		c = fmt.Sprintf("WHERE %s", c)
+	}
+
+	query := strings.Join([]string{
+		fmt.Sprintf(pgListEvents, ns, c),
+		pgOrderCreatedAt,
+	}, "\n")
+
 	query = sqlx.Rebind(sqlx.DOLLAR, query)
 
 	rows, err := s.db.Query(query, params...)
 	if err != nil {
-		return nil, pgWrapError(err)
-	}
-	defer func() {
-		err := rows.Close()
-		if err != nil {
-			panic(err)
+		if pg.IsRelationNotFound(pg.WrapError(err)) {
+			if err := s.Setup(ns); err != nil {
+				return nil, err
+			}
+
+			rows, err = s.db.Query(query, params...)
+			if err != nil {
+				return nil, err
+			}
 		}
-	}()
+
+		return nil, err
+	}
+	defer rows.Close()
 
 	es := List{}
 
@@ -447,12 +366,145 @@ func (s *pgService) queryEvents(query string, params ...interface{}) (List, erro
 	return es, nil
 }
 
-func pgWrapError(err error) error {
-	if err, ok := err.(*pq.Error); ok && err.Code == "42P01" {
-		return ErrNamespaceNotFound
+func convertOpts(opts QueryOptions) ([]string, []interface{}, error) {
+	var (
+		clauses = []string{}
+		params  = []interface{}{}
+	)
+
+	if opts.Enabled != nil {
+		clause, _, err := sqlx.In(pgClauseEnabled, []interface{}{*opts.Enabled})
+		if err != nil {
+			return nil, nil, err
+		}
+
+		clauses = append(clauses, clause)
+		params = append(params, *opts.Enabled)
 	}
 
-	return err
+	if len(opts.ExternalObjectIDs) > 0 {
+		ps := []interface{}{}
+
+		for _, id := range opts.ExternalObjectIDs {
+			ps = append(ps, id)
+		}
+
+		clause, _, err := sqlx.In(pgClauseExternalObjectIDs, ps)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		clauses = append(clauses, clause)
+		params = append(params, ps...)
+	}
+
+	if len(opts.ExternalObjectTypes) > 0 {
+		ps := []interface{}{}
+
+		for _, t := range opts.ExternalObjectTypes {
+			ps = append(ps, t)
+		}
+
+		clause, _, err := sqlx.In(pgClauseExternalObjectTypes, ps)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		clauses = append(clauses, clause)
+		params = append(params, ps...)
+	}
+
+	if len(opts.IDs) > 0 {
+		ps := []interface{}{}
+
+		for _, id := range opts.IDs {
+			ps = append(ps, id)
+		}
+
+		clause, _, err := sqlx.In(pgClauseIDs, ps)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		clauses = append(clauses, clause)
+		params = append(params, ps...)
+	}
+
+	if len(opts.ObjectIDs) > 0 {
+		ps := []interface{}{}
+
+		for _, id := range opts.ObjectIDs {
+			ps = append(ps, id)
+		}
+
+		clause, _, err := sqlx.In(pgClauseObjectIDs, ps)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		clauses = append(clauses, clause)
+		params = append(params, ps...)
+	}
+
+	if opts.Owned != nil {
+		clause, _, err := sqlx.In(pgClauseOwned, []interface{}{*opts.Owned})
+		if err != nil {
+			return nil, nil, err
+		}
+
+		clauses = append(clauses, clause)
+		params = append(params, *opts.Owned)
+	}
+
+	if len(opts.Types) > 0 {
+		ps := []interface{}{}
+
+		for _, t := range opts.Types {
+			ps = append(ps, t)
+		}
+
+		clause, _, err := sqlx.In(pgClauseTypes, ps)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		clauses = append(clauses, clause)
+		params = append(params, ps...)
+	}
+
+	if len(opts.UserIDs) > 0 {
+		ps := []interface{}{}
+
+		for _, id := range opts.UserIDs {
+			ps = append(ps, id)
+		}
+
+		clause, _, err := sqlx.In(pgClauseUserIDs, ps)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		clauses = append(clauses, clause)
+		params = append(params, ps...)
+	}
+
+	if len(opts.Visibilities) > 0 {
+		ps := []interface{}{}
+
+		for _, v := range opts.Visibilities {
+			ps = append(ps, v)
+		}
+
+		clause, _, err := sqlx.In(pgClauseVisibilities, ps)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		clauses = append(clauses, clause)
+		params = append(params, ps...)
+	}
+
+	return clauses, params, nil
 }
 
 func wrapNamespace(query, namespace string) string {

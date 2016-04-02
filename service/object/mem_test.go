@@ -5,6 +5,10 @@ import (
 	"testing"
 )
 
+func TestMemServiceCount(t *testing.T) {
+	testServiceCount(t, prepareMem)
+}
+
 func TestMemServicePut(t *testing.T) {
 	var (
 		namespace = "service_put"

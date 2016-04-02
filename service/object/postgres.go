@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/lib/pq"
 
 	"github.com/tapglue/multiverse/platform/flake"
 	"github.com/tapglue/multiverse/platform/metrics"
@@ -21,15 +20,20 @@ const (
 	pgDeleteObject = `DELETE FROM %s.objects
 		WHERE (json_data->>'id')::BIGINT = $1::BIGINT`
 
-	pgSelectObjects = `SELECT json_data FROM %s.objects
-		WHERE (json_data->>'deleted')::BOOL = ?::BOOL`
-	pgClauseExternalID = `AND (json_data->>'external_id')::TEXT IN (?)`
-	pgClauseID         = `AND (json_data->>'id')::BIGINT = ?::BIGINT`
-	pgClauseObjectID   = `AND (json_data->>'object_id')::BIGINT IN (?)`
-	pgClauseOwnerID    = `AND (json_data->>'owner_id')::BIGINT IN (?)`
-	pgClauseOwned      = `AND (json_data->>'owned')::BOOL = ?::BOOL`
-	pgClauseType       = `AND (json_data->>'type')::TEXT IN (?)`
-	pgClauseVisibility = `AND (json_data->>'visibility')::INT IN (?)`
+	pgCountObjects = `SELECT count(json_data) FROM %s.objects
+		WHERE (json_data->>'deleted')::BOOL = ?::BOOL
+		%s`
+	pgListObjects = `SELECT json_data FROM %s.objects
+		WHERE (json_data->>'deleted')::BOOL = ?::BOOL
+		%s`
+
+	pgClauseExternalID = `(json_data->>'external_id')::TEXT IN (?)`
+	pgClauseID         = `(json_data->>'id')::BIGINT = ?::BIGINT`
+	pgClauseObjectID   = `(json_data->>'object_id')::BIGINT IN (?)`
+	pgClauseOwnerID    = `(json_data->>'owner_id')::BIGINT IN (?)`
+	pgClauseOwned      = `(json_data->>'owned')::BOOL = ?::BOOL`
+	pgClauseType       = `(json_data->>'type')::TEXT IN (?)`
+	pgClauseVisibility = `(json_data->>'visibility')::INT IN (?)`
 	pgOrderCreatedAt   = `ORDER BY json_data->>'created_at' DESC LIMIT 200`
 
 	pgCreatedByDay = `SELECT count(*), to_date(json_data->>'created_at', 'YYYY-MM-DD') as bucket
@@ -74,6 +78,15 @@ func NewPostgresService(db *sqlx.DB) Service {
 	}
 }
 
+func (s *pgService) Count(ns string, opts QueryOptions) (int, error) {
+	clauses, params, err := convertOpts(opts)
+	if err != nil {
+		return 0, err
+	}
+
+	return s.countObjects(ns, clauses, params...)
+}
+
 func (s *pgService) CreatedByDay(
 	ns string,
 	start, end time.Time,
@@ -87,12 +100,11 @@ func (s *pgService) CreatedByDay(
 
 	rows, err := s.db.Query(query)
 	if err != nil {
-		// FIXME(xla): This is a defensive measure until we have proper Setup of
-		// namespaces for all dependent services of an app.
-		if pgWrapError(err) == ErrNamespaceNotFound {
+		if pg.IsRelationNotFound(pg.WrapError(err)) {
 			if err := s.Setup(ns); err != nil {
 				return nil, err
 			}
+
 			rows, err = s.db.Query(query)
 			if err != nil {
 				return nil, err
@@ -194,9 +206,7 @@ func (s *pgService) Put(ns string, object *Object) (*Object, error) {
 
 	_, err = s.db.Exec(wrapNamespace(query, ns), params...)
 	if err != nil {
-		// FIXME(xla): This is a defensive measure until we have proper Setup of
-		// namespaces for all dependent services of an app.
-		if pgWrapError(err) == ErrNamespaceNotFound {
+		if pg.IsRelationNotFound(pg.WrapError(err)) {
 			if err := s.Setup(ns); err != nil {
 				return nil, err
 			}
@@ -212,134 +222,18 @@ func (s *pgService) Put(ns string, object *Object) (*Object, error) {
 }
 
 func (s *pgService) Query(ns string, opts QueryOptions) ([]*Object, error) {
-	var (
-		clauses = []string{
-			wrapNamespace(pgSelectObjects, ns),
-		}
-		params = []interface{}{
-			opts.Deleted,
-		}
-	)
-
-	if len(opts.ExternalIDs) > 0 {
-		ps := []interface{}{}
-
-		for _, id := range opts.ExternalIDs {
-			ps = append(ps, id)
-		}
-
-		clause, _, err := sqlx.In(pgClauseExternalID, ps)
-		if err != nil {
-			return nil, err
-		}
-
-		clauses = append(clauses, clause)
-		params = append(params, ps...)
-	}
-
-	if opts.ID != nil {
-		params = append(params, *opts.ID)
-		clauses = append(clauses, pgClauseID)
-	}
-
-	if len(opts.OwnerIDs) > 0 {
-		ps := []interface{}{}
-
-		for _, id := range opts.OwnerIDs {
-			ps = append(ps, id)
-		}
-
-		clause, _, err := sqlx.In(pgClauseOwnerID, ps)
-		if err != nil {
-			return nil, err
-		}
-
-		clauses = append(clauses, clause)
-		params = append(params, ps...)
-	}
-
-	if len(opts.ObjectIDs) > 0 {
-		ps := []interface{}{}
-
-		for _, id := range opts.ObjectIDs {
-			ps = append(ps, id)
-		}
-
-		clause, _, err := sqlx.In(pgClauseObjectID, ps)
-		if err != nil {
-			return nil, err
-		}
-
-		clauses = append(clauses, clause)
-		params = append(params, ps...)
-	}
-
-	if opts.Owned != nil {
-		clause, _, err := sqlx.In(pgClauseOwned, []interface{}{*opts.Owned})
-		if err != nil {
-			return nil, err
-		}
-
-		clauses = append(clauses, clause)
-		params = append(params, *opts.Owned)
-	}
-
-	if len(opts.Types) > 0 {
-		ps := []interface{}{}
-
-		for _, id := range opts.Types {
-			ps = append(ps, id)
-		}
-
-		clause, _, err := sqlx.In(pgClauseType, ps)
-		if err != nil {
-			return nil, err
-		}
-
-		clauses = append(clauses, clause)
-		params = append(params, ps...)
-	}
-
-	if len(opts.Visibilities) > 0 {
-		ps := []interface{}{}
-
-		for _, v := range opts.Visibilities {
-			ps = append(ps, v)
-		}
-
-		clause, _, err := sqlx.In(pgClauseVisibility, ps)
-		if err != nil {
-			return nil, err
-		}
-
-		clauses = append(clauses, clause)
-		params = append(params, ps...)
-	}
-
-	clauses = append(clauses, pgOrderCreatedAt)
-
-	os, err := s.queryObjects(strings.Join(clauses, "\n"), params...)
+	clauses, params, err := convertOpts(opts)
 	if err != nil {
-		// FIXME(xla): This is a defensive measure until we have proper Setup of
-		// namespaces for all dependent services of an app.
-		if pgWrapError(err) == ErrNamespaceNotFound {
-			if err := s.Setup(ns); err != nil {
-				return nil, err
-			}
-
-			return s.queryObjects(strings.Join(clauses, "\n"), params...)
-		}
-
 		return nil, err
 	}
 
-	return os, nil
+	return s.listObjects(ns, clauses, params...)
 }
 
 // Remove issues a hard delete of the object with the id given.
 func (s *pgService) Remove(ns string, id uint64) error {
 	_, err := s.db.Exec(wrapNamespace(pgDeleteObject, ns), id)
-	return pgWrapError(err)
+	return pg.WrapError(err)
 }
 
 func (s *pgService) Setup(ns string) error {
@@ -381,24 +275,69 @@ func (s *pgService) Teardown(namespace string) error {
 	return nil
 }
 
-func (s *pgService) queryObjects(
-	query string,
+func (s *pgService) countObjects(
+	ns string,
+	clauses []string,
+	params ...interface{},
+) (int, error) {
+	if len(clauses) > 0 {
+		clauses = append([]string{""}, clauses...)
+	}
+
+	count := 0
+
+	err := s.db.Get(
+		&count,
+		sqlx.Rebind(sqlx.DOLLAR, fmt.Sprintf(pgCountObjects, ns, strings.Join(clauses, "\nAND"))),
+		params...,
+	)
+	if err != nil && pg.IsRelationNotFound(pg.WrapError(err)) {
+		if err := s.Setup(ns); err != nil {
+			return 0, err
+		}
+
+		err = s.db.Get(
+			&count,
+			sqlx.Rebind(sqlx.DOLLAR, fmt.Sprintf(pgCountObjects, ns, strings.Join(clauses, "\nAND"))),
+			params...,
+		)
+	}
+
+	return count, err
+}
+
+func (s *pgService) listObjects(
+	ns string,
+	clauses []string,
 	params ...interface{},
 ) ([]*Object, error) {
+	if len(clauses) > 0 {
+		clauses = append([]string{""}, clauses...)
+	}
+
+	query := strings.Join([]string{
+		fmt.Sprintf(pgListObjects, ns, strings.Join(clauses, "\nAND")),
+		pgOrderCreatedAt,
+	}, "\n")
+
 	query = sqlx.Rebind(sqlx.DOLLAR, query)
 
 	rows, err := s.db.Query(query, params...)
 	if err != nil {
-		return nil, pgWrapError(err)
-	}
-	defer func() {
-		err := rows.Close()
-		if err != nil {
-			panic(err)
+		if pg.IsRelationNotFound(pg.WrapError(err)) {
+			if err := s.Setup(ns); err != nil {
+				return nil, err
+			}
+
+			rows, err = s.db.Query(query, params...)
 		}
-	}()
+
+		return nil, err
+	}
+	defer rows.Close()
 
 	os := []*Object{}
+
 	for rows.Next() {
 		var (
 			object = &Object{}
@@ -426,12 +365,110 @@ func (s *pgService) queryObjects(
 	return os, nil
 }
 
-func pgWrapError(err error) error {
-	if err, ok := err.(*pq.Error); ok && err.Code == "42P01" {
-		return ErrNamespaceNotFound
+func convertOpts(opts QueryOptions) ([]string, []interface{}, error) {
+	var (
+		clauses = []string{}
+		params  = []interface{}{
+			opts.Deleted,
+		}
+	)
+
+	if len(opts.ExternalIDs) > 0 {
+		ps := []interface{}{}
+
+		for _, id := range opts.ExternalIDs {
+			ps = append(ps, id)
+		}
+
+		clause, _, err := sqlx.In(pgClauseExternalID, ps)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		clauses = append(clauses, clause)
+		params = append(params, ps...)
 	}
 
-	return err
+	if opts.ID != nil {
+		params = append(params, *opts.ID)
+		clauses = append(clauses, pgClauseID)
+	}
+
+	if len(opts.OwnerIDs) > 0 {
+		ps := []interface{}{}
+
+		for _, id := range opts.OwnerIDs {
+			ps = append(ps, id)
+		}
+
+		clause, _, err := sqlx.In(pgClauseOwnerID, ps)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		clauses = append(clauses, clause)
+		params = append(params, ps...)
+	}
+
+	if len(opts.ObjectIDs) > 0 {
+		ps := []interface{}{}
+
+		for _, id := range opts.ObjectIDs {
+			ps = append(ps, id)
+		}
+
+		clause, _, err := sqlx.In(pgClauseObjectID, ps)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		clauses = append(clauses, clause)
+		params = append(params, ps...)
+	}
+
+	if opts.Owned != nil {
+		clause, _, err := sqlx.In(pgClauseOwned, []interface{}{*opts.Owned})
+		if err != nil {
+			return nil, nil, err
+		}
+
+		clauses = append(clauses, clause)
+		params = append(params, *opts.Owned)
+	}
+
+	if len(opts.Types) > 0 {
+		ps := []interface{}{}
+
+		for _, id := range opts.Types {
+			ps = append(ps, id)
+		}
+
+		clause, _, err := sqlx.In(pgClauseType, ps)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		clauses = append(clauses, clause)
+		params = append(params, ps...)
+	}
+
+	if len(opts.Visibilities) > 0 {
+		ps := []interface{}{}
+
+		for _, v := range opts.Visibilities {
+			ps = append(ps, v)
+		}
+
+		clause, _, err := sqlx.In(pgClauseVisibility, ps)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		clauses = append(clauses, clause)
+		params = append(params, ps...)
+	}
+
+	return clauses, params, nil
 }
 
 func wrapNamespace(query, namespace string) string {

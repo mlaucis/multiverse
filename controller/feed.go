@@ -225,6 +225,11 @@ func (c *FeedController) Events(
 		return nil, err
 	}
 
+	err = enrichCounts(c.events, c.objects, app, ps)
+	if err != nil {
+		return nil, err
+	}
+
 	err = enrichIsLiked(c.events, app, origin.ID, ps)
 	if err != nil {
 		return nil, err
@@ -306,6 +311,11 @@ func (c *FeedController) News(
 		return nil, err
 	}
 
+	err = enrichCounts(c.events, c.objects, app, ps)
+	if err != nil {
+		return nil, err
+	}
+
 	err = enrichIsLiked(c.events, app, origin.ID, ps)
 	if err != nil {
 		return nil, err
@@ -350,6 +360,11 @@ func (c *FeedController) News(
 	ps = append(ps, gs...)
 
 	sort.Sort(ps)
+
+	err = enrichCounts(c.events, c.objects, app, ps)
+	if err != nil {
+		return nil, err
+	}
 
 	err = enrichIsLiked(c.events, app, origin.ID, ps)
 	if err != nil {
@@ -398,6 +413,11 @@ func (c *FeedController) Posts(
 	ps = append(ps, gs...)
 
 	sort.Sort(ps)
+
+	err = enrichCounts(c.events, c.objects, app, ps)
+	if err != nil {
+		return nil, err
+	}
 
 	err = enrichIsLiked(c.events, app, origin.ID, ps)
 	if err != nil {

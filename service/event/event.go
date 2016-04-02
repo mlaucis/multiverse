@@ -71,6 +71,9 @@ func (e Event) Validate() error {
 	return nil
 }
 
+// Mape is an event collection with the id as index.
+type Map map[uint64]*Event
+
 // List is an Event collection.
 type List []*Event
 
@@ -157,6 +160,7 @@ type Service interface {
 	metrics.BucketByDay
 	service.Lifecycle
 
+	Count(namespace string, opts QueryOptions) (int, error)
 	Put(namespace string, event *Event) (*Event, error)
 	Query(namespace string, opts QueryOptions) (List, error)
 }

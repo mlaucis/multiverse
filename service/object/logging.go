@@ -9,9 +9,8 @@ import (
 )
 
 type logService struct {
-	Service
-
 	logger log.Logger
+	next   Service
 }
 
 // LogMiddleware given a Logger wraps the next Service with logging
@@ -23,8 +22,28 @@ func LogMiddleware(logger log.Logger, store string) ServiceMiddleware {
 			"store", store,
 		)
 
-		return &logService{next, logger}
+		return &logService{logger: logger, next: next}
 	}
+}
+
+func (s *logService) Count(ns string, opts QueryOptions) (count int, err error) {
+	defer func(begin time.Time) {
+		ps := []interface{}{
+			"count", count,
+			"duration_ns", time.Since(begin).Nanoseconds(),
+			"method", "Query",
+			"namespace", ns,
+			"opts", opts,
+		}
+
+		if err != nil {
+			ps = append(ps, "err", err)
+		}
+
+		_ = s.logger.Log(ps...)
+	}(time.Now())
+
+	return s.next.Count(ns, opts)
 }
 
 func (s *logService) CreatedByDay(
@@ -48,7 +67,7 @@ func (s *logService) CreatedByDay(
 		_ = s.logger.Log(ps...)
 	}(time.Now())
 
-	return s.Service.CreatedByDay(ns, start, end)
+	return s.next.CreatedByDay(ns, start, end)
 }
 
 func (s *logService) Put(ns string, input *Object) (output *Object, err error) {
@@ -68,7 +87,7 @@ func (s *logService) Put(ns string, input *Object) (output *Object, err error) {
 		_ = s.logger.Log(ps...)
 	}(time.Now())
 
-	return s.Service.Put(ns, input)
+	return s.next.Put(ns, input)
 }
 
 func (s *logService) Query(ns string, opts QueryOptions) (os []*Object, err error) {
@@ -88,7 +107,7 @@ func (s *logService) Query(ns string, opts QueryOptions) (os []*Object, err erro
 		_ = s.logger.Log(ps...)
 	}(time.Now())
 
-	return s.Service.Query(ns, opts)
+	return s.next.Query(ns, opts)
 }
 
 func (s *logService) Remove(ns string, id uint64) (err error) {
@@ -108,7 +127,7 @@ func (s *logService) Remove(ns string, id uint64) (err error) {
 		_ = s.logger.Log(ps...)
 	}(time.Now())
 
-	return s.Service.Remove(ns, id)
+	return s.next.Remove(ns, id)
 }
 
 func (s *logService) Setup(ns string) (err error) {
@@ -126,7 +145,7 @@ func (s *logService) Setup(ns string) (err error) {
 		_ = s.logger.Log(ps...)
 	}(time.Now())
 
-	return s.Service.Setup(ns)
+	return s.next.Setup(ns)
 }
 
 func (s *logService) Teardown(ns string) (err error) {
@@ -144,5 +163,5 @@ func (s *logService) Teardown(ns string) (err error) {
 		_ = s.logger.Log(ps...)
 	}(time.Now())
 
-	return s.Service.Teardown(ns)
+	return s.next.Teardown(ns)
 }

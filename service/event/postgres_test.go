@@ -105,6 +105,13 @@ func TestPostgresActiveUserIDs(t *testing.T) {
 	}
 }
 
+func TestPostgresCount(t *testing.T) {
+	testServiceCount(func(ns string, t *testing.T) Service {
+		s, _ := preparePostgres(ns, t)
+		return s
+	}, t)
+}
+
 func TestPostgresPut(t *testing.T) {
 	testServicePut(func(ns string, t *testing.T) Service {
 		s, _ := preparePostgres(ns, t)

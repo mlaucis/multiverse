@@ -6,6 +6,7 @@ import (
 
 	"github.com/asaskevich/govalidator"
 	"github.com/tapglue/multiverse/platform/metrics"
+	"github.com/tapglue/multiverse/platform/service"
 )
 
 // Attachment variants available for Objects.
@@ -136,6 +137,9 @@ func (os List) OwnerIDs() []uint64 {
 	return ids
 }
 
+// Map is an Object collection indexed by id.
+type Map map[uint64]*Object
+
 // QueryOptions are passed to narrow down query for objects.
 type QueryOptions struct {
 	Deleted      bool
@@ -151,12 +155,12 @@ type QueryOptions struct {
 // Service for object interactions.
 type Service interface {
 	metrics.BucketByDay
+	service.Lifecycle
 
+	Count(namespace string, opts QueryOptions) (int, error)
 	Put(namespace string, object *Object) (*Object, error)
 	Query(namespace string, opts QueryOptions) ([]*Object, error)
 	Remove(namespace string, id uint64) error
-	Setup(namespace string) error
-	Teardown(namespace string) error
 }
 
 // ServiceMiddleware is a chainable behaviour modifier for Service.
