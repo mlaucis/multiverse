@@ -11,12 +11,18 @@ resource "aws_instance" "monitoring" {
   }
 }
 
-resource "aws_elb" "gateway-http" {
+resource "aws_iam_server_certificate" "monitoring" {
+  name = "monitoring"
+  certificate_body = "${file("${path.module}/../../certs/self/self.crt")}"
+  private_key = "${file("${path.module}/../../certs/self/self.key")}"
+}
+
+resource "aws_elb" "monitoring" {
   connection_draining         = true
   connection_draining_timeout = 10
   cross_zone_load_balancing   = true
   idle_timeout                = 30
-  name                        = "gateway-http"
+  name                        = "monitoring"
   security_groups             = [
     "${aws_security_group.perimeter.id}",
   ]
@@ -30,23 +36,20 @@ resource "aws_elb" "gateway-http" {
     interval  = 5
   }
 
-  health_check {
-    healthy_threshold   = 2
-    interval            = 5
-    target              = "HTTPS:8083/health-45016490610398192"
-    timeout             = 2
-    unhealthy_threshold = 2
-  }
+  instances = [
+    "${aws_instance.monitoring.id}",
+  ]
 
   listener {
-    instance_port       = 8083
-    instance_protocol   = "tcp"
+    instance_port       = 3000
+    instance_protocol   = "http"
     lb_port             = 443
-    lb_protocol         = "tcp"
+    lb_protocol         = "https"
+    ssl_certificate_id  = "${aws_iam_server_certificate.monitoring.arn}"
   }
 
   tags {
-    Name = "gateway-http"
+    Name = "monitoring"
   }
 }
 
@@ -129,4 +132,43 @@ sudo echo '*.* @@logs-01.loggly.com:6514;LogglyFormat' >> /etc/rsyslog.d/22-logg
 
 sudo service rsyslog restart
 EOF
+}
+
+resource "aws_elb" "gateway-http" {
+  connection_draining         = true
+  connection_draining_timeout = 10
+  cross_zone_load_balancing   = true
+  idle_timeout                = 30
+  name                        = "gateway-http"
+  security_groups             = [
+    "${aws_security_group.perimeter.id}",
+  ]
+  subnets                     = [
+    "${aws_subnet.perimeter-a.id}",
+    "${aws_subnet.perimeter-b.id}",
+  ]
+
+  access_logs                 = {
+    bucket    = "${aws_s3_bucket.logs-elb.id}"
+    interval  = 5
+  }
+
+  health_check {
+    healthy_threshold   = 2
+    interval            = 5
+    target              = "HTTPS:8083/health-45016490610398192"
+    timeout             = 2
+    unhealthy_threshold = 2
+  }
+
+  listener {
+    instance_port       = 8083
+    instance_protocol   = "tcp"
+    lb_port             = 443
+    lb_protocol         = "tcp"
+  }
+
+  tags {
+    Name = "gateway-http"
+  }
 }

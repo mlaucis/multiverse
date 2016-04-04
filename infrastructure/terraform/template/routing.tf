@@ -43,3 +43,12 @@ resource "cloudflare_record" "api" {
   type    = "CNAME"
   value   = "${aws_elb.gateway-http.dns_name}"
 }
+
+resource "cloudflare_record" "monitoring" {
+  domain  = "${var.domain}"
+  name    = "monitoring-${var.env}-${var.region}"
+  proxied = true
+  ttl     = 1
+  type    = "CNAME"
+  value   = "${aws_elb.monitoring.dns_name}"
+}
