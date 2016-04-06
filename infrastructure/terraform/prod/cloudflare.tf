@@ -30,8 +30,17 @@ resource "cloudflare_record" "styleguide-prod" {
   proxied = true
 }
 
-# FIX: Temporary public endpoint for monitoring dashboard.
 resource "cloudflare_record" "monitoring" {
+  domain  = "${var.cloudflare_domain}"
+  name    = "monitoring-${var.env}-${var.region}"
+  proxied = true
+  ttl     = 1
+  type    = "CNAME"
+  value   = "${aws_elb.monitoring.dns_name}"
+}
+
+# FIX: Temporary public endpoint for monitoring dashboard.
+resource "cloudflare_record" "monitoring-old" {
   domain  = "${var.cloudflare_domain}"
   name    = "monitoring"
   ttl     = 1
