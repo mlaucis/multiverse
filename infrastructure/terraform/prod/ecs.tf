@@ -64,6 +64,39 @@ resource "aws_ecr_repository_policy" "gateway-http-deployment" {
 EOF
 }
 
+resource "aws_ecr_repository" "pganalyze" {
+  provider = "aws.us-east-1"
+  name     = "pganalyze"
+}
+
+resource "aws_ecr_repository_policy" "pganalyze-deployment" {
+  provider = "aws.us-east-1"
+  repository = "${aws_ecr_repository.pganalyze.name}"
+  policy     = <<EOF
+{
+    "Version": "2008-10-17",
+    "Statement": [
+        {
+            "Sid": "deployment",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": [
+                    "arn:aws:iam::775034650473:root",
+                    "arn:aws:iam::775034650473:role/ecsInstance",
+                    "arn:aws:iam::775034650473:user/deployer"
+                ]
+            },
+            "Action": [
+                "ecr:GetDownloadUrlForLayer",
+                "ecr:BatchGetImage",
+                "ecr:BatchCheckLayerAvailability"
+            ]
+        }
+    ]
+}
+EOF
+}
+
 resource "aws_ecs_cluster" "service" {
   name = "service"
 }
@@ -352,6 +385,36 @@ resource "aws_iam_instance_profile" "service" {
   roles = [
     "${aws_iam_role.ecsInstance.name}"
   ]
+}
+
+resource "aws_ecs_task_definition" "pganalyze" {
+  family                = "pganalyze"
+  container_definitions = <<EOF
+[
+  {
+    "command": [
+    "/usr/bin/python",
+    "./pganalyze-collector.zip",
+    "--config",
+    "/.pganalyze_collector.conf"
+    ],
+    "cpu": 256,
+    "dnsSearchDomains": [
+      "${var.env}.${var.region}"
+    ],
+    "essential": true,
+    "image": "775034650473.dkr.ecr.us-east-1.amazonaws.com/pganalyze:${var.version.pganalyze}",
+    "logConfiguration": {
+      "logDriver": "syslog"
+    },
+    "memory": 512,
+    "name": "gateway-http",
+    "portMappings": [],
+    "readonlyRootFilesystem": true,
+    "workingDirectory": "/"
+  }
+]
+EOF
 }
 
 resource "aws_launch_configuration" "service" {

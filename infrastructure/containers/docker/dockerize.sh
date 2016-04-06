@@ -47,4 +47,15 @@ if [ "${CONTAINER_NAME}" == "gateway-http" ]; then
     exit 0
 fi
 
+if [ "${CONTAINER_NAME}" == "pganalyze" ]; then
+  CONFIG_FILE=${3}
+
+  docker build -f ${PROJECT_DIR}/infrastructure/containers/docker/pganalyze.docker \
+    -t ${CONTAINER_NAME}:${CIRCLE_BUILD_NUM} \
+    --build-arg CONFIG_FILE=${CONFIG_FILE} \
+    "${PROJECT_DIR}"
+
+  exit 0
+fi
+
 exit 1

@@ -44,3 +44,4 @@ deployment:
       - ./bin/make_release.sh corporate website
       - ./infrastructure/containers/docker/release_container.sh gateway-http gateway-http_${CIRCLE_BUILD_NUM} ./infrastructure/config/intaker_prod.json
       - ./infrastructure/containers/docker/release_container.sh dashboard
+      - ./infrastructure/containers/docker/release_container.sh pganalyze none ./infrastructure/config/pganalyze_collector.conf
