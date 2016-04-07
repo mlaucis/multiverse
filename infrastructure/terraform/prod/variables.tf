@@ -8,7 +8,8 @@ variable "region" {
 
 variable "version" {
   default = {
-    gateway-http = "1865"
+    gateway-http  = "1865"
+    pganalyze     = "1884"
   }
 }
 
