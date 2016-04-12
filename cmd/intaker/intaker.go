@@ -283,7 +283,10 @@ func main() {
 
 	router.Methods("POST").PathPrefix(`/analytics`).Name("analytics").HandlerFunc(
 		handler.Wrap(
-			handler.CtxPrepare(apiVersionNext),
+			handler.Chain(
+				handler.CtxPrepare(apiVersionNext),
+				handler.Log(logger),
+			),
 			handler.Analytics(),
 		),
 	)
