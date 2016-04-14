@@ -300,6 +300,16 @@ func main() {
 
 	next := router.PathPrefix(fmt.Sprintf("/%s", apiVersionNext)).Subrouter()
 
+	next.Methods("POST").PathPrefix(`/analytics`).Name("analytics").HandlerFunc(
+		handler.Wrap(
+			handler.Chain(
+				handler.CtxPrepare(apiVersionNext),
+				handler.Log(logger),
+			),
+			handler.Analytics(),
+		),
+	)
+
 	next.Methods("GET").PathPrefix(`/me/connections/{state:[a-z]+}`).Name("getConnectionByState").HandlerFunc(
 		handler.Wrap(
 			withUser,
