@@ -57,8 +57,9 @@ const (
 		ORDER BY bucket`
 
 	pgCreateSchema = `CREATE SCHEMA IF NOT EXISTS %s`
-	pgCreateTable  = `CREATE TABLE IF NOT EXISTS %s.events
-		(json_data JSONB NOT NULL)`
+	pgCreateTable  = `CREATE TABLE IF NOT EXISTS %s.events (
+		json_data JSONB NOT NULL
+	)`
 	pgDropTable = `DROP TABLE IF EXISTS %s.events`
 )
 

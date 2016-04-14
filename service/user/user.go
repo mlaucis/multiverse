@@ -3,6 +3,7 @@ package user
 import (
 	"github.com/tapglue/multiverse/errors"
 	"github.com/tapglue/multiverse/platform/metrics"
+	"github.com/tapglue/multiverse/platform/service"
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
 	v04_errmsg "github.com/tapglue/multiverse/v04/errmsg"
 )
@@ -10,9 +11,17 @@ import (
 // TargetType is the identifier used for events targeting a User.
 const TargetType = "tg_user"
 
+// QueryOptions is used to narrow-down user queries.
+type QueryOptions struct {
+	Enabled *bool
+}
+
 // Service for user interactions.
 type Service interface {
 	metrics.BucketByDay
+	service.Lifecycle
+
+	Count(namespace string, opts QueryOptions) (int, error)
 }
 
 // ServiceMiddleware is a chainable behaviour modifier for Service.

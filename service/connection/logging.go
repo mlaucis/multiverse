@@ -25,6 +25,26 @@ func LogMiddleware(logger log.Logger, store string) ServiceMiddleware {
 	}
 }
 
+func (s *logService) Count(ns string, opts QueryOptions) (count int, err error) {
+	defer func(begin time.Time) {
+		ps := []interface{}{
+			"connection_count", count,
+			"connection_opts", opts,
+			"duration_ns", time.Since(begin).Nanoseconds(),
+			"method", "Count",
+			"namespace", ns,
+		}
+
+		if err != nil {
+			ps = append(ps, "err", err)
+		}
+
+		_ = s.logger.Log(ps...)
+	}(time.Now())
+
+	return s.next.Count(ns, opts)
+}
+
 func (s *logService) CreatedByDay(
 	ns string,
 	start, end time.Time,

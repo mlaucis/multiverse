@@ -7,6 +7,10 @@ import (
 	"github.com/lib/pq"
 )
 
+// MetaNamespace identifies the schema used to bundle tables not belonging to a
+// customer/app.
+const MetaNamespace = "tg"
+
 // ErrRelationNotFound is returned as equivalent to the Postgres error.
 var ErrRelationNotFound = errors.New("relation not found")
 
