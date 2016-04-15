@@ -1,6 +1,7 @@
 {
 	"ImportPath": "github.com/tapglue/multiverse",
 	"GoVersion": "go1.5.1",
+	"GodepVersion": "v58",
 	"Packages": [
 		"./..."
 	],
@@ -13,6 +14,10 @@
 		{
 			"ImportPath": "github.com/beorn7/perks/quantile",
 			"Rev": "b965b613227fddccbfffe13eae360ed3fa822f8d"
+		},
+		{
+			"ImportPath": "github.com/bluele/slack",
+			"Rev": "5ad82ac42481ca5de6d34e3bcb5de21c0db965c7"
 		},
 		{
 			"ImportPath": "github.com/garyburd/redigo/internal",
@@ -31,6 +36,10 @@
 			"Rev": "a8d4215d3019f035380e9e947245d2ee097a8179"
 		},
 		{
+			"ImportPath": "github.com/go-kit/kit/metrics/prometheus",
+			"Rev": "a8d4215d3019f035380e9e947245d2ee097a8179"
+		},
+		{
 			"ImportPath": "github.com/golang/protobuf/proto",
 			"Rev": "aece6fb931241ad332956db4f62798dfbea944b3"
 		},
@@ -44,13 +53,23 @@
 		},
 		{
 			"ImportPath": "github.com/jmoiron/sqlx",
-			"Comment": "sqlx-v1.1-42-g344b1e9",
-			"Rev": "344b1e96d6e410a093b7bce40287731a49e253f6"
+			"Comment": "sqlx-v1.1-53-g54aec3f",
+			"Rev": "54aec3fd91a2b2129ffaca0d652b8a9223ee2d9e"
+		},
+		{
+			"ImportPath": "github.com/jmoiron/sqlx/reflectx",
+			"Comment": "sqlx-v1.1-53-g54aec3f",
+			"Rev": "54aec3fd91a2b2129ffaca0d652b8a9223ee2d9e"
 		},
 		{
 			"ImportPath": "github.com/lib/pq",
-			"Comment": "go1.0-cutoff-59-gb269bd0",
-			"Rev": "b269bd035a727d6c1081f76e7a239a1b00674c40"
+			"Comment": "go1.0-cutoff-74-g8ad2b29",
+			"Rev": "8ad2b298cadd691a77015666a5372eae5dbfac8f"
+		},
+		{
+			"ImportPath": "github.com/lib/pq/oid",
+			"Comment": "go1.0-cutoff-74-g8ad2b29",
+			"Rev": "8ad2b298cadd691a77015666a5372eae5dbfac8f"
 		},
 		{
 			"ImportPath": "github.com/matttproud/golang_protobuf_extensions/pbutil",
