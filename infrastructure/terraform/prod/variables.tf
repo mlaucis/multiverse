@@ -10,6 +10,7 @@ variable "version" {
   default = {
     gateway-http  = "1892"
     pganalyze     = "1884"
+    reporter      = "1889"
   }
 }
 
@@ -135,4 +136,8 @@ variable "monitoring_ami" {
 
 variable "monitoring_instance_type" {
   default = "t2.medium"
+}
+
+variable "slack_token" {
+  default = "xoxb-4828491207-n1TJgR9wERGEqTTx3BCX86JR"
 }

@@ -98,6 +98,7 @@ type Service interface {
 	metrics.BucketByDay
 	service.Lifecycle
 
+	Count(namespace string, opts QueryOptions) (int, error)
 	Put(namespace string, connection *Connection) (*Connection, error)
 	Query(namespace string, opts QueryOptions) (List, error)
 }

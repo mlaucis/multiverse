@@ -37,11 +37,15 @@ test:
   post:
     - ./bin/process_coverage.sh
 deployment:
-  s3:
-    branch: /.*/
+  docker:
+    branch: master
     commands:
-      - ./bin/make_release.sh corporate styleguide
-      - ./bin/make_release.sh corporate website
       - ./infrastructure/containers/docker/release_container.sh gateway-http gateway-http_${CIRCLE_BUILD_NUM} ./infrastructure/config/intaker_prod.json
       - ./infrastructure/containers/docker/release_container.sh dashboard
       - ./infrastructure/containers/docker/release_container.sh pganalyze none ./infrastructure/config/pganalyze_collector.conf
+      - ./infrastructure/containers/docker/release_container.sh reporter reporter_${CIRCLE_BUILD_NUM} none
+  s3:
+    branch: master
+    commands:
+      - ./bin/make_release.sh corporate styleguide
+      - ./bin/make_release.sh corporate website

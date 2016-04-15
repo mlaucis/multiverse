@@ -24,7 +24,9 @@ const (
 		AND (json_data->>'user_to_id')::BIGINT = $2::BIGINT
 		AND (json_data->>'type')::TEXT = $3::TEXT`
 
-	pgSelectConnections = `SELECT json_data
+	pgCountConnections = `SELECT count(json_data) FROM %s.connections
+		%s`
+	pgListConnections = `SELECT json_data
 		FROM %s.connections
 		%s`
 	pgClauseEnabled = `(json_data->>'enabled')::BOOL = ?::BOOL`
@@ -62,6 +64,15 @@ type pgService struct {
 // NewPostgresService returns a Postgres based Service implementation.
 func NewPostgresService(db *sqlx.DB) Service {
 	return &pgService{db: db}
+}
+
+func (s *pgService) Count(ns string, opts QueryOptions) (int, error) {
+	clauses, params, err := convertOpts(opts)
+	if err != nil {
+		return 0, err
+	}
+
+	return s.countConnections(ns, clauses, params...)
 }
 
 func (s *pgService) CreatedByDay(
@@ -119,7 +130,7 @@ func (s *pgService) Put(ns string, con *Connection) (*Connection, error) {
 		query string
 	)
 
-	cs, err := s.queryConnections(
+	cs, err := s.listConnections(
 		ns,
 		[]string{pgClauseFromIDs, pgClauseToIDs, pgClauseTypes},
 		params...,
@@ -155,87 +166,12 @@ func (s *pgService) Put(ns string, con *Connection) (*Connection, error) {
 }
 
 func (s *pgService) Query(ns string, opts QueryOptions) (List, error) {
-	var (
-		clauses = []string{}
-		params  = []interface{}{}
-	)
-
-	if opts.Enabled != nil {
-		clause, _, err := sqlx.In(pgClauseEnabled, []interface{}{*opts.Enabled})
-		if err != nil {
-			return nil, err
-		}
-
-		clauses = append(clauses, clause)
-		params = append(params, *opts.Enabled)
+	clauses, params, err := convertOpts(opts)
+	if err != nil {
+		return nil, err
 	}
 
-	if len(opts.FromIDs) > 0 {
-		ps := []interface{}{}
-
-		for _, id := range opts.FromIDs {
-			ps = append(ps, id)
-		}
-
-		clause, _, err := sqlx.In(pgClauseFromIDs, ps)
-		if err != nil {
-			return nil, err
-		}
-
-		clauses = append(clauses, clause)
-		params = append(params, ps...)
-	}
-
-	if len(opts.States) > 0 {
-		ps := []interface{}{}
-
-		for _, state := range opts.States {
-			ps = append(ps, string(state))
-		}
-
-		clause, _, err := sqlx.In(pgClauseStates, ps)
-		if err != nil {
-			return nil, err
-		}
-
-		clauses = append(clauses, clause)
-		params = append(params, ps...)
-	}
-
-	if len(opts.ToIDs) > 0 {
-		ps := []interface{}{}
-
-		for _, id := range opts.ToIDs {
-			ps = append(ps, id)
-		}
-
-		clause, _, err := sqlx.In(pgClauseToIDs, ps)
-		if err != nil {
-			return nil, err
-		}
-
-		clauses = append(clauses, clause)
-		params = append(params, ps...)
-	}
-
-	if len(opts.Types) > 0 {
-		ps := []interface{}{}
-
-		for _, t := range opts.Types {
-			ps = append(ps, string(t))
-		}
-
-		clause, _, err := sqlx.In(pgClauseTypes, ps)
-		if err != nil {
-			return nil, err
-		}
-
-		clauses = append(clauses, clause)
-		params = append(params, ps...)
-	}
-
-	return s.queryConnections(ns, clauses, params...)
-
+	return s.listConnections(ns, clauses, params...)
 }
 
 func (s *pgService) Setup(ns string) error {
@@ -262,7 +198,40 @@ func (s *pgService) Teardown(ns string) error {
 	return err
 }
 
-func (s *pgService) queryConnections(
+func (s *pgService) countConnections(
+	ns string,
+	clauses []string,
+	params ...interface{},
+) (int, error) {
+	c := strings.Join(clauses, "\nAND")
+
+	if len(clauses) > 0 {
+		c = fmt.Sprintf("WHERE %s", c)
+	}
+
+	count := 0
+
+	err := s.db.Get(
+		&count,
+		sqlx.Rebind(sqlx.DOLLAR, fmt.Sprintf(pgCountConnections, ns, c)),
+		params...,
+	)
+	if err != nil && pg.IsRelationNotFound(pg.WrapError(err)) {
+		if err := s.Setup(ns); err != nil {
+			return 0, err
+		}
+
+		err = s.db.Get(
+			&count,
+			sqlx.Rebind(sqlx.DOLLAR, fmt.Sprintf(pgCountConnections, ns, c)),
+			params...,
+		)
+	}
+
+	return count, err
+}
+
+func (s *pgService) listConnections(
 	ns string,
 	clauses []string,
 	params ...interface{},
@@ -274,7 +243,7 @@ func (s *pgService) queryConnections(
 	}
 
 	query := strings.Join([]string{
-		fmt.Sprintf(pgSelectConnections, ns, c),
+		fmt.Sprintf(pgListConnections, ns, c),
 		pgOrderCreatedAt,
 	}, "\n")
 
@@ -324,6 +293,89 @@ func (s *pgService) queryConnections(
 	}
 
 	return cs, nil
+}
+
+func convertOpts(opts QueryOptions) ([]string, []interface{}, error) {
+	var (
+		clauses = []string{}
+		params  = []interface{}{}
+	)
+
+	if opts.Enabled != nil {
+		clause, _, err := sqlx.In(pgClauseEnabled, []interface{}{*opts.Enabled})
+		if err != nil {
+			return nil, nil, err
+		}
+
+		clauses = append(clauses, clause)
+		params = append(params, *opts.Enabled)
+	}
+
+	if len(opts.FromIDs) > 0 {
+		ps := []interface{}{}
+
+		for _, id := range opts.FromIDs {
+			ps = append(ps, id)
+		}
+
+		clause, _, err := sqlx.In(pgClauseFromIDs, ps)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		clauses = append(clauses, clause)
+		params = append(params, ps...)
+	}
+
+	if len(opts.States) > 0 {
+		ps := []interface{}{}
+
+		for _, state := range opts.States {
+			ps = append(ps, string(state))
+		}
+
+		clause, _, err := sqlx.In(pgClauseStates, ps)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		clauses = append(clauses, clause)
+		params = append(params, ps...)
+	}
+
+	if len(opts.ToIDs) > 0 {
+		ps := []interface{}{}
+
+		for _, id := range opts.ToIDs {
+			ps = append(ps, id)
+		}
+
+		clause, _, err := sqlx.In(pgClauseToIDs, ps)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		clauses = append(clauses, clause)
+		params = append(params, ps...)
+	}
+
+	if len(opts.Types) > 0 {
+		ps := []interface{}{}
+
+		for _, t := range opts.Types {
+			ps = append(ps, string(t))
+		}
+
+		clause, _, err := sqlx.In(pgClauseTypes, ps)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		clauses = append(clauses, clause)
+		params = append(params, ps...)
+	}
+
+	return clauses, params, nil
 }
 
 func wrapNamespace(query, namespace string) string {

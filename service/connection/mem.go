@@ -18,6 +18,10 @@ func NewMemService() Service {
 	}
 }
 
+func (s *memService) Count(ns string, opts QueryOptions) (int, error) {
+	return 0, fmt.Errorf("Count not implemented")
+}
+
 func (s *memService) CreatedByDay(
 	ns string,
 	start, end time.Time,
