@@ -287,7 +287,7 @@ func main() {
 				handler.CtxPrepare(apiVersionNext),
 				handler.Log(logger),
 			),
-			handler.Analytics(),
+			handler.AnalyticsDeprecated(),
 		),
 	)
 
