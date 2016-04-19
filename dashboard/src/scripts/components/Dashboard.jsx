@@ -251,9 +251,9 @@ export default class Dashboard extends Component {
               link='https://developers.tapglue.com/docs/ios'
               name='iOS Guide'/>
             <IntegrationResource
-              icon='download'
-              link='https://github.com/tapglue/ios_sdk#tapglue-ios-sdk'
-              name='iOS SDK'/>
+              icon='android'
+              link='https://developers.tapglue.com/docs/android'
+              name='Android Guide'/>
           </div>
         </div>
         {app}
