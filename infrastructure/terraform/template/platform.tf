@@ -98,7 +98,7 @@ resource "aws_launch_configuration" "service" {
     create_before_destroy = true
   }
 
-  user_data = <<EOF
+  user_data                   = <<EOF
 #!/bin/bash
 echo ECS_CLUSTER=service >> /etc/ecs/ecs.config
 
@@ -112,25 +112,50 @@ curl -O https://logdog.loggly.com/media/logs-01.loggly.com_sha12.crt
 sudo yum install -y rsyslog-gnutls
 sudo mkdir -p /var/spool/rsyslog
 
-sudo echo '$template LogglyFormat,"<%pri%>%protocol-version% %timestamp:::date-rfc3339% %HOSTNAME% %app-name% %procid% %msgid% [d2e7097f-25aa-497a-a9e3-d691bd4ec7ab@41058 tag=\"service.${var.env}.${var.region}\"] %msg%\n"' > /etc/rsyslog.d/22-loggly.conf
+echo '$template LogglyFormat,"<%pri%>%protocol-version% %timestamp:::date-rfc3339% %HOSTNAME% %app-name% %procid% %msgid% [d2e7097f-25aa-497a-a9e3-d691bd4ec7ab@41058 tag=\"service.prod.eu-central-1\"] %msg%\n"
 
 # Setup disk assisted queues
-sudo echo '$WorkDirectory /var/spool/rsyslog # where to place spool files' >> /etc/rsyslog.d/22-loggly.conf
-sudo echo '$ActionQueueFileName fwdRule1     # unique name prefix for spool files' >> /etc/rsyslog.d/22-loggly.conf
-sudo echo '$ActionQueueMaxDiskSpace 100m     # 1gb space limit (use as much as possible)' >> /etc/rsyslog.d/22-loggly.conf
-sudo echo '$ActionQueueSaveOnShutdown on     # save messages to disk on shutdown' >> /etc/rsyslog.d/22-loggly.conf
-sudo echo '$ActionQueueType LinkedList       # run asynchronously' >> /etc/rsyslog.d/22-loggly.conf
-sudo echo '$ActionResumeRetryCount -1        # infinite retries if host is down' >> /etc/rsyslog.d/22-loggly.conf
+$WorkDirectory /var/spool/rsyslog # where to place spool files
+$ActionQueueFileName fwdRule1     # unique name prefix for spool files
+$ActionQueueMaxDiskSpace 100m     # 1gb space limit (use as much as possible)
+$ActionQueueSaveOnShutdown on     # save messages to disk on shutdown
+$ActionQueueType LinkedList       # run asynchronously
+$ActionResumeRetryCount -1        # infinite retries if host is down
 
 # RsyslogGnuTLS
-sudo echo '$DefaultNetstreamDriverCAFile /etc/rsyslog.d/keys/ca.d/logs-01.loggly.com_sha12.crt' >> /etc/rsyslog.d/22-loggly.conf
-sudo echo '$ActionSendStreamDriver gtls' >> /etc/rsyslog.d/22-loggly.conf
-sudo echo '$ActionSendStreamDriverMode 1' >> /etc/rsyslog.d/22-loggly.conf
-sudo echo '$ActionSendStreamDriverAuthMode x509/name' >> /etc/rsyslog.d/22-loggly.conf
-sudo echo '$ActionSendStreamDriverPermittedPeer *.loggly.com' >> /etc/rsyslog.d/22-loggly.conf
-sudo echo '*.* @@logs-01.loggly.com:6514;LogglyFormat' >> /etc/rsyslog.d/22-loggly.conf
+$DefaultNetstreamDriverCAFile /etc/rsyslog.d/keys/ca.d/logs-01.loggly.com_sha12.crt
+$ActionSendStreamDriver gtls
+$ActionSendStreamDriverMode 1
+$ActionSendStreamDriverAuthMode x509/name
+$ActionSendStreamDriverPermittedPeer *.loggly.com
+*.* @@logs-01.loggly.com:6514;LogglyFormat
+' | sudo tee /etc/rsyslog/22-loggly.conf > /dev/null
 
 sudo service rsyslog restart
+
+echo '#!/bin/sh
+
+/usr/sbin/logrotate /etc/logrotate.hourly.conf >/dev/null 2>&1
+EXITVALUE=$?
+if [ $EXITVALUE != 0 ]; then
+    /usr/bin/logger -t logrotate "ALERT exited abnormally with [$EXITVALUE]"
+fi
+exit 0
+' | sudo tee /etc/cron.hourly/logrotate > /dev/null
+
+sudo chmod +x /etc/cron.hourly/logrotate
+
+echo '/var/log/messages {
+    compress
+    create
+    daily
+    rotate 5
+    size 100M
+    postrotate
+  /bin/kill -HUP `cat /var/run/syslogd.pid 2> /dev/null` 2> /dev/null || true
+    endscript
+}' | sudo tee /etc/logrotate.hourly.conf > /dev/null
+
 EOF
 }
 
