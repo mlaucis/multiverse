@@ -320,7 +320,7 @@ resource "aws_ecs_task_definition" "dashboard" {
 [
   {
     "name": "dashboard",
-    "image": "775034650473.dkr.ecr.us-east-1.amazonaws.com/dashboard:1796",
+    "image": "775034650473.dkr.ecr.us-east-1.amazonaws.com/dashboard:${var.version.dashboard}",
     "cpu": 256,
     "memory": 256,
     "essential": true,
