@@ -12,11 +12,18 @@ import (
 	"github.com/tapglue/multiverse/platform/metrics"
 )
 
-// Analytics is the endpoint for devices to submit usage data.
-func Analytics() Handler {
+// AnalyticsDeprecated is the endpoint for devices to submit usage data.
+func AnalyticsDeprecated() Handler {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("ok"))
+	}
+}
+
+// Analytics is the endpoint for devices to submit usage data.
+func Analytics() Handler {
+	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+		respondJSON(w, http.StatusNoContent, nil)
 	}
 }
 
