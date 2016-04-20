@@ -66,7 +66,7 @@ func (s *pgService) Setup(ns string) error {
 	for _, query := range qs {
 		_, err := s.db.Exec(query)
 		if err != nil {
-			fmt.Errorf("query (%s): %s", query, err)
+			return fmt.Errorf("query (%s): %s", query, err)
 		}
 	}
 
