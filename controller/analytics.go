@@ -7,7 +7,7 @@ import (
 	"github.com/tapglue/multiverse/service/app"
 )
 
-// AnalyticWhere combines query clauses for analytcs requests.
+// AnalyticsWhere combines query clauses for analytcs requests.
 type AnalyticsWhere struct {
 	End   time.Time
 	Start time.Time
