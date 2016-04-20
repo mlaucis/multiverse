@@ -32,7 +32,7 @@ variable "ami_backend" {
 }
 
 variable "ami_corporate" {
-  default = "ami-cfc226a0"
+  default = "ami-dd9370b2"
 }
 
 variable "ami_container" {
