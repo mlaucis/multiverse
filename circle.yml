@@ -44,8 +44,5 @@ deployment:
       - ./infrastructure/containers/docker/release_container.sh dashboard
       - ./infrastructure/containers/docker/release_container.sh pganalyze none ./infrastructure/config/pganalyze_collector.conf
       - ./infrastructure/containers/docker/release_container.sh reporter reporter_${CIRCLE_BUILD_NUM} none
-  s3:
-    branch: master
-    commands:
       - ./bin/make_release.sh corporate styleguide
       - ./bin/make_release.sh corporate website
