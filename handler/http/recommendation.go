@@ -83,7 +83,7 @@ func RecommendUsersActiveMonth(c *controller.RecommendationController) Handler {
 }
 
 type payloadUsers struct {
-	users user.List
+	users user.StrangleList
 }
 
 func (p *payloadUsers) MarshalJSON() ([]byte, error) {

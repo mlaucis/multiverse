@@ -36,8 +36,8 @@ func testConditionUserError(user *v04_entity.ApplicationUser) (bool, error) {
 	return false, fmt.Errorf("condition errored")
 }
 
-func testUsers(n int) []*v04_entity.ApplicationUser {
-	us := user.List{}
+func testUsers(n int) user.StrangleList {
+	us := user.StrangleList{}
 
 	for i := 0; i < n; i++ {
 		us = append(us, &v04_entity.ApplicationUser{

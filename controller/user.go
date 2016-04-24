@@ -28,7 +28,7 @@ func (c *UserController) ListByEmails(
 	app *v04_entity.Application,
 	originID uint64,
 	emails ...string,
-) (user.List, error) {
+) (user.StrangleList, error) {
 	us, errs := c.users.FilterByEmail(app.OrgID, app.ID, emails)
 	if errs != nil {
 		return nil, errs[0]
@@ -56,7 +56,7 @@ func (c *UserController) ListByPlatformIDs(
 	originID uint64,
 	platform string,
 	ids ...string,
-) (user.List, error) {
+) (user.StrangleList, error) {
 	us, errs := c.users.FilterBySocialIDs(app.OrgID, app.ID, platform, ids)
 	if errs != nil {
 		return nil, errs[0]

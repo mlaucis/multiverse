@@ -14,9 +14,8 @@ import (
 const serviceName = "user"
 
 type instrumentService struct {
-	Service
-
 	errCount  kitmetrics.Counter
+	next      Service
 	opCount   kitmetrics.Counter
 	opLatency *prometheus.HistogramVec
 	store     string
@@ -35,10 +34,21 @@ func InstrumentMiddleware(
 			errCount:  errCount,
 			opCount:   opCount,
 			opLatency: opLatency,
-			Service:   next,
+			next:      next,
 			store:     store,
 		}
 	}
+}
+
+func (s *instrumentService) Count(
+	ns string,
+	opts QueryOptions,
+) (count int, err error) {
+	defer func(begin time.Time) {
+		s.track("Count", ns, begin, err)
+	}(time.Now())
+
+	return s.next.Count(ns, opts)
 }
 
 func (s *instrumentService) CreatedByDay(
@@ -49,7 +59,57 @@ func (s *instrumentService) CreatedByDay(
 		s.track("CreatedByDay", ns, begin, err)
 	}(time.Now())
 
-	return s.Service.CreatedByDay(ns, start, end)
+	return s.next.CreatedByDay(ns, start, end)
+}
+
+func (s *instrumentService) Put(
+	ns string,
+	input *User,
+) (output *User, err error) {
+	defer func(begin time.Time) {
+		s.track("Put", ns, begin, err)
+	}(time.Now())
+
+	return s.next.Put(ns, input)
+}
+
+func (s *instrumentService) PutLastRead(
+	ns string,
+	userID uint64,
+	ts time.Time,
+) (err error) {
+	defer func(begin time.Time) {
+		s.track("PutLastRead", ns, begin, err)
+	}(time.Now())
+
+	return s.next.PutLastRead(ns, userID, ts)
+}
+
+func (s *instrumentService) Query(
+	ns string,
+	opts QueryOptions,
+) (list List, err error) {
+	defer func(begin time.Time) {
+		s.track("Query", ns, begin, err)
+	}(time.Now())
+
+	return s.next.Query(ns, opts)
+}
+
+func (s *instrumentService) Setup(ns string) (err error) {
+	defer func(begin time.Time) {
+		s.track("Setup", ns, begin, err)
+	}(time.Now())
+
+	return s.next.Setup(ns)
+}
+
+func (s *instrumentService) Teardown(ns string) (err error) {
+	defer func(begin time.Time) {
+		s.track("Teardown", ns, begin, err)
+	}(time.Now())
+
+	return s.next.Teardown(ns)
 }
 
 func (s *instrumentService) track(

@@ -353,7 +353,7 @@ func (p *payloadComment) UnmarshalJSON(raw []byte) error {
 
 type payloadComments struct {
 	comments object.List
-	users    user.Map
+	users    user.StrangleMap
 }
 
 func (p *payloadComments) MarshalJSON() ([]byte, error) {

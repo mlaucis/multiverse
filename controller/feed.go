@@ -120,10 +120,10 @@ func (a affiliations) userIDs() []uint64 {
 }
 
 // users returns the list of users.
-func (a affiliations) users() user.List {
+func (a affiliations) users() user.StrangleList {
 	var (
 		seen = map[uint64]struct{}{}
-		us   = user.List{}
+		us   = user.StrangleList{}
 	)
 
 	for _, user := range a {
@@ -150,7 +150,7 @@ type Feed struct {
 	Events  event.List
 	Posts   PostList
 	PostMap PostMap
-	UserMap user.Map
+	UserMap user.StrangleMap
 }
 
 // FeedController bundles the business constraints for feeds.
@@ -243,7 +243,7 @@ func (c *FeedController) Events(
 		conditionPostMissing(pm),
 	)
 
-	um, err := fillupUsers(c.users, app, origin.ID, us.ToMap(), es)
+	um, err := fillupUsers(c.users, app, origin.ID, us.ToStrangleMap(), es)
 	if err != nil {
 		return nil, err
 	}
@@ -329,7 +329,7 @@ func (c *FeedController) News(
 		conditionPostMissing(pm),
 	)
 
-	um, err := fillupUsers(c.users, app, origin.ID, us.ToMap(), es)
+	um, err := fillupUsers(c.users, app, origin.ID, us.ToStrangleMap(), es)
 	if err != nil {
 		return nil, err
 	}
@@ -426,7 +426,7 @@ func (c *FeedController) Posts(
 
 	return &Feed{
 		Posts:   ps,
-		UserMap: am.users().ToMap().Merge(um),
+		UserMap: am.users().ToStrangleMap().Merge(um),
 	}, nil
 }
 
@@ -621,8 +621,8 @@ func extractUsersFromPosts(
 	users user.StrangleService,
 	app *v04_entity.Application,
 	ps PostList,
-) (user.Map, error) {
-	um := user.Map{}
+) (user.StrangleMap, error) {
+	um := user.StrangleMap{}
 
 	for _, id := range ps.OwnerIDs() {
 		if _, ok := um[id]; ok {
@@ -649,9 +649,9 @@ func fillupUsers(
 	users user.StrangleService,
 	app *v04_entity.Application,
 	originID uint64,
-	um user.Map,
+	um user.StrangleMap,
 	es event.List,
-) (user.Map, error) {
+) (user.StrangleMap, error) {
 	for _, id := range es.UserIDs() {
 		if _, ok := um[id]; ok || id == originID {
 			continue

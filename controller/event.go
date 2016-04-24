@@ -125,7 +125,7 @@ func (c *EventController) List(
 		return nil, err
 	}
 
-	um, err := fillupUsers(c.users, app, originID, user.Map{}, es)
+	um, err := fillupUsers(c.users, app, originID, user.StrangleMap{}, es)
 	if err != nil {
 		return nil, err
 	}

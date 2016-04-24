@@ -293,7 +293,7 @@ func (p *payloadConnection) UnmarshalJSON(raw []byte) error {
 type payloadConnections struct {
 	cons    connection.List
 	origin  uint64
-	userMap user.Map
+	userMap user.StrangleMap
 }
 
 func (p *payloadConnections) MarshalJSON() ([]byte, error) {

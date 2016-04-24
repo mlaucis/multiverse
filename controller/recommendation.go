@@ -37,13 +37,13 @@ func (c *RecommendationController) UsersActive(
 	app *v04_entity.Application,
 	origin *v04_entity.ApplicationUser,
 	period event.Period,
-) (user.List, error) {
+) (user.StrangleList, error) {
 	ids, err := c.events.ActiveUserIDs(app.Namespace(), period)
 	if err != nil {
 		return nil, err
 	}
 
-	us, err := user.ListFromIDs(c.users, app, ids...)
+	us, err := user.StrangleListFromIDs(c.users, app, ids...)
 	if err != nil {
 		return nil, err
 	}
@@ -89,8 +89,8 @@ func conditionOrigin(
 	}
 }
 
-func filterUsers(users user.List, cs ...conditionUser) (user.List, error) {
-	us := user.List{}
+func filterUsers(users user.StrangleList, cs ...conditionUser) (user.StrangleList, error) {
+	us := user.StrangleList{}
 
 	for _, user := range users {
 		keep := true
@@ -115,7 +115,7 @@ func filterUsers(users user.List, cs ...conditionUser) (user.List, error) {
 	return us, nil
 }
 
-func shuffleUsers(us user.List) {
+func shuffleUsers(us user.StrangleList) {
 	for i := range us {
 		j := rand.Intn(i + 1)
 		us[i], us[j] = us[j], us[i]

@@ -109,7 +109,7 @@ func FeedPosts(c *controller.FeedController) Handler {
 type payloadFeedEvents struct {
 	events  event.List
 	postMap controller.PostMap
-	userMap user.Map
+	userMap user.StrangleMap
 }
 
 func (p *payloadFeedEvents) MarshalJSON() ([]byte, error) {

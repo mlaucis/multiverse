@@ -88,7 +88,7 @@ func PostList(c *controller.PostController, users user.StrangleService) Handler 
 			return
 		}
 
-		us, err := user.ListFromIDs(users, app, ps.OwnerIDs()...)
+		us, err := user.StrangleListFromIDs(users, app, ps.OwnerIDs()...)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -120,7 +120,7 @@ func PostListAll(c *controller.PostController, users user.StrangleService) Handl
 			return
 		}
 
-		us, err := user.ListFromIDs(users, app, ps.OwnerIDs()...)
+		us, err := user.StrangleListFromIDs(users, app, ps.OwnerIDs()...)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -152,7 +152,7 @@ func PostListMe(c *controller.PostController, users user.StrangleService) Handle
 			return
 		}
 
-		us, err := user.ListFromIDs(users, app, ps.OwnerIDs()...)
+		us, err := user.StrangleListFromIDs(users, app, ps.OwnerIDs()...)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -281,7 +281,7 @@ func (p *payloadPost) UnmarshalJSON(raw []byte) error {
 
 type payloadPosts struct {
 	posts controller.PostList
-	users user.List
+	users user.StrangleList
 }
 
 func (p *payloadPosts) MarshalJSON() ([]byte, error) {
