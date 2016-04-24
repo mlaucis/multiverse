@@ -18,7 +18,7 @@ var defaultEnabled = true
 // LikeFeed is a collection of likes with their referenced users.
 type LikeFeed struct {
 	Likes   event.List
-	UserMap user.Map
+	UserMap user.StrangleMap
 }
 
 // LikeController bundles the business constraints for likes on posts.
@@ -209,7 +209,7 @@ func (c *LikeController) List(
 		},
 	})
 
-	um, err := user.MapFromIDs(c.users, app, es.UserIDs()...)
+	um, err := user.StrangleMapFromIDs(c.users, app, es.UserIDs()...)
 	if err != nil {
 		return nil, err
 	}
@@ -341,7 +341,7 @@ func (c *LikeController) ExternalList(
 		return nil, err
 	}
 
-	um, err := user.MapFromIDs(c.users, app, es.UserIDs()...)
+	um, err := user.StrangleMapFromIDs(c.users, app, es.UserIDs()...)
 	if err != nil {
 		return nil, err
 	}

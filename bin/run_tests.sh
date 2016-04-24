@@ -12,13 +12,18 @@ REVISION=`git rev-parse HEAD`
 cd /home/ubuntu/.go_workspace/src/github.com/tapglue/multiverse
 CWD=`pwd`
 
-if [ ${TEST_COMPONENT} == "object" ]
+if [ ${TEST_COMPONENT} == "controller" ]
 then
   go test \
     -v \
     -race \
-    ./controller
+    ./controller/...
 
+  exit 0
+fi
+
+if [ ${TEST_COMPONENT} == "service" ]
+then
   go test \
     -v \
     -race \

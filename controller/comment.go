@@ -16,7 +16,7 @@ const (
 // CommentFeed is a collection of comments with their referneced users.
 type CommentFeed struct {
 	Comments object.List
-	UserMap  user.Map
+	UserMap  user.StrangleMap
 }
 
 // CommentController bundles the business constraints for comemnts on posts.
@@ -379,8 +379,8 @@ func extractUsersFromObjects(
 	users user.StrangleService,
 	app *v04_entity.Application,
 	os object.List,
-) (user.Map, error) {
-	um := user.Map{}
+) (user.StrangleMap, error) {
+	um := user.StrangleMap{}
 
 	for _, id := range os.OwnerIDs() {
 		if _, ok := um[id]; ok {

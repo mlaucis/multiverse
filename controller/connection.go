@@ -11,7 +11,7 @@ import (
 // connections.
 type ConnectionFeed struct {
 	Connections connection.List
-	UserMap     user.Map
+	UserMap     user.StrangleMap
 }
 
 // ConnectionController bundles the business constraints of Connections.
@@ -62,7 +62,7 @@ func (c *ConnectionController) ByState(
 		return nil, err
 	}
 
-	um, err := user.MapFromIDs(c.users, app, append(ics.ToIDs(), ocs.FromIDs()...)...)
+	um, err := user.StrangleMapFromIDs(c.users, app, append(ics.ToIDs(), ocs.FromIDs()...)...)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +81,7 @@ func (c *ConnectionController) CreateSocial(
 	connectionState connection.State,
 	platform string,
 	connectionIDs ...string,
-) (user.List, error) {
+) (user.StrangleList, error) {
 	us, errs := c.users.FilterBySocialIDs(app.OrgID, app.ID, platform, connectionIDs)
 	if errs != nil {
 		return nil, errs[0]
@@ -156,7 +156,7 @@ func (c *ConnectionController) Delete(
 func (c *ConnectionController) Followers(
 	app *v04_entity.Application,
 	originID uint64,
-) (user.List, error) {
+) (user.StrangleList, error) {
 	cs, err := c.connections.Query(app.Namespace(), connection.QueryOptions{
 		Enabled: &defaultEnabled,
 		ToIDs:   []uint64{originID},
@@ -167,14 +167,14 @@ func (c *ConnectionController) Followers(
 		return nil, err
 	}
 
-	return user.ListFromIDs(c.users, app, cs.FromIDs()...)
+	return user.StrangleListFromIDs(c.users, app, cs.FromIDs()...)
 }
 
 // Followings returns the list of users the origin is following.
 func (c *ConnectionController) Followings(
 	app *v04_entity.Application,
 	originID uint64,
-) (user.List, error) {
+) (user.StrangleList, error) {
 	cs, err := c.connections.Query(app.Namespace(), connection.QueryOptions{
 		Enabled: &defaultEnabled,
 		FromIDs: []uint64{originID},
@@ -185,14 +185,14 @@ func (c *ConnectionController) Followings(
 		return nil, err
 	}
 
-	return user.ListFromIDs(c.users, app, cs.ToIDs()...)
+	return user.StrangleListFromIDs(c.users, app, cs.ToIDs()...)
 }
 
 // Friends returns the list of users the origin is friends with.
 func (c *ConnectionController) Friends(
 	app *v04_entity.Application,
 	originID uint64,
-) (user.List, error) {
+) (user.StrangleList, error) {
 	fs, err := c.connections.Query(app.Namespace(), connection.QueryOptions{
 		Enabled: &defaultEnabled,
 		FromIDs: []uint64{originID},
@@ -213,7 +213,7 @@ func (c *ConnectionController) Friends(
 		return nil, err
 	}
 
-	return user.ListFromIDs(c.users, app, append(fs.ToIDs(), ts.FromIDs()...)...)
+	return user.StrangleListFromIDs(c.users, app, append(fs.ToIDs(), ts.FromIDs()...)...)
 }
 
 // Update transitions the passed Connection its new state.

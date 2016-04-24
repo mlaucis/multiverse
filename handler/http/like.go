@@ -189,7 +189,7 @@ func (p *payloadLike) MarshalJSON() ([]byte, error) {
 
 type payloadLikes struct {
 	likes event.List
-	users user.Map
+	users user.StrangleMap
 }
 
 func (p *payloadLikes) MarshalJSON() ([]byte, error) {
