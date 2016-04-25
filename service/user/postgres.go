@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	pgInserUser      = `INSERT INTO %s.users(json_data) VALUES($1)`
+	pgInsertUser     = `INSERT INTO %s.users(json_data) VALUES($1)`
 	pgUpdateLastRead = `
 		UPDATE
 			%s.users
@@ -179,7 +179,7 @@ func (s *pgService) Put(ns string, user *User) (*User, error) {
 		user.ID = id
 		user.LastRead = user.LastRead.UTC()
 
-		query = pgInserUser
+		query = pgInsertUser
 	}
 
 	user.UpdatedAt = now
