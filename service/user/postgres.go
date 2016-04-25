@@ -40,7 +40,7 @@ const (
 
 	pgCountUsers = `SELECT count(json_data) FROM %s.users
 		%s`
-	pgListEvents = `SELECT json_data, last_read FROM %s.users
+	pgListUsers = `SELECT json_data, last_read FROM %s.users
 		%s`
 
 	pgCreatedByDay = `SELECT count(*), to_date(json_data->>'created_at', 'YYYY-MM-DD') as bucket
@@ -306,7 +306,7 @@ func (s *pgService) listUsers(
 	}
 
 	query := strings.Join([]string{
-		fmt.Sprintf(pgListEvents, ns, c),
+		fmt.Sprintf(pgListUsers, ns, c),
 		pgOrderCreatedAt,
 	}, "\n")
 
