@@ -17,7 +17,9 @@ func TestPostControllerCreate(t *testing.T) {
 		post          = &Post{
 			Object: &object.Object{
 				Attachments: []object.Attachment{
-					object.NewTextAttachment("body", "Test body."),
+					object.NewTextAttachment("body", object.Contents{
+						"en": "Test body.",
+					}),
 				},
 				Tags: []string{
 					"review",
@@ -273,7 +275,9 @@ func testPost(ownerID uint64) *Post {
 	return &Post{
 		Object: &object.Object{
 			Attachments: []object.Attachment{
-				object.NewTextAttachment("body", "Test body."),
+				object.NewTextAttachment("body", object.Contents{
+					"en": "Test body.",
+				}),
 			},
 			OwnerID: ownerID,
 			Owned:   true,

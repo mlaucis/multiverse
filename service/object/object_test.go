@@ -4,39 +4,60 @@ import "testing"
 
 func TestAttachmentValidate(t *testing.T) {
 	for _, a := range []Attachment{
-		// Missing Content
+		// Missing Contents
 		{
-			Content: "",
-			Name:    "attach1",
-			Type:    AttachmentTypeText,
+			Name: "attach1",
+			Type: AttachmentTypeText,
+		},
+		// Empty Contents
+		{
+			Contents: Contents{},
+			Name:     "attach",
+			Type:     AttachmentTypeText,
 		},
 		// Missing Name
 		{
-			Content: "Lorem ipsum.",
-			Name:    "",
-			Type:    AttachmentTypeText,
+			Contents: Contents{
+				"en": "Lorem ipsum.",
+			},
+			Name: "",
+			Type: AttachmentTypeText,
 		},
 		// Missing Type
 		{
-			Content: "Lorem ipsum.",
-			Name:    "teaser",
-			Type:    "",
+			Contents: Contents{
+				"en": "Lorem ipsum.",
+			},
+			Name: "teaser",
+			Type: "",
 		},
 		// Unspported Type
 		{
-			Content: "Lorem ipsum.",
-			Name:    "teaser",
-			Type:    "teaser",
+			Contents: Contents{
+				"en": "Lorem ipsum.",
+			},
+			Name: "teaser",
+			Type: "teaser",
+		},
+		// Invalid language tag
+		{
+			Contents: Contents{
+				"foo-FOO": "Lorem ipsum",
+			},
+			Name: "body",
+			Type: AttachmentTypeText,
 		},
 		// Invalid URL
 		{
-			Content: "http://bit.ly^fake",
-			Name:    "attach2",
-			Type:    AttachmentTypeURL,
+			Contents: Contents{
+				"en": "http://bit.ly^fake",
+			},
+			Name: "attach2",
+			Type: AttachmentTypeURL,
 		},
 	} {
-		if err := a.Validate(); err == nil {
-			t.Errorf("expected error: %v", a)
+		if have, want := a.Validate(), ErrInvalidAttachment; !IsInvalidAttachment(have) {
+			t.Errorf("have %v, want %v", have, want)
 		}
 	}
 }
@@ -54,8 +75,13 @@ func TestObjectValidate(t *testing.T) {
 				{},
 			},
 		},
+		{
+			Type:       "post",
+			Visibility: VisibilityConnection,
+		},
 		// Too many Tags
 		{
+			OwnerID: 123,
 			Tags: []string{
 				"tag",
 				"tag",
@@ -74,16 +100,18 @@ func TestObjectValidate(t *testing.T) {
 		},
 		// Missing Type
 		{
+			OwnerID:    123,
 			Visibility: VisibilityConnection,
 		},
 		// Invalid Visibility
 		{
+			OwnerID:    123,
 			Type:       "recipe",
-			Visibility: 60,
+			Visibility: 50,
 		},
 	} {
-		if err := o.Validate(); err == nil {
-			t.Errorf("expected error: %v", o)
+		if have, want := o.Validate(), ErrInvalidObject; !IsInvalidObject(have) {
+			t.Errorf("have %v, want %v", have, want)
 		}
 	}
 }

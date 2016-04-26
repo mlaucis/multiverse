@@ -35,7 +35,7 @@ func CommentCreate(c *controller.CommentController) Handler {
 			return
 		}
 
-		comment, err := c.Create(app, currentUser.ID, postID, p.content)
+		comment, err := c.Create(app, currentUser.ID, postID, p.contents)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -163,7 +163,7 @@ func CommentUpdate(c *controller.CommentController) Handler {
 			return
 		}
 
-		comment, err := c.Update(app, currentUser.ID, postID, commentID, p.content)
+		comment, err := c.Update(app, currentUser.ID, postID, commentID, p.contents)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -189,7 +189,7 @@ func ExternalCommentCreate(c *controller.CommentController) Handler {
 			return
 		}
 
-		comment, err := c.ExternalCreate(app, user, externalID, p.content)
+		comment, err := c.ExternalCreate(app, user, externalID, p.contents)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -296,7 +296,7 @@ func ExternalCommentUpdate(c *controller.CommentController) Handler {
 			return
 		}
 
-		comment, err := c.ExternalUpdate(app, user, externalID, commentID, p.content)
+		comment, err := c.ExternalUpdate(app, user, externalID, commentID, p.contents)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -306,47 +306,44 @@ func ExternalCommentUpdate(c *controller.CommentController) Handler {
 	}
 }
 
-type commentFields struct {
-	Content    string    `json:"content"`
-	ExternalID string    `json:"external_id"`
-	ID         string    `json:"id"`
-	PostID     string    `json:"post_id"`
-	UserID     string    `json:"user_id"`
-	CreatedAt  time.Time `json:"created_at"`
-	UpdatedAt  time.Time `json:"updated_at"`
-}
-
 type payloadComment struct {
-	content string
-	comment *object.Object
+	contents object.Contents
+	comment  *object.Object
 }
 
 func (p *payloadComment) MarshalJSON() ([]byte, error) {
-	var (
-		c = p.comment
-		f = commentFields{
-			Content:    c.Attachments[0].Content,
-			ExternalID: c.ExternalID,
-			ID:         strconv.FormatUint(c.ID, 10),
-			PostID:     strconv.FormatUint(c.ObjectID, 10),
-			UserID:     strconv.FormatUint(c.OwnerID, 10),
-			CreatedAt:  c.CreatedAt,
-			UpdatedAt:  c.UpdatedAt,
-		}
-	)
+	c := p.comment
 
-	return json.Marshal(f)
+	return json.Marshal(struct {
+		Content    string          `json:"content"`
+		Contents   object.Contents `json:"contents"`
+		ExternalID string          `json:"external_id"`
+		ID         string          `json:"id"`
+		PostID     string          `json:"post_id"`
+		UserID     string          `json:"user_id"`
+		CreatedAt  time.Time       `json:"created_at"`
+		UpdatedAt  time.Time       `json:"updated_at"`
+	}{
+		Content:    c.Attachments[0].Contents[object.DefaultLanguage],
+		Contents:   c.Attachments[0].Contents,
+		ExternalID: c.ExternalID,
+		ID:         strconv.FormatUint(c.ID, 10),
+		PostID:     strconv.FormatUint(c.ObjectID, 10),
+		UserID:     strconv.FormatUint(c.OwnerID, 10),
+		CreatedAt:  c.CreatedAt,
+		UpdatedAt:  c.UpdatedAt,
+	})
 }
 
 func (p *payloadComment) UnmarshalJSON(raw []byte) error {
-	f := commentFields{}
+	a := payloadAttachment{}
 
-	err := json.Unmarshal(raw, &f)
+	err := json.Unmarshal(raw, &a)
 	if err != nil {
 		return err
 	}
 
-	p.content = f.Content
+	p.contents = a.attachment.Contents
 
 	return nil
 }

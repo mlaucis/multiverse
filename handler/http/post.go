@@ -220,21 +220,54 @@ func PostUpdate(c *controller.PostController) Handler {
 	}
 }
 
-type postCounts struct {
-	Comments int `json:"comments"`
-	Likes    int `json:"likes"`
+type payloadAttachment struct {
+	attachment object.Attachment
 }
 
-type postFields struct {
-	Attachments []object.Attachment `json:"attachments"`
-	Counts      postCounts          `json:"counts"`
-	CreatedAt   time.Time           `json:"created_at,omitempty"`
-	ID          string              `json:"id"`
-	IsLiked     bool                `json:"is_liked"`
-	Tags        []string            `json:"tags,omitempty"`
-	UpdatedAt   time.Time           `json:"updated_at,omitempty"`
-	UserID      string              `json:"user_id"`
-	Visibility  object.Visibility   `json:"visibility"`
+func (p *payloadAttachment) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		Content  string          `json:"content"`
+		Contents object.Contents `json:"contents"`
+		Name     string          `json:"name"`
+		Type     string          `json:"type"`
+	}{
+		Content:  p.attachment.Contents[object.DefaultLanguage],
+		Contents: p.attachment.Contents,
+		Name:     p.attachment.Name,
+		Type:     p.attachment.Type,
+	})
+}
+
+func (p *payloadAttachment) UnmarshalJSON(raw []byte) error {
+	f := struct {
+		Content  string          `json:"content"`
+		Contents object.Contents `json:"contents"`
+		Name     string          `json:"name"`
+		Type     string          `json:"type"`
+	}{}
+
+	err := json.Unmarshal(raw, &f)
+	if err != nil {
+		return err
+	}
+
+	if f.Contents == nil {
+		if f.Content == "" {
+			return ErrBadRequest
+		}
+
+		f.Contents = object.Contents{
+			object.DefaultLanguage: f.Content,
+		}
+	}
+
+	p.attachment = object.Attachment{
+		Contents: f.Contents,
+		Name:     f.Name,
+		Type:     f.Type,
+	}
+
+	return nil
 }
 
 type payloadPost struct {
@@ -242,37 +275,58 @@ type payloadPost struct {
 }
 
 func (p *payloadPost) MarshalJSON() ([]byte, error) {
-	var (
-		o = p.post
-		f = postFields{
-			Attachments: o.Attachments,
-			Counts: postCounts{
-				Comments: o.Counts.Comments,
-				Likes:    o.Counts.Likes,
-			},
-			CreatedAt:  o.CreatedAt,
-			ID:         strconv.FormatUint(o.ID, 10),
-			IsLiked:    o.IsLiked,
-			Tags:       o.Tags,
-			UpdatedAt:  o.UpdatedAt,
-			UserID:     strconv.FormatUint(o.OwnerID, 10),
-			Visibility: o.Visibility,
-		}
-	)
+	ps := []*payloadAttachment{}
 
-	return json.Marshal(f)
+	for _, a := range p.post.Attachments {
+		ps = append(ps, &payloadAttachment{attachment: a})
+	}
+
+	return json.Marshal(struct {
+		Attachments []*payloadAttachment `json:"attachments"`
+		Counts      postCounts           `json:"counts"`
+		CreatedAt   time.Time            `json:"created_at,omitempty"`
+		ID          string               `json:"id"`
+		IsLiked     bool                 `json:"is_liked"`
+		Tags        []string             `json:"tags,omitempty"`
+		UpdatedAt   time.Time            `json:"updated_at,omitempty"`
+		UserID      string               `json:"user_id"`
+		Visibility  object.Visibility    `json:"visibility"`
+	}{
+		Attachments: ps,
+		Counts: postCounts{
+			Comments: p.post.Counts.Comments,
+			Likes:    p.post.Counts.Likes,
+		},
+		CreatedAt:  p.post.CreatedAt,
+		ID:         strconv.FormatUint(p.post.ID, 10),
+		IsLiked:    p.post.IsLiked,
+		Tags:       p.post.Tags,
+		UpdatedAt:  p.post.UpdatedAt,
+		UserID:     strconv.FormatUint(p.post.OwnerID, 10),
+		Visibility: p.post.Visibility,
+	})
 }
 
 func (p *payloadPost) UnmarshalJSON(raw []byte) error {
-	f := postFields{}
+	f := struct {
+		Attachments []*payloadAttachment `json:"attachments"`
+		Tags        []string             `json:"tags,omitempty"`
+		Visibility  object.Visibility    `json:"visibility"`
+	}{}
 
 	err := json.Unmarshal(raw, &f)
 	if err != nil {
 		return err
 	}
 
+	as := []object.Attachment{}
+
+	for _, a := range f.Attachments {
+		as = append(as, a.attachment)
+	}
+
 	p.post = &controller.Post{Object: &object.Object{}}
-	p.post.Attachments = f.Attachments
+	p.post.Attachments = as
 	p.post.Tags = f.Tags
 	p.post.Visibility = f.Visibility
 
@@ -302,4 +356,21 @@ func (p *payloadPosts) MarshalJSON() ([]byte, error) {
 		Users:      mapUsers(p.users),
 		UsersCount: len(p.users),
 	})
+}
+
+type postCounts struct {
+	Comments int `json:"comments"`
+	Likes    int `json:"likes"`
+}
+
+type postFields struct {
+	Attachments []object.Attachment `json:"attachments"`
+	Counts      postCounts          `json:"counts"`
+	CreatedAt   time.Time           `json:"created_at,omitempty"`
+	ID          string              `json:"id"`
+	IsLiked     bool                `json:"is_liked"`
+	Tags        []string            `json:"tags,omitempty"`
+	UpdatedAt   time.Time           `json:"updated_at,omitempty"`
+	UserID      string              `json:"user_id"`
+	Visibility  object.Visibility   `json:"visibility"`
 }
