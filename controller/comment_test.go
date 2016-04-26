@@ -19,7 +19,9 @@ func TestCommentControllerCreate(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	created, err := c.Create(app, owner.ID, post.ID, "Do Like.")
+	created, err := c.Create(app, owner.ID, post.ID, object.Contents{
+		"en": "Do Like.",
+	})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -43,7 +45,9 @@ func TestCommentControllerCreate(t *testing.T) {
 		t.Errorf("have %v, want %v", have, want)
 	}
 
-	_, err = c.Create(app, owner.ID, 0, "Do not like.")
+	_, err = c.Create(app, owner.ID, 0, object.Contents{
+		"en": "Do not like.",
+	})
 	if have, want := err, ErrNotFound; have != want {
 		t.Fatalf("have %v, want %v", have, want)
 	}
@@ -164,7 +168,9 @@ func TestCommentControllerUpdate(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err = c.Update(app, owner.ID, post.ID, 0, "Do not like.")
+	_, err = c.Update(app, owner.ID, post.ID, 0, object.Contents{
+		"en": "Do not like.",
+	})
 	if have, want := err, ErrNotFound; have != want {
 		t.Fatalf("have %v, want %v", have, want)
 	}
@@ -174,7 +180,9 @@ func TestCommentControllerUpdate(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	updated, err := c.Update(app, owner.ID, post.ID, created.ID, "Do not like!")
+	updated, err := c.Update(app, owner.ID, post.ID, created.ID, object.Contents{
+		"en": "Do not like!",
+	})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -205,7 +213,9 @@ func TestCommentControllerExternalCreate(t *testing.T) {
 		externalID    = "random-123_externalId"
 	)
 
-	created, err := c.ExternalCreate(app, owner, externalID, "Do Like.")
+	created, err := c.ExternalCreate(app, owner, externalID, object.Contents{
+		"en": "Do Like.",
+	})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -229,7 +239,9 @@ func TestCommentControllerExternalCreate(t *testing.T) {
 		t.Errorf("have %v, want %v", have, want)
 	}
 
-	_, err = c.Create(app, owner.ID, 0, "Do not like.")
+	_, err = c.Create(app, owner.ID, 0, object.Contents{
+		"en": "Do not like.",
+	})
 	if have, want := err, ErrNotFound; have != want {
 		t.Fatalf("have %v, want %v", have, want)
 	}
@@ -345,7 +357,9 @@ func TestCommentExternalControllerUpdate(t *testing.T) {
 		externalID    = "external-update-id"
 	)
 
-	_, err := c.ExternalUpdate(app, owner, externalID, 0, "Do not like.")
+	_, err := c.ExternalUpdate(app, owner, externalID, 0, object.Contents{
+		"en": "Do not like.",
+	})
 	if have, want := err, ErrNotFound; have != want {
 		t.Fatalf("have %v, want %v", have, want)
 	}
@@ -355,7 +369,9 @@ func TestCommentExternalControllerUpdate(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	updated, err := c.ExternalUpdate(app, owner, externalID, created.ID, "Do not like!")
+	updated, err := c.ExternalUpdate(app, owner, externalID, created.ID, object.Contents{
+		"en": "Do not like!",
+	})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -407,7 +423,9 @@ func testSetupCommentController(
 func testComment(ownerID uint64, post *object.Object) *object.Object {
 	return &object.Object{
 		Attachments: []object.Attachment{
-			object.NewTextAttachment("content", "Do like."),
+			object.NewTextAttachment("content", object.Contents{
+				"en": "Do like.",
+			}),
 		},
 		ObjectID:   post.ID,
 		OwnerID:    ownerID,
@@ -420,7 +438,9 @@ func testComment(ownerID uint64, post *object.Object) *object.Object {
 func testExternalComment(ownerID uint64, externalID string) *object.Object {
 	return &object.Object{
 		Attachments: []object.Attachment{
-			object.NewTextAttachment("content", "Do like."),
+			object.NewTextAttachment("content", object.Contents{
+				"en": "Do like.",
+			}),
 		},
 		ExternalID: externalID,
 		OwnerID:    ownerID,
@@ -434,7 +454,9 @@ func testCommentSet(ownerID uint64, post *object.Object) []*object.Object {
 	return []*object.Object{
 		{
 			Attachments: []object.Attachment{
-				object.NewTextAttachment("content", "Do like."),
+				object.NewTextAttachment("content", object.Contents{
+					"en": "Do like.",
+				}),
 			},
 			ObjectID:   post.ID,
 			OwnerID:    ownerID,
@@ -444,7 +466,9 @@ func testCommentSet(ownerID uint64, post *object.Object) []*object.Object {
 		},
 		{
 			Attachments: []object.Attachment{
-				object.NewTextAttachment("content", "Do like."),
+				object.NewTextAttachment("content", object.Contents{
+					"en": "Do like.",
+				}),
 			},
 			ObjectID:   post.ID,
 			OwnerID:    ownerID + 1,
@@ -454,7 +478,9 @@ func testCommentSet(ownerID uint64, post *object.Object) []*object.Object {
 		},
 		{
 			Attachments: []object.Attachment{
-				object.NewTextAttachment("content", "Do like."),
+				object.NewTextAttachment("content", object.Contents{
+					"en": "Do like.",
+				}),
 			},
 			ObjectID:   post.ID,
 			OwnerID:    ownerID - 1,
@@ -464,7 +490,9 @@ func testCommentSet(ownerID uint64, post *object.Object) []*object.Object {
 		},
 		{
 			Attachments: []object.Attachment{
-				object.NewTextAttachment("content", "Do like."),
+				object.NewTextAttachment("content", object.Contents{
+					"en": "Do like.",
+				}),
 			},
 			ObjectID:   post.ID,
 			OwnerID:    ownerID,
@@ -474,7 +502,9 @@ func testCommentSet(ownerID uint64, post *object.Object) []*object.Object {
 		},
 		{
 			Attachments: []object.Attachment{
-				object.NewTextAttachment("content", "Do like."),
+				object.NewTextAttachment("content", object.Contents{
+					"en": "Do like.",
+				}),
 			},
 			ObjectID:   post.ID,
 			OwnerID:    ownerID,
@@ -489,7 +519,9 @@ func testExternalCommentSet(ownerID uint64, externalID string) []*object.Object 
 	return []*object.Object{
 		{
 			Attachments: []object.Attachment{
-				object.NewTextAttachment("content", "Do like."),
+				object.NewTextAttachment("content", object.Contents{
+					"en": "Do like.",
+				}),
 			},
 			ExternalID: externalID,
 			OwnerID:    ownerID,
@@ -499,7 +531,9 @@ func testExternalCommentSet(ownerID uint64, externalID string) []*object.Object 
 		},
 		{
 			Attachments: []object.Attachment{
-				object.NewTextAttachment("content", "Do like."),
+				object.NewTextAttachment("content", object.Contents{
+					"en": "Do like.",
+				}),
 			},
 			ExternalID: externalID,
 			OwnerID:    ownerID + 1,
@@ -509,7 +543,9 @@ func testExternalCommentSet(ownerID uint64, externalID string) []*object.Object 
 		},
 		{
 			Attachments: []object.Attachment{
-				object.NewTextAttachment("content", "Do like."),
+				object.NewTextAttachment("content", object.Contents{
+					"en": "Do like.",
+				}),
 			},
 			ExternalID: externalID,
 			OwnerID:    ownerID - 1,
@@ -519,7 +555,9 @@ func testExternalCommentSet(ownerID uint64, externalID string) []*object.Object 
 		},
 		{
 			Attachments: []object.Attachment{
-				object.NewTextAttachment("content", "Do like."),
+				object.NewTextAttachment("content", object.Contents{
+					"en": "Do like.",
+				}),
 			},
 			ExternalID: externalID,
 			OwnerID:    ownerID,
@@ -529,7 +567,9 @@ func testExternalCommentSet(ownerID uint64, externalID string) []*object.Object 
 		},
 		{
 			Attachments: []object.Attachment{
-				object.NewTextAttachment("content", "Do like."),
+				object.NewTextAttachment("content", object.Contents{
+					"en": "Do like.",
+				}),
 			},
 			ExternalID: externalID,
 			OwnerID:    ownerID,

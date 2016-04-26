@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"golang.org/x/text/language"
+
 	"github.com/asaskevich/govalidator"
 	"github.com/tapglue/multiverse/platform/metrics"
 	"github.com/tapglue/multiverse/platform/service"
@@ -15,6 +17,9 @@ const (
 	AttachmentTypeURL  = "url"
 )
 
+// DefaultLanguage is used when no lang is provided for object content.
+const DefaultLanguage = "en"
+
 // Visibility variants available for Objects.
 const (
 	VisibilityPrivate Visibility = (iota + 1) * 10
@@ -25,29 +30,42 @@ const (
 
 // Attachment is typed media which belongs to an Object.
 type Attachment struct {
-	Content string `json:"content"`
-	Name    string `json:"name"`
-	Type    string `json:"type"`
+	Contents Contents `json:"contents"`
+	Name     string   `json:"name"`
+	Type     string   `json:"type"`
 }
 
 // Validate returns an error if a Attachment constraint is not full-filled.
 func (a Attachment) Validate() error {
-	if a.Content == "" {
-		return ErrInvalidAttachment
-	}
-
 	if a.Name == "" {
-		return ErrInvalidAttachment
+		return wrapError(ErrInvalidAttachment, "name must be set")
 	}
 
 	if a.Type == "" ||
 		(a.Type != AttachmentTypeText && a.Type != AttachmentTypeURL) {
-		return ErrInvalidAttachment
+		return wrapError(ErrInvalidAttachment, "unsupported type '%s'", a.Type)
 	}
 
-	if a.Type == AttachmentTypeURL {
-		if !govalidator.IsURL(a.Content) {
-			return ErrInvalidAttachment
+	if a.Contents == nil || len(a.Contents) == 0 {
+		return wrapError(ErrInvalidAttachment, "contents can't be empty")
+	}
+
+	for tag, content := range a.Contents {
+		_, err := language.Parse(tag)
+		if err != nil {
+			return wrapError(
+				ErrInvalidAttachment,
+				"invalid language tag '%s'",
+				tag,
+			)
+		}
+
+		if content == "" {
+			return wrapError(ErrInvalidAttachment, "content missing for '%s'", tag)
+		}
+
+		if a.Type == AttachmentTypeURL && !govalidator.IsURL(content) {
+			return wrapError(ErrInvalidAttachment, "invalid url for '%s'", tag)
 		}
 	}
 
@@ -55,21 +73,29 @@ func (a Attachment) Validate() error {
 }
 
 // NewTextAttachment returns an Attachment of type Text.
-func NewTextAttachment(name, content string) Attachment {
+func NewTextAttachment(name string, contents Contents) Attachment {
 	return Attachment{
-		Content: content,
-		Name:    name,
-		Type:    AttachmentTypeText,
+		Contents: contents,
+		Name:     name,
+		Type:     AttachmentTypeText,
 	}
 }
 
 // NewURLAttachment returns an Attachment of type URL.
-func NewURLAttachment(name, content string) Attachment {
+func NewURLAttachment(name string, contents Contents) Attachment {
 	return Attachment{
-		Content: content,
-		Name:    name,
-		Type:    AttachmentTypeURL,
+		Contents: contents,
+		Name:     name,
+		Type:     AttachmentTypeURL,
 	}
+}
+
+// Contents is the mapping of content to locale.
+type Contents map[string]string
+
+// Validate performs semantic checks on the localisation fields.
+func (c Contents) Validate() error {
+	return nil
 }
 
 // Object is a generic building block to express different domains like Posts,
@@ -95,7 +121,7 @@ type Object struct {
 // Validate returns an error if a constraint on the Object is not full-filled.
 func (o *Object) Validate() error {
 	if len(o.Attachments) > 5 {
-		return ErrInvalidObject
+		return wrapError(ErrInvalidObject, "too many attachments")
 	}
 
 	for _, a := range o.Attachments {
@@ -116,7 +142,7 @@ func (o *Object) Validate() error {
 		return wrapError(ErrInvalidObject, "missing type")
 	}
 
-	if o.Visibility < 10 || o.Visibility > 50 {
+	if o.Visibility < 10 || o.Visibility > 40 {
 		return wrapError(ErrInvalidObject, "unsupported visibility")
 	}
 

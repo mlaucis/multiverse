@@ -1863,12 +1863,12 @@
         <attribute name="redirectauthorization" type="bool">0</attribute>
         <attribute name="method" type="string">PUT</attribute>
         <attribute name="followredirects" type="bool">0</attribute>
-        <attribute name="body" type="string">[{"data":{"json":"{\\"content\\":\\"Do like not.\\",\\"post_id\\":\\"123\\",\\"id\\":\\"123\\",\\"user_id\\":\\"123\\"}"},"identifier":"com.luckymarmot.JSONDynamicValue"}]</attribute>
+        <attribute name="body" type="string">[{"data":{"json":"{\\"contents\\":{\\"en\\":\\"Do like not.\\"},\\"post_id\\":\\"123\\",\\"id\\":\\"123\\",\\"user_id\\":\\"123\\"}"},"identifier":"com.luckymarmot.JSONDynamicValue"}]</attribute>
         <attribute name="order" type="int64">2</attribute>
         <attribute name="name" type="string">Update Comment</attribute>
         <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z252"></relationship>
         <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
-        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z652 z122 z237 z232 z782"></relationship>
+        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z782 z652 z232 z122 z237"></relationship>
     </object>
     <object type="LMENVIRONMENTVARIABLEVALUE" id="z293">
         <attribute name="value" type="string">[{"data":{"environmentVariable":"1FB8E568-2632-45FB-9FE4-96C19741A8CD"},"identifier":"com.luckymarmot.EnvironmentVariableDynamicValue"},"\\/connections"]</attribute>
@@ -2377,12 +2377,12 @@
         <attribute name="redirectauthorization" type="bool">0</attribute>
         <attribute name="method" type="string">PUT</attribute>
         <attribute name="followredirects" type="bool">0</attribute>
-        <attribute name="body" type="string">[{"data":{"json":"{\\"visibility\\":30,\\"tags\\":[\\"running\\",\\"cardio\\",\\"fitness\\"],\\"attachments\\":[{\\"content\\":\\"http:\\/\\/image.url\\/image.png\\",\\"name\\":\\"imageName1\\",\\"type\\":\\"url\\"},{\\"content\\":\\"I started running, its really great.\\",\\"name\\":\\"postText\\",\\"type\\":\\"text\\"}]}"},"identifier":"com.luckymarmot.JSONDynamicValue"}]</attribute>
+        <attribute name="body" type="string">[{"data":{"json":"{\\"visibility\\":30,\\"tags\\":[\\"running\\",\\"cardio\\",\\"fitness\\"],\\"attachments\\":[{\\"content\\":\\"http:\\\\\\/\\\\\\/image.url\\\\\\/image.png\\",\\"name\\":\\"imageName1\\",\\"type\\":\\"url\\"},{\\"contents\\":{\\"en-GB\\":\\"I started running, its really great.\\"},\\"name\\":\\"postText\\",\\"type\\":\\"text\\"}]}"},"identifier":"com.luckymarmot.JSONDynamicValue"}]</attribute>
         <attribute name="order" type="int64">2</attribute>
         <attribute name="name" type="string">Update Post</attribute>
         <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z162"></relationship>
         <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
-        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z713 z654 z277 z206 z502"></relationship>
+        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z502 z206 z713 z654 z277"></relationship>
     </object>
     <object type="LMKEYVALUE" id="z348">
         <attribute name="value" type="string">application/json</attribute>
@@ -3001,12 +3001,12 @@
         <attribute name="redirectauthorization" type="bool">0</attribute>
         <attribute name="method" type="string">POST</attribute>
         <attribute name="followredirects" type="bool">0</attribute>
-        <attribute name="body" type="string">[{"data":{"json":"{\\"visibility\\":30,\\"tags\\":[\\"landscape\\",\\"walk\\",\\"outise\\"],\\"attachments\\":[{\\"content\\":\\"http:\\\\\\/\\\\\\/image.url\\\\\\/image.png\\",\\"name\\":\\"image\\",\\"type\\":\\"url\\"},{\\"content\\":\\"I was outside today and the landscape looked great!\\",\\"name\\":\\"post\\",\\"type\\":\\"text\\"}],\\"type\\":\\"deinemudda\\"}"},"identifier":"com.luckymarmot.JSONDynamicValue"}]</attribute>
+        <attribute name="body" type="string">[{"data":{"json":"{\\"visibility\\":30,\\"tags\\":[\\"landscape\\",\\"walk\\",\\"outise\\"],\\"attachments\\":[{\\"content\\":\\"http:\\\\\\/\\\\\\/image.url\\\\\\/image.png\\",\\"name\\":\\"image\\",\\"type\\":\\"url\\"},{\\"contents\\":{\\"en-US\\":\\"I was outside today and the landscape looked great!\\"},\\"name\\":\\"post\\",\\"type\\":\\"text\\"}],\\"type\\":\\"deinemudda\\"}"},"identifier":"com.luckymarmot.JSONDynamicValue"}]</attribute>
         <attribute name="order" type="int64">0</attribute>
         <attribute name="name" type="string">Create Post</attribute>
         <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z162"></relationship>
         <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
-        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z388 z695 z217 z313 z790"></relationship>
+        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z313 z695 z790 z388 z217"></relationship>
     </object>
     <object type="LMENVIRONMENTVARIABLE" id="z413">
         <attribute name="uuid" type="string">E9F9F62E-5E70-4CED-B023-931B833A60DE</attribute>
@@ -3297,12 +3297,12 @@
         <attribute name="redirectauthorization" type="bool">0</attribute>
         <attribute name="method" type="string">POST</attribute>
         <attribute name="followredirects" type="bool">0</attribute>
-        <attribute name="body" type="string">[{"data":{"json":"{\\"content\\":\\"Do like.\\"}"},"identifier":"com.luckymarmot.JSONDynamicValue"}]</attribute>
+        <attribute name="body" type="string">[{"data":{"json":"{\\"contents\\":{\\"en\\":\\"Do like.\\"}}"},"identifier":"com.luckymarmot.JSONDynamicValue"}]</attribute>
         <attribute name="order" type="int64">1</attribute>
         <attribute name="name" type="string">Create Comment</attribute>
         <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z252"></relationship>
         <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
-        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z585 z366 z630 z870 z448"></relationship>
+        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z585 z630 z870 z448 z366"></relationship>
     </object>
     <object type="LMKEYVALUE" id="z442">
         <attribute name="value" type="string">application/json</attribute>

@@ -10,12 +10,22 @@ var testArticle = &Object{
 	Visibility: VisibilityGlobal,
 }
 
+var testAttachmentText = NewTextAttachment("intro", Contents{
+	"en": "Cupcake ipsum dolor sit amet.",
+})
+
+var testAttachmentURL = NewURLAttachment("teaser", Contents{
+	"en": "http://bit.ly/1Jp8bMP",
+})
+
 var testInvalid = &Object{
 	Attachments: []Attachment{
 		{
-			Content: "foo barbaz",
-			Name:    "summary",
-			Type:    "invalid",
+			Contents: Contents{
+				"en": "foo barbaz",
+			},
+			Name: "summary",
+			Type: "invalid",
 		},
 	},
 	Type:       "test",
@@ -24,8 +34,8 @@ var testInvalid = &Object{
 
 var testPost = &Object{
 	Attachments: []Attachment{
-		NewTextAttachment("intro", "Cupcake ipsum dolor sit amet."),
-		NewURLAttachment("teaser", "http://bit.ly/1Jp8bMP"),
+		testAttachmentText,
+		testAttachmentURL,
 	},
 	OwnerID:    123,
 	Tags:       []string{"guide", "diy"},
@@ -35,7 +45,9 @@ var testPost = &Object{
 
 var testRecipe = &Object{
 	Attachments: []Attachment{
-		NewTextAttachment("yum", "Cupcake ipsum dolor sit amet."),
+		NewTextAttachment("yum", Contents{
+			"en": "Cupcake ipsum dolor sit amet.",
+		}),
 	},
 	OwnerID:    321,
 	Tags:       []string{"low-carb", "cold"},

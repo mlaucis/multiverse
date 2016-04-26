@@ -29,15 +29,15 @@
 		},
 		{
 			"ImportPath": "github.com/go-kit/kit/log",
-			"Rev": "a8d4215d3019f035380e9e947245d2ee097a8179"
+			"Rev": "60b4d800f541554ebca34ea77265e574b2ca79a9"
 		},
 		{
 			"ImportPath": "github.com/go-kit/kit/metrics",
-			"Rev": "a8d4215d3019f035380e9e947245d2ee097a8179"
+			"Rev": "60b4d800f541554ebca34ea77265e574b2ca79a9"
 		},
 		{
 			"ImportPath": "github.com/go-kit/kit/metrics/prometheus",
-			"Rev": "a8d4215d3019f035380e9e947245d2ee097a8179"
+			"Rev": "60b4d800f541554ebca34ea77265e574b2ca79a9"
 		},
 		{
 			"ImportPath": "github.com/go-logfmt/logfmt",
@@ -134,6 +134,14 @@
 		{
 			"ImportPath": "golang.org/x/net/context",
 			"Rev": "b4e17d61b15679caf2335da776c614169a1b4643"
+		},
+		{
+			"ImportPath": "golang.org/x/text/internal/tag",
+			"Rev": "3100578f0f8093e37883ba48c9187fe51367ad05"
+		},
+		{
+			"ImportPath": "golang.org/x/text/language",
+			"Rev": "3100578f0f8093e37883ba48c9187fe51367ad05"
 		},
 		{
 			"ImportPath": "gopkg.in/check.v1",

@@ -44,7 +44,7 @@ func (c *CommentController) Create(
 	app *v04_entity.Application,
 	origin uint64,
 	postID uint64,
-	content string,
+	contents object.Contents,
 ) (*object.Object, error) {
 	ps, err := c.objects.Query(app.Namespace(), object.QueryOptions{
 		ID:    &postID,
@@ -65,7 +65,7 @@ func (c *CommentController) Create(
 
 	return c.objects.Put(app.Namespace(), &object.Object{
 		Attachments: []object.Attachment{
-			object.NewTextAttachment(attachmentContent, content),
+			object.NewTextAttachment(attachmentContent, contents),
 		},
 		ObjectID:   postID,
 		OwnerID:    origin,
@@ -193,7 +193,7 @@ func (c *CommentController) Update(
 	app *v04_entity.Application,
 	origin uint64,
 	postID, commentID uint64,
-	content string,
+	contents object.Contents,
 ) (*object.Object, error) {
 	cs, err := c.objects.Query(app.Namespace(), object.QueryOptions{
 		ID: &commentID,
@@ -217,7 +217,7 @@ func (c *CommentController) Update(
 	}
 
 	cs[0].Attachments = []object.Attachment{
-		object.NewTextAttachment(attachmentContent, content),
+		object.NewTextAttachment(attachmentContent, contents),
 	}
 
 	return c.objects.Put(app.Namespace(), cs[0])
@@ -229,11 +229,11 @@ func (c *CommentController) ExternalCreate(
 	app *v04_entity.Application,
 	owner *v04_entity.ApplicationUser,
 	externalID string,
-	content string,
+	contents object.Contents,
 ) (*object.Object, error) {
 	return c.objects.Put(app.Namespace(), &object.Object{
 		Attachments: []object.Attachment{
-			object.NewTextAttachment(attachmentContent, content),
+			object.NewTextAttachment(attachmentContent, contents),
 		},
 		ExternalID: externalID,
 		OwnerID:    owner.ID,
@@ -345,7 +345,7 @@ func (c *CommentController) ExternalUpdate(
 	owner *v04_entity.ApplicationUser,
 	externalID string,
 	commentID uint64,
-	content string,
+	contents object.Contents,
 ) (*object.Object, error) {
 	cs, err := c.objects.Query(app.Namespace(), object.QueryOptions{
 		ExternalIDs: []string{
@@ -369,7 +369,7 @@ func (c *CommentController) ExternalUpdate(
 	}
 
 	cs[0].Attachments = []object.Attachment{
-		object.NewTextAttachment(attachmentContent, content),
+		object.NewTextAttachment(attachmentContent, contents),
 	}
 
 	return c.objects.Put(app.Namespace(), cs[0])
