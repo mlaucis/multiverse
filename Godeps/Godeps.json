@@ -1,7 +1,7 @@
 {
 	"ImportPath": "github.com/tapglue/multiverse",
 	"GoVersion": "go1.5.1",
-	"GodepVersion": "v58",
+	"GodepVersion": "v62",
 	"Packages": [
 		"./..."
 	],
@@ -40,6 +40,16 @@
 			"Rev": "a8d4215d3019f035380e9e947245d2ee097a8179"
 		},
 		{
+			"ImportPath": "github.com/go-logfmt/logfmt",
+			"Comment": "v0.1.0",
+			"Rev": "08ab82a63ef462ac643ec79e659f023891f588f5"
+		},
+		{
+			"ImportPath": "github.com/go-stack/stack",
+			"Comment": "v1.5.0",
+			"Rev": "ac4c579c437a23e1a15814c867ccb82122fb383b"
+		},
+		{
 			"ImportPath": "github.com/golang/protobuf/proto",
 			"Rev": "aece6fb931241ad332956db4f62798dfbea944b3"
 		},
@@ -60,6 +70,10 @@
 			"ImportPath": "github.com/jmoiron/sqlx/reflectx",
 			"Comment": "sqlx-v1.1-53-g54aec3f",
 			"Rev": "54aec3fd91a2b2129ffaca0d652b8a9223ee2d9e"
+		},
+		{
+			"ImportPath": "github.com/kr/logfmt",
+			"Rev": "b84e30acd515aadc4b783ad4ff83aff3299bdfe0"
 		},
 		{
 			"ImportPath": "github.com/lib/pq",
@@ -124,15 +138,6 @@
 		{
 			"ImportPath": "gopkg.in/check.v1",
 			"Rev": "4f90aeace3a26ad7021961c297b22c42160c7b25"
-		},
-		{
-			"ImportPath": "gopkg.in/logfmt.v0",
-			"Rev": "c50dc9aa845e681529d8e49d3dc11ec0195aacac"
-		},
-		{
-			"ImportPath": "gopkg.in/stack.v1",
-			"Comment": "v1.4.0",
-			"Rev": "0585967eab0016c8e4e2d55ac20585b469574cec"
 		}
 	]
 }
