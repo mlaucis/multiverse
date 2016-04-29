@@ -13,6 +13,8 @@ import (
 	"github.com/tapglue/multiverse/controller"
 	"github.com/tapglue/multiverse/service/connection"
 	"github.com/tapglue/multiverse/service/user"
+	v04_entity "github.com/tapglue/multiverse/v04/entity"
+	v04_response "github.com/tapglue/multiverse/v04/server/response"
 )
 
 // ConnectionByState returns all connections for a user for a certain state.
@@ -243,15 +245,16 @@ func (p *payloadConnection) MarshalJSON() ([]byte, error) {
 		CreatedAt    time.Time `json:"created_at"`
 		UpdatedAt    time.Time `json:"updated_at"`
 	}{
-		FromID:       p.con.FromID,
-		FromIDString: strconv.FormatUint(p.con.FromID, 10),
-		ToID:         p.con.ToID,
-		ToIDString:   strconv.FormatUint(p.con.ToID, 10),
-		State:        string(p.con.State),
-		Type:         string(p.con.Type),
-		CreatedAt:    p.con.CreatedAt,
-		UpdatedAt:    p.con.UpdatedAt,
+		FromID:    p.con.FromID,
+		ToID:      p.con.ToID,
+		State:     string(p.con.State),
+		Type:      string(p.con.Type),
+		CreatedAt: p.con.CreatedAt,
+		UpdatedAt: p.con.UpdatedAt,
 	}
+
+	f.FromIDString = strconv.FormatUint(p.con.FromID, 10)
+	f.ToIDString = strconv.FormatUint(p.con.ToID, 10)
 
 	return json.Marshal(&f)
 }
@@ -275,11 +278,7 @@ func (p *payloadConnection) UnmarshalJSON(raw []byte) error {
 		Type:  connection.Type(f.Type),
 	}
 
-	if f.ToID == 0 {
-		if f.ToIDString == "" {
-			return fmt.Errorf("user_to_id missing")
-		}
-
+	if f.ToID == 0 || f.ToIDString != "" {
 		id, err := strconv.ParseUint(f.ToIDString, 10, 64)
 		if err != nil {
 			return err
@@ -294,21 +293,21 @@ func (p *payloadConnection) UnmarshalJSON(raw []byte) error {
 type payloadConnections struct {
 	cons    connection.List
 	origin  uint64
-	userMap user.Map
+	userMap user.StrangleMap
 }
 
 func (p *payloadConnections) MarshalJSON() ([]byte, error) {
 	f := struct {
-		Incoming      []*payloadConnection `json:"incoming"`
-		IncomingCount int                  `json:"incoming_connections_count"`
-		Outgoing      []*payloadConnection `json:"outgoing"`
-		OutgoingCount int                  `json:"outgoing_connections_count"`
-		Users         []*payloadUser       `json:"users"`
-		UsersCount    int                  `json:"users_count"`
+		Incoming      []*payloadConnection                      `json:"incoming"`
+		IncomingCount int                                       `json:"incoming_connections_count"`
+		Outgoing      []*payloadConnection                      `json:"outgoing"`
+		OutgoingCount int                                       `json:"outgoing_connections_count"`
+		Users         []*v04_entity.PresentationApplicationUser `json:"users"`
+		UsersCount    int                                       `json:"users_count"`
 	}{
 		Incoming:   []*payloadConnection{},
 		Outgoing:   []*payloadConnection{},
-		Users:      []*payloadUser{},
+		Users:      []*v04_entity.PresentationApplicationUser{},
 		UsersCount: len(p.userMap),
 	}
 
@@ -321,8 +320,10 @@ func (p *payloadConnections) MarshalJSON() ([]byte, error) {
 	}
 
 	for _, u := range p.userMap {
-		f.Users = append(f.Users, &payloadUser{
-			user: u,
+		v04_response.SanitizeApplicationUser(u)
+
+		f.Users = append(f.Users, &v04_entity.PresentationApplicationUser{
+			ApplicationUser: u,
 		})
 	}
 
