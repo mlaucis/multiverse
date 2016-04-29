@@ -278,7 +278,11 @@ func (p *payloadConnection) UnmarshalJSON(raw []byte) error {
 		Type:  connection.Type(f.Type),
 	}
 
-	if f.ToID == 0 || f.ToIDString != "" {
+	if f.ToID == 0 {
+		if f.ToIDString == "" {
+			return fmt.Errorf("user_to_id must be set")
+		}
+
 		id, err := strconv.ParseUint(f.ToIDString, 10, 64)
 		if err != nil {
 			return err
