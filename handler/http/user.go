@@ -428,7 +428,7 @@ func (p *payloadUser) UnmarshalJSON(raw []byte) error {
 		Username:  f.Username,
 	}
 
-	return p.user.Validate()
+	return nil
 }
 
 type payloadUserMap struct {
