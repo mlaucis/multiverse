@@ -29,6 +29,11 @@ func IsInvalidEntity(err error) bool {
 	return unwrapError(err) == ErrInvalidEntity
 }
 
+// IsNotFound indicates if err is ErrNotFound.
+func IsNotFound(err error) bool {
+	return unwrapError(err) == ErrNotFound
+}
+
 // IsUnauthorized indicates if err is ErrUnauthorized.
 func IsUnauthorized(err error) bool {
 	return unwrapError(err) == ErrUnauthorized

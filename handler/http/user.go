@@ -80,11 +80,18 @@ func UserLogin(c *controller.UserController) Handler {
 			return
 		}
 
-		u, err := c.LoginEmail(app, p.email, p.password)
-		if err != controller.ErrNotFound {
-			respondError(w, 0, err)
+		if p.email == "" && p.username == "" {
+			respondError(w, 0, wrapError(ErrBadRequest, "email or user_name must be set"))
 			return
-		} else {
+		}
+
+		u, err := c.LoginEmail(app, p.email, p.password)
+		if err != nil {
+			if !controller.IsNotFound(err) {
+				respondError(w, 0, err)
+				return
+			}
+
 			u, err = c.LoginUsername(app, p.username, p.password)
 			if err != nil {
 				respondError(w, 0, err)
@@ -358,7 +365,7 @@ func (p *payloadUser) MarshalJSON() ([]byte, error) {
 		IsFollowing    bool                  `json:"is_followed"`
 		IsFriend       bool                  `json:"is_friend"`
 		Lastname       string                `json:"last_name"`
-		Metadata       map[string]string     `json:"metadata"`
+		Metadata       user.Metadata         `json:"metadata"`
 		SessionToken   string                `json:"session_token,omitempty"`
 		SocialIDs      map[string]string     `json:"social_ids,omitempty"`
 		URL            string                `json:"url,omitempty"`
@@ -396,7 +403,7 @@ func (p *payloadUser) UnmarshalJSON(raw []byte) error {
 		Firstname string                `json:"first_name"`
 		Images    map[string]user.Image `json:"images,omitempty"`
 		Lastname  string                `json:"last_name"`
-		Metadata  map[string]string     `json:"metadata"`
+		Metadata  user.Metadata         `json:"metadata"`
 		Password  string                `json:"password,omitempty"`
 		SocialIDs map[string]string     `json:"social_ids"`
 		URL       string                `json:"url,omitempty"`
