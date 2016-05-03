@@ -38,34 +38,14 @@ func (c *UserController) Create(
 	app *v04_entity.Application,
 	u *user.User,
 ) (*user.User, error) {
-	// verify email uniqueness
-	us, err := c.users.Query(app.Namespace(), user.QueryOptions{
-		Enabled: &defaultEnabled,
-		Emails: []string{
-			u.Email,
-		},
-	})
+	err := c.constrainUniqueEmail(app, u)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(us) > 0 {
-		return nil, wrapError(ErrInvalidEntity, "email in use")
-	}
-
-	// verify username uniqueness
-	us, err = c.users.Query(app.Namespace(), user.QueryOptions{
-		Enabled: &defaultEnabled,
-		Usernames: []string{
-			u.Username,
-		},
-	})
+	err = c.constrainUniqueUsername(app, u)
 	if err != nil {
 		return nil, err
-	}
-
-	if len(us) > 0 {
-		return nil, wrapError(ErrInvalidEntity, "username in use")
 	}
 
 	epw, err := passwordSecure(u.Password)
@@ -333,6 +313,20 @@ func (c *UserController) Update(
 		new.Password = old.Password
 	}
 
+	if old.Email != new.Email {
+		err := c.constrainUniqueEmail(app, new)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if old.Username != new.Username {
+		err := c.constrainUniqueUsername(app, new)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	u, err := c.users.Put(app.Namespace(), new)
 	if err != nil {
 		return nil, err
@@ -350,6 +344,53 @@ func (c *UserController) Update(
 
 	return u, nil
 }
+
+func (c *UserController) constrainUniqueEmail(
+	app *v04_entity.Application,
+	u *user.User,
+) error {
+	if u.Email != "" {
+		us, err := c.users.Query(app.Namespace(), user.QueryOptions{
+			Enabled: &defaultEnabled,
+			Emails: []string{
+				u.Email,
+			},
+		})
+		if err != nil {
+			return err
+		}
+
+		if len(us) > 0 {
+			return wrapError(ErrInvalidEntity, "email in use")
+		}
+	}
+
+	return nil
+}
+
+func (c *UserController) constrainUniqueUsername(
+	app *v04_entity.Application,
+	u *user.User,
+) error {
+	if u.Username != "" {
+		us, err := c.users.Query(app.Namespace(), user.QueryOptions{
+			Enabled: &defaultEnabled,
+			Usernames: []string{
+				u.Username,
+			},
+		})
+		if err != nil {
+			return err
+		}
+
+		if len(us) > 0 {
+			return wrapError(ErrInvalidEntity, "username in use")
+		}
+	}
+
+	return nil
+}
+
 func (c *UserController) enrichConnectionCounts(
 	app *v04_entity.Application,
 	u *user.User,
