@@ -50,7 +50,7 @@ func (m Map) Merge(x Map) Map {
 }
 
 // Metadata is a bucket to provide additional user information.
-type Metadata map[string]string
+type Metadata map[string]interface{}
 
 // QueryOptions is used to narrow-down user queries.
 type QueryOptions struct {
