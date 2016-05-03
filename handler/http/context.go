@@ -3,6 +3,7 @@ package http
 import (
 	"golang.org/x/net/context"
 
+	"github.com/tapglue/multiverse/service/user"
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
 
@@ -11,6 +12,7 @@ const (
 	ctxKeyMember    = "member"
 	ctxKeyOrg       = "org"
 	ctxKeyRoute     = "route"
+	ctxKeyToken     = "token"
 	ctxKeyTokenType = "tokenType"
 	ctxKeyUser      = "user"
 	ctxKeyVersion   = "version"
@@ -52,6 +54,14 @@ func routeInContext(ctx context.Context, route string) context.Context {
 }
 
 func tokenFromContext(ctx context.Context) string {
+	return ctx.Value(ctxKeyToken).(string)
+}
+
+func tokenInContext(ctx context.Context, token string) context.Context {
+	return context.WithValue(ctx, ctxKeyToken, token)
+}
+
+func tokenTypeFromContext(ctx context.Context) string {
 	return ctx.Value(ctxKeyTokenType).(string)
 }
 
@@ -59,11 +69,11 @@ func tokenTypeInContext(ctx context.Context, tokenType string) context.Context {
 	return context.WithValue(ctx, ctxKeyTokenType, tokenType)
 }
 
-func userFromContext(ctx context.Context) *v04_entity.ApplicationUser {
-	return ctx.Value(ctxKeyUser).(*v04_entity.ApplicationUser)
+func userFromContext(ctx context.Context) *user.User {
+	return ctx.Value(ctxKeyUser).(*user.User)
 }
 
-func userInContext(ctx context.Context, user *v04_entity.ApplicationUser) context.Context {
+func userInContext(ctx context.Context, user *user.User) context.Context {
 	return context.WithValue(ctx, ctxKeyUser, user)
 }
 

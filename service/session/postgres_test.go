@@ -15,7 +15,7 @@ import (
 var pgTestURL string
 
 func TestPostgresPut(t *testing.T) {
-	testServiecPut(t, preparePostgres)
+	testServicePut(t, preparePostgres)
 }
 
 func TestPostgresQuery(t *testing.T) {

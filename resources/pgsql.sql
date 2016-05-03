@@ -1,9 +1,10 @@
 CREATE SCHEMA IF NOT EXISTS public;
 
+CREATE EXTENSION fuzzystrmatch;
 CREATE EXTENSION postgis;
 CREATE EXTENSION postgis_topology;
-CREATE EXTENSION fuzzystrmatch;
 CREATE EXTENSION postgis_tiger_geocoder;
+CREATE EXTENSION pg_trgm;
 
 ALTER SCHEMA topology OWNER TO rds_superuser;
 ALTER SCHEMA tiger OWNER TO rds_superuser;

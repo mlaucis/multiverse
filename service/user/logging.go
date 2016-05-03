@@ -1,15 +1,11 @@
 package user
 
 import (
-	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/go-kit/kit/log"
 
-	"github.com/tapglue/multiverse/errors"
 	"github.com/tapglue/multiverse/platform/metrics"
-	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
 
 type logService struct {
@@ -55,10 +51,10 @@ func (s *logService) CreatedByDay(
 ) (ts metrics.Timeseries, err error) {
 	defer func(begin time.Time) {
 		ps := []interface{}{
-			"datapoints", len(ts),
 			"duration_ns", time.Since(begin).Nanoseconds(),
 			"end", end.Format(metrics.BucketFormat),
 			"method", "CreatedByDay",
+			"metrics_len", len(ts),
 			"namespace", ns,
 			"start", start.Format(metrics.BucketFormat),
 		}
@@ -75,12 +71,15 @@ func (s *logService) CreatedByDay(
 
 func (s *logService) Put(ns string, input *User) (output *User, err error) {
 	defer func(begin time.Time) {
+		// Sanitize passwords
+		input.Password, output.Password = "", ""
+
 		ps := []interface{}{
 			"duration_ns", time.Since(begin).Nanoseconds(),
-			"input", input,
 			"method", "Put",
 			"namespace", ns,
-			"output", output,
+			"user_input", input,
+			"user_output", output,
 		}
 
 		if err != nil {
@@ -120,11 +119,11 @@ func (s *logService) PutLastRead(
 func (s *logService) Query(ns string, opts QueryOptions) (list List, err error) {
 	defer func(begin time.Time) {
 		ps := []interface{}{
-			"datapoints", len(list),
 			"duration_ns", time.Since(begin).Nanoseconds(),
 			"method", "Query",
 			"namespace", ns,
-			"opts", opts,
+			"query_len", len(list),
+			"user_query_opts", opts,
 		}
 
 		if err != nil {
@@ -135,6 +134,31 @@ func (s *logService) Query(ns string, opts QueryOptions) (list List, err error) 
 	}(time.Now())
 
 	return s.next.Query(ns, opts)
+}
+
+func (s *logService) Search(
+	ns string,
+	qOpts QueryOptions,
+	sOpts SearchOptions,
+) (list List, err error) {
+	defer func(begin time.Time) {
+		ps := []interface{}{
+			"duration_ns", time.Since(begin).Nanoseconds(),
+			"method", "Search",
+			"namespace", ns,
+			"query_len", len(list),
+			"user_query_opts", qOpts,
+			"user_search_opts", sOpts,
+		}
+
+		if err != nil {
+			ps = append(ps, "err", err)
+		}
+
+		_ = s.logger.Log(ps...)
+	}(time.Now())
+
+	return s.next.Search(ns, qOpts, sOpts)
 }
 
 func (s *logService) Setup(ns string) (err error) {
@@ -171,141 +195,4 @@ func (s *logService) Teardown(ns string) (err error) {
 	}(time.Now())
 
 	return s.next.Teardown(ns)
-}
-
-type logStrangleService struct {
-	StrangleService
-
-	logger log.Logger
-}
-
-// LogStrangleMiddleware given a Logger wraps the next StrangleService with
-// logging capabilities.
-func LogStrangleMiddleware(logger log.Logger, store string) StrangleMiddleware {
-	return func(next StrangleService) StrangleService {
-		logger = log.NewContext(logger).With(
-			"service", "user",
-			"store", store,
-		)
-
-		return &logStrangleService{next, logger}
-	}
-}
-
-func (s *logStrangleService) FilterByEmail(
-	orgID, appID int64,
-	emails []string,
-) (users []*v04_entity.ApplicationUser, errs []errors.Error) {
-	defer func(begin time.Time) {
-		ps := []interface{}{
-			"datapoints", len(users),
-			"duration_ns", time.Since(begin).Nanoseconds(),
-			"inputs", len(emails),
-			"method", "FitlerByEmail",
-			"namespace", convertNamespace(orgID, appID),
-		}
-
-		if errs != nil {
-			ps = append(ps, "err", errs[0])
-		}
-
-		_ = s.logger.Log(ps...)
-	}(time.Now())
-
-	return s.StrangleService.FilterByEmail(orgID, appID, emails)
-}
-
-func (s *logStrangleService) FilterBySocialIDs(
-	orgID, appID int64,
-	platform string,
-	ids []string,
-) (users []*v04_entity.ApplicationUser, errs []errors.Error) {
-	defer func(begin time.Time) {
-		ps := []interface{}{
-			"datapoints", len(users),
-			"duration_ns", time.Since(begin).Nanoseconds(),
-			"inputs", len(ids),
-			"method", "FitlerBySocialIDs",
-			"namespace", convertNamespace(orgID, appID),
-		}
-
-		if errs != nil {
-			ps = append(ps, "err", errs[0])
-		}
-
-		_ = s.logger.Log(ps...)
-	}(time.Now())
-
-	return s.StrangleService.FilterBySocialIDs(orgID, appID, platform, ids)
-}
-
-func (s *logStrangleService) FindBySession(
-	orgID, appID int64,
-	key string,
-) (user *v04_entity.ApplicationUser, errs []errors.Error) {
-	defer func(begin time.Time) {
-		ps := []interface{}{
-			"duration_ns", time.Since(begin).Nanoseconds(),
-			"key", key,
-			"method", "FindBySession",
-			"namespace", convertNamespace(orgID, appID),
-		}
-
-		if errs != nil {
-			ps = append(ps, "err", errs[0])
-		}
-
-		_ = s.logger.Log(ps...)
-	}(time.Now())
-
-	return s.StrangleService.FindBySession(orgID, appID, key)
-}
-
-func (s *logStrangleService) Read(
-	orgID, appID int64,
-	id uint64,
-	stats bool,
-) (user *v04_entity.ApplicationUser, errs []errors.Error) {
-	defer func(begin time.Time) {
-		ps := []interface{}{
-			"duration_ns", time.Since(begin).Nanoseconds(),
-			"id", strconv.FormatUint(id, 10),
-			"method", "Read",
-			"namespace", convertNamespace(orgID, appID),
-		}
-
-		if errs != nil {
-			ps = append(ps, "err", errs[0])
-		}
-
-		_ = s.logger.Log(ps...)
-	}(time.Now())
-
-	return s.StrangleService.Read(orgID, appID, id, stats)
-}
-
-func (s *logStrangleService) UpdateLastRead(
-	orgID, appID int64,
-	id uint64,
-) (errs []errors.Error) {
-	defer func(begin time.Time) {
-		ps := []interface{}{
-			"duration_ns", time.Since(begin).Nanoseconds(),
-			"id", strconv.FormatUint(id, 10),
-			"method", "UpdateLastRead",
-			"namespace", convertNamespace(orgID, appID),
-		}
-
-		if errs != nil {
-			ps = append(ps, "err", errs[0])
-		}
-
-		_ = s.logger.Log(ps...)
-	}(time.Now())
-
-	return s.StrangleService.UpdateLastRead(orgID, appID, id)
-}
-
-func convertNamespace(orgID, appID int64) string {
-	return fmt.Sprintf("app_%d_%d", orgID, appID)
 }

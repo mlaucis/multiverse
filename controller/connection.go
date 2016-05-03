@@ -4,26 +4,25 @@ import (
 	"github.com/tapglue/multiverse/service/connection"
 	"github.com/tapglue/multiverse/service/user"
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
-	v04_errmsg "github.com/tapglue/multiverse/v04/errmsg"
 )
 
 // ConnectionFeed is the composite to transport information relevant for
 // connections.
 type ConnectionFeed struct {
 	Connections connection.List
-	UserMap     user.StrangleMap
+	UserMap     user.Map
 }
 
 // ConnectionController bundles the business constraints of Connections.
 type ConnectionController struct {
 	connections connection.Service
-	users       user.StrangleService
+	users       user.Service
 }
 
 // NewConnectionController returns a controller instance.
 func NewConnectionController(
 	connections connection.Service,
-	users user.StrangleService,
+	users user.Service,
 ) *ConnectionController {
 	return &ConnectionController{
 		connections: connections,
@@ -62,7 +61,11 @@ func (c *ConnectionController) ByState(
 		return nil, err
 	}
 
-	um, err := user.StrangleMapFromIDs(c.users, app, append(ics.ToIDs(), ocs.FromIDs()...)...)
+	um, err := user.MapFromIDs(
+		c.users,
+		app.Namespace(),
+		append(ics.ToIDs(), ocs.FromIDs()...)...,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -81,10 +84,15 @@ func (c *ConnectionController) CreateSocial(
 	connectionState connection.State,
 	platform string,
 	connectionIDs ...string,
-) (user.StrangleList, error) {
-	us, errs := c.users.FilterBySocialIDs(app.OrgID, app.ID, platform, connectionIDs)
-	if errs != nil {
-		return nil, errs[0]
+) (user.List, error) {
+	us, err := c.users.Query(app.Namespace(), user.QueryOptions{
+		Enabled: &defaultEnabled,
+		SocialIDs: map[string][]string{
+			platform: connectionIDs,
+		},
+	})
+	if err != nil {
+		return nil, err
 	}
 
 	for _, u := range us {
@@ -104,11 +112,9 @@ func (c *ConnectionController) CreateSocial(
 			return nil, err
 		}
 
-		u.Relation = v04_entity.Relation{
-			IsFriend:   &r.isFriend,
-			IsFollower: &r.isFollower,
-			IsFollowed: &r.isFollowing,
-		}
+		u.IsFollower = r.isFollower
+		u.IsFollowing = r.isFollowing
+		u.IsFriend = r.isFriend
 	}
 
 	return us, nil
@@ -155,11 +161,12 @@ func (c *ConnectionController) Delete(
 // Followers returns the list of users who follow the origin.
 func (c *ConnectionController) Followers(
 	app *v04_entity.Application,
-	originID uint64,
-) (user.StrangleList, error) {
+	origin uint64,
+	userID uint64,
+) (user.List, error) {
 	cs, err := c.connections.Query(app.Namespace(), connection.QueryOptions{
 		Enabled: &defaultEnabled,
-		ToIDs:   []uint64{originID},
+		ToIDs:   []uint64{userID},
 		States:  []connection.State{connection.StateConfirmed},
 		Types:   []connection.Type{connection.TypeFollow},
 	})
@@ -167,17 +174,34 @@ func (c *ConnectionController) Followers(
 		return nil, err
 	}
 
-	return user.StrangleListFromIDs(c.users, app, cs.FromIDs()...)
+	us, err := user.ListFromIDs(c.users, app.Namespace(), cs.FromIDs()...)
+	if err != nil {
+		return nil, err
+	}
+
+	if origin == userID {
+		return us, nil
+	}
+
+	for _, u := range us {
+		err := enrichRelation(c.connections, app, origin, u)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return us, nil
 }
 
 // Followings returns the list of users the origin is following.
 func (c *ConnectionController) Followings(
 	app *v04_entity.Application,
-	originID uint64,
-) (user.StrangleList, error) {
+	origin uint64,
+	userID uint64,
+) (user.List, error) {
 	cs, err := c.connections.Query(app.Namespace(), connection.QueryOptions{
 		Enabled: &defaultEnabled,
-		FromIDs: []uint64{originID},
+		FromIDs: []uint64{userID},
 		States:  []connection.State{connection.StateConfirmed},
 		Types:   []connection.Type{connection.TypeFollow},
 	})
@@ -185,17 +209,34 @@ func (c *ConnectionController) Followings(
 		return nil, err
 	}
 
-	return user.StrangleListFromIDs(c.users, app, cs.ToIDs()...)
+	us, err := user.ListFromIDs(c.users, app.Namespace(), cs.ToIDs()...)
+	if err != nil {
+		return nil, err
+	}
+
+	if origin == userID {
+		return us, nil
+	}
+
+	for _, u := range us {
+		err := enrichRelation(c.connections, app, origin, u)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return us, nil
 }
 
 // Friends returns the list of users the origin is friends with.
 func (c *ConnectionController) Friends(
 	app *v04_entity.Application,
-	originID uint64,
-) (user.StrangleList, error) {
+	origin uint64,
+	userID uint64,
+) (user.List, error) {
 	fs, err := c.connections.Query(app.Namespace(), connection.QueryOptions{
 		Enabled: &defaultEnabled,
-		FromIDs: []uint64{originID},
+		FromIDs: []uint64{userID},
 		States:  []connection.State{connection.StateConfirmed},
 		Types:   []connection.Type{connection.TypeFriend},
 	})
@@ -205,7 +246,7 @@ func (c *ConnectionController) Friends(
 
 	ts, err := c.connections.Query(app.Namespace(), connection.QueryOptions{
 		Enabled: &defaultEnabled,
-		ToIDs:   []uint64{originID},
+		ToIDs:   []uint64{userID},
 		States:  []connection.State{connection.StateConfirmed},
 		Types:   []connection.Type{connection.TypeFriend},
 	})
@@ -213,20 +254,46 @@ func (c *ConnectionController) Friends(
 		return nil, err
 	}
 
-	return user.StrangleListFromIDs(c.users, app, append(fs.ToIDs(), ts.FromIDs()...)...)
+	us, err := user.ListFromIDs(
+		c.users,
+		app.Namespace(),
+		append(fs.ToIDs(), ts.FromIDs()...)...,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	if origin == userID {
+		return us, nil
+	}
+
+	for _, u := range us {
+		err := enrichRelation(c.connections, app, origin, u)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return us, nil
 }
 
-// Update transitions the passed Connection its new state.
+// Update transitions the passed Connection to its new state.
 func (c *ConnectionController) Update(
 	app *v04_entity.Application,
 	new *connection.Connection,
 ) (*connection.Connection, error) {
-	_, errs := c.users.Read(app.OrgID, app.ID, new.ToID, false)
-	if errs != nil {
-		if errs[0].Code() == v04_errmsg.ErrApplicationUserNotFound.Code() {
-			return nil, ErrNotFound
-		}
-		return nil, errs[0]
+	us, err := c.users.Query(app.Namespace(), user.QueryOptions{
+		Enabled: &defaultEnabled,
+		IDs: []uint64{
+			new.ToID,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if len(us) != 1 {
+		return nil, ErrNotFound
 	}
 
 	var (

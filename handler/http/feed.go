@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"golang.org/x/net/context"
 
@@ -12,7 +13,6 @@ import (
 	"github.com/tapglue/multiverse/service/event"
 	"github.com/tapglue/multiverse/service/user"
 	v04_core "github.com/tapglue/multiverse/v04/core"
-	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
 
 // FeedEvents returns the events of the current user driven by the social and
@@ -30,7 +30,7 @@ func FeedEvents(c *controller.FeedController) Handler {
 			return
 		}
 
-		feed, err := c.Events(app, currentUser, opts)
+		feed, err := c.Events(app, currentUser.ID, opts)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -64,7 +64,7 @@ func FeedNews(c *controller.FeedController) Handler {
 			return
 		}
 
-		feed, err := c.News(app, currentUser, opts)
+		feed, err := c.News(app, currentUser.ID, opts)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -76,8 +76,11 @@ func FeedNews(c *controller.FeedController) Handler {
 		}
 
 		respondJSON(w, http.StatusOK, &payloadFeedNews{
-			currentUser: currentUser,
-			feed:        feed,
+			events:   feed.Events,
+			posts:    feed.Posts,
+			postMap:  feed.PostMap,
+			userMap:  feed.UserMap,
+			lastRead: currentUser.LastRead,
 		})
 	}
 }
@@ -91,7 +94,7 @@ func FeedPosts(c *controller.FeedController) Handler {
 			currentUser = userFromContext(ctx)
 		)
 
-		feed, err := c.Posts(app, currentUser)
+		feed, err := c.Posts(app, currentUser.ID)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -102,14 +105,17 @@ func FeedPosts(c *controller.FeedController) Handler {
 			return
 		}
 
-		respondJSON(w, http.StatusOK, &payloadFeedPosts{feed: feed})
+		respondJSON(w, http.StatusOK, &payloadFeedPosts{
+			posts:   feed.Posts,
+			userMap: feed.UserMap,
+		})
 	}
 }
 
 type payloadFeedEvents struct {
 	events  event.List
 	postMap controller.PostMap
-	userMap user.StrangleMap
+	userMap user.Map
 }
 
 func (p *payloadFeedEvents) MarshalJSON() ([]byte, error) {
@@ -126,25 +132,28 @@ func (p *payloadFeedEvents) MarshalJSON() ([]byte, error) {
 	}
 
 	return json.Marshal(struct {
-		Events       []*payloadEvent                                    `json:"events"`
-		EventsCount  int                                                `json:"events_count"`
-		PostMap      map[string]*payloadPost                            `json:"post_map"`
-		PostMapCount int                                                `json:"post_map_count"`
-		Users        map[string]*v04_entity.PresentationApplicationUser `json:"users"`
-		UsersCount   int                                                `json:"users_count"`
+		Events       []*payloadEvent         `json:"events"`
+		EventsCount  int                     `json:"events_count"`
+		PostMap      map[string]*payloadPost `json:"post_map"`
+		PostMapCount int                     `json:"post_map_count"`
+		Users        *payloadUserMap         `json:"users"`
+		UsersCount   int                     `json:"users_count"`
 	}{
 		Events:       es,
 		EventsCount:  len(es),
 		PostMap:      pm,
 		PostMapCount: len(pm),
-		Users:        mapUserPresentation(p.userMap),
+		Users:        &payloadUserMap{userMap: p.userMap},
 		UsersCount:   len(p.userMap),
 	})
 }
 
 type payloadFeedNews struct {
-	currentUser *v04_entity.ApplicationUser
-	feed        *controller.Feed
+	events   event.List
+	posts    controller.PostList
+	postMap  controller.PostMap
+	userMap  user.Map
+	lastRead time.Time
 }
 
 func (p *payloadFeedNews) MarshalJSON() ([]byte, error) {
@@ -153,11 +162,10 @@ func (p *payloadFeedNews) MarshalJSON() ([]byte, error) {
 		unreadEvents = 0
 	)
 
-	for _, ev := range p.feed.Events {
+	for _, ev := range p.events {
 		es = append(es, &payloadEvent{event: ev})
 
-		if p.currentUser.LastRead != nil &&
-			ev.CreatedAt.After(*p.currentUser.LastRead) {
+		if ev.CreatedAt.After(p.lastRead) {
 			unreadEvents++
 		}
 	}
@@ -167,32 +175,31 @@ func (p *payloadFeedNews) MarshalJSON() ([]byte, error) {
 		unreadPosts = 0
 	)
 
-	for _, post := range p.feed.Posts {
+	for _, post := range p.posts {
 		ps = append(ps, &payloadPost{post: post})
 
-		if p.currentUser.LastRead != nil &&
-			post.CreatedAt.After(*p.currentUser.LastRead) {
+		if post.CreatedAt.After(p.lastRead) {
 			unreadPosts++
 		}
 	}
 
 	pm := map[string]*payloadPost{}
 
-	for id, post := range p.feed.PostMap {
+	for id, post := range p.postMap {
 		pm[strconv.FormatUint(id, 10)] = &payloadPost{post: post}
 	}
 
 	return json.Marshal(struct {
-		Events            []*payloadEvent                                    `json:"events"`
-		EventsCount       int                                                `json:"events_count"`
-		EventsCountUnread int                                                `json:"events_count_unread"`
-		Posts             []*payloadPost                                     `json:"posts"`
-		PostsCount        int                                                `json:"posts_count"`
-		PostsCountUnread  int                                                `json:"posts_count_unread"`
-		PostMap           map[string]*payloadPost                            `json:"post_map"`
-		PostMapCount      int                                                `json:"post_map_count"`
-		Users             map[string]*v04_entity.PresentationApplicationUser `json:"users"`
-		UsersCount        int                                                `json:"users_count"`
+		Events            []*payloadEvent         `json:"events"`
+		EventsCount       int                     `json:"events_count"`
+		EventsCountUnread int                     `json:"events_count_unread"`
+		Posts             []*payloadPost          `json:"posts"`
+		PostsCount        int                     `json:"posts_count"`
+		PostsCountUnread  int                     `json:"posts_count_unread"`
+		PostMap           map[string]*payloadPost `json:"post_map"`
+		PostMapCount      int                     `json:"post_map_count"`
+		UserMap           *payloadUserMap         `json:"users"`
+		UserCount         int                     `json:"users_count"`
 	}{
 		Events:            es,
 		EventsCount:       len(es),
@@ -202,32 +209,33 @@ func (p *payloadFeedNews) MarshalJSON() ([]byte, error) {
 		PostsCountUnread:  unreadPosts,
 		PostMap:           pm,
 		PostMapCount:      len(pm),
-		Users:             mapUserPresentation(p.feed.UserMap),
-		UsersCount:        len(p.feed.UserMap),
+		UserMap:           &payloadUserMap{userMap: p.userMap},
+		UserCount:         len(p.userMap),
 	})
 }
 
 type payloadFeedPosts struct {
-	feed *controller.Feed
+	posts   controller.PostList
+	userMap user.Map
 }
 
 func (p *payloadFeedPosts) MarshalJSON() ([]byte, error) {
 	ps := []*payloadPost{}
 
-	for _, p := range p.feed.Posts {
+	for _, p := range p.posts {
 		ps = append(ps, &payloadPost{post: p})
 	}
 
 	return json.Marshal(struct {
-		Posts      []*payloadPost                                     `json:"posts"`
-		PostsCount int                                                `json:"posts_count"`
-		Users      map[string]*v04_entity.PresentationApplicationUser `json:"users"`
-		UsersCount int                                                `json:"users_count"`
+		Posts      []*payloadPost  `json:"posts"`
+		PostsCount int             `json:"posts_count"`
+		UserMap    *payloadUserMap `json:"users"`
+		UserCount  int             `json:"users_count"`
 	}{
 		Posts:      ps,
 		PostsCount: len(ps),
-		Users:      mapUserPresentation(p.feed.UserMap),
-		UsersCount: len(p.feed.UserMap),
+		UserMap:    &payloadUserMap{userMap: p.userMap},
+		UserCount:  len(p.userMap),
 	})
 }
 

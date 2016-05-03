@@ -1,13 +1,9 @@
 package session
 
 import (
-	"encoding/base64"
 	"math/rand"
 	"reflect"
 	"testing"
-	"time"
-
-	"github.com/tapglue/multiverse/platform/generate"
 )
 
 type prepareFunc func(t *testing.T, namespace string) Service
@@ -22,7 +18,7 @@ func testList() List {
 	return ss
 }
 
-func testServiecPut(t *testing.T, p prepareFunc) {
+func testServicePut(t *testing.T, p prepareFunc) {
 	var (
 		enabled   = true
 		namespace = "service_put"
@@ -104,13 +100,24 @@ func testServiecQuery(t *testing.T, p prepareFunc) {
 	if have, want := len(ss), 1; have != want {
 		t.Errorf("have %v, want %v", have, want)
 	}
+
+	ss, err = service.Query(namespace, QueryOptions{
+		UserIDs: []uint64{
+			created.UserID,
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if have, want := len(ss), 1; have != want {
+		t.Errorf("have %v, want %v", have, want)
+	}
 }
 
 func testSession() *Session {
-	src := rand.NewSource(time.Now().UnixNano())
 	return &Session{
 		Enabled: true,
-		ID:      base64.StdEncoding.EncodeToString(generate.RandomBytes(src, 20)),
 		UserID:  uint64(rand.Int63()),
 	}
 }

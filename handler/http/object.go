@@ -17,9 +17,9 @@ import (
 func ObjectCreate(c *controller.ObjectController) Handler {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		var (
-			app  = appFromContext(ctx)
-			user = userFromContext(ctx)
-			ro   = &responseObject{}
+			app         = appFromContext(ctx)
+			currentUser = userFromContext(ctx)
+			ro          = &responseObject{}
 		)
 
 		err := json.NewDecoder(r.Body).Decode(ro)
@@ -28,7 +28,7 @@ func ObjectCreate(c *controller.ObjectController) Handler {
 			return
 		}
 
-		object, err := c.Create(app, ro.Object, user)
+		object, err := c.Create(app, ro.Object, currentUser.ID)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -63,11 +63,11 @@ func ObjectDelete(c *controller.ObjectController) Handler {
 func ObjectList(c *controller.ObjectController) Handler {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		var (
-			app  = appFromContext(ctx)
-			user = userFromContext(ctx)
+			app         = appFromContext(ctx)
+			currentUser = userFromContext(ctx)
 		)
 
-		os, err := c.List(app, user.ID)
+		os, err := c.List(app, currentUser.ID)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -105,11 +105,11 @@ func ObjectListAll(c *controller.ObjectController) Handler {
 func ObjectListConnections(c *controller.ObjectController) Handler {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		var (
-			app  = appFromContext(ctx)
-			user = userFromContext(ctx)
+			app         = appFromContext(ctx)
+			currentUser = userFromContext(ctx)
 		)
 
-		os, err := c.ListConnections(app, user.ID)
+		os, err := c.ListConnections(app, currentUser.ID)
 		if err != nil {
 			respondError(w, 0, err)
 			return

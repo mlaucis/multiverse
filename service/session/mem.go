@@ -1,8 +1,6 @@
 package session
 
-import (
-	"time"
-)
+import "time"
 
 type memService struct {
 	sessions map[string]Map
@@ -24,9 +22,27 @@ func (s *memService) Put(ns string, session *Session) (*Session, error) {
 		return nil, err
 	}
 
-	session.CreatedAt = time.Now().UTC()
+	bucket := s.sessions[ns]
 
-	s.sessions[ns][session.ID] = copy(session)
+	if session.ID == "" {
+		session.ID = generateID()
+		session.CreatedAt = time.Now().UTC()
+	} else {
+		keep := false
+
+		for _, s := range bucket {
+			if s.ID == session.ID {
+				keep = true
+				session.CreatedAt = s.CreatedAt
+			}
+		}
+
+		if !keep {
+			return nil, ErrNotFound
+		}
+	}
+
+	bucket[session.ID] = copy(session)
 
 	return copy(session), nil
 }
@@ -72,10 +88,31 @@ func filterMap(sm Map, opts QueryOptions) List {
 			continue
 		}
 
+		if !inIDs(s.UserID, opts.UserIDs) {
+			continue
+		}
+
 		ss = append(ss, s)
 	}
 
 	return ss
+}
+
+func inIDs(id uint64, ids []uint64) bool {
+	if len(ids) == 0 {
+		return true
+	}
+
+	keep := false
+
+	for _, i := range ids {
+		if id == i {
+			keep = true
+			break
+		}
+	}
+
+	return keep
 }
 
 func inTypes(ty string, ts []string) bool {

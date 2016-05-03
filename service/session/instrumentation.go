@@ -1,15 +1,15 @@
-package user
+package session
 
 import (
 	"time"
 
+	"github.com/tapglue/multiverse/platform/metrics"
+
 	kitmetrics "github.com/go-kit/kit/metrics"
 	"github.com/prometheus/client_golang/prometheus"
-
-	"github.com/tapglue/multiverse/platform/metrics"
 )
 
-const serviceName = "user"
+const serviceName = "session"
 
 type instrumentService struct {
 	errCount  kitmetrics.Counter
@@ -19,7 +19,7 @@ type instrumentService struct {
 	store     string
 }
 
-// InstrumentMiddleware observes key apsects of Service operations and exposes
+// InstrumentMiddleware observes key aspects of Service operations and exposes
 // Prometheus metrics.
 func InstrumentMiddleware(
 	store string,
@@ -38,49 +38,15 @@ func InstrumentMiddleware(
 	}
 }
 
-func (s *instrumentService) Count(
-	ns string,
-	opts QueryOptions,
-) (count int, err error) {
-	defer func(begin time.Time) {
-		s.track("Count", ns, begin, err)
-	}(time.Now())
-
-	return s.next.Count(ns, opts)
-}
-
-func (s *instrumentService) CreatedByDay(
-	ns string,
-	start, end time.Time,
-) (ts metrics.Timeseries, err error) {
-	defer func(begin time.Time) {
-		s.track("CreatedByDay", ns, begin, err)
-	}(time.Now())
-
-	return s.next.CreatedByDay(ns, start, end)
-}
-
 func (s *instrumentService) Put(
 	ns string,
-	input *User,
-) (output *User, err error) {
+	input *Session,
+) (output *Session, err error) {
 	defer func(begin time.Time) {
 		s.track("Put", ns, begin, err)
 	}(time.Now())
 
 	return s.next.Put(ns, input)
-}
-
-func (s *instrumentService) PutLastRead(
-	ns string,
-	userID uint64,
-	ts time.Time,
-) (err error) {
-	defer func(begin time.Time) {
-		s.track("PutLastRead", ns, begin, err)
-	}(time.Now())
-
-	return s.next.PutLastRead(ns, userID, ts)
 }
 
 func (s *instrumentService) Query(
@@ -92,18 +58,6 @@ func (s *instrumentService) Query(
 	}(time.Now())
 
 	return s.next.Query(ns, opts)
-}
-
-func (s *instrumentService) Search(
-	ns string,
-	qOpts QueryOptions,
-	sOpts SearchOptions,
-) (list List, err error) {
-	defer func(begin time.Time) {
-		s.track("Search", ns, begin, err)
-	}(time.Now())
-
-	return s.next.Search(ns, qOpts, sOpts)
 }
 
 func (s *instrumentService) Setup(ns string) (err error) {
@@ -123,14 +77,15 @@ func (s *instrumentService) Teardown(ns string) (err error) {
 }
 
 func (s *instrumentService) track(
-	method, namespace string,
+	method string,
+	namespace string,
 	begin time.Time,
 	err error,
 ) {
 	var (
 		m = kitmetrics.Field{
 			Key:   metrics.FieldMethod,
-			Value: method,
+			Value: metrics.FieldMethod,
 		}
 		n = kitmetrics.Field{
 			Key:   metrics.FieldNamespace,

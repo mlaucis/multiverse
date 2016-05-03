@@ -217,7 +217,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "searchApplicationUser",
 			Method: "GET",
-			Path:   "/users/search",
+			Path:   "/deprecated/users/search",
 			Handlers: []RouteFunc{
 				postgresApplicationUserHandler.Search,
 			},
@@ -230,7 +230,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "getApplicationUser",
 			Method: "GET",
-			Path:   fmt.Sprintf("/users/%s", applicationUserID),
+			Path:   fmt.Sprintf("/deprecated/users/%s", applicationUserID),
 			Handlers: []RouteFunc{
 				postgresApplicationUserHandler.Read,
 			},
@@ -243,7 +243,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "getCurrentApplicationUser",
 			Method: "GET",
-			Path:   "/me",
+			Path:   "/deprecated/me",
 			Handlers: []RouteFunc{
 				postgresApplicationUserHandler.ReadCurrent,
 			},
@@ -269,7 +269,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "updateCurrentApplicationUser",
 			Method: "PUT",
-			Path:   "/me",
+			Path:   "/deprecated/me",
 			Handlers: []RouteFunc{
 				postgresApplicationUserHandler.UpdateCurrent,
 			},
@@ -295,7 +295,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "deleteCurrentApplicationUser",
 			Method: "DELETE",
-			Path:   "/me",
+			Path:   "/deprecated/me",
 			Handlers: []RouteFunc{
 				postgresApplicationUserHandler.DeleteCurrent,
 			},
@@ -308,7 +308,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "createApplicationUser",
 			Method: "POST",
-			Path:   "/users",
+			Path:   "/deprecated/users",
 			Handlers: []RouteFunc{
 				postgresApplicationUserHandler.Create,
 			},
@@ -320,7 +320,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "loginApplicationUser",
 			Method: "POST",
-			Path:   "/users/login",
+			Path:   "/deprecated/users/login",
 			Handlers: []RouteFunc{
 				postgresApplicationUserHandler.Login,
 			},
@@ -332,7 +332,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "loginCurrentUserApplicationUser",
 			Method: "POST",
-			Path:   "/me/login",
+			Path:   "/deprecated/me/login",
 			Handlers: []RouteFunc{
 				postgresApplicationUserHandler.Login,
 			},
@@ -383,7 +383,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "logoutCurrentUserApplicationUser",
 			Method: "DELETE",
-			Path:   "/me/logout",
+			Path:   "/deprecated/me/logout",
 			Handlers: []RouteFunc{
 				postgresApplicationUserHandler.Logout,
 			},
@@ -530,7 +530,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "getUserFollows",
 			Method: "GET",
-			Path:   fmt.Sprintf("/users/%s/follows", applicationUserID),
+			Path:   fmt.Sprintf("/deprecated/users/%s/follows", applicationUserID),
 			Handlers: []RouteFunc{
 				postgresConnectionHandler.FollowingList,
 			},
@@ -556,7 +556,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "getUserFollowers",
 			Method: "GET",
-			Path:   fmt.Sprintf("/users/%s/followers", applicationUserID),
+			Path:   fmt.Sprintf("/deprecated/users/%s/followers", applicationUserID),
 			Handlers: []RouteFunc{
 				postgresConnectionHandler.FollowedByList,
 			},
@@ -582,7 +582,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "getUserFriends",
 			Method: "GET",
-			Path:   fmt.Sprintf("/users/%s/friends", applicationUserID),
+			Path:   fmt.Sprintf("/deprecated/users/%s/friends", applicationUserID),
 			Handlers: []RouteFunc{
 				postgresConnectionHandler.Friends,
 			},

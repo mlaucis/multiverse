@@ -3,7 +3,7 @@ package session
 import "testing"
 
 func TestMemPut(t *testing.T) {
-	testServiecPut(t, prepareMem)
+	testServicePut(t, prepareMem)
 }
 
 func TestMemQuery(t *testing.T) {

@@ -13,6 +13,8 @@ import (
 	"github.com/tapglue/multiverse/platform/pg"
 )
 
+const limitDefault = 200
+
 const (
 	pgInsertUser     = `INSERT INTO %s.users(json_data) VALUES($1)`
 	pgUpdateLastRead = `
@@ -33,8 +35,18 @@ const (
 
 	pgClauseCustomIDs = `(json_data->>'custom_id')::TEXT IN (?)`
 	pgClauseDeleted   = `(json_data->>'deleted')::BOOL = ?::BOOL`
+	pgClauseEmail     = `(json_data->>'email')::TEXT IN (?)`
 	pgClauseEnabled   = `(json_data->>'enabled')::BOOL = ?::BOOL`
 	pgClauseIDs       = `(json_data->>'id')::BIGINT IN (?)`
+	pgClauseSocialIDs = `(json_data->'social_ids'->>'%s')::TEXT IN (?)`
+	pgClauseUsernames = `(json_data->>'user_name')::TEXT IN (?)`
+
+	pgClauseSearchEmail     = `(json_data->>'email' ILIKE '%%%s%%')`
+	pgClauseSearchFirstname = `(json_data->>'first_name' ILIKE '%%%s%%')`
+	pgClauseSearchLastname  = `(json_data->>'last_name' ILIKE '%%%s%%')`
+	pgClauseSearchUsername  = `(json_data->>'user_name' ILIKE '%%%s%%')`
+
+	pgLimit = `LIMIT %d`
 
 	pgOrderCreatedAt = `ORDER BY json_data->>'created_at' DESC`
 
@@ -59,8 +71,20 @@ const (
 
 	pgIndexCustomID = `CREATE INDEX %s ON %s.users
 		USING btree (((json_data->>'custom_id')::TEXT))`
+	pgIndexEmail = `CREATE INDEX %s ON %s.users
+		USING btree (((json_data->>'email')::TEXT))`
 	pgIndexID = `CREATE INDEX %s ON %s.users
 		USING btree (((json_data->>'id')::BIGINT))`
+	pgIndexUsername = `CREATE INDEX %s ON %s.users
+		USING btree (((json_data->>'user_name')::TEXT))`
+	pgIndexGinEmail = `CREATE INDEX %s on %s.users
+		USING gin (((json_data->>'email')::TEXT) gin_trgm_ops)`
+	pgIndexGinFirstname = `CREATE INDEX %s on %s.users
+		USING gin (((json_data->>'first_name')::TEXT) gin_trgm_ops)`
+	pgIndexGinLastname = `CREATE INDEX %s on %s.users
+		USING gin (((json_data->>'last_name')::TEXT) gin_trgm_ops)`
+	pgIndexGinUsername = `CREATE INDEX %s on %s.users
+		USING gin (((json_data->>'user_name')::TEXT) gin_trgm_ops)`
 )
 
 type pgService struct {
@@ -228,12 +252,37 @@ func (s *pgService) Query(ns string, opts QueryOptions) (List, error) {
 	return s.listUsers(ns, clauses, params...)
 }
 
+func (s *pgService) Search(
+	ns string,
+	qOpts QueryOptions,
+	sOpts SearchOptions,
+) (List, error) {
+	clauses, params, err := convertOpts(qOpts)
+	if err != nil {
+		return nil, err
+	}
+
+	searchClause := convertSearchOpts(sOpts)
+
+	if searchClause != "" {
+		clauses = append([]string{searchClause}, clauses...)
+	}
+
+	return s.listUsers(ns, clauses, params...)
+}
+
 func (s *pgService) Setup(ns string) error {
 	qs := []string{
 		wrapNamespace(pgCreateSchema, ns),
 		wrapNamespace(pgCreateTable, ns),
 		pg.GuardIndex(ns, "user_custom_id", pgIndexCustomID),
+		pg.GuardIndex(ns, "user_email", pgIndexEmail),
 		pg.GuardIndex(ns, "user_id", pgIndexID),
+		pg.GuardIndex(ns, "user_username", pgIndexUsername),
+		pg.GuardIndex(ns, "user_gin_email", pgIndexGinEmail),
+		pg.GuardIndex(ns, "user_gin_firstname", pgIndexGinFirstname),
+		pg.GuardIndex(ns, "user_gin_lastname", pgIndexGinLastname),
+		pg.GuardIndex(ns, "user_gin_username", pgIndexGinUsername),
 	}
 
 	for _, query := range qs {
@@ -308,6 +357,7 @@ func (s *pgService) listUsers(
 	query := strings.Join([]string{
 		fmt.Sprintf(pgListUsers, ns, c),
 		pgOrderCreatedAt,
+		fmt.Sprintf(pgLimit, limitDefault),
 	}, "\n")
 
 	query = sqlx.Rebind(sqlx.DOLLAR, query)
@@ -324,6 +374,7 @@ func (s *pgService) listUsers(
 				return nil, err
 			}
 		} else {
+			fmt.Println(query)
 			return nil, err
 		}
 	}
@@ -391,6 +442,22 @@ func convertOpts(opts QueryOptions) ([]string, []interface{}, error) {
 		params = append(params, *opts.Deleted)
 	}
 
+	if len(opts.Emails) > 0 {
+		ps := []interface{}{}
+
+		for _, email := range opts.Emails {
+			ps = append(ps, email)
+		}
+
+		clause, _, err := sqlx.In(pgClauseEmail, ps)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		clauses = append(clauses, clause)
+		params = append(params, ps...)
+	}
+
 	if opts.Enabled != nil {
 		clause, _, err := sqlx.In(pgClauseEnabled, []interface{}{*opts.Enabled})
 		if err != nil {
@@ -417,7 +484,67 @@ func convertOpts(opts QueryOptions) ([]string, []interface{}, error) {
 		params = append(params, ps...)
 	}
 
+	if opts.SocialIDs != nil {
+		for platform, ids := range opts.SocialIDs {
+			ps := []interface{}{}
+
+			for _, id := range ids {
+				ps = append(ps, id)
+			}
+
+			clause, _, err := sqlx.In(fmt.Sprintf(pgClauseSocialIDs, platform), ps)
+			if err != nil {
+				return nil, nil, err
+			}
+
+			clauses = append(clauses, clause)
+			params = append(params, ps...)
+		}
+	}
+
+	if len(opts.Usernames) > 0 {
+		ps := []interface{}{}
+
+		for _, username := range opts.Usernames {
+			ps = append(ps, username)
+		}
+
+		clause, _, err := sqlx.In(pgClauseUsernames, ps)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		clauses = append(clauses, clause)
+		params = append(params, ps...)
+	}
+
 	return clauses, params, nil
+}
+
+func convertSearchOpts(opts SearchOptions) string {
+	cs := []string{}
+
+	for _, t := range opts.Emails {
+		cs = append(cs, fmt.Sprintf(pgClauseSearchEmail, t))
+	}
+
+	for _, t := range opts.Firstnames {
+		cs = append(cs, fmt.Sprintf(pgClauseSearchFirstname, t))
+	}
+
+	for _, t := range opts.Lastnames {
+		cs = append(cs, fmt.Sprintf(pgClauseSearchLastname, t))
+	}
+
+	for _, t := range opts.Usernames {
+		cs = append(cs, fmt.Sprintf(pgClauseSearchUsername, t))
+	}
+
+	if len(cs) > 0 {
+		return fmt.Sprintf("(%s)", strings.Join(cs, "OR\n"))
+	} else {
+		return ""
+	}
 }
 
 func wrapNamespace(query, namespace string) string {

@@ -9,7 +9,7 @@ import (
 
 	"github.com/tapglue/multiverse/service/connection"
 	"github.com/tapglue/multiverse/service/event"
-	v04_entity "github.com/tapglue/multiverse/v04/entity"
+	"github.com/tapglue/multiverse/service/user"
 )
 
 func TestAffiliation(t *testing.T) {
@@ -21,21 +21,21 @@ func TestAffiliation(t *testing.T) {
 				FromID: from,
 				ToID:   to,
 				Type:   connection.TypeFollow,
-			}: &v04_entity.ApplicationUser{
+			}: &user.User{
 				ID: to,
 			},
 			&connection.Connection{
 				FromID: to,
 				ToID:   from,
 				Type:   connection.TypeFollow,
-			}: &v04_entity.ApplicationUser{
+			}: &user.User{
 				ID: from,
 			},
 			&connection.Connection{
 				FromID: from,
 				ToID:   to,
 				Type:   connection.TypeFriend,
-			}: &v04_entity.ApplicationUser{
+			}: &user.User{
 				ID: from,
 			},
 		}

@@ -221,7 +221,7 @@ func (s *pgService) Put(ns string, object *Object) (*Object, error) {
 	return object, nil
 }
 
-func (s *pgService) Query(ns string, opts QueryOptions) ([]*Object, error) {
+func (s *pgService) Query(ns string, opts QueryOptions) (List, error) {
 	clauses, params, err := convertOpts(opts)
 	if err != nil {
 		return nil, err
@@ -310,7 +310,7 @@ func (s *pgService) listObjects(
 	ns string,
 	clauses []string,
 	params ...interface{},
-) ([]*Object, error) {
+) (List, error) {
 	if len(clauses) > 0 {
 		clauses = append([]string{""}, clauses...)
 	}
@@ -336,7 +336,7 @@ func (s *pgService) listObjects(
 	}
 	defer rows.Close()
 
-	os := []*Object{}
+	os := List{}
 
 	for rows.Next() {
 		var (

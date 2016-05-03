@@ -10,6 +10,7 @@ const errFmt = "%s: %s"
 // Common errors for Session service implementations and validations.
 var (
 	ErrInvalidSession = errors.New("invalid session")
+	ErrNotFound       = errors.New("session not found")
 )
 
 // Error wraps common Session errors.

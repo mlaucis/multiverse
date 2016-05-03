@@ -88,8 +88,8 @@ func LikeList(c *controller.LikeController) Handler {
 		}
 
 		respondJSON(w, http.StatusOK, &payloadLikes{
-			likes: ls.Likes,
-			users: ls.UserMap,
+			likes:   ls.Likes,
+			userMap: ls.UserMap,
 		})
 	}
 }
@@ -99,12 +99,12 @@ func LikeList(c *controller.LikeController) Handler {
 func ExternalLikeCreate(c *controller.LikeController) Handler {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		var (
-			externalID = mux.Vars(r)["externalID"]
-			app        = appFromContext(ctx)
-			user       = userFromContext(ctx)
+			externalID  = mux.Vars(r)["externalID"]
+			app         = appFromContext(ctx)
+			currentUser = userFromContext(ctx)
 		)
 
-		like, err := c.ExternalCreate(app, user, externalID)
+		like, err := c.ExternalCreate(app, currentUser.ID, externalID)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -119,12 +119,12 @@ func ExternalLikeCreate(c *controller.LikeController) Handler {
 func ExternalLikeDelete(c *controller.LikeController) Handler {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		var (
-			externalID = mux.Vars(r)["externalID"]
-			app        = appFromContext(ctx)
-			user       = userFromContext(ctx)
+			externalID  = mux.Vars(r)["externalID"]
+			app         = appFromContext(ctx)
+			currentUser = userFromContext(ctx)
 		)
 
-		err := c.ExternalDelete(app, user, externalID)
+		err := c.ExternalDelete(app, currentUser.ID, externalID)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -154,8 +154,8 @@ func ExternalLikeList(c *controller.LikeController) Handler {
 		}
 
 		respondJSON(w, http.StatusOK, &payloadLikes{
-			likes: ls.Likes,
-			users: ls.UserMap,
+			likes:   ls.Likes,
+			userMap: ls.UserMap,
 		})
 	}
 }
@@ -188,8 +188,8 @@ func (p *payloadLike) MarshalJSON() ([]byte, error) {
 }
 
 type payloadLikes struct {
-	likes event.List
-	users user.StrangleMap
+	likes   event.List
+	userMap user.Map
 }
 
 func (p *payloadLikes) MarshalJSON() ([]byte, error) {
@@ -200,14 +200,14 @@ func (p *payloadLikes) MarshalJSON() ([]byte, error) {
 	}
 
 	return json.Marshal(struct {
-		Likes      []*payloadLike `json:"likes"`
-		LikesCount int            `json:"likes_count"`
-		Users      payloadUserMap `json:"users"`
-		UsersCount int            `json:"users_count"`
+		Likes      []*payloadLike  `json:"likes"`
+		LikesCount int             `json:"likes_count"`
+		UserMap    *payloadUserMap `json:"users"`
+		UserCount  int             `json:"users_count"`
 	}{
 		Likes:      ls,
 		LikesCount: len(ls),
-		Users:      mapUserPresentation(p.users),
-		UsersCount: len(p.users),
+		UserMap:    &payloadUserMap{userMap: p.userMap},
+		UserCount:  len(p.userMap),
 	})
 }

@@ -10,20 +10,20 @@ import (
 )
 
 // conditionUser determines if the user should be filtered.
-type conditionUser func(*v04_entity.ApplicationUser) (bool, error)
+type conditionUser func(*user.User) (bool, error)
 
 // RecommendationController bundles the business constriants for recommendations.
 type RecommendationController struct {
 	connections connection.Service
 	events      event.AggregateService
-	users       user.StrangleService
+	users       user.Service
 }
 
 // NewRecommendationController returns a controller instance.
 func NewRecommendationController(
 	connections connection.Service,
 	events event.Service,
-	users user.StrangleService,
+	users user.Service,
 ) *RecommendationController {
 	return &RecommendationController{
 		connections: connections,
@@ -35,15 +35,15 @@ func NewRecommendationController(
 // UsersActive returns the list of users with activity in the time period.
 func (c *RecommendationController) UsersActive(
 	app *v04_entity.Application,
-	origin *v04_entity.ApplicationUser,
+	origin uint64,
 	period event.Period,
-) (user.StrangleList, error) {
+) (user.List, error) {
 	ids, err := c.events.ActiveUserIDs(app.Namespace(), period)
 	if err != nil {
 		return nil, err
 	}
 
-	us, err := user.StrangleListFromIDs(c.users, app, ids...)
+	us, err := user.ListFromIDs(c.users, app.Namespace(), ids...)
 	if err != nil {
 		return nil, err
 	}
@@ -65,10 +65,10 @@ func (c *RecommendationController) UsersActive(
 func conditionConnection(
 	connections connection.Service,
 	app *v04_entity.Application,
-	origin *v04_entity.ApplicationUser,
+	origin uint64,
 ) conditionUser {
-	return func(user *v04_entity.ApplicationUser) (bool, error) {
-		r, err := queryRelation(connections, app, origin.ID, user.ID)
+	return func(user *user.User) (bool, error) {
+		r, err := queryRelation(connections, app, origin, user.ID)
 		if err != nil {
 			return false, err
 		}
@@ -82,15 +82,15 @@ func conditionConnection(
 }
 
 func conditionOrigin(
-	origin *v04_entity.ApplicationUser,
+	origin uint64,
 ) conditionUser {
-	return func(user *v04_entity.ApplicationUser) (bool, error) {
-		return origin.ID == user.ID, nil
+	return func(user *user.User) (bool, error) {
+		return origin == user.ID, nil
 	}
 }
 
-func filterUsers(users user.StrangleList, cs ...conditionUser) (user.StrangleList, error) {
-	us := user.StrangleList{}
+func filterUsers(users user.List, cs ...conditionUser) (user.List, error) {
+	us := user.List{}
 
 	for _, user := range users {
 		keep := true
@@ -115,7 +115,7 @@ func filterUsers(users user.StrangleList, cs ...conditionUser) (user.StrangleLis
 	return us, nil
 }
 
-func shuffleUsers(us user.StrangleList) {
+func shuffleUsers(us user.List) {
 	for i := range us {
 		j := rand.Intn(i + 1)
 		us[i], us[j] = us[j], us[i]

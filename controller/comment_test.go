@@ -213,7 +213,7 @@ func TestCommentControllerExternalCreate(t *testing.T) {
 		externalID    = "random-123_externalId"
 	)
 
-	created, err := c.ExternalCreate(app, owner, externalID, object.Contents{
+	created, err := c.ExternalCreate(app, owner.ID, externalID, object.Contents{
 		"en": "Do Like.",
 	})
 	if err != nil {
@@ -261,12 +261,12 @@ func TestCommentControllerExternalDelete(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = c.ExternalDelete(app, owner, externalID, created.ID)
+	err = c.ExternalDelete(app, owner.ID, externalID, created.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = c.ExternalRetrieve(app, owner, externalID, created.ID)
+	_, err = c.ExternalRetrieve(app, owner.ID, externalID, created.ID)
 	if have, want := err, ErrNotFound; have != want {
 		t.Fatalf("have %v, want %v", have, want)
 	}
@@ -287,7 +287,7 @@ func TestCommentControllerExternalDelete(t *testing.T) {
 		t.Fatalf("have %v, want %v", have, want)
 	}
 
-	err = c.ExternalDelete(app, owner, externalID, created.ID)
+	err = c.ExternalDelete(app, owner.ID, externalID, created.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -336,7 +336,7 @@ func TestExternalCommentControllerRetrieve(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	r, err := c.ExternalRetrieve(app, owner, externalID, created.ID)
+	r, err := c.ExternalRetrieve(app, owner.ID, externalID, created.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -345,7 +345,7 @@ func TestExternalCommentControllerRetrieve(t *testing.T) {
 		t.Fatalf("have %v, want %v", have, want)
 	}
 
-	_, err = c.ExternalRetrieve(app, owner, externalID, created.ID-1)
+	_, err = c.ExternalRetrieve(app, owner.ID, externalID, created.ID-1)
 	if have, want := err, ErrNotFound; have != want {
 		t.Errorf("have %v, want %v", have, want)
 	}
@@ -357,7 +357,7 @@ func TestCommentExternalControllerUpdate(t *testing.T) {
 		externalID    = "external-update-id"
 	)
 
-	_, err := c.ExternalUpdate(app, owner, externalID, 0, object.Contents{
+	_, err := c.ExternalUpdate(app, owner.ID, externalID, 0, object.Contents{
 		"en": "Do not like.",
 	})
 	if have, want := err, ErrNotFound; have != want {
@@ -369,7 +369,7 @@ func TestCommentExternalControllerUpdate(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	updated, err := c.ExternalUpdate(app, owner, externalID, created.ID, object.Contents{
+	updated, err := c.ExternalUpdate(app, owner.ID, externalID, created.ID, object.Contents{
 		"en": "Do not like!",
 	})
 	if err != nil {
@@ -398,7 +398,7 @@ func TestCommentExternalControllerUpdate(t *testing.T) {
 
 func testSetupCommentController(
 	t *testing.T,
-) (*v04_entity.Application, *v04_entity.ApplicationUser, *CommentController) {
+) (*v04_entity.Application, *user.User, *CommentController) {
 	var (
 		app = &v04_entity.Application{
 			ID:    rand.Int63(),
@@ -406,8 +406,8 @@ func testSetupCommentController(
 		}
 		connections = connection.NewMemService()
 		objects     = object.NewMemService()
-		users       = user.NewNopService()
-		user        = &v04_entity.ApplicationUser{
+		users       = user.NewMemService()
+		user        = &user.User{
 			ID: uint64(rand.Int63()),
 		}
 	)

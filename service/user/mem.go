@@ -1,6 +1,7 @@
 package user
 
 import (
+	"strings"
 	"time"
 
 	"github.com/tapglue/multiverse/platform/flake"
@@ -128,6 +129,21 @@ func (s *memService) Query(ns string, opts QueryOptions) (List, error) {
 	return filterMap(s.users[ns], opts), nil
 }
 
+func (s *memService) Search(
+	ns string,
+	qOpts QueryOptions,
+	sOpts SearchOptions,
+) (List, error) {
+	if err := s.Setup(ns); err != nil {
+		return nil, err
+	}
+
+	us := filterMap(s.users[ns], qOpts)
+	us = searchUsers(us, sOpts)
+
+	return us, nil
+}
+
 func (s *memService) Setup(ns string) error {
 	if _, ok := s.users[ns]; !ok {
 		s.users[ns] = Map{}
@@ -142,6 +158,22 @@ func (s *memService) Teardown(ns string) error {
 	}
 
 	return nil
+}
+
+func contains(s string, ts ...string) bool {
+	if len(ts) == 0 {
+		return true
+	}
+
+	keep := false
+
+	for _, t := range ts {
+		if keep = strings.Contains(s, t); keep {
+			break
+		}
+	}
+
+	return keep
 }
 
 func copy(u *User) *User {
@@ -161,11 +193,39 @@ func filterMap(um Map, opts QueryOptions) List {
 			continue
 		}
 
+		if !inTypes(u.Email, opts.Emails) {
+			continue
+		}
+
 		if opts.Enabled != nil && u.Enabled != *opts.Enabled {
 			continue
 		}
 
 		if !inIDs(id, opts.IDs) {
+			continue
+		}
+
+		if opts.SocialIDs != nil {
+			keep := false
+
+			for platform, ids := range opts.SocialIDs {
+				if _, ok := u.SocialIDs[platform]; !ok {
+					continue
+				}
+
+				if !inTypes(u.SocialIDs[platform], ids) {
+					continue
+				}
+
+				keep = true
+			}
+
+			if !keep {
+				continue
+			}
+		}
+
+		if !inTypes(u.Username, opts.Usernames) {
 			continue
 		}
 
@@ -207,4 +267,21 @@ func inTypes(ty string, ts []string) bool {
 	}
 
 	return keep
+}
+
+func searchUsers(is List, sOpts SearchOptions) List {
+	us := List{}
+
+	for _, u := range is {
+		if !contains(u.Email, sOpts.Emails...) ||
+			!contains(u.Firstname, sOpts.Firstnames...) ||
+			!contains(u.Lastname, sOpts.Lastnames...) ||
+			!contains(u.Username, sOpts.Usernames...) {
+			continue
+		}
+
+		us = append(us, u)
+	}
+
+	return us
 }

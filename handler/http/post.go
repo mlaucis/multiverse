@@ -18,9 +18,9 @@ import (
 func PostCreate(c *controller.PostController) Handler {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		var (
-			app  = appFromContext(ctx)
-			user = userFromContext(ctx)
-			p    = &payloadPost{}
+			app         = appFromContext(ctx)
+			currentUser = userFromContext(ctx)
+			p           = &payloadPost{}
 		)
 
 		err := json.NewDecoder(r.Body).Decode(p)
@@ -29,7 +29,7 @@ func PostCreate(c *controller.PostController) Handler {
 			return
 		}
 
-		post, err := c.Create(app, p.post, user)
+		post, err := c.Create(app, p.post, currentUser.ID)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -64,7 +64,7 @@ func PostDelete(c *controller.PostController) Handler {
 }
 
 // PostList returns all posts for a user as visible by the current user.
-func PostList(c *controller.PostController, users user.StrangleService) Handler {
+func PostList(c *controller.PostController) Handler {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		var (
 			app         = appFromContext(ctx)
@@ -77,90 +77,72 @@ func PostList(c *controller.PostController, users user.StrangleService) Handler 
 			return
 		}
 
-		ps, err := c.ListUser(app, currentUser.ID, userID)
+		feed, err := c.ListUser(app, currentUser.ID, userID)
 		if err != nil {
 			respondError(w, 0, err)
 			return
 		}
 
-		if len(ps) == 0 {
+		if len(feed.Posts) == 0 {
 			respondJSON(w, http.StatusNoContent, nil)
 			return
 		}
 
-		us, err := user.StrangleListFromIDs(users, app, ps.OwnerIDs()...)
-		if err != nil {
-			respondError(w, 0, err)
-			return
-		}
-
 		respondJSON(w, http.StatusOK, &payloadPosts{
-			posts: ps,
-			users: us,
+			posts:   feed.Posts,
+			userMap: feed.UserMap,
 		})
 	}
 }
 
 // PostListAll returns all publicly visible posts.
-func PostListAll(c *controller.PostController, users user.StrangleService) Handler {
+func PostListAll(c *controller.PostController) Handler {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		var (
 			app         = appFromContext(ctx)
 			currentUser = userFromContext(ctx)
 		)
 
-		ps, err := c.ListAll(app, currentUser.ID)
+		feed, err := c.ListAll(app, currentUser.ID)
 		if err != nil {
 			respondError(w, 0, err)
 			return
 		}
 
-		if len(ps) == 0 {
+		if len(feed.Posts) == 0 {
 			respondJSON(w, http.StatusNoContent, nil)
 			return
 		}
 
-		us, err := user.StrangleListFromIDs(users, app, ps.OwnerIDs()...)
-		if err != nil {
-			respondError(w, 0, err)
-			return
-		}
-
 		respondJSON(w, http.StatusOK, &payloadPosts{
-			posts: ps,
-			users: us,
+			posts:   feed.Posts,
+			userMap: feed.UserMap,
 		})
 	}
 }
 
 // PostListMe returns all posts of the current user.
-func PostListMe(c *controller.PostController, users user.StrangleService) Handler {
+func PostListMe(c *controller.PostController) Handler {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		var (
 			app         = appFromContext(ctx)
 			currentUser = userFromContext(ctx)
 		)
 
-		ps, err := c.ListUser(app, currentUser.ID, currentUser.ID)
+		feed, err := c.ListUser(app, currentUser.ID, currentUser.ID)
 		if err != nil {
 			respondError(w, 0, err)
 			return
 		}
 
-		if len(ps) == 0 {
+		if len(feed.Posts) == 0 {
 			respondJSON(w, http.StatusNoContent, nil)
 			return
 		}
 
-		us, err := user.StrangleListFromIDs(users, app, ps.OwnerIDs()...)
-		if err != nil {
-			respondError(w, 0, err)
-			return
-		}
-
 		respondJSON(w, http.StatusOK, &payloadPosts{
-			posts: ps,
-			users: us,
+			posts:   feed.Posts,
+			userMap: feed.UserMap,
 		})
 	}
 }
@@ -193,9 +175,9 @@ func PostRetrieve(c *controller.PostController) Handler {
 func PostUpdate(c *controller.PostController) Handler {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		var (
-			app  = appFromContext(ctx)
-			user = userFromContext(ctx)
-			p    = payloadPost{}
+			app         = appFromContext(ctx)
+			currentUser = userFromContext(ctx)
+			p           = payloadPost{}
 		)
 
 		id, err := strconv.ParseUint(mux.Vars(r)["postID"], 10, 64)
@@ -210,7 +192,7 @@ func PostUpdate(c *controller.PostController) Handler {
 			return
 		}
 
-		updated, err := c.Update(app, user, id, p.post)
+		updated, err := c.Update(app, currentUser.ID, id, p.post)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -334,8 +316,8 @@ func (p *payloadPost) UnmarshalJSON(raw []byte) error {
 }
 
 type payloadPosts struct {
-	posts controller.PostList
-	users user.StrangleList
+	posts   controller.PostList
+	userMap user.Map
 }
 
 func (p *payloadPosts) MarshalJSON() ([]byte, error) {
@@ -346,15 +328,15 @@ func (p *payloadPosts) MarshalJSON() ([]byte, error) {
 	}
 
 	return json.Marshal(struct {
-		Posts      []*payloadPost `json:"posts"`
-		PostsCount int            `json:"posts_count"`
-		Users      payloadUserMap `json:"users"`
-		UsersCount int            `json:"users_count"`
+		Posts      []*payloadPost  `json:"posts"`
+		PostsCount int             `json:"posts_count"`
+		UserMap    *payloadUserMap `json:"users"`
+		UserCount  int             `json:"users_count"`
 	}{
 		Posts:      ps,
 		PostsCount: len(ps),
-		Users:      mapUsers(p.users),
-		UsersCount: len(p.users),
+		UserMap:    &payloadUserMap{userMap: p.userMap},
+		UserCount:  len(p.userMap),
 	})
 }
 

@@ -5,7 +5,6 @@ import (
 	"github.com/tapglue/multiverse/service/object"
 	"github.com/tapglue/multiverse/service/user"
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
-	v04_errmsg "github.com/tapglue/multiverse/v04/errmsg"
 )
 
 const (
@@ -16,21 +15,21 @@ const (
 // CommentFeed is a collection of comments with their referneced users.
 type CommentFeed struct {
 	Comments object.List
-	UserMap  user.StrangleMap
+	UserMap  user.Map
 }
 
 // CommentController bundles the business constraints for comemnts on posts.
 type CommentController struct {
 	connections connection.Service
 	objects     object.Service
-	users       user.StrangleService
+	users       user.Service
 }
 
 // NewCommentController returns a controller instance.
 func NewCommentController(
 	connections connection.Service,
 	objects object.Service,
-	users user.StrangleService,
+	users user.Service,
 ) *CommentController {
 	return &CommentController{
 		connections: connections,
@@ -150,7 +149,7 @@ func (c *CommentController) List(
 		return nil, err
 	}
 
-	um, err := extractUsersFromObjects(c.users, app, cs)
+	um, err := user.MapFromIDs(c.users, app.Namespace(), cs.OwnerIDs()...)
 	if err != nil {
 		return nil, err
 	}
@@ -227,7 +226,7 @@ func (c *CommentController) Update(
 // external object.
 func (c *CommentController) ExternalCreate(
 	app *v04_entity.Application,
-	owner *v04_entity.ApplicationUser,
+	origin uint64,
 	externalID string,
 	contents object.Contents,
 ) (*object.Object, error) {
@@ -236,7 +235,7 @@ func (c *CommentController) ExternalCreate(
 			object.NewTextAttachment(attachmentContent, contents),
 		},
 		ExternalID: externalID,
-		OwnerID:    owner.ID,
+		OwnerID:    origin,
 		Owned:      true,
 		Type:       typeComment,
 		Visibility: object.VisibilityPublic,
@@ -246,7 +245,7 @@ func (c *CommentController) ExternalCreate(
 // ExternalDelete flags the Comment as deleted.
 func (c *CommentController) ExternalDelete(
 	app *v04_entity.Application,
-	owner *v04_entity.ApplicationUser,
+	origin uint64,
 	externalID string,
 	commentID uint64,
 ) error {
@@ -256,7 +255,7 @@ func (c *CommentController) ExternalDelete(
 			externalID,
 		},
 		OwnerIDs: []uint64{
-			owner.ID,
+			origin,
 		},
 		Types: []string{
 			typeComment,
@@ -300,7 +299,7 @@ func (c *CommentController) ExternalList(
 		return nil, err
 	}
 
-	um, err := extractUsersFromObjects(c.users, app, cs)
+	um, err := user.MapFromIDs(c.users, app.Namespace(), cs.OwnerIDs()...)
 	if err != nil {
 		return nil, err
 	}
@@ -311,7 +310,7 @@ func (c *CommentController) ExternalList(
 // ExternalRetrieve returns the comment given id.
 func (c *CommentController) ExternalRetrieve(
 	app *v04_entity.Application,
-	owner *v04_entity.ApplicationUser,
+	origin uint64,
 	externalID string,
 	commentID uint64,
 ) (*object.Object, error) {
@@ -321,7 +320,7 @@ func (c *CommentController) ExternalRetrieve(
 		},
 		ID: &commentID,
 		OwnerIDs: []uint64{
-			owner.ID,
+			origin,
 		},
 		Types: []string{
 			typeComment,
@@ -342,7 +341,7 @@ func (c *CommentController) ExternalRetrieve(
 // ExternalUpdate replaces the given comment with new values.
 func (c *CommentController) ExternalUpdate(
 	app *v04_entity.Application,
-	owner *v04_entity.ApplicationUser,
+	origin uint64,
 	externalID string,
 	commentID uint64,
 	contents object.Contents,
@@ -353,7 +352,7 @@ func (c *CommentController) ExternalUpdate(
 		},
 		ID: &commentID,
 		OwnerIDs: []uint64{
-			owner.ID,
+			origin,
 		},
 		Owned: &defaultOwned,
 		Types: []string{
@@ -373,31 +372,4 @@ func (c *CommentController) ExternalUpdate(
 	}
 
 	return c.objects.Put(app.Namespace(), cs[0])
-}
-
-func extractUsersFromObjects(
-	users user.StrangleService,
-	app *v04_entity.Application,
-	os object.List,
-) (user.StrangleMap, error) {
-	um := user.StrangleMap{}
-
-	for _, id := range os.OwnerIDs() {
-		if _, ok := um[id]; ok {
-			continue
-		}
-
-		user, errs := users.Read(app.OrgID, app.ID, id, false)
-		if errs != nil {
-			// Check for existence.
-			if errs[0].Code() == v04_errmsg.ErrApplicationUserNotFound.Code() {
-				continue
-			}
-			return nil, errs[0]
-		}
-
-		um[id] = user
-	}
-
-	return um, nil
 }

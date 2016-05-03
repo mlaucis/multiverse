@@ -1,8 +1,11 @@
 package session
 
 import (
+	"encoding/base64"
+	"math/rand"
 	"time"
 
+	"github.com/tapglue/multiverse/platform/generate"
 	"github.com/tapglue/multiverse/platform/service"
 )
 
@@ -16,6 +19,7 @@ type Map map[string]*Session
 type QueryOptions struct {
 	Enabled *bool
 	IDs     []string
+	UserIDs []uint64
 }
 
 // Service for session interactions
@@ -25,6 +29,9 @@ type Service interface {
 	Put(namespace string, session *Session) (*Session, error)
 	Query(namespace string, opts QueryOptions) (List, error)
 }
+
+// ServiceMiddleware is a chainable behaviour modifier for Service.
+type ServiceMiddleware func(Service) Service
 
 // Session attaches a session id to a user id.
 type Session struct {
@@ -36,13 +43,15 @@ type Session struct {
 
 // Validate performs semantic checks on the Session.
 func (s *Session) Validate() error {
-	if s.ID == "" {
-		return wrapError(ErrInvalidSession, "id must be set")
-	}
-
 	if s.UserID == 0 {
 		return wrapError(ErrInvalidSession, "UserID must be set")
 	}
 
 	return nil
+}
+
+func generateID() string {
+	src := rand.NewSource(time.Now().UnixNano())
+
+	return base64.StdEncoding.EncodeToString(generate.RandomBytes(src, 20))
 }

@@ -24,7 +24,7 @@ dependencies:
     - "/home/ubuntu/.website_node_modules"
 database:
   override:
-    - PGPASSWORD=unicode psql -U ubuntu -d circle_test -f v02/resources/db/pgsql.sql -h 127.0.0.1
+    - PGPASSWORD=unicode psql -U ubuntu -d circle_test -f resources/pgsql.sql -h 127.0.0.1
 test:
   pre:
     - mkdir -p /home/ubuntu/.go_workspace/src/github.com/tapglue
