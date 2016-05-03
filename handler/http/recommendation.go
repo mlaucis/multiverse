@@ -9,19 +9,17 @@ import (
 	"github.com/tapglue/multiverse/controller"
 	"github.com/tapglue/multiverse/service/event"
 	"github.com/tapglue/multiverse/service/user"
-	v04_entity "github.com/tapglue/multiverse/v04/entity"
-	v04_response "github.com/tapglue/multiverse/v04/server/response"
 )
 
 // RecommendUsersActiveDay returns a list of active users in the last day.
 func RecommendUsersActiveDay(c *controller.RecommendationController) Handler {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		var (
-			app  = appFromContext(ctx)
-			user = userFromContext(ctx)
+			app         = appFromContext(ctx)
+			currentUser = userFromContext(ctx)
 		)
 
-		us, err := c.UsersActive(app, user, event.ByDay)
+		us, err := c.UsersActive(app, currentUser.ID, event.ByDay)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -40,11 +38,11 @@ func RecommendUsersActiveDay(c *controller.RecommendationController) Handler {
 func RecommendUsersActiveWeek(c *controller.RecommendationController) Handler {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		var (
-			app  = appFromContext(ctx)
-			user = userFromContext(ctx)
+			app         = appFromContext(ctx)
+			currentUser = userFromContext(ctx)
 		)
 
-		us, err := c.UsersActive(app, user, event.ByWeek)
+		us, err := c.UsersActive(app, currentUser.ID, event.ByWeek)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -63,11 +61,11 @@ func RecommendUsersActiveWeek(c *controller.RecommendationController) Handler {
 func RecommendUsersActiveMonth(c *controller.RecommendationController) Handler {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		var (
-			app  = appFromContext(ctx)
-			user = userFromContext(ctx)
+			app         = appFromContext(ctx)
+			currentUser = userFromContext(ctx)
 		)
 
-		us, err := c.UsersActive(app, user, event.ByMonth)
+		us, err := c.UsersActive(app, currentUser.ID, event.ByMonth)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -83,23 +81,21 @@ func RecommendUsersActiveMonth(c *controller.RecommendationController) Handler {
 }
 
 type payloadUsers struct {
-	users user.StrangleList
+	users user.List
 }
 
 func (p *payloadUsers) MarshalJSON() ([]byte, error) {
-	ps := []*v04_entity.PresentationApplicationUser{}
+	ps := []*payloadUser{}
 
-	for _, user := range p.users {
-		v04_response.SanitizeApplicationUser(user)
-
-		ps = append(ps, &v04_entity.PresentationApplicationUser{
-			ApplicationUser: user,
+	for _, u := range p.users {
+		ps = append(ps, &payloadUser{
+			user: u,
 		})
 	}
 
 	return json.Marshal(struct {
-		Users      []*v04_entity.PresentationApplicationUser `json:"users"`
-		UsersCount int                                       `json:"users_count"`
+		Users      []*payloadUser `json:"users"`
+		UsersCount int            `json:"users_count"`
 	}{
 		Users:      ps,
 		UsersCount: len(ps),

@@ -18,7 +18,7 @@ var defaultEnabled = true
 // LikeFeed is a collection of likes with their referenced users.
 type LikeFeed struct {
 	Likes   event.List
-	UserMap user.StrangleMap
+	UserMap user.Map
 }
 
 // LikeController bundles the business constraints for likes on posts.
@@ -26,7 +26,7 @@ type LikeController struct {
 	connections connection.Service
 	events      event.Service
 	posts       object.Service
-	users       user.StrangleService
+	users       user.Service
 }
 
 // NewLikeController returns a controller instance.
@@ -34,7 +34,7 @@ func NewLikeController(
 	connections connection.Service,
 	events event.Service,
 	posts object.Service,
-	users user.StrangleService,
+	users user.Service,
 ) *LikeController {
 	return &LikeController{
 		connections: connections,
@@ -209,7 +209,7 @@ func (c *LikeController) List(
 		},
 	})
 
-	um, err := user.StrangleMapFromIDs(c.users, app, es.UserIDs()...)
+	um, err := user.MapFromIDs(c.users, app.Namespace(), es.UserIDs()...)
 	if err != nil {
 		return nil, err
 	}
@@ -224,7 +224,7 @@ func (c *LikeController) List(
 // and if not creates a new event for it.
 func (c *LikeController) ExternalCreate(
 	app *v04_entity.Application,
-	owner *v04_entity.ApplicationUser,
+	origin uint64,
 	externalID string,
 ) (*event.Event, error) {
 	es, err := c.events.Query(app.Namespace(), event.QueryOptions{
@@ -239,7 +239,7 @@ func (c *LikeController) ExternalCreate(
 			typeLike,
 		},
 		UserIDs: []uint64{
-			owner.ID,
+			origin,
 		},
 	})
 	if err != nil {
@@ -261,7 +261,7 @@ func (c *LikeController) ExternalCreate(
 			},
 			Owned:      true,
 			Type:       typeLike,
-			UserID:     owner.ID,
+			UserID:     origin,
 			Visibility: event.VisibilityConnection,
 		}
 	} else {
@@ -281,7 +281,7 @@ func (c *LikeController) ExternalCreate(
 // external entity.
 func (c *LikeController) ExternalDelete(
 	app *v04_entity.Application,
-	owner *v04_entity.ApplicationUser,
+	origin uint64,
 	externalID string,
 ) error {
 	es, err := c.events.Query(app.Namespace(), event.QueryOptions{
@@ -297,7 +297,7 @@ func (c *LikeController) ExternalDelete(
 			typeLike,
 		},
 		UserIDs: []uint64{
-			owner.ID,
+			origin,
 		},
 	})
 	if err != nil {
@@ -341,7 +341,7 @@ func (c *LikeController) ExternalList(
 		return nil, err
 	}
 
-	um, err := user.StrangleMapFromIDs(c.users, app, es.UserIDs()...)
+	um, err := user.MapFromIDs(c.users, app.Namespace(), es.UserIDs()...)
 	if err != nil {
 		return nil, err
 	}

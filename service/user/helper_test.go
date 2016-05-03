@@ -1,20 +1,22 @@
 package user
 
 import (
+	"fmt"
 	"math/rand"
 	"reflect"
 	"testing"
 	"time"
 
+	"github.com/tapglue/multiverse/platform/generate"
 	"github.com/tapglue/multiverse/platform/metrics"
 )
 
 type prepareFunc func(t *testing.T, namespace string) Service
 
-func testList() List {
+func testList(platform string, socialIDs ...string) List {
 	us := List{}
 
-	for i := 0; i < 13; i++ {
+	for i := 0; i < 9; i++ {
 		u := testUser()
 
 		u.Deleted = true
@@ -27,28 +29,34 @@ func testList() List {
 		us = append(us, testUser())
 	}
 
-	return us
-}
+	for _, id := range socialIDs {
+		u := testUser()
 
-func randStringRunes(n int) string {
-	letterRunes := []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+		u.SocialIDs = map[string]string{
+			platform: id,
+		}
 
-	buf := make([]rune, n)
-
-	for i := range buf {
-		buf[i] = letterRunes[rand.Intn(len(letterRunes))]
+		us = append(us, u)
 	}
 
-	return string(buf)
+	return us
 }
 
 func testServiceCount(t *testing.T, p prepareFunc) {
 	var (
-		customID  = randStringRunes(12)
+		customID  = generate.RandomString(12)
 		deleted   = true
 		enabled   = true
 		namespace = "service_count"
+		platform  = "facebook"
 		service   = p(t, namespace)
+		socialIDs = []string{
+			generate.RandomString(7),
+			generate.RandomString(7),
+			generate.RandomString(7),
+			generate.RandomString(7),
+			generate.RandomString(7),
+		}
 	)
 
 	count, err := service.Count(namespace, QueryOptions{})
@@ -62,13 +70,14 @@ func testServiceCount(t *testing.T, p prepareFunc) {
 
 	u := testUser()
 	u.CustomID = customID
+	u.Username = generate.RandomString(8)
 
 	created, err := service.Put(namespace, u)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	for _, u := range testList() {
+	for _, u := range testList(platform, socialIDs...) {
 		_, err := service.Put(namespace, u)
 		if err != nil {
 			t.Fatal(err)
@@ -95,7 +104,20 @@ func testServiceCount(t *testing.T, p prepareFunc) {
 		t.Fatal(err)
 	}
 
-	if have, want := count, 13; have != want {
+	if have, want := count, 9; have != want {
+		t.Errorf("have %v, want %v", have, want)
+	}
+
+	count, err = service.Count(namespace, QueryOptions{
+		Emails: []string{
+			created.Email,
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if have, want := count, 1; have != want {
 		t.Errorf("have %v, want %v", have, want)
 	}
 
@@ -106,13 +128,39 @@ func testServiceCount(t *testing.T, p prepareFunc) {
 		t.Fatal(err)
 	}
 
-	if have, want := count, 8; have != want {
+	if have, want := count, 13; have != want {
 		t.Errorf("have %v, want %v", have, want)
 	}
 
 	count, err = service.Count(namespace, QueryOptions{
 		IDs: []uint64{
 			created.ID,
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if have, want := count, 1; have != want {
+		t.Errorf("have %v, want %v", have, want)
+	}
+
+	count, err = service.Count(namespace, QueryOptions{
+		SocialIDs: map[string][]string{
+			platform: socialIDs,
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if have, want := count, len(socialIDs); have != want {
+		t.Errorf("have %v, want %v", have, want)
+	}
+
+	count, err = service.Count(namespace, QueryOptions{
+		Usernames: []string{
+			created.Username,
 		},
 	})
 	if err != nil {
@@ -210,6 +258,7 @@ func testServicePut(t *testing.T, p prepareFunc) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	list, err := service.Query(namespace, QueryOptions{
 		Enabled: &enabled,
 		IDs: []uint64{
@@ -304,11 +353,21 @@ func testServicePutLastRead(t *testing.T, p prepareFunc) {
 
 func testServiceQuery(t *testing.T, p prepareFunc) {
 	var (
-		customID  = randStringRunes(12)
+		customID  = generate.RandomString(12)
 		deleted   = true
 		enabled   = true
 		namespace = "service_query"
+		platform  = "twitter"
 		service   = p(t, namespace)
+		socialIDs = []string{
+			generate.RandomString(5),
+			generate.RandomString(5),
+			generate.RandomString(5),
+			generate.RandomString(5),
+			generate.RandomString(5),
+			generate.RandomString(5),
+			generate.RandomString(5),
+		}
 	)
 
 	list, err := service.Query(namespace, QueryOptions{})
@@ -322,13 +381,14 @@ func testServiceQuery(t *testing.T, p prepareFunc) {
 
 	u := testUser()
 	u.CustomID = customID
+	u.Username = generate.RandomString(8)
 
 	created, err := service.Put(namespace, u)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	for _, u := range testList() {
+	for _, u := range testList(platform, socialIDs...) {
 		_, err := service.Put(namespace, u)
 		if err != nil {
 			t.Fatal(err)
@@ -355,7 +415,7 @@ func testServiceQuery(t *testing.T, p prepareFunc) {
 		t.Fatal(err)
 	}
 
-	if have, want := len(us), 13; have != want {
+	if have, want := len(us), 9; have != want {
 		t.Errorf("have %v, want %v", have, want)
 	}
 
@@ -366,7 +426,7 @@ func testServiceQuery(t *testing.T, p prepareFunc) {
 		t.Fatal(err)
 	}
 
-	if have, want := len(us), 8; have != want {
+	if have, want := len(us), 15; have != want {
 		t.Errorf("have %v, want %v", have, want)
 	}
 
@@ -382,13 +442,130 @@ func testServiceQuery(t *testing.T, p prepareFunc) {
 	if have, want := len(us), 1; have != want {
 		t.Errorf("have %v, want %v", have, want)
 	}
+
+	us, err = service.Query(namespace, QueryOptions{
+		SocialIDs: map[string][]string{
+			platform: socialIDs,
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if have, want := len(us), len(socialIDs); have != want {
+		t.Errorf("have %v, want %v", have, want)
+	}
+
+	us, err = service.Query(namespace, QueryOptions{
+		Usernames: []string{
+			created.Username,
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if have, want := len(us), 1; have != want {
+		t.Errorf("have %v, want %v", have, want)
+	}
+}
+
+func testServiceSearch(t *testing.T, p prepareFunc) {
+	var (
+		namespace = "service_search"
+		service   = p(t, namespace)
+	)
+
+	us, err := service.Search(namespace, QueryOptions{}, SearchOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if have, want := len(us), 0; have != want {
+		t.Errorf("have %v, want %v", have, want)
+	}
+
+	u := testUser()
+	u.Firstname = generate.RandomString(12)
+	u.Lastname = generate.RandomString(12)
+	u.Username = generate.RandomString(8)
+
+	created, err := service.Put(namespace, u)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, u := range testList("") {
+		_, err := service.Put(namespace, u)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	us, err = service.Search(namespace, QueryOptions{}, SearchOptions{
+		Emails: []string{
+			created.Email[0 : len(u.Email)-3],
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if have, want := len(us), 1; have != want {
+		t.Errorf("have %v, want %v", have, want)
+	}
+
+	us, err = service.Search(namespace, QueryOptions{}, SearchOptions{
+		Firstnames: []string{
+			created.Firstname[1:10],
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if have, want := len(us), 1; have != want {
+		t.Errorf("have %v, want %v", have, want)
+	}
+
+	us, err = service.Search(namespace, QueryOptions{}, SearchOptions{
+		Lastnames: []string{
+			created.Lastname[1:10],
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if have, want := len(us), 1; have != want {
+		t.Errorf("have %v, want %v", have, want)
+	}
+
+	us, err = service.Search(namespace, QueryOptions{
+		Enabled: &defaultEnabled,
+	}, SearchOptions{
+		Usernames: []string{
+			created.Username[3:7],
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if have, want := len(us), 1; have != want {
+		t.Errorf("have %v, want %v", have, want)
+	}
 }
 
 func testUser() *User {
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+
 	return &User{
+		Email: fmt.Sprintf(
+			"user%d@tapglue.test", r.Int63(),
+		),
 		Enabled:  true,
-		Password: randStringRunes(8),
-		Username: randStringRunes(8),
+		Password: generate.RandomString(8),
 	}
 }
 

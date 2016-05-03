@@ -22,6 +22,10 @@ func TestMemQuery(t *testing.T) {
 	testServiceQuery(t, prepareMem)
 }
 
+func TestServiceSearc(t *testing.T) {
+	testServiceSearch(t, prepareMem)
+}
+
 func prepareMem(t *testing.T, ns string) Service {
 	s := NewMemService()
 

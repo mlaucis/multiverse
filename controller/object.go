@@ -28,9 +28,9 @@ func NewObjectController(
 func (c *ObjectController) Create(
 	app *v04_entity.Application,
 	o *object.Object,
-	owner *v04_entity.ApplicationUser,
+	origin uint64,
 ) (*object.Object, error) {
-	o.OwnerID = owner.ID
+	o.OwnerID = origin
 
 	return c.objects.Put(app.Namespace(), o)
 }

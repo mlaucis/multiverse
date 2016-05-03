@@ -3,16 +3,12 @@ package http
 import (
 	"encoding/json"
 	"net/http"
-	"strconv"
 
 	"github.com/garyburd/redigo/redis"
 	"github.com/jmoiron/sqlx"
 	"golang.org/x/net/context"
 
 	"github.com/tapglue/multiverse/controller"
-	"github.com/tapglue/multiverse/service/user"
-	v04_entity "github.com/tapglue/multiverse/v04/entity"
-	v04_response "github.com/tapglue/multiverse/v04/server/response"
 )
 
 const pgHealthcheck = `SELECT 1`
@@ -86,50 +82,24 @@ type apiError struct {
 	Message string `json:"message"`
 }
 
-func mapUsers(us user.StrangleList) map[string]*v04_entity.PresentationApplicationUser {
-	m := map[string]*v04_entity.PresentationApplicationUser{}
-
-	for _, u := range us {
-		m[strconv.FormatUint(u.ID, 10)] = &v04_entity.PresentationApplicationUser{
-			ApplicationUser: u,
-		}
-	}
-
-	return m
-}
-
-type payloadUserMap map[string]*v04_entity.PresentationApplicationUser
-
-func mapUserPresentation(um user.StrangleMap) payloadUserMap {
-	pm := payloadUserMap{}
-
-	for id, user := range um {
-		v04_response.SanitizeApplicationUser(user)
-
-		pm[strconv.FormatUint(id, 10)] = &v04_entity.PresentationApplicationUser{
-			ApplicationUser: user,
-		}
-	}
-
-	return pm
-}
-
 func respondError(w http.ResponseWriter, code int, err error) {
 	statusCode := http.StatusInternalServerError
 
 	e := unwrapError(err)
 
-	switch {
-	case e == ErrBadRequest:
+	switch e {
+	case ErrBadRequest:
 		statusCode = http.StatusBadRequest
-	case e == ErrLimitExceeded:
+	case ErrLimitExceeded:
 		statusCode = 429
-	case e == ErrUnauthorized:
+	case ErrUnauthorized:
 		statusCode = http.StatusUnauthorized
-	case e == controller.ErrNotFound:
+	case controller.ErrInvalidEntity:
+		statusCode = http.StatusBadRequest
+	case controller.ErrNotFound:
 		statusCode = http.StatusNotFound
-	case e == controller.ErrUnauthorized:
-		statusCode = http.StatusNotFound
+	case controller.ErrUnauthorized:
+		statusCode = http.StatusUnauthorized
 	}
 
 	respondJSON(w, statusCode, struct {

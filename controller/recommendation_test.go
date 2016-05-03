@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/tapglue/multiverse/service/user"
-	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
 
 func TestFilterUsers(t *testing.T) {
@@ -28,19 +27,19 @@ func TestFilterUsersError(t *testing.T) {
 	}
 }
 
-func testConditionUserEven(user *v04_entity.ApplicationUser) (bool, error) {
+func testConditionUserEven(user *user.User) (bool, error) {
 	return user.ID%2 == 0, nil
 }
 
-func testConditionUserError(user *v04_entity.ApplicationUser) (bool, error) {
+func testConditionUserError(user *user.User) (bool, error) {
 	return false, fmt.Errorf("condition errored")
 }
 
-func testUsers(n int) user.StrangleList {
-	us := user.StrangleList{}
+func testUsers(n int) user.List {
+	us := user.List{}
 
 	for i := 0; i < n; i++ {
-		us = append(us, &v04_entity.ApplicationUser{
+		us = append(us, &user.User{
 			ID: uint64(i + 1),
 		})
 	}

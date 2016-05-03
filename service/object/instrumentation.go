@@ -64,7 +64,7 @@ func (s *instrumentService) Put(ns string, object *Object) (o *Object, err error
 	return s.next.Put(ns, object)
 }
 
-func (s *instrumentService) Query(ns string, opts QueryOptions) (os []*Object, err error) {
+func (s *instrumentService) Query(ns string, opts QueryOptions) (os List, err error) {
 	defer func(begin time.Time) {
 		s.track("query", ns, begin, err)
 	}(time.Now())

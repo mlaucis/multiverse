@@ -34,6 +34,10 @@ func TestPostgresQuery(t *testing.T) {
 	testServiceQuery(t, preparePostgres)
 }
 
+func TestPostgresSearch(t *testing.T) {
+	testServiceSearch(t, preparePostgres)
+}
+
 func preparePostgres(t *testing.T, namespace string) Service {
 	db, err := sqlx.Connect("postgres", pgTestURL)
 	if err != nil {

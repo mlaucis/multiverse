@@ -6,15 +6,14 @@ import (
 
 	"github.com/asaskevich/govalidator"
 
-	"github.com/tapglue/multiverse/errors"
 	"github.com/tapglue/multiverse/platform/metrics"
 	"github.com/tapglue/multiverse/platform/service"
-	v04_entity "github.com/tapglue/multiverse/v04/entity"
-	v04_errmsg "github.com/tapglue/multiverse/v04/errmsg"
 )
 
 // TargetType is the identifier used for events targeting a User.
 const TargetType = "tg_user"
+
+var defaultEnabled = true
 
 // Image represents a user image asset.
 type Image struct {
@@ -27,8 +26,28 @@ type Image struct {
 // List is a collection of users.
 type List []*User
 
+// ToMap transforms the list to a Map.
+func (l List) ToMap() Map {
+	um := Map{}
+
+	for _, u := range l {
+		um[u.ID] = u
+	}
+
+	return um
+}
+
 // Map is a user collection with their id as index.
 type Map map[uint64]*User
+
+// Merge combines two Maps.
+func (m Map) Merge(x Map) Map {
+	for id, user := range x {
+		m[id] = user
+	}
+
+	return m
+}
 
 // Metadata is a bucket to provide additional user information.
 type Metadata map[string]string
@@ -37,8 +56,19 @@ type Metadata map[string]string
 type QueryOptions struct {
 	CustomIDs []string
 	Deleted   *bool
+	Emails    []string
 	Enabled   *bool
 	IDs       []uint64
+	SocialIDs map[string][]string
+	Usernames []string
+}
+
+// SearchOptions is used to narrow-down user searchs.
+type SearchOptions struct {
+	Emails     []string
+	Firstnames []string
+	Lastnames  []string
+	Usernames  []string
 }
 
 // Service for user interactions.
@@ -50,6 +80,7 @@ type Service interface {
 	Put(namespace string, user *User) (*User, error)
 	PutLastRead(namespace string, userID uint64, lastRead time.Time) error
 	Query(namespace string, opts QueryOptions) (List, error)
+	Search(namespace string, qOpts QueryOptions, sOpts SearchOptions) (List, error)
 }
 
 // ServiceMiddleware is a chainable behaviour modifier for Service.
@@ -57,22 +88,29 @@ type ServiceMiddleware func(Service) Service
 
 // User is the representation of a customer of an app.
 type User struct {
-	CustomID  string            `json:"custom_id,omitempty"`
-	Deleted   bool              `json:"deleted"`
-	Enabled   bool              `json:"enabled"`
-	Email     string            `json:"email"`
-	Firstname string            `json:"first_name"`
-	ID        uint64            `json:"id"`
-	Images    map[string]Image  `json:"images,omitempty"`
-	Lastname  string            `json:"last_name"`
-	LastRead  time.Time         `json:"-"`
-	Metadata  Metadata          `json:"metadata"`
-	Password  string            `json:"password"`
-	SocialIDs map[string]string `json:"social_ids,omitempty"`
-	URL       string            `json:"url,omitempty"`
-	Username  string            `json:"user_name"`
-	CreatedAt time.Time         `json:"created_at"`
-	UpdatedAt time.Time         `json:"updated_at"`
+	CustomID       string            `json:"custom_id,omitempty"`
+	Deleted        bool              `json:"deleted"`
+	Enabled        bool              `json:"enabled"`
+	Email          string            `json:"email"`
+	Firstname      string            `json:"first_name"`
+	FollowerCount  int               `json:"-"`
+	FollowingCount int               `json:"-"`
+	FriendCount    int               `json:"-"`
+	ID             uint64            `json:"id"`
+	Images         map[string]Image  `json:"images,omitempty"`
+	IsFollower     bool              `json:"-"`
+	IsFollowing    bool              `json:"-"`
+	IsFriend       bool              `json:"-"`
+	Lastname       string            `json:"last_name"`
+	LastRead       time.Time         `json:"-"`
+	Metadata       Metadata          `json:"metadata"`
+	Password       string            `json:"password"`
+	SessionToken   string            `json:"-"`
+	SocialIDs      map[string]string `json:"social_ids,omitempty"`
+	URL            string            `json:"url,omitempty"`
+	Username       string            `json:"user_name"`
+	CreatedAt      time.Time         `json:"created_at"`
+	UpdatedAt      time.Time         `json:"updated_at"`
 }
 
 // Validate performs semantic checks on the passed User values for correctness.
@@ -82,7 +120,7 @@ func (u *User) Validate() error {
 	}
 
 	if ok := govalidator.IsEmail(u.Email); u.Email != "" && !ok {
-		return wrapError(ErrInvalidUser, "invalid email address")
+		return wrapError(ErrInvalidUser, "invalid email address '%s'", u.Email)
 	}
 
 	if u.Firstname != "" {
@@ -123,108 +161,16 @@ func (u *User) Validate() error {
 	return nil
 }
 
-// StrangleService is an intermediate interface to understand the dependencies
-// of new middlewares and controllers.
-type StrangleService interface {
-	FilterByEmail(
-		orgID, appID int64,
-		emails []string,
-	) ([]*v04_entity.ApplicationUser, []errors.Error)
-	FilterBySocialIDs(
-		orgID, appID int64,
-		platform string,
-		ids []string,
-	) ([]*v04_entity.ApplicationUser, []errors.Error)
-	FindBySession(
-		orgID, appID int64,
-		key string,
-	) (*v04_entity.ApplicationUser, []errors.Error)
-	Read(
-		orgID, appID int64,
-		id uint64,
-		stats bool,
-	) (*v04_entity.ApplicationUser, []errors.Error)
-	UpdateLastRead(orgID, appID int64, userID uint64) []errors.Error
-}
-
-// StrangleMiddleware is a chainable behaviour modifier for StrangleService.
-type StrangleMiddleware func(StrangleService) StrangleService
-
-// StrangleMap is an old user collection with their id as index.
-type StrangleMap map[uint64]*v04_entity.ApplicationUser
-
-// Merge combines two StrangleMaps.
-func (m StrangleMap) Merge(x StrangleMap) StrangleMap {
-	for id, user := range x {
-		m[id] = user
-	}
-
-	return m
-}
-
-// StrangleList is a collection of old users.
-type StrangleList []*v04_entity.ApplicationUser
-
-// IDs returns the list of user ids.
-func (l StrangleList) IDs() []uint64 {
-	ids := []uint64{}
-
-	for _, user := range l {
-		ids = append(ids, user.ID)
-	}
-
-	return ids
-}
-
-// ToStrangleMap turns the user list into a Map.
-func (l StrangleList) ToStrangleMap() StrangleMap {
-	m := StrangleMap{}
-
-	for _, user := range l {
-		m[user.ID] = user
-	}
-
-	return m
-}
-
-// StrangleMapFromIDs return a populated user map for the given list of ids.
-func StrangleMapFromIDs(
-	s StrangleService,
-	app *v04_entity.Application,
-	ids ...uint64,
-) (StrangleMap, error) {
-	um := StrangleMap{}
-
-	for _, id := range ids {
-		if _, ok := um[id]; ok {
-			continue
-		}
-
-		user, errs := s.Read(app.OrgID, app.ID, id, false)
-		if errs != nil {
-			// Check for existence.
-			if errs[0].Code() == v04_errmsg.ErrApplicationUserNotFound.Code() {
-				continue
-			}
-			return nil, errs[0]
-		}
-
-		um[user.ID] = user
-	}
-
-	return um, nil
-}
-
-// StrangleListFromIDs gathers a user collection from the service for the given ids.
-func StrangleListFromIDs(
-	s StrangleService,
-	app *v04_entity.Application,
-	ids ...uint64,
-) (StrangleList, error) {
+// ListFromIDs gathers a user collection from the Service for the given ids.
+func ListFromIDs(s Service, ns string, ids ...uint64) (List, error) {
 	var (
+		is   = []uint64{}
 		seen = map[uint64]struct{}{}
-		us   = StrangleList{}
 	)
+
+	if len(ids) == 0 {
+		return List{}, nil
+	}
 
 	for _, id := range ids {
 		if _, ok := seen[id]; ok {
@@ -232,19 +178,29 @@ func StrangleListFromIDs(
 		}
 		seen[id] = struct{}{}
 
-		u, errs := s.Read(app.OrgID, app.ID, id, false)
-		if errs != nil {
-			// Check for existence.
-			if errs[0].Code() == v04_errmsg.ErrApplicationUserNotFound.Code() {
-				continue
-			}
-			return nil, errs[0]
-		}
-
-		us = append(us, u)
+		is = append(is, id)
 	}
 
-	return us, nil
+	return s.Query(ns, QueryOptions{
+		Enabled: &defaultEnabled,
+		IDs:     is,
+	})
+}
+
+// MapFromIDs return a populated user map for the given list of ids.
+func MapFromIDs(s Service, ns string, ids ...uint64) (Map, error) {
+	us, err := ListFromIDs(s, ns, ids...)
+	if err != nil {
+		return nil, err
+	}
+
+	um := Map{}
+
+	for _, u := range us {
+		um[u.ID] = u
+	}
+
+	return um, nil
 }
 
 func flakeNamespace(ns string) string {

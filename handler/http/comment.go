@@ -101,7 +101,7 @@ func CommentList(c *controller.CommentController) Handler {
 
 		respondJSON(w, http.StatusOK, &payloadComments{
 			comments: list.Comments,
-			users:    list.UserMap,
+			userMap:  list.UserMap,
 		})
 	}
 }
@@ -189,7 +189,7 @@ func ExternalCommentCreate(c *controller.CommentController) Handler {
 			return
 		}
 
-		comment, err := c.ExternalCreate(app, user, externalID, p.contents)
+		comment, err := c.ExternalCreate(app, user.ID, externalID, p.contents)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -214,7 +214,7 @@ func ExternalCommentDelete(c *controller.CommentController) Handler {
 			return
 		}
 
-		err = c.ExternalDelete(app, user, externalID, commentID)
+		err = c.ExternalDelete(app, user.ID, externalID, commentID)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -244,7 +244,7 @@ func ExternalCommentList(c *controller.CommentController) Handler {
 
 		respondJSON(w, http.StatusOK, &payloadComments{
 			comments: list.Comments,
-			users:    list.UserMap,
+			userMap:  list.UserMap,
 		})
 	}
 }
@@ -264,7 +264,7 @@ func ExternalCommentRetrieve(c *controller.CommentController) Handler {
 			return
 		}
 
-		comment, err := c.ExternalRetrieve(app, user, externalID, commentID)
+		comment, err := c.ExternalRetrieve(app, user.ID, externalID, commentID)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -296,7 +296,7 @@ func ExternalCommentUpdate(c *controller.CommentController) Handler {
 			return
 		}
 
-		comment, err := c.ExternalUpdate(app, user, externalID, commentID, p.contents)
+		comment, err := c.ExternalUpdate(app, user.ID, externalID, commentID, p.contents)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -350,7 +350,7 @@ func (p *payloadComment) UnmarshalJSON(raw []byte) error {
 
 type payloadComments struct {
 	comments object.List
-	users    user.StrangleMap
+	userMap  user.Map
 }
 
 func (p *payloadComments) MarshalJSON() ([]byte, error) {
@@ -363,12 +363,12 @@ func (p *payloadComments) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
 		Comments      []*payloadComment `json:"comments"`
 		CommentsCount int               `json:"comments_count"`
-		Users         payloadUserMap    `json:"users"`
+		UserMap       *payloadUserMap   `json:"users"`
 		UsersCount    int               `json:"users_count"`
 	}{
 		Comments:      cs,
 		CommentsCount: len(cs),
-		Users:         mapUserPresentation(p.users),
-		UsersCount:    len(p.users),
+		UserMap:       &payloadUserMap{userMap: p.userMap},
+		UsersCount:    len(p.userMap),
 	})
 }

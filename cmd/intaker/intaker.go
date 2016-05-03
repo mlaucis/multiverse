@@ -20,11 +20,10 @@ import (
 	"runtime"
 	"time"
 
-	"golang.org/x/net/context"
-
 	klog "github.com/go-kit/kit/log"
 	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
 	"github.com/prometheus/client_golang/prometheus"
+	"golang.org/x/net/context"
 
 	"github.com/tapglue/multiverse/config"
 	"github.com/tapglue/multiverse/controller"
@@ -40,6 +39,7 @@ import (
 	"github.com/tapglue/multiverse/service/member"
 	"github.com/tapglue/multiverse/service/object"
 	"github.com/tapglue/multiverse/service/org"
+	"github.com/tapglue/multiverse/service/session"
 	"github.com/tapglue/multiverse/service/user"
 	v04_postgres_core "github.com/tapglue/multiverse/v04/core/postgres"
 	v04_redis_core "github.com/tapglue/multiverse/v04/core/redis"
@@ -203,15 +203,15 @@ func main() {
 	orgs = org.InstrumentStrangleMiddleware("postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(orgs)
 	orgs = org.LogStrangleMiddleware(logger, "postgres")(orgs)
 
+	var sessions session.Service
+	sessions = session.NewPostgresService(pgClient.MainDatastore())
+	sessions = session.InstrumentMiddleware("postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(sessions)
+	sessions = session.LogMiddleware(logger, "postgres")(sessions)
+
 	var users user.Service
 	users = user.NewPostgresService(pgClient.MainDatastore())
 	users = user.InstrumentMiddleware("postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(users)
 	users = user.LogMiddleware(logger, "postgres")(users)
-
-	var userStrangle user.StrangleService
-	userStrangle = v04_postgres_core.NewApplicationUser(pgClient)
-	userStrangle = user.InstrumentStrangleMiddleware("postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(userStrangle)
-	userStrangle = user.LogStrangleMiddleware(logger, "postgres")(userStrangle)
 
 	// Setup controllers
 	var (
@@ -222,19 +222,19 @@ func main() {
 			objects,
 			users,
 		)
-		commentController        = controller.NewCommentController(connections, objects, userStrangle)
-		connectionController     = controller.NewConnectionController(connections, userStrangle)
-		eventController          = controller.NewEventController(connections, events, objects, userStrangle)
-		feedController           = controller.NewFeedController(connections, events, objects, userStrangle)
-		likeController           = controller.NewLikeController(connections, events, objects, userStrangle)
+		commentController        = controller.NewCommentController(connections, objects, users)
+		connectionController     = controller.NewConnectionController(connections, users)
+		eventController          = controller.NewEventController(connections, events, objects, users)
+		feedController           = controller.NewFeedController(connections, events, objects, users)
+		likeController           = controller.NewLikeController(connections, events, objects, users)
 		objectController         = controller.NewObjectController(connections, objects)
-		postController           = controller.NewPostController(connections, events, objects)
+		postController           = controller.NewPostController(connections, events, objects, users)
 		recommendationController = controller.NewRecommendationController(
 			connections,
 			events,
-			userStrangle,
+			users,
 		)
-		userController = controller.NewUserController(connections, userStrangle)
+		userController = controller.NewUserController(connections, sessions, users)
 	)
 
 	// Setup middlewares
@@ -265,7 +265,7 @@ func main() {
 		)
 		withUser = handler.Chain(
 			withApp,
-			handler.CtxUser(userStrangle),
+			handler.CtxUser(sessions, users),
 		)
 	)
 
@@ -338,21 +338,42 @@ func main() {
 		),
 	)
 
-	next.Methods("GET").PathPrefix(`/me/followers`).Name("getFollowers").HandlerFunc(
+	next.Methods("GET").PathPrefix(`/me/followers`).Name("getFollowersMe").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.ConnectionFollowersMe(connectionController),
+		),
+	)
+
+	next.Methods("GET").PathPrefix(`/me/follows`).Name("getFollowingsMe").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.ConnectionFollowingsMe(connectionController),
+		),
+	)
+
+	next.Methods("GET").PathPrefix(`/me/friends`).Name("getFriendsMe").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.ConnectionFriendsMe(connectionController),
+		),
+	)
+
+	next.Methods("GET").PathPrefix(`/users/{userID:[0-9]+}/followers`).Name("getFollowers").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.ConnectionFollowers(connectionController),
 		),
 	)
 
-	next.Methods("GET").PathPrefix(`/me/follows`).Name("getFollowings").HandlerFunc(
+	next.Methods("GET").PathPrefix(`/users/{userID:[0-9]+}/follows`).Name("getFollowings").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.ConnectionFollowings(connectionController),
 		),
 	)
 
-	next.Methods("GET").PathPrefix(`/me/friends`).Name("getFriends").HandlerFunc(
+	next.Methods("GET").PathPrefix(`/users/{userID:[0-9]+}/friends`).Name("getFriends").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.ConnectionFriends(connectionController),
@@ -366,7 +387,7 @@ func main() {
 		),
 	)
 
-	next.Methods("PUT").PathPrefix(`/me/events/{id:[0-9]+}`).Name("updateEvent").HandlerFunc(
+	next.Methods("PUT").PathPrefix(`/me/events/{id:[0-9]+}`).Name("eventUpdate").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.EventUpdate(eventController),
@@ -623,21 +644,21 @@ func main() {
 	next.Methods("GET").PathPrefix("/posts").Name("postListAll").HandlerFunc(
 		handler.Wrap(
 			withUser,
-			handler.PostListAll(postController, userStrangle),
+			handler.PostListAll(postController),
 		),
 	)
 
 	next.Methods("GET").PathPrefix("/me/posts").Name("postListMe").HandlerFunc(
 		handler.Wrap(
 			withUser,
-			handler.PostListMe(postController, userStrangle),
+			handler.PostListMe(postController),
 		),
 	)
 
 	next.Methods("GET").PathPrefix("/users/{userID:[0-9]+}/posts").Name("postList").HandlerFunc(
 		handler.Wrap(
 			withUser,
-			handler.PostList(postController, userStrangle),
+			handler.PostList(postController),
 		),
 	)
 
@@ -662,6 +683,55 @@ func main() {
 		),
 	)
 
+	next.Methods("GET").PathPrefix("/me").Name("userRetrieveMe").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.UserRetrieveMe(userController),
+		),
+	)
+
+	next.Methods("PUT").PathPrefix("/me").Name("userUpdate").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.UserUpdate(userController),
+		),
+	)
+
+	next.Methods("POST").PathPrefix("/me/login").Name("userMeLogin").HandlerFunc(
+		handler.Wrap(
+			withApp,
+			handler.UserLogin(userController),
+		),
+	)
+
+	next.Methods("DELETE").PathPrefix("/me/logout").Name("userLogout").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.UserLogout(userController),
+		),
+	)
+
+	next.Methods("DELETE").PathPrefix("/me").Name("userDelete").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.UserDelete(userController),
+		),
+	)
+
+	next.Methods("GET").PathPrefix("/users/{userID:[0-9]+}").Name("userRetrieve").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.UserRetrieve(userController),
+		),
+	)
+
+	next.Methods("POST").PathPrefix("/users/login").Name("userLogin").HandlerFunc(
+		handler.Wrap(
+			withApp,
+			handler.UserLogin(userController),
+		),
+	)
+
 	next.Methods("POST").PathPrefix("/users/search/emails").Name("userSearchEmails").HandlerFunc(
 		handler.Wrap(
 			withUser,
@@ -673,6 +743,20 @@ func main() {
 		handler.Wrap(
 			withUser,
 			handler.UserSearchPlatform(userController),
+		),
+	)
+
+	next.Methods("GET").PathPrefix(`/users/search`).Name("userSearch").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.UserSearch(userController),
+		),
+	)
+
+	next.Methods("POST").PathPrefix(`/users`).Name("userCreate").HandlerFunc(
+		handler.Wrap(
+			withApp,
+			handler.UserCreate(userController),
 		),
 	)
 
@@ -692,7 +776,7 @@ func main() {
 		http.Handle("/metrics", prometheus.Handler())
 
 		logger.Log(
-			"duration", time.Now().Sub(startTime),
+			"duration", time.Now().Sub(startTime).Nanoseconds(),
 			"lifecycle", "start",
 			"listen", conf.TelemetryAddr,
 			"sub", "telemetry",
@@ -701,7 +785,7 @@ func main() {
 	}()
 
 	logger.Log(
-		"duration", time.Now().Sub(startTime),
+		"duration", time.Now().Sub(startTime).Nanoseconds(),
 		"lifecycle", "start",
 		"listen", conf.ListenHostPort,
 		"sub", "api",

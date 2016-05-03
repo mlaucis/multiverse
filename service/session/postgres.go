@@ -14,9 +14,18 @@ const (
 	pgInsertSession = `INSERT INTO
 		%s.sessions(user_id, session_id, created_at, enabled)
 		VALUES($1, $2, $3, $4)`
+	pgUpdateSession = `
+		UPDATE
+			%s.sessions
+		SET
+			enabled = $3
+		WHERE
+			user_id = $1 AND
+			session_id = $2`
 
 	pgClauseEnabled = `enabled = ?`
 	pgClauseIDs     = `session_id IN (?)`
+	pgClauseUserIDs = `user_id IN (?)`
 
 	pgOrderCreatedAt = `ORDER BY created_at DESC`
 
@@ -36,7 +45,11 @@ const (
 	)`
 	pgDropTable = `DROP TABLE IF EXISTS %s.sessions`
 
-	pgIndexID = `CREATE INDEX %s ON %s.sessions (session_id)`
+	pgIndexID     = `CREATE INDEX %s ON %s.sessions (session_id)`
+	pgIndexUserID = `CREATE INDEX %s ON %s.sessions (user_id)`
+
+	// FIXME: Postgres doesn't preserve nanosecond precision.
+	pgTimeFormat = "2006-01-02 15:04:05.000000 UTC"
 )
 
 type pgService struct {
@@ -49,14 +62,21 @@ func NewPostgresService(db *sqlx.DB) Service {
 }
 
 func (s *pgService) Put(ns string, session *Session) (*Session, error) {
+	var (
+		params = []interface{}{
+			session.UserID,
+			session.ID,
+			session.Enabled,
+		}
+		query = fmt.Sprintf(pgUpdateSession, ns)
+	)
+
 	if err := session.Validate(); err != nil {
 		return nil, err
 	}
 
 	if session.CreatedAt.IsZero() {
-		// FIXME: Postgres doesn't preserve nanosecond precision.
-		format := "2006-01-02 15:04:05.000000 UTC"
-		ts, err := time.Parse(format, time.Now().Format(format))
+		ts, err := time.Parse(pgTimeFormat, time.Now().Format(pgTimeFormat))
 		if err != nil {
 			return nil, err
 		}
@@ -65,15 +85,16 @@ func (s *pgService) Put(ns string, session *Session) (*Session, error) {
 
 	session.CreatedAt = session.CreatedAt.UTC()
 
-	var (
-		query  = fmt.Sprintf(pgInsertSession, ns)
+	if session.ID == "" {
+		session.ID = generateID()
 		params = []interface{}{
 			session.UserID,
 			session.ID,
 			session.CreatedAt,
 			session.Enabled,
 		}
-	)
+		query = fmt.Sprintf(pgInsertSession, ns)
+	}
 
 	_, err := s.db.Exec(query, params...)
 	if err != nil {
@@ -103,6 +124,7 @@ func (s *pgService) Setup(ns string) error {
 		fmt.Sprintf(pgCreateSchema, ns),
 		fmt.Sprintf(pgCreateTable, ns),
 		pg.GuardIndex(ns, "session_id", pgIndexID),
+		pg.GuardIndex(ns, "session_user_id", pgIndexUserID),
 	}
 
 	for _, query := range qs {
@@ -216,6 +238,22 @@ func convertOpts(opts QueryOptions) ([]string, []interface{}, error) {
 		}
 
 		clause, _, err := sqlx.In(pgClauseIDs, ps)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		clauses = append(clauses, clause)
+		params = append(params, ps...)
+	}
+
+	if len(opts.UserIDs) > 0 {
+		ps := []interface{}{}
+
+		for _, id := range opts.UserIDs {
+			ps = append(ps, id)
+		}
+
+		clause, _, err := sqlx.In(pgClauseUserIDs, ps)
 		if err != nil {
 			return nil, nil, err
 		}

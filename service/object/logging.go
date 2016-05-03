@@ -90,7 +90,7 @@ func (s *logService) Put(ns string, input *Object) (output *Object, err error) {
 	return s.next.Put(ns, input)
 }
 
-func (s *logService) Query(ns string, opts QueryOptions) (os []*Object, err error) {
+func (s *logService) Query(ns string, opts QueryOptions) (os List, err error) {
 	defer func(begin time.Time) {
 		ps := []interface{}{
 			"duration_ns", time.Since(begin).Nanoseconds(),

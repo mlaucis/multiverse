@@ -4,6 +4,7 @@ import (
 	"github.com/tapglue/multiverse/service/connection"
 	"github.com/tapglue/multiverse/service/event"
 	"github.com/tapglue/multiverse/service/object"
+	"github.com/tapglue/multiverse/service/user"
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
 
@@ -23,6 +24,12 @@ type Post struct {
 type PostCounts struct {
 	Comments int
 	Likes    int
+}
+
+// PostFeed is the composite answer for post list methods.
+type PostFeed struct {
+	Posts   PostList
+	UserMap user.Map
 }
 
 // PostMap is the user collection indexed by their ids.
@@ -79,6 +86,7 @@ type PostController struct {
 	connections connection.Service
 	events      event.Service
 	objects     object.Service
+	users       user.Service
 }
 
 // NewPostController returns a controller instance.
@@ -86,11 +94,13 @@ func NewPostController(
 	connections connection.Service,
 	events event.Service,
 	objects object.Service,
+	users user.Service,
 ) *PostController {
 	return &PostController{
 		connections: connections,
 		events:      events,
 		objects:     objects,
+		users:       users,
 	}
 }
 
@@ -99,9 +109,9 @@ func NewPostController(
 func (c *PostController) Create(
 	app *v04_entity.Application,
 	post *Post,
-	owner *v04_entity.ApplicationUser,
+	origin uint64,
 ) (*Post, error) {
-	post.OwnerID = owner.ID
+	post.OwnerID = origin
 	post.Owned = defaultOwned
 	post.Type = typePost
 
@@ -155,7 +165,7 @@ func (c *PostController) Delete(
 func (c *PostController) ListAll(
 	app *v04_entity.Application,
 	origin uint64,
-) (PostList, error) {
+) (*PostFeed, error) {
 	os, err := c.objects.Query(app.Namespace(), object.QueryOptions{
 		Owned: &defaultOwned,
 		Types: []string{
@@ -182,7 +192,15 @@ func (c *PostController) ListAll(
 		return nil, err
 	}
 
-	return ps, nil
+	um, err := user.MapFromIDs(c.users, app.Namespace(), ps.OwnerIDs()...)
+	if err != nil {
+		return nil, err
+	}
+
+	return &PostFeed{
+		Posts:   ps,
+		UserMap: um,
+	}, nil
 }
 
 // ListUser returns all posts for the given user id as visible by the
@@ -191,7 +209,7 @@ func (c *PostController) ListUser(
 	app *v04_entity.Application,
 	origin uint64,
 	userID uint64,
-) (PostList, error) {
+) (*PostFeed, error) {
 	vs := []object.Visibility{
 		object.VisibilityPublic,
 		object.VisibilityGlobal,
@@ -240,7 +258,15 @@ func (c *PostController) ListUser(
 		return nil, err
 	}
 
-	return ps, nil
+	um, err := user.MapFromIDs(c.users, app.Namespace(), ps.OwnerIDs()...)
+	if err != nil {
+		return nil, err
+	}
+
+	return &PostFeed{
+		Posts:   ps,
+		UserMap: um,
+	}, nil
 }
 
 // Retrieve returns the Post for the given id.
@@ -286,14 +312,14 @@ func (c *PostController) Retrieve(
 // Update stores a post with the new values.
 func (c *PostController) Update(
 	app *v04_entity.Application,
-	owner *v04_entity.ApplicationUser,
+	origin uint64,
 	id uint64,
 	post *Post,
 ) (*Post, error) {
 	ps, err := c.objects.Query(app.Namespace(), object.QueryOptions{
 		ID: &id,
 		OwnerIDs: []uint64{
-			owner.ID,
+			origin,
 		},
 		Owned: &defaultOwned,
 		Types: []string{

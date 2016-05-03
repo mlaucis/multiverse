@@ -20,15 +20,15 @@ type Error struct {
 	Message string
 }
 
+func (e *Error) Error() string {
+	return e.Message
+}
+
 func wrapError(err error, msg string) *Error {
 	return &Error{
 		Err:     err,
 		Message: fmt.Sprintf("%s: %s", err.Error(), msg),
 	}
-}
-
-func (e *Error) Error() string {
-	return e.Message
 }
 
 func unwrapError(err error) error {

@@ -116,7 +116,7 @@ func (s *memService) Put(namespace string, object *Object) (*Object, error) {
 	return copy(object), nil
 }
 
-func (s *memService) Query(namespace string, opts QueryOptions) ([]*Object, error) {
+func (s *memService) Query(namespace string, opts QueryOptions) (List, error) {
 	bucket, ok := s.objects[namespace]
 	if !ok {
 		return nil, ErrNamespaceNotFound

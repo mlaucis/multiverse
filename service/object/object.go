@@ -98,6 +98,23 @@ func (c Contents) Validate() error {
 	return nil
 }
 
+// List is an Object collection.
+type List []*Object
+
+// OwnerIDs returns all user ids of the associated object owners.
+func (os List) OwnerIDs() []uint64 {
+	ids := []uint64{}
+
+	for _, o := range os {
+		ids = append(ids, o.OwnerID)
+	}
+
+	return ids
+}
+
+// Map is an Object collection indexed by id.
+type Map map[uint64]*Object
+
 // Object is a generic building block to express different domains like Posts,
 // Albums with their dependend objects.
 type Object struct {
@@ -149,23 +166,6 @@ func (o *Object) Validate() error {
 	return nil
 }
 
-// List is an Object collection.
-type List []*Object
-
-// OwnerIDs returns all user ids of the associated object owners.
-func (os List) OwnerIDs() []uint64 {
-	ids := []uint64{}
-
-	for _, o := range os {
-		ids = append(ids, o.OwnerID)
-	}
-
-	return ids
-}
-
-// Map is an Object collection indexed by id.
-type Map map[uint64]*Object
-
 // QueryOptions are passed to narrow down query for objects.
 type QueryOptions struct {
 	Deleted      bool
@@ -185,7 +185,7 @@ type Service interface {
 
 	Count(namespace string, opts QueryOptions) (int, error)
 	Put(namespace string, object *Object) (*Object, error)
-	Query(namespace string, opts QueryOptions) ([]*Object, error)
+	Query(namespace string, opts QueryOptions) (List, error)
 	Remove(namespace string, id uint64) error
 }
 

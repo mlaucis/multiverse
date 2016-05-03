@@ -13,7 +13,7 @@ type EventController struct {
 	connections connection.Service
 	events      event.Service
 	objects     object.Service
-	users       user.StrangleService
+	users       user.Service
 }
 
 // NewEventController returns a controller instance.
@@ -21,7 +21,7 @@ func NewEventController(
 	connections connection.Service,
 	events event.Service,
 	objects object.Service,
-	users user.StrangleService,
+	users user.Service,
 ) *EventController {
 	return &EventController{
 		connections: connections,
@@ -125,7 +125,7 @@ func (c *EventController) List(
 		return nil, err
 	}
 
-	um, err := fillupUsers(c.users, app, originID, user.StrangleMap{}, es)
+	um, err := fillupUsers(c.users, app, originID, user.Map{}, es)
 	if err != nil {
 		return nil, err
 	}
@@ -135,7 +135,7 @@ func (c *EventController) List(
 		return nil, err
 	}
 
-	pum, err := extractUsersFromPosts(c.users, app, ps)
+	pum, err := user.MapFromIDs(c.users, app.Namespace(), ps.OwnerIDs()...)
 	if err != nil {
 		return nil, err
 	}

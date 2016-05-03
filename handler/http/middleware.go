@@ -20,9 +20,12 @@ import (
 	"github.com/tapglue/multiverse/service/app"
 	"github.com/tapglue/multiverse/service/member"
 	"github.com/tapglue/multiverse/service/org"
+	"github.com/tapglue/multiverse/service/session"
 	"github.com/tapglue/multiverse/service/user"
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
+
+var defaultEnabled = true
 
 // CORS adds the standard set of CORS headers.
 func CORS() Middleware {
@@ -161,12 +164,12 @@ func CtxPrepare(version string) Middleware {
 
 // CtxUser extracts the user from the Authentication header and adds it to the
 // Context.
-func CtxUser(users user.StrangleService) Middleware {
+func CtxUser(sessions session.Service, users user.Service) Middleware {
 	return func(next Handler) Handler {
 		return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 			var (
 				app       = appFromContext(ctx)
-				tokenType = tokenFromContext(ctx)
+				tokenType = tokenTypeFromContext(ctx)
 			)
 
 			_, token, ok := r.BasicAuth()
@@ -180,29 +183,31 @@ func CtxUser(users user.StrangleService) Middleware {
 				return
 			}
 
-			var user *v04_entity.ApplicationUser
+			var id uint64
 
 			switch tokenType {
 			case tokenApplication:
-				var errs []errors.Error
-
-				user, errs = users.FindBySession(app.OrgID, app.ID, token)
-				if errs != nil {
-					respondError(w, 0, errs[0])
-					return
-				}
-			case tokenBackend:
-				var errs []errors.Error
-
-				id, err := strconv.ParseUint(token, 10, 64)
+				ss, err := sessions.Query(app.Namespace(), session.QueryOptions{
+					IDs: []string{token},
+				})
 				if err != nil {
 					respondError(w, 0, err)
 					return
 				}
 
-				user, errs = users.Read(app.OrgID, app.ID, id, false)
-				if errs != nil {
-					respondError(w, 0, errs[0])
+				if len(ss) != 1 {
+					respondError(w, 4007, wrapError(ErrUnauthorized, "invalid session token"))
+					return
+				}
+
+				ctx = tokenInContext(ctx, token)
+				id = ss[0].UserID
+			case tokenBackend:
+				var err error
+
+				id, err = strconv.ParseUint(token, 10, 64)
+				if err != nil {
+					respondError(w, 0, err)
 					return
 				}
 			default:
@@ -210,7 +215,23 @@ func CtxUser(users user.StrangleService) Middleware {
 				return
 			}
 
-			next(userInContext(ctx, user), w, r)
+			us, err := users.Query(app.Namespace(), user.QueryOptions{
+				Enabled: &defaultEnabled,
+				IDs: []uint64{
+					id,
+				},
+			})
+			if err != nil {
+				respondError(w, 0, err)
+				return
+			}
+
+			if len(us) != 1 {
+				respondError(w, 4007, wrapError(ErrUnauthorized, "user not found"))
+				return
+			}
+
+			next(userInContext(ctx, us[0]), w, r)
 		}
 	}
 }

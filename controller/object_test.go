@@ -19,7 +19,7 @@ func TestObjectControllerCreate(t *testing.T) {
 		}
 	)
 
-	created, err := c.Create(app, recipe, owner)
+	created, err := c.Create(app, recipe, owner.ID)
 	if err != nil {
 		t.Fatal(err)
 	}

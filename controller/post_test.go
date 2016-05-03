@@ -8,6 +8,7 @@ import (
 	"github.com/tapglue/multiverse/service/connection"
 	"github.com/tapglue/multiverse/service/event"
 	"github.com/tapglue/multiverse/service/object"
+	"github.com/tapglue/multiverse/service/user"
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
 
@@ -29,7 +30,7 @@ func TestPostControllerCreate(t *testing.T) {
 		}
 	)
 
-	created, err := c.Create(app, post, owner)
+	created, err := c.Create(app, post, owner.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -102,12 +103,12 @@ func TestPostControllerDelete(t *testing.T) {
 func TestPostControllerListAll(t *testing.T) {
 	app, owner, c := testSetupPostController(t)
 
-	ps, err := c.ListAll(app, owner.ID)
+	feed, err := c.ListAll(app, owner.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if have, want := len(ps), 0; have != want {
+	if have, want := len(feed.Posts), 0; have != want {
 		t.Errorf("have %v, want %v", have, want)
 	}
 
@@ -118,12 +119,12 @@ func TestPostControllerListAll(t *testing.T) {
 		}
 	}
 
-	ps, err = c.ListAll(app, owner.ID)
+	feed, err = c.ListAll(app, owner.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if have, want := len(ps), 3; have != want {
+	if have, want := len(feed.Posts), 3; have != want {
 		t.Errorf("have %v, want %v", have, want)
 	}
 }
@@ -131,12 +132,12 @@ func TestPostControllerListAll(t *testing.T) {
 func TestPostControllerListUser(t *testing.T) {
 	app, owner, c := testSetupPostController(t)
 
-	ps, err := c.ListUser(app, owner.ID, owner.ID)
+	feed, err := c.ListUser(app, owner.ID, owner.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if have, want := len(ps), 0; have != want {
+	if have, want := len(feed.Posts), 0; have != want {
 		t.Errorf("have %v, want %v", have, want)
 	}
 
@@ -147,12 +148,12 @@ func TestPostControllerListUser(t *testing.T) {
 		}
 	}
 
-	ps, err = c.ListUser(app, owner.ID, owner.ID)
+	feed, err = c.ListUser(app, owner.ID, owner.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if have, want := len(ps), 3; have != want {
+	if have, want := len(feed.Posts), 3; have != want {
 		t.Errorf("have %v, want %v", have, want)
 	}
 }
@@ -196,7 +197,7 @@ func TestPostControllerUpdate(t *testing.T) {
 
 	created.OwnerID = 0
 
-	_, err = c.Update(app, owner, created.ID, &Post{Object: created})
+	_, err = c.Update(app, owner.ID, created.ID, &Post{Object: created})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -233,7 +234,7 @@ func TestPostControllerUpdateMissing(t *testing.T) {
 		post          = testPost(owner.ID)
 	)
 
-	_, err := c.Update(app, owner, post.ID, post)
+	_, err := c.Update(app, owner.ID, post.ID, post)
 	if have, want := err, ErrNotFound; have != want {
 		t.Errorf("have %v, want %v", have, want)
 	}
@@ -241,7 +242,7 @@ func TestPostControllerUpdateMissing(t *testing.T) {
 
 func testSetupPostController(
 	t *testing.T,
-) (*v04_entity.Application, *v04_entity.ApplicationUser, *PostController) {
+) (*v04_entity.Application, *user.User, *PostController) {
 	var (
 		app = &v04_entity.Application{
 			ID:    rand.Int63(),
@@ -249,7 +250,8 @@ func testSetupPostController(
 		}
 		events  = event.NewMemService()
 		objects = object.NewMemService()
-		user    = &v04_entity.ApplicationUser{
+		users   = user.NewMemService()
+		u       = &user.User{
 			ID: uint64(rand.Int63()),
 		}
 	)
@@ -264,10 +266,11 @@ func testSetupPostController(
 		t.Fatal(err)
 	}
 
-	return app, user, NewPostController(
+	return app, u, NewPostController(
 		connection.NewMemService(),
 		events,
 		objects,
+		users,
 	)
 }
 
