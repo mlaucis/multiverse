@@ -85,7 +85,7 @@ func (s *instrumentService) track(
 	var (
 		m = kitmetrics.Field{
 			Key:   metrics.FieldMethod,
-			Value: metrics.FieldMethod,
+			Value: method,
 		}
 		n = kitmetrics.Field{
 			Key:   metrics.FieldNamespace,
