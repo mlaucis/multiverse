@@ -72,7 +72,13 @@ func (s *logService) CreatedByDay(
 func (s *logService) Put(ns string, input *User) (output *User, err error) {
 	defer func(begin time.Time) {
 		// Sanitize passwords
-		input.Password, output.Password = "", ""
+		if input != nil {
+			input.Password = ""
+		}
+
+		if output != nil {
+			output.Password = ""
+		}
 
 		ps := []interface{}{
 			"duration_ns", time.Since(begin).Nanoseconds(),

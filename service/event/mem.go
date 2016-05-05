@@ -24,24 +24,25 @@ func (s *memService) ActiveUserIDs(ns string, p Period) ([]uint64, error) {
 }
 
 func (s *memService) Count(ns string, opts QueryOptions) (count int, err error) {
-	bucket, ok := s.events[ns]
-	if !ok {
-		return 0, ErrNamespaceNotFound
+	if err := s.Setup(ns); err != nil {
+		return 0, err
 	}
 
-	return len(filterList(bucket, opts)), nil
+	return len(filterList(s.events[ns], opts)), nil
 }
 
 func (s *memService) CreatedByDay(
 	ns string,
 	start, end time.Time,
 ) (metrics.Timeseries, error) {
-	bucket, ok := s.events[ns]
-	if !ok {
-		return nil, ErrNamespaceNotFound
+	if err := s.Setup(ns); err != nil {
+		return nil, err
 	}
 
-	counts := map[string]int{}
+	var (
+		bucket = s.events[ns]
+		counts = map[string]int{}
+	)
 
 	for _, event := range bucket {
 		if event.CreatedAt.Before(start) || event.CreatedAt.After(end) {
@@ -70,10 +71,11 @@ func (s *memService) CreatedByDay(
 }
 
 func (s *memService) Put(ns string, event *Event) (*Event, error) {
-	bucket, ok := s.events[ns]
-	if !ok {
-		return nil, ErrNamespaceNotFound
+	if err := s.Setup(ns); err != nil {
+		return nil, err
 	}
+
+	bucket := s.events[ns]
 
 	if event.ID == 0 {
 		id, err := flake.NextID(flakeNamespace(ns))
@@ -105,12 +107,11 @@ func (s *memService) Put(ns string, event *Event) (*Event, error) {
 }
 
 func (s *memService) Query(ns string, opts QueryOptions) (List, error) {
-	bucket, ok := s.events[ns]
-	if !ok {
-		return nil, ErrNamespaceNotFound
+	if err := s.Setup(ns); err != nil {
+		return nil, err
 	}
 
-	return filterList(bucket, opts), nil
+	return filterList(s.events[ns], opts), nil
 }
 
 func (s *memService) Setup(ns string) error {

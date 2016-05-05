@@ -108,12 +108,17 @@ func NewPostController(
 // and stores it in the Object service.
 func (c *PostController) Create(
 	app *v04_entity.Application,
+	origin Origin,
 	post *Post,
-	origin uint64,
 ) (*Post, error) {
-	post.OwnerID = origin
+	post.OwnerID = origin.UserID
 	post.Owned = defaultOwned
 	post.Type = typePost
+
+	err := constrainPostVisibility(origin, post.Visibility)
+	if err != nil {
+		return nil, err
+	}
 
 	o, err := c.objects.Put(app.Namespace(), post.Object)
 	if err != nil {
@@ -312,14 +317,14 @@ func (c *PostController) Retrieve(
 // Update stores a post with the new values.
 func (c *PostController) Update(
 	app *v04_entity.Application,
-	origin uint64,
+	origin Origin,
 	id uint64,
 	post *Post,
 ) (*Post, error) {
 	ps, err := c.objects.Query(app.Namespace(), object.QueryOptions{
 		ID: &id,
 		OwnerIDs: []uint64{
-			origin,
+			origin.UserID,
 		},
 		Owned: &defaultOwned,
 		Types: []string{
@@ -340,12 +345,28 @@ func (c *PostController) Update(
 	p.Tags = post.Tags
 	p.Visibility = post.Visibility
 
+	err = constrainPostVisibility(origin, p.Visibility)
+	if err != nil {
+		return nil, err
+	}
+
 	o, err := c.objects.Put(app.Namespace(), p)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Post{Object: o}, nil
+}
+
+func constrainPostVisibility(origin Origin, visibility object.Visibility) error {
+	if !origin.IsBackend() && visibility == object.VisibilityGlobal {
+		return wrapError(
+			ErrUnauthorized,
+			"global visibility can only set by backend integration",
+		)
+	}
+
+	return nil
 }
 
 func enrichCounts(

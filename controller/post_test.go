@@ -30,7 +30,14 @@ func TestPostControllerCreate(t *testing.T) {
 		}
 	)
 
-	created, err := c.Create(app, post, owner.ID)
+	created, err := c.Create(
+		app,
+		Origin{
+			Integration: IntegrationApplication,
+			UserID:      owner.ID,
+		},
+		post,
+	)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -48,6 +55,30 @@ func TestPostControllerCreate(t *testing.T) {
 	}
 
 	if have, want := rs[0], created.Object; !reflect.DeepEqual(have, want) {
+		t.Errorf("have %v, want %v", have, want)
+	}
+}
+
+func TestPostCreateConstrainVisibility(t *testing.T) {
+	var (
+		app, owner, c = testSetupPostController(t)
+		post          = &Post{
+			Object: &object.Object{
+				Visibility: object.VisibilityGlobal,
+			},
+		}
+	)
+
+	_, err := c.Create(
+		app,
+		Origin{
+			Integration: IntegrationApplication,
+			UserID:      owner.ID,
+		},
+		post,
+	)
+
+	if have, want := err, ErrUnauthorized; !IsUnauthorized(have) {
 		t.Errorf("have %v, want %v", have, want)
 	}
 }
@@ -197,7 +228,15 @@ func TestPostControllerUpdate(t *testing.T) {
 
 	created.OwnerID = 0
 
-	_, err = c.Update(app, owner.ID, created.ID, &Post{Object: created})
+	_, err = c.Update(
+		app,
+		Origin{
+			Integration: IntegrationApplication,
+			UserID:      owner.ID,
+		},
+		created.ID,
+		&Post{Object: created},
+	)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -228,13 +267,49 @@ func TestPostControllerUpdate(t *testing.T) {
 	}
 }
 
+func TestPostUpdateConstrainVisibility(t *testing.T) {
+	var (
+		app, owner, c = testSetupPostController(t)
+		origin        = Origin{
+			Integration: IntegrationApplication,
+			UserID:      owner.ID,
+		}
+		post = testPost(owner.ID)
+	)
+
+	created, err := c.Create(
+		app,
+		origin,
+		post,
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	created.Visibility = object.VisibilityGlobal
+
+	_, err = c.Update(app, origin, created.ID, created)
+
+	if have, want := err, ErrUnauthorized; !IsUnauthorized(have) {
+		t.Errorf("have %v, want %v", have, want)
+	}
+}
+
 func TestPostControllerUpdateMissing(t *testing.T) {
 	var (
 		app, owner, c = testSetupPostController(t)
 		post          = testPost(owner.ID)
 	)
 
-	_, err := c.Update(app, owner.ID, post.ID, post)
+	_, err := c.Update(
+		app,
+		Origin{
+			Integration: IntegrationApplication,
+			UserID:      owner.ID,
+		},
+		post.ID,
+		post,
+	)
 	if have, want := err, ErrNotFound; have != want {
 		t.Errorf("have %v, want %v", have, want)
 	}

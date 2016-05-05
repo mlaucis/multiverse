@@ -36,9 +36,15 @@ func NewUserController(
 // Create stores the provided user and creates a session.
 func (c *UserController) Create(
 	app *v04_entity.Application,
+	origin Origin,
 	u *user.User,
 ) (*user.User, error) {
-	err := c.constrainUniqueEmail(app, u)
+	err := constrainUserPrivate(origin, u.Private)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.constrainUniqueEmail(app, u)
 	if err != nil {
 		return nil, err
 	}
@@ -296,9 +302,15 @@ func (c *UserController) Search(
 // Update stores the new attributes for the user.
 func (c *UserController) Update(
 	app *v04_entity.Application,
+	origin Origin,
 	old *user.User,
 	new *user.User,
 ) (*user.User, error) {
+	err := constrainUserPrivate(origin, new.Private)
+	if err != nil {
+		return nil, err
+	}
+
 	new.Enabled = true
 	new.ID = old.ID
 
@@ -318,6 +330,10 @@ func (c *UserController) Update(
 		if err != nil {
 			return nil, err
 		}
+	}
+
+	if new.Private == nil {
+		new.Private = old.Private
 	}
 
 	if old.Username != new.Username {
@@ -552,6 +568,17 @@ func (c *UserController) login(
 	}
 
 	return u, nil
+}
+
+func constrainUserPrivate(origin Origin, private *user.Private) error {
+	if !origin.IsBackend() && private != nil {
+		return wrapError(
+			ErrUnauthorized,
+			"private can only be set by backend integration",
+		)
+	}
+
+	return nil
 }
 
 func enrichRelation(

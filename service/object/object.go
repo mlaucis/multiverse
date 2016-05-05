@@ -129,6 +129,7 @@ type Object struct {
 	ObjectID    uint64       `json:"object_id"`
 	Owned       bool         `json:"owned"`
 	OwnerID     uint64       `json:"owner_id"`
+	Private     *Private     `json:"private,omitempty"`
 	Tags        []string     `json:"tags"`
 	Type        string       `json:"type"`
 	UpdatedAt   time.Time    `json:"updated_at"`
@@ -164,6 +165,11 @@ func (o *Object) Validate() error {
 	}
 
 	return nil
+}
+
+// Private is the bucket for protected fields on an Object.
+type Private struct {
+	Visible bool `json:"visible"`
 }
 
 // QueryOptions are passed to narrow down query for objects.

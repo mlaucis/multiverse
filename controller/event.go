@@ -34,11 +34,16 @@ func NewEventController(
 // Create stores a new event for the origin user.
 func (c *EventController) Create(
 	app *v04_entity.Application,
-	originID uint64,
+	origin Origin,
 	input *event.Event,
 ) (*event.Event, error) {
 	input.Enabled = true
-	input.UserID = originID
+	input.UserID = origin.UserID
+
+	err := constrainEventVisibility(origin, input.Visibility)
+	if err != nil {
+		return nil, err
+	}
 
 	event, err := c.events.Put(app.Namespace(), input)
 	if err != nil {
@@ -150,7 +155,7 @@ func (c *EventController) List(
 // Update stores an event with new values.
 func (c *EventController) Update(
 	app *v04_entity.Application,
-	originID uint64,
+	origin Origin,
 	id uint64,
 	input *event.Event,
 ) (*event.Event, error) {
@@ -160,7 +165,7 @@ func (c *EventController) Update(
 			id,
 		},
 		UserIDs: []uint64{
-			originID,
+			origin.UserID,
 		},
 	})
 	if err != nil {
@@ -178,10 +183,28 @@ func (c *EventController) Update(
 	e.Type = input.Type
 	e.Visibility = input.Visibility
 
+	err = constrainEventVisibility(origin, e.Visibility)
+	if err != nil {
+		return nil, err
+	}
+
 	event, err := c.events.Put(app.Namespace(), e)
 	if err != nil {
 		return nil, err
 	}
 
 	return event, nil
+}
+
+func constrainEventVisibility(
+	origin Origin,
+	visiblity event.Visibility,
+) error {
+	if !origin.IsBackend() && visiblity == event.VisibilityGlobal {
+		return wrapError(
+			ErrUnauthorized,
+			"global visibility can only be set by backend integration",
+		)
+	}
+	return nil
 }

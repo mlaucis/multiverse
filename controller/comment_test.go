@@ -12,16 +12,20 @@ import (
 )
 
 func TestCommentControllerCreate(t *testing.T) {
-	app, owner, c := testSetupCommentController(t)
+	var (
+		app, owner, c = testSetupCommentController(t)
+		origin        = Origin{
+			Integration: IntegrationApplication,
+			UserID:      owner.ID,
+		}
+	)
 
 	post, err := c.objects.Put(app.Namespace(), testPost(owner.ID).Object)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	created, err := c.Create(app, owner.ID, post.ID, object.Contents{
-		"en": "Do Like.",
-	})
+	created, err := c.Create(app, origin, post.ID, testComment(owner.ID, post))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -45,11 +49,41 @@ func TestCommentControllerCreate(t *testing.T) {
 		t.Errorf("have %v, want %v", have, want)
 	}
 
-	_, err = c.Create(app, owner.ID, 0, object.Contents{
-		"en": "Do not like.",
-	})
+	created.Attachments[0] = object.Attachment{
+		Contents: object.Contents{
+			"en": "Do not like.",
+		},
+	}
+
+	_, err = c.Create(app, origin, 0, created)
 	if have, want := err, ErrNotFound; have != want {
 		t.Fatalf("have %v, want %v", have, want)
+	}
+}
+
+func TestCommentCreateConstrainPrivate(t *testing.T) {
+	var (
+		app, owner, c = testSetupCommentController(t)
+		origin        = Origin{
+			Integration: IntegrationApplication,
+			UserID:      owner.ID,
+		}
+	)
+
+	post, err := c.objects.Put(app.Namespace(), testPost(owner.ID).Object)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	comment := testComment(owner.ID, post)
+	comment.Private = &object.Private{
+		Visible: true,
+	}
+
+	_, err = c.Create(app, origin, post.ID, comment)
+
+	if have, want := err, ErrUnauthorized; !IsUnauthorized(have) {
+		t.Errorf("have %v, want %v", have, want)
 	}
 }
 
@@ -161,16 +195,20 @@ func TestCommentControllerRetrieve(t *testing.T) {
 }
 
 func TestCommentControllerUpdate(t *testing.T) {
-	app, owner, c := testSetupCommentController(t)
+	var (
+		app, owner, c = testSetupCommentController(t)
+		origin        = Origin{
+			Integration: IntegrationApplication,
+			UserID:      owner.ID,
+		}
+	)
 
 	post, err := c.objects.Put(app.Namespace(), testPost(owner.ID).Object)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = c.Update(app, owner.ID, post.ID, 0, object.Contents{
-		"en": "Do not like.",
-	})
+	_, err = c.Update(app, origin, post.ID, 0, testComment(owner.ID, post))
 	if have, want := err, ErrNotFound; have != want {
 		t.Fatalf("have %v, want %v", have, want)
 	}
@@ -180,9 +218,7 @@ func TestCommentControllerUpdate(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	updated, err := c.Update(app, owner.ID, post.ID, created.ID, object.Contents{
-		"en": "Do not like!",
-	})
+	updated, err := c.Update(app, origin, post.ID, created.ID, testComment(owner.ID, post))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -203,6 +239,36 @@ func TestCommentControllerUpdate(t *testing.T) {
 	}
 
 	if have, want := cs[0], updated; !reflect.DeepEqual(have, want) {
+		t.Errorf("have %v, want %v", have, want)
+	}
+}
+
+func TestCommentUpdateConstrainPrivate(t *testing.T) {
+	var (
+		app, owner, c = testSetupCommentController(t)
+		origin        = Origin{
+			Integration: IntegrationApplication,
+			UserID:      owner.ID,
+		}
+	)
+
+	post, err := c.objects.Put(app.Namespace(), testPost(owner.ID).Object)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	created, err := c.Create(app, origin, post.ID, testComment(owner.ID, post))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	created.Private = &object.Private{
+		Visible: true,
+	}
+
+	_, err = c.Update(app, origin, post.ID, created.ID, created)
+
+	if have, want := err, ErrUnauthorized; !IsUnauthorized(have) {
 		t.Errorf("have %v, want %v", have, want)
 	}
 }
@@ -237,13 +303,6 @@ func TestCommentControllerExternalCreate(t *testing.T) {
 
 	if have, want := cs[0], created; !reflect.DeepEqual(have, want) {
 		t.Errorf("have %v, want %v", have, want)
-	}
-
-	_, err = c.Create(app, owner.ID, 0, object.Contents{
-		"en": "Do not like.",
-	})
-	if have, want := err, ErrNotFound; have != want {
-		t.Fatalf("have %v, want %v", have, want)
 	}
 }
 

@@ -22,6 +22,7 @@ func UserCreate(c *controller.UserController) Handler {
 		var (
 			currentApp = appFromContext(ctx)
 			p          = payloadUser{}
+			tokenType  = tokenTypeFromContext(ctx)
 			version    = versionFromContext(ctx)
 		)
 
@@ -31,7 +32,7 @@ func UserCreate(c *controller.UserController) Handler {
 			return
 		}
 
-		u, err := c.Create(currentApp, p.user)
+		u, err := c.Create(currentApp, createOrigin(tokenType, 0), p.user)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -281,6 +282,7 @@ func UserUpdate(c *controller.UserController) Handler {
 			currentApp  = appFromContext(ctx)
 			currentUser = userFromContext(ctx)
 			p           = payloadUser{}
+			tokenType   = tokenTypeFromContext(ctx)
 		)
 
 		err := json.NewDecoder(r.Body).Decode(&p)
@@ -289,7 +291,12 @@ func UserUpdate(c *controller.UserController) Handler {
 			return
 		}
 
-		u, err := c.Update(currentApp, currentUser, p.user)
+		u, err := c.Update(
+			currentApp,
+			createOrigin(tokenType, currentUser.ID),
+			currentUser,
+			p.user,
+		)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -366,6 +373,7 @@ func (p *payloadUser) MarshalJSON() ([]byte, error) {
 		IsFriend       bool                  `json:"is_friend"`
 		Lastname       string                `json:"last_name"`
 		Metadata       user.Metadata         `json:"metadata"`
+		Private        *user.Private         `json:"private"`
 		SessionToken   string                `json:"session_token,omitempty"`
 		SocialIDs      map[string]string     `json:"social_ids,omitempty"`
 		URL            string                `json:"url,omitempty"`
@@ -387,6 +395,7 @@ func (p *payloadUser) MarshalJSON() ([]byte, error) {
 		IsFriend:       p.user.IsFriend,
 		Lastname:       p.user.Lastname,
 		Metadata:       p.user.Metadata,
+		Private:        p.user.Private,
 		SessionToken:   p.user.SessionToken,
 		SocialIDs:      p.user.SocialIDs,
 		URL:            p.user.URL,
@@ -405,6 +414,7 @@ func (p *payloadUser) UnmarshalJSON(raw []byte) error {
 		Lastname  string                `json:"last_name"`
 		Metadata  user.Metadata         `json:"metadata"`
 		Password  string                `json:"password,omitempty"`
+		Private   *user.Private         `json:"private,omitempty"`
 		SocialIDs map[string]string     `json:"social_ids"`
 		URL       string                `json:"url,omitempty"`
 		Username  string                `json:"user_name"`
@@ -423,6 +433,7 @@ func (p *payloadUser) UnmarshalJSON(raw []byte) error {
 		Lastname:  f.Lastname,
 		Metadata:  f.Metadata,
 		Password:  f.Password,
+		Private:   f.Private,
 		SocialIDs: f.SocialIDs,
 		URL:       f.URL,
 		Username:  f.Username,
