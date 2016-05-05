@@ -22,7 +22,7 @@ func TestValidate(t *testing.T) {
 		{Email: validEmail, Password: validPassword, Username: generate.RandomString(1)},  // Username min length
 		{Email: validEmail, Password: validPassword, Username: generate.RandomString(41)}, // Username max length
 		{Email: validEmail, Password: ""},                                                 // Password empty
-		{Email: validEmail, URL: "foo\bar"},                                               // URL invalid
+		{Email: validEmail, Password: validPassword, URL: "foo\bar"},                      // URL invalid
 	}
 
 	for _, u := range us {

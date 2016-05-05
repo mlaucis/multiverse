@@ -82,6 +82,19 @@ type apiError struct {
 	Message string `json:"message"`
 }
 
+func createOrigin(tokenType string, userID uint64) controller.Origin {
+	integration := controller.IntegrationApplication
+
+	if tokenType == tokenBackend {
+		integration = controller.IntegrationBackend
+	}
+
+	return controller.Origin{
+		Integration: integration,
+		UserID:      userID,
+	}
+}
+
 func respondError(w http.ResponseWriter, code int, err error) {
 	statusCode := http.StatusInternalServerError
 

@@ -18,9 +18,10 @@ import (
 func EventCreate(c *controller.EventController) Handler {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		var (
-			app         = appFromContext(ctx)
+			currentApp  = appFromContext(ctx)
 			currentUser = userFromContext(ctx)
 			p           = payloadEvent{}
+			tokenType   = tokenTypeFromContext(ctx)
 		)
 
 		err := json.NewDecoder(r.Body).Decode(&p)
@@ -29,7 +30,11 @@ func EventCreate(c *controller.EventController) Handler {
 			return
 		}
 
-		event, err := c.Create(app, currentUser.ID, p.event)
+		event, err := c.Create(
+			currentApp,
+			createOrigin(tokenType, currentUser.ID),
+			p.event,
+		)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -133,9 +138,10 @@ func EventListUser(c *controller.EventController) Handler {
 func EventUpdate(c *controller.EventController) Handler {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		var (
-			app         = appFromContext(ctx)
+			currentApp  = appFromContext(ctx)
 			currentUser = userFromContext(ctx)
 			p           = payloadEvent{}
+			tokenType   = tokenTypeFromContext(ctx)
 		)
 
 		id, err := strconv.ParseUint(mux.Vars(r)["id"], 10, 64)
@@ -150,7 +156,12 @@ func EventUpdate(c *controller.EventController) Handler {
 			return
 		}
 
-		event, err := c.Update(app, currentUser.ID, id, p.event)
+		event, err := c.Update(
+			currentApp,
+			createOrigin(tokenType, currentUser.ID),
+			id,
+			p.event,
+		)
 		if err != nil {
 			respondError(w, 0, err)
 			return

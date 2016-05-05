@@ -18,9 +18,10 @@ import (
 func CommentCreate(c *controller.CommentController) Handler {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		var (
-			app         = appFromContext(ctx)
+			currentApp  = appFromContext(ctx)
 			currentUser = userFromContext(ctx)
 			p           = &payloadComment{}
+			tokenType   = tokenTypeFromContext(ctx)
 		)
 
 		postID, err := strconv.ParseUint(mux.Vars(r)["postID"], 10, 64)
@@ -35,7 +36,12 @@ func CommentCreate(c *controller.CommentController) Handler {
 			return
 		}
 
-		comment, err := c.Create(app, currentUser.ID, postID, p.contents)
+		comment, err := c.Create(
+			currentApp,
+			createOrigin(tokenType, currentUser.ID),
+			postID,
+			p.comment,
+		)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -140,9 +146,10 @@ func CommentRetrieve(c *controller.CommentController) Handler {
 func CommentUpdate(c *controller.CommentController) Handler {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		var (
-			app         = appFromContext(ctx)
+			currentApp  = appFromContext(ctx)
 			currentUser = userFromContext(ctx)
 			p           = &payloadComment{}
+			tokenType   = tokenTypeFromContext(ctx)
 		)
 
 		postID, err := strconv.ParseUint(mux.Vars(r)["postID"], 10, 64)
@@ -163,7 +170,13 @@ func CommentUpdate(c *controller.CommentController) Handler {
 			return
 		}
 
-		comment, err := c.Update(app, currentUser.ID, postID, commentID, p.contents)
+		comment, err := c.Update(
+			currentApp,
+			createOrigin(tokenType, currentUser.ID),
+			postID,
+			commentID,
+			p.comment,
+		)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -320,6 +333,7 @@ func (p *payloadComment) MarshalJSON() ([]byte, error) {
 		ExternalID string          `json:"external_id"`
 		ID         string          `json:"id"`
 		PostID     string          `json:"post_id"`
+		Private    *object.Private `json:"private,omitempty"`
 		UserID     string          `json:"user_id"`
 		CreatedAt  time.Time       `json:"created_at"`
 		UpdatedAt  time.Time       `json:"updated_at"`
@@ -329,6 +343,7 @@ func (p *payloadComment) MarshalJSON() ([]byte, error) {
 		ExternalID: c.ExternalID,
 		ID:         strconv.FormatUint(c.ID, 10),
 		PostID:     strconv.FormatUint(c.ObjectID, 10),
+		Private:    c.Private,
 		UserID:     strconv.FormatUint(c.OwnerID, 10),
 		CreatedAt:  c.CreatedAt,
 		UpdatedAt:  c.UpdatedAt,
@@ -336,14 +351,24 @@ func (p *payloadComment) MarshalJSON() ([]byte, error) {
 }
 
 func (p *payloadComment) UnmarshalJSON(raw []byte) error {
-	a := payloadAttachment{}
+	f := struct {
+		Contents map[string]string `json:"contents"`
+		Private  *object.Private   `json:"private,omitempty"`
+	}{}
 
-	err := json.Unmarshal(raw, &a)
+	err := json.Unmarshal(raw, &f)
 	if err != nil {
 		return err
 	}
 
-	p.contents = a.attachment.Contents
+	p.comment = &object.Object{
+		Attachments: []object.Attachment{
+			{
+				Contents: f.Contents,
+			},
+		},
+		Private: f.Private,
+	}
 
 	return nil
 }

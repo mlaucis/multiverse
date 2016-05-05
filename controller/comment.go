@@ -41,10 +41,15 @@ func NewCommentController(
 // Create associates the given Comment with the Post passed by id.
 func (c *CommentController) Create(
 	app *v04_entity.Application,
-	origin uint64,
+	origin Origin,
 	postID uint64,
-	contents object.Contents,
+	input *object.Object,
 ) (*object.Object, error) {
+	err := constrainCommentPrivate(origin, input.Private)
+	if err != nil {
+		return nil, err
+	}
+
 	ps, err := c.objects.Query(app.Namespace(), object.QueryOptions{
 		ID:    &postID,
 		Owned: &defaultOwned,
@@ -58,17 +63,21 @@ func (c *CommentController) Create(
 		return nil, ErrNotFound
 	}
 
-	if err := isPostVisible(c.connections, app, ps[0], origin); err != nil {
+	if err := isPostVisible(c.connections, app, ps[0], origin.UserID); err != nil {
 		return nil, err
 	}
 
 	return c.objects.Put(app.Namespace(), &object.Object{
 		Attachments: []object.Attachment{
-			object.NewTextAttachment(attachmentContent, contents),
+			object.NewTextAttachment(
+				attachmentContent,
+				input.Attachments[0].Contents,
+			),
 		},
 		ObjectID:   postID,
-		OwnerID:    origin,
+		OwnerID:    origin.UserID,
 		Owned:      true,
+		Private:    input.Private,
 		Type:       typeComment,
 		Visibility: ps[0].Visibility,
 	})
@@ -190,17 +199,22 @@ func (c *CommentController) Retrieve(
 // Update replaces the given comment with new values.
 func (c *CommentController) Update(
 	app *v04_entity.Application,
-	origin uint64,
+	origin Origin,
 	postID, commentID uint64,
-	contents object.Contents,
+	new *object.Object,
 ) (*object.Object, error) {
+	err := constrainCommentPrivate(origin, new.Private)
+	if err != nil {
+		return nil, err
+	}
+
 	cs, err := c.objects.Query(app.Namespace(), object.QueryOptions{
 		ID: &commentID,
 		ObjectIDs: []uint64{
 			postID,
 		},
 		OwnerIDs: []uint64{
-			origin,
+			origin.UserID,
 		},
 		Owned: &defaultOwned,
 		Types: []string{
@@ -215,11 +229,20 @@ func (c *CommentController) Update(
 		return nil, ErrNotFound
 	}
 
-	cs[0].Attachments = []object.Attachment{
-		object.NewTextAttachment(attachmentContent, contents),
+	old := cs[0]
+
+	old.Attachments = []object.Attachment{
+		object.NewTextAttachment(
+			attachmentContent,
+			new.Attachments[0].Contents,
+		),
 	}
 
-	return c.objects.Put(app.Namespace(), cs[0])
+	if origin.IsBackend() && new.Private != nil {
+		old.Private = new.Private
+	}
+
+	return c.objects.Put(app.Namespace(), old)
 }
 
 // ExternalCreate stores a comment with the given content associated with the
@@ -372,4 +395,14 @@ func (c *CommentController) ExternalUpdate(
 	}
 
 	return c.objects.Put(app.Namespace(), cs[0])
+}
+
+func constrainCommentPrivate(origin Origin, private *object.Private) error {
+	if !origin.IsBackend() && private != nil {
+		return wrapError(ErrUnauthorized,
+			"private can only be set by backend integration",
+		)
+	}
+
+	return nil
 }

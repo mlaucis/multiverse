@@ -52,6 +52,12 @@ func (m Map) Merge(x Map) Map {
 // Metadata is a bucket to provide additional user information.
 type Metadata map[string]interface{}
 
+// Private is the bucket for protected fields on a User.
+type Private struct {
+	Type     string `json:"type,omitempty"`
+	Verified bool   `json:"verified"`
+}
+
 // QueryOptions is used to narrow-down user queries.
 type QueryOptions struct {
 	CustomIDs []string
@@ -105,6 +111,7 @@ type User struct {
 	LastRead       time.Time         `json:"-"`
 	Metadata       Metadata          `json:"metadata"`
 	Password       string            `json:"password"`
+	Private        *Private          `json:"private,omitempty"`
 	SessionToken   string            `json:"-"`
 	SocialIDs      map[string]string `json:"social_ids,omitempty"`
 	URL            string            `json:"url,omitempty"`
