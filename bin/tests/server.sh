@@ -9,7 +9,7 @@ CWD=`pwd`
 
 for TEST_TARGET in "${TEST_TARGETS[@]}"
 do
-    declare -a VERSIONS=( "v02" "v03" )
+    declare -a VERSIONS=( "v03" )
     for VERSION in "${VERSIONS[@]}"
     do
         cd ${GOPATH}/src/github.com/tapglue/multiverse/${VERSION}/server/

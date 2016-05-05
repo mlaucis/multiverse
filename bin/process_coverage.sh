@@ -15,16 +15,12 @@ TEST_COMPONENT="intaker"
 if [ ${CIRCLE_BRANCH} == "master" ]
 then
     declare -A BUILD_MATRIX=( \
-        ["intaker_postgres_v02"]=true \
         ["intaker_postgres_v03"]=true \
-        ["intaker_redis_v02"]=false \
         ["intaker_redis_v03"]=true \
     )
 else
     declare -A BUILD_MATRIX=( \
-        ["intaker_postgres_v02"]=false \
         ["intaker_postgres_v03"]=false \
-        ["intaker_redis_v02"]=false \
         ["intaker_redis_v03"]=false \
     )
 fi
@@ -33,8 +29,7 @@ CWD=`pwd`
 
 for TEST_TARGET in "${TEST_TARGETS[@]}"
 do
-
-    declare -a VERSIONS=( "v02" "v03" )
+    declare -a VERSIONS=( "v03" )
     for VERSION in "${VERSIONS[@]}"
     do
         CURRENT_TEST_KEY="${TEST_COMPONENT}_${TEST_TARGET}_${VERSION}"

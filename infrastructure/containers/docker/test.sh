@@ -19,7 +19,7 @@ CONTAINER_PROJECT_GOPATH="${CONTAINER_PROJECT_DIR}/${VENDOR_DIR}:${CONTAINER_GOP
 if [ ${TEST_COMPONENT} == "object" ]
 then
     rm -f output.log
-  
+
     docker run --rm \
         --net="host" \
         -v ${PROJECT_DIR}:${CONTAINER_PROJECT_DIR} \
@@ -34,7 +34,7 @@ then
     cat output.log | grep -v 'WARNING: DATA RACE'
 
     rm -f output.log
-    
+
     docker run --rm \
         --net="host" \
         -v ${PROJECT_DIR}:${CONTAINER_PROJECT_DIR} \
@@ -44,10 +44,10 @@ then
         -w "${CONTAINER_PROJECT_DIR}" \
         golang:1.5.3 \
         go test -v -race -tags integration ./service/object -postgres.url="postgres://ubuntu:unicode@127.0.0.1/circle_test?sslmode-disable" 2> output.log
-    
+
     # Check for race conditions as we don't have a proper exit code for them from the tool
     cat output.log | grep -v 'WARNING: DATA RACE'
-    
+
     exit $?
 fi
 
@@ -71,15 +71,13 @@ then
     exit $?
 fi
 
-declare -a VERSIONS=( "v02" "v03" "v04" )
+declare -a VERSIONS=( "v03" "v04" )
 
 if [ ${CIRCLE_BRANCH} == "master" ]
 then
     declare -A TEST_MATRIX=( \
-        ["intaker_postgres_v02"]=false \
         ["intaker_postgres_v03"]=true \
         ["intaker_postgres_v04"]=true \
-        ["intaker_redis_v02"]=false \
         ["intaker_redis_v03"]=true \
         ["intaker_redis_v04"]=true \
     )
@@ -90,10 +88,8 @@ then
     )
 else
     declare -A TEST_MATRIX=( \
-        ["intaker_postgres_v02"]=false \
         ["intaker_postgres_v03"]=true \
         ["intaker_postgres_v04"]=true \
-        ["intaker_redis_v02"]=false \
         ["intaker_redis_v03"]=false \
         ["intaker_redis_v04"]=false \
     )

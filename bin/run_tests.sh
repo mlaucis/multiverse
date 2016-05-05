@@ -41,15 +41,13 @@ then
     exit $?
 fi
 
-declare -a VERSIONS=( "v02" "v03" "v04" )
+declare -a VERSIONS=( "v03" "v04" )
 
 if [ ${CIRCLE_BRANCH} == "master" ]
 then
     declare -A TEST_MATRIX=( \
-        ["intaker_postgres_v02"]=false \
         ["intaker_postgres_v03"]=true \
         ["intaker_postgres_v04"]=false \
-        ["intaker_redis_v02"]=false \
         ["intaker_redis_v03"]=false \
         ["intaker_redis_v04"]=false \
     )
@@ -60,10 +58,8 @@ then
     )
 else
     declare -A TEST_MATRIX=( \
-        ["intaker_postgres_v02"]=false \
         ["intaker_postgres_v03"]=true \
         ["intaker_postgres_v04"]=false \
-        ["intaker_redis_v02"]=false \
         ["intaker_redis_v03"]=false \
         ["intaker_redis_v04"]=false \
     )
