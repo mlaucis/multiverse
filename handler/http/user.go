@@ -95,6 +95,10 @@ func UserLogin(c *controller.UserController) Handler {
 
 			u, err = c.LoginUsername(app, p.username, p.password)
 			if err != nil {
+				if !controller.IsNotFound(err) {
+					respondError(w, 1001, fmt.Errorf("application user not found"))
+				}
+
 				respondError(w, 0, err)
 				return
 			}
