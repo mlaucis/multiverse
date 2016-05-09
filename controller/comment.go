@@ -63,15 +63,7 @@ func (c *CommentController) Create(
 		return nil, ErrNotFound
 	}
 
-	if err := input.Validate(); err != nil {
-		return nil, wrapError(ErrInvalidEntity, "invalid Comment: %s", err)
-	}
-
-	if err := isPostVisible(c.connections, app, ps[0], origin.UserID); err != nil {
-		return nil, err
-	}
-
-	return c.objects.Put(app.Namespace(), &object.Object{
+	comment := &object.Object{
 		Attachments: []object.Attachment{
 			object.NewTextAttachment(
 				attachmentContent,
@@ -84,7 +76,17 @@ func (c *CommentController) Create(
 		Private:    input.Private,
 		Type:       typeComment,
 		Visibility: ps[0].Visibility,
-	})
+	}
+
+	if err := comment.Validate(); err != nil {
+		return nil, wrapError(ErrInvalidEntity, "invalid Comment: %s", err)
+	}
+
+	if err := isPostVisible(c.connections, app, ps[0], origin.UserID); err != nil {
+		return nil, err
+	}
+
+	return c.objects.Put(app.Namespace(), comment)
 }
 
 // Delete flags the Comment as deleted.
