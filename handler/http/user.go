@@ -95,8 +95,9 @@ func UserLogin(c *controller.UserController) Handler {
 
 			u, err = c.LoginUsername(app, p.username, p.password)
 			if err != nil {
-				if !controller.IsNotFound(err) {
-					respondError(w, 1001, fmt.Errorf("application user not found"))
+				if controller.IsNotFound(err) {
+					respondError(w, 1001, wrapError(ErrUnauthorized, "application user not found"))
+					return
 				}
 
 				respondError(w, 0, err)
