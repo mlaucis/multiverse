@@ -115,6 +115,10 @@ func (c *PostController) Create(
 	post.Owned = defaultOwned
 	post.Type = typePost
 
+	if err := post.Validate(); err != nil {
+		return nil, wrapError(ErrInvalidEntity, "invalid Post: %s", err)
+	}
+
 	err := constrainPostVisibility(origin, post.Visibility)
 	if err != nil {
 		return nil, err
