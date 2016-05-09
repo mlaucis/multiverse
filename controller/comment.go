@@ -63,6 +63,10 @@ func (c *CommentController) Create(
 		return nil, ErrNotFound
 	}
 
+	if err := input.Validate(); err != nil {
+		return nil, wrapError(ErrInvalidEntity, "invalid Comment: %s", err)
+	}
+
 	if err := isPostVisible(c.connections, app, ps[0], origin.UserID); err != nil {
 		return nil, err
 	}
@@ -253,7 +257,7 @@ func (c *CommentController) ExternalCreate(
 	externalID string,
 	contents object.Contents,
 ) (*object.Object, error) {
-	return c.objects.Put(app.Namespace(), &object.Object{
+	comment := &object.Object{
 		Attachments: []object.Attachment{
 			object.NewTextAttachment(attachmentContent, contents),
 		},
@@ -262,7 +266,13 @@ func (c *CommentController) ExternalCreate(
 		Owned:      true,
 		Type:       typeComment,
 		Visibility: object.VisibilityPublic,
-	})
+	}
+
+	if err := comment.Validate(); err != nil {
+		return nil, wrapError(ErrInvalidEntity, "invalid Comment: %s", err)
+	}
+
+	return c.objects.Put(app.Namespace(), comment)
 }
 
 // ExternalDelete flags the Comment as deleted.
