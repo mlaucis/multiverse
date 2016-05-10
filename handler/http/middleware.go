@@ -320,7 +320,7 @@ func Instrument(
 		return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 			var (
 				begin     = time.Now()
-				resr      = &responseRecorder{ResponseWriter: w}
+				resr      = newResponseRecorder(w)
 				routeName = routeFromContext(ctx)
 				version   = versionFromContext(ctx)
 			)
@@ -361,7 +361,7 @@ func Log(logger log.Logger) Middleware {
 			var (
 				begin   = time.Now()
 				reqr    = newRequestRecorder(r)
-				resr    = &responseRecorder{ResponseWriter: w}
+				resr    = newResponseRecorder(w)
 				route   = routeFromContext(ctx)
 				version = versionFromContext(ctx)
 			)
@@ -509,27 +509,24 @@ func newRequestRecorder(r *http.Request) *requestRecorder {
 type responseRecorder struct {
 	http.ResponseWriter `json:"-"`
 
-	body          []byte
 	contentLength int
 	statusCode    int
 }
 
-func (rc *responseRecorder) MarshalJSON() ([]byte, error) {
-	payload := ""
-
-	if rc.statusCode >= 400 {
-		payload = string(rc.body)
+func newResponseRecorder(w http.ResponseWriter) *responseRecorder {
+	return &responseRecorder{
+		ResponseWriter: w,
 	}
+}
 
+func (rc *responseRecorder) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
 		ContentLength int                 `json:"contentLength"`
 		Headers       map[string][]string `json:"header"`
-		Payload       string              `json:"payload"`
 		StatusCode    int                 `json:"statusCode"`
 	}{
 		ContentLength: rc.contentLength,
 		Headers:       rc.ResponseWriter.Header(),
-		Payload:       payload,
 		StatusCode:    rc.statusCode,
 	})
 }
@@ -538,12 +535,6 @@ func (rc *responseRecorder) Write(b []byte) (int, error) {
 	n, err := rc.ResponseWriter.Write(b)
 
 	rc.contentLength += n
-
-	if rc.body == nil {
-		rc.body = []byte{}
-	}
-
-	rc.body = append(rc.body, b...)
 
 	return n, err
 }
