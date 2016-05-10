@@ -510,23 +510,33 @@ type responseRecorder struct {
 	http.ResponseWriter `json:"-"`
 
 	contentLength int
+	body          []byte
 	statusCode    int
 }
 
 func newResponseRecorder(w http.ResponseWriter) *responseRecorder {
 	return &responseRecorder{
+		body:           []byte{},
 		ResponseWriter: w,
 	}
 }
 
 func (rc *responseRecorder) MarshalJSON() ([]byte, error) {
+	var payload string
+
+	if rc.statusCode >= 400 {
+		payload = strings.Replace(string(rc.body), "\n", "", -1)
+	}
+
 	return json.Marshal(struct {
 		ContentLength int                 `json:"contentLength"`
 		Headers       map[string][]string `json:"header"`
+		Payload       string              `json:"payload,omitempty"`
 		StatusCode    int                 `json:"statusCode"`
 	}{
 		ContentLength: rc.contentLength,
 		Headers:       rc.ResponseWriter.Header(),
+		Payload:       payload,
 		StatusCode:    rc.statusCode,
 	})
 }
@@ -535,6 +545,8 @@ func (rc *responseRecorder) Write(b []byte) (int, error) {
 	n, err := rc.ResponseWriter.Write(b)
 
 	rc.contentLength += n
+
+	rc.body = append(rc.body, b...)
 
 	return n, err
 }
