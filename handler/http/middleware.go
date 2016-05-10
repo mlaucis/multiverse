@@ -515,22 +515,16 @@ type responseRecorder struct {
 }
 
 func (rc *responseRecorder) MarshalJSON() ([]byte, error) {
-	var payload interface{}
+	payload := ""
 
 	if rc.statusCode >= 400 {
-		f := struct {
-			Errors []apiError `json:"errors"`
-		}{}
-
-		_ = json.Unmarshal(rc.body, &f)
-
-		payload = f
+		payload = string(rc.body)
 	}
 
 	return json.Marshal(struct {
 		ContentLength int                 `json:"contentLength"`
 		Headers       map[string][]string `json:"header"`
-		Payload       interface{}         `json:"payload"`
+		Payload       string              `json:"payload"`
 		StatusCode    int                 `json:"statusCode"`
 	}{
 		ContentLength: rc.contentLength,
