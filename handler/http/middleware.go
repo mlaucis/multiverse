@@ -526,7 +526,7 @@ func (rc *responseRecorder) MarshalJSON() ([]byte, error) {
 
 	if rc.statusCode >= 400 {
 		f := struct {
-			Errors []apiError `errors`
+			Errors []apiError `json:"errors"`
 		}{}
 
 		err := json.Unmarshal(rc.body, &f)
