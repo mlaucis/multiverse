@@ -2,6 +2,7 @@ package http
 
 import (
 	"compress/gzip"
+	"encoding/base64"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -525,7 +526,7 @@ func (rc *responseRecorder) MarshalJSON() ([]byte, error) {
 	var payload string
 
 	if rc.statusCode >= 400 {
-		payload = strings.Replace(string(rc.body), "\n", "", -1)
+		payload = base64.StdEncoding.EncodeToString(rc.body)
 	}
 
 	return json.Marshal(struct {
