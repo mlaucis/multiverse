@@ -377,8 +377,8 @@ func (p *payloadUser) MarshalJSON() ([]byte, error) {
 		IsFollowing    bool                  `json:"is_followed"`
 		IsFriend       bool                  `json:"is_friend"`
 		Lastname       string                `json:"last_name"`
-		Metadata       user.Metadata         `json:"metadata"`
-		Private        *user.Private         `json:"private"`
+		Metadata       user.Metadata         `json:"metadata,omitempty"`
+		Private        *user.Private         `json:"private,omitempty"`
 		SessionToken   string                `json:"session_token,omitempty"`
 		SocialIDs      map[string]string     `json:"social_ids,omitempty"`
 		URL            string                `json:"url,omitempty"`
@@ -417,7 +417,7 @@ func (p *payloadUser) UnmarshalJSON(raw []byte) error {
 		Firstname string                `json:"first_name"`
 		Images    map[string]user.Image `json:"images,omitempty"`
 		Lastname  string                `json:"last_name"`
-		Metadata  user.Metadata         `json:"metadata"`
+		Metadata  user.Metadata         `json:"metadata,omitempty"`
 		Password  string                `json:"password,omitempty"`
 		Private   *user.Private         `json:"private,omitempty"`
 		SocialIDs map[string]string     `json:"social_ids"`
