@@ -2,7 +2,6 @@ package http
 
 import (
 	"compress/gzip"
-	"encoding/base64"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -523,21 +522,30 @@ func newResponseRecorder(w http.ResponseWriter) *responseRecorder {
 }
 
 func (rc *responseRecorder) MarshalJSON() ([]byte, error) {
-	var payload string
+	var errors []apiError
 
 	if rc.statusCode >= 400 {
-		payload = base64.StdEncoding.EncodeToString(rc.body)
+		f := struct {
+			Errors []apiError `errors`
+		}{}
+
+		err := json.Unmarshal(rc.body, &f)
+		if err != nil {
+			panic(err)
+		}
+
+		errors = f.Errors
 	}
 
 	return json.Marshal(struct {
 		ContentLength int                 `json:"contentLength"`
+		Errors        []apiError          `json:"errors,omitempty"`
 		Headers       map[string][]string `json:"header"`
-		Payload       string              `json:"payload,omitempty"`
 		StatusCode    int                 `json:"statusCode"`
 	}{
 		ContentLength: rc.contentLength,
+		Errors:        errors,
 		Headers:       rc.ResponseWriter.Header(),
-		Payload:       payload,
 		StatusCode:    rc.statusCode,
 	})
 }
