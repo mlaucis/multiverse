@@ -46,12 +46,20 @@ func (c *UserController) Create(
 
 	err = c.constrainUniqueEmail(app, u)
 	if err != nil {
-		return nil, err
+		if !IsInvalidEntity(err) {
+			return nil, err
+		}
+
+		return c.LoginEmail(app, u.Email, u.Password)
 	}
 
 	err = c.constrainUniqueUsername(app, u)
 	if err != nil {
-		return nil, err
+		if !IsInvalidEntity(err) {
+			return nil, err
+		}
+
+		return c.LoginUsername(app, u.Username, u.Password)
 	}
 
 	epw, err := passwordSecure(u.Password)
