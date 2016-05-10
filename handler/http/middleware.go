@@ -2,6 +2,7 @@ package http
 
 import (
 	"compress/gzip"
+	"encoding/json"
 	"io"
 	"net/http"
 	"strconv"
@@ -327,7 +328,7 @@ func Instrument(
 			next(ctx, resr, r)
 
 			var (
-				status = strconv.Itoa(resr.StatusCode)
+				status = strconv.Itoa(resr.statusCode)
 				route  = metrics.Field{
 					Key:   "route",
 					Value: routeName,
@@ -343,7 +344,7 @@ func Instrument(
 			)
 
 			requestCount.With(route).With(s).With(v).Add(1)
-			responseBytes.With(route).With(s).With(v).Add(uint64(resr.ContentLength))
+			responseBytes.With(route).With(s).With(v).Add(uint64(resr.contentLength))
 			requestLatency.With(prometheus.Labels{
 				"route":   routeName,
 				"status":  status,
@@ -366,8 +367,6 @@ func Log(logger log.Logger) Middleware {
 			)
 
 			next(ctx, resr, r)
-
-			resr.Headers = w.Header()
 
 			logger.Log(
 				"duration_ns", time.Since(begin).Nanoseconds(),
@@ -510,20 +509,52 @@ func newRequestRecorder(r *http.Request) *requestRecorder {
 type responseRecorder struct {
 	http.ResponseWriter `json:"-"`
 
-	Headers       map[string][]string `json:"header"`
-	ContentLength int                 `json:"contentLength"`
-	StatusCode    int                 `json:"statusCode"`
+	body          []byte
+	contentLength int
+	statusCode    int
+}
+
+func (rc *responseRecorder) MarshalJSON() ([]byte, error) {
+	var payload interface{}
+
+	if rc.statusCode >= 400 {
+		f := struct {
+			Errors []apiError `json:"errors"`
+		}{}
+
+		_ = json.Unmarshal(rc.body, &f)
+
+		payload = f
+	}
+
+	return json.Marshal(struct {
+		ContentLength int                 `json:"contentLength"`
+		Headers       map[string][]string `json:"header"`
+		Payload       interface{}         `json:"payload"`
+		StatusCode    int                 `json:"statusCode"`
+	}{
+		ContentLength: rc.contentLength,
+		Headers:       rc.ResponseWriter.Header(),
+		Payload:       payload,
+		StatusCode:    rc.statusCode,
+	})
 }
 
 func (rc *responseRecorder) Write(b []byte) (int, error) {
 	n, err := rc.ResponseWriter.Write(b)
 
-	rc.ContentLength += n
+	rc.contentLength += n
+
+	if rc.body == nil {
+		rc.body = []byte{}
+	}
+
+	rc.body = append(rc.body, b...)
 
 	return n, err
 }
 
 func (rc *responseRecorder) WriteHeader(code int) {
-	rc.StatusCode = code
+	rc.statusCode = code
 	rc.ResponseWriter.WriteHeader(code)
 }
