@@ -10,8 +10,24 @@ const (
 	FieldMethod    = "method"
 	FieldNamespace = "namespace"
 	FieldService   = "service"
+	FieldSource    = "source"
 	FieldStore     = "store"
 )
+
+// BucketsQueue are used for Histograms observing queue latencies.
+var BucketsQueue = []float64{
+	.0005,
+	.001,
+	.0025,
+	.005,
+	.01,
+	.025,
+	.05,
+	.1,
+	.25,
+	.5,
+	1,
+}
 
 // BucketByDay is expected to be satisfied by various entity implementations.
 type BucketByDay interface {

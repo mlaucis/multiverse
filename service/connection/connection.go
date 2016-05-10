@@ -31,6 +31,11 @@ type Connection struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
+// Consumer observes state changes.
+type Consumer interface {
+	Consume() (*StateChange, error)
+}
+
 // Validate performs checks on the Connection values for completeness and
 // correctness.
 func (c Connection) Validate() error {
@@ -84,6 +89,11 @@ func (l List) ToIDs() []uint64 {
 	return ids
 }
 
+// Producer creates state change notifications.
+type Producer interface {
+	Propagate(namespace string, old, new *Connection) (string, error)
+}
+
 // QueryOptions are used to narrow down Connection queries.
 type QueryOptions struct {
 	Enabled *bool
@@ -108,6 +118,24 @@ type ServiceMiddleware func(Service) Service
 
 // State of a connection request.
 type State string
+
+// StateChange transports all information necessary to observe state changes.
+type StateChange struct {
+	ID        string
+	Namespace string
+	New       *Connection
+	Old       *Connection
+	SentAt    time.Time
+}
+
+// Source encapsulates state change notification operations.
+type Source interface {
+	Consumer
+	Producer
+}
+
+// SourceMiddleware is a chainable behaviour modifier for Source.
+type SourceMiddleware func(Source) Source
 
 // Type of a user relation.
 type Type string

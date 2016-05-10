@@ -13,8 +13,8 @@ type logService struct {
 	next   Service
 }
 
-// LogMiddleware given a Logger wraps the next Service with logging capabilities.
-func LogMiddleware(logger log.Logger, store string) ServiceMiddleware {
+// LogServiceMiddleware given a Logger wraps the next Service with logging capabilities.
+func LogServiceMiddleware(logger log.Logger, store string) ServiceMiddleware {
 	return func(next Service) Service {
 		logger = log.NewContext(logger).With(
 			"service", "connection",
@@ -146,4 +146,70 @@ func (s *logService) Teardown(ns string) (err error) {
 	}(time.Now())
 
 	return s.next.Teardown(ns)
+}
+
+type logSource struct {
+	logger log.Logger
+	next   Source
+}
+
+// LogSourceMiddleware given a Logger wraps the next Source with logging capabilities.
+func LogSourceMiddleware(store string, logger log.Logger) SourceMiddleware {
+	return func(next Source) Source {
+		logger = log.NewContext(logger).With(
+			"source", "connection",
+			"store", store,
+		)
+
+		return &logSource{
+			logger: logger,
+			next:   next,
+		}
+	}
+}
+
+func (s *logSource) Consume() (change *StateChange, err error) {
+	defer func(begin time.Time) {
+		ps := []interface{}{
+			"duration_ns", time.Since(begin).Nanoseconds(),
+			"method", "Consume",
+		}
+
+		if change != nil {
+			ps = append(ps,
+				"namespace", change.Namespace,
+				"connection_new", change.New,
+				"connection_old", change.Old,
+			)
+		}
+
+		if err != nil {
+			ps = append(ps, "err", err)
+		}
+
+		_ = s.logger.Log(ps...)
+	}(time.Now())
+
+	return s.next.Consume()
+}
+
+func (s *logSource) Propagate(ns string, old, new *Connection) (id string, err error) {
+	defer func(begin time.Time) {
+		ps := []interface{}{
+			"connection_new", new,
+			"connection_old", old,
+			"duration_ns", time.Since(begin).Nanoseconds(),
+			"id", id,
+			"method", "Propagate",
+			"namespace", ns,
+		}
+
+		if err != nil {
+			ps = append(ps, "err", err)
+		}
+
+		_ = s.logger.Log(ps...)
+	}(time.Now())
+
+	return s.next.Propagate(ns, old, new)
 }

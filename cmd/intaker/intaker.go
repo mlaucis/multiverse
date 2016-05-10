@@ -20,6 +20,11 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws/credentials"
+
+	"github.com/aws/aws-sdk-go/aws"
+	awsSession "github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/sqs"
 	klog "github.com/go-kit/kit/log"
 	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
 	"github.com/prometheus/client_golang/prometheus"
@@ -53,6 +58,13 @@ const (
 	apiVersionNext   = "0.4"
 	component        = "intaker"
 	subsystemService = "service"
+	subsystemSource  = "source"
+)
+
+// Supported source types.
+const (
+	sourceNop = "nop"
+	sourceSQS = "sqs"
 )
 
 var (
@@ -79,6 +91,10 @@ func init() {
 
 func main() {
 	var (
+		awsID      = flag.String("aws.id", "", "Identifier for AWS requests")
+		awsRegion  = flag.String("aws.region", "us-east-1", "AWS Region to operate in")
+		awsSecrect = flag.String("aws.secret", "", "Identification secret for AWS requests")
+		source     = flag.String("source", sourceNop, "Source type used for state change propagations")
 		forceNoSec = flag.Bool("force-no-sec", false, "Force no sec enables launching the backend in production without security checks")
 	)
 	flag.Parse()
@@ -163,7 +179,90 @@ func main() {
 		serviceFieldKeys,
 	)
 
+	sourceFieldKeys := []string{
+		metrics.FieldMethod,
+		metrics.FieldNamespace,
+		metrics.FieldSource,
+		metrics.FieldStore,
+	}
+
+	sourceErrCount := kitprometheus.NewCounter(prometheus.CounterOpts{
+		Namespace: component,
+		Subsystem: subsystemSource,
+		Name:      "err_count",
+		Help:      "Number of failed source operations",
+	}, sourceFieldKeys)
+
+	sourceOpCount := kitprometheus.NewCounter(prometheus.CounterOpts{
+		Namespace: component,
+		Subsystem: subsystemSource,
+		Name:      "op_count",
+		Help:      "Number of source operations performed",
+	}, sourceFieldKeys)
+
+	sourceOpLatency := prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: component,
+			Subsystem: subsystemSource,
+			Name:      "op_latency_seconds",
+			Help:      "Distribution of source op duration in seconds",
+		},
+		sourceFieldKeys,
+	)
+
+	sourceQueueLatency := prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: component,
+			Subsystem: subsystemSource,
+			Name:      "queue_latency_seconds",
+			Help:      "Distribution of message queue latency in seconds",
+			Buckets:   metrics.BucketsQueue,
+		},
+		sourceFieldKeys,
+	)
+
 	prometheus.MustRegister(serviceOpLatency)
+
+	// Setup sources
+	var (
+		aSession = awsSession.New(&aws.Config{
+			Credentials: credentials.NewStaticCredentials(*awsID, *awsSecrect, ""),
+			Region:      aws.String(*awsRegion),
+		})
+		sqsAPI = sqs.New(aSession)
+
+		conSource connection.Source
+	)
+
+	switch *source {
+	case sourceNop:
+		conSource = connection.NopSource()
+	case sourceSQS:
+		res, err := sqsAPI.GetQueueUrl(&sqs.GetQueueUrlInput{
+			QueueName: aws.String("connection-state-changes"),
+		})
+		if err != nil {
+			logger.Log("err", err, "lifecycle", "abort")
+			os.Exit(1)
+		}
+
+		conSource = connection.SQSSource(sqsAPI, *res.QueueUrl)
+	default:
+		logger.Log(
+			"err", fmt.Sprintf("unsupported Source type %s", *source),
+			"lifecycle", "abort",
+		)
+		os.Exit(1)
+	}
+
+	conSource = connection.InstrumentSourceMiddleware(
+		*source,
+		sourceErrCount,
+		sourceOpCount,
+		sourceOpLatency,
+		sourceQueueLatency,
+	)(conSource)
+	conSource = connection.LogSourceMiddleware(*source, logger)(conSource)
 
 	// Setup services
 	var (
@@ -180,8 +279,10 @@ func main() {
 
 	var connections connection.Service
 	connections = connection.NewPostgresService(pgClient.MainDatastore())
-	connections = connection.InstrumentMiddleware("postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(connections)
-	connections = connection.LogMiddleware(logger, "postgres")(connections)
+	connections = connection.InstrumentServiceMiddleware("postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(connections)
+	connections = connection.LogServiceMiddleware(logger, "postgres")(connections)
+	// Combine connection service and source.
+	connections = connection.SourcingServiceMiddleware(conSource)(connections)
 
 	var events event.Service
 	events = event.NewPostgresService(pgClient.MainDatastore())
