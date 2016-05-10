@@ -48,6 +48,27 @@ resource "aws_iam_role_policy" "ecs-agent" {
 EOF
 }
 
+resource "aws_iam_role_policy" "ecs-sqs" {
+  name    = "ecs-sqs"
+  role    = "${aws_iam_role.esc-agent.id}"
+  policy  = <<EOF
+{
+   "Version": "2012-10-17",
+   "Statement":[{
+      "Effect":"Allow",
+      "Action": [
+        "sqs:SendMessage",
+        "sqs:ReceiveMessage",
+        "sqs:GetQueueUrl"
+      ],
+      "Resource":"arn:aws:sqs:*:775034650473:*"
+      }
+   ]
+}
+EOF
+}
+
+
 resource "aws_iam_role" "ecs-scheduler" {
   name                = "ecs-scheduler"
   assume_role_policy  = <<EOF
