@@ -366,16 +366,15 @@ resource "aws_ecs_task_definition" "gateway-http" {
 [
   {
     "command": [
-      "./gateway-http"
+      "./gateway-http",
+      "-aws.id", "${aws_iam_access_key.state-change-sr.id}",
+      "-aws.secret", "${aws_iam_access_key.state-change-sr.secret}",
+      "-aws.region", "${var.vpc-region}",
+      "-source", "sqs"
     ],
     "cpu": 512,
     "dnsSearchDomains": [
       "${var.env}.${var.region}"
-    ],
-    "environment": [
-      { "name": "AWS_ID", "value": "${aws_iam_access_key.state-change-sr.id}" },
-      { "name": "AWS_SECRET", "value": "${aws_iam_access_key.state-change-sr.secret}" },
-      { "name": "AWS_REGION", "value": "${var.vpc-region}" }
     ],
     "essential": true,
     "image": "775034650473.dkr.ecr.us-east-1.amazonaws.com/gateway-http:${var.version.gateway-http}",
