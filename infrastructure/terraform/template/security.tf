@@ -48,27 +48,6 @@ resource "aws_iam_role_policy" "ecs-agent" {
 EOF
 }
 
-resource "aws_iam_role_policy" "ecs-sqs" {
-  name    = "ecs-sqs"
-  role    = "${aws_iam_role.esc-agent.id}"
-  policy  = <<EOF
-{
-   "Version": "2012-10-17",
-   "Statement":[{
-      "Effect":"Allow",
-      "Action": [
-        "sqs:SendMessage",
-        "sqs:ReceiveMessage",
-        "sqs:GetQueueUrl"
-      ],
-      "Resource":"arn:aws:sqs:*:775034650473:*"
-      }
-   ]
-}
-EOF
-}
-
-
 resource "aws_iam_role" "ecs-scheduler" {
   name                = "ecs-scheduler"
   assume_role_policy  = <<EOF
@@ -133,6 +112,35 @@ resource "aws_security_group" "perimeter" {
 resource "aws_key_pair" "debug" {
   key_name    = "debug"
   public_key  = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCuFsJxH52k7iI4mseWljlbQhwIfbpVPuDCTOBo6YtI7xL3f3jfme4fqziwt+iqavRW2MgGsgoYGITNYstZa5zzT4Zo6CTZ0XpeLYZrrXQOxXrXjesRA478bCsU4gpCrPiy5Uzw3e2d1HLF/deLjnmREshzqaEQKoL8tzG51esBTIna+M5aWD0AGPFotO3J2sFTRnbAIxeVj4bKWAfaE2+WG1MX1VemDGeGrHmW6UbPoymHOD7Y5c/F00Bv+Pgk5LwCyRCvEzMLbl2GHpEJd3vcouwEToyADlN1rXc+85SfVtlwS8F3fX6vqjQ/2fMzG4syaDEeUJLsBcE2glNIwDH/ debug"
+}
+
+resource "aws_iam_user" "state-change-sr" {
+  name  = "state-change-sr"
+  path  = "/"
+}
+
+resource "aws_iam_user_policy" "state-change-sr" {
+  name  = "state-change-sr"
+  user  = "${aws_iam_user.state-change-sr.name}"
+  policy  = <<EOF
+{
+   "Version": "2012-10-17",
+   "Statement":[{
+      "Effect":"Allow",
+      "Action": [
+        "sqs:SendMessage",
+        "sqs:ReceiveMessage",
+        "sqs:GetQueueUrl"
+      ],
+      "Resource":"arn:aws:sqs:*:775034650473:*-state-change"
+      }
+   ]
+}
+EOF
+}
+
+resource "aws_iam_access_key" "state-change-sr" {
+  user  = "${aws_iam_user.state-change-sr.name}"
 }
 
 resource "aws_security_group_rule" "perimeter_cloudflare_https_in" {
