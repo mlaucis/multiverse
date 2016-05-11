@@ -1,7 +1,12 @@
-resource "aws_iam_role_policy" "ecsSQSSendReceiver" {
-    name    = "ecsSQSSendReceiver"
-    role    = "${aws_iam_role.ecsInstance.id}"
-    policy  = <<EOF
+resource "aws_iam_user" "state-change-sr" {
+  name  = "state-change-sr"
+  path  = "/"
+}
+
+resource "aws_iam_user_policy" "state-change-sr" {
+  name  = "state-change-sr"
+  user  = "${aws_iam_user.state-change-sr.name}"
+  policy  = <<EOF
 {
    "Version": "2012-10-17",
    "Statement":[{
@@ -16,6 +21,10 @@ resource "aws_iam_role_policy" "ecsSQSSendReceiver" {
    ]
 }
 EOF
+}
+
+resource "aws_iam_access_key" "state-change-sr" {
+  user  = "${aws_iam_user.state-change-sr.name}"
 }
 
 resource "aws_sqs_queue" "connection-state-change-dlq" {
