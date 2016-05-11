@@ -239,7 +239,7 @@ func main() {
 		conSource = connection.NopSource()
 	case sourceSQS:
 		res, err := sqsAPI.GetQueueUrl(&sqs.GetQueueUrlInput{
-			QueueName: aws.String("connection-state-changes"),
+			QueueName: aws.String("connection-state-change"),
 		})
 		if err != nil {
 			logger.Log("err", err, "lifecycle", "abort")
