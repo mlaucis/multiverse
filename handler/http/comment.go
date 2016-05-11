@@ -352,6 +352,7 @@ func (p *payloadComment) MarshalJSON() ([]byte, error) {
 
 func (p *payloadComment) UnmarshalJSON(raw []byte) error {
 	f := struct {
+		Content  string            `json:"content"`
 		Contents map[string]string `json:"contents"`
 		Private  *object.Private   `json:"private,omitempty"`
 	}{}
@@ -359,6 +360,16 @@ func (p *payloadComment) UnmarshalJSON(raw []byte) error {
 	err := json.Unmarshal(raw, &f)
 	if err != nil {
 		return err
+	}
+
+	if f.Contents == nil {
+		if f.Content == "" {
+			return ErrBadRequest
+		}
+
+		f.Contents = object.Contents{
+			object.DefaultLanguage: f.Content,
+		}
 	}
 
 	p.comment = &object.Object{
