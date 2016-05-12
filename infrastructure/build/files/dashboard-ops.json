@@ -12,6 +12,122 @@
     {
       "collapse": false,
       "editable": true,
+      "height": "100px",
+      "panels": [
+        {
+          "cacheTimeout": null,
+          "colorBackground": true,
+          "colorValue": false,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "datasource": null,
+          "decimals": 2,
+          "editable": true,
+          "error": false,
+          "format": "none",
+          "id": 12,
+          "interval": null,
+          "isNew": true,
+          "links": [],
+          "maxDataPoints": 100,
+          "nullPointMode": "connected",
+          "nullText": null,
+          "postfix": "",
+          "postfixFontSize": "50%",
+          "prefix": "",
+          "prefixFontSize": "50%",
+          "span": 6,
+          "sparkline": {
+            "fillColor": "rgba(31, 118, 189, 0.18)",
+            "full": false,
+            "lineColor": "rgb(31, 120, 193)",
+            "show": false
+          },
+          "targets": [
+            {
+              "expr": "job:handler_http_latency:apdex",
+              "intervalFactor": 2,
+              "metric": "job:handler_http_latency:apdex",
+              "refId": "A",
+              "step": 60
+            }
+          ],
+          "thresholds": "0.95,0.99",
+          "title": "Gateway APDEX",
+          "type": "singlestat",
+          "valueFontSize": "80%",
+          "valueMaps": [
+            {
+              "op": "=",
+              "text": "N/A",
+              "value": "null"
+            }
+          ],
+          "valueName": "avg"
+        },
+        {
+          "cacheTimeout": null,
+          "colorBackground": true,
+          "colorValue": false,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "datasource": null,
+          "decimals": 2,
+          "editable": true,
+          "error": false,
+          "format": "none",
+          "id": 13,
+          "interval": null,
+          "isNew": true,
+          "links": [],
+          "maxDataPoints": 100,
+          "nullPointMode": "connected",
+          "nullText": null,
+          "postfix": "",
+          "postfixFontSize": "50%",
+          "prefix": "",
+          "prefixFontSize": "50%",
+          "span": 6,
+          "sparkline": {
+            "fillColor": "rgba(31, 118, 189, 0.18)",
+            "full": false,
+            "lineColor": "rgb(31, 120, 193)",
+            "show": false
+          },
+          "targets": [
+            {
+              "expr": "job:service_latency:apdex",
+              "intervalFactor": 2,
+              "metric": "job:service_latency:apdex",
+              "refId": "A",
+              "step": 60
+            }
+          ],
+          "thresholds": "0.95,0.99",
+          "title": "Service APDEX",
+          "type": "singlestat",
+          "valueFontSize": "80%",
+          "valueMaps": [
+            {
+              "op": "=",
+              "text": "N/A",
+              "value": "null"
+            }
+          ],
+          "valueName": "avg"
+        }
+      ],
+      "title": "KPIs"
+    },
+    {
+      "collapse": false,
+      "editable": true,
       "height": "250px",
       "panels": [
         {
@@ -54,7 +170,7 @@
           "lines": true,
           "linewidth": 1,
           "links": [],
-          "nullPointMode": "connected",
+          "nullPointMode": "null as zero",
           "percent": false,
           "percentage": false,
           "pointradius": 5,
@@ -131,7 +247,7 @@
           "lines": true,
           "linewidth": 1,
           "links": [],
-          "nullPointMode": "connected",
+          "nullPointMode": "null as zero",
           "percentage": false,
           "pointradius": 5,
           "points": false,
@@ -213,7 +329,7 @@
           "lines": true,
           "linewidth": 1,
           "links": [],
-          "nullPointMode": "connected",
+          "nullPointMode": "null as zero",
           "percent": false,
           "percentage": false,
           "pointradius": 5,
@@ -225,9 +341,10 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "job:gateway_http_status:sum",
+              "expr": "job:handler_http_status:sum",
               "intervalFactor": 2,
               "legendFormat": "{{status}}",
+              "metric": "job:handler_http_status:sum",
               "refId": "A",
               "step": 10
             }
@@ -288,7 +405,7 @@
           "lines": true,
           "linewidth": 1,
           "links": [],
-          "nullPointMode": "connected",
+          "nullPointMode": "null as zero",
           "percentage": false,
           "pointradius": 5,
           "points": false,
@@ -299,7 +416,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "job:gateway_http_route:sum",
+              "expr": "job:handler_http_route:sum",
               "intervalFactor": 2,
               "legendFormat": "{{route}}",
               "refId": "A",
@@ -333,12 +450,13 @@
       "panels": [
         {
           "aliasColors": {
-            "95th": "#EF843C",
             "50th": "#64B0C8",
+            "95th": "#EF843C",
             "99th": "#E24D42"
           },
           "bars": false,
           "datasource": null,
+          "decimals": 2,
           "editable": true,
           "error": false,
           "fill": 0,
@@ -368,15 +486,15 @@
             "min": false,
             "rightSide": true,
             "show": true,
-            "total": false,
-            "values": true,
+            "sort": "max",
             "sortDesc": true,
-            "sort": "max"
+            "total": false,
+            "values": true
           },
           "lines": true,
           "linewidth": 1,
           "links": [],
-          "nullPointMode": "connected",
+          "nullPointMode": "null as zero",
           "percentage": false,
           "pointradius": 5,
           "points": false,
@@ -386,9 +504,9 @@
             {
               "alias": "apdex",
               "fill": 2,
+              "legend": false,
               "linewidth": 0,
-              "yaxis": 2,
-              "legend": false
+              "yaxis": 2
             }
           ],
           "span": 6,
@@ -396,15 +514,16 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "job:gateway_http_latency:apdex",
+              "expr": "job:handler_http_latency:apdex",
               "hide": false,
+              "interval": "",
               "intervalFactor": 2,
               "legendFormat": "apdex",
               "refId": "D",
               "step": 10
             },
             {
-              "expr": "job:gateway_http_latency:50",
+              "expr": "job:handler_http_latency:50",
               "interval": "",
               "intervalFactor": 2,
               "legendFormat": "50th",
@@ -412,17 +531,17 @@
               "step": 10
             },
             {
-              "expr": "job:gateway_http_latency:95",
+              "expr": "job:handler_http_latency:95",
               "intervalFactor": 2,
               "legendFormat": "95th",
               "refId": "B",
               "step": 10
             },
             {
-              "expr": "job:gateway_http_latency:99",
+              "expr": "job:handler_http_latency:99",
               "intervalFactor": 2,
               "legendFormat": "99th",
-              "metric": "",
+              "metric": "job",
               "refId": "C",
               "step": 10
             }
@@ -442,14 +561,13 @@
           "y_formats": [
             "s",
             "short"
-          ],
-          "decimals": 2
+          ]
         },
         {
           "aliasColors": {
-            "99th": "#E24D42",
+            "50th": "#6ED0E0",
             "95th": "#EF843C",
-            "50th": "#6ED0E0"
+            "99th": "#E24D42"
           },
           "bars": false,
           "datasource": null,
@@ -482,15 +600,15 @@
             "min": false,
             "rightSide": true,
             "show": true,
-            "total": false,
-            "values": true,
+            "sort": "max",
             "sortDesc": true,
-            "sort": "max"
+            "total": false,
+            "values": true
           },
           "lines": true,
           "linewidth": 1,
           "links": [],
-          "nullPointMode": "connected",
+          "nullPointMode": "null as zero",
           "percentage": false,
           "pointradius": 5,
           "points": false,
@@ -500,9 +618,9 @@
             {
               "alias": "apdex",
               "fill": 2,
+              "legend": false,
               "linewidth": 0,
-              "yaxis": 2,
-              "legend": false
+              "yaxis": 2
             }
           ],
           "span": 6,
@@ -510,7 +628,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "job:gateway_service_latency:apdex",
+              "expr": "job:service_latency:apdex",
               "hide": false,
               "intervalFactor": 2,
               "legendFormat": "apdex",
@@ -518,7 +636,7 @@
               "step": 10
             },
             {
-              "expr": "job:gateway_service_latency:50",
+              "expr": "job:service_latency:50",
               "interval": "",
               "intervalFactor": 2,
               "legendFormat": "50th",
@@ -526,14 +644,14 @@
               "step": 10
             },
             {
-              "expr": "job:gateway_service_latency:95",
+              "expr": "job:service_latency:95",
               "intervalFactor": 2,
               "legendFormat": "95th",
               "refId": "B",
               "step": 10
             },
             {
-              "expr": "job:gateway_service_latency:99",
+              "expr": "job:service_latency:99",
               "intervalFactor": 2,
               "legendFormat": "99th",
               "metric": "",
@@ -607,7 +725,7 @@
           "lines": true,
           "linewidth": 1,
           "links": [],
-          "nullPointMode": "connected",
+          "nullPointMode": "null as zero",
           "percent": false,
           "percentage": false,
           "pointradius": 5,
@@ -619,7 +737,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "job:gateway_service_op:count",
+              "expr": "job:service_op:count",
               "interval": "",
               "intervalFactor": 2,
               "legendFormat": "{{service}}.{{method}}",
@@ -685,7 +803,7 @@
           "lines": true,
           "linewidth": 1,
           "links": [],
-          "nullPointMode": "connected",
+          "nullPointMode": "null as zero",
           "percent": false,
           "percentage": false,
           "pointradius": 5,
@@ -697,9 +815,10 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "job:gateway_service_err:count",
+              "expr": "job:service_err:count",
               "intervalFactor": 2,
               "legendFormat": "{{service}}.{{method}}",
+              "metric": "job:service",
               "refId": "A",
               "step": 10
             }
@@ -722,6 +841,204 @@
         }
       ],
       "title": "Service"
+    },
+    {
+      "collapse": false,
+      "editable": true,
+      "height": "250px",
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": null,
+          "decimals": 2,
+          "editable": true,
+          "error": false,
+          "fill": 8,
+          "grid": {
+            "leftLogBase": 1,
+            "leftMax": null,
+            "leftMin": null,
+            "rightLogBase": 1,
+            "rightMax": null,
+            "rightMin": null,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 15,
+          "isNew": true,
+          "legend": {
+            "alignAsTable": true,
+            "avg": false,
+            "current": false,
+            "hideEmpty": true,
+            "hideZero": true,
+            "max": false,
+            "min": false,
+            "rightSide": true,
+            "show": true,
+            "sort": "total",
+            "sortDesc": true,
+            "total": true,
+            "values": true
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null as zero",
+          "percent": false,
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 6,
+          "stack": true,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "job:source_op:count",
+              "interval": "",
+              "intervalFactor": 2,
+              "legendFormat": "{{source}}.{{method}}",
+              "metric": "job:source_op:count",
+              "refId": "A",
+              "step": 10
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Source OPs",
+          "tooltip": {
+            "msResolution": false,
+            "shared": false,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "short",
+            "short"
+          ]
+        },
+        {
+          "aliasColors": {
+            "50th": "#6ED0E0",
+            "95th": "#EF843C",
+            "99th": "#E24D42"
+          },
+          "bars": false,
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 0,
+          "grid": {
+            "leftLogBase": 1,
+            "leftMax": null,
+            "leftMin": null,
+            "rightLogBase": 1,
+            "rightMax": 1,
+            "rightMin": 0.75,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)",
+            "thresholdLine": false
+          },
+          "id": 16,
+          "isNew": true,
+          "leftYAxisLabel": "",
+          "legend": {
+            "alignAsTable": true,
+            "avg": false,
+            "current": false,
+            "hideEmpty": false,
+            "hideZero": false,
+            "max": true,
+            "min": false,
+            "rightSide": true,
+            "show": true,
+            "sort": "max",
+            "sortDesc": true,
+            "total": false,
+            "values": true
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null as zero",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "rightYAxisLabel": "",
+          "seriesOverrides": [
+            {
+              "alias": "apdex",
+              "fill": 2,
+              "legend": false,
+              "linewidth": 0,
+              "yaxis": 2
+            }
+          ],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "job:source_latency:apdex",
+              "hide": false,
+              "intervalFactor": 2,
+              "legendFormat": "apdex",
+              "refId": "D",
+              "step": 10
+            },
+            {
+              "expr": "job:source_latency:50",
+              "interval": "",
+              "intervalFactor": 2,
+              "legendFormat": "50th",
+              "refId": "A",
+              "step": 10
+            },
+            {
+              "expr": "job:source_latency:95",
+              "intervalFactor": 2,
+              "legendFormat": "95th",
+              "refId": "B",
+              "step": 10
+            },
+            {
+              "expr": "job:source_latency:99",
+              "intervalFactor": 2,
+              "legendFormat": "99th",
+              "metric": "",
+              "refId": "C",
+              "step": 10
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Source Latencies",
+          "tooltip": {
+            "msResolution": true,
+            "shared": true,
+            "value_type": "cumulative"
+          },
+          "transparent": false,
+          "type": "graph",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "s",
+            "short"
+          ]
+        }
+      ],
+      "title": "New row"
     },
     {
       "collapse": false,
@@ -769,7 +1086,7 @@
           "lines": true,
           "linewidth": 1,
           "links": [],
-          "nullPointMode": "connected",
+          "nullPointMode": "null as zero",
           "percentage": false,
           "pointradius": 5,
           "points": false,
@@ -845,7 +1162,7 @@
           "lines": true,
           "linewidth": 1,
           "links": [],
-          "nullPointMode": "connected",
+          "nullPointMode": "null as zero",
           "percentage": false,
           "pointradius": 5,
           "points": false,
@@ -881,7 +1198,7 @@
           ]
         }
       ],
-      "title": "New row"
+      "title": "System"
     }
   ],
   "time": {
@@ -919,8 +1236,8 @@
   "annotations": {
     "list": []
   },
-  "refresh": "5m",
+  "refresh": "30s",
   "schemaVersion": 11,
-  "version": 32,
+  "version": 56,
   "links": []
 }

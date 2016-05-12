@@ -55,11 +55,11 @@ scrape_configs:
 
 # /etc/prometheus/api.rules
 echo '
-job:handler_status:sum = sum(rate(handler_request_count [5m])) by (status)
-job:handler_route:sum = sum(rate(handler_request_count [5m])) by (route)
-job:handler_latency:apdex = ((sum(rate(handler_request_latency_seconds_bucket{le="0.05"}[5m])) + sum(rate(handler_request_latency_seconds_bucket{le="0.25"}[5m]))) / 2) / sum(rate(handler_request_latency_seconds_count[5m]))
-job:handler_latency:50 = histogram_quantile(0.5, sum(rate(handler_request_latency_seconds_bucket [5m])) by (le))
-job:handler_latency:95 = histogram_quantile(0.95, sum(rate(handler_request_latency_seconds_bucket [5m])) by (le))
+job:handler_http_status:sum = sum(rate(handler_request_count [5m])) by (status)
+job:handler_http_route:sum = sum(rate(handler_request_count [5m])) by (route)
+job:handler_http_latency:apdex = ((sum(rate(handler_request_latency_seconds_bucket{le="0.05"}[5m])) + sum(rate(handler_request_latency_seconds_bucket{le="0.25"}[5m]))) / 2) / sum(rate(handler_request_latency_seconds_count[5m]))
+job:handler_http_latency:50 = histogram_quantile(0.5, sum(rate(handler_request_latency_seconds_bucket [5m])) by (le))
+job:handler_http_latency:95 = histogram_quantile(0.95, sum(rate(handler_request_latency_seconds_bucket [5m])) by (le))
 job:handler_http_latency:99 = histogram_quantile(0.99, sum(rate(handler_request_latency_seconds_bucket [5m])) by (le))
 job:service_latency:apdex = ((sum(rate(service_op_latency_seconds_bucket{le="0.005"}[5m])) + sum(rate(service_op_latency_seconds_bucket{le="0.025"}[5m]))) / 2) / sum(rate(service_op_latency_seconds_count[5m]))
 job:service_latency:50 = histogram_quantile(0.5, sum(rate(service_op_latency_seconds_bucket [5m])) by (le))
