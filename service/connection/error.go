@@ -9,6 +9,7 @@ const errFmt = "%s: %s"
 
 // Common errors for Connection service implementations and validations.
 var (
+	ErrEmptySource       = errors.New("empty source")
 	ErrInvalidConnection = errors.New("invalid connection")
 )
 
@@ -19,6 +20,11 @@ type Error struct {
 
 func (e Error) Error() string {
 	return e.msg
+}
+
+// IsEmptySource indicates if err is ErrEmptySource
+func IsEmptySource(err error) bool {
+	return unwrapError(err) == ErrEmptySource
 }
 
 // IsInvalidConnection indicates if err is ErrInvalidConnection.

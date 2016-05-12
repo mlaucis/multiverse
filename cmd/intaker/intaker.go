@@ -20,9 +20,8 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws/credentials"
-
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	awsSession "github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sqs"
 	klog "github.com/go-kit/kit/log"
@@ -96,7 +95,7 @@ func main() {
 	var (
 		awsID      = flag.String("aws.id", "", "Identifier for AWS requests")
 		awsRegion  = flag.String("aws.region", "us-east-1", "AWS Region to operate in")
-		awsSecrect = flag.String("aws.secret", "", "Identification secret for AWS requests")
+		awsSecret  = flag.String("aws.secret", "", "Identification secret for AWS requests")
 		source     = flag.String("source", sourceNop, "Source type used for state change propagations")
 		forceNoSec = flag.Bool("force-no-sec", false, "Force no sec enables launching the backend in production without security checks")
 	)
@@ -233,7 +232,7 @@ func main() {
 	// Setup sources
 	var (
 		aSession = awsSession.New(&aws.Config{
-			Credentials: credentials.NewStaticCredentials(*awsID, *awsSecrect, ""),
+			Credentials: credentials.NewStaticCredentials(*awsID, *awsSecret, ""),
 			Region:      aws.String(*awsRegion),
 		})
 		sqsAPI = sqs.New(aSession)
@@ -245,15 +244,13 @@ func main() {
 	case sourceNop:
 		conSource = connection.NopSource()
 	case sourceSQS:
-		res, err := sqsAPI.GetQueueUrl(&sqs.GetQueueUrlInput{
-			QueueName: aws.String("connection-state-change"),
-		})
+		s, err := connection.SQSSource(sqsAPI)
 		if err != nil {
 			logger.Log("err", err, "lifecycle", "abort")
 			os.Exit(1)
 		}
 
-		conSource = connection.SQSSource(sqsAPI, *res.QueueUrl)
+		conSource = s
 	default:
 		logger.Log(
 			"err", fmt.Sprintf("unsupported Source type %s", *source),

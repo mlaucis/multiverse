@@ -176,6 +176,14 @@ func InstrumentSourceMiddleware(
 	}
 }
 
+func (s *instrumentSource) Ack(id string) (err error) {
+	defer func(begin time.Time) {
+		s.track("Ack", "", begin, err)
+	}(time.Now())
+
+	return s.next.Ack(id)
+}
+
 func (s *instrumentSource) Consume() (change *StateChange, err error) {
 	defer func(begin time.Time) {
 		ns := ""
