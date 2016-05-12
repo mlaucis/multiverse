@@ -178,6 +178,7 @@ func main() {
 		},
 		serviceFieldKeys,
 	)
+	prometheus.MustRegister(serviceOpLatency)
 
 	sourceFieldKeys := []string{
 		metrics.FieldMethod,
@@ -209,6 +210,7 @@ func main() {
 		},
 		sourceFieldKeys,
 	)
+	prometheus.MustRegister(sourceOpLatency)
 
 	sourceQueueLatency := prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
@@ -220,8 +222,7 @@ func main() {
 		},
 		sourceFieldKeys,
 	)
-
-	prometheus.MustRegister(serviceOpLatency)
+	prometheus.MustRegister(sourceQueueLatency)
 
 	// Setup sources
 	var (
