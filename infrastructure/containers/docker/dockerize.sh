@@ -77,4 +77,24 @@ if [ "${CONTAINER_NAME}" == "reporter" ]; then
     exit 0
 fi
 
+if [ "${CONTAINER_NAME}" == "sims" ]; then
+    BINARY_FILE=${2}
+
+    docker run --rm \
+        -v ${PROJECT_DIR}:${CONTAINER_PROJECT_DIR} \
+        -e GOPATH=${CONTAINER_PROJECT_GOPATH} \
+        -e GODEBUG=netdns=go \
+        -w "${CONTAINER_PROJECT_DIR}" \
+        golang:1.5.3-alpine \
+        go build -v -ldflags "-X main.revision=${REVISION}" -o ${BINARY_FILE} cmd/sims/sims.go
+
+    docker build -f ${PROJECT_DIR}/infrastructure/containers/docker/sims.docker \
+        -t ${CONTAINER_NAME}:${CIRCLE_BUILD_NUM} \
+        --build-arg BINARY_FILE=${BINARY_FILE} \
+        --build-arg CONFIG_FILE=${CONFIG_FILE} \
+        "${PROJECT_DIR}"
+
+    exit 0
+fi
+
 exit 1

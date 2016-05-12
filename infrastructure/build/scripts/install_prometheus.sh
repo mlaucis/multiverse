@@ -51,6 +51,13 @@ scrape_configs:
         access_key: $AWS_ACCESS_KEY
         secret_key: $AWS_SECRET_KEY
         port: 9000
+
+  - job_name: 'sims'
+    ec2_sd_configs:
+      - region: '$AWS_REGION'
+        access_key: $AWS_ACCESS_KEY
+        secret_key: $AWS_SECRET_KEY
+        port: 9001
 " | sudo tee /etc/prometheus/prometheus.yml > /dev/null
 
 # /etc/prometheus/api.rules
@@ -73,6 +80,9 @@ job:source_latency:95 = histogram_quantile(0.95, sum(rate(source_op_latency_seco
 job:source_latency:99 = histogram_quantile(0.99, sum(rate(source_op_latency_seconds_bucket [5m])) by (le))
 job:source_err:count = sum(rate(source_err_count [5m])) by (method, source)
 job:source_op:count = sum(rate(source_op_count [5m])) by (method, source)
+job:source_queue_latency:50 = histogram_quantile(0.5, sum(rate(source_queeu_latency_seconds_bucket [5m])) by (le))
+job:source_queue_latency:95 = histogram_quantile(0.95, sum(rate(source_queue_latency_seconds_bucket [5m])) by (le))
+job:source_queue_latency:99 = histogram_quantile(0.99, sum(rate(source_queue_latency_seconds_bucket [5m])) by (le))
 job:intaker_request_latency:avg = avg(api_intaker_request_latency_microseconds_sum / api_intaker_request_latency_microseconds_count)
 job:intaker_request_latency:max = max(api_intaker_request_latency_microseconds_sum / api_intaker_request_latency_microseconds_count)
 job:intaker_request_latency:min = min(api_intaker_request_latency_microseconds_sum / api_intaker_request_latency_microseconds_count)
