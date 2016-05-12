@@ -57,8 +57,12 @@ const (
 	EnvConfigVar     = "TAPGLUE_INTAKER_CONFIG_PATH"
 	apiVersionNext   = "0.4"
 	component        = "intaker"
+	componentSource  = "source"
 	subsystemService = "service"
 	subsystemSource  = "source"
+	subsystemErr     = "err"
+	subsystemOp      = "op"
+	subsystemQueue   = "queue"
 )
 
 // Supported source types.
@@ -181,6 +185,7 @@ func main() {
 	prometheus.MustRegister(serviceOpLatency)
 
 	sourceFieldKeys := []string{
+		metrics.FieldComponent,
 		metrics.FieldMethod,
 		metrics.FieldNamespace,
 		metrics.FieldSource,
@@ -188,25 +193,26 @@ func main() {
 	}
 
 	sourceErrCount := kitprometheus.NewCounter(prometheus.CounterOpts{
-		Namespace: component,
-		Subsystem: subsystemSource,
-		Name:      "err_count",
+		Namespace: componentSource,
+		Subsystem: subsystemErr,
+		Name:      "count",
 		Help:      "Number of failed source operations",
 	}, sourceFieldKeys)
 
 	sourceOpCount := kitprometheus.NewCounter(prometheus.CounterOpts{
-		Namespace: component,
-		Subsystem: subsystemSource,
-		Name:      "op_count",
+		Namespace: componentSource,
+		Subsystem: subsystemOp,
+		Name:      "count",
 		Help:      "Number of source operations performed",
 	}, sourceFieldKeys)
 
 	sourceOpLatency := prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
-			Namespace: component,
-			Subsystem: subsystemSource,
-			Name:      "op_latency_seconds",
+			Namespace: componentSource,
+			Subsystem: subsystemOp,
+			Name:      "latency_seconds",
 			Help:      "Distribution of source op duration in seconds",
+			Buckets:   metrics.BucketsQueue,
 		},
 		sourceFieldKeys,
 	)
@@ -214,9 +220,9 @@ func main() {
 
 	sourceQueueLatency := prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
-			Namespace: component,
-			Subsystem: subsystemSource,
-			Name:      "queue_latency_seconds",
+			Namespace: componentSource,
+			Subsystem: subsystemQueue,
+			Name:      "latency_seconds",
 			Help:      "Distribution of message queue latency in seconds",
 			Buckets:   metrics.BucketsQueue,
 		},
@@ -257,6 +263,7 @@ func main() {
 	}
 
 	conSource = connection.InstrumentSourceMiddleware(
+		component,
 		*source,
 		sourceErrCount,
 		sourceOpCount,

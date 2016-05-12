@@ -7,6 +7,7 @@ const BucketFormat = "2006-01-02"
 
 // Field names for metric labels.
 const (
+	FieldComponent = "component"
 	FieldMethod    = "method"
 	FieldNamespace = "namespace"
 	FieldService   = "service"

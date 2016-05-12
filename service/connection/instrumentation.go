@@ -138,6 +138,7 @@ func (s *instrumentService) track(
 }
 
 type instrumentSource struct {
+	component    string
 	errCount     kitmetrics.Counter
 	opCount      kitmetrics.Counter
 	opLatency    *prometheus.HistogramVec
@@ -149,6 +150,7 @@ type instrumentSource struct {
 // InstrumentSourceMiddleware observes key aspects of Source operations and
 // exposes Prometheus metrics.
 func InstrumentSourceMiddleware(
+	component string,
 	store string,
 	errCount kitmetrics.Counter,
 	opCount kitmetrics.Counter,
@@ -157,6 +159,7 @@ func InstrumentSourceMiddleware(
 ) SourceMiddleware {
 	return func(next Source) Source {
 		return &instrumentSource{
+			component:    component,
 			errCount:     errCount,
 			opCount:      opCount,
 			opLatency:    opLatency,
@@ -176,6 +179,7 @@ func (s *instrumentSource) Consume() (change *StateChange, err error) {
 
 			if !change.SentAt.IsZero() {
 				s.queueLatency.With(prometheus.Labels{
+					metrics.FieldComponent: s.component,
 					metrics.FieldMethod:    "Consume",
 					metrics.FieldNamespace: ns,
 					metrics.FieldSource:    serviceName,
@@ -207,6 +211,10 @@ func (s *instrumentSource) track(
 	err error,
 ) {
 	var (
+		c = kitmetrics.Field{
+			Key:   metrics.FieldComponent,
+			Value: s.component,
+		}
 		m = kitmetrics.Field{
 			Key:   metrics.FieldMethod,
 			Value: method,
@@ -226,12 +234,13 @@ func (s *instrumentSource) track(
 	)
 
 	if err != nil {
-		s.errCount.With(m).With(ns).With(source).With(store).Add(1)
+		s.errCount.With(c).With(m).With(ns).With(source).With(store).Add(1)
 	}
 
-	s.opCount.With(m).With(ns).With(source).With(store).Add(1)
+	s.opCount.With(c).With(m).With(ns).With(source).With(store).Add(1)
 
 	s.opLatency.With(prometheus.Labels{
+		metrics.FieldComponent: s.component,
 		metrics.FieldMethod:    method,
 		metrics.FieldNamespace: namespace,
 		metrics.FieldSource:    serviceName,
