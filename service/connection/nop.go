@@ -7,6 +7,10 @@ func NopSource() Source {
 	return &nopSource{}
 }
 
+func (s *nopSource) Ack(id string) error {
+	return nil
+}
+
 func (s *nopSource) Consume() (*StateChange, error) {
 	return &StateChange{}, nil
 }
