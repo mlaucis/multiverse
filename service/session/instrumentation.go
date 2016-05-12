@@ -3,15 +3,16 @@ package session
 import (
 	"time"
 
-	"github.com/tapglue/multiverse/platform/metrics"
-
 	kitmetrics "github.com/go-kit/kit/metrics"
 	"github.com/prometheus/client_golang/prometheus"
+
+	"github.com/tapglue/multiverse/platform/metrics"
 )
 
 const serviceName = "session"
 
 type instrumentService struct {
+	component string
 	errCount  kitmetrics.Counter
 	next      Service
 	opCount   kitmetrics.Counter
@@ -22,13 +23,14 @@ type instrumentService struct {
 // InstrumentMiddleware observes key aspects of Service operations and exposes
 // Prometheus metrics.
 func InstrumentMiddleware(
-	store string,
+	component, store string,
 	errCount kitmetrics.Counter,
 	opCount kitmetrics.Counter,
 	opLatency *prometheus.HistogramVec,
 ) ServiceMiddleware {
 	return func(next Service) Service {
 		return &instrumentService{
+			component: component,
 			errCount:  errCount,
 			opCount:   opCount,
 			opLatency: opLatency,
@@ -83,6 +85,10 @@ func (s *instrumentService) track(
 	err error,
 ) {
 	var (
+		c = kitmetrics.Field{
+			Key:   metrics.FieldComponent,
+			Value: s.component,
+		}
 		m = kitmetrics.Field{
 			Key:   metrics.FieldMethod,
 			Value: method,
@@ -102,12 +108,13 @@ func (s *instrumentService) track(
 	)
 
 	if err != nil {
-		s.errCount.With(m).With(n).With(service).With(store).Add(1)
+		s.errCount.With(c).With(m).With(n).With(service).With(store).Add(1)
 	}
 
-	s.opCount.With(m).With(n).With(service).With(store).Add(1)
+	s.opCount.With(c).With(m).With(n).With(service).With(store).Add(1)
 
 	s.opLatency.With(prometheus.Labels{
+		metrics.FieldComponent: s.component,
 		metrics.FieldMethod:    method,
 		metrics.FieldNamespace: namespace,
 		metrics.FieldService:   serviceName,

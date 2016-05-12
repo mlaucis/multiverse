@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/metrics"
+	kitmetrics "github.com/go-kit/kit/metrics"
 	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
@@ -18,6 +18,7 @@ import (
 
 	"github.com/tapglue/multiverse/errors"
 	"github.com/tapglue/multiverse/limiter"
+	"github.com/tapglue/multiverse/platform/metrics"
 	"github.com/tapglue/multiverse/service/app"
 	"github.com/tapglue/multiverse/service/member"
 	"github.com/tapglue/multiverse/service/org"
@@ -285,31 +286,41 @@ func HasUserAgent() Middleware {
 // Instrument observes key aspects of a request/response and exposes Prometheus
 // metrics.
 func Instrument(
-	ns string,
+	component string,
 ) Middleware {
 	var (
-		namespace    = strings.Replace(ns, "-", "_", -1)
-		subsystem    = "handler"
-		fieldKeys    = []string{"version", "route", "status"}
+		namespace         = "handler"
+		subsystemRequest  = "request"
+		subsystemResponse = "response"
+		fieldKeys         = []string{
+			metrics.FieldComponent,
+			metrics.FieldVersion,
+			metrics.FieldRoute,
+			metrics.FieldStatus,
+		}
+		componentField = kitmetrics.Field{
+			Key:   metrics.FieldComponent,
+			Value: component,
+		}
 		requestCount = kitprometheus.NewCounter(prometheus.CounterOpts{
 			Namespace: namespace,
-			Subsystem: subsystem,
-			Name:      "request_count",
+			Subsystem: subsystemRequest,
+			Name:      "count",
 			Help:      "Number of requests received",
 		}, fieldKeys)
 		requestLatency = prometheus.NewHistogramVec(
 			prometheus.HistogramOpts{
 				Namespace: namespace,
-				Subsystem: subsystem,
-				Name:      "request_latency_seconds",
+				Subsystem: subsystemRequest,
+				Name:      "latency_seconds",
 				Help:      "Total duration of requests in seconds",
 			},
 			fieldKeys,
 		)
 		responseBytes = kitprometheus.NewCounter(prometheus.CounterOpts{
 			Namespace: namespace,
-			Subsystem: subsystem,
-			Name:      "response_bytes",
+			Subsystem: subsystemResponse,
+			Name:      "bytes",
 			Help:      "Bytes returned as response bodies",
 		}, fieldKeys)
 	)
@@ -329,26 +340,27 @@ func Instrument(
 
 			var (
 				status = strconv.Itoa(resr.statusCode)
-				route  = metrics.Field{
-					Key:   "route",
+				route  = kitmetrics.Field{
+					Key:   metrics.FieldRoute,
 					Value: routeName,
 				}
-				s = metrics.Field{
-					Key:   "status",
+				s = kitmetrics.Field{
+					Key:   metrics.FieldStatus,
 					Value: status,
 				}
-				v = metrics.Field{
-					Key:   "version",
+				v = kitmetrics.Field{
+					Key:   metrics.FieldVersion,
 					Value: version,
 				}
 			)
 
-			requestCount.With(route).With(s).With(v).Add(1)
-			responseBytes.With(route).With(s).With(v).Add(uint64(resr.contentLength))
+			requestCount.With(componentField).With(route).With(s).With(v).Add(1)
+			responseBytes.With(componentField).With(route).With(s).With(v).Add(uint64(resr.contentLength))
 			requestLatency.With(prometheus.Labels{
-				"route":   routeName,
-				"status":  status,
-				"version": version,
+				metrics.FieldComponent: component,
+				metrics.FieldRoute:     routeName,
+				metrics.FieldStatus:    status,
+				metrics.FieldVersion:   version,
 			}).Observe(time.Since(begin).Seconds())
 		}
 	}

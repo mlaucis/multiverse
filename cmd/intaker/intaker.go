@@ -56,10 +56,9 @@ const (
 	// EnvConfigVar holds the name of the environment variable that holds the path to the config
 	EnvConfigVar     = "TAPGLUE_INTAKER_CONFIG_PATH"
 	apiVersionNext   = "0.4"
-	component        = "intaker"
-	componentSource  = "source"
-	subsystemService = "service"
-	subsystemSource  = "source"
+	component        = "gateway-http"
+	namespaceService = "service"
+	namespaceSource  = "source"
 	subsystemErr     = "err"
 	subsystemOp      = "op"
 	subsystemQueue   = "queue"
@@ -153,6 +152,7 @@ func main() {
 
 	// Setup instrumenation
 	serviceFieldKeys := []string{
+		metrics.FieldComponent,
 		metrics.FieldMethod,
 		metrics.FieldNamespace,
 		metrics.FieldService,
@@ -160,24 +160,24 @@ func main() {
 	}
 
 	serviceErrCount := kitprometheus.NewCounter(prometheus.CounterOpts{
-		Namespace: component,
-		Subsystem: subsystemService,
-		Name:      "err_count",
+		Namespace: namespaceService,
+		Subsystem: subsystemErr,
+		Name:      "count",
 		Help:      "Number of failed service operations",
 	}, serviceFieldKeys)
 
 	serviceOpCount := kitprometheus.NewCounter(prometheus.CounterOpts{
-		Namespace: component,
-		Subsystem: subsystemService,
-		Name:      "op_count",
+		Namespace: namespaceService,
+		Subsystem: subsystemOp,
+		Name:      "count",
 		Help:      "Number of service operations performed",
 	}, serviceFieldKeys)
 
 	serviceOpLatency := prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
-			Namespace: component,
-			Subsystem: subsystemService,
-			Name:      "op_latency_seconds",
+			Namespace: namespaceService,
+			Subsystem: subsystemOp,
+			Name:      "latency_seconds",
 			Help:      "Distribution of service op duration in seconds",
 		},
 		serviceFieldKeys,
@@ -193,14 +193,14 @@ func main() {
 	}
 
 	sourceErrCount := kitprometheus.NewCounter(prometheus.CounterOpts{
-		Namespace: componentSource,
+		Namespace: namespaceSource,
 		Subsystem: subsystemErr,
 		Name:      "count",
 		Help:      "Number of failed source operations",
 	}, sourceFieldKeys)
 
 	sourceOpCount := kitprometheus.NewCounter(prometheus.CounterOpts{
-		Namespace: componentSource,
+		Namespace: namespaceSource,
 		Subsystem: subsystemOp,
 		Name:      "count",
 		Help:      "Number of source operations performed",
@@ -208,7 +208,7 @@ func main() {
 
 	sourceOpLatency := prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
-			Namespace: componentSource,
+			Namespace: namespaceSource,
 			Subsystem: subsystemOp,
 			Name:      "latency_seconds",
 			Help:      "Distribution of source op duration in seconds",
@@ -220,7 +220,7 @@ func main() {
 
 	sourceQueueLatency := prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
-			Namespace: componentSource,
+			Namespace: namespaceSource,
 			Subsystem: subsystemQueue,
 			Name:      "latency_seconds",
 			Help:      "Distribution of message queue latency in seconds",
@@ -282,44 +282,44 @@ func main() {
 
 	var apps app.StrangleService
 	apps = v04_postgres_core.NewApplication(pgClient, rApps)
-	apps = app.InstrumentStrangleMiddleware("postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(apps)
+	apps = app.InstrumentStrangleMiddleware(component, "postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(apps)
 	apps = app.LogStrangleMiddleware(logger, "postgres")(apps)
 
 	var connections connection.Service
 	connections = connection.NewPostgresService(pgClient.MainDatastore())
-	connections = connection.InstrumentServiceMiddleware("postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(connections)
+	connections = connection.InstrumentServiceMiddleware(component, "postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(connections)
 	connections = connection.LogServiceMiddleware(logger, "postgres")(connections)
 	// Combine connection service and source.
 	connections = connection.SourcingServiceMiddleware(conSource)(connections)
 
 	var events event.Service
 	events = event.NewPostgresService(pgClient.MainDatastore())
-	events = event.InstrumentMiddleware("postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(events)
+	events = event.InstrumentMiddleware(component, "postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(events)
 	events = event.LogMiddleware(logger, "postgres")(events)
 
 	var members member.StrangleService
 	members = v04_postgres_core.NewMember(pgClient)
-	members = member.InstrumentStrangleMiddleware("postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(members)
+	members = member.InstrumentStrangleMiddleware(component, "postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(members)
 	members = member.LogStrangleMiddleware(logger, "postgres")(members)
 
 	var objects object.Service
 	objects = object.NewPostgresService(pgClient.MainDatastore())
-	objects = object.InstrumentMiddleware("postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(objects)
+	objects = object.InstrumentMiddleware(component, "postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(objects)
 	objects = object.LogMiddleware(logger, "postgres")(objects)
 
 	var orgs org.StrangleService
 	orgs = v04_postgres_core.NewOrganization(pgClient)
-	orgs = org.InstrumentStrangleMiddleware("postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(orgs)
+	orgs = org.InstrumentStrangleMiddleware(component, "postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(orgs)
 	orgs = org.LogStrangleMiddleware(logger, "postgres")(orgs)
 
 	var sessions session.Service
 	sessions = session.NewPostgresService(pgClient.MainDatastore())
-	sessions = session.InstrumentMiddleware("postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(sessions)
+	sessions = session.InstrumentMiddleware(component, "postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(sessions)
 	sessions = session.LogMiddleware(logger, "postgres")(sessions)
 
 	var users user.Service
 	users = user.NewPostgresService(pgClient.MainDatastore())
-	users = user.InstrumentMiddleware("postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(users)
+	users = user.InstrumentMiddleware(component, "postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(users)
 	users = user.LogMiddleware(logger, "postgres")(users)
 
 	// Setup controllers
