@@ -91,7 +91,6 @@ if [ "${CONTAINER_NAME}" == "sims" ]; then
     docker build -f ${PROJECT_DIR}/infrastructure/containers/docker/sims.docker \
         -t ${CONTAINER_NAME}:${CIRCLE_BUILD_NUM} \
         --build-arg BINARY_FILE=${BINARY_FILE} \
-        --build-arg CONFIG_FILE=${CONFIG_FILE} \
         "${PROJECT_DIR}"
 
     exit 0
