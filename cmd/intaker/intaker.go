@@ -387,7 +387,7 @@ func main() {
 	go tgLogger.JSONLog(mainLogChan)
 	go tgLogger.JSONLog(errorLogChan)
 
-	router.Methods("POST").PathPrefix(`/analytics`).Name("analytics").HandlerFunc(
+	router.Methods("POST").Path(`/analytics`).Name("analytics").HandlerFunc(
 		handler.Wrap(
 			handler.Chain(
 				handler.CtxPrepare(apiVersionNext),
@@ -397,7 +397,7 @@ func main() {
 		),
 	)
 
-	router.Methods("GET").PathPrefix(`/health-45016490610398192`).Name("healthcheck").HandlerFunc(
+	router.Methods("GET").Path(`/health-45016490610398192`).Name("healthcheck").HandlerFunc(
 		handler.Wrap(
 			handler.CtxPrepare(apiVersionNext),
 			handler.Health(pgClient.MainDatastore(), redisClient),
@@ -406,7 +406,7 @@ func main() {
 
 	next := router.PathPrefix(fmt.Sprintf("/%s", apiVersionNext)).Subrouter()
 
-	next.Methods("POST").PathPrefix(`/analytics`).Name("analytics").HandlerFunc(
+	next.Methods("POST").Path(`/analytics`).Name("analytics").HandlerFunc(
 		handler.Wrap(
 			handler.Chain(
 				handler.CtxPrepare(apiVersionNext),
@@ -416,168 +416,168 @@ func main() {
 		),
 	)
 
-	next.Methods("GET").PathPrefix(`/me/connections/{state:[a-z]+}`).Name("getConnectionByState").HandlerFunc(
+	next.Methods("GET").Path(`/me/connections/{state:[a-z]+}`).Name("getConnectionByState").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.ConnectionByState(connectionController),
 		),
 	)
 
-	next.Methods("DELETE").PathPrefix(`/me/connections/{type:[a-z]+}/{toID:[0-9]+}`).Name("deleteConnection").HandlerFunc(
+	next.Methods("DELETE").Path(`/me/connections/{type:[a-z]+}/{toID:[0-9]+}`).Name("deleteConnection").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.ConnectionDelete(connectionController),
 		),
 	)
 
-	next.Methods("POST").PathPrefix(`/me/connections/social`).Name("createSocialConnections").HandlerFunc(
+	next.Methods("POST").Path(`/me/connections/social`).Name("createSocialConnections").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.ConnectionSocial(connectionController),
 		),
 	)
 
-	next.Methods("PUT").PathPrefix(`/me/connections`).Name("updateConnection").HandlerFunc(
+	next.Methods("PUT").Path(`/me/connections`).Name("updateConnection").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.ConnectionUpdate(connectionController),
 		),
 	)
 
-	next.Methods("GET").PathPrefix(`/me/followers`).Name("getFollowersMe").HandlerFunc(
+	next.Methods("GET").Path(`/me/followers`).Name("getFollowersMe").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.ConnectionFollowersMe(connectionController),
 		),
 	)
 
-	next.Methods("GET").PathPrefix(`/me/follows`).Name("getFollowingsMe").HandlerFunc(
+	next.Methods("GET").Path(`/me/follows`).Name("getFollowingsMe").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.ConnectionFollowingsMe(connectionController),
 		),
 	)
 
-	next.Methods("GET").PathPrefix(`/me/friends`).Name("getFriendsMe").HandlerFunc(
+	next.Methods("GET").Path(`/me/friends`).Name("getFriendsMe").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.ConnectionFriendsMe(connectionController),
 		),
 	)
 
-	next.Methods("GET").PathPrefix(`/users/{userID:[0-9]+}/followers`).Name("getFollowers").HandlerFunc(
+	next.Methods("GET").Path(`/users/{userID:[0-9]+}/followers`).Name("getFollowers").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.ConnectionFollowers(connectionController),
 		),
 	)
 
-	next.Methods("GET").PathPrefix(`/users/{userID:[0-9]+}/follows`).Name("getFollowings").HandlerFunc(
+	next.Methods("GET").Path(`/users/{userID:[0-9]+}/follows`).Name("getFollowings").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.ConnectionFollowings(connectionController),
 		),
 	)
 
-	next.Methods("GET").PathPrefix(`/users/{userID:[0-9]+}/friends`).Name("getFriends").HandlerFunc(
+	next.Methods("GET").Path(`/users/{userID:[0-9]+}/friends`).Name("getFriends").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.ConnectionFriends(connectionController),
 		),
 	)
 
-	next.Methods("DELETE").PathPrefix(`/me/events/{id:[0-9]+}`).Name("deleteEvent").HandlerFunc(
+	next.Methods("DELETE").Path(`/me/events/{id:[0-9]+}`).Name("deleteEvent").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.EventDelete(eventController),
 		),
 	)
 
-	next.Methods("PUT").PathPrefix(`/me/events/{id:[0-9]+}`).Name("eventUpdate").HandlerFunc(
+	next.Methods("PUT").Path(`/me/events/{id:[0-9]+}`).Name("eventUpdate").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.EventUpdate(eventController),
 		),
 	)
 
-	next.Methods("GET").PathPrefix(`/me/events`).Name("eventListMe").HandlerFunc(
+	next.Methods("GET").Path(`/me/events`).Name("eventListMe").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.EventListMe(eventController),
 		),
 	)
 
-	next.Methods("POST").PathPrefix(`/me/events`).Name("eventCreate").HandlerFunc(
+	next.Methods("POST").Path(`/me/events`).Name("eventCreate").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.EventCreate(eventController),
 		),
 	)
 
-	next.Methods("GET").PathPrefix(`/users/{userID:[0-9]+}/events`).Name("eventListUser").HandlerFunc(
+	next.Methods("GET").Path(`/users/{userID:[0-9]+}/events`).Name("eventListUser").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.EventListUser(eventController),
 		),
 	)
 
-	next.Methods("POST").PathPrefix(`/externals/{externalID:[a-zA-Z0-9\-\_]+}/comments`).Name("externalCommentCreate").HandlerFunc(
+	next.Methods("POST").Path(`/externals/{externalID:[a-zA-Z0-9\-\_]+}/comments`).Name("externalCommentCreate").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.ExternalCommentCreate(commentController),
 		),
 	)
 
-	next.Methods("DELETE").PathPrefix(`/externals/{externalID:[a-zA-Z0-9\-\_]+}/comments/{commentID:[0-9]+}`).Name("externalCommentDelete").HandlerFunc(
+	next.Methods("DELETE").Path(`/externals/{externalID:[a-zA-Z0-9\-\_]+}/comments/{commentID:[0-9]+}`).Name("externalCommentDelete").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.ExternalCommentDelete(commentController),
 		),
 	)
 
-	next.Methods("GET").PathPrefix(`/externals/{externalID:[a-zA-Z0-9\-\_]+}/comments/{commentID:[0-9]+}`).Name("externalCommentRetrieve").HandlerFunc(
+	next.Methods("GET").Path(`/externals/{externalID:[a-zA-Z0-9\-\_]+}/comments/{commentID:[0-9]+}`).Name("externalCommentRetrieve").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.ExternalCommentRetrieve(commentController),
 		),
 	)
 
-	next.Methods("PUT").PathPrefix(`/externals/{externalID:[a-zA-Z0-9\-\_]+}/comments/{commentID:[0-9]+}`).Name("externalCommentUpdate").HandlerFunc(
+	next.Methods("PUT").Path(`/externals/{externalID:[a-zA-Z0-9\-\_]+}/comments/{commentID:[0-9]+}`).Name("externalCommentUpdate").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.ExternalCommentUpdate(commentController),
 		),
 	)
 
-	next.Methods("GET").PathPrefix(`/externals/{externalID:[a-zA-Z0-9\-\_]+}/comments`).Name("externalCommentList").HandlerFunc(
+	next.Methods("GET").Path(`/externals/{externalID:[a-zA-Z0-9\-\_]+}/comments`).Name("externalCommentList").HandlerFunc(
 		handler.Wrap(
 			withApp,
 			handler.ExternalCommentList(commentController),
 		),
 	)
 
-	next.Methods("POST").PathPrefix(`/externals/{externalID:[a-zA-Z0-9\-\_]+}/likes`).Name("externalLikeCreate").HandlerFunc(
+	next.Methods("POST").Path(`/externals/{externalID:[a-zA-Z0-9\-\_]+}/likes`).Name("externalLikeCreate").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.ExternalLikeCreate(likeController),
 		),
 	)
 
-	next.Methods("DELETE").PathPrefix(`/externals/{externalID:[a-zA-Z0-9\-\_]+}/likes`).Name("externalLikeDelete").HandlerFunc(
+	next.Methods("DELETE").Path(`/externals/{externalID:[a-zA-Z0-9\-\_]+}/likes`).Name("externalLikeDelete").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.ExternalLikeDelete(likeController),
 		),
 	)
 
-	next.Methods("GET").PathPrefix(`/externals/{externalID:[a-zA-Z0-9\-\_]+}/likes`).Name("externalLikeList").HandlerFunc(
+	next.Methods("GET").Path(`/externals/{externalID:[a-zA-Z0-9\-\_]+}/likes`).Name("externalLikeList").HandlerFunc(
 		handler.Wrap(
 			withApp,
 			handler.ExternalLikeList(likeController),
 		),
 	)
 
-	next.Methods("OPTIONS").PathPrefix("/").Name("CORS").HandlerFunc(
+	next.Methods("OPTIONS").Path("/").Name("CORS").HandlerFunc(
 		handler.Wrap(
 			withMember,
 			func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
@@ -586,280 +586,280 @@ func main() {
 		),
 	)
 
-	next.Methods("GET").PathPrefix("/me/feed/events").Name("feedEvents").HandlerFunc(
+	next.Methods("GET").Path("/me/feed/events").Name("feedEvents").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.FeedEvents(feedController),
 		),
 	)
 
-	next.Methods("GET").PathPrefix("/me/feed/posts").Name("feedPosts").HandlerFunc(
+	next.Methods("GET").Path("/me/feed/posts").Name("feedPosts").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.FeedPosts(feedController),
 		),
 	)
 
-	next.Methods("GET").PathPrefix("/me/feed").Name("feedNews").HandlerFunc(
+	next.Methods("GET").Path("/me/feed").Name("feedNews").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.FeedNews(feedController),
 		),
 	)
 
-	next.Methods("POST").PathPrefix("/objects").Name("objectCreate").HandlerFunc(
+	next.Methods("POST").Path("/objects").Name("objectCreate").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.ObjectCreate(objectController),
 		),
 	)
 
-	next.Methods("DELETE").PathPrefix("/objects/{objectID:[0-9]+}").Name("objectDelete").HandlerFunc(
+	next.Methods("DELETE").Path("/objects/{objectID:[0-9]+}").Name("objectDelete").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.ObjectDelete(objectController),
 		),
 	)
 
-	next.Methods("GET").PathPrefix("/objects/{objectID:[0-9]+}").Name("objectRetrieve").HandlerFunc(
+	next.Methods("GET").Path("/objects/{objectID:[0-9]+}").Name("objectRetrieve").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.ObjectRetrieve(objectController),
 		),
 	)
 
-	next.Methods("PUT").PathPrefix("/objects/{objectID:[0-9]+}").Name("objectUpdate").HandlerFunc(
+	next.Methods("PUT").Path("/objects/{objectID:[0-9]+}").Name("objectUpdate").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.ObjectUpdate(objectController),
 		),
 	)
 
-	next.Methods("GET").PathPrefix("/objects").Name("objectListAll").HandlerFunc(
+	next.Methods("GET").Path("/objects").Name("objectListAll").HandlerFunc(
 		handler.Wrap(
 			withApp,
 			handler.ObjectListAll(objectController),
 		),
 	)
 
-	next.Methods("GET").PathPrefix("/me/objects/connections").Name("objectListConnections").HandlerFunc(
+	next.Methods("GET").Path("/me/objects/connections").Name("objectListConnections").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.ObjectListConnections(objectController),
 		),
 	)
 
-	next.Methods("GET").PathPrefix("/me/objects").Name("objectList").HandlerFunc(
+	next.Methods("GET").Path("/me/objects").Name("objectList").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.ObjectList(objectController),
 		),
 	)
 
-	next.Methods("GET").PathPrefix(`/orgs/{orgID:[a-zA-Z0-9\-]+}/apps/{appID:[a-zA-Z0-9\-]+}/analytics`).Name("appAnalytics").HandlerFunc(
+	next.Methods("GET").Path(`/orgs/{orgID:[a-zA-Z0-9\-]+}/apps/{appID:[a-zA-Z0-9\-]+}/analytics`).Name("appAnalytics").HandlerFunc(
 		handler.Wrap(
 			withMember,
 			handler.AnalyticsApp(analyticsController),
 		),
 	)
 
-	next.Methods("POST").PathPrefix("/posts/{postID:[0-9]+}/comments").Name("commentCreate").HandlerFunc(
+	next.Methods("POST").Path("/posts/{postID:[0-9]+}/comments").Name("commentCreate").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.CommentCreate(commentController),
 		),
 	)
 
-	next.Methods("DELETE").PathPrefix("/posts/{postID:[0-9]+}/comments/{commentID:[0-9]+}").Name("commentDelete").HandlerFunc(
+	next.Methods("DELETE").Path("/posts/{postID:[0-9]+}/comments/{commentID:[0-9]+}").Name("commentDelete").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.CommentDelete(commentController),
 		),
 	)
 
-	next.Methods("GET").PathPrefix("/posts/{postID:[0-9]+}/comments/{commentID:[0-9]+}").Name("commentRetrieve").HandlerFunc(
+	next.Methods("GET").Path("/posts/{postID:[0-9]+}/comments/{commentID:[0-9]+}").Name("commentRetrieve").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.CommentRetrieve(commentController),
 		),
 	)
 
-	next.Methods("PUT").PathPrefix("/posts/{postID:[0-9]+}/comments/{commentID:[0-9]+}").Name("commentUpdate").HandlerFunc(
+	next.Methods("PUT").Path("/posts/{postID:[0-9]+}/comments/{commentID:[0-9]+}").Name("commentUpdate").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.CommentUpdate(commentController),
 		),
 	)
 
-	next.Methods("GET").PathPrefix("/posts/{postID:[0-9]+}/comments").Name("commentList").HandlerFunc(
+	next.Methods("GET").Path("/posts/{postID:[0-9]+}/comments").Name("commentList").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.CommentList(commentController),
 		),
 	)
 
-	next.Methods("POST").PathPrefix("/posts/{postID:[0-9]+}/likes").Name("likeCreate").HandlerFunc(
+	next.Methods("POST").Path("/posts/{postID:[0-9]+}/likes").Name("likeCreate").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.LikeCreate(likeController),
 		),
 	)
 
-	next.Methods("DELETE").PathPrefix("/posts/{postID:[0-9]+}/likes").Name("likeDelete").HandlerFunc(
+	next.Methods("DELETE").Path("/posts/{postID:[0-9]+}/likes").Name("likeDelete").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.LikeDelete(likeController),
 		),
 	)
 
-	next.Methods("GET").PathPrefix("/posts/{postID:[0-9]+}/likes").Name("likeList").HandlerFunc(
+	next.Methods("GET").Path("/posts/{postID:[0-9]+}/likes").Name("likeList").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.LikeList(likeController),
 		),
 	)
 
-	next.Methods("POST").PathPrefix("/posts").Name("postCreate").HandlerFunc(
+	next.Methods("POST").Path("/posts").Name("postCreate").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.PostCreate(postController),
 		),
 	)
 
-	next.Methods("DELETE").PathPrefix("/posts/{postID:[0-9]+}").Name("postDelete").HandlerFunc(
+	next.Methods("DELETE").Path("/posts/{postID:[0-9]+}").Name("postDelete").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.PostDelete(postController),
 		),
 	)
 
-	next.Methods("GET").PathPrefix("/posts/{postID:[0-9]+}").Name("postRetrieve").HandlerFunc(
+	next.Methods("GET").Path("/posts/{postID:[0-9]+}").Name("postRetrieve").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.PostRetrieve(postController),
 		),
 	)
 
-	next.Methods("PUT").PathPrefix("/posts/{postID:[0-9]+}").Name("postUpdate").HandlerFunc(
+	next.Methods("PUT").Path("/posts/{postID:[0-9]+}").Name("postUpdate").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.PostUpdate(postController),
 		),
 	)
 
-	next.Methods("GET").PathPrefix("/posts").Name("postListAll").HandlerFunc(
+	next.Methods("GET").Path("/posts").Name("postListAll").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.PostListAll(postController),
 		),
 	)
 
-	next.Methods("GET").PathPrefix("/me/posts").Name("postListMe").HandlerFunc(
+	next.Methods("GET").Path("/me/posts").Name("postListMe").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.PostListMe(postController),
 		),
 	)
 
-	next.Methods("GET").PathPrefix("/users/{userID:[0-9]+}/posts").Name("postList").HandlerFunc(
+	next.Methods("GET").Path("/users/{userID:[0-9]+}/posts").Name("postList").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.PostList(postController),
 		),
 	)
 
-	next.Methods("GET").PathPrefix("/recommendations/users/active/day").Name("recommendUsersActiveDay").HandlerFunc(
+	next.Methods("GET").Path("/recommendations/users/active/day").Name("recommendUsersActiveDay").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.RecommendUsersActiveDay(recommendationController),
 		),
 	)
 
-	next.Methods("GET").PathPrefix("/recommendations/users/active/week").Name("recommendUsersActiveWeek").HandlerFunc(
+	next.Methods("GET").Path("/recommendations/users/active/week").Name("recommendUsersActiveWeek").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.RecommendUsersActiveWeek(recommendationController),
 		),
 	)
 
-	next.Methods("GET").PathPrefix("/recommendations/users/active/month").Name("recommendUsersActiveMonth").HandlerFunc(
+	next.Methods("GET").Path("/recommendations/users/active/month").Name("recommendUsersActiveMonth").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.RecommendUsersActiveMonth(recommendationController),
 		),
 	)
 
-	next.Methods("GET").PathPrefix("/me").Name("userRetrieveMe").HandlerFunc(
+	next.Methods("GET").Path("/me").Name("userRetrieveMe").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.UserRetrieveMe(userController),
 		),
 	)
 
-	next.Methods("PUT").PathPrefix("/me").Name("userUpdate").HandlerFunc(
+	next.Methods("PUT").Path("/me").Name("userUpdate").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.UserUpdate(userController),
 		),
 	)
 
-	next.Methods("POST").PathPrefix("/me/login").Name("userMeLogin").HandlerFunc(
+	next.Methods("POST").Path("/me/login").Name("userMeLogin").HandlerFunc(
 		handler.Wrap(
 			withApp,
 			handler.UserLogin(userController),
 		),
 	)
 
-	next.Methods("DELETE").PathPrefix("/me/logout").Name("userLogout").HandlerFunc(
+	next.Methods("DELETE").Path("/me/logout").Name("userLogout").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.UserLogout(userController),
 		),
 	)
 
-	next.Methods("DELETE").PathPrefix("/me").Name("userDelete").HandlerFunc(
+	next.Methods("DELETE").Path("/me").Name("userDelete").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.UserDelete(userController),
 		),
 	)
 
-	next.Methods("GET").PathPrefix("/users/{userID:[0-9]+}").Name("userRetrieve").HandlerFunc(
+	next.Methods("GET").Path("/users/{userID:[0-9]+}").Name("userRetrieve").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.UserRetrieve(userController),
 		),
 	)
 
-	next.Methods("POST").PathPrefix("/users/login").Name("userLogin").HandlerFunc(
+	next.Methods("POST").Path("/users/login").Name("userLogin").HandlerFunc(
 		handler.Wrap(
 			withApp,
 			handler.UserLogin(userController),
 		),
 	)
 
-	next.Methods("POST").PathPrefix("/users/search/emails").Name("userSearchEmails").HandlerFunc(
+	next.Methods("POST").Path("/users/search/emails").Name("userSearchEmails").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.UserSearchEmails(userController),
 		),
 	)
 
-	next.Methods("POST").PathPrefix(`/users/search/{platform:[a-z]+}`).Name("userSearchPlatform").HandlerFunc(
+	next.Methods("POST").Path(`/users/search/{platform:[a-z]+}`).Name("userSearchPlatform").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.UserSearchPlatform(userController),
 		),
 	)
 
-	next.Methods("GET").PathPrefix(`/users/search`).Name("userSearch").HandlerFunc(
+	next.Methods("GET").Path(`/users/search`).Name("userSearch").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.UserSearch(userController),
 		),
 	)
 
-	next.Methods("POST").PathPrefix(`/users`).Name("userCreate").HandlerFunc(
+	next.Methods("POST").Path(`/users`).Name("userCreate").HandlerFunc(
 		handler.Wrap(
 			withApp,
 			handler.UserCreate(userController),
