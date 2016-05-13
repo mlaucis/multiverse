@@ -188,7 +188,7 @@ func (s *instrumentSource) Consume() (change *StateChange, err error) {
 	defer func(begin time.Time) {
 		ns := ""
 
-		if change != nil {
+		if err == nil && change != nil {
 			ns = change.Namespace
 
 			if !change.SentAt.IsZero() {
@@ -249,15 +249,15 @@ func (s *instrumentSource) track(
 
 	if err != nil {
 		s.errCount.With(c).With(m).With(ns).With(source).With(store).Add(1)
+	} else {
+		s.opCount.With(c).With(m).With(ns).With(source).With(store).Add(1)
+
+		s.opLatency.With(prometheus.Labels{
+			metrics.FieldComponent: s.component,
+			metrics.FieldMethod:    method,
+			metrics.FieldNamespace: namespace,
+			metrics.FieldSource:    serviceName,
+			metrics.FieldStore:     s.store,
+		}).Observe(time.Since(begin).Seconds())
 	}
-
-	s.opCount.With(c).With(m).With(ns).With(source).With(store).Add(1)
-
-	s.opLatency.With(prometheus.Labels{
-		metrics.FieldComponent: s.component,
-		metrics.FieldMethod:    method,
-		metrics.FieldNamespace: namespace,
-		metrics.FieldSource:    serviceName,
-		metrics.FieldStore:     s.store,
-	}).Observe(time.Since(begin).Seconds())
 }
