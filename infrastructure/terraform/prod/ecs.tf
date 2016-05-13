@@ -603,7 +603,7 @@ $ActionSendStreamDriverMode 1
 $ActionSendStreamDriverAuthMode x509/name
 $ActionSendStreamDriverPermittedPeer *.loggly.com
 *.* @@logs-01.loggly.com:6514;LogglyFormat
-' | sudo tee /etc/rsyslog/22-loggly.conf > /dev/null
+' | sudo tee /etc/rsyslog.d/22-loggly.conf > /dev/null
 
 sudo service rsyslog restart
 
