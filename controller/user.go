@@ -39,13 +39,11 @@ func (c *UserController) Create(
 	origin Origin,
 	u *user.User,
 ) (*user.User, error) {
-	err := constrainUserPrivate(origin, u.Private)
-	if err != nil {
+	if err := constrainUserPrivate(origin, u.Private); err != nil {
 		return nil, err
 	}
 
-	err = c.constrainUniqueEmail(app, u)
-	if err != nil {
+	if err := c.constrainUniqueEmail(app, u); err != nil {
 		if !IsInvalidEntity(err) {
 			return nil, err
 		}
@@ -53,8 +51,7 @@ func (c *UserController) Create(
 		return c.LoginEmail(app, u.Email, u.Password)
 	}
 
-	err = c.constrainUniqueUsername(app, u)
-	if err != nil {
+	if err := c.constrainUniqueUsername(app, u); err != nil {
 		if !IsInvalidEntity(err) {
 			return nil, err
 		}
@@ -69,6 +66,10 @@ func (c *UserController) Create(
 
 	u.Enabled = true
 	u.Password = epw
+
+	if err := u.Validate(); err != nil {
+		return nil, wrapError(ErrInvalidEntity, "%s", err)
+	}
 
 	u, err = c.users.Put(app.Namespace(), u)
 	if err != nil {
