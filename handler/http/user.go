@@ -21,9 +21,12 @@ func UserCreate(c *controller.UserController) Handler {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		var (
 			currentApp = appFromContext(ctx)
+			deviceID   = deviceIDFromContext(ctx)
 			p          = payloadUser{}
 			tokenType  = tokenTypeFromContext(ctx)
 			version    = versionFromContext(ctx)
+
+			origin = createOrigin(deviceID, tokenType, 0)
 		)
 
 		err := json.NewDecoder(r.Body).Decode(&p)
@@ -32,7 +35,7 @@ func UserCreate(c *controller.UserController) Handler {
 			return
 		}
 
-		u, err := c.Create(currentApp, createOrigin(tokenType, 0), p.user)
+		u, err := c.Create(currentApp, origin, p.user)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -71,8 +74,12 @@ func UserDelete(c *controller.UserController) Handler {
 func UserLogin(c *controller.UserController) Handler {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		var (
-			app = appFromContext(ctx)
-			p   = payloadLogin{}
+			app       = appFromContext(ctx)
+			deviceID  = deviceIDFromContext(ctx)
+			p         = payloadLogin{}
+			tokenType = tokenTypeFromContext(ctx)
+
+			origin = createOrigin(deviceID, tokenType, 0)
 		)
 
 		err := json.NewDecoder(r.Body).Decode(&p)
@@ -86,14 +93,14 @@ func UserLogin(c *controller.UserController) Handler {
 			return
 		}
 
-		u, err := c.LoginEmail(app, p.email, p.password)
+		u, err := c.LoginEmail(app, origin, p.email, p.password)
 		if err != nil {
 			if !controller.IsNotFound(err) {
 				respondError(w, 0, err)
 				return
 			}
 
-			u, err = c.LoginUsername(app, p.username, p.password)
+			u, err = c.LoginUsername(app, origin, p.username, p.password)
 			if err != nil {
 				if controller.IsNotFound(err) {
 					respondError(w, 1001, wrapError(ErrUnauthorized, "application user not found"))
@@ -140,6 +147,10 @@ func UserRetrieve(c *controller.UserController) Handler {
 		var (
 			currentApp  = appFromContext(ctx)
 			currentUser = userFromContext(ctx)
+			deviceID    = deviceIDFromContext(ctx)
+			tokenType   = tokenTypeFromContext(ctx)
+
+			origin = createOrigin(deviceID, tokenType, currentUser.ID)
 		)
 
 		userID, err := strconv.ParseUint(mux.Vars(r)["userID"], 10, 64)
@@ -148,7 +159,7 @@ func UserRetrieve(c *controller.UserController) Handler {
 			return
 		}
 
-		u, err := c.Retrieve(currentApp, currentUser.ID, userID)
+		u, err := c.Retrieve(currentApp, origin, userID)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -164,9 +175,13 @@ func UserRetrieveMe(c *controller.UserController) Handler {
 		var (
 			currentApp  = appFromContext(ctx)
 			currentUser = userFromContext(ctx)
+			deviceID    = deviceIDFromContext(ctx)
+			tokenType   = tokenTypeFromContext(ctx)
+
+			origin = createOrigin(deviceID, tokenType, currentUser.ID)
 		)
 
-		u, err := c.Retrieve(currentApp, currentUser.ID, currentUser.ID)
+		u, err := c.Retrieve(currentApp, origin, currentUser.ID)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -286,6 +301,7 @@ func UserUpdate(c *controller.UserController) Handler {
 		var (
 			currentApp  = appFromContext(ctx)
 			currentUser = userFromContext(ctx)
+			deviceID    = deviceIDFromContext(ctx)
 			p           = payloadUser{}
 			tokenType   = tokenTypeFromContext(ctx)
 		)
@@ -298,7 +314,7 @@ func UserUpdate(c *controller.UserController) Handler {
 
 		u, err := c.Update(
 			currentApp,
-			createOrigin(tokenType, currentUser.ID),
+			createOrigin(deviceID, tokenType, currentUser.ID),
 			currentUser,
 			p.user,
 		)

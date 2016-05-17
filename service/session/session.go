@@ -9,6 +9,9 @@ import (
 	"github.com/tapglue/multiverse/platform/service"
 )
 
+// DeviceIDUnknown is the default for untracked devices.
+const DeviceIDUnknown = "unknown"
+
 // List is a collection of sessions.
 type List []*Session
 
@@ -17,9 +20,10 @@ type Map map[string]*Session
 
 // QueryOptions is used to narrow-down session queries.
 type QueryOptions struct {
-	Enabled *bool
-	IDs     []string
-	UserIDs []uint64
+	DeviceIDs []string
+	Enabled   *bool
+	IDs       []string
+	UserIDs   []uint64
 }
 
 // Service for session interactions
@@ -36,6 +40,7 @@ type ServiceMiddleware func(Service) Service
 // Session attaches a session id to a user id.
 type Session struct {
 	CreatedAt time.Time
+	DeviceID  string
 	Enabled   bool
 	ID        string
 	UserID    uint64
@@ -43,6 +48,10 @@ type Session struct {
 
 // Validate performs semantic checks on the Session.
 func (s *Session) Validate() error {
+	if s.DeviceID == "" {
+		return wrapError(ErrInvalidSession, "DeviceID must be set")
+	}
+
 	if s.UserID == 0 {
 		return wrapError(ErrInvalidSession, "UserID must be set")
 	}

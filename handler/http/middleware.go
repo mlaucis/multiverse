@@ -27,6 +27,8 @@ import (
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
 
+const headerIDFV = "X-Tapglue-Idfv"
+
 var defaultEnabled = true
 
 // CORS adds the standard set of CORS headers.
@@ -247,6 +249,21 @@ func DebugHeaders(rev, host string) Middleware {
 			w.Header().Set("X-Tapglue-Revision", rev)
 
 			next(ctx, w, r)
+		}
+	}
+}
+
+// DeviceID extracts the unique identification for a device.
+func DeviceID() Middleware {
+	return func(next Handler) Handler {
+		return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+			deviceID := r.Header.Get(headerIDFV)
+
+			if deviceID == "" {
+				deviceID = session.DeviceIDUnknown
+			}
+
+			next(deviceIDInContext(ctx, deviceID), w, r)
 		}
 	}
 }

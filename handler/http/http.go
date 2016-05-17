@@ -82,7 +82,7 @@ type apiError struct {
 	Message string `json:"message"`
 }
 
-func createOrigin(tokenType string, userID uint64) controller.Origin {
+func createOrigin(deviceID, tokenType string, userID uint64) controller.Origin {
 	integration := controller.IntegrationApplication
 
 	if tokenType == tokenBackend {
@@ -90,6 +90,7 @@ func createOrigin(tokenType string, userID uint64) controller.Origin {
 	}
 
 	return controller.Origin{
+		DeviceID:    deviceID,
 		Integration: integration,
 		UserID:      userID,
 	}
