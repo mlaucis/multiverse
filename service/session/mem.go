@@ -80,6 +80,10 @@ func filterMap(sm Map, opts QueryOptions) List {
 	ss := List{}
 
 	for id, s := range sm {
+		if !inTypes(s.DeviceID, opts.DeviceIDs) {
+			continue
+		}
+
 		if opts.Enabled != nil && s.Enabled != *opts.Enabled {
 			continue
 		}

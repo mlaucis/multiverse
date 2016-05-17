@@ -12,8 +12,8 @@ import (
 
 const (
 	pgInsertSession = `INSERT INTO
-		%s.sessions(user_id, session_id, created_at, enabled)
-		VALUES($1, $2, $3, $4)`
+		%s.sessions(user_id, session_id, created_at, enabled, device_id)
+		VALUES($1, $2, $3, $4, $5)`
 	pgUpdateSession = `
 		UPDATE
 			%s.sessions
@@ -23,15 +23,16 @@ const (
 			user_id = $1 AND
 			session_id = $2`
 
-	pgClauseEnabled = `enabled = ?`
-	pgClauseIDs     = `session_id IN (?)`
-	pgClauseUserIDs = `user_id IN (?)`
+	pgClauseDeviceIDs = `device_id IN (?)`
+	pgClauseEnabled   = `enabled = ?`
+	pgClauseIDs       = `session_id IN (?)`
+	pgClauseUserIDs   = `user_id IN (?)`
 
 	pgOrderCreatedAt = `ORDER BY created_at DESC`
 
 	pgListSessions = `
 		SELECT
-			user_id, session_id, created_at, enabled
+			user_id, session_id, created_at, enabled, device_id
 		FROM
 			%s.sessions
 		%s`
@@ -41,12 +42,14 @@ const (
 		user_id BIGINT NOT NULL,
 		session_id VARCHAR(40) NOT NULL,
 		created_at TIMESTAMP DEFAULT now() NOT NULL,
-		enabled BOOL DEFAULT TRUE NOT NULL
+		enabled BOOL DEFAULT TRUE NOT NULL,
+		device_id VARCHAR(255)
 	)`
 	pgDropTable = `DROP TABLE IF EXISTS %s.sessions`
 
-	pgIndexID     = `CREATE INDEX %s ON %s.sessions (session_id)`
-	pgIndexUserID = `CREATE INDEX %s ON %s.sessions (user_id)`
+	pgIndexDeviceID = `CREATE INDEX %s ON %s.sessions (device_id)`
+	pgIndexID       = `CREATE INDEX %s ON %s.sessions (session_id)`
+	pgIndexUserID   = `CREATE INDEX %s ON %s.sessions (user_id)`
 
 	// FIXME: Postgres doesn't preserve nanosecond precision.
 	pgTimeFormat = "2006-01-02 15:04:05.000000 UTC"
@@ -92,6 +95,7 @@ func (s *pgService) Put(ns string, session *Session) (*Session, error) {
 			session.ID,
 			session.CreatedAt,
 			session.Enabled,
+			session.DeviceID,
 		}
 		query = fmt.Sprintf(pgInsertSession, ns)
 	}
@@ -123,6 +127,7 @@ func (s *pgService) Setup(ns string) error {
 	qs := []string{
 		fmt.Sprintf(pgCreateSchema, ns),
 		fmt.Sprintf(pgCreateTable, ns),
+		pg.GuardIndex(ns, "session_device_id", pgIndexDeviceID),
 		pg.GuardIndex(ns, "session_id", pgIndexID),
 		pg.GuardIndex(ns, "session_user_id", pgIndexUserID),
 	}
@@ -197,6 +202,7 @@ func (s *pgService) listSessions(
 			&s.ID,
 			&s.CreatedAt,
 			&s.Enabled,
+			&s.DeviceID,
 		)
 		if err != nil {
 			return nil, err
@@ -219,6 +225,22 @@ func convertOpts(opts QueryOptions) ([]string, []interface{}, error) {
 		clauses = []string{}
 		params  = []interface{}{}
 	)
+
+	if len(opts.DeviceIDs) > 0 {
+		ps := []interface{}{}
+
+		for _, id := range opts.DeviceIDs {
+			ps = append(ps, id)
+		}
+
+		clause, _, err := sqlx.In(pgClauseDeviceIDs, ps)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		clauses = append(clauses, clause)
+		params = append(params, ps...)
+	}
 
 	if opts.Enabled != nil {
 		clause, _, err := sqlx.In(pgClauseEnabled, []interface{}{*opts.Enabled})

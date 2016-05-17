@@ -19,9 +19,12 @@ func PostCreate(c *controller.PostController) Handler {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		var (
 			currentApp  = appFromContext(ctx)
+			deviceID    = deviceIDFromContext(ctx)
 			currentUser = userFromContext(ctx)
 			p           = &payloadPost{}
 			tokenType   = tokenTypeFromContext(ctx)
+
+			origin = createOrigin(deviceID, tokenType, currentUser.ID)
 		)
 
 		err := json.NewDecoder(r.Body).Decode(p)
@@ -30,11 +33,7 @@ func PostCreate(c *controller.PostController) Handler {
 			return
 		}
 
-		post, err := c.Create(
-			currentApp,
-			createOrigin(tokenType, currentUser.ID),
-			p.post,
-		)
+		post, err := c.Create(currentApp, origin, p.post)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -182,8 +181,11 @@ func PostUpdate(c *controller.PostController) Handler {
 		var (
 			currentApp  = appFromContext(ctx)
 			currentUser = userFromContext(ctx)
+			deviceID    = deviceIDFromContext(ctx)
 			p           = payloadPost{}
 			tokenType   = tokenTypeFromContext(ctx)
+
+			origin = createOrigin(deviceID, tokenType, currentUser.ID)
 		)
 
 		id, err := strconv.ParseUint(mux.Vars(r)["postID"], 10, 64)
@@ -200,7 +202,7 @@ func PostUpdate(c *controller.PostController) Handler {
 
 		updated, err := c.Update(
 			currentApp,
-			createOrigin(tokenType, currentUser.ID),
+			origin,
 			id,
 			p.post,
 		)

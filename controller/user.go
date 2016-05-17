@@ -48,7 +48,7 @@ func (c *UserController) Create(
 			return nil, err
 		}
 
-		return c.LoginEmail(app, u.Email, u.Password)
+		return c.LoginEmail(app, origin, u.Email, u.Password)
 	}
 
 	if err := c.constrainUniqueUsername(app, u); err != nil {
@@ -56,7 +56,7 @@ func (c *UserController) Create(
 			return nil, err
 		}
 
-		return c.LoginUsername(app, u.Username, u.Password)
+		return c.LoginUsername(app, origin, u.Username, u.Password)
 	}
 
 	epw, err := passwordSecure(u.Password)
@@ -76,7 +76,7 @@ func (c *UserController) Create(
 		return nil, err
 	}
 
-	err = c.enrichSessionToken(app, u)
+	err = c.enrichSessionToken(app, u, origin.DeviceID)
 	if err != nil {
 		return nil, err
 	}
@@ -158,6 +158,7 @@ func (c *UserController) ListByPlatformIDs(
 // LoginEmail finds the user by email and returns it with a valid session token.
 func (c *UserController) LoginEmail(
 	app *v04_entity.Application,
+	origin Origin,
 	email string,
 	password string,
 ) (*user.User, error) {
@@ -175,13 +176,14 @@ func (c *UserController) LoginEmail(
 		return nil, ErrNotFound
 	}
 
-	return c.login(app, us[0], password)
+	return c.login(app, us[0], password, origin.DeviceID)
 }
 
 // LoginUsername finds the user by username and returns it with a valid session
 // token.
 func (c *UserController) LoginUsername(
 	app *v04_entity.Application,
+	origin Origin,
 	username string,
 	password string,
 ) (*user.User, error) {
@@ -199,7 +201,7 @@ func (c *UserController) LoginUsername(
 		return nil, ErrNotFound
 	}
 
-	return c.login(app, us[0], password)
+	return c.login(app, us[0], password, origin.DeviceID)
 }
 
 // Logout destroys the session stored under token.
@@ -235,7 +237,8 @@ func (c *UserController) Logout(
 // Retrieve returns the user with the given id.
 func (c *UserController) Retrieve(
 	app *v04_entity.Application,
-	origin, userID uint64,
+	origin Origin,
+	userID uint64,
 ) (*user.User, error) {
 	us, err := c.users.Query(app.Namespace(), user.QueryOptions{
 		Enabled: &defaultEnabled,
@@ -253,7 +256,7 @@ func (c *UserController) Retrieve(
 
 	u := us[0]
 
-	err = enrichRelation(c.connections, app, origin, u)
+	err = enrichRelation(c.connections, app, origin.UserID, u)
 	if err != nil {
 		return nil, err
 	}
@@ -263,8 +266,8 @@ func (c *UserController) Retrieve(
 		return nil, err
 	}
 
-	if origin == userID {
-		err = c.enrichSessionToken(app, u)
+	if origin.UserID == userID {
+		err = c.enrichSessionToken(app, u, origin.DeviceID)
 		if err != nil {
 			return nil, err
 		}
@@ -362,7 +365,7 @@ func (c *UserController) Update(
 		return nil, err
 	}
 
-	err = c.enrichSessionToken(app, u)
+	err = c.enrichSessionToken(app, u, origin.DeviceID)
 	if err != nil {
 		return nil, err
 	}
@@ -527,8 +530,12 @@ func (c *UserController) enrichConnectionCounts(
 func (c *UserController) enrichSessionToken(
 	app *v04_entity.Application,
 	u *user.User,
+	deviceID string,
 ) error {
 	ss, err := c.sessions.Query(app.Namespace(), session.QueryOptions{
+		DeviceIDs: []string{
+			deviceID,
+		},
 		Enabled: &defaultEnabled,
 		UserIDs: []uint64{
 			u.ID,
@@ -544,8 +551,9 @@ func (c *UserController) enrichSessionToken(
 		s = ss[0]
 	} else {
 		s, err = c.sessions.Put(app.Namespace(), &session.Session{
-			Enabled: true,
-			UserID:  u.ID,
+			DeviceID: deviceID,
+			Enabled:  true,
+			UserID:   u.ID,
 		})
 		if err != nil {
 			return err
@@ -561,6 +569,7 @@ func (c *UserController) login(
 	app *v04_entity.Application,
 	u *user.User,
 	password string,
+	deviceID string,
 ) (*user.User, error) {
 	valid, err := passwordCompare(password, u.Password)
 	if err != nil {
@@ -571,7 +580,7 @@ func (c *UserController) login(
 		return nil, ErrUnauthorized
 	}
 
-	err = c.enrichSessionToken(app, u)
+	err = c.enrichSessionToken(app, u, deviceID)
 	if err != nil {
 		return nil, err
 	}

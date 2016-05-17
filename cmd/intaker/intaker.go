@@ -351,6 +351,7 @@ func main() {
 			handler.Instrument(component),
 			handler.SecureHeaders(),
 			handler.DebugHeaders(currentRevision, currentHostname),
+			handler.DeviceID(),
 			handler.CORS(),
 			handler.Gzip(),
 			handler.HasUserAgent(),
