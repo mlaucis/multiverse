@@ -115,11 +115,16 @@ function extractReferrer() {
       lastName: $contentForm.find('#lastName').val(),
       email: $contentForm.find('#email').val(),
       phone: $contentForm.find('#phone').val(),
-      company: $contentForm.find('#company').val()
+      company: $contentForm.find('#company').val(),
     }
+
+    var contentTitle = $contentForm.find('#title').val();
+    var requestedString = " requested";
+    var eventName = contentTitle.concat(requestedString);
 
     analytics.identify(identifyProps.email, identifyProps);
     analytics.track('Content requested', trackProps);
+    analytics.track(eventName, trackProps);
 
     $contentForm.find('.uniform').slideUp(360);
     $success.slideDown(360);
