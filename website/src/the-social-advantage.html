@@ -80,20 +80,26 @@
       <section id="two" class="style2 special">
         <div class="container 100%">
           <header class="major">
-            <h2>The Tapglue Social Guide</h2>
+            <h2><span class="whitepaper">Whitepaper -</span> The Social Advantage</h2>
           </header>
         </div>
         <div class="container">
             <div class="row featurebenefits">
-              <section class="6u 12u(medium)">
-                <h3>Learn how to build social products</h3>
-                <p>Spend time with one of our team members and get insights into how to build social features into your product.</p>
-                <p>Understand how we will help you increase engagement, retention and how our platform fits your needs.</p>
-                <p>To get started, fill out the form to the right. We will contact you shortly to schedule your demo.</p>
+              <section class="3u 12u(medium)">
+                <img src="img/whitepaper/tsa.png" alt="The Social Advantage">
+              </section>
+              <section class="3u 12u(medium)">
+                <p>Download this whitepaper to learn:</p>
+                <ul>
+                  <li><span>Why retention is critical to building a sustainable product</span></li>
+                  <li><span>How to identify the top retention issues for your app</span></li>
+                  <li><span>Nine social features that have proven to boost retention rates and engagement</span></li>
+                  <li><span>What one company did to increase the average user session length by 18%</span></li>
+                </ul>
               </section>
               <section class="6u$ 12u(medium)">
                 <div class="plan">
-                  <form method="post" id="demoForm">
+                  <form method="post" id="contentForm">
                       <div class="row uniform">
                           <div class="6u 12u$(small)">
                               <input name="firstName" id="firstName" value="" placeholder="First Name*" type="text" required>
@@ -111,7 +117,7 @@
                               <input name="company" id="company" value="" placeholder="Company*" type="text" required>
                           </div>
                           <div class="12u$">
-                            <select name="companySize" required>
+                            <select name="companySize" id="companySize" required>
                               <option disabled selected>- Company Size -</option>
                               <option label="1-50" value="small"></option>
                               <option label="51-100" value="medium"></option>
@@ -120,11 +126,25 @@
                             </select>
                           </div>
                           <div class="12u$">
-                            <input value="Request Demo" class="btn-default big" type="submit">
+                            <select name="appSize" id="appSize" required>
+                              <option disabled selected>- Number of Users -</option>
+                              <option label="less than 10,000" value="small"></option>
+                              <option label="10,001 - 50,000" value="medium"></option>
+                              <option label="50,001 - 250,000" value="large"></option>
+                              <option label="250,000+" value="enterprise"></option>
+                            </select>
+                          </div>
+                          <div class="12u$">
+                            <input value="Download" class="btn-default big" type="submit">
+                          </div>
+                          <div class="12u$">
+                              <input type="hidden" name="title" id="title" value="The Social Advantage">
+                              <input type="hidden" name="type" id="type" value="whitepaper">
                           </div>
                       </div>
                       <div class="success-feedback">
                         <h3>You're all set!</h3>
+                        <p>Thanks for requesting our latest Whitepaper. We'll send you a link to your email to download the content.</p>
                       </div>
                   </form>
                 </div>
@@ -162,6 +182,7 @@
                     <li><a href="//weekly.tapglue.com">Newsletter</a></li>
                     <li><a href="/blog/">Blog</a></li>
                     <li><a href="/elements/">Elements</a></li>
+                    <li><a href="/the-social-advantage/">The Social Advantage</a></li>
                 </ul>
             </section>
             <section class="3u 6u$(medium)">
@@ -207,7 +228,7 @@
         <!-- Page Tracking -->
         <script type="text/javascript">
         function trackPage(){
-            analytics.page("Social-Guide")
+            analytics.page("The-Social-Advantage")
             analytics.identify()
         }
         window.onload = trackPage;
