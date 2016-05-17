@@ -1,0 +1,17 @@
+FROM alpine:3.3
+Maintainer Tapglue "devs@tapglue.com"
+
+ARG BINARY_FILE
+
+# DNS stuff
+RUN echo 'hosts: files mdns4_minimal [NOTFOUND=return] dns mdns4' >> /etc/nsswitch.conf
+
+# SSL certs
+RUN apk add --update ca-certificates \
+    && rm -rf /var/cache/apk/*
+
+ # Binary
+ADD $BINARY_FILE /tapglue/sims
+
+# Runtime
+EXPOSE 9001

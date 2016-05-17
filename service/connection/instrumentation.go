@@ -12,6 +12,7 @@ import (
 const serviceName = "connection"
 
 type instrumentService struct {
+	component string
 	errCount  kitmetrics.Counter
 	opCount   kitmetrics.Counter
 	opLatency *prometheus.HistogramVec
@@ -22,13 +23,14 @@ type instrumentService struct {
 // InstrumentServiceMiddleware observes key aspects of Service operations and
 // exposes Prometheus metrics.
 func InstrumentServiceMiddleware(
-	store string,
+	component, store string,
 	errCount kitmetrics.Counter,
 	opCount kitmetrics.Counter,
 	opLatency *prometheus.HistogramVec,
 ) ServiceMiddleware {
 	return func(next Service) Service {
 		return &instrumentService{
+			component: component,
 			errCount:  errCount,
 			opCount:   opCount,
 			opLatency: opLatency,
@@ -105,6 +107,10 @@ func (s *instrumentService) track(
 	err error,
 ) {
 	var (
+		c = kitmetrics.Field{
+			Key:   metrics.FieldComponent,
+			Value: s.component,
+		}
 		m = kitmetrics.Field{
 			Key:   metrics.FieldMethod,
 			Value: method,
@@ -124,12 +130,13 @@ func (s *instrumentService) track(
 	)
 
 	if err != nil {
-		s.errCount.With(m).With(ns).With(service).With(store).Add(1)
+		s.errCount.With(c).With(m).With(ns).With(service).With(store).Add(1)
 	}
 
-	s.opCount.With(m).With(ns).With(service).With(store).Add(1)
+	s.opCount.With(c).With(m).With(ns).With(service).With(store).Add(1)
 
 	s.opLatency.With(prometheus.Labels{
+		metrics.FieldComponent: s.component,
 		metrics.FieldMethod:    method,
 		metrics.FieldNamespace: namespace,
 		metrics.FieldService:   serviceName,
@@ -150,8 +157,7 @@ type instrumentSource struct {
 // InstrumentSourceMiddleware observes key aspects of Source operations and
 // exposes Prometheus metrics.
 func InstrumentSourceMiddleware(
-	component string,
-	store string,
+	component, store string,
 	errCount kitmetrics.Counter,
 	opCount kitmetrics.Counter,
 	opLatency *prometheus.HistogramVec,
@@ -170,11 +176,19 @@ func InstrumentSourceMiddleware(
 	}
 }
 
+func (s *instrumentSource) Ack(id string) (err error) {
+	defer func(begin time.Time) {
+		s.track("Ack", "", begin, err)
+	}(time.Now())
+
+	return s.next.Ack(id)
+}
+
 func (s *instrumentSource) Consume() (change *StateChange, err error) {
 	defer func(begin time.Time) {
 		ns := ""
 
-		if change != nil {
+		if err == nil && change != nil {
 			ns = change.Namespace
 
 			if !change.SentAt.IsZero() {
@@ -235,15 +249,15 @@ func (s *instrumentSource) track(
 
 	if err != nil {
 		s.errCount.With(c).With(m).With(ns).With(source).With(store).Add(1)
+	} else {
+		s.opCount.With(c).With(m).With(ns).With(source).With(store).Add(1)
+
+		s.opLatency.With(prometheus.Labels{
+			metrics.FieldComponent: s.component,
+			metrics.FieldMethod:    method,
+			metrics.FieldNamespace: namespace,
+			metrics.FieldSource:    serviceName,
+			metrics.FieldStore:     s.store,
+		}).Observe(time.Since(begin).Seconds())
 	}
-
-	s.opCount.With(c).With(m).With(ns).With(source).With(store).Add(1)
-
-	s.opLatency.With(prometheus.Labels{
-		metrics.FieldComponent: s.component,
-		metrics.FieldMethod:    method,
-		metrics.FieldNamespace: namespace,
-		metrics.FieldSource:    serviceName,
-		metrics.FieldStore:     s.store,
-	}).Observe(time.Since(begin).Seconds())
 }

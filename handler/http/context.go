@@ -9,6 +9,7 @@ import (
 
 const (
 	ctxKeyApp       = "app"
+	ctxKeyDeviceID  = "deviceID"
 	ctxKeyMember    = "member"
 	ctxKeyOrg       = "org"
 	ctxKeyRoute     = "route"
@@ -27,6 +28,14 @@ func appFromContext(ctx context.Context) *v04_entity.Application {
 
 func appInContext(ctx context.Context, app *v04_entity.Application) context.Context {
 	return context.WithValue(ctx, ctxKeyApp, app)
+}
+
+func deviceIDFromContext(ctx context.Context) string {
+	return ctx.Value(ctxKeyDeviceID).(string)
+}
+
+func deviceIDInContext(ctx context.Context, deviceID string) context.Context {
+	return context.WithValue(ctx, ctxKeyDeviceID, deviceID)
 }
 
 func memberFromContext(ctx context.Context) *v04_entity.Member {

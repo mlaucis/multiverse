@@ -50,19 +50,10 @@ var createApplicationNamespaceQuery = []string{
 	(
 		json_data JSONB NOT NULL
 	)`,
-	`CREATE TABLE app_%d_%d.sessions
-	(
-		user_id BIGINT NOT NULL,
-		session_id VARCHAR(40) NOT NULL,
-		created_at TIMESTAMP DEFAULT now() NOT NULL,
-		enabled BOOL DEFAULT TRUE NOT NULL
-	)`,
 
 	`CREATE INDEX user_id ON app_%d_%d.users USING btree (((json_data ->> 'id') :: BIGINT))`,
 	`CREATE INDEX user_email ON app_%d_%d.users USING btree (((json_data ->> 'email') :: TEXT))`,
 	`CREATE INDEX user_username ON app_%d_%d.users USING btree (((json_data ->> 'user_name') :: TEXT))`,
-
-	`CREATE INDEX ON app_%d_%d.sessions (session_id, user_id)`,
 
 	`CREATE INDEX conection_from_id ON app_%d_%d.connections USING btree ((((json_data ->> 'user_from_id'::text))::bigint))`,
 	`CREATE INDEX conection_to_id ON app_%d_%d.connections USING btree ((((json_data ->> 'user_to_id'::text))::bigint))`,

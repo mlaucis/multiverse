@@ -31,6 +31,11 @@ type Connection struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
+// Acker permantly removes the workload from the Source.
+type Acker interface {
+	Ack(id string) error
+}
+
 // Consumer observes state changes.
 type Consumer interface {
 	Consume() (*StateChange, error)
@@ -121,6 +126,7 @@ type State string
 
 // StateChange transports all information necessary to observe state changes.
 type StateChange struct {
+	AckID     string
 	ID        string
 	Namespace string
 	New       *Connection
@@ -130,6 +136,7 @@ type StateChange struct {
 
 // Source encapsulates state change notification operations.
 type Source interface {
+	Acker
 	Consumer
 	Producer
 }

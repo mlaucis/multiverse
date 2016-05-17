@@ -20,8 +20,11 @@ func CommentCreate(c *controller.CommentController) Handler {
 		var (
 			currentApp  = appFromContext(ctx)
 			currentUser = userFromContext(ctx)
+			deviceID    = deviceIDFromContext(ctx)
 			p           = &payloadComment{}
 			tokenType   = tokenTypeFromContext(ctx)
+
+			origin = createOrigin(deviceID, tokenType, currentUser.ID)
 		)
 
 		postID, err := strconv.ParseUint(mux.Vars(r)["postID"], 10, 64)
@@ -36,12 +39,7 @@ func CommentCreate(c *controller.CommentController) Handler {
 			return
 		}
 
-		comment, err := c.Create(
-			currentApp,
-			createOrigin(tokenType, currentUser.ID),
-			postID,
-			p.comment,
-		)
+		comment, err := c.Create(currentApp, origin, postID, p.comment)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -148,8 +146,11 @@ func CommentUpdate(c *controller.CommentController) Handler {
 		var (
 			currentApp  = appFromContext(ctx)
 			currentUser = userFromContext(ctx)
+			deviceID    = deviceIDFromContext(ctx)
 			p           = &payloadComment{}
 			tokenType   = tokenTypeFromContext(ctx)
+
+			origin = createOrigin(deviceID, tokenType, currentUser.ID)
 		)
 
 		postID, err := strconv.ParseUint(mux.Vars(r)["postID"], 10, 64)
@@ -172,7 +173,7 @@ func CommentUpdate(c *controller.CommentController) Handler {
 
 		comment, err := c.Update(
 			currentApp,
-			createOrigin(tokenType, currentUser.ID),
+			origin,
 			postID,
 			commentID,
 			p.comment,

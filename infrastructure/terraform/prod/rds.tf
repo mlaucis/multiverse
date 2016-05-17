@@ -93,7 +93,7 @@ resource "aws_db_instance" "master" {
   iops = 1000 # this should give us a boost in performance for production
   allocated_storage       = "200"
   engine                  = "postgres"
-  engine_version          = "9.4.5"
+  engine_version          = "9.4.7"
   instance_class          = "db.r3.large"
   # if you want to change to true, see the list of instance types that support storage encryption: http://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Overview.Encryption.html#d0e10116
   storage_encrypted       = true
@@ -109,8 +109,8 @@ resource "aws_db_instance" "master" {
   ]
   db_subnet_group_name    = "${aws_db_subnet_group.prod.id}"
   backup_retention_period = 30
-  backup_window           = "04:00-04:30"
-  maintenance_window      = "sat:05:00-sat:06:30"
+  backup_window           = "00:00-01:30"
+  maintenance_window      = "tue:02:00-tue:03:00"
   parameter_group_name    = "${aws_db_parameter_group.master-prod.id}"
   apply_immediately       = true
   skip_final_snapshot     = false

@@ -10,9 +10,12 @@ const (
 	FieldComponent = "component"
 	FieldMethod    = "method"
 	FieldNamespace = "namespace"
+	FieldRoute     = "route"
 	FieldService   = "service"
 	FieldSource    = "source"
+	FieldStatus    = "status"
 	FieldStore     = "store"
+	FieldVersion   = "version"
 )
 
 // BucketsQueue are used for Histograms observing queue latencies.

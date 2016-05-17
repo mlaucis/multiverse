@@ -16,6 +16,7 @@ const serviceName = "app"
 type instrumentStrangleService struct {
 	StrangleService
 
+	component string
 	errCount  kitmetrics.Counter
 	opCount   kitmetrics.Counter
 	opLatency *prometheus.HistogramVec
@@ -25,18 +26,20 @@ type instrumentStrangleService struct {
 // InstrumentStrangleMiddleware observes key aspects of Service operations and exposes
 // Prometheus metrics.
 func InstrumentStrangleMiddleware(
-	store string,
+	component, store string,
 	errCount kitmetrics.Counter,
 	opCount kitmetrics.Counter,
 	opLatency *prometheus.HistogramVec,
 ) StrangleMiddleware {
 	return func(next StrangleService) StrangleService {
 		return &instrumentStrangleService{
-			errCount:        errCount,
-			opCount:         opCount,
-			opLatency:       opLatency,
 			StrangleService: next,
-			store:           store,
+
+			component: component,
+			errCount:  errCount,
+			opCount:   opCount,
+			opLatency: opLatency,
+			store:     store,
 		}
 	}
 }
@@ -73,6 +76,10 @@ func (s *instrumentStrangleService) track(
 	err error,
 ) {
 	var (
+		c = kitmetrics.Field{
+			Key:   metrics.FieldComponent,
+			Value: s.component,
+		}
 		m = kitmetrics.Field{
 			Key:   metrics.FieldMethod,
 			Value: method,
@@ -88,11 +95,12 @@ func (s *instrumentStrangleService) track(
 	)
 
 	if err != nil {
-		s.errCount.With(m).With(service).With(store).Add(1)
+		s.errCount.With(c).With(m).With(service).With(store).Add(1)
 	}
 
-	s.opCount.With(m).With(service).With(store).Add(1)
+	s.opCount.With(c).With(m).With(service).With(store).Add(1)
 	s.opLatency.With(prometheus.Labels{
+		metrics.FieldComponent: s.component,
 		metrics.FieldMethod:    method,
 		metrics.FieldNamespace: "",
 		metrics.FieldService:   serviceName,

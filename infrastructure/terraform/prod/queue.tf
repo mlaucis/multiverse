@@ -12,9 +12,10 @@ resource "aws_iam_user_policy" "state-change-sr" {
    "Statement":[{
       "Effect":"Allow",
       "Action": [
-        "sqs:SendMessage",
+        "sqs:DeleteMessage",
+        "sqs:GetQueueUrl",
         "sqs:ReceiveMessage",
-        "sqs:GetQueueUrl"
+        "sqs:SendMessage"
       ],
       "Resource":"arn:aws:sqs:*:775034650473:*-state-change"
       }

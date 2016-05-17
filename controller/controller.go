@@ -11,6 +11,7 @@ type Integration uint8
 
 // Origin information of an operation.
 type Origin struct {
+	DeviceID    string
 	Integration Integration
 	UserID      uint64
 }

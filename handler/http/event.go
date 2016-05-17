@@ -20,6 +20,7 @@ func EventCreate(c *controller.EventController) Handler {
 		var (
 			currentApp  = appFromContext(ctx)
 			currentUser = userFromContext(ctx)
+			deviceID    = deviceIDFromContext(ctx)
 			p           = payloadEvent{}
 			tokenType   = tokenTypeFromContext(ctx)
 		)
@@ -32,7 +33,7 @@ func EventCreate(c *controller.EventController) Handler {
 
 		event, err := c.Create(
 			currentApp,
-			createOrigin(tokenType, currentUser.ID),
+			createOrigin(deviceID, tokenType, currentUser.ID),
 			p.event,
 		)
 		if err != nil {
@@ -140,6 +141,7 @@ func EventUpdate(c *controller.EventController) Handler {
 		var (
 			currentApp  = appFromContext(ctx)
 			currentUser = userFromContext(ctx)
+			deviceID    = deviceIDFromContext(ctx)
 			p           = payloadEvent{}
 			tokenType   = tokenTypeFromContext(ctx)
 		)
@@ -158,7 +160,7 @@ func EventUpdate(c *controller.EventController) Handler {
 
 		event, err := c.Update(
 			currentApp,
-			createOrigin(tokenType, currentUser.ID),
+			createOrigin(deviceID, tokenType, currentUser.ID),
 			id,
 			p.event,
 		)

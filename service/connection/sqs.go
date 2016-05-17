@@ -4,37 +4,57 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sqs"
 )
 
 const (
 	attributeSentAt  = "SentAt"
+	queueName        = "connection-state-change"
 	sentAtFormat     = "2006-01-02 15:04:05.999999999 -0700 MST"
 	sqsAttribtuesAll = "All"
 	sqsTypeString    = "String"
 )
 
 var (
-	visibilityTimeout int64 = 1
-	waitTimeSeconds   int64 = 1
+	visibilityTimeout int64 = 60
+	waitTimeSeconds   int64 = 10
 )
 
-type sendReceiver interface {
+type sqsAPI interface {
+	DeleteMessage(*sqs.DeleteMessageInput) (*sqs.DeleteMessageOutput, error)
+	GetQueueUrl(*sqs.GetQueueUrlInput) (*sqs.GetQueueUrlOutput, error)
 	ReceiveMessage(*sqs.ReceiveMessageInput) (*sqs.ReceiveMessageOutput, error)
 	SendMessage(*sqs.SendMessageInput) (*sqs.SendMessageOutput, error)
 }
 
 type sqsSource struct {
-	api      sendReceiver
+	api      sqsAPI
 	queueURL string
 }
 
 // SQSSource reutrns an SQS backed Source implementation.
-func SQSSource(api sendReceiver, queueURL string) Source {
+func SQSSource(api sqsAPI) (Source, error) {
+	res, err := api.GetQueueUrl(&sqs.GetQueueUrlInput{
+		QueueName: aws.String(queueName),
+	})
+	if err != nil {
+		return nil, err
+	}
+
 	return &sqsSource{
 		api:      api,
-		queueURL: queueURL,
-	}
+		queueURL: *res.QueueUrl,
+	}, nil
+}
+
+func (s *sqsSource) Ack(id string) error {
+	_, err := s.api.DeleteMessage(&sqs.DeleteMessageInput{
+		QueueUrl:      &s.queueURL,
+		ReceiptHandle: &id,
+	})
+
+	return err
 }
 
 func (s *sqsSource) Consume() (*StateChange, error) {
@@ -50,6 +70,10 @@ func (s *sqsSource) Consume() (*StateChange, error) {
 	})
 	if err != nil {
 		return nil, err
+	}
+
+	if len(o.Messages) == 0 {
+		return nil, ErrEmptySource
 	}
 
 	var (
@@ -75,6 +99,7 @@ func (s *sqsSource) Consume() (*StateChange, error) {
 	}
 
 	return &StateChange{
+		AckID:     *m.ReceiptHandle,
 		ID:        *m.MessageId,
 		Namespace: f.Namespace,
 		New:       f.New,

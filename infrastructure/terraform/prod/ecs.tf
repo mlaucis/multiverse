@@ -130,6 +130,39 @@ resource "aws_ecr_repository_policy" "reporter-deployment" {
 EOF
 }
 
+resource "aws_ecr_repository" "sims" {
+  provider = "aws.us-east-1"
+  name     = "sims"
+}
+
+resource "aws_ecr_repository_policy" "sims-deployment" {
+  provider = "aws.us-east-1"
+  repository = "${aws_ecr_repository.sims.name}"
+  policy     = <<EOF
+{
+    "Version": "2008-10-17",
+    "Statement": [
+        {
+            "Sid": "deployment",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": [
+                    "arn:aws:iam::775034650473:root",
+                    "arn:aws:iam::775034650473:role/ecsInstance",
+                    "arn:aws:iam::775034650473:user/deployer"
+                ]
+            },
+            "Action": [
+                "ecr:GetDownloadUrlForLayer",
+                "ecr:BatchGetImage",
+                "ecr:BatchCheckLayerAvailability"
+            ]
+        }
+    ]
+}
+EOF
+}
+
 resource "aws_ecs_cluster" "service" {
   name = "service"
 }
@@ -486,6 +519,51 @@ resource "aws_ecs_task_definition" "reporter" {
 EOF
 }
 
+resource "aws_ecs_task_definition" "sims" {
+  family                = "sims"
+  container_definitions = <<EOF
+[
+  {
+    "command": [
+      "./sims",
+      "-aws.id", "${aws_iam_access_key.state-change-sr.id}",
+      "-aws.secret", "${aws_iam_access_key.state-change-sr.secret}",
+      "-aws.region", "${var.vpc-region}",
+      "-postgres.url", "postgres://${var.rds_username}:${var.rds_password}@db-master.service:5432/${var.rds_db_name}?connect_timeout=5"
+    ],
+    "cpu": 256,
+    "dnsSearchDomains": [
+      "${var.env}.${var.region}"
+    ],
+    "essential": true,
+    "image": "775034650473.dkr.ecr.us-east-1.amazonaws.com/sims:${var.version.sims}",
+    "logConfiguration": {
+      "logDriver": "syslog"
+    },
+    "memory": 512,
+    "name": "gateway-http",
+    "portMappings": [
+      {
+        "containerPort": 9001,
+        "hostPort": 9001
+      }
+    ],
+    "readonlyRootFilesystem": true,
+    "workingDirectory": "/tapglue/"
+  }
+]
+EOF
+}
+
+resource "aws_ecs_service" "sims" {
+  cluster                             = "${aws_ecs_cluster.service.id}"
+  deployment_maximum_percent          = 200
+  deployment_minimum_healthy_percent  = 50
+  desired_count                       = 2
+  name                                = "sims"
+  task_definition                     = "${aws_ecs_task_definition.sims.arn}"
+}
+
 resource "aws_launch_configuration" "service" {
   associate_public_ip_address = false
   ebs_optimized               = false
@@ -525,7 +603,7 @@ $ActionSendStreamDriverMode 1
 $ActionSendStreamDriverAuthMode x509/name
 $ActionSendStreamDriverPermittedPeer *.loggly.com
 *.* @@logs-01.loggly.com:6514;LogglyFormat
-' | sudo tee /etc/rsyslog/22-loggly.conf > /dev/null
+' | sudo tee /etc/rsyslog.d/22-loggly.conf > /dev/null
 
 sudo service rsyslog restart
 

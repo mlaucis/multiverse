@@ -4,6 +4,8 @@ import (
 	"math/rand"
 	"reflect"
 	"testing"
+
+	"github.com/tapglue/multiverse/platform/generate"
 )
 
 type prepareFunc func(t *testing.T, namespace string) Service
@@ -78,6 +80,19 @@ func testServiecQuery(t *testing.T, p prepareFunc) {
 	}
 
 	ss, err = service.Query(namespace, QueryOptions{
+		DeviceIDs: []string{
+			created.DeviceID,
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if have, want := len(ss), 1; have != want {
+		t.Errorf("have %v, want %v", have, want)
+	}
+
+	ss, err = service.Query(namespace, QueryOptions{
 		Enabled: &enabled,
 	})
 	if err != nil {
@@ -117,7 +132,8 @@ func testServiecQuery(t *testing.T, p prepareFunc) {
 
 func testSession() *Session {
 	return &Session{
-		Enabled: true,
-		UserID:  uint64(rand.Int63()),
+		Enabled:  true,
+		DeviceID: generate.RandomString(24),
+		UserID:   uint64(rand.Int63()),
 	}
 }
