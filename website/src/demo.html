@@ -111,7 +111,10 @@
                               <input name="company" id="company" value="" placeholder="Company*" type="text" required>
                           </div>
                           <div class="12u$">
-                            <select name="companySize" required>
+                              <textarea name="comment" id="comment" value="" placeholder="Comment" cols="40" rows="5"></textarea>
+                          </div>
+                          <div class="12u$">
+                            <select name="companySize" id="companySize" required>
                               <option disabled selected>- Company Size -</option>
                               <option label="1-50" value="small"></option>
                               <option label="51-100" value="medium"></option>
@@ -120,11 +123,21 @@
                             </select>
                           </div>
                           <div class="12u$">
+                            <select name="appSize" id="appSize" required>
+                              <option disabled selected>- Number of Users -</option>
+                              <option label="less than 10,000" value="small"></option>
+                              <option label="10,001 - 50,000" value="medium"></option>
+                              <option label="50,001 - 250,000" value="large"></option>
+                              <option label="250,000+" value="enterprise"></option>
+                            </select>
+                          </div>
+                          <div class="12u$">
                             <input value="Request Demo" class="btn-default big" type="submit">
                           </div>
                       </div>
                       <div class="success-feedback">
                         <h3>You're all set!</h3>
+                        <p>Thanks for requesting a demo. We'll be in touch soon.</p>
                       </div>
                   </form>
                 </div>
@@ -162,6 +175,7 @@
                     <li><a href="//weekly.tapglue.com">Newsletter</a></li>
                     <li><a href="/blog/">Blog</a></li>
                     <li><a href="/elements/">Elements</a></li>
+                    <li><a href="/the-social-advantage/">The Social Advantage</a></li>
                 </ul>
             </section>
             <section class="3u 6u$(medium)">

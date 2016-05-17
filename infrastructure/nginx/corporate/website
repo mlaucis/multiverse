@@ -120,6 +120,18 @@ server {
         try_files /demo.html =404;
     }
 
+    location /the-social-advantage.html {
+        rewrite $(.*)$ /the-social-advantage/ permanent;
+    }
+
+    location /the-social-advantage {
+        rewrite $(.*)$ /the-social-advantage/ permanent;
+    }
+
+    location /the-social-advantage/ {
+        try_files /the-social-advantage.html =404;
+    }
+
     location /pricing.html {
         rewrite $(.*)$ /pricing/ permanent;
     }

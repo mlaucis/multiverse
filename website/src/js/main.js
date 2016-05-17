@@ -65,18 +65,64 @@ function extractReferrer() {
     ev.preventDefault();
     ev.stopPropagation();
 
-    var props = {
+    var trackProps = {
       firstName: $demoForm.find('#firstName').val(),
       lastName: $demoForm.find('#lastName').val(),
       email: $demoForm.find('#email').val(),
       phone: $demoForm.find('#phone').val(),
-      company: $demoForm.find('#company').val()
+      company: $demoForm.find('#company').val(),
+      comment: $demoForm.find('#comment').val(),
+      companySize: $demoForm.find('#companySize').val(),
+      userbase: $demoForm.find('#appSize').val()
     }
 
-    analytics.identify(props.email, props);
-    analytics.track('Demo requested', props);
+    var identifyProps = {
+      firstName: $contentForm.find('#firstName').val(),
+      lastName: $contentForm.find('#lastName').val(),
+      email: $contentForm.find('#email').val(),
+      phone: $contentForm.find('#phone').val(),
+      company: $contentForm.find('#company').val()
+    }
+
+    analytics.identify(identifyProps.email, identifyProps);
+    analytics.track('Demo requested', trackProps);
 
     $demoForm.find('.uniform').slideUp(360);
     $success.slideDown(360);
   });
+
+  var $contentForm = $('form#contentForm');
+  var $success = $contentForm.find('.success-feedback');
+
+  $contentForm.on('submit', function(ev) {
+    ev.preventDefault();
+    ev.stopPropagation();
+
+    var trackProps = {
+      firstName: $contentForm.find('#firstName').val(),
+      lastName: $contentForm.find('#lastName').val(),
+      email: $contentForm.find('#email').val(),
+      phone: $contentForm.find('#phone').val(),
+      company: $contentForm.find('#company').val(),
+      companySize: $contentForm.find('#companySize').val(),
+      userbase: $contentForm.find('#appSize').val(),
+      title: $contentForm.find('#title').val(),
+      type: $contentForm.find('#type').val()
+    }
+
+    var identifyProps = {
+      firstName: $contentForm.find('#firstName').val(),
+      lastName: $contentForm.find('#lastName').val(),
+      email: $contentForm.find('#email').val(),
+      phone: $contentForm.find('#phone').val(),
+      company: $contentForm.find('#company').val()
+    }
+
+    analytics.identify(identifyProps.email, identifyProps);
+    analytics.track('Content requested', trackProps);
+
+    $contentForm.find('.uniform').slideUp(360);
+    $success.slideDown(360);
+  });
+
 })(jQuery);
