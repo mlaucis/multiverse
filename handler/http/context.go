@@ -3,6 +3,7 @@ package http
 import (
 	"golang.org/x/net/context"
 
+	"github.com/tapglue/multiverse/controller"
 	"github.com/tapglue/multiverse/service/user"
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
@@ -44,6 +45,16 @@ func memberFromContext(ctx context.Context) *v04_entity.Member {
 
 func memberInContext(ctx context.Context, app *v04_entity.Member) context.Context {
 	return context.WithValue(ctx, ctxKeyMember, app)
+}
+
+func originFromContext(ctx context.Context) controller.Origin {
+	var (
+		currentUser = userFromContext(ctx)
+		deviceID    = deviceIDFromContext(ctx)
+		tokenType   = tokenTypeFromContext(ctx)
+	)
+
+	return createOrigin(deviceID, tokenType, currentUser.ID)
 }
 
 func orgFromContext(ctx context.Context) *v04_entity.Organization {
