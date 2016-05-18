@@ -59,13 +59,13 @@ function extractReferrer() {
   });
 
   var $demoForm = $('form#demoForm');
-  var $success = $demoForm.find('.success-feedback');
+  var $demoSuccess = $demoForm.find('.success-feedback');
 
   $demoForm.on('submit', function(ev) {
     ev.preventDefault();
     ev.stopPropagation();
 
-    var trackProps = {
+    var demoTrackProps = {
       firstName: $demoForm.find('#firstName').val(),
       lastName: $demoForm.find('#lastName').val(),
       email: $demoForm.find('#email').val(),
@@ -76,7 +76,7 @@ function extractReferrer() {
       userbase: $demoForm.find('#appSize').val()
     }
 
-    var identifyProps = {
+    var demoIdentifyProps = {
       firstName: $contentForm.find('#firstName').val(),
       lastName: $contentForm.find('#lastName').val(),
       email: $contentForm.find('#email').val(),
@@ -84,21 +84,21 @@ function extractReferrer() {
       company: $contentForm.find('#company').val()
     }
 
-    analytics.identify(identifyProps.email, identifyProps);
-    analytics.track('Demo requested', trackProps);
+    analytics.identify(demoIdentifyProps.email, demoIdentifyProps);
+    analytics.track('Demo requested', demoTrackProps);
 
     $demoForm.find('.uniform').slideUp(360);
-    $success.slideDown(360);
+    $demoSuccess.slideDown(360);
   });
 
   var $contentForm = $('form#contentForm');
-  var $success = $contentForm.find('.success-feedback');
+  var $contentSuccess = $contentForm.find('.success-feedback');
 
   $contentForm.on('submit', function(ev) {
     ev.preventDefault();
     ev.stopPropagation();
 
-    var trackProps = {
+    var contentTrackProps = {
       firstName: $contentForm.find('#firstName').val(),
       lastName: $contentForm.find('#lastName').val(),
       email: $contentForm.find('#email').val(),
@@ -110,7 +110,7 @@ function extractReferrer() {
       type: $contentForm.find('#type').val()
     }
 
-    var identifyProps = {
+    var contentIdentifyProps = {
       firstName: $contentForm.find('#firstName').val(),
       lastName: $contentForm.find('#lastName').val(),
       email: $contentForm.find('#email').val(),
@@ -122,12 +122,12 @@ function extractReferrer() {
     var requestedString = " requested";
     var eventName = contentTitle.concat(requestedString);
 
-    analytics.identify(identifyProps.email, identifyProps);
-    analytics.track('Content requested', trackProps);
-    analytics.track(eventName, trackProps);
+    analytics.identify(contentIdentifyProps.email, contentIdentifyProps);
+    analytics.track('Content requested', contentTrackProps);
+    analytics.track(eventName, contentTrackProps);
 
     $contentForm.find('.uniform').slideUp(360);
-    $success.slideDown(360);
+    $contentSuccess.slideDown(360);
   });
 
 })(jQuery);
