@@ -39,6 +39,7 @@ import (
 	"github.com/tapglue/multiverse/server"
 	"github.com/tapglue/multiverse/service/app"
 	"github.com/tapglue/multiverse/service/connection"
+	"github.com/tapglue/multiverse/service/device"
 	"github.com/tapglue/multiverse/service/event"
 	"github.com/tapglue/multiverse/service/member"
 	"github.com/tapglue/multiverse/service/object"
@@ -289,6 +290,11 @@ func main() {
 	// Combine connection service and source.
 	connections = connection.SourcingServiceMiddleware(conSource)(connections)
 
+	var devices device.Service
+	devices = device.PostgresService(pgClient.MainDatastore())
+	devices = device.InstrumentServiceMiddleware(component, "postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(devices)
+	devices = device.LogServiceMiddleware(logger, "postgres")(devices)
+
 	var events event.Service
 	events = event.NewPostgresService(pgClient.MainDatastore())
 	events = event.InstrumentMiddleware(component, "postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(events)
@@ -351,7 +357,6 @@ func main() {
 			handler.Instrument(component),
 			handler.SecureHeaders(),
 			handler.DebugHeaders(currentRevision, currentHostname),
-			handler.DeviceID(),
 			handler.CORS(),
 			handler.Gzip(),
 			handler.HasUserAgent(),
@@ -368,6 +373,7 @@ func main() {
 		withApp = handler.Chain(
 			withConstraints,
 			handler.CtxApp(apps),
+			handler.CtxDeviceID(),
 			handler.RateLimit(rateLimiter),
 		)
 		withUser = handler.Chain(
@@ -414,6 +420,24 @@ func main() {
 				handler.Log(logger),
 			),
 			handler.Analytics(),
+		),
+	)
+
+	next.Methods("DELETE").Path(`/me/devices/{deviceID}`).Name("deviceDelete").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.DeviceDelete(
+				controller.DeviceDelete(devices),
+			),
+		),
+	)
+
+	next.Methods("PUT").Path(`/me/devices/{deviceID}`).Name("deviceUpdate").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.DeviceUpdate(
+				controller.DeviceUpdate(devices),
+			),
 		),
 	)
 

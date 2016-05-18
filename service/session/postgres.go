@@ -50,9 +50,6 @@ const (
 	pgIndexDeviceID = `CREATE INDEX %s ON %s.sessions (device_id)`
 	pgIndexID       = `CREATE INDEX %s ON %s.sessions (session_id)`
 	pgIndexUserID   = `CREATE INDEX %s ON %s.sessions (user_id)`
-
-	// FIXME: Postgres doesn't preserve nanosecond precision.
-	pgTimeFormat = "2006-01-02 15:04:05.000000 UTC"
 )
 
 type pgService struct {
@@ -79,7 +76,7 @@ func (s *pgService) Put(ns string, session *Session) (*Session, error) {
 	}
 
 	if session.CreatedAt.IsZero() {
-		ts, err := time.Parse(pgTimeFormat, time.Now().Format(pgTimeFormat))
+		ts, err := time.Parse(pg.TimeFormat, time.Now().Format(pg.TimeFormat))
 		if err != nil {
 			return nil, err
 		}

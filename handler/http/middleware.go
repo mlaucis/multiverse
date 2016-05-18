@@ -253,8 +253,8 @@ func DebugHeaders(rev, host string) Middleware {
 	}
 }
 
-// DeviceID extracts the unique identification for a device.
-func DeviceID() Middleware {
+// CtxDeviceID extracts the unique identification for a device.
+func CtxDeviceID() Middleware {
 	return func(next Handler) Handler {
 		return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 			deviceID := r.Header.Get(headerIDFV)
