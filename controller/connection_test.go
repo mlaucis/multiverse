@@ -44,18 +44,6 @@ func TestValidateConTransition(t *testing.T) {
 			State:  connection.StatePending,
 			Type:   connection.TypeFollow,
 		},
-		// rejected -> rejected
-		{
-			FromID: 1,
-			ToID:   2,
-			State:  connection.StateRejected,
-			Type:   connection.TypeFriend,
-		}: {
-			FromID: 1,
-			ToID:   2,
-			State:  connection.StateRejected,
-			Type:   connection.TypeFriend,
-		},
 		// rejected -> confirmed
 		{
 			FromID: 1,
@@ -80,35 +68,11 @@ func TestValidateConTransition(t *testing.T) {
 			State:  connection.StatePending,
 			Type:   connection.TypeFriend,
 		},
-		// confirmed -> confirmed
-		{
-			FromID: 1,
-			ToID:   2,
-			State:  connection.StateConfirmed,
-			Type:   connection.TypeFriend,
-		}: {
-			FromID: 1,
-			ToID:   2,
-			State:  connection.StateConfirmed,
-			Type:   connection.TypeFriend,
-		},
 		// confirmed -> pending
 		{
 			FromID: 1,
 			ToID:   2,
 			State:  connection.StateConfirmed,
-			Type:   connection.TypeFriend,
-		}: {
-			FromID: 1,
-			ToID:   2,
-			State:  connection.StatePending,
-			Type:   connection.TypeFriend,
-		},
-		// pending -> pending
-		{
-			FromID: 1,
-			ToID:   2,
-			State:  connection.StatePending,
 			Type:   connection.TypeFriend,
 		}: {
 			FromID: 1,
