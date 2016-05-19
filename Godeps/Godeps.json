@@ -107,12 +107,12 @@
 			"Rev": "b88413233bad150ce837e87ba5e27cf70594fdb9"
 		},
 		{
-			"ImportPath": "github.com/aws/aws-sdk-go/service/sqs",
+			"ImportPath": "github.com/aws/aws-sdk-go/service/sns",
 			"Comment": "v1.1.24-1-gb884132",
 			"Rev": "b88413233bad150ce837e87ba5e27cf70594fdb9"
 		},
 		{
-			"ImportPath": "github.com/aws/aws-sdk-go/service/sqs/sqsiface",
+			"ImportPath": "github.com/aws/aws-sdk-go/service/sqs",
 			"Comment": "v1.1.24-1-gb884132",
 			"Rev": "b88413233bad150ce837e87ba5e27cf70594fdb9"
 		},
