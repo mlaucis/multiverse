@@ -316,23 +316,33 @@ func (c *ConnectionController) Update(
 		return nil, err
 	}
 
-	new.Enabled = true
+	if len(cs) > 0 && cs[0].State == new.State {
+		return cs[0], nil
+	}
+
+	var old *connection.Connection
 
 	if len(cs) > 0 {
-		old := cs[0]
+		old = cs[0]
 
 		new.FromID = old.FromID
 		new.ToID = old.ToID
+	}
 
-		if err := validateConTransition(cs[0], new); err != nil {
-			return nil, err
-		}
+	new.Enabled = true
+
+	if err := validateConTransition(old, new); err != nil {
+		return nil, err
 	}
 
 	return c.connections.Put(app.Namespace(), new)
 }
 
 func validateConTransition(old, new *connection.Connection) error {
+	if old == nil {
+		return nil
+	}
+
 	if old.FromID != new.FromID {
 		return wrapError(
 			ErrInvalidEntity,
@@ -360,14 +370,19 @@ func validateConTransition(old, new *connection.Connection) error {
 		)
 	}
 
+	if old.State == new.State {
+		return nil
+	}
+
 	switch old.State {
 	case connection.StatePending:
-		if (new.State == connection.StateConfirmed) ||
-			(new.State == connection.StateRejected) {
+		switch new.State {
+		case connection.StateConfirmed, connection.StateRejected:
 			return nil
 		}
 	case connection.StateConfirmed:
-		if new.State == connection.StateRejected {
+		switch new.State {
+		case connection.StateRejected:
 			return nil
 		}
 	}
