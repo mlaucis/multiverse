@@ -385,15 +385,14 @@ func connectionConsumer(
 
 		// CONSUMER
 		// filter
-		if c.Old != nil {
-			continue
-		}
+		if c.Old != nil ||
+			c.New.State != connection.StateConfirmed ||
+			c.New.Type != connection.TypeFollow {
+			err := conSource.Ack(c.AckID)
+			if err != nil {
+				return err
+			}
 
-		if c.New.State != connection.StateConfirmed {
-			continue
-		}
-
-		if c.New.Type != connection.TypeFollow {
 			continue
 		}
 
