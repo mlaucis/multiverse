@@ -8,17 +8,26 @@ resource "aws_iam_user_policy" "state-change-sr" {
   user  = "${aws_iam_user.state-change-sr.name}"
   policy  = <<EOF
 {
-   "Version": "2012-10-17",
-   "Statement":[{
-      "Effect":"Allow",
-      "Action": [
-        "sqs:DeleteMessage",
-        "sqs:GetQueueUrl",
-        "sqs:ReceiveMessage",
-        "sqs:SendMessage"
-      ],
-      "Resource":"arn:aws:sqs:*:775034650473:*-state-change"
-      }
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "sqs:DeleteMessage",
+                "sqs:GetQueueUrl",
+                "sqs:ReceiveMessage",
+                "sqs:SendMessage"
+            ],
+            "Resource": "arn:aws:sqs:*:775034650473:*-state-change"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "sns:Publish",
+                "sns:CreatePlatformEndpoint"
+            ],
+            "Resource": "arn:aws:sns:*:775034650473:*"
+        }
    ]
 }
 EOF
