@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"github.com/tapglue/multiverse/platform/generate"
 	"github.com/tapglue/multiverse/service/device"
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
@@ -90,11 +89,10 @@ func DeviceUpdate(devices device.Service) DeviceUpdateFunc {
 			// TODO: Create Endpoint.
 
 			d = &device.Device{
-				DeviceID:    deviceID,
-				EndpointARN: generate.RandomString(18),
-				Platform:    platform,
-				Token:       token,
-				UserID:      origin.UserID,
+				DeviceID: deviceID,
+				Platform: platform,
+				Token:    token,
+				UserID:   origin.UserID,
 			}
 		}
 
