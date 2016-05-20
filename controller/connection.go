@@ -179,10 +179,6 @@ func (c *ConnectionController) Followers(
 		return nil, err
 	}
 
-	if origin == userID {
-		return us, nil
-	}
-
 	for _, u := range us {
 		err := enrichRelation(c.connections, app, origin, u)
 		if err != nil {
@@ -212,10 +208,6 @@ func (c *ConnectionController) Followings(
 	us, err := user.ListFromIDs(c.users, app.Namespace(), cs.ToIDs()...)
 	if err != nil {
 		return nil, err
-	}
-
-	if origin == userID {
-		return us, nil
 	}
 
 	for _, u := range us {
@@ -261,10 +253,6 @@ func (c *ConnectionController) Friends(
 	)
 	if err != nil {
 		return nil, err
-	}
-
-	if origin == userID {
-		return us, nil
 	}
 
 	for _, u := range us {
