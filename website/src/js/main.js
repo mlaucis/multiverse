@@ -77,11 +77,11 @@ function extractReferrer() {
     }
 
     var demoIdentifyProps = {
-      firstName: $contentForm.find('#firstName').val(),
-      lastName: $contentForm.find('#lastName').val(),
-      email: $contentForm.find('#email').val(),
-      phone: $contentForm.find('#phone').val(),
-      company: $contentForm.find('#company').val()
+      firstName: $demoForm.find('#firstName').val(),
+      lastName: $demoForm.find('#lastName').val(),
+      email: $demoForm.find('#email').val(),
+      phone: $demoForm.find('#phone').val(),
+      company: $demoForm.find('#company').val()
     }
 
     analytics.identify(demoIdentifyProps.email, demoIdentifyProps);
