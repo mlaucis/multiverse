@@ -83,11 +83,7 @@ func DeviceUpdate(devices device.Service) DeviceUpdateFunc {
 		if len(ds) > 0 {
 			d = ds[0]
 			d.Token = token
-
-			// TODO: Update Endpoint.
 		} else {
-			// TODO: Create Endpoint.
-
 			d = &device.Device{
 				DeviceID: deviceID,
 				Platform: platform,

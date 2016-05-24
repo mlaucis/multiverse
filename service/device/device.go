@@ -9,7 +9,7 @@ import (
 
 // Platform supported for a Device.
 const (
-	PlatformIOS Platform = iota + 1
+	PlatformIOSSandbox Platform = iota + 1
 )
 
 // Device represents a physical device like mobile phone or tablet of a user.
