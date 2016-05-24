@@ -86,7 +86,7 @@ if [ "${CONTAINER_NAME}" == "sims" ]; then
         -e GODEBUG=netdns=go \
         -w "${CONTAINER_PROJECT_DIR}" \
         golang:1.5.3-alpine \
-        go build -v -ldflags "-X main.revision=${REVISION}" -o ${BINARY_FILE} cmd/sims/sims.go
+        go build -v -ldflags "-X main.revision=${REVISION}" -o ${BINARY_FILE} cmd/sims/*.go
 
     docker build -f ${PROJECT_DIR}/infrastructure/containers/docker/sims.docker \
         -t ${CONTAINER_NAME}:${CIRCLE_BUILD_NUM} \

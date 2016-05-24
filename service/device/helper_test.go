@@ -133,7 +133,7 @@ func testServiceQuery(t *testing.T, p prepareFunc) {
 
 	ds, err = service.Query(namespace, QueryOptions{
 		Platforms: []Platform{
-			PlatformIOS,
+			PlatformIOSSandbox,
 		},
 	})
 	if err != nil {
@@ -163,7 +163,7 @@ func testDevice() *Device {
 		Deleted:     false,
 		DeviceID:    generate.RandomString(24),
 		EndpointARN: generate.RandomString(32),
-		Platform:    PlatformIOS,
+		Platform:    PlatformIOSSandbox,
 		Token:       generate.RandomString(18),
 		UserID:      uint64(rand.Int63()),
 	}

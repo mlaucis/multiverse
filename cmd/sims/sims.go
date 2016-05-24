@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	awsSession "github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sns"
@@ -32,14 +33,18 @@ const (
 	subsystemOp      = "op"
 	subsystemQueue   = "queue"
 
+	attributeToken = "Token"
+
 	simsTestARN = "arn:aws:sns:eu-central-1:775034650473:app/APNS_SANDBOX/simsTest"
 )
 
+// Control flow.
 var (
-	// Control flow.
-	ErrEndpointMissing  = errors.New("endpoint missing")
+	ErrEndpointNotFound = errors.New("endpoint not found")
 	ErrPlatformNotFound = errors.New("platform not found")
+)
 
+var (
 	defaultDeleted = false
 	defaultEnabled = true
 	// Set at build time.
@@ -47,16 +52,24 @@ var (
 )
 
 type ackFunc func() error
-type createEndpointFunc func(namespace string, platformARN string, device *device.Device) (string, error)
+type channelFunc func(string, *message) error
+type createEndpointFunc func(platformARN, token string) (string, error)
 type fetchUserFunc func(namespace string, id uint64) (*user.User, error)
-type findEndpointARNsFunc func(namespace string, userID uint64) ([]string, error)
+type findDevicesFunc func(namespace string, userID uint64) (device.List, error)
+type getEndpointFunc func(arn string) (string, error)
 type getPlatformARNFunc func(namespace string) (string, error)
+type prepareDeviceEndpointFunc func(namespace, platformARN string, d *device.Device) (*device.Device, error)
 type pushAPNSSandboxFunc func(arn, message string) error
+type updateTokenFunc func(arn, token string) error
+
+type batch struct {
+	ackFunc   ackFunc
+	messages  []*message
+	namespace string
+}
 
 type message struct {
-	ackFunc   ackFunc
 	message   string
-	namespace string
 	recipient uint64
 }
 
@@ -237,26 +250,26 @@ func main() {
 	snsService := sns.New(aSession)
 
 	var createEndpoint createEndpointFunc
-	createEndpoint = func(ns, pARN string, device *device.Device) (string, error) {
+	var fetchUser fetchUserFunc
+	var findDevices findDevicesFunc
+	var getEndpoint getEndpointFunc
+	var getPlatformARN getPlatformARNFunc
+	var prepareDeviceEndpoint prepareDeviceEndpointFunc
+	var pushAPNSSandbox pushAPNSSandboxFunc
+	var updateToken updateTokenFunc
+
+	createEndpoint = func(pARN, token string) (string, error) {
 		r, err := snsService.CreatePlatformEndpoint(&sns.CreatePlatformEndpointInput{
 			PlatformApplicationArn: aws.String(pARN),
-			Token: aws.String(device.Token),
+			Token: aws.String(token),
 		})
 		if err != nil {
 			return "", err
 		}
 
-		device.EndpointARN = *r.EndpointArn
-
-		d, err := devices.Put(ns, device)
-		if err != nil {
-			return "", err
-		}
-
-		return d.EndpointARN, nil
+		return *r.EndpointArn, nil
 	}
 
-	var fetchUser fetchUserFunc
 	fetchUser = func(ns string, id uint64) (*user.User, error) {
 		us, err := users.Query(ns, user.QueryOptions{
 			Enabled: &defaultEnabled,
@@ -275,23 +288,11 @@ func main() {
 		return us[0], nil
 	}
 
-	var getPlatformARN getPlatformARNFunc
-	getPlatformARN = func(ns string) (string, error) {
-		if ns == "app_1_610" {
-			return simsTestARN, nil
-		}
-
-		return "", ErrPlatformNotFound
-	}
-
-	var findEndpointARNs findEndpointARNsFunc
-	findEndpointARNs = func(ns string, userID uint64) ([]string, error) {
-		as := []string{}
-
+	findDevices = func(ns string, userID uint64) (device.List, error) {
 		pARN, err := getPlatformARN(ns)
 		if err != nil {
 			if err == ErrPlatformNotFound {
-				return as, nil
+				return device.List{}, nil
 			}
 			return nil, err
 		}
@@ -299,7 +300,7 @@ func main() {
 		ds, err := devices.Query(ns, device.QueryOptions{
 			Deleted: &defaultDeleted,
 			Platforms: []device.Platform{
-				device.PlatformIOS,
+				device.PlatformIOSSandbox,
 			},
 			UserIDs: []uint64{
 				userID,
@@ -310,23 +311,86 @@ func main() {
 		}
 
 		for _, d := range ds {
-			if d.EndpointARN != "" {
-				as = append(as, d.EndpointARN)
-				continue
+			_, err := prepareDeviceEndpoint(ns, pARN, d)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		return ds, nil
+	}
+
+	getEndpoint = func(arn string) (string, error) {
+		r, err := snsService.GetEndpointAttributes(&sns.GetEndpointAttributesInput{
+			EndpointArn: aws.String(arn),
+		})
+		if err != nil {
+			if awsErr, ok := err.(awserr.RequestFailure); ok && awsErr.StatusCode() == 404 {
+				return "", ErrEndpointNotFound
 			}
 
-			arn, err := createEndpoint(ns, pARN, d)
+			return "", err
+		}
+
+		return *r.Attributes[attributeToken], nil
+	}
+
+	getPlatformARN = func(ns string) (string, error) {
+		if ns == "app_1_610" {
+			return simsTestARN, nil
+		}
+
+		return "", ErrPlatformNotFound
+	}
+
+	prepareDeviceEndpoint = func(ns, pARN string, d *device.Device) (*device.Device, error) {
+		if d.EndpointARN == "" {
+			arn, err := createEndpoint(pARN, d.Token)
 			if err != nil {
 				return nil, err
 			}
 
-			as = append(as, arn)
+			d.EndpointARN = arn
+
+			_, err = devices.Put(ns, d)
+			if err != nil {
+				return nil, err
+			}
+
+			return d, nil
 		}
 
-		return as, nil
+		token, err := getEndpoint(d.EndpointARN)
+		if !isEndpointNotFound(err) {
+			return nil, err
+		}
+
+		if isEndpointNotFound(err) {
+			arn, err := createEndpoint(pARN, d.Token)
+			if err != nil {
+				return nil, err
+			}
+
+			d.EndpointARN = arn
+
+			_, err = devices.Put(ns, d)
+			if err != nil {
+				return nil, err
+			}
+
+			token = d.Token
+		}
+
+		if token != d.Token {
+			err := updateToken(d.EndpointARN, d.Token)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		return d, nil
 	}
 
-	var pushAPNSSandbox pushAPNSSandboxFunc
 	pushAPNSSandbox = func(arn, msg string) error {
 		_, err := snsService.Publish(&sns.PublishInput{
 			Message: aws.String(
@@ -341,138 +405,98 @@ func main() {
 		return err
 	}
 
+	updateToken = func(arn, token string) error {
+		_, err := snsService.SetEndpointAttributes(&sns.SetEndpointAttributesInput{
+			Attributes: map[string]*string{
+				attributeToken: aws.String(token),
+			},
+			EndpointArn: aws.String(arn),
+		})
+		return err
+	}
+
 	logger.Log(
 		"duration", time.Now().Sub(begin).Nanoseconds(),
 		"lifecycle", "start",
 		"sub", "worker",
 	)
 
-	msgc := make(chan message)
+	batchc := make(chan batch)
 
 	go func() {
-		err := connectionConsumer(msgc, conSource, fetchUser)
+		err := consumeConnection(conSource, batchc, conRuleFollower(fetchUser))
 		if err != nil {
 			logger.Log("err", err, "lifecycle", "abort")
 			os.Exit(1)
 		}
 	}()
 
-	err = pushChannel(
-		msgc,
-		findEndpointARNs,
-		getPlatformARN,
-		pushAPNSSandbox,
-	)
-	if err != nil {
-		logger.Log("err", err, "lifecycle", "abort")
-		os.Exit(1)
+	cs := []channelFunc{
+		channelPush(findDevices, getPlatformARN, pushAPNSSandbox),
 	}
-}
 
-func connectionConsumer(
-	msgc chan<- message,
-	conSource connection.Source,
-	fetchUser fetchUserFunc,
-) error {
-	for {
-		c, err := conSource.Consume()
-		if err != nil {
-			if connection.IsEmptySource(err) {
-				continue
-			}
-			return err
-		}
-
-		// CONSUMER
-		// filter
-		if c.Old != nil ||
-			c.New.State != connection.StateConfirmed ||
-			c.New.Type != connection.TypeFollow {
-			err := conSource.Ack(c.AckID)
-			if err != nil {
-				return err
-			}
-
-			continue
-		}
-
-		// fetch recipients
-		origin, err := fetchUser(c.Namespace, c.New.FromID)
-		if err != nil {
-			return fmt.Errorf("origin fetch: %s", err)
-		}
-
-		target, err := fetchUser(c.Namespace, c.New.ToID)
-		if err != nil {
-			return fmt.Errorf("target fetch: %s", err)
-		}
-
-		// send message
-		msgc <- message{
-			ackFunc: func() error {
-				acked := false
-
-				if acked {
-					return nil
+	for batch := range batchc {
+		for _, msg := range batch.messages {
+			for _, channel := range cs {
+				err := channel(batch.namespace, msg)
+				if err != nil {
+					logger.Log("err", err, "lifecycle", "abort")
+					os.Exit(1)
 				}
+			}
+		}
 
-				err := conSource.Ack(c.AckID)
-				if err == nil {
-					acked = true
-				}
-				return err
-			},
-			message: fmt.Sprintf(
-				"%s %s (%s) started following you",
-				origin.Firstname,
-				origin.Lastname,
-				origin.Username,
-			),
-			namespace: c.Namespace,
-			recipient: target.ID,
+		err = batch.ackFunc()
+		if err != nil {
+			logger.Log("err", err, "lifecycle", "abort")
+			os.Exit(1)
 		}
 	}
+
+	logger.Log("lifecycle", "stop")
 }
 
-func pushChannel(
-	msgc <-chan message,
-	findEndpointARNs findEndpointARNsFunc,
+func channelPush(
+	findDevices findDevicesFunc,
 	getPlatformARN getPlatformARNFunc,
 	pushAPNSSandbox pushAPNSSandboxFunc,
-) error {
-	// CHANNEL
-	for msg := range msgc {
+) channelFunc {
+	return func(ns string, msg *message) error {
 		// check if platform is enabled
-		_, err := getPlatformARN(msg.namespace)
+		_, err := getPlatformARN(ns)
 		if err != nil {
 			if err == ErrPlatformNotFound {
-				continue
+				return nil
 			}
 			return err
 		}
 
-		// find arns
-		as, err := findEndpointARNs(msg.namespace, msg.recipient)
+		// find devices
+		ds, err := findDevices(ns, msg.recipient)
 		if err != nil {
 			return err
 		}
-		if len(as) == 0 {
-			continue
+		if len(ds) == 0 {
+			return nil
 		}
 
-		for _, arn := range as {
-			err := pushAPNSSandbox(arn, msg.message)
-			if err != nil {
-				return err
+		// publish to devices
+		for _, d := range ds {
+			switch d.Platform {
+			case device.PlatformIOSSandbox:
+				err := pushAPNSSandbox(d.EndpointARN, msg.message)
+				if err != nil {
+					return err
+				}
+			default:
+				return fmt.Errorf("platform not supported")
 			}
 		}
 
-		// publish to endpoint
-		err = msg.ackFunc()
-		if err != nil {
-			return err
-		}
+		return nil
 	}
+}
 
-	return nil
+func isEndpointNotFound(err error) bool {
+	return err == ErrEndpointNotFound
 }
