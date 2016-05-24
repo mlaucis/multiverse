@@ -4,7 +4,14 @@ import (
 	"fmt"
 	"time"
 
+	"golang.org/x/text/language"
+
 	"github.com/tapglue/multiverse/platform/service"
+)
+
+const (
+	// DefaultLanguage for devices.
+	DefaultLanguage = "en"
 )
 
 // Platform supported for a Device.
@@ -18,6 +25,7 @@ type Device struct {
 	DeviceID    string
 	EndpointARN string
 	ID          uint64
+	Language    string
 	Platform    Platform
 	Token       string
 	UserID      uint64
@@ -29,6 +37,10 @@ type Device struct {
 func (d *Device) Validate() error {
 	if d.DeviceID == "" {
 		return wrapError(ErrInvalidDevice, "DeviceID must be set")
+	}
+
+	if _, err := language.Parse(d.Language); err != nil {
+		return wrapError(ErrInvalidDevice, "Language invalid '%s'", d.Language)
 	}
 
 	if d.Platform == 0 {

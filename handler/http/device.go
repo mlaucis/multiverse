@@ -46,7 +46,7 @@ func DeviceUpdate(fn controller.DeviceUpdateFunc) Handler {
 			return
 		}
 
-		err = fn(currentApp, origin, deviceID, p.platform, p.token)
+		err = fn(currentApp, origin, deviceID, p.platform, p.token, p.language)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -57,12 +57,14 @@ func DeviceUpdate(fn controller.DeviceUpdateFunc) Handler {
 }
 
 type payloadDevice struct {
+	language string
 	platform device.Platform
 	token    string
 }
 
 func (p *payloadDevice) UnmarshalJSON(raw []byte) error {
 	f := struct {
+		Language string          `json:"language"`
 		Platform device.Platform `json:"platform"`
 		Token    string          `json:"token"`
 	}{}
@@ -72,6 +74,7 @@ func (p *payloadDevice) UnmarshalJSON(raw []byte) error {
 		return err
 	}
 
+	p.language = f.Language
 	p.platform = f.Platform
 	p.token = f.Token
 

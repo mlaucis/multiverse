@@ -7,11 +7,11 @@ func TestValidate(t *testing.T) {
 		d  = testDevice()
 		ds = List{
 			{}, // Missing DeviceID
-			{DeviceID: d.DeviceID},                                       // Missing EndpointARN
-			{DeviceID: d.DeviceID},                                       // Missing Platform
-			{DeviceID: d.DeviceID, Platform: 2},                          // Unsupported Platform
-			{DeviceID: d.DeviceID, Platform: d.Platform},                 // Missing Token
-			{DeviceID: d.DeviceID, Platform: d.Platform, Token: d.Token}, // Missing UserID
+			{DeviceID: d.DeviceID},                                                                  // Missing Language
+			{DeviceID: d.DeviceID, Language: DefaultLanguage},                                       // Missing Platform
+			{DeviceID: d.DeviceID, Language: DefaultLanguage, Platform: 2},                          // Unsupported Platform
+			{DeviceID: d.DeviceID, Language: DefaultLanguage, Platform: d.Platform},                 // Missing Token
+			{DeviceID: d.DeviceID, Language: DefaultLanguage, Platform: d.Platform, Token: d.Token}, // Missing UserID
 		}
 	)
 
