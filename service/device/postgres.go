@@ -13,22 +13,23 @@ import (
 
 const (
 	pgInsertDevice = `INSERT INTO
-		%s.devices(deleted, device_id, endpoint_arn, id, platform, token, user_id, created_at, updated_at)
-		VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)`
+		%s.devices(deleted, device_id, endpoint_arn, id, language, platform, token, user_id, created_at, updated_at)
+		VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
 	pgUpdateDevice = `
 		UPDATE
 			%s.devices
 		SET
 			deleted = $2,
 			endpoint_arn = $3,
-			token = $4,
-			updated_at = $5
+			language = $4,
+			token = $5,
+			updated_at = $6
 		WHERE
 			id = $1`
 
 	pgListDevices = `
 		SELECT
-			deleted, device_id, endpoint_arn, id, platform, token, user_id, created_at, updated_at
+			deleted, device_id, endpoint_arn, id, language, platform, token, user_id, created_at, updated_at
 		FROM
 			%s.devices
 		%s`
@@ -53,6 +54,7 @@ const (
 		device_id TEXT NOT NULL,
 		endpoint_arn TEXT,
 		id BIGINT NOT NULL,
+		language TEXT NOT NULL,
 		platform INT NOT NULL,
 		token TEXT NOT NULL,
 		user_id BIGINT NOT NULL,
@@ -108,6 +110,7 @@ func (s *pgService) Put(ns string, d *Device) (*Device, error) {
 			d.DeviceID,
 			d.EndpointARN,
 			d.ID,
+			d.Language,
 			d.Platform,
 			d.Token,
 			d.UserID,
@@ -127,6 +130,7 @@ func (s *pgService) Put(ns string, d *Device) (*Device, error) {
 			d.ID,
 			d.Deleted,
 			d.EndpointARN,
+			d.Language,
 			d.Token,
 			d.UpdatedAt,
 		}
@@ -201,6 +205,7 @@ func (s *pgService) listDevices(
 			&d.DeviceID,
 			&d.EndpointARN,
 			&d.ID,
+			&d.Language,
 			&d.Platform,
 			&d.Token,
 			&d.UserID,

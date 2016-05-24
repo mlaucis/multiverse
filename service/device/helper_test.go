@@ -163,6 +163,7 @@ func testDevice() *Device {
 		Deleted:     false,
 		DeviceID:    generate.RandomString(24),
 		EndpointARN: generate.RandomString(32),
+		Language:    DefaultLanguage,
 		Platform:    PlatformIOSSandbox,
 		Token:       generate.RandomString(18),
 		UserID:      uint64(rand.Int63()),

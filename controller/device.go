@@ -50,6 +50,7 @@ type DeviceUpdateFunc func(
 	deviceID string,
 	platform device.Platform,
 	token string,
+	language string,
 ) error
 
 // DeviceUpdate stores the device info in the given device service.
@@ -60,6 +61,7 @@ func DeviceUpdate(devices device.Service) DeviceUpdateFunc {
 		deviceID string,
 		platform device.Platform,
 		token string,
+		language string,
 	) error {
 		ds, err := devices.Query(app.Namespace(), device.QueryOptions{
 			Deleted: &defaultDeleted,
@@ -86,6 +88,7 @@ func DeviceUpdate(devices device.Service) DeviceUpdateFunc {
 		} else {
 			d = &device.Device{
 				DeviceID: deviceID,
+				Language: language,
 				Platform: platform,
 				Token:    token,
 				UserID:   origin.UserID,
@@ -95,7 +98,7 @@ func DeviceUpdate(devices device.Service) DeviceUpdateFunc {
 		_, err = devices.Put(app.Namespace(), d)
 		if err != nil {
 			if device.IsInvalidDevice(err) {
-				return ErrInvalidEntity
+				return wrapError(ErrInvalidEntity, "%s", err)
 			}
 		}
 
