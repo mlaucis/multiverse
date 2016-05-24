@@ -67,7 +67,9 @@ func consumeConnection(
 				return err
 			}
 
-			ms = append(ms, msg)
+			if msg != nil {
+				ms = append(ms, msg)
+			}
 		}
 
 		if len(ms) == 0 {
