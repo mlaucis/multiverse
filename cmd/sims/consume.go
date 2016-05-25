@@ -49,11 +49,6 @@ func consumeConnection(
 		c, err := conSource.Consume()
 		if err != nil {
 			if connection.IsEmptySource(err) {
-				err := conSource.Ack(c.AckID)
-				if err != nil {
-					return err
-				}
-
 				continue
 			}
 			return err
