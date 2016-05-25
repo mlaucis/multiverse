@@ -23,8 +23,10 @@ resource "aws_iam_user_policy" "state-change-sr" {
         {
             "Effect": "Allow",
             "Action": [
+                "sns:CreatePlatformEndpoint",
+                "sns:GetEndpointAttributes",
                 "sns:Publish",
-                "sns:CreatePlatformEndpoint"
+                "sns:SetEndpointAttributes"
             ],
             "Resource": "arn:aws:sns:*:775034650473:*"
         }
