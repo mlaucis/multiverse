@@ -33,13 +33,16 @@ const (
 	subsystemOp      = "op"
 	subsystemQueue   = "queue"
 
-	attributeToken = "Token"
+	attributeEnabled = "Enabled"
+	attributeToken   = "Token"
 
 	simsTestARN = "arn:aws:sns:eu-central-1:775034650473:app/APNS_SANDBOX/simsTest"
 )
 
 // Control flow.
 var (
+	ErrDeliveryFailure  = errors.New("delivery failed")
+	ErrEndpointDisabled = errors.New("endppint disabled")
 	ErrEndpointNotFound = errors.New("endpoint not found")
 	ErrPlatformNotFound = errors.New("platform not found")
 )
@@ -310,14 +313,21 @@ func main() {
 			return nil, err
 		}
 
+		es := device.List{}
+
 		for _, d := range ds {
 			_, err := prepareDeviceEndpoint(ns, pARN, d)
+			if isEndpointDisabled(err) {
+				continue
+			}
 			if err != nil {
 				return nil, err
 			}
+
+			es = append(es, d)
 		}
 
-		return ds, nil
+		return es, nil
 	}
 
 	getEndpoint = func(arn string) (string, error) {
@@ -330,6 +340,12 @@ func main() {
 			}
 
 			return "", err
+		}
+
+		enabled := *r.Attributes[attributeEnabled]
+
+		if enabled == "false" {
+			return "", ErrEndpointDisabled
 		}
 
 		return *r.Attributes[attributeToken], nil
@@ -352,7 +368,7 @@ func main() {
 
 			d.EndpointARN = arn
 
-			_, err = devices.Put(ns, d)
+			d, err = devices.Put(ns, d)
 			if err != nil {
 				return nil, err
 			}
@@ -373,7 +389,7 @@ func main() {
 
 			d.EndpointARN = arn
 
-			_, err = devices.Put(ns, d)
+			d, err = devices.Put(ns, d)
 			if err != nil {
 				return nil, err
 			}
@@ -402,7 +418,14 @@ func main() {
 			MessageStructure: aws.String("json"),
 			TargetArn:        aws.String(arn),
 		})
-		return err
+		if err != nil {
+			if awsErr, ok := err.(awserr.RequestFailure); ok {
+				if awsErr.StatusCode() == 400 {
+					return ErrDeliveryFailure
+				}
+			}
+		}
+		return nil
 	}
 
 	updateToken = func(arn, token string) error {
@@ -486,6 +509,10 @@ func channelPush(
 			case device.PlatformIOSSandbox:
 				err := pushAPNSSandbox(d.EndpointARN, msg.message)
 				if err != nil {
+					if isDeliveryFailure(err) {
+						return nil
+					}
+
 					return err
 				}
 			default:
@@ -495,6 +522,14 @@ func channelPush(
 
 		return nil
 	}
+}
+
+func isDeliveryFailure(err error) bool {
+	return err == ErrDeliveryFailure
+}
+
+func isEndpointDisabled(err error) bool {
+	return err == ErrEndpointDisabled
 }
 
 func isEndpointNotFound(err error) bool {
