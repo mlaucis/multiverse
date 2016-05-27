@@ -602,7 +602,7 @@ func main() {
 		),
 	)
 
-	next.Methods("OPTIONS").Path("/").Name("CORS").HandlerFunc(
+	next.Methods("OPTIONS").PathPrefix("/").Name("CORS").HandlerFunc(
 		handler.Wrap(
 			withMember,
 			func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
