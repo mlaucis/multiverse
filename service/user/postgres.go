@@ -374,7 +374,6 @@ func (s *pgService) listUsers(
 				return nil, err
 			}
 		} else {
-			fmt.Println(query)
 			return nil, err
 		}
 	}
@@ -525,26 +524,30 @@ func convertSearchOpts(opts SearchOptions) string {
 	cs := []string{}
 
 	for _, t := range opts.Emails {
+		t = strings.Replace(t, "'", "''", -1)
 		cs = append(cs, fmt.Sprintf(pgClauseSearchEmail, t))
 	}
 
 	for _, t := range opts.Firstnames {
+		t = strings.Replace(t, "'", "''", -1)
 		cs = append(cs, fmt.Sprintf(pgClauseSearchFirstname, t))
 	}
 
 	for _, t := range opts.Lastnames {
+		t = strings.Replace(t, "'", "''", -1)
 		cs = append(cs, fmt.Sprintf(pgClauseSearchLastname, t))
 	}
 
 	for _, t := range opts.Usernames {
+		t = strings.Replace(t, "'", "''", -1)
 		cs = append(cs, fmt.Sprintf(pgClauseSearchUsername, t))
 	}
 
 	if len(cs) > 0 {
 		return fmt.Sprintf("(%s)", strings.Join(cs, "OR\n"))
-	} else {
-		return ""
 	}
+
+	return ""
 }
 
 func wrapNamespace(query, namespace string) string {
