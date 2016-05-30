@@ -261,7 +261,7 @@ func (c *UserController) Retrieve(
 		return nil, err
 	}
 
-	err = c.enrichConnectionCounts(app, u)
+	err = enrichConnectionCounts(c.connections, c.users, app, u)
 	if err != nil {
 		return nil, err
 	}
@@ -297,7 +297,7 @@ func (c *UserController) Search(
 	}
 
 	for _, u := range us {
-		err = c.enrichConnectionCounts(app, u)
+		err = enrichConnectionCounts(c.connections, c.users, app, u)
 		if err != nil {
 			return nil, err
 		}
@@ -360,7 +360,7 @@ func (c *UserController) Update(
 		return nil, err
 	}
 
-	err = c.enrichConnectionCounts(app, u)
+	err = enrichConnectionCounts(c.connections, c.users, app, u)
 	if err != nil {
 		return nil, err
 	}
@@ -419,13 +419,15 @@ func (c *UserController) constrainUniqueUsername(
 	return nil
 }
 
-func (c *UserController) enrichConnectionCounts(
+func enrichConnectionCounts(
+	connections connection.Service,
+	users user.Service,
 	app *v04_entity.Application,
 	u *user.User,
 ) error {
 	deleted := false
 
-	cs, err := c.connections.Query(app.Namespace(), connection.QueryOptions{
+	cs, err := connections.Query(app.Namespace(), connection.QueryOptions{
 		Enabled: &defaultEnabled,
 		States: []connection.State{
 			connection.StateConfirmed,
@@ -442,7 +444,7 @@ func (c *UserController) enrichConnectionCounts(
 	}
 
 	if len(cs) > 0 {
-		u.FollowerCount, err = c.users.Count(app.Namespace(), user.QueryOptions{
+		u.FollowerCount, err = users.Count(app.Namespace(), user.QueryOptions{
 			Deleted: &deleted,
 			Enabled: &defaultEnabled,
 			IDs:     cs.FromIDs(),
@@ -452,7 +454,7 @@ func (c *UserController) enrichConnectionCounts(
 		}
 	}
 
-	cs, err = c.connections.Query(app.Namespace(), connection.QueryOptions{
+	cs, err = connections.Query(app.Namespace(), connection.QueryOptions{
 		Enabled: &defaultEnabled,
 		FromIDs: []uint64{
 			u.ID,
@@ -469,7 +471,7 @@ func (c *UserController) enrichConnectionCounts(
 	}
 
 	if len(cs) > 0 {
-		u.FollowingCount, err = c.users.Count(app.Namespace(), user.QueryOptions{
+		u.FollowingCount, err = users.Count(app.Namespace(), user.QueryOptions{
 			Deleted: &deleted,
 			Enabled: &defaultEnabled,
 			IDs:     cs.ToIDs(),
@@ -479,7 +481,7 @@ func (c *UserController) enrichConnectionCounts(
 		}
 	}
 
-	fs, err := c.connections.Query(app.Namespace(), connection.QueryOptions{
+	fs, err := connections.Query(app.Namespace(), connection.QueryOptions{
 		Enabled: &defaultEnabled,
 		FromIDs: []uint64{
 			u.ID,
@@ -495,7 +497,7 @@ func (c *UserController) enrichConnectionCounts(
 		return err
 	}
 
-	ts, err := c.connections.Query(app.Namespace(), connection.QueryOptions{
+	ts, err := connections.Query(app.Namespace(), connection.QueryOptions{
 		Enabled: &defaultEnabled,
 		States: []connection.State{
 			connection.StateConfirmed,
@@ -514,7 +516,7 @@ func (c *UserController) enrichConnectionCounts(
 	ids := append(fs.ToIDs(), ts.FromIDs()...)
 
 	if len(ids) > 0 {
-		u.FriendCount, err = c.users.Count(app.Namespace(), user.QueryOptions{
+		u.FriendCount, err = users.Count(app.Namespace(), user.QueryOptions{
 			Deleted: &deleted,
 			Enabled: &defaultEnabled,
 			IDs:     ids,

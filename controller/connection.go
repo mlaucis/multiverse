@@ -180,7 +180,12 @@ func (c *ConnectionController) Followers(
 	}
 
 	for _, u := range us {
-		err := enrichRelation(c.connections, app, origin, u)
+		err := enrichConnectionCounts(c.connections, c.users, app, u)
+		if err != nil {
+			return nil, err
+		}
+
+		err = enrichRelation(c.connections, app, origin, u)
 		if err != nil {
 			return nil, err
 		}
@@ -211,7 +216,12 @@ func (c *ConnectionController) Followings(
 	}
 
 	for _, u := range us {
-		err := enrichRelation(c.connections, app, origin, u)
+		err := enrichConnectionCounts(c.connections, c.users, app, u)
+		if err != nil {
+			return nil, err
+		}
+
+		err = enrichRelation(c.connections, app, origin, u)
 		if err != nil {
 			return nil, err
 		}
@@ -256,7 +266,12 @@ func (c *ConnectionController) Friends(
 	}
 
 	for _, u := range us {
-		err := enrichRelation(c.connections, app, origin, u)
+		err := enrichConnectionCounts(c.connections, c.users, app, u)
+		if err != nil {
+			return nil, err
+		}
+
+		err = enrichRelation(c.connections, app, origin, u)
 		if err != nil {
 			return nil, err
 		}
