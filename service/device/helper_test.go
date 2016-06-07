@@ -80,13 +80,6 @@ func testServiceQuery(t *testing.T, p prepareFunc) {
 		t.Fatal(err)
 	}
 
-	// QueryOptions{
-	// 	Deleted: false,
-	// DevicIDs
-	// 	IDs: []uint64{},
-	// 	UserIDs: []uint64{},
-	// }
-
 	for _, d := range testList() {
 		_, err := service.Put(namespace, d)
 		if err != nil {
@@ -112,6 +105,19 @@ func testServiceQuery(t *testing.T, p prepareFunc) {
 	})
 	if err != nil {
 		t.Fatal(err)
+	}
+
+	ds, err = service.Query(namespace, QueryOptions{
+		EndpointARNs: []string{
+			created.EndpointARN,
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if have, want := len(ds), 1; have != want {
+		t.Errorf("have %v, want %v", have, want)
 	}
 
 	if have, want := len(ds), 1; have != want {

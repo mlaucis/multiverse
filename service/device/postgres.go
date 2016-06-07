@@ -34,19 +34,21 @@ const (
 			%s.devices
 		%s`
 
-	pgClauseDeleted   = `deleted = ?`
-	pgClauseDeviceIDs = `device_id IN (?)`
-	pgClauseIDs       = `id IN (?)`
-	pgClausePlatforms = `platform IN (?)`
-	pgClauseUserIDs   = `user_id IN (?)`
+	pgClauseDeleted      = `deleted = ?`
+	pgClauseDeviceIDs    = `device_id IN (?)`
+	pgClauseEndpointARNs = `endpoint_arn IN (?)`
+	pgClauseIDs          = `id IN (?)`
+	pgClausePlatforms    = `platform IN (?)`
+	pgClauseUserIDs      = `user_id IN (?)`
 
 	pgOrderCreatedAt = `ORDER BY created_at DESC`
 
-	pgIndexCreatedAt = `CREATE INDEX %s ON %s.devices (created_at)`
-	pgIndexDeviceID  = `CREATE INDEX %s ON %s.devices (device_id)`
-	pgIndexID        = `CREATE INDEX %s ON %s.devices (id)`
-	pgIndexPlatform  = `CREATE INDEX %s ON %s.devices (platform)`
-	pgIndexUserID    = `CREATE INDEX %s ON %s.devices (user_id)`
+	pgIndexCreatedAt   = `CREATE INDEX %s ON %s.devices (created_at)`
+	pgIndexDeviceID    = `CREATE INDEX %s ON %s.devices (device_id)`
+	pgIndexEndpointARN = `CREATE INDEX %s ON %s.devices (endpoint_arn)`
+	pgIndexID          = `CREATE INDEX %s ON %s.devices (id)`
+	pgIndexPlatform    = `CREATE INDEX %s ON %s.devices (platform)`
+	pgIndexUserID      = `CREATE INDEX %s ON %s.devices (user_id)`
 
 	pgCreateSchema = `CREATE SCHEMA IF NOT EXISTS %s`
 	pgCreateTable  = `CREATE TABLE IF NOT EXISTS %s.devices (
@@ -235,6 +237,7 @@ func (s *pgService) Setup(ns string) error {
 		fmt.Sprintf(pgCreateTable, ns),
 		pg.GuardIndex(ns, "device_created_at", pgIndexCreatedAt),
 		pg.GuardIndex(ns, "device_device_id", pgIndexDeviceID),
+		pg.GuardIndex(ns, "device_endpoint_arn", pgIndexEndpointARN),
 		pg.GuardIndex(ns, "device_id", pgIndexID),
 		pg.GuardIndex(ns, "device_platform", pgIndexPlatform),
 		pg.GuardIndex(ns, "device_user_id", pgIndexUserID),
@@ -289,6 +292,22 @@ func convertOpts(opts QueryOptions) ([]string, []interface{}, error) {
 		}
 
 		clause, _, err := sqlx.In(pgClauseDeviceIDs, ps)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		clauses = append(clauses, clause)
+		params = append(params, ps...)
+	}
+
+	if len(opts.EndpointARNs) > 0 {
+		ps := []interface{}{}
+
+		for _, arn := range opts.EndpointARNs {
+			ps = append(ps, arn)
+		}
+
+		clause, _, err := sqlx.In(pgClauseEndpointARNs, ps)
 		if err != nil {
 			return nil, nil, err
 		}
