@@ -70,11 +70,12 @@ type Platform uint8
 
 // QueryOptions is used to narrow-down user queries.
 type QueryOptions struct {
-	Deleted   *bool
-	DeviceIDs []string
-	IDs       []uint64
-	Platforms []Platform
-	UserIDs   []uint64
+	Deleted      *bool
+	DeviceIDs    []string
+	EndpointARNs []string
+	IDs          []uint64
+	Platforms    []Platform
+	UserIDs      []uint64
 }
 
 // Service for device interactions.
