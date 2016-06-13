@@ -17,6 +17,8 @@ const (
 // Platform supported for a Device.
 const (
 	PlatformIOSSandbox Platform = iota + 1
+	PlatformIOS
+	PlatformAndroid
 )
 
 // Device represents a physical device like mobile phone or tablet of a user.
@@ -47,7 +49,7 @@ func (d *Device) Validate() error {
 		return wrapError(ErrInvalidDevice, "Platform must be set")
 	}
 
-	if d.Platform > 1 {
+	if d.Platform > PlatformAndroid {
 		return wrapError(ErrInvalidDevice, "Platform '%d' not supported", d.Platform)
 	}
 

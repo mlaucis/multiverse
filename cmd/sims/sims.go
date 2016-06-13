@@ -35,16 +35,15 @@ const (
 
 	attributeEnabled = "Enabled"
 	attributeToken   = "Token"
-
-	simsTestARN = "arn:aws:sns:eu-central-1:775034650473:app/APNS_SANDBOX/simsTest"
 )
 
 // Control flow.
 var (
-	ErrDeliveryFailure  = errors.New("delivery failed")
-	ErrEndpointDisabled = errors.New("endppint disabled")
-	ErrEndpointNotFound = errors.New("endpoint not found")
-	ErrPlatformNotFound = errors.New("platform not found")
+	ErrDeliveryFailure   = errors.New("delivery failed")
+	ErrEndpointDisabled  = errors.New("endppint disabled")
+	ErrEndpointNotFound  = errors.New("endpoint not found")
+	ErrNamespaceNotFound = errors.New("namespace not found")
+	ErrPlatformNotFound  = errors.New("platform not found")
 )
 
 var (
@@ -60,8 +59,9 @@ type createEndpointFunc func(platformARN, token string) (string, error)
 type fetchUserFunc func(namespace string, id uint64) (*user.User, error)
 type findDevicesFunc func(namespace string, userID uint64) (device.List, error)
 type getEndpointFunc func(arn string) (string, error)
-type getPlatformARNFunc func(namespace string) (string, error)
-type prepareDeviceEndpointFunc func(namespace, platformARN string, d *device.Device) (*device.Device, error)
+type getPlatformARNFunc func(namespace string, platform device.Platform) (string, error)
+type prepareDeviceEndpointFunc func(namespace string, d *device.Device) (*device.Device, error)
+type pushAndroidFunc func(arn, message string) error
 type pushAPNSSandboxFunc func(arn, message string) error
 type updateTokenFunc func(arn, token string) error
 
@@ -258,6 +258,7 @@ func main() {
 	var getEndpoint getEndpointFunc
 	var getPlatformARN getPlatformARNFunc
 	var prepareDeviceEndpoint prepareDeviceEndpointFunc
+	var pushAndroid pushAndroidFunc
 	var pushAPNSSandbox pushAPNSSandboxFunc
 	var updateToken updateTokenFunc
 
@@ -292,14 +293,6 @@ func main() {
 	}
 
 	findDevices = func(ns string, userID uint64) (device.List, error) {
-		pARN, err := getPlatformARN(ns)
-		if err != nil {
-			if err == ErrPlatformNotFound {
-				return device.List{}, nil
-			}
-			return nil, err
-		}
-
 		ds, err := devices.Query(ns, device.QueryOptions{
 			Deleted: &defaultDeleted,
 			Platforms: []device.Platform{
@@ -316,8 +309,8 @@ func main() {
 		es := device.List{}
 
 		for _, d := range ds {
-			_, err := prepareDeviceEndpoint(ns, pARN, d)
-			if isEndpointDisabled(err) {
+			_, err := prepareDeviceEndpoint(ns, d)
+			if isEndpointDisabled(err) || isNamespaceNotFound(err) || isPlatformNotFound(err) {
 				continue
 			}
 			if err != nil {
@@ -351,15 +344,33 @@ func main() {
 		return *r.Attributes[attributeToken], nil
 	}
 
-	getPlatformARN = func(ns string) (string, error) {
-		if ns == "app_1_610" {
-			return simsTestARN, nil
+	getPlatformARN = func(ns string, platform device.Platform) (string, error) {
+		arns := map[string]map[device.Platform]string{
+			"app_1_610": map[device.Platform]string{
+				device.PlatformIOSSandbox: "arn:aws:sns:eu-central-1:775034650473:app/APNS_SANDBOX/simsTest",
+				device.PlatformAndroid:    "arn:aws:sns:eu-central-1:775034650473:app/GCM/simsTestGCM",
+			},
 		}
 
-		return "", ErrPlatformNotFound
+		cs, ok := arns[ns]
+		if !ok {
+			return "", ErrNamespaceNotFound
+		}
+
+		arn, ok := cs[platform]
+		if !ok {
+			return "", ErrPlatformNotFound
+		}
+
+		return arn, nil
 	}
 
-	prepareDeviceEndpoint = func(ns, pARN string, d *device.Device) (*device.Device, error) {
+	prepareDeviceEndpoint = func(ns string, d *device.Device) (*device.Device, error) {
+		pARN, err := getPlatformARN(ns, d.Platform)
+		if err != nil {
+			return nil, err
+		}
+
 		if d.EndpointARN == "" {
 			arn, err := createEndpoint(pARN, d.Token)
 			if err != nil {
@@ -405,6 +416,28 @@ func main() {
 		}
 
 		return d, nil
+	}
+
+	pushAndroid = func(arn, msg string) error {
+		_, err := snsService.Publish(&sns.PublishInput{
+			Message: aws.String(
+				fmt.Sprintf(
+					`{"GCM": "{\"data\": {\"message\": \"%s\"}}"`,
+					msg,
+				),
+			),
+			MessageStructure: aws.String("json"),
+			TargetArn:        aws.String(arn),
+		})
+		if err != nil {
+			if awsErr, ok := err.(awserr.RequestFailure); ok {
+				if awsErr.StatusCode() == 400 {
+					return ErrDeliveryFailure
+				}
+			}
+		}
+
+		return nil
 	}
 
 	pushAPNSSandbox = func(arn, msg string) error {
@@ -455,7 +488,7 @@ func main() {
 	}()
 
 	cs := []channelFunc{
-		channelPush(findDevices, getPlatformARN, pushAPNSSandbox),
+		channelPush(findDevices, getPlatformARN, pushAndroid, pushAPNSSandbox),
 	}
 
 	for batch := range batchc {
@@ -482,18 +515,10 @@ func main() {
 func channelPush(
 	findDevices findDevicesFunc,
 	getPlatformARN getPlatformARNFunc,
+	pushAndroid pushAndroidFunc,
 	pushAPNSSandbox pushAPNSSandboxFunc,
 ) channelFunc {
 	return func(ns string, msg *message) error {
-		// check if platform is enabled
-		_, err := getPlatformARN(ns)
-		if err != nil {
-			if err == ErrPlatformNotFound {
-				return nil
-			}
-			return err
-		}
-
 		// find devices
 		ds, err := findDevices(ns, msg.recipient)
 		if err != nil {
@@ -508,6 +533,15 @@ func channelPush(
 			switch d.Platform {
 			case device.PlatformIOSSandbox:
 				err := pushAPNSSandbox(d.EndpointARN, msg.message)
+				if err != nil {
+					if isDeliveryFailure(err) {
+						return nil
+					}
+
+					return err
+				}
+			case device.PlatformAndroid:
+				err := pushAndroid(d.EndpointARN, msg.message)
 				if err != nil {
 					if isDeliveryFailure(err) {
 						return nil
@@ -534,4 +568,12 @@ func isEndpointDisabled(err error) bool {
 
 func isEndpointNotFound(err error) bool {
 	return err == ErrEndpointNotFound
+}
+
+func isNamespaceNotFound(err error) bool {
+	return err == ErrNamespaceNotFound
+}
+
+func isPlatformNotFound(err error) bool {
+	return err == ErrPlatformNotFound
 }
