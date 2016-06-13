@@ -57,7 +57,7 @@ type ackFunc func() error
 type channelFunc func(string, *message) error
 type createEndpointFunc func(platformARN, token string) (string, error)
 type fetchUserFunc func(namespace string, id uint64) (*user.User, error)
-type findDevicesFunc func(namespace string, userID uint64) (device.List, error)
+type findDevicesFunc func(namespace string, userID uint64, platforms ...device.Platform) (device.List, error)
 type getEndpointFunc func(arn string) (string, error)
 type getPlatformARNFunc func(namespace string, platform device.Platform) (string, error)
 type prepareDeviceEndpointFunc func(namespace string, d *device.Device) (*device.Device, error)
@@ -292,12 +292,10 @@ func main() {
 		return us[0], nil
 	}
 
-	findDevices = func(ns string, userID uint64) (device.List, error) {
+	findDevices = func(ns string, userID uint64, ps ...device.Platform) (device.List, error) {
 		ds, err := devices.Query(ns, device.QueryOptions{
-			Deleted: &defaultDeleted,
-			Platforms: []device.Platform{
-				device.PlatformIOSSandbox,
-			},
+			Deleted:   &defaultDeleted,
+			Platforms: ps,
 			UserIDs: []uint64{
 				userID,
 			},
@@ -422,7 +420,7 @@ func main() {
 		_, err := snsService.Publish(&sns.PublishInput{
 			Message: aws.String(
 				fmt.Sprintf(
-					`{"GCM": "{\"data\": {\"message\": \"%s\"}}"`,
+					`{"GCM": "{\"notification\": {\"body\": \"%s\", \"title\": \"New Follower!\"} }"}`,
 					msg,
 				),
 			),
@@ -520,7 +518,12 @@ func channelPush(
 ) channelFunc {
 	return func(ns string, msg *message) error {
 		// find devices
-		ds, err := findDevices(ns, msg.recipient)
+		ds, err := findDevices(
+			ns,
+			msg.recipient,
+			device.PlatformAndroid,
+			device.PlatformIOSSandbox,
+		)
 		if err != nil {
 			return err
 		}
@@ -543,6 +546,7 @@ func channelPush(
 			case device.PlatformAndroid:
 				err := pushAndroid(d.EndpointARN, msg.message)
 				if err != nil {
+					fmt.Printf("\n%s\n%#v\n\n", d.EndpointARN, err)
 					if isDeliveryFailure(err) {
 						return nil
 					}
