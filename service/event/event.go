@@ -43,6 +43,7 @@ type Event struct {
 	Enabled    bool       `json:"enabled"`
 	ID         uint64     `json:"id"`
 	Language   string     `json:"language,omitempty"`
+	Metadata   Metadata   `json:"metadata,omitempty"`
 	Object     *Object    `json:"object,omitempty"`
 	ObjectID   uint64     `json:"object_id"`
 	Owned      bool       `json:"owned"`
@@ -71,11 +72,14 @@ func (e Event) Validate() error {
 	return nil
 }
 
-// Mape is an event collection with the id as index.
-type Map map[uint64]*Event
-
 // List is an Event collection.
 type List []*Event
+
+// Map is an event collection with the id as index.
+type Map map[uint64]*Event
+
+// Metadata is a bucket of additional event information.
+type Metadata map[string]string
 
 // IDs returns ID for every Event.
 func (es List) IDs() []uint64 {
@@ -125,9 +129,10 @@ func (es List) UserIDs() []uint64 {
 
 // Object describes an external entity whcih can have a type and an id.
 type Object struct {
-	ID   string `json:"id"`
-	Type string `json:"type"`
-	URL  string `json:"url"`
+	DisplayNames map[string]string `display_names,omitempty`
+	ID           string            `json:"id"`
+	Type         string            `json:"type"`
+	URL          string            `json:"url"`
 }
 
 // QueryOptions are used to narrow down Event queries.

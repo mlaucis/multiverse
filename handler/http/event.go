@@ -179,23 +179,25 @@ type payloadEvent struct {
 
 func (p *payloadEvent) MarshalJSON() ([]byte, error) {
 	f := struct {
-		ID           uint64        `json:"id"`
-		IDString     string        `json:"id_string"`
-		Language     string        `json:"language"`
-		Object       *event.Object `json:"object"`
-		ObjectID     string        `json:"tg_object_id"`
-		Owned        bool          `json:"owned"`
-		Target       *event.Target `json:"target,omitempty"`
-		Type         string        `json:"type"`
-		UserID       uint64        `json:"user_id"`
-		UserIDString string        `json:"user_id_string"`
-		Visibility   uint8         `json:"visibility"`
-		CreatedAt    time.Time     `json:"created_at"`
-		UpdatedAt    time.Time     `json:"updated_at"`
+		ID           uint64         `json:"id"`
+		IDString     string         `json:"id_string"`
+		Language     string         `json:"language"`
+		Metadata     event.Metadata `json:"metadata,omitempty"`
+		Object       *event.Object  `json:"object"`
+		ObjectID     string         `json:"tg_object_id"`
+		Owned        bool           `json:"owned"`
+		Target       *event.Target  `json:"target,omitempty"`
+		Type         string         `json:"type"`
+		UserID       uint64         `json:"user_id"`
+		UserIDString string         `json:"user_id_string"`
+		Visibility   uint8          `json:"visibility"`
+		CreatedAt    time.Time      `json:"created_at"`
+		UpdatedAt    time.Time      `json:"updated_at"`
 	}{
 		ID:           p.event.ID,
 		IDString:     strconv.FormatUint(p.event.ID, 10),
 		Language:     p.event.Language,
+		Metadata:     p.event.Metadata,
 		ObjectID:     strconv.FormatUint(p.event.ObjectID, 10),
 		Owned:        p.event.Owned,
 		Type:         p.event.Type,
@@ -220,6 +222,7 @@ func (p *payloadEvent) MarshalJSON() ([]byte, error) {
 func (p *payloadEvent) UnmarshalJSON(raw []byte) error {
 	f := struct {
 		Language   string         `json:"language"`
+		Metadata   event.Metadata `json:"metadata,omitempty"`
 		Object     *payloadObject `json:"object"`
 		Target     *event.Target  `json:"target,omitempty"`
 		Type       string         `json:"type"`
@@ -233,6 +236,7 @@ func (p *payloadEvent) UnmarshalJSON(raw []byte) error {
 
 	e := &event.Event{
 		Language:   f.Language,
+		Metadata:   f.Metadata,
 		Target:     f.Target,
 		Type:       f.Type,
 		Visibility: event.Visibility(f.Visibility),
@@ -240,9 +244,10 @@ func (p *payloadEvent) UnmarshalJSON(raw []byte) error {
 
 	if f.Object != nil {
 		e.Object = &event.Object{
-			ID:   f.Object.ID,
-			Type: f.Object.Type,
-			URL:  f.Object.URL,
+			DisplayNames: f.Object.DisplayNames,
+			ID:           f.Object.ID,
+			Type:         f.Object.Type,
+			URL:          f.Object.URL,
 		}
 	}
 
@@ -252,16 +257,18 @@ func (p *payloadEvent) UnmarshalJSON(raw []byte) error {
 }
 
 type payloadObject struct {
-	ID   string
-	Type string
-	URL  string
+	DisplayNames map[string]string
+	ID           string
+	Type         string
+	URL          string
 }
 
 func (p *payloadObject) UnmarshalJSON(raw []byte) error {
 	f := struct {
-		ID   interface{} `json:"id"`
-		Type string      `json:"type"`
-		URL  string      `json:"url"`
+		DisplayNames map[string]string `json:"display_names,omitempty"`
+		ID           interface{}       `json:"id"`
+		Type         string            `json:"type"`
+		URL          string            `json:"url"`
 	}{}
 
 	err := json.Unmarshal(raw, &f)
@@ -269,6 +276,7 @@ func (p *payloadObject) UnmarshalJSON(raw []byte) error {
 		return err
 	}
 
+	p.DisplayNames = f.DisplayNames
 	p.Type = f.Type
 	p.URL = f.URL
 
