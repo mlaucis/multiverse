@@ -129,7 +129,7 @@ func (es List) UserIDs() []uint64 {
 
 // Object describes an external entity whcih can have a type and an id.
 type Object struct {
-	DisplayNames map[string]string `display_names,omitempty`
+	DisplayNames map[string]string `json:"display_names,omitempty"`
 	ID           string            `json:"id"`
 	Type         string            `json:"type"`
 	URL          string            `json:"url"`
