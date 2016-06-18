@@ -198,6 +198,7 @@ func (c *FeedController) Events(
 				opts,
 				am.filterFollowers(origin).userIDs()...,
 			),
+			sourceTarget(c.events, app, origin, opts),
 		}
 	)
 
@@ -284,6 +285,7 @@ func (c *FeedController) News(
 				opts,
 				am.filterFollowers(origin).userIDs()...,
 			),
+			sourceTarget(c.events, app, origin, opts),
 		}
 	)
 
@@ -775,6 +777,35 @@ func sourceNeighbours(
 		event.VisibilityPublic,
 	}
 	opts.UserIDs = ids
+
+	return func() (event.List, error) {
+		es, err := events.Query(app.Namespace(), opts)
+		if err != nil {
+			return nil, err
+		}
+
+		return es, nil
+	}
+}
+
+// sourceTarget returns all events where the origin is the target.
+func sourceTarget(
+	events event.Service,
+	app *v04_entity.Application,
+	origin uint64,
+	options *event.QueryOptions,
+) source {
+	opts := event.QueryOptions{}
+	if options != nil {
+		opts = *options
+	}
+
+	opts.TargetIDs = []string{
+		strconv.FormatUint(origin, 10),
+	}
+	opts.Visibilities = []event.Visibility{
+		event.VisibilityPrivate,
+	}
 
 	return func() (event.List, error) {
 		es, err := events.Query(app.Namespace(), opts)
