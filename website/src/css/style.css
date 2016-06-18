@@ -251,7 +251,7 @@ body[class!=demo] .featurebenefits h3,
 .featurebenefits h4 {
   margin-bottom: 0 !important;
 }
-.featurebenefits p,li {
+.featurebenefits p {
     color: #858585;
     font-size: 2rem;
     font-weight: 300;
@@ -259,6 +259,16 @@ body[class!=demo] .featurebenefits h3,
     line-height: 1.5em;
     margin-bottom: 1rem;
 }
+
+.featurebenefits li {
+    color: #858585;
+    font-size: 2rem;
+    font-weight: 300;
+    text-align: left;
+    line-height: 1.5em;
+    margin-bottom: 1rem;
+}
+
 .featurebenefits li {
   list-style-type: square;
 }
