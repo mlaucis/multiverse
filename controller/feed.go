@@ -803,6 +803,9 @@ func sourceTarget(
 	opts.TargetIDs = []string{
 		strconv.FormatUint(origin, 10),
 	}
+	opts.TargetTypes = []string{
+		event.TargetUser,
+	}
 	opts.Visibilities = []event.Visibility{
 		event.VisibilityPrivate,
 	}

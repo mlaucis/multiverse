@@ -167,13 +167,19 @@ func filterList(em Map, opts QueryOptions) List {
 			continue
 		}
 
-		if opts.Owned != nil {
-			if event.Owned != *opts.Owned {
-				continue
-			}
+		if opts.Owned != nil && event.Owned != *opts.Owned {
+			continue
+		}
+
+		if event.Target == nil && len(opts.TargetIDs) > 0 {
+			continue
 		}
 
 		if event.Target != nil && !inTypes(event.Target.ID, opts.TargetIDs) {
+			continue
+		}
+
+		if event.Target == nil && len(opts.TargetTypes) > 0 {
 			continue
 		}
 
