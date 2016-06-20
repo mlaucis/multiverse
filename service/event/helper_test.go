@@ -15,9 +15,10 @@ func testServiceCount(p prepareFunc, t *testing.T) {
 		externalID        = "external-id-123"
 		objectID   uint64 = 321
 		owned             = false
+		targetID          = "123"
 	)
 
-	for _, e := range testList(objectID, externalID) {
+	for _, e := range testList(objectID, externalID, targetID) {
 		_, err := service.Put(namespace, e)
 		if err != nil {
 			t.Fatal(err)
@@ -31,7 +32,7 @@ func testServiceCount(p prepareFunc, t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if have, want := count, 42; have != want {
+	if have, want := count, 45; have != want {
 		t.Errorf("have %v, want %v", have, want)
 	}
 
@@ -128,6 +129,32 @@ func testServiceCount(p prepareFunc, t *testing.T) {
 	if have, want := count, 11; have != want {
 		t.Errorf("have %v, want %v", have, want)
 	}
+
+	count, err = service.Count(namespace, QueryOptions{
+		TargetIDs: []string{
+			targetID,
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if have, want := count, 3; have != want {
+		t.Errorf("have %v, want %v", have, want)
+	}
+
+	count, err = service.Count(namespace, QueryOptions{
+		TargetTypes: []string{
+			TargetUser,
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if have, want := count, 3; have != want {
+		t.Errorf("have %v, want %v", have, want)
+	}
 }
 
 func testEvent() *Event {
@@ -139,7 +166,7 @@ func testEvent() *Event {
 	}
 }
 
-func testList(objectID uint64, externalID string) List {
+func testList(objectID uint64, externalID, targetID string) List {
 	es := List{}
 
 	for i := 0; i < 5; i++ {
@@ -214,6 +241,19 @@ func testList(objectID uint64, externalID string) List {
 		})
 	}
 
+	for i := 0; i < 3; i++ {
+		es = append(es, &Event{
+			Enabled: true,
+			Target: &Target{
+				ID:   targetID,
+				Type: TargetUser,
+			},
+			Type:       "taggin",
+			UserID:     5,
+			Visibility: VisibilityPrivate,
+		})
+	}
+
 	return es
 }
 
@@ -277,9 +317,10 @@ func testServiceQuery(p prepareFunc, t *testing.T) {
 		externalID        = "external-id-123"
 		objectID   uint64 = 321
 		owned             = false
+		targetID          = "432"
 	)
 
-	for _, e := range testList(objectID, externalID) {
+	for _, e := range testList(objectID, externalID, targetID) {
 		_, err := service.Put(namespace, e)
 		if err != nil {
 			t.Fatal(err)
@@ -293,7 +334,7 @@ func testServiceQuery(p prepareFunc, t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if have, want := len(es), 42; have != want {
+	if have, want := len(es), 45; have != want {
 		t.Errorf("have %v, want %v", have, want)
 	}
 
@@ -388,6 +429,32 @@ func testServiceQuery(p prepareFunc, t *testing.T) {
 	}
 
 	if have, want := len(es), 11; have != want {
+		t.Errorf("have %v, want %v", have, want)
+	}
+
+	es, err = service.Query(namespace, QueryOptions{
+		TargetIDs: []string{
+			targetID,
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if have, want := len(es), 3; have != want {
+		t.Errorf("have %v, want %v", have, want)
+	}
+
+	es, err = service.Query(namespace, QueryOptions{
+		TargetTypes: []string{
+			TargetUser,
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if have, want := len(es), 3; have != want {
 		t.Errorf("have %v, want %v", have, want)
 	}
 }

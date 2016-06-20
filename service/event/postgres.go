@@ -30,6 +30,8 @@ const (
 	pgClauseIDs                 = `(json_data->>'id')::BIGINT IN (?)`
 	pgClauseObjectIDs           = `(json_data->>'object_id')::BIGINT IN (?)`
 	pgClauseOwned               = `(json_data->>'owned')::BOOL = ?::BOOL`
+	pgClauseTargetIDs           = `(json_data->'target'->>'id')::TEXT in (?)`
+	pgClauseTargetTypes         = `(json_data->'target'->>'type')::TEXT in (?)`
 	pgClauseTypes               = `(json_data->>'type')::TEXT in (?)`
 	pgClauseUserIDs             = `(json_data->>'user_id')::BIGINT IN (?)`
 	pgClauseVisibilities        = `(json_data->>'visibility')::INT IN (?)`
@@ -455,6 +457,38 @@ func convertOpts(opts QueryOptions) ([]string, []interface{}, error) {
 
 		clauses = append(clauses, clause)
 		params = append(params, *opts.Owned)
+	}
+
+	if len(opts.TargetIDs) > 0 {
+		ps := []interface{}{}
+
+		for _, id := range opts.TargetIDs {
+			ps = append(ps, id)
+		}
+
+		clause, _, err := sqlx.In(pgClauseTargetIDs, ps)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		clauses = append(clauses, clause)
+		params = append(params, ps...)
+	}
+
+	if len(opts.TargetTypes) > 0 {
+		ps := []interface{}{}
+
+		for _, t := range opts.TargetTypes {
+			ps = append(ps, t)
+		}
+
+		clause, _, err := sqlx.In(pgClauseTargetTypes, ps)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		clauses = append(clauses, clause)
+		params = append(params, ps...)
 	}
 
 	if len(opts.Types) > 0 {
