@@ -533,6 +533,26 @@ func (c *FeedController) neighbours(
 	cs := append(fs, is...)
 	cs = append(cs, os...)
 
+	if root == 0 {
+		fs, err := c.connections.Query(app.Namespace(), connection.QueryOptions{
+			Enabled: &defaultEnabled,
+			States: []connection.State{
+				connection.StateConfirmed,
+			},
+			ToIDs: []uint64{
+				origin,
+			},
+			Types: []connection.Type{
+				connection.TypeFollow,
+			},
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		cs = append(cs, fs...)
+	}
+
 	am := affiliations{}
 
 	for _, con := range cs {
