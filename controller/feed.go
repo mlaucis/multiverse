@@ -482,7 +482,7 @@ func (c *FeedController) neighbours(
 	origin uint64,
 	root uint64,
 ) (affiliations, error) {
-	cs, err := c.connections.Query(app.Namespace(), connection.QueryOptions{
+	fs, err := c.connections.Query(app.Namespace(), connection.QueryOptions{
 		Enabled: &defaultEnabled,
 		FromIDs: []uint64{
 			origin,
@@ -490,12 +490,31 @@ func (c *FeedController) neighbours(
 		States: []connection.State{
 			connection.StateConfirmed,
 		},
+		Types: []connection.Type{
+			connection.TypeFollow,
+		},
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	tcs, err := c.connections.Query(app.Namespace(), connection.QueryOptions{
+	is, err := c.connections.Query(app.Namespace(), connection.QueryOptions{
+		Enabled: &defaultEnabled,
+		FromIDs: []uint64{
+			origin,
+		},
+		States: []connection.State{
+			connection.StateConfirmed,
+		},
+		Types: []connection.Type{
+			connection.TypeFriend,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	os, err := c.connections.Query(app.Namespace(), connection.QueryOptions{
 		Enabled: &defaultEnabled,
 		States: []connection.State{
 			connection.StateConfirmed,
@@ -503,12 +522,16 @@ func (c *FeedController) neighbours(
 		ToIDs: []uint64{
 			origin,
 		},
+		Types: []connection.Type{
+			connection.TypeFriend,
+		},
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	cs = append(cs, tcs...)
+	cs := append(fs, is...)
+	cs = append(cs, os...)
 
 	am := affiliations{}
 
