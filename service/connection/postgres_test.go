@@ -14,6 +14,10 @@ var (
 	pgTestURL string
 )
 
+func TestPostgresCount(t *testing.T) {
+	testServiceCount(t, preparePostgres)
+}
+
 func TestPostgresPut(t *testing.T) {
 	testServicePut(t, preparePostgres)
 }

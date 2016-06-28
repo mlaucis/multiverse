@@ -12,6 +12,8 @@ import (
 )
 
 const (
+	defaultLimit = 200
+
 	pgDeleteConnection = `DELETE
 		FROM %s.connections
 		WHERE (json_data->>'user_from_id')::BIGINT = $1::BIGINT
@@ -24,8 +26,8 @@ const (
 		AND (json_data->>'user_to_id')::BIGINT = $2::BIGINT
 		AND (json_data->>'type')::TEXT = $3::TEXT`
 
-	pgCountConnections = `SELECT count(json_data) FROM %s.connections
-		%s`
+	pgCount = `SELECT count(*) as total FROM (%s) as sub`
+
 	pgListConnections = `SELECT json_data
 		FROM %s.connections
 		%s`
@@ -72,7 +74,7 @@ func (s *pgService) Count(ns string, opts QueryOptions) (int, error) {
 		return 0, err
 	}
 
-	return s.countConnections(ns, clauses, params...)
+	return s.countConnections(ns, convertLimit(opts), clauses, params...)
 }
 
 func (s *pgService) CreatedByDay(
@@ -132,6 +134,7 @@ func (s *pgService) Put(ns string, con *Connection) (*Connection, error) {
 
 	cs, err := s.listConnections(
 		ns,
+		1,
 		[]string{pgClauseFromIDs, pgClauseToIDs, pgClauseTypes},
 		params...,
 	)
@@ -171,7 +174,7 @@ func (s *pgService) Query(ns string, opts QueryOptions) (List, error) {
 		return nil, err
 	}
 
-	return s.listConnections(ns, clauses, params...)
+	return s.listConnections(ns, convertLimit(opts), clauses, params...)
 }
 
 func (s *pgService) Setup(ns string) error {
@@ -200,6 +203,7 @@ func (s *pgService) Teardown(ns string) error {
 
 func (s *pgService) countConnections(
 	ns string,
+	limit int,
 	clauses []string,
 	params ...interface{},
 ) (int, error) {
@@ -209,11 +213,27 @@ func (s *pgService) countConnections(
 		c = fmt.Sprintf("WHERE %s", c)
 	}
 
+	l := ""
+
+	if limit > -1 {
+		l = fmt.Sprintf("LIMIT %d", limit)
+	}
+
+	query := strings.Join([]string{
+		fmt.Sprintf(pgListConnections, ns, c),
+		pgOrderCreatedAt,
+		l,
+	}, "\n")
+
+	query = sqlx.Rebind(sqlx.DOLLAR, query)
+
+	query = fmt.Sprintf(pgCount, query)
+
 	count := 0
 
 	err := s.db.Get(
 		&count,
-		sqlx.Rebind(sqlx.DOLLAR, fmt.Sprintf(pgCountConnections, ns, c)),
+		query,
 		params...,
 	)
 	if err != nil && pg.IsRelationNotFound(pg.WrapError(err)) {
@@ -223,7 +243,7 @@ func (s *pgService) countConnections(
 
 		err = s.db.Get(
 			&count,
-			sqlx.Rebind(sqlx.DOLLAR, fmt.Sprintf(pgCountConnections, ns, c)),
+			query,
 			params...,
 		)
 	}
@@ -233,6 +253,7 @@ func (s *pgService) countConnections(
 
 func (s *pgService) listConnections(
 	ns string,
+	limit int,
 	clauses []string,
 	params ...interface{},
 ) (List, error) {
@@ -242,9 +263,16 @@ func (s *pgService) listConnections(
 		c = fmt.Sprintf("WHERE %s", c)
 	}
 
+	l := ""
+
+	if limit > -1 {
+		l = fmt.Sprintf("LIMIT %d", limit)
+	}
+
 	query := strings.Join([]string{
 		fmt.Sprintf(pgListConnections, ns, c),
 		pgOrderCreatedAt,
+		l,
 	}, "\n")
 
 	query = sqlx.Rebind(sqlx.DOLLAR, query)
@@ -293,6 +321,18 @@ func (s *pgService) listConnections(
 	}
 
 	return cs, nil
+}
+
+func convertLimit(opts QueryOptions) int {
+	if opts.Limit == nil {
+		return defaultLimit
+	}
+
+	if *opts.Limit == -1 {
+		return -1
+	}
+
+	return *opts.Limit
 }
 
 func convertOpts(opts QueryOptions) ([]string, []interface{}, error) {

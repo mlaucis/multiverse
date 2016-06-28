@@ -103,6 +103,7 @@ type Producer interface {
 type QueryOptions struct {
 	Enabled *bool
 	FromIDs []uint64
+	Limit   *int
 	States  []State
 	ToIDs   []uint64
 	Types   []Type

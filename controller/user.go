@@ -429,6 +429,7 @@ func enrichConnectionCounts(
 
 	cs, err := connections.Query(app.Namespace(), connection.QueryOptions{
 		Enabled: &defaultEnabled,
+		Limit:   &limitInfinite,
 		States: []connection.State{
 			connection.StateConfirmed,
 		},
@@ -459,6 +460,7 @@ func enrichConnectionCounts(
 		FromIDs: []uint64{
 			u.ID,
 		},
+		Limit: &limitInfinite,
 		States: []connection.State{
 			connection.StateConfirmed,
 		},
@@ -486,6 +488,7 @@ func enrichConnectionCounts(
 		FromIDs: []uint64{
 			u.ID,
 		},
+		Limit: &limitInfinite,
 		States: []connection.State{
 			connection.StateConfirmed,
 		},

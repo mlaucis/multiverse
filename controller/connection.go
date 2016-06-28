@@ -6,6 +6,8 @@ import (
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
 
+var limitInfinite = -1
+
 // ConnectionFeed is the composite to transport information relevant for
 // connections.
 type ConnectionFeed struct {
@@ -135,9 +137,12 @@ func (c *ConnectionController) Delete(
 		toIDs = []uint64{con.FromID, con.ToID}
 	}
 
+	limit := 1
+
 	cs, err := c.connections.Query(app.Namespace(), connection.QueryOptions{
 		Enabled: &defaultEnabled,
 		FromIDs: fromIDs,
+		Limit:   &limit,
 		ToIDs:   toIDs,
 		Types:   []connection.Type{con.Type},
 	})
@@ -309,9 +314,12 @@ func (c *ConnectionController) Update(
 		toIDs = []uint64{new.FromID, new.ToID}
 	}
 
+	limit := 1
+
 	cs, err := c.connections.Query(app.Namespace(), connection.QueryOptions{
 		Enabled: &defaultEnabled,
 		FromIDs: fromIDs,
+		Limit:   &limit,
 		ToIDs:   toIDs,
 		Types:   []connection.Type{new.Type},
 	})
