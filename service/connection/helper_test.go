@@ -9,6 +9,108 @@ import (
 
 type prepareFunc func(t *testing.T, namespace string) Service
 
+func testServiceCount(t *testing.T, p prepareFunc) {
+	var (
+		namespace = "service_count"
+		service   = p(t, namespace)
+		from      = uint64(rand.Int63())
+		to        = uint64(rand.Int63())
+		disabled  = false
+	)
+
+	for _, c := range testList(from, to) {
+		_, err := service.Put(namespace, c)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	c, err := service.Count(namespace, QueryOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if have, want := c, 25; have != want {
+		t.Errorf("have %v, want %v", have, want)
+	}
+
+	c, err = service.Count(namespace, QueryOptions{
+		Enabled: &disabled,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if have, want := c, 5; have != want {
+		t.Errorf("have %v, want %v", have, want)
+	}
+
+	c, err = service.Count(namespace, QueryOptions{
+		FromIDs: []uint64{
+			from,
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if have, want := c, 12; have != want {
+		t.Errorf("have %v, want %v", have, want)
+	}
+
+	limit := 10
+
+	c, err = service.Count(namespace, QueryOptions{
+		Limit: &limit,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if have, want := c, 10; have != want {
+		t.Errorf("have %v, want %v", have, want)
+	}
+
+	c, err = service.Count(namespace, QueryOptions{
+		States: []State{
+			StateConfirmed,
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if have, want := c, 7; have != want {
+		t.Errorf("have %v, want %v", have, want)
+	}
+
+	c, err = service.Count(namespace, QueryOptions{
+		ToIDs: []uint64{
+			to,
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if have, want := c, 13; have != want {
+		t.Errorf("have %v, want %v", have, want)
+	}
+
+	c, err = service.Count(namespace, QueryOptions{
+		Types: []Type{
+			TypeFriend,
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if have, want := c, 18; have != want {
+		t.Errorf("have %v, want %v", have, want)
+	}
+}
+
 func testList(from, to uint64) List {
 	cs := List{}
 
@@ -199,6 +301,19 @@ func testServiceQuery(t *testing.T, p prepareFunc) {
 	}
 
 	if have, want := len(cs), 12; have != want {
+		t.Errorf("have %v, want %v", have, want)
+	}
+
+	limit := 10
+
+	cs, err = service.Query(namespace, QueryOptions{
+		Limit: &limit,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if have, want := len(cs), 10; have != want {
 		t.Errorf("have %v, want %v", have, want)
 	}
 

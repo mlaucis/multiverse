@@ -2,6 +2,10 @@ package connection
 
 import "testing"
 
+func TestMemCount(t *testing.T) {
+	testServiceCount(t, prepareMem)
+}
+
 func TestMemPut(t *testing.T) {
 	testServicePut(t, prepareMem)
 }

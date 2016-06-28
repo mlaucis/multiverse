@@ -19,7 +19,11 @@ func NewMemService() Service {
 }
 
 func (s *memService) Count(ns string, opts QueryOptions) (int, error) {
-	return 0, fmt.Errorf("Count not implemented")
+	if err := s.Setup(ns); err != nil {
+		return -1, err
+	}
+
+	return len(filterMap(s.cons[ns], opts)), nil
 }
 
 func (s *memService) CreatedByDay(
@@ -57,9 +61,28 @@ func (s *memService) Query(ns string, opts QueryOptions) (List, error) {
 		return nil, err
 	}
 
+	return filterMap(s.cons[ns], opts), nil
+}
+
+func (s *memService) Setup(ns string) error {
+	_, ok := s.cons[ns]
+	if ok {
+		return nil
+	}
+
+	s.cons[ns] = map[string]*Connection{}
+
+	return nil
+}
+
+func (s *memService) Teardown(ns string) error {
+	return fmt.Errorf("not implemented")
+}
+
+func filterMap(cm map[string]*Connection, opts QueryOptions) List {
 	cs := List{}
 
-	for _, con := range s.cons[ns] {
+	for _, con := range cm {
 		if opts.Enabled != nil && con.Enabled != *opts.Enabled {
 			continue
 		}
@@ -83,22 +106,11 @@ func (s *memService) Query(ns string, opts QueryOptions) (List, error) {
 		cs = append(cs, con)
 	}
 
-	return cs, nil
-}
-
-func (s *memService) Setup(ns string) error {
-	_, ok := s.cons[ns]
-	if ok {
-		return nil
+	if opts.Limit != nil && len(cs) > *opts.Limit {
+		cs = cs[:*opts.Limit]
 	}
 
-	s.cons[ns] = map[string]*Connection{}
-
-	return nil
-}
-
-func (s *memService) Teardown(ns string) error {
-	return fmt.Errorf("not implemented")
+	return cs
 }
 
 func inIDs(id uint64, ids []uint64) bool {
