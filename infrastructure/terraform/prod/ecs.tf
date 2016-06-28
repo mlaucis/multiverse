@@ -470,7 +470,7 @@ resource "aws_ecs_task_definition" "pganalyze" {
     "--config",
     "/.pganalyze_collector.conf"
     ],
-    "cpu": 256,
+    "cpu": 512,
     "dnsSearchDomains": [
       "${var.env}.${var.region}"
     ],
@@ -479,8 +479,8 @@ resource "aws_ecs_task_definition" "pganalyze" {
     "logConfiguration": {
       "logDriver": "syslog"
     },
-    "memory": 512,
-    "name": "gateway-http",
+    "memory": 1024,
+    "name": "pganalyze",
     "portMappings": [],
     "readonlyRootFilesystem": true,
     "workingDirectory": "/"
