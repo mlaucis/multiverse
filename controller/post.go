@@ -119,9 +119,12 @@ func (c *PostController) Create(
 		return nil, wrapError(ErrInvalidEntity, "invalid Post: %s", err)
 	}
 
-	err := constrainPostVisibility(origin, post.Visibility)
-	if err != nil {
+	if err := constrainPostVisibility(origin, post.Visibility); err != nil {
 		return nil, err
+	}
+
+	if err := post.Object.Validate(); err != nil {
+		return nil, wrapError(ErrInvalidEntity, "%s", err)
 	}
 
 	o, err := c.objects.Put(app.Namespace(), post.Object)
@@ -352,6 +355,10 @@ func (c *PostController) Update(
 	err = constrainPostVisibility(origin, p.Visibility)
 	if err != nil {
 		return nil, err
+	}
+
+	if err := p.Validate(); err != nil {
+		return nil, wrapError(ErrInvalidEntity, "%s", err)
 	}
 
 	o, err := c.objects.Put(app.Namespace(), p)
