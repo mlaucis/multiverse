@@ -13,29 +13,31 @@ import (
 
 const (
 	pgInsertDevice = `INSERT INTO
-		%s.devices(deleted, device_id, endpoint_arn, id, language, platform, token, user_id, created_at, updated_at)
-		VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
+		%s.devices(deleted, device_id, disabled, endpoint_arn, id, language, platform, token, user_id, created_at, updated_at)
+		VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`
 	pgUpdateDevice = `
 		UPDATE
 			%s.devices
 		SET
 			deleted = $2,
-			endpoint_arn = $3,
-			language = $4,
-			token = $5,
-			updated_at = $6
+			disabled = $3,
+			endpoint_arn = $4,
+			language = $5,
+			token = $6,
+			updated_at = $7
 		WHERE
 			id = $1`
 
 	pgListDevices = `
 		SELECT
-			deleted, device_id, endpoint_arn, id, language, platform, token, user_id, created_at, updated_at
+			deleted, device_id, disabled, endpoint_arn, id, language, platform, token, user_id, created_at, updated_at
 		FROM
 			%s.devices
 		%s`
 
 	pgClauseDeleted      = `deleted = ?`
 	pgClauseDeviceIDs    = `device_id IN (?)`
+	pgClauseDisabled     = `disabled = ?`
 	pgClauseEndpointARNs = `endpoint_arn IN (?)`
 	pgClauseIDs          = `id IN (?)`
 	pgClausePlatforms    = `platform IN (?)`
@@ -52,8 +54,9 @@ const (
 
 	pgCreateSchema = `CREATE SCHEMA IF NOT EXISTS %s`
 	pgCreateTable  = `CREATE TABLE IF NOT EXISTS %s.devices (
-		deleted bool DEFAULT false,
+		deleted BOOL DEFAULT false,
 		device_id TEXT NOT NULL,
+		disabled BOOL DEFAULT false,
 		endpoint_arn TEXT,
 		id BIGINT NOT NULL,
 		language TEXT NOT NULL,
@@ -110,6 +113,7 @@ func (s *pgService) Put(ns string, d *Device) (*Device, error) {
 		params = []interface{}{
 			d.Deleted,
 			d.DeviceID,
+			d.Disabled,
 			d.EndpointARN,
 			d.ID,
 			d.Language,
@@ -131,6 +135,7 @@ func (s *pgService) Put(ns string, d *Device) (*Device, error) {
 		params = []interface{}{
 			d.ID,
 			d.Deleted,
+			d.Disabled,
 			d.EndpointARN,
 			d.Language,
 			d.Token,
@@ -205,6 +210,7 @@ func (s *pgService) listDevices(
 		err := rows.Scan(
 			&d.Deleted,
 			&d.DeviceID,
+			&d.Disabled,
 			&d.EndpointARN,
 			&d.ID,
 			&d.Language,
@@ -298,6 +304,16 @@ func convertOpts(opts QueryOptions) ([]string, []interface{}, error) {
 
 		clauses = append(clauses, clause)
 		params = append(params, ps...)
+	}
+
+	if opts.Disabled != nil {
+		clause, _, err := sqlx.In(pgClauseDisabled, []interface{}{*opts.Disabled})
+		if err != nil {
+			return nil, nil, err
+		}
+
+		clauses = append(clauses, clause)
+		params = append(params, *opts.Disabled)
 	}
 
 	if len(opts.EndpointARNs) > 0 {

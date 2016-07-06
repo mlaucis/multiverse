@@ -53,13 +53,23 @@ var (
 	revision = "0000000-dev"
 )
 
+// platform storage
+var (
+	arnAPNSSandbox = map[string]string{
+		"app_1_610": "arn:aws:sns:eu-central-1:775034650473:app/APNS_SANDBOX/simsTest",
+	}
+)
+
 type ackFunc func() error
 type channelFunc func(string, *message) error
 type createEndpointFunc func(platformARN, token string) (string, error)
+type disableDeviceFunc func(platformARN, endpointARN string) error
 type fetchUserFunc func(namespace string, id uint64) (*user.User, error)
 type findDevicesFunc func(namespace string, userID uint64, platforms ...device.Platform) (device.List, error)
 type getEndpointFunc func(arn string) (string, error)
+type getNamespaceFunc func(arn string) (string, error)
 type getPlatformARNFunc func(namespace string, platform device.Platform) (string, error)
+type getUserDevicesFunc func(namespace string, userID uint64, platforms ...device.Platform) (device.List, error)
 type prepareDeviceEndpointFunc func(namespace string, d *device.Device) (*device.Device, error)
 type pushAndroidFunc func(arn, message string) error
 type pushAPNSSandboxFunc func(arn, message string) error
@@ -112,7 +122,7 @@ func main() {
 			"sub", "telemetry",
 		)
 
-		logger.Log(
+		_ = logger.Log(
 			"duration", time.Now().Sub(begin).Nanoseconds(),
 			"lifecycle", "start",
 		)
@@ -253,9 +263,11 @@ func main() {
 	snsService := sns.New(aSession)
 
 	var createEndpoint createEndpointFunc
+	var disableDevice disableDeviceFunc
 	var fetchUser fetchUserFunc
-	var findDevices findDevicesFunc
+	var getUserDevices getUserDevicesFunc
 	var getEndpoint getEndpointFunc
+	var getNamespace getNamespaceFunc
 	var getPlatformARN getPlatformARNFunc
 	var prepareDeviceEndpoint prepareDeviceEndpointFunc
 	var pushAndroid pushAndroidFunc
@@ -272,6 +284,34 @@ func main() {
 		}
 
 		return *r.EndpointArn, nil
+	}
+
+	disableDevice = func(pARN, eARN string) error {
+		ns, err := getNamespace(pARN)
+		if err != nil {
+			return err
+		}
+
+		ds, err := devices.Query(ns, device.QueryOptions{
+			Deleted: &defaultDeleted,
+			EndpointARNs: []string{
+				eARN,
+			},
+		})
+		if err != nil {
+			return err
+		}
+
+		if len(ds) == 0 {
+			return nil
+		}
+
+		d := ds[0]
+		d.Disabled = true
+
+		_, err = devices.Put(ns, d)
+
+		return err
 	}
 
 	fetchUser = func(ns string, id uint64) (*user.User, error) {
@@ -292,10 +332,11 @@ func main() {
 		return us[0], nil
 	}
 
-	findDevices = func(ns string, userID uint64, ps ...device.Platform) (device.List, error) {
+	getUserDevices = func(ns string, userID uint64, platforms ...device.Platform) (device.List, error) {
 		ds, err := devices.Query(ns, device.QueryOptions{
 			Deleted:   &defaultDeleted,
-			Platforms: ps,
+			Disabled:  &defaultDeleted,
+			Platforms: platforms,
 			UserIDs: []uint64{
 				userID,
 			},
@@ -340,6 +381,21 @@ func main() {
 		}
 
 		return *r.Attributes[attributeToken], nil
+	}
+
+	getNamespace = func(arn string) (string, error) {
+		namespaces := map[string]string{
+			"arn:aws:sns:eu-central-1:775034650473:app/APNS_SANDBOX/simsTest":         "app_1_610",
+			"arn:aws:sns:eu-central-1:775034650473:app/GCM/simsTestGCM":               "app_1_610",
+			"arn:aws:sns:eu-central-1:775034650473:app/APNS_SANDBOX/uMake-iOSSandbox": "app_684_948",
+		}
+
+		ns, ok := namespaces[arn]
+		if !ok {
+			return "", ErrNamespaceNotFound
+		}
+
+		return ns, nil
 	}
 
 	getPlatformARN = func(ns string, platform device.Platform) (string, error) {
@@ -481,6 +537,30 @@ func main() {
 		"sub", "worker",
 	)
 
+	changec := make(chan endpointChange)
+
+	go func() {
+		err := consumeEndpointChange(
+			sqs.New(aSession),
+			"https://sqs.eu-central-1.amazonaws.com/775034650473/endpoint-changes",
+			changec,
+		)
+		if err != nil {
+			logger.Log("err", err, "lifecycle", "abort")
+			os.Exit(1)
+		}
+	}()
+
+	go func() {
+		for c := range changec {
+			err := updateEndpoint(c, disableDevice)
+			if err != nil {
+				_ = logger.Log("err", err, "lifecycle", "abort")
+				os.Exit(1)
+			}
+		}
+	}()
+
 	batchc := make(chan batch)
 
 	go func() {
@@ -492,7 +572,7 @@ func main() {
 	}()
 
 	cs := []channelFunc{
-		channelPush(findDevices, getPlatformARN, pushAndroid, pushAPNSSandbox),
+		channelPush(getUserDevices, getPlatformARN, pushAndroid, pushAPNSSandbox),
 	}
 
 	for batch := range batchc {
@@ -517,14 +597,14 @@ func main() {
 }
 
 func channelPush(
-	findDevices findDevicesFunc,
+	getUserDevices getUserDevicesFunc,
 	getPlatformARN getPlatformARNFunc,
 	pushAndroid pushAndroidFunc,
 	pushAPNSSandbox pushAPNSSandboxFunc,
 ) channelFunc {
 	return func(ns string, msg *message) error {
 		// find devices
-		ds, err := findDevices(
+		ds, err := getUserDevices(
 			ns,
 			msg.recipient,
 			device.PlatformAndroid,

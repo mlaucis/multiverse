@@ -25,6 +25,7 @@ const (
 type Device struct {
 	Deleted     bool
 	DeviceID    string
+	Disabled    bool
 	EndpointARN string
 	ID          uint64
 	Language    string
@@ -74,6 +75,7 @@ type Platform uint8
 type QueryOptions struct {
 	Deleted      *bool
 	DeviceIDs    []string
+	Disabled     *bool
 	EndpointARNs []string
 	IDs          []uint64
 	Platforms    []Platform

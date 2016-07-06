@@ -61,7 +61,7 @@ func testServicePut(t *testing.T, p prepareFunc) {
 
 func testServiceQuery(t *testing.T, p prepareFunc) {
 	var (
-		deleted   = false
+		deleted   = true
 		namespace = "service_query"
 		service   = p(t, namespace)
 	)
@@ -94,7 +94,7 @@ func testServiceQuery(t *testing.T, p prepareFunc) {
 		t.Fatal(err)
 	}
 
-	if have, want := len(ds), 8; have != want {
+	if have, want := len(ds), 5; have != want {
 		t.Errorf("have %v, want %v", have, want)
 	}
 
@@ -107,6 +107,21 @@ func testServiceQuery(t *testing.T, p prepareFunc) {
 		t.Fatal(err)
 	}
 
+	if have, want := len(ds), 1; have != want {
+		t.Errorf("have %v, want %v", have, want)
+	}
+
+	ds, err = service.Query(namespace, QueryOptions{
+		Disabled: &deleted,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if have, want := len(ds), 7; have != want {
+		t.Errorf("have %v, want %v", have, want)
+	}
+
 	ds, err = service.Query(namespace, QueryOptions{
 		EndpointARNs: []string{
 			created.EndpointARN,
@@ -114,10 +129,6 @@ func testServiceQuery(t *testing.T, p prepareFunc) {
 	})
 	if err != nil {
 		t.Fatal(err)
-	}
-
-	if have, want := len(ds), 1; have != want {
-		t.Errorf("have %v, want %v", have, want)
 	}
 
 	if have, want := len(ds), 1; have != want {
@@ -168,6 +179,7 @@ func testDevice() *Device {
 	return &Device{
 		Deleted:     false,
 		DeviceID:    generate.RandomString(24),
+		Disabled:    false,
 		EndpointARN: generate.RandomString(32),
 		Language:    DefaultLanguage,
 		Platform:    PlatformIOSSandbox,
@@ -186,6 +198,14 @@ func testList() List {
 	for i := 0; i < 5; i++ {
 		d := testDevice()
 		d.Deleted = true
+
+		ds = append(ds, d)
+	}
+
+	for i := 0; i < 7; i++ {
+		d := testDevice()
+		d.Disabled = true
+		d.Platform = PlatformAndroid
 
 		ds = append(ds, d)
 	}
