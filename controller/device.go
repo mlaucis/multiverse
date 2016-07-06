@@ -84,10 +84,12 @@ func DeviceUpdate(devices device.Service) DeviceUpdateFunc {
 
 		if len(ds) > 0 {
 			d = ds[0]
+			d.Disabled = false
 			d.Token = token
 		} else {
 			d = &device.Device{
 				DeviceID: deviceID,
+				Disabled: false,
 				Language: language,
 				Platform: platform,
 				Token:    token,
