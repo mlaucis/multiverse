@@ -59,6 +59,10 @@ func (c *UserController) Create(
 		return c.LoginUsername(app, origin, u.Username, u.Password)
 	}
 
+	if err := u.Validate(); err != nil {
+		return nil, wrapError(ErrInvalidEntity, "%s", err)
+	}
+
 	epw, err := passwordSecure(u.Password)
 	if err != nil {
 		return nil, err
@@ -66,10 +70,6 @@ func (c *UserController) Create(
 
 	u.Enabled = true
 	u.Password = epw
-
-	if err := u.Validate(); err != nil {
-		return nil, wrapError(ErrInvalidEntity, "%s", err)
-	}
 
 	u, err = c.users.Put(app.Namespace(), u)
 	if err != nil {
