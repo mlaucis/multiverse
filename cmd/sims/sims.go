@@ -385,9 +385,10 @@ func main() {
 
 	getNamespace = func(arn string) (string, error) {
 		namespaces := map[string]string{
-			"arn:aws:sns:eu-central-1:775034650473:app/APNS_SANDBOX/simsTest":         "app_1_610",
-			"arn:aws:sns:eu-central-1:775034650473:app/GCM/simsTestGCM":               "app_1_610",
-			"arn:aws:sns:eu-central-1:775034650473:app/APNS_SANDBOX/uMake-iOSSandbox": "app_684_948",
+			"arn:aws:sns:eu-central-1:775034650473:app/APNS_SANDBOX/simsTest":                "app_1_610",
+			"arn:aws:sns:eu-central-1:775034650473:app/GCM/simsTestGCM":                      "app_1_610",
+			"arn:aws:sns:eu-central-1:775034650473:app/APNS_SANDBOX/uMake-iOSSandbox":        "app_684_948",
+			"arn:aws:sns:eu-central-1:775034650473:app/APNS_SANDBOX/bikestorming-iOSSandbox": "app_515_922",
 		}
 
 		ns, ok := namespaces[arn]
@@ -409,6 +410,9 @@ func main() {
 			},
 			"app_684_987": map[device.Platform]string{
 				device.PlatformIOSSandbox: "arn:aws:sns:eu-central-1:775034650473:app/APNS_SANDBOX/uMake-iOSSandbox",
+			},
+			"app_515_922": map[device.Platform]string{
+				device.PlatformIOSSandbox: "arn:aws:sns:eu-central-1:775034650473:app/APNS_SANDBOX/bikestorming-iOSSandbox",
 			},
 		}
 
