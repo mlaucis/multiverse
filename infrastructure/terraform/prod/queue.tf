@@ -18,7 +18,7 @@ resource "aws_iam_user_policy" "state-change-sr" {
                 "sqs:ReceiveMessage",
                 "sqs:SendMessage"
             ],
-            "Resource": "arn:aws:sqs:*:775034650473:*-state-change"
+            "Resource": "arn:aws:sqs:*:775034650473:*"
         },
         {
             "Effect": "Allow",
