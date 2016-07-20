@@ -55,7 +55,7 @@ func (c *LikeController) Create(
 		ID:    &postID,
 		Owned: &defaultOwned,
 		Types: []string{
-			typePost,
+			TypePost,
 		},
 	})
 	if err != nil {
@@ -126,7 +126,7 @@ func (c *LikeController) Delete(
 		ID:    &postID,
 		Owned: &defaultOwned,
 		Types: []string{
-			typePost,
+			TypePost,
 		},
 	})
 	if err != nil {
@@ -183,7 +183,7 @@ func (c *LikeController) List(
 		ID:    &postID,
 		Owned: &defaultOwned,
 		Types: []string{
-			typePost,
+			TypePost,
 		},
 	})
 	if err != nil {

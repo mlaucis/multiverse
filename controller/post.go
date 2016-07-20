@@ -8,7 +8,8 @@ import (
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
 
-const typePost = "tg_post"
+// TypePost identifies an object as a Post.
+const TypePost = "tg_post"
 
 var defaultOwned = true
 
@@ -113,7 +114,8 @@ func (c *PostController) Create(
 ) (*Post, error) {
 	post.OwnerID = origin.UserID
 	post.Owned = defaultOwned
-	post.Type = typePost
+	post.Type = TypePost
+	// TypePost identifies an object as a Post.
 
 	if err := post.Validate(); err != nil {
 		return nil, wrapError(ErrInvalidEntity, "invalid Post: %s", err)
@@ -145,7 +147,7 @@ func (c *PostController) Delete(
 		ID:    &id,
 		Owned: &defaultOwned,
 		Types: []string{
-			typePost,
+			TypePost,
 		},
 	})
 	if err != nil {
@@ -181,7 +183,7 @@ func (c *PostController) ListAll(
 	os, err := c.objects.Query(app.Namespace(), object.QueryOptions{
 		Owned: &defaultOwned,
 		Types: []string{
-			typePost,
+			TypePost,
 		},
 		Visibilities: []object.Visibility{
 			object.VisibilityPublic,
@@ -250,7 +252,7 @@ func (c *PostController) ListUser(
 		},
 		Owned: &defaultOwned,
 		Types: []string{
-			typePost,
+			TypePost,
 		},
 		Visibilities: vs,
 	})
@@ -291,7 +293,7 @@ func (c *PostController) Retrieve(
 		ID:    &id,
 		Owned: &defaultOwned,
 		Types: []string{
-			typePost,
+			TypePost,
 		},
 	})
 	if err != nil {
@@ -335,7 +337,7 @@ func (c *PostController) Update(
 		},
 		Owned: &defaultOwned,
 		Types: []string{
-			typePost,
+			TypePost,
 		},
 	})
 	if err != nil {
@@ -392,7 +394,7 @@ func enrichCounts(
 				p.ID,
 			},
 			Types: []string{
-				typeComment,
+				TypeComment,
 			},
 		})
 		if err != nil {

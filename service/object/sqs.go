@@ -1,4 +1,4 @@
-package connection
+package object
 
 import (
 	"encoding/json"
@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	queueName = "connection-state-change"
+	queueName = "object-state-change"
 )
 
 type sqsSource struct {
@@ -44,15 +44,13 @@ func (s *sqsSource) Ack(id string) error {
 }
 
 func (s *sqsSource) Consume() (*StateChange, error) {
-	all := platformSQS.AttributeAll
-
 	o, err := s.api.ReceiveMessage(&sqs.ReceiveMessageInput{
 		MessageAttributeNames: []*string{
-			&all,
+			aws.String(platformSQS.AttributeAll),
 		},
-		QueueUrl:          &s.queueURL,
-		VisibilityTimeout: &platformSQS.TimeoutVisibility,
-		WaitTimeSeconds:   &platformSQS.TimeoutWait,
+		QueueUrl:          aws.String(s.queueURL),
+		VisibilityTimeout: aws.Int64(platformSQS.TimeoutVisibility),
+		WaitTimeSeconds:   aws.Int64(platformSQS.TimeoutWait),
 	})
 	if err != nil {
 		return nil, err
@@ -94,7 +92,7 @@ func (s *sqsSource) Consume() (*StateChange, error) {
 	}, nil
 }
 
-func (s *sqsSource) Propagate(ns string, old, new *Connection) (string, error) {
+func (s *sqsSource) Propagate(ns string, old, new *Object) (string, error) {
 	r, err := json.Marshal(&stateChange{
 		Namespace: ns,
 		New:       new,
@@ -104,7 +102,7 @@ func (s *sqsSource) Propagate(ns string, old, new *Connection) (string, error) {
 		return "", err
 	}
 
-	o, err := s.api.SendMessage(s.messageInput(string(r)))
+	o, err := s.api.SendMessage(s.messageInput(r))
 	if err != nil {
 		return "", err
 	}
@@ -112,26 +110,23 @@ func (s *sqsSource) Propagate(ns string, old, new *Connection) (string, error) {
 	return *o.MessageId, nil
 }
 
-func (s *sqsSource) messageInput(body string) *sqs.SendMessageInput {
-	var (
-		now        = time.Now().Format(platformSQS.FormatSentAt)
-		typeString = platformSQS.TypeString
-	)
+func (s *sqsSource) messageInput(body []byte) *sqs.SendMessageInput {
+	now := time.Now().Format(platformSQS.FormatSentAt)
 
 	return &sqs.SendMessageInput{
 		MessageAttributes: map[string]*sqs.MessageAttributeValue{
 			platformSQS.AttributeSentAt: &sqs.MessageAttributeValue{
-				DataType:    &typeString,
-				StringValue: &now,
+				DataType:    aws.String(platformSQS.TypeString),
+				StringValue: aws.String(now),
 			},
 		},
-		MessageBody: &body,
-		QueueUrl:    &s.queueURL,
+		MessageBody: aws.String(string(body)),
+		QueueUrl:    aws.String(s.queueURL),
 	}
 }
 
 type stateChange struct {
-	Namespace string      `json:"namespace"`
-	New       *Connection `json:"new"`
-	Old       *Connection `json:"old"`
+	Namespace string  `json:"namespace"`
+	New       *Object `json:"new"`
+	Old       *Object `json:"old"`
 }

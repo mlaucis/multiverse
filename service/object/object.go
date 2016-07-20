@@ -28,6 +28,11 @@ const (
 	VisibilityGlobal
 )
 
+// Acker permantly removes the workload from the Source.
+type Acker interface {
+	Ack(id string) error
+}
+
 // Attachment is typed media which belongs to an Object.
 type Attachment struct {
 	Contents Contents `json:"contents"`
@@ -88,6 +93,11 @@ func NewURLAttachment(name string, contents Contents) Attachment {
 		Name:     name,
 		Type:     AttachmentTypeURL,
 	}
+}
+
+// Consumer observes state changes.
+type Consumer interface {
+	Consume() (*StateChange, error)
 }
 
 // Contents is the mapping of content to locale.
@@ -172,6 +182,11 @@ type Private struct {
 	Visible bool `json:"visible"`
 }
 
+// Producer creates a state change notification.
+type Producer interface {
+	Propagate(namespace string, old, new *Object) (string, error)
+}
+
 // QueryOptions are passed to narrow down query for objects.
 type QueryOptions struct {
 	Deleted      bool
@@ -197,6 +212,26 @@ type Service interface {
 
 // ServiceMiddleware is a chainable behaviour modifier for Service.
 type ServiceMiddleware func(Service) Service
+
+// StateChange transports all information necessary to observe state change.
+type StateChange struct {
+	AckID     string
+	ID        string
+	Namespace string
+	New       *Object
+	Old       *Object
+	SentAt    time.Time
+}
+
+// Source encapsulates state change notification operations.
+type Source interface {
+	Acker
+	Consumer
+	Producer
+}
+
+// SourceMiddleware is a chainable behaviour modifier for Source.
+type SourceMiddleware func(Source) Source
 
 // Visibility determines the visibility of Objects when consumed.
 type Visibility uint8

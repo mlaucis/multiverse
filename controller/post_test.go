@@ -114,7 +114,7 @@ func TestPostControllerDelete(t *testing.T) {
 		ID:      &created.ID,
 		Owned:   &defaultOwned,
 		Types: []string{
-			typePost,
+			TypePost,
 		},
 	})
 	if err != nil {
@@ -245,7 +245,7 @@ func TestPostControllerUpdate(t *testing.T) {
 		ID:    &created.ID,
 		Owned: &defaultOwned,
 		Types: []string{
-			typePost,
+			TypePost,
 		},
 	})
 	if err != nil {
@@ -362,7 +362,7 @@ func testPost(ownerID uint64) *Post {
 			Tags: []string{
 				"review",
 			},
-			Type:       typePost,
+			Type:       TypePost,
 			Visibility: object.VisibilityPublic,
 		},
 	}
@@ -373,31 +373,31 @@ func testPostSet(ownerID uint64) []*object.Object {
 		{
 			OwnerID:    ownerID,
 			Owned:      true,
-			Type:       typePost,
+			Type:       TypePost,
 			Visibility: object.VisibilityConnection,
 		},
 		{
 			OwnerID:    ownerID + 1,
 			Owned:      true,
-			Type:       typePost,
+			Type:       TypePost,
 			Visibility: object.VisibilityPublic,
 		},
 		{
 			OwnerID:    ownerID - 1,
 			Owned:      true,
-			Type:       typePost,
+			Type:       TypePost,
 			Visibility: object.VisibilityPublic,
 		},
 		{
 			OwnerID:    ownerID,
 			Owned:      true,
-			Type:       typePost,
+			Type:       TypePost,
 			Visibility: object.VisibilityPublic,
 		},
 		{
 			OwnerID:    ownerID,
 			Owned:      true,
-			Type:       typePost,
+			Type:       TypePost,
 			Visibility: object.VisibilityPrivate,
 		},
 	}
