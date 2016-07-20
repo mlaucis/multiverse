@@ -7,7 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sqs"
 
+	"github.com/tapglue/multiverse/controller"
 	"github.com/tapglue/multiverse/service/connection"
+	"github.com/tapglue/multiverse/service/object"
 )
 
 const typeNotification = "Notification"
@@ -18,6 +20,7 @@ type sqsReceiver interface {
 }
 
 type conRuleFunc func(*connection.StateChange) (*message, error)
+type objectRuleFunc func(*object.StateChange) ([]*message, error)
 
 type endpointChange struct {
 	ack            ackFunc
@@ -173,6 +176,159 @@ func consumeEndpointChange(r sqsReceiver, queueURL string, changec chan endpoint
 		}
 
 	}
+}
 
-	return nil
+func consumeObject(
+	objectSource object.Source,
+	batchc chan<- batch,
+	ruleFns ...objectRuleFunc,
+) error {
+	for {
+		c, err := objectSource.Consume()
+		if err != nil {
+			if object.IsEmptySource(err) {
+				continue
+			}
+			return err
+		}
+
+		ms := []*message{}
+
+		for _, rule := range ruleFns {
+			rs, err := rule(c)
+			if err != nil {
+				return err
+			}
+
+			for _, msg := range rs {
+				ms = append(ms, msg)
+			}
+		}
+
+		if len(ms) == 0 {
+			err = objectSource.Ack(c.AckID)
+			if err != nil {
+				return err
+			}
+
+			continue
+		}
+
+		batchc <- batch{
+			ackFunc: func() error {
+				acked := false
+
+				if acked {
+					return nil
+				}
+
+				err = objectSource.Ack(c.AckID)
+				if err == nil {
+					acked = true
+				}
+				return err
+			},
+			messages:  ms,
+			namespace: c.Namespace,
+		}
+
+		err = objectSource.Ack(c.AckID)
+		if err != nil {
+			return err
+		}
+	}
+}
+
+func objectRuleCommentCreated(
+	fetchFriends fetchFriendsFunc,
+	fetchUser fetchUserFunc,
+) objectRuleFunc {
+	return func(change *object.StateChange) ([]*message, error) {
+		if change.Old != nil ||
+			change.New.Deleted == true ||
+			!isComment(change.New) {
+			return nil, nil
+		}
+
+		origin, err := fetchUser(change.Namespace, change.New.OwnerID)
+		if err != nil {
+			return nil, fmt.Errorf("origin fetch: %s", err)
+		}
+
+		fs, err := fetchFriends(change.Namespace, origin.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		ms := []*message{}
+
+		for _, friend := range fs {
+			ms = append(ms, &message{
+				message: fmt.Sprintf(
+					"Your friend %s %s (%s) commented on a Post.",
+					origin.Firstname,
+					origin.Lastname,
+					origin.Username,
+				),
+				recipient: friend.ID,
+			})
+		}
+
+		return ms, nil
+	}
+}
+
+func objectRulePostCreated(
+	fetchFriends fetchFriendsFunc,
+	fetchUser fetchUserFunc,
+) objectRuleFunc {
+	return func(change *object.StateChange) ([]*message, error) {
+		if change.Old != nil ||
+			!isPost(change.New) ||
+			change.New.Deleted == true {
+			return nil, nil
+		}
+
+		origin, err := fetchUser(change.Namespace, change.New.OwnerID)
+		if err != nil {
+			return nil, fmt.Errorf("origin fetch: %s", err)
+		}
+
+		fs, err := fetchFriends(change.Namespace, origin.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		ms := []*message{}
+
+		for _, friend := range fs {
+			ms = append(ms, &message{
+				message: fmt.Sprintf(
+					"Your friend %s %s (%s) created a new Post.",
+					origin.Firstname,
+					origin.Lastname,
+					origin.Username,
+				),
+				recipient: friend.ID,
+			})
+		}
+
+		return ms, nil
+	}
+}
+
+func isComment(o *object.Object) bool {
+	if o.Type != controller.TypeComment {
+		return false
+	}
+
+	return o.Owned
+}
+
+func isPost(o *object.Object) bool {
+	if o.Type != controller.TypePost {
+		return false
+	}
+
+	return o.Owned
 }

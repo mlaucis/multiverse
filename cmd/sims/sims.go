@@ -22,6 +22,7 @@ import (
 	"github.com/tapglue/multiverse/platform/metrics"
 	"github.com/tapglue/multiverse/service/connection"
 	"github.com/tapglue/multiverse/service/device"
+	"github.com/tapglue/multiverse/service/object"
 	"github.com/tapglue/multiverse/service/user"
 )
 
@@ -64,6 +65,7 @@ type ackFunc func() error
 type channelFunc func(string, *message) error
 type createEndpointFunc func(platformARN, token string) (string, error)
 type disableDeviceFunc func(platformARN, endpointARN string) error
+type fetchFriendsFunc func(namespace string, id uint64) (user.List, error)
 type fetchUserFunc func(namespace string, id uint64) (*user.User, error)
 type findDevicesFunc func(namespace string, userID uint64, platforms ...device.Platform) (device.List, error)
 type getEndpointFunc func(arn string) (string, error)
@@ -231,25 +233,6 @@ func main() {
 	connections = connection.InstrumentServiceMiddleware(component, "postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(connections)
 	connections = connection.LogServiceMiddleware(logger, "postgres")(connections)
 
-	var conSource connection.Source
-
-	s, err := connection.SQSSource(sqs.New(aSession))
-	if err != nil {
-		logger.Log("err", err, "lifecycle", "abort")
-		os.Exit(1)
-	}
-
-	conSource = s
-	conSource = connection.InstrumentSourceMiddleware(
-		component,
-		"sqs",
-		sourceErrCount,
-		sourceOpCount,
-		sourceOpLatency,
-		sourceQueueLatency,
-	)(conSource)
-	conSource = connection.LogSourceMiddleware("sqs", logger)(conSource)
-
 	var devices device.Service
 	devices = device.PostgresService(db)
 	devices = device.InstrumentServiceMiddleware(component, "postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(devices)
@@ -262,8 +245,41 @@ func main() {
 
 	snsService := sns.New(aSession)
 
+	conSource, err := connection.SQSSource(sqs.New(aSession))
+	if err != nil {
+		logger.Log("err", err, "lifecycle", "abort")
+		os.Exit(1)
+	}
+
+	conSource = connection.InstrumentSourceMiddleware(
+		component,
+		"sqs",
+		sourceErrCount,
+		sourceOpCount,
+		sourceOpLatency,
+		sourceQueueLatency,
+	)(conSource)
+	conSource = connection.LogSourceMiddleware("sqs", logger)(conSource)
+
+	objectSource, err := object.SQSSource(sqs.New(aSession))
+	if err != nil {
+		logger.Log("err", err, "lifecycle", "abort")
+		os.Exit(1)
+	}
+
+	objectSource = object.InstrumentSourceMiddleware(
+		component,
+		"sqs",
+		sourceErrCount,
+		sourceOpCount,
+		sourceOpLatency,
+		sourceQueueLatency,
+	)(objectSource)
+	objectSource = object.LogSourceMiddleware("sqs", logger)(objectSource)
+
 	var createEndpoint createEndpointFunc
 	var disableDevice disableDeviceFunc
+	var fetchFriends fetchFriendsFunc
 	var fetchUser fetchUserFunc
 	var getUserDevices getUserDevicesFunc
 	var getEndpoint getEndpointFunc
@@ -312,6 +328,56 @@ func main() {
 		_, err = devices.Put(ns, d)
 
 		return err
+	}
+
+	fetchFriends = func(ns string, id uint64) (user.List, error) {
+		us := user.List{}
+
+		rs, err := connections.Query(ns, connection.QueryOptions{
+			Enabled: &defaultEnabled,
+			FromIDs: []uint64{
+				id,
+			},
+			States: []connection.State{
+				connection.StateConfirmed,
+			},
+			Types: []connection.Type{
+				connection.TypeFriend,
+			},
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		is, err := user.ListFromIDs(users, ns, rs.ToIDs()...)
+		if err != nil {
+			return nil, err
+		}
+
+		us = append(us, is...)
+
+		rs, err = connections.Query(ns, connection.QueryOptions{
+			Enabled: &defaultEnabled,
+			ToIDs: []uint64{
+				id,
+			},
+			States: []connection.State{
+				connection.StateConfirmed,
+			},
+			Types: []connection.Type{
+				connection.TypeFriend,
+			},
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		is, err = user.ListFromIDs(users, ns, rs.FromIDs()...)
+		if err != nil {
+			return nil, err
+		}
+
+		return append(us, is...), nil
 	}
 
 	fetchUser = func(ns string, id uint64) (*user.User, error) {
@@ -569,6 +635,19 @@ func main() {
 
 	go func() {
 		err := consumeConnection(conSource, batchc, conRuleFollower(fetchUser))
+		if err != nil {
+			logger.Log("err", err, "lifecycle", "abort")
+			os.Exit(1)
+		}
+	}()
+
+	go func() {
+		err := consumeObject(
+			objectSource,
+			batchc,
+			objectRulePostCreated(fetchFriends, fetchUser),
+			objectRuleCommentCreated(fetchFriends, fetchUser),
+		)
 		if err != nil {
 			logger.Log("err", err, "lifecycle", "abort")
 			os.Exit(1)

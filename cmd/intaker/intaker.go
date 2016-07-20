@@ -238,20 +238,26 @@ func main() {
 		})
 		sqsAPI = sqs.New(aSession)
 
-		conSource connection.Source
+		conSource    connection.Source
+		objectSource object.Source
 	)
 
 	switch *source {
 	case sourceNop:
 		conSource = connection.NopSource()
+		objectSource = object.NopSource()
 	case sourceSQS:
-		s, err := connection.SQSSource(sqsAPI)
+		conSource, err = connection.SQSSource(sqsAPI)
 		if err != nil {
 			logger.Log("err", err, "lifecycle", "abort")
 			os.Exit(1)
 		}
 
-		conSource = s
+		objectSource, err = object.SQSSource(sqsAPI)
+		if err != nil {
+			logger.Log("err", err, "lifecycle", "abort")
+			os.Exit(1)
+		}
 	default:
 		logger.Log(
 			"err", fmt.Sprintf("unsupported Source type %s", *source),
@@ -269,6 +275,16 @@ func main() {
 		sourceQueueLatency,
 	)(conSource)
 	conSource = connection.LogSourceMiddleware(*source, logger)(conSource)
+
+	objectSource = object.InstrumentSourceMiddleware(
+		component,
+		*source,
+		sourceErrCount,
+		sourceOpCount,
+		sourceOpLatency,
+		sourceQueueLatency,
+	)(objectSource)
+	objectSource = object.LogSourceMiddleware(*source, logger)(objectSource)
 
 	// Setup services
 	var (
@@ -307,8 +323,10 @@ func main() {
 
 	var objects object.Service
 	objects = object.NewPostgresService(pgClient.MainDatastore())
-	objects = object.InstrumentMiddleware(component, "postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(objects)
-	objects = object.LogMiddleware(logger, "postgres")(objects)
+	objects = object.InstrumentServiceMiddleware(component, "postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(objects)
+	objects = object.LogServiceMiddleware(logger, "postgres")(objects)
+	// Combine object service and source.
+	objects = object.SourcingServiceMiddleware(objectSource)(objects)
 
 	var orgs org.StrangleService
 	orgs = v04_postgres_core.NewOrganization(pgClient)

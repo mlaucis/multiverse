@@ -444,7 +444,7 @@ func (c *FeedController) connectionPosts(
 		OwnerIDs: ids,
 		Owned:    &defaultOwned,
 		Types: []string{
-			typePost,
+			TypePost,
 		},
 		Visibilities: []object.Visibility{
 			object.VisibilityConnection,
@@ -464,7 +464,7 @@ func (c *FeedController) globalPosts(
 	os, err := c.objects.Query(app.Namespace(), object.QueryOptions{
 		Owned: &defaultOwned,
 		Types: []string{
-			typePost,
+			TypePost,
 		},
 		Visibilities: []object.Visibility{
 			object.VisibilityGlobal,
@@ -656,7 +656,7 @@ func extractPosts(
 			return nil, err
 		}
 
-		if len(os) == 1 && os[0].Type == typePost {
+		if len(os) == 1 && os[0].Type == TypePost {
 			ps = append(ps, &Post{
 				Object: os[0],
 			})

@@ -9,6 +9,7 @@ const errFmt = "%s: %s"
 
 // Common errors for Object validation and Service.
 var (
+	ErrEmptySource       = errors.New("empty source")
 	ErrInvalidAttachment = errors.New("invalid attachment")
 	ErrInvalidObject     = errors.New("invalid object")
 	ErrMissingReference  = errors.New("referenced object missing")
@@ -24,6 +25,11 @@ type Error struct {
 
 func (e Error) Error() string {
 	return e.msg
+}
+
+// IsEmptySource indicates if err is ErrEmptySource.
+func IsEmptySource(err error) bool {
+	return unwrapError(err) == ErrEmptySource
 }
 
 // IsInvalidAttachment indicates if err is ErrInvalidAttachment.

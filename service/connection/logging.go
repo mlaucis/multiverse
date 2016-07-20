@@ -172,6 +172,7 @@ func (s *logSource) Ack(id string) (err error) {
 	defer func(begin time.Time) {
 		ps := []interface{}{
 			"ack_id", id,
+			"duration_ns", time.Since(begin).Nanoseconds(),
 			"method", "Ack",
 		}
 

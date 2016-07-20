@@ -20,6 +20,11 @@ const (
 	TypeFriend Type = "friend"
 )
 
+// Acker permantly removes the workload from the Source.
+type Acker interface {
+	Ack(id string) error
+}
+
 // Connection represents a relation between two users.
 type Connection struct {
 	Enabled   bool      `json:"enabled"`
@@ -29,11 +34,6 @@ type Connection struct {
 	Type      Type      `json:"type"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
-}
-
-// Acker permantly removes the workload from the Source.
-type Acker interface {
-	Ack(id string) error
 }
 
 // Consumer observes state changes.
