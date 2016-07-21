@@ -8,6 +8,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/tapglue/multiverse/service/event"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -260,6 +262,22 @@ func main() {
 		sourceQueueLatency,
 	)(conSource)
 	conSource = connection.LogSourceMiddleware("sqs", logger)(conSource)
+
+	eventSource, err := event.SQSSource(sqs.New(aSession))
+	if err != nil {
+		logger.Log("err", err, "lifecycle", "abort")
+		os.Exit(1)
+	}
+
+	eventSource = event.InstrumentSourceMiddleware(
+		component,
+		"sqs",
+		sourceErrCount,
+		sourceOpCount,
+		sourceOpLatency,
+		sourceQueueLatency,
+	)(eventSource)
+	eventSource = event.LogSourceMiddleware("sqs", logger)(eventSource)
 
 	objectSource, err := object.SQSSource(sqs.New(aSession))
 	if err != nil {
@@ -635,6 +653,18 @@ func main() {
 
 	go func() {
 		err := consumeConnection(conSource, batchc, conRuleFollower(fetchUser))
+		if err != nil {
+			logger.Log("err", err, "lifecycle", "abort")
+			os.Exit(1)
+		}
+	}()
+
+	go func() {
+		err := consumeEvent(
+			eventSource,
+			batchc,
+			eventRuleLikeCreated(fetchFriends, fetchUser),
+		)
 		if err != nil {
 			logger.Log("err", err, "lifecycle", "abort")
 			os.Exit(1)

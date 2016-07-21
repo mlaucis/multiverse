@@ -44,16 +44,7 @@ func (s *sqsSource) Ack(id string) error {
 }
 
 func (s *sqsSource) Consume() (*StateChange, error) {
-	all := platformSQS.AttributeAll
-
-	o, err := s.api.ReceiveMessage(&sqs.ReceiveMessageInput{
-		MessageAttributeNames: []*string{
-			&all,
-		},
-		QueueUrl:          &s.queueURL,
-		VisibilityTimeout: &platformSQS.TimeoutVisibility,
-		WaitTimeSeconds:   &platformSQS.TimeoutWait,
-	})
+	o, err := platformSQS.ReceiveMessage(s.api, s.queueURL)
 	if err != nil {
 		return nil, err
 	}
@@ -104,30 +95,12 @@ func (s *sqsSource) Propagate(ns string, old, new *Connection) (string, error) {
 		return "", err
 	}
 
-	o, err := s.api.SendMessage(s.messageInput(string(r)))
+	o, err := s.api.SendMessage(platformSQS.MessageInput(r, s.queueURL))
 	if err != nil {
 		return "", err
 	}
 
 	return *o.MessageId, nil
-}
-
-func (s *sqsSource) messageInput(body string) *sqs.SendMessageInput {
-	var (
-		now        = time.Now().Format(platformSQS.FormatSentAt)
-		typeString = platformSQS.TypeString
-	)
-
-	return &sqs.SendMessageInput{
-		MessageAttributes: map[string]*sqs.MessageAttributeValue{
-			platformSQS.AttributeSentAt: &sqs.MessageAttributeValue{
-				DataType:    &typeString,
-				StringValue: &now,
-			},
-		},
-		MessageBody: &body,
-		QueueUrl:    &s.queueURL,
-	}
 }
 
 type stateChange struct {

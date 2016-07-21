@@ -239,15 +239,23 @@ func main() {
 		sqsAPI = sqs.New(aSession)
 
 		conSource    connection.Source
+		eventSource  event.Source
 		objectSource object.Source
 	)
 
 	switch *source {
 	case sourceNop:
 		conSource = connection.NopSource()
+		eventSource = event.NopSource()
 		objectSource = object.NopSource()
 	case sourceSQS:
 		conSource, err = connection.SQSSource(sqsAPI)
+		if err != nil {
+			logger.Log("err", err, "lifecycle", "abort")
+			os.Exit(1)
+		}
+
+		eventSource, err = event.SQSSource(sqsAPI)
 		if err != nil {
 			logger.Log("err", err, "lifecycle", "abort")
 			os.Exit(1)
@@ -275,6 +283,16 @@ func main() {
 		sourceQueueLatency,
 	)(conSource)
 	conSource = connection.LogSourceMiddleware(*source, logger)(conSource)
+
+	eventSource = event.InstrumentSourceMiddleware(
+		component,
+		*source,
+		sourceErrCount,
+		sourceOpCount,
+		sourceOpLatency,
+		sourceQueueLatency,
+	)(eventSource)
+	eventSource = event.LogSourceMiddleware(*source, logger)(eventSource)
 
 	objectSource = object.InstrumentSourceMiddleware(
 		component,
@@ -313,8 +331,10 @@ func main() {
 
 	var events event.Service
 	events = event.NewPostgresService(pgClient.MainDatastore())
-	events = event.InstrumentMiddleware(component, "postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(events)
-	events = event.LogMiddleware(logger, "postgres")(events)
+	events = event.InstrumentServiceMiddleware(component, "postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(events)
+	events = event.LogServiceMiddleware(logger, "postgres")(events)
+	// Combine event service and source.
+	events = event.SourcingServiceMiddleware(eventSource)(events)
 
 	var members member.StrangleService
 	members = v04_postgres_core.NewMember(pgClient)

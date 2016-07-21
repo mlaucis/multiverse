@@ -175,7 +175,7 @@ type logSource struct {
 func LogSourceMiddleware(store string, logger log.Logger) SourceMiddleware {
 	return func(next Source) Source {
 		logger = log.NewContext(logger).With(
-			"source", "connection",
+			"source", "object",
 			"store", store,
 		)
 

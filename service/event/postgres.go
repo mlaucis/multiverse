@@ -120,7 +120,7 @@ func (s *pgService) ActiveUserIDs(
 	return ids, nil
 }
 
-func (s *pgService) Count(ns string, opts QueryOptions) (count int, err error) {
+func (s *pgService) Count(ns string, opts QueryOptions) (int, error) {
 	clauses, params, err := convertOpts(opts)
 	if err != nil {
 		return 0, err
