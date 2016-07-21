@@ -9,8 +9,10 @@ import (
 )
 
 const (
+	// TypeLike identifies an event as a Like.
+	TypeLike = "tg_like"
+
 	typeExternal = "tg_external"
-	typeLike     = "tg_like"
 )
 
 var defaultEnabled = true
@@ -78,7 +80,7 @@ func (c *LikeController) Create(
 		},
 		Owned: &defaultOwned,
 		Types: []string{
-			typeLike,
+			TypeLike,
 		},
 		UserIDs: []uint64{
 			origin,
@@ -99,7 +101,7 @@ func (c *LikeController) Create(
 			Enabled:    true,
 			ObjectID:   postID,
 			Owned:      true,
-			Type:       typeLike,
+			Type:       TypeLike,
 			UserID:     origin,
 			Visibility: event.Visibility(post.Visibility),
 		}
@@ -148,7 +150,7 @@ func (c *LikeController) Delete(
 		},
 		Owned: &defaultOwned,
 		Types: []string{
-			typeLike,
+			TypeLike,
 		},
 		UserIDs: []uint64{
 			origin,
@@ -205,7 +207,7 @@ func (c *LikeController) List(
 		},
 		Owned: &defaultOwned,
 		Types: []string{
-			typeLike,
+			TypeLike,
 		},
 	})
 
@@ -236,7 +238,7 @@ func (c *LikeController) ExternalCreate(
 		},
 		Owned: &defaultOwned,
 		Types: []string{
-			typeLike,
+			TypeLike,
 		},
 		UserIDs: []uint64{
 			origin,
@@ -260,7 +262,7 @@ func (c *LikeController) ExternalCreate(
 				Type: typeExternal,
 			},
 			Owned:      true,
-			Type:       typeLike,
+			Type:       TypeLike,
 			UserID:     origin,
 			Visibility: event.VisibilityConnection,
 		}
@@ -294,7 +296,7 @@ func (c *LikeController) ExternalDelete(
 		},
 		Owned: &defaultOwned,
 		Types: []string{
-			typeLike,
+			TypeLike,
 		},
 		UserIDs: []uint64{
 			origin,
@@ -334,7 +336,7 @@ func (c *LikeController) ExternalList(
 		},
 		Owned: &defaultOwned,
 		Types: []string{
-			typeLike,
+			TypeLike,
 		},
 	})
 	if err != nil {

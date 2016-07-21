@@ -407,7 +407,7 @@ func enrichCounts(
 				p.ID,
 			},
 			Types: []string{
-				typeLike,
+				TypeLike,
 			},
 		})
 		if err != nil {
@@ -436,7 +436,7 @@ func enrichIsLiked(
 				p.ID,
 			},
 			Types: []string{
-				typeLike,
+				TypeLike,
 			},
 			UserIDs: []uint64{
 				userID,
