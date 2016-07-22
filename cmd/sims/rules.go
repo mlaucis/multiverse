@@ -43,6 +43,67 @@ func conRuleFollower(fetchUser fetchUserFunc) conRuleFunc {
 	}
 }
 
+func conRuleFriendConfirmed(fetchUser fetchUserFunc) conRuleFunc {
+	return func(change *connection.StateChange) (*message, error) {
+		if change.Old == nil ||
+			change.Old.Type != connection.TypeFriend ||
+			change.Old.State != connection.StatePending ||
+			change.New.State != connection.StateConfirmed {
+			return nil, nil
+		}
+
+		origin, err := fetchUser(change.Namespace, change.New.FromID)
+		if err != nil {
+			return nil, fmt.Errorf("origin fetch: %s", err)
+		}
+
+		target, err := fetchUser(change.Namespace, change.New.ToID)
+		if err != nil {
+			return nil, fmt.Errorf("target fetch: %s", err)
+		}
+
+		return &message{
+			message: fmt.Sprintf(
+				"%s %s (%s) accepted your friend request.",
+				target.Firstname,
+				target.Lastname,
+				target.Username,
+			),
+			recipient: origin.ID,
+		}, nil
+	}
+}
+
+func conRuleFriendRequest(fetchUser fetchUserFunc) conRuleFunc {
+	return func(change *connection.StateChange) (*message, error) {
+		if change.Old != nil ||
+			change.New.State != connection.StatePending ||
+			change.New.Type != connection.TypeFriend {
+			return nil, nil
+		}
+
+		origin, err := fetchUser(change.Namespace, change.New.FromID)
+		if err != nil {
+			return nil, fmt.Errorf("origin fetch: %s", err)
+		}
+
+		target, err := fetchUser(change.Namespace, change.New.ToID)
+		if err != nil {
+			return nil, fmt.Errorf("target fetch: %s", err)
+		}
+
+		return &message{
+			message: fmt.Sprintf(
+				"%s %s (%s) sent you a friend request.",
+				origin.Firstname,
+				origin.Lastname,
+				origin.Username,
+			),
+			recipient: target.ID,
+		}, nil
+	}
+}
+
 func eventRuleLikeCreated(
 	fetchFriends fetchFriendsFunc,
 	fetchUser fetchUserFunc,
