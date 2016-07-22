@@ -656,6 +656,7 @@ func main() {
 			conSource,
 			batchc,
 			conRuleFollower(fetchUser),
+			conRuleFriendConfirmed(fetchUser),
 			conRuleFriendRequest(fetchUser),
 		)
 		if err != nil {
