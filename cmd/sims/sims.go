@@ -652,7 +652,12 @@ func main() {
 	batchc := make(chan batch)
 
 	go func() {
-		err := consumeConnection(conSource, batchc, conRuleFollower(fetchUser))
+		err := consumeConnection(
+			conSource,
+			batchc,
+			conRuleFollower(fetchUser),
+			conRuleFriendRequest(fetchUser),
+		)
 		if err != nil {
 			logger.Log("err", err, "lifecycle", "abort")
 			os.Exit(1)
