@@ -397,7 +397,9 @@ func (c *FeedController) Posts(
 		return nil, err
 	}
 
-	ps, err := c.connectionPosts(app, am.userIDs()...)
+	neighbours := am.filterFollowers(origin)
+
+	ps, err := c.connectionPosts(app, neighbours.userIDs()...)
 	if err != nil {
 		return nil, err
 	}
