@@ -435,7 +435,7 @@ func main() {
 			return nil, err
 		}
 
-		if len(os) != 0 {
+		if len(os) != 1 {
 			return nil, object.ErrNotFound
 		}
 
