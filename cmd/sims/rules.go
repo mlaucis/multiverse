@@ -12,10 +12,10 @@ import (
 )
 
 const (
-	commentPostFmt    = "Your friend %s %s (%s) commented on a Post."
-	commentPostOwnFmt = "Your friend %s %s (%s) commented on your Post."
-	likePostFmt       = "Your friend %s %s (%s) liked a Post."
-	likePostOwnFmt    = "Your friend %s %s (%s) liked your Post."
+	commentPostFmt    = "%s %s (%s) commented on a Post."
+	commentPostOwnFmt = "%s %s (%s) commented on your Post."
+	likePostFmt       = "%s %s (%s) liked a Post."
+	likePostOwnFmt    = "%s %s (%s) liked your Post."
 )
 
 type conRuleFunc func(*connection.StateChange) (*message, error)
@@ -277,7 +277,7 @@ func objectRulePostCreated(
 		for _, recipient := range rs {
 			ms = append(ms, &message{
 				message: fmt.Sprintf(
-					"Your friend %s %s (%s) created a new Post.",
+					"%s %s (%s) created a new Post.",
 					origin.Firstname,
 					origin.Lastname,
 					origin.Username,
