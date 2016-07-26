@@ -489,6 +489,9 @@ func main() {
 				device.PlatformIOSSandbox: "arn:aws:sns:eu-central-1:775034650473:app/APNS_SANDBOX/simsTest",
 				device.PlatformAndroid:    "arn:aws:sns:eu-central-1:775034650473:app/GCM/simsTestGCM",
 			},
+			"app_57_661": map[device.Platform]string{
+				device.PlatformIOSSandbox: "arn:aws:sns:eu-central-1:775034650473:app/APNS_SANDBOX/tapglue-iOSExample",
+			},
 			"app_684_948": map[device.Platform]string{
 				device.PlatformIOSSandbox: "arn:aws:sns:eu-central-1:775034650473:app/APNS_SANDBOX/uMake-iOSSandbox",
 			},
