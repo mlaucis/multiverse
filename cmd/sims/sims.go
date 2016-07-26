@@ -67,7 +67,9 @@ type ackFunc func() error
 type channelFunc func(string, *message) error
 type createEndpointFunc func(platformARN, token string) (string, error)
 type disableDeviceFunc func(platformARN, endpointARN string) error
+type fetchFollowersFunc func(namespace string, id uint64) (user.List, error)
 type fetchFriendsFunc func(namespace string, id uint64) (user.List, error)
+type fetchObjectFunc func(namespace string, id uint64) (*object.Object, error)
 type fetchUserFunc func(namespace string, id uint64) (*user.User, error)
 type findDevicesFunc func(namespace string, userID uint64, platforms ...device.Platform) (device.List, error)
 type getEndpointFunc func(arn string) (string, error)
@@ -240,6 +242,11 @@ func main() {
 	devices = device.InstrumentServiceMiddleware(component, "postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(devices)
 	devices = device.LogServiceMiddleware(logger, "postgres")(devices)
 
+	var objects object.Service
+	objects = object.NewPostgresService(db)
+	objects = object.InstrumentServiceMiddleware(component, "postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(objects)
+	objects = object.LogServiceMiddleware(logger, "postgres")(objects)
+
 	var users user.Service
 	users = user.NewPostgresService(db)
 	users = user.InstrumentMiddleware(component, "postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(users)
@@ -297,7 +304,9 @@ func main() {
 
 	var createEndpoint createEndpointFunc
 	var disableDevice disableDeviceFunc
+	var fetchFollowers fetchFollowersFunc
 	var fetchFriends fetchFriendsFunc
+	var fetchObject fetchObjectFunc
 	var fetchUser fetchUserFunc
 	var getUserDevices getUserDevicesFunc
 	var getEndpoint getEndpointFunc
@@ -348,6 +357,26 @@ func main() {
 		return err
 	}
 
+	fetchFollowers = func(ns string, id uint64) (user.List, error) {
+		fs, err := connections.Query(ns, connection.QueryOptions{
+			Enabled: &defaultEnabled,
+			States: []connection.State{
+				connection.StateConfirmed,
+			},
+			ToIDs: []uint64{
+				id,
+			},
+			Types: []connection.Type{
+				connection.TypeFollow,
+			},
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		return user.ListFromIDs(users, ns, fs.FromIDs()...)
+	}
+
 	fetchFriends = func(ns string, id uint64) (user.List, error) {
 		us := user.List{}
 
@@ -396,6 +425,21 @@ func main() {
 		}
 
 		return append(us, is...), nil
+	}
+
+	fetchObject = func(ns string, id uint64) (*object.Object, error) {
+		os, err := objects.Query(ns, object.QueryOptions{
+			ID: &id,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		if len(os) != 0 {
+			return nil, object.ErrNotFound
+		}
+
+		return os[0], nil
 	}
 
 	fetchUser = func(ns string, id uint64) (*user.User, error) {
@@ -672,7 +716,7 @@ func main() {
 		err := consumeEvent(
 			eventSource,
 			batchc,
-			eventRuleLikeCreated(fetchFriends, fetchUser),
+			eventRuleLikeCreated(fetchFollowers, fetchFriends, fetchObject, fetchUser),
 		)
 		if err != nil {
 			logger.Log("err", err, "lifecycle", "abort")
@@ -684,8 +728,8 @@ func main() {
 		err := consumeObject(
 			objectSource,
 			batchc,
-			objectRulePostCreated(fetchFriends, fetchUser),
-			objectRuleCommentCreated(fetchFriends, fetchUser),
+			objectRuleCommentCreated(fetchFollowers, fetchFriends, fetchObject, fetchUser),
+			objectRulePostCreated(fetchFollowers, fetchFriends, fetchUser),
 		)
 		if err != nil {
 			logger.Log("err", err, "lifecycle", "abort")
