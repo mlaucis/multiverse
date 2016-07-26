@@ -3,10 +3,17 @@ package main
 import (
 	"fmt"
 
+	"github.com/tapglue/multiverse/service/user"
+
 	"github.com/tapglue/multiverse/controller"
 	"github.com/tapglue/multiverse/service/connection"
 	"github.com/tapglue/multiverse/service/event"
 	"github.com/tapglue/multiverse/service/object"
+)
+
+const (
+	likePostFmt    = "Your friend %s %s (%s) liked a Post."
+	likePostOwnFmt = "Your friend %s %s (%s) liked your Post."
 )
 
 type conRuleFunc func(*connection.StateChange) (*message, error)
@@ -105,7 +112,9 @@ func conRuleFriendRequest(fetchUser fetchUserFunc) conRuleFunc {
 }
 
 func eventRuleLikeCreated(
+	fetchFollowers fetchFollowersFunc,
 	fetchFriends fetchFriendsFunc,
+	fetchObject fetchObjectFunc,
 	fetchUser fetchUserFunc,
 ) eventRuleFunc {
 	return func(change *event.StateChange) ([]*message, error) {
@@ -120,22 +129,44 @@ func eventRuleLikeCreated(
 			return nil, fmt.Errorf("origin fetch: %s", err)
 		}
 
-		fs, err := fetchFriends(change.Namespace, origin.ID)
+		rs := user.List{}
+
+		fs, err := fetchFollowers(change.Namespace, origin.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		rs = append(rs, fs...)
+
+		fs, err = fetchFriends(change.Namespace, origin.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		rs = append(rs, fs...)
+
+		o, err := fetchObject(change.Namespace, change.New.ObjectID)
 		if err != nil {
 			return nil, err
 		}
 
 		ms := []*message{}
 
-		for _, friend := range fs {
+		for _, recipient := range rs {
+			f := likePostFmt
+
+			if o.OwnerID == recipient.ID {
+				f = likePostOwnFmt
+			}
+
 			ms = append(ms, &message{
 				message: fmt.Sprintf(
-					"Your friend %s %s (%s) liked a Post.",
+					f,
 					origin.Firstname,
 					origin.Lastname,
 					origin.Username,
 				),
-				recipient: friend.ID,
+				recipient: recipient.ID,
 			})
 		}
 
