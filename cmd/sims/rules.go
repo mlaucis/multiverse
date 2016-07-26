@@ -12,8 +12,10 @@ import (
 )
 
 const (
-	likePostFmt    = "Your friend %s %s (%s) liked a Post."
-	likePostOwnFmt = "Your friend %s %s (%s) liked your Post."
+	commentPostFmt    = "Your friend %s %s (%s) commented on a Post."
+	commentPostOwnFmt = "Your friend %s %s (%s) commented on your Post."
+	likePostFmt       = "Your friend %s %s (%s) liked a Post."
+	likePostOwnFmt    = "Your friend %s %s (%s) liked your Post."
 )
 
 type conRuleFunc func(*connection.StateChange) (*message, error)
@@ -175,7 +177,9 @@ func eventRuleLikeCreated(
 }
 
 func objectRuleCommentCreated(
+	fetchFollowers fetchFollowersFunc,
 	fetchFriends fetchFriendsFunc,
+	fetchObject fetchObjectFunc,
 	fetchUser fetchUserFunc,
 ) objectRuleFunc {
 	return func(change *object.StateChange) ([]*message, error) {
@@ -190,22 +194,44 @@ func objectRuleCommentCreated(
 			return nil, fmt.Errorf("origin fetch: %s", err)
 		}
 
-		fs, err := fetchFriends(change.Namespace, origin.ID)
+		rs := user.List{}
+
+		fs, err := fetchFollowers(change.Namespace, origin.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		rs = append(rs, fs...)
+
+		fs, err = fetchFriends(change.Namespace, origin.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		rs = append(rs, fs...)
+
+		o, err := fetchObject(change.Namespace, change.New.ObjectID)
 		if err != nil {
 			return nil, err
 		}
 
 		ms := []*message{}
 
-		for _, friend := range fs {
+		for _, recipient := range rs {
+			f := commentPostFmt
+
+			if o.OwnerID == recipient.ID {
+				f = commentPostOwnFmt
+			}
+
 			ms = append(ms, &message{
 				message: fmt.Sprintf(
-					"Your friend %s %s (%s) commented on a Post.",
+					f,
 					origin.Firstname,
 					origin.Lastname,
 					origin.Username,
 				),
-				recipient: friend.ID,
+				recipient: recipient.ID,
 			})
 		}
 

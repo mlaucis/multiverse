@@ -728,8 +728,8 @@ func main() {
 		err := consumeObject(
 			objectSource,
 			batchc,
+			objectRuleCommentCreated(fetchFollowers, fetchFriends, fetchObject, fetchUser),
 			objectRulePostCreated(fetchFriends, fetchUser),
-			objectRuleCommentCreated(fetchFriends, fetchUser),
 		)
 		if err != nil {
 			logger.Log("err", err, "lifecycle", "abort")
