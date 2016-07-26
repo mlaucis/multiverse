@@ -240,6 +240,7 @@ func objectRuleCommentCreated(
 }
 
 func objectRulePostCreated(
+	fetchFollowers fetchFollowersFunc,
 	fetchFriends fetchFriendsFunc,
 	fetchUser fetchUserFunc,
 ) objectRuleFunc {
@@ -255,14 +256,25 @@ func objectRulePostCreated(
 			return nil, fmt.Errorf("origin fetch: %s", err)
 		}
 
-		fs, err := fetchFriends(change.Namespace, origin.ID)
+		rs := user.List{}
+
+		fs, err := fetchFollowers(change.Namespace, origin.ID)
 		if err != nil {
 			return nil, err
 		}
 
+		rs = append(rs, fs...)
+
+		fs, err = fetchFriends(change.Namespace, origin.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		rs = append(rs, fs...)
+
 		ms := []*message{}
 
-		for _, friend := range fs {
+		for _, recipient := range rs {
 			ms = append(ms, &message{
 				message: fmt.Sprintf(
 					"Your friend %s %s (%s) created a new Post.",
@@ -270,7 +282,7 @@ func objectRulePostCreated(
 					origin.Lastname,
 					origin.Username,
 				),
-				recipient: friend.ID,
+				recipient: recipient.ID,
 			})
 		}
 

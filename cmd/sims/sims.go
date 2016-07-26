@@ -729,7 +729,7 @@ func main() {
 			objectSource,
 			batchc,
 			objectRuleCommentCreated(fetchFollowers, fetchFriends, fetchObject, fetchUser),
-			objectRulePostCreated(fetchFriends, fetchUser),
+			objectRulePostCreated(fetchFollowers, fetchFriends, fetchUser),
 		)
 		if err != nil {
 			logger.Log("err", err, "lifecycle", "abort")
