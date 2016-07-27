@@ -38,6 +38,10 @@ const (
 
 	attributeEnabled = "Enabled"
 	attributeToken   = "Token"
+
+	fmtURN         = `%s://%s`
+	msgAndroid     = `{"GCM": "{\"notification\": {\"title\": \"%s\", \"data\": {\"urn\": \"%s\"}} }"}`
+	msgAPNSSandbox = `{"APNS_SANDBOX": "{\"aps\": {\"alert\": \"%s\"}, \"urn\":\"%s\"}" }`
 )
 
 // Control flow.
@@ -56,13 +60,6 @@ var (
 	revision = "0000000-dev"
 )
 
-// platform storage
-var (
-	arnAPNSSandbox = map[string]string{
-		"app_1_610": "arn:aws:sns:eu-central-1:775034650473:app/APNS_SANDBOX/simsTest",
-	}
-)
-
 type ackFunc func() error
 type channelFunc func(string, *message) error
 type createEndpointFunc func(platformARN, token string) (string, error)
@@ -75,10 +72,11 @@ type findDevicesFunc func(namespace string, userID uint64, platforms ...device.P
 type getEndpointFunc func(arn string) (string, error)
 type getNamespaceFunc func(arn string) (string, error)
 type getPlatformARNFunc func(namespace string, platform device.Platform) (string, error)
+type getPlatformNameFunc func(namespace string, platform device.Platform) (string, error)
 type getUserDevicesFunc func(namespace string, userID uint64, platforms ...device.Platform) (device.List, error)
 type prepareDeviceEndpointFunc func(namespace string, d *device.Device) (*device.Device, error)
-type pushAndroidFunc func(arn, message string) error
-type pushAPNSSandboxFunc func(arn, message string) error
+type pushAndroidFunc func(arn, platformName string, message *message) error
+type pushAPNSSandboxFunc func(arn, platformName string, message *message) error
 type updateTokenFunc func(arn, token string) error
 
 type batch struct {
@@ -90,6 +88,7 @@ type batch struct {
 type message struct {
 	message   string
 	recipient uint64
+	urn       string
 }
 
 func main() {
@@ -312,6 +311,7 @@ func main() {
 	var getEndpoint getEndpointFunc
 	var getNamespace getNamespaceFunc
 	var getPlatformARN getPlatformARNFunc
+	var getPlatformName getPlatformNameFunc
 	var prepareDeviceEndpoint prepareDeviceEndpointFunc
 	var pushAndroid pushAndroidFunc
 	var pushAPNSSandbox pushAPNSSandboxFunc
@@ -560,6 +560,39 @@ func main() {
 		return arn, nil
 	}
 
+	getPlatformName = func(ns string, platform device.Platform) (string, error) {
+		names := map[string]map[device.Platform]string{
+			"app_1_610": map[device.Platform]string{
+				device.PlatformIOSSandbox: "simsTest",
+				device.PlatformAndroid:    "simsTest",
+			},
+			"app_57_661": map[device.Platform]string{
+				device.PlatformIOSSandbox: "tapglue-iOSExample",
+			},
+			"app_684_948": map[device.Platform]string{
+				device.PlatformIOSSandbox: "uMake",
+			},
+			"app_684_987": map[device.Platform]string{
+				device.PlatformIOSSandbox: "uMake",
+			},
+			"app_515_922": map[device.Platform]string{
+				device.PlatformIOSSandbox: "bkx",
+			},
+		}
+
+		cs, ok := names[ns]
+		if !ok {
+			return "", ErrNamespaceNotFound
+		}
+
+		name, ok := cs[platform]
+		if !ok {
+			return "", ErrPlatformNotFound
+		}
+
+		return name, nil
+	}
+
 	prepareDeviceEndpoint = func(ns string, d *device.Device) (*device.Device, error) {
 		pARN, err := getPlatformARN(ns, d.Platform)
 		if err != nil {
@@ -613,14 +646,14 @@ func main() {
 		return d, nil
 	}
 
-	pushAndroid = func(arn, msg string) error {
+	pushAndroid = func(arn, platformName string, msg *message) error {
+		var (
+			urn = fmt.Sprintf(fmtURN, platformName, msg.urn)
+			m   = fmt.Sprintf(msgAndroid, msg.message, urn)
+		)
+
 		_, err := snsService.Publish(&sns.PublishInput{
-			Message: aws.String(
-				fmt.Sprintf(
-					`{"GCM": "{\"notification\": {\"body\": \"%s\", \"title\": \"New Follower!\"} }"}`,
-					msg,
-				),
-			),
+			Message:          aws.String(m),
 			MessageStructure: aws.String("json"),
 			TargetArn:        aws.String(arn),
 		})
@@ -635,14 +668,14 @@ func main() {
 		return nil
 	}
 
-	pushAPNSSandbox = func(arn, msg string) error {
-		_, err := snsService.Publish(&sns.PublishInput{
-			Message: aws.String(
-				fmt.Sprintf(
-					`{"APNS_SANDBOX":"{\"aps\":{\"alert\":\"%s\"}}"}`,
-					msg,
-				),
-			),
+	pushAPNSSandbox = func(arn, platformName string, msg *message) error {
+		var (
+			urn = fmt.Sprintf(fmtURN, platformName, msg.urn)
+			m   = fmt.Sprintf(msgAPNSSandbox, msg.message, urn)
+		)
+
+		_, err = snsService.Publish(&sns.PublishInput{
+			Message:          aws.String(m),
 			MessageStructure: aws.String("json"),
 			TargetArn:        aws.String(arn),
 		})
@@ -738,7 +771,7 @@ func main() {
 	}()
 
 	cs := []channelFunc{
-		channelPush(getUserDevices, getPlatformARN, pushAndroid, pushAPNSSandbox),
+		channelPush(getUserDevices, getPlatformName, pushAndroid, pushAPNSSandbox),
 	}
 
 	for batch := range batchc {
@@ -764,7 +797,7 @@ func main() {
 
 func channelPush(
 	getUserDevices getUserDevicesFunc,
-	getPlatformARN getPlatformARNFunc,
+	getPlatformName getPlatformNameFunc,
 	pushAndroid pushAndroidFunc,
 	pushAPNSSandbox pushAPNSSandboxFunc,
 ) channelFunc {
@@ -787,7 +820,12 @@ func channelPush(
 		for _, d := range ds {
 			switch d.Platform {
 			case device.PlatformIOSSandbox:
-				err := pushAPNSSandbox(d.EndpointARN, msg.message)
+				name, err := getPlatformName(ns, d.Platform)
+				if err != nil {
+					return err
+				}
+
+				err = pushAPNSSandbox(d.EndpointARN, name, msg)
 				if err != nil {
 					if isDeliveryFailure(err) {
 						return nil
@@ -796,9 +834,13 @@ func channelPush(
 					return err
 				}
 			case device.PlatformAndroid:
-				err := pushAndroid(d.EndpointARN, msg.message)
+				name, err := getPlatformName(ns, d.Platform)
 				if err != nil {
-					fmt.Printf("\n%s\n%#v\n\n", d.EndpointARN, err)
+					return err
+				}
+
+				err = pushAndroid(d.EndpointARN, name, msg)
+				if err != nil {
 					if isDeliveryFailure(err) {
 						return nil
 					}

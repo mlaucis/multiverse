@@ -12,10 +12,18 @@ import (
 )
 
 const (
-	commentPostFmt    = "%s %s (%s) commented on a Post."
-	commentPostOwnFmt = "%s %s (%s) commented on your Post."
-	likePostFmt       = "%s %s (%s) liked a Post."
-	likePostOwnFmt    = "%s %s (%s) liked your Post."
+	fmtCommentPost     = "%s %s (%s) commented on a Post."
+	fmtCommentPostOwn  = "%s %s (%s) commented on your Post."
+	fmtFollow          = "%s %s (%s) started following you"
+	fmtFriendConfirmed = "%s %s (%s) accepted your friend request."
+	fmtFriendRequest   = "%s %s (%s) sent you a friend request."
+	fmtLikePost        = "%s %s (%s) liked a Post."
+	fmtLikePostOwn     = "%s %s (%s) liked your Post."
+	fmtPostCreated     = "%s %s (%s) created a new Post."
+
+	urnComment = "tapglue/posts/%d/comments/%d"
+	urnPost    = "tapglue/posts/%d"
+	urnUser    = "tapglue/users/%d"
 )
 
 type conRuleFunc func(*connection.StateChange) (*message, error)
@@ -42,12 +50,13 @@ func conRuleFollower(fetchUser fetchUserFunc) conRuleFunc {
 
 		return &message{
 			message: fmt.Sprintf(
-				"%s %s (%s) started following you",
+				fmtFollow,
 				origin.Firstname,
 				origin.Lastname,
 				origin.Username,
 			),
 			recipient: target.ID,
+			urn:       fmt.Sprintf(urnUser, origin.ID),
 		}, nil
 	}
 }
@@ -73,12 +82,13 @@ func conRuleFriendConfirmed(fetchUser fetchUserFunc) conRuleFunc {
 
 		return &message{
 			message: fmt.Sprintf(
-				"%s %s (%s) accepted your friend request.",
+				fmtFriendConfirmed,
 				target.Firstname,
 				target.Lastname,
 				target.Username,
 			),
 			recipient: origin.ID,
+			urn:       fmt.Sprintf(urnUser, origin.ID),
 		}, nil
 	}
 }
@@ -103,12 +113,13 @@ func conRuleFriendRequest(fetchUser fetchUserFunc) conRuleFunc {
 
 		return &message{
 			message: fmt.Sprintf(
-				"%s %s (%s) sent you a friend request.",
+				fmtFriendRequest,
 				origin.Firstname,
 				origin.Lastname,
 				origin.Username,
 			),
 			recipient: target.ID,
+			urn:       fmt.Sprintf(urnUser, origin.ID),
 		}, nil
 	}
 }
@@ -147,7 +158,7 @@ func eventRuleLikeCreated(
 
 		rs = append(rs, fs...)
 
-		o, err := fetchObject(change.Namespace, change.New.ObjectID)
+		post, err := fetchObject(change.Namespace, change.New.ObjectID)
 		if err != nil {
 			return nil, err
 		}
@@ -155,10 +166,10 @@ func eventRuleLikeCreated(
 		ms := []*message{}
 
 		for _, recipient := range rs {
-			f := likePostFmt
+			f := fmtLikePost
 
-			if o.OwnerID == recipient.ID {
-				f = likePostOwnFmt
+			if post.OwnerID == recipient.ID {
+				f = fmtLikePostOwn
 			}
 
 			ms = append(ms, &message{
@@ -169,6 +180,7 @@ func eventRuleLikeCreated(
 					origin.Username,
 				),
 				recipient: recipient.ID,
+				urn:       fmt.Sprintf(urnPost, post.ID),
 			})
 		}
 
@@ -210,7 +222,7 @@ func objectRuleCommentCreated(
 
 		rs = append(rs, fs...)
 
-		o, err := fetchObject(change.Namespace, change.New.ObjectID)
+		post, err := fetchObject(change.Namespace, change.New.ObjectID)
 		if err != nil {
 			return nil, err
 		}
@@ -218,10 +230,10 @@ func objectRuleCommentCreated(
 		ms := []*message{}
 
 		for _, recipient := range rs {
-			f := commentPostFmt
+			f := fmtCommentPost
 
-			if o.OwnerID == recipient.ID {
-				f = commentPostOwnFmt
+			if post.OwnerID == recipient.ID {
+				f = fmtCommentPostOwn
 			}
 
 			ms = append(ms, &message{
@@ -232,6 +244,7 @@ func objectRuleCommentCreated(
 					origin.Username,
 				),
 				recipient: recipient.ID,
+				urn:       fmt.Sprintf(urnComment, post.ID, change.New.ID),
 			})
 		}
 
@@ -277,12 +290,13 @@ func objectRulePostCreated(
 		for _, recipient := range rs {
 			ms = append(ms, &message{
 				message: fmt.Sprintf(
-					"%s %s (%s) created a new Post.",
+					fmtPostCreated,
 					origin.Firstname,
 					origin.Lastname,
 					origin.Username,
 				),
 				recipient: recipient.ID,
+				urn:       fmt.Sprintf(urnPost, change.New.ID),
 			})
 		}
 
