@@ -179,17 +179,21 @@ func (c *PostController) Delete(
 func (c *PostController) ListAll(
 	app *v04_entity.Application,
 	origin uint64,
+	options *object.QueryOptions,
 ) (*PostFeed, error) {
-	os, err := c.objects.Query(app.Namespace(), object.QueryOptions{
-		Owned: &defaultOwned,
-		Types: []string{
-			TypePost,
-		},
-		Visibilities: []object.Visibility{
-			object.VisibilityPublic,
-			object.VisibilityGlobal,
-		},
-	})
+	opts := object.QueryOptions{}
+	if options != nil {
+		opts = *options
+	}
+
+	opts.Owned = &defaultOwned
+	opts.Types = []string{TypePost}
+	opts.Visibilities = []object.Visibility{
+		object.VisibilityPublic,
+		object.VisibilityGlobal,
+	}
+
+	os, err := c.objects.Query(app.Namespace(), opts)
 	if err != nil {
 		return nil, err
 	}
@@ -223,7 +227,13 @@ func (c *PostController) ListUser(
 	app *v04_entity.Application,
 	origin uint64,
 	userID uint64,
+	options *object.QueryOptions,
 ) (*PostFeed, error) {
+	opts := object.QueryOptions{}
+	if options != nil {
+		opts = *options
+	}
+
 	vs := []object.Visibility{
 		object.VisibilityPublic,
 		object.VisibilityGlobal,
@@ -246,16 +256,12 @@ func (c *PostController) ListUser(
 		vs = append(vs, object.VisibilityConnection, object.VisibilityPrivate)
 	}
 
-	os, err := c.objects.Query(app.Namespace(), object.QueryOptions{
-		OwnerIDs: []uint64{
-			userID,
-		},
-		Owned: &defaultOwned,
-		Types: []string{
-			TypePost,
-		},
-		Visibilities: vs,
-	})
+	opts.OwnerIDs = []uint64{userID}
+	opts.Owned = &defaultOwned
+	opts.Types = []string{TypePost}
+	opts.Visibilities = vs
+
+	os, err := c.objects.Query(app.Namespace(), opts)
 	if err != nil {
 		return nil, err
 	}

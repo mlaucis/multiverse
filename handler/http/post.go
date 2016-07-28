@@ -81,7 +81,13 @@ func PostList(c *controller.PostController) Handler {
 			return
 		}
 
-		feed, err := c.ListUser(app, currentUser.ID, userID)
+		_, opts, err := whereToOpts(r.URL.Query().Get("where"))
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		feed, err := c.ListUser(app, currentUser.ID, userID, opts)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -107,7 +113,13 @@ func PostListAll(c *controller.PostController) Handler {
 			currentUser = userFromContext(ctx)
 		)
 
-		feed, err := c.ListAll(app, currentUser.ID)
+		_, opts, err := whereToOpts(r.URL.Query().Get("where"))
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		feed, err := c.ListAll(app, currentUser.ID, opts)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -133,7 +145,13 @@ func PostListMe(c *controller.PostController) Handler {
 			currentUser = userFromContext(ctx)
 		)
 
-		feed, err := c.ListUser(app, currentUser.ID, currentUser.ID)
+		_, opts, err := whereToOpts(r.URL.Query().Get("where"))
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		feed, err := c.ListUser(app, currentUser.ID, currentUser.ID, opts)
 		if err != nil {
 			respondError(w, 0, err)
 			return

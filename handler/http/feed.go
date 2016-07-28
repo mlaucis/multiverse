@@ -11,6 +11,7 @@ import (
 
 	"github.com/tapglue/multiverse/controller"
 	"github.com/tapglue/multiverse/service/event"
+	"github.com/tapglue/multiverse/service/object"
 	"github.com/tapglue/multiverse/service/user"
 	v04_core "github.com/tapglue/multiverse/v04/core"
 )
@@ -24,7 +25,7 @@ func FeedEvents(c *controller.FeedController) Handler {
 			currentUser = userFromContext(ctx)
 		)
 
-		opts, err := whereToOpts(r.URL.Query().Get("where"))
+		opts, _, err := whereToOpts(r.URL.Query().Get("where"))
 		if err != nil {
 			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
@@ -58,13 +59,13 @@ func FeedNews(c *controller.FeedController) Handler {
 			currentUser = userFromContext(ctx)
 		)
 
-		opts, err := whereToOpts(r.URL.Query().Get("where"))
+		eventOpts, postOpts, err := whereToOpts(r.URL.Query().Get("where"))
 		if err != nil {
 			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
 		}
 
-		feed, err := c.News(app, currentUser.ID, opts)
+		feed, err := c.News(app, currentUser.ID, eventOpts, postOpts)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -94,7 +95,13 @@ func FeedPosts(c *controller.FeedController) Handler {
 			currentUser = userFromContext(ctx)
 		)
 
-		feed, err := c.Posts(app, currentUser.ID)
+		_, postOpts, err := whereToOpts(r.URL.Query().Get("where"))
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		feed, err := c.Posts(app, currentUser.ID, postOpts)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -239,14 +246,18 @@ func (p *payloadFeedPosts) MarshalJSON() ([]byte, error) {
 	})
 }
 
-func whereToOpts(input string) (*event.QueryOptions, error) {
+type postWhere struct {
+	Tags []string `json:"tags"`
+}
+
+func whereToOpts(input string) (*event.QueryOptions, *object.QueryOptions, error) {
 	cond, errs := v04_core.NewEventFilter(input)
 	if errs != nil {
-		return nil, errs[0]
+		return nil, nil, errs[0]
 	}
 
 	if cond == nil {
-		return nil, nil
+		return nil, nil, nil
 	}
 
 	opts := event.QueryOptions{}
@@ -255,7 +266,7 @@ func whereToOpts(input string) (*event.QueryOptions, error) {
 		if cond.Object.ID.Eq != nil {
 			id, err := parseID(cond.Object.ID.Eq)
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 
 			opts.ExternalObjectIDs = []string{
@@ -269,7 +280,7 @@ func whereToOpts(input string) (*event.QueryOptions, error) {
 			for _, input := range cond.Object.ID.In {
 				id, err := parseID(input)
 				if err != nil {
-					return nil, err
+					return nil, nil, err
 				}
 
 				opts.ExternalObjectIDs = append(opts.ExternalObjectIDs, id)
@@ -281,7 +292,7 @@ func whereToOpts(input string) (*event.QueryOptions, error) {
 		if cond.Object.Type.Eq != nil {
 			t, ok := cond.Object.Type.Eq.(string)
 			if !ok {
-				return nil, fmt.Errorf("error in where param")
+				return nil, nil, fmt.Errorf("error in where param")
 			}
 
 			opts.ExternalObjectTypes = []string{
@@ -295,7 +306,7 @@ func whereToOpts(input string) (*event.QueryOptions, error) {
 			for _, input := range cond.Object.Type.In {
 				t, ok := input.(string)
 				if !ok {
-					return nil, fmt.Errorf("error in where param")
+					return nil, nil, fmt.Errorf("error in where param")
 				}
 
 				opts.ExternalObjectTypes = append(opts.ExternalObjectTypes, t)
@@ -307,7 +318,7 @@ func whereToOpts(input string) (*event.QueryOptions, error) {
 		if cond.Type.Eq != nil {
 			t, ok := cond.Type.Eq.(string)
 			if !ok {
-				return nil, fmt.Errorf("error in where param")
+				return nil, nil, fmt.Errorf("error in where param")
 			}
 
 			opts.Types = []string{
@@ -321,7 +332,7 @@ func whereToOpts(input string) (*event.QueryOptions, error) {
 			for _, input := range cond.Type.In {
 				t, ok := input.(string)
 				if !ok {
-					return nil, fmt.Errorf("error in where param")
+					return nil, nil, fmt.Errorf("error in where param")
 				}
 
 				opts.Types = append(opts.Types, t)
@@ -329,5 +340,20 @@ func whereToOpts(input string) (*event.QueryOptions, error) {
 		}
 	}
 
-	return &opts, nil
+	w := struct {
+		Post *postWhere `json:"post"`
+	}{}
+
+	err := json.Unmarshal([]byte(input), &w)
+	if err != nil {
+		return nil, nil, fmt.Errorf("error in where param")
+	}
+
+	if w.Post != nil && w.Post.Tags != nil {
+		return &opts, &object.QueryOptions{
+			Tags: w.Post.Tags,
+		}, nil
+	}
+
+	return &opts, nil, nil
 }

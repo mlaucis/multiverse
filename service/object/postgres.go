@@ -32,6 +32,7 @@ const (
 	pgClauseObjectID   = `(json_data->>'object_id')::BIGINT IN (?)`
 	pgClauseOwnerID    = `(json_data->>'owner_id')::BIGINT IN (?)`
 	pgClauseOwned      = `(json_data->>'owned')::BOOL = ?::BOOL`
+	pgClauseTags       = `(json_data->'tags')::JSONB @> '[%s]'`
 	pgClauseType       = `(json_data->>'type')::TEXT IN (?)`
 	pgClauseVisibility = `(json_data->>'visibility')::INT IN (?)`
 	pgOrderCreatedAt   = `ORDER BY json_data->>'created_at' DESC LIMIT 200`
@@ -59,6 +60,8 @@ const (
 		USING btree (((json_data->>'owner_id')::BIGINT))`
 	pgCreateIndexOwned = `CREATE INDEX %s ON %s.objects
 		USING btree (((json_data->>'owned')::BOOL))`
+	pgCreateIndexTags = `CREATE INDEX %s ON %s.objects
+		USING gin ((json_data->'tags'))`
 	pgCreateIndexType = `CREATE INDEX %s ON %s.objects
 		USING btree (((json_data->>'type')::TEXT))`
 	pgCreateIndexVisibility = `CREATE INDEX %s ON %s.objects
@@ -246,6 +249,7 @@ func (s *pgService) Setup(ns string) error {
 		pg.GuardIndex(ns, "object_object_id", pgCreateIndexObjectID),
 		pg.GuardIndex(ns, "object_owned", pgCreateIndexOwned),
 		pg.GuardIndex(ns, "object_owned_id", pgCreateIndexOwnerID),
+		pg.GuardIndex(ns, "object_tags", pgCreateIndexTags),
 		pg.GuardIndex(ns, "object_type", pgCreateIndexType),
 		pg.GuardIndex(ns, "object_visibility", pgCreateIndexVisibility),
 	}
@@ -434,6 +438,17 @@ func convertOpts(opts QueryOptions) ([]string, []interface{}, error) {
 
 		clauses = append(clauses, clause)
 		params = append(params, *opts.Owned)
+	}
+
+	if len(opts.Tags) > 0 {
+		ts := []string{}
+
+		for _, t := range opts.Tags {
+			ts = append(ts, fmt.Sprintf(`"%s"`, t))
+		}
+
+		clause := fmt.Sprintf(pgClauseTags, strings.Join(ts, ","))
+		clauses = append(clauses, clause)
 	}
 
 	if len(opts.Types) > 0 {

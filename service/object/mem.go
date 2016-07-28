@@ -204,6 +204,16 @@ func filterMap(om Map, opts QueryOptions) List {
 			continue
 		}
 
+		if len(opts.Tags) > len(object.Tags) {
+			continue
+		}
+
+		for _, t := range opts.Tags {
+			if !inTypes(t, object.Tags) {
+				continue
+			}
+		}
+
 		if !inTypes(object.Type, opts.Types) {
 			continue
 		}
