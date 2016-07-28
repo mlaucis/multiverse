@@ -195,6 +195,7 @@ type QueryOptions struct {
 	ObjectIDs    []uint64
 	OwnerIDs     []uint64
 	Owned        *bool
+	Tags         []string
 	Types        []string
 	Visibilities []Visibility
 }

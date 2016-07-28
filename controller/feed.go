@@ -267,7 +267,8 @@ func (c *FeedController) Events(
 func (c *FeedController) News(
 	app *v04_entity.Application,
 	origin uint64,
-	opts *event.QueryOptions,
+	eventOpts *event.QueryOptions,
+	postOpts *object.QueryOptions,
 ) (*Feed, error) {
 	am, err := c.neighbours(app, origin, 0)
 	if err != nil {
@@ -278,14 +279,14 @@ func (c *FeedController) News(
 		neighbours = am.filterFollowers(origin)
 		sources    = []source{
 			sourceConnection(append(am.followers(origin), am.friends(origin)...)),
-			sourceGlobal(c.events, app, opts),
+			sourceGlobal(c.events, app, eventOpts),
 			sourceNeighbours(
 				c.events,
 				app,
-				opts,
+				eventOpts,
 				am.filterFollowers(origin).userIDs()...,
 			),
-			sourceTarget(c.events, app, origin, opts),
+			sourceTarget(c.events, app, origin, eventOpts),
 		}
 	)
 
@@ -342,12 +343,12 @@ func (c *FeedController) News(
 		es = es[:199]
 	}
 
-	ps, err = c.connectionPosts(app, neighbours.userIDs()...)
+	ps, err = c.connectionPosts(app, postOpts, neighbours.userIDs()...)
 	if err != nil {
 		return nil, err
 	}
 
-	gs, err := c.globalPosts(app)
+	gs, err := c.globalPosts(app, postOpts)
 	if err != nil {
 		return nil, err
 	}
@@ -391,6 +392,7 @@ func (c *FeedController) News(
 func (c *FeedController) Posts(
 	app *v04_entity.Application,
 	origin uint64,
+	opts *object.QueryOptions,
 ) (*Feed, error) {
 	am, err := c.neighbours(app, origin, 0)
 	if err != nil {
@@ -399,12 +401,12 @@ func (c *FeedController) Posts(
 
 	neighbours := am.filterFollowers(origin)
 
-	ps, err := c.connectionPosts(app, neighbours.userIDs()...)
+	ps, err := c.connectionPosts(app, opts, neighbours.userIDs()...)
 	if err != nil {
 		return nil, err
 	}
 
-	gs, err := c.globalPosts(app)
+	gs, err := c.globalPosts(app, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -436,23 +438,27 @@ func (c *FeedController) Posts(
 
 func (c *FeedController) connectionPosts(
 	app *v04_entity.Application,
+	options *object.QueryOptions,
 	ids ...uint64,
 ) (PostList, error) {
 	if len(ids) == 0 {
 		return PostList{}, nil
 	}
 
-	os, err := c.objects.Query(app.Namespace(), object.QueryOptions{
-		OwnerIDs: ids,
-		Owned:    &defaultOwned,
-		Types: []string{
-			TypePost,
-		},
-		Visibilities: []object.Visibility{
-			object.VisibilityConnection,
-			object.VisibilityPublic,
-		},
-	})
+	opts := object.QueryOptions{}
+	if options != nil {
+		opts = *options
+	}
+
+	opts.OwnerIDs = ids
+	opts.Owned = &defaultOwned
+	opts.Types = []string{TypePost}
+	opts.Visibilities = []object.Visibility{
+		object.VisibilityConnection,
+		object.VisibilityPublic,
+	}
+
+	os, err := c.objects.Query(app.Namespace(), opts)
 	if err != nil {
 		return nil, err
 	}
@@ -462,16 +468,20 @@ func (c *FeedController) connectionPosts(
 
 func (c *FeedController) globalPosts(
 	app *v04_entity.Application,
+	options *object.QueryOptions,
 ) (PostList, error) {
-	os, err := c.objects.Query(app.Namespace(), object.QueryOptions{
-		Owned: &defaultOwned,
-		Types: []string{
-			TypePost,
-		},
-		Visibilities: []object.Visibility{
-			object.VisibilityGlobal,
-		},
-	})
+	opts := object.QueryOptions{}
+	if options != nil {
+		opts = *options
+	}
+
+	opts.Owned = &defaultOwned
+	opts.Types = []string{TypePost}
+	opts.Visibilities = []object.Visibility{
+		object.VisibilityGlobal,
+	}
+
+	os, err := c.objects.Query(app.Namespace(), opts)
 	if err != nil {
 		return nil, err
 	}

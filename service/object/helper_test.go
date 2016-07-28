@@ -103,6 +103,19 @@ func testCreateSet(objectID uint64) []*Object {
 		})
 	}
 
+	for i := 0; i < 3; i++ {
+		set = append(set, &Object{
+			OwnerID: 6,
+			Tags: []string{
+				"one",
+				"two",
+				"three",
+			},
+			Type:       "tagged",
+			Visibility: VisibilityConnection,
+		})
+	}
+
 	return set
 }
 
@@ -192,6 +205,47 @@ func testServiceCount(t *testing.T, p prepareFunc) {
 	}
 
 	if have, want := count, 20; have != want {
+		t.Errorf("have %v, want %v", have, want)
+	}
+
+	count, err = service.Count(namespace, QueryOptions{
+		Tags: []string{
+			"one",
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if have, want := count, 3; have != want {
+		t.Errorf("have %v, want %v", have, want)
+	}
+
+	count, err = service.Count(namespace, QueryOptions{
+		Tags: []string{
+			"one",
+			"two",
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if have, want := count, 3; have != want {
+		t.Errorf("have %v, want %v", have, want)
+	}
+
+	count, err = service.Count(namespace, QueryOptions{
+		Tags: []string{
+			"one",
+			"three",
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if have, want := count, 3; have != want {
 		t.Errorf("have %v, want %v", have, want)
 	}
 
@@ -299,6 +353,47 @@ func testServiceQuery(t *testing.T, p prepareFunc) {
 	}
 
 	if have, want := len(os), 20; have != want {
+		t.Errorf("have %v, want %v", have, want)
+	}
+
+	os, err = service.Query(namespace, QueryOptions{
+		Tags: []string{
+			"one",
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if have, want := len(os), 3; have != want {
+		t.Errorf("have %v, want %v", have, want)
+	}
+
+	os, err = service.Query(namespace, QueryOptions{
+		Tags: []string{
+			"one",
+			"two",
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if have, want := len(os), 3; have != want {
+		t.Errorf("have %v, want %v", have, want)
+	}
+
+	os, err = service.Query(namespace, QueryOptions{
+		Tags: []string{
+			"one",
+			"three",
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if have, want := len(os), 3; have != want {
 		t.Errorf("have %v, want %v", have, want)
 	}
 
