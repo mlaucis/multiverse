@@ -168,6 +168,18 @@ server {
         try_files /sla.html =404;
     }
 
+    location /news-social-concept.html {
+        rewrite $(.*)$ /news-social-concept/ permanent;
+    }
+
+    location /news-social-concept {
+        rewrite $(.*)$ /news-social-concept/ permanent;
+    }
+
+    location /news-social-concept/ {
+        try_files /news-social-concept.html =404;
+    }
+
     location ^~ /blog {
         if ($http_user_agent ~* "ELB-HealthChecker" ) {
             access_log off;
