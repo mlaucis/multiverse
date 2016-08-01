@@ -86,6 +86,40 @@ func FeedNews(c *controller.FeedController) Handler {
 	}
 }
 
+// FeedNotificationsSelf returns the events which target the origin user and
+// their content.
+func FeedNotificationsSelf(c *controller.FeedController) Handler {
+	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+		var (
+			app         = appFromContext(ctx)
+			currentUser = userFromContext(ctx)
+		)
+
+		eventOpts, _, err := whereToOpts(r.URL.Query().Get("where"))
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		feed, err := c.NotificationsSelf(app, currentUser.ID, eventOpts)
+		if err != nil {
+			respondError(w, 0, err)
+			return
+		}
+
+		if len(feed.Events) == 0 {
+			respondJSON(w, http.StatusNoContent, nil)
+			return
+		}
+
+		respondJSON(w, http.StatusOK, &payloadFeedEvents{
+			events:  feed.Events,
+			postMap: feed.PostMap,
+			userMap: feed.UserMap,
+		})
+	}
+}
+
 // FeedPosts returns the posts of the current user driven by the social and
 // interest graph.
 func FeedPosts(c *controller.FeedController) Handler {
