@@ -656,6 +656,13 @@ func main() {
 		),
 	)
 
+	next.Methods("GET").Path("/me/feed/notifications/self").Name("feedNotificationsSelf").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.FeedNotificationsSelf(feedController),
+		),
+	)
+
 	next.Methods("GET").Path("/me/feed/posts").Name("feedPosts").HandlerFunc(
 		handler.Wrap(
 			withUser,

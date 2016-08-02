@@ -61,6 +61,17 @@ func (ps PostList) Swap(i, j int) {
 	ps[i], ps[j] = ps[j], ps[i]
 }
 
+// IDs returns the id of all posts in the list.
+func (ps PostList) IDs() []uint64 {
+	ids := []uint64{}
+
+	for _, p := range ps {
+		ids = append(ids, p.ID)
+	}
+
+	return ids
+}
+
 // OwnerIDs extracts the OwnerID of every post.
 func (ps PostList) OwnerIDs() []uint64 {
 	ids := []uint64{}
