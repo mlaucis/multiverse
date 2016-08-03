@@ -590,6 +590,11 @@ func (c *UserController) login(
 		return nil, err
 	}
 
+	err = enrichConnectionCounts(c.connections, c.users, app, u)
+	if err != nil {
+		return nil, err
+	}
+
 	return u, nil
 }
 
