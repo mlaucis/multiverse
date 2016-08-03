@@ -77,7 +77,7 @@ func EventListMe(c *controller.EventController) Handler {
 			currentUser = userFromContext(ctx)
 		)
 
-		opts, err := whereToOpts(r.URL.Query().Get("where"))
+		opts, _, err := whereToOpts(r.URL.Query().Get("where"))
 		if err != nil {
 			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return

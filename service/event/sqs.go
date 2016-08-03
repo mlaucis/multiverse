@@ -1,4 +1,4 @@
-package connection
+package event
 
 import (
 	"encoding/json"
@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	queueName = "connection-state-change"
+	queueName = "event-state-change"
 )
 
 type sqsSource struct {
@@ -85,7 +85,7 @@ func (s *sqsSource) Consume() (*StateChange, error) {
 	}, nil
 }
 
-func (s *sqsSource) Propagate(ns string, old, new *Connection) (string, error) {
+func (s *sqsSource) Propagate(ns string, old, new *Event) (string, error) {
 	r, err := json.Marshal(&stateChange{
 		Namespace: ns,
 		New:       new,
@@ -104,7 +104,7 @@ func (s *sqsSource) Propagate(ns string, old, new *Connection) (string, error) {
 }
 
 type stateChange struct {
-	Namespace string      `json:"namespace"`
-	New       *Connection `json:"new"`
-	Old       *Connection `json:"old"`
+	Namespace string `json:"namespace"`
+	New       *Event `json:"new"`
+	Old       *Event `json:"old"`
 }

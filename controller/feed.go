@@ -85,12 +85,43 @@ func (a affiliations) friends(origin uint64) connection.List {
 }
 
 // filterFollowers return an affiliations with all follow connections towards
-// the origin rmeoved.
+// the origin removed.
 func (a affiliations) filterFollowers(origin uint64) affiliations {
 	am := affiliations{}
 
 	for con, user := range a {
-		if con.Type == connection.TypeFollow && con.FromID != origin {
+		if con.Type == connection.TypeFollow && con.ToID == origin {
+			continue
+		}
+
+		am[con] = user
+	}
+
+	return am
+}
+
+// filterFollowings returns and affiliation with all following connections
+// removed.
+func (a affiliations) filterFollowings(origin uint64) affiliations {
+	am := affiliations{}
+
+	for con, user := range a {
+		if con.Type == connection.TypeFollow && con.FromID == origin {
+			continue
+		}
+
+		am[con] = user
+	}
+
+	return am
+}
+
+// filterFriends returns an affiliation with all friend connections removed.
+func (a affiliations) filterFriends(origin uint64) affiliations {
+	am := affiliations{}
+
+	for con, user := range a {
+		if con.Type == connection.TypeFriend {
 			continue
 		}
 
@@ -267,7 +298,8 @@ func (c *FeedController) Events(
 func (c *FeedController) News(
 	app *v04_entity.Application,
 	origin uint64,
-	opts *event.QueryOptions,
+	eventOpts *event.QueryOptions,
+	postOpts *object.QueryOptions,
 ) (*Feed, error) {
 	am, err := c.neighbours(app, origin, 0)
 	if err != nil {
@@ -278,14 +310,14 @@ func (c *FeedController) News(
 		neighbours = am.filterFollowers(origin)
 		sources    = []source{
 			sourceConnection(append(am.followers(origin), am.friends(origin)...)),
-			sourceGlobal(c.events, app, opts),
+			sourceGlobal(c.events, app, eventOpts),
 			sourceNeighbours(
 				c.events,
 				app,
-				opts,
+				eventOpts,
 				am.filterFollowers(origin).userIDs()...,
 			),
-			sourceTarget(c.events, app, origin, opts),
+			sourceTarget(c.events, app, origin, eventOpts),
 		}
 	)
 
@@ -342,12 +374,12 @@ func (c *FeedController) News(
 		es = es[:199]
 	}
 
-	ps, err = c.connectionPosts(app, neighbours.userIDs()...)
+	ps, err = c.connectionPosts(app, postOpts, neighbours.userIDs()...)
 	if err != nil {
 		return nil, err
 	}
 
-	gs, err := c.globalPosts(app)
+	gs, err := c.globalPosts(app, postOpts)
 	if err != nil {
 		return nil, err
 	}
@@ -387,22 +419,75 @@ func (c *FeedController) News(
 	}, nil
 }
 
-// Posts returns the posts from the interest and social graph of the given user.
-func (c *FeedController) Posts(
+// NotificationsSelf returns the events which target the origin user and their
+// content.
+func (c *FeedController) NotificationsSelf(
 	app *v04_entity.Application,
 	origin uint64,
+	opts *event.QueryOptions,
 ) (*Feed, error) {
 	am, err := c.neighbours(app, origin, 0)
 	if err != nil {
 		return nil, err
 	}
 
-	ps, err := c.connectionPosts(app, am.userIDs()...)
+	ps, err := userPosts(c.objects, app, origin)
 	if err != nil {
 		return nil, err
 	}
 
-	gs, err := c.globalPosts(app)
+	var (
+		fs      = am.filterFollowings(origin)
+		sources = []source{
+			sourceComment(c.objects, app, ps.IDs()...),
+			sourceConnection(fs.connections()),
+			sourceLikes(c.events, app, opts, ps.IDs()...),
+			sourceTarget(c.events, app, origin, opts),
+		}
+	)
+
+	es, err := collect(sources...)
+	if err != nil {
+		return nil, err
+	}
+
+	um, err := fillupUsers(c.users, app, origin, fs.users().ToMap(), es)
+	if err != nil {
+		return nil, err
+	}
+
+	sort.Sort(es)
+
+	if len(es) > 200 {
+		es = es[:199]
+	}
+
+	return &Feed{
+		Events:  es,
+		PostMap: ps.toMap(),
+		UserMap: um,
+	}, nil
+}
+
+// Posts returns the posts from the interest and social graph of the given user.
+func (c *FeedController) Posts(
+	app *v04_entity.Application,
+	origin uint64,
+	opts *object.QueryOptions,
+) (*Feed, error) {
+	am, err := c.neighbours(app, origin, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	neighbours := am.filterFollowers(origin)
+
+	ps, err := c.connectionPosts(app, opts, neighbours.userIDs()...)
+	if err != nil {
+		return nil, err
+	}
+
+	gs, err := c.globalPosts(app, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -434,23 +519,27 @@ func (c *FeedController) Posts(
 
 func (c *FeedController) connectionPosts(
 	app *v04_entity.Application,
+	options *object.QueryOptions,
 	ids ...uint64,
 ) (PostList, error) {
 	if len(ids) == 0 {
 		return PostList{}, nil
 	}
 
-	os, err := c.objects.Query(app.Namespace(), object.QueryOptions{
-		OwnerIDs: ids,
-		Owned:    &defaultOwned,
-		Types: []string{
-			typePost,
-		},
-		Visibilities: []object.Visibility{
-			object.VisibilityConnection,
-			object.VisibilityPublic,
-		},
-	})
+	opts := object.QueryOptions{}
+	if options != nil {
+		opts = *options
+	}
+
+	opts.OwnerIDs = ids
+	opts.Owned = &defaultOwned
+	opts.Types = []string{TypePost}
+	opts.Visibilities = []object.Visibility{
+		object.VisibilityConnection,
+		object.VisibilityPublic,
+	}
+
+	os, err := c.objects.Query(app.Namespace(), opts)
 	if err != nil {
 		return nil, err
 	}
@@ -460,16 +549,20 @@ func (c *FeedController) connectionPosts(
 
 func (c *FeedController) globalPosts(
 	app *v04_entity.Application,
+	options *object.QueryOptions,
 ) (PostList, error) {
-	os, err := c.objects.Query(app.Namespace(), object.QueryOptions{
-		Owned: &defaultOwned,
-		Types: []string{
-			typePost,
-		},
-		Visibilities: []object.Visibility{
-			object.VisibilityGlobal,
-		},
-	})
+	opts := object.QueryOptions{}
+	if options != nil {
+		opts = *options
+	}
+
+	opts.Owned = &defaultOwned
+	opts.Types = []string{TypePost}
+	opts.Visibilities = []object.Visibility{
+		object.VisibilityGlobal,
+	}
+
+	os, err := c.objects.Query(app.Namespace(), opts)
 	if err != nil {
 		return nil, err
 	}
@@ -656,7 +749,7 @@ func extractPosts(
 			return nil, err
 		}
 
-		if len(os) == 1 && os[0].Type == typePost {
+		if len(os) == 1 && os[0].Type == TypePost {
 			ps = append(ps, &Post{
 				Object: os[0],
 			})
@@ -721,6 +814,55 @@ func filter(events event.List, cs ...condition) event.List {
 	}
 
 	return es
+}
+
+// sourceComment creates comment events for the given posts.
+func sourceComment(
+	objects object.Service,
+	app *v04_entity.Application,
+	postIDs ...uint64,
+) source {
+	if len(postIDs) == 0 {
+		return func() (event.List, error) {
+			return event.List{}, nil
+		}
+	}
+
+	return func() (event.List, error) {
+		es := event.List{}
+
+		cs, err := objects.Query(app.Namespace(), object.QueryOptions{
+			ObjectIDs: postIDs,
+			Owned:     &defaultOwned,
+			Types: []string{
+				TypeComment,
+			},
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		for _, comment := range cs {
+			id, err := flake.NextID("comment-events")
+			if err != nil {
+				return nil, err
+			}
+
+			es = append(es, &event.Event{
+				Enabled:    true,
+				ID:         id,
+				ObjectID:   comment.ObjectID,
+				Owned:      true,
+				Type:       TypeComment,
+				UserID:     comment.OwnerID,
+				Visibility: event.VisibilityPrivate,
+				CreatedAt:  comment.CreatedAt,
+				UpdatedAt:  comment.UpdatedAt,
+			})
+		}
+
+		return es, nil
+	}
 }
 
 // sourceConnection creates follow events for the given connections.
@@ -797,6 +939,34 @@ func sourceGlobal(
 	}
 }
 
+func sourceLikes(
+	events event.Service,
+	app *v04_entity.Application,
+	options *event.QueryOptions,
+	postIDs ...uint64,
+) source {
+	if len(postIDs) == 0 {
+		return func() (event.List, error) {
+			return event.List{}, nil
+		}
+	}
+
+	opts := event.QueryOptions{}
+	if options != nil {
+		opts = *options
+	}
+	opts.Enabled = &defaultEnabled
+	opts.ObjectIDs = postIDs
+	opts.Owned = &defaultOwned
+	opts.Types = []string{
+		TypeLike,
+	}
+
+	return func() (event.List, error) {
+		return events.Query(app.Namespace(), opts)
+	}
+}
+
 // connectionUsers returns all events owned by the given user ids.
 func sourceNeighbours(
 	events event.Service,
@@ -822,12 +992,7 @@ func sourceNeighbours(
 	opts.UserIDs = ids
 
 	return func() (event.List, error) {
-		es, err := events.Query(app.Namespace(), opts)
-		if err != nil {
-			return nil, err
-		}
-
-		return es, nil
+		return events.Query(app.Namespace(), opts)
 	}
 }
 
@@ -861,4 +1026,30 @@ func sourceTarget(
 
 		return es, nil
 	}
+}
+
+func userPosts(
+	objects object.Service,
+	app *v04_entity.Application,
+	origin uint64,
+) (PostList, error) {
+	os, err := objects.Query(app.Namespace(), object.QueryOptions{
+		Owned: &defaultOwned,
+		OwnerIDs: []uint64{
+			origin,
+		},
+		Types: []string{
+			TypePost,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	ps := PostList{}
+	for _, o := range os {
+		ps = append(ps, &Post{Object: o})
+	}
+
+	return ps, nil
 }

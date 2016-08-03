@@ -34,7 +34,7 @@ func TestCommentControllerCreate(t *testing.T) {
 		ID:    &created.ID,
 		Owned: &defaultOwned,
 		Types: []string{
-			typeComment,
+			TypeComment,
 		},
 	})
 	if err != nil {
@@ -115,7 +115,7 @@ func TestCommentControllerDelete(t *testing.T) {
 		ID:      &created.ID,
 		Owned:   &defaultOwned,
 		Types: []string{
-			typeComment,
+			TypeComment,
 		},
 	})
 	if err != nil {
@@ -227,7 +227,7 @@ func TestCommentControllerUpdate(t *testing.T) {
 		ID:    &created.ID,
 		Owned: &defaultOwned,
 		Types: []string{
-			typeComment,
+			TypeComment,
 		},
 	})
 	if err != nil {
@@ -290,7 +290,7 @@ func TestCommentControllerExternalCreate(t *testing.T) {
 		ID:    &created.ID,
 		Owned: &defaultOwned,
 		Types: []string{
-			typeComment,
+			TypeComment,
 		},
 	})
 	if err != nil {
@@ -335,7 +335,7 @@ func TestCommentControllerExternalDelete(t *testing.T) {
 		ID:      &created.ID,
 		Owned:   &defaultOwned,
 		Types: []string{
-			typeComment,
+			TypeComment,
 		},
 	})
 	if err != nil {
@@ -439,7 +439,7 @@ func TestCommentExternalControllerUpdate(t *testing.T) {
 		ID:    &created.ID,
 		Owned: &defaultOwned,
 		Types: []string{
-			typeComment,
+			TypeComment,
 		},
 	})
 	if err != nil {
@@ -489,7 +489,7 @@ func testComment(ownerID uint64, post *object.Object) *object.Object {
 		ObjectID:   post.ID,
 		OwnerID:    ownerID,
 		Owned:      true,
-		Type:       typeComment,
+		Type:       TypeComment,
 		Visibility: post.Visibility,
 	}
 }
@@ -504,7 +504,7 @@ func testExternalComment(ownerID uint64, externalID string) *object.Object {
 		ExternalID: externalID,
 		OwnerID:    ownerID,
 		Owned:      true,
-		Type:       typeComment,
+		Type:       TypeComment,
 		Visibility: object.VisibilityPublic,
 	}
 }
@@ -520,7 +520,7 @@ func testCommentSet(ownerID uint64, post *object.Object) []*object.Object {
 			ObjectID:   post.ID,
 			OwnerID:    ownerID,
 			Owned:      true,
-			Type:       typeComment,
+			Type:       TypeComment,
 			Visibility: post.Visibility,
 		},
 		{
@@ -532,7 +532,7 @@ func testCommentSet(ownerID uint64, post *object.Object) []*object.Object {
 			ObjectID:   post.ID,
 			OwnerID:    ownerID + 1,
 			Owned:      true,
-			Type:       typeComment,
+			Type:       TypeComment,
 			Visibility: post.Visibility,
 		},
 		{
@@ -544,7 +544,7 @@ func testCommentSet(ownerID uint64, post *object.Object) []*object.Object {
 			ObjectID:   post.ID,
 			OwnerID:    ownerID - 1,
 			Owned:      true,
-			Type:       typeComment,
+			Type:       TypeComment,
 			Visibility: post.Visibility,
 		},
 		{
@@ -556,7 +556,7 @@ func testCommentSet(ownerID uint64, post *object.Object) []*object.Object {
 			ObjectID:   post.ID,
 			OwnerID:    ownerID,
 			Owned:      true,
-			Type:       typeComment,
+			Type:       TypeComment,
 			Visibility: post.Visibility,
 		},
 		{
@@ -568,7 +568,7 @@ func testCommentSet(ownerID uint64, post *object.Object) []*object.Object {
 			ObjectID:   post.ID,
 			OwnerID:    ownerID,
 			Owned:      true,
-			Type:       typeComment,
+			Type:       TypeComment,
 			Visibility: post.Visibility,
 		},
 	}
@@ -585,7 +585,7 @@ func testExternalCommentSet(ownerID uint64, externalID string) []*object.Object 
 			ExternalID: externalID,
 			OwnerID:    ownerID,
 			Owned:      true,
-			Type:       typeComment,
+			Type:       TypeComment,
 			Visibility: object.VisibilityPublic,
 		},
 		{
@@ -597,7 +597,7 @@ func testExternalCommentSet(ownerID uint64, externalID string) []*object.Object 
 			ExternalID: externalID,
 			OwnerID:    ownerID + 1,
 			Owned:      true,
-			Type:       typeComment,
+			Type:       TypeComment,
 			Visibility: object.VisibilityPublic,
 		},
 		{
@@ -609,7 +609,7 @@ func testExternalCommentSet(ownerID uint64, externalID string) []*object.Object 
 			ExternalID: externalID,
 			OwnerID:    ownerID - 1,
 			Owned:      true,
-			Type:       typeComment,
+			Type:       TypeComment,
 			Visibility: object.VisibilityPublic,
 		},
 		{
@@ -621,7 +621,7 @@ func testExternalCommentSet(ownerID uint64, externalID string) []*object.Object 
 			ExternalID: externalID,
 			OwnerID:    ownerID,
 			Owned:      true,
-			Type:       typeComment,
+			Type:       TypeComment,
 			Visibility: object.VisibilityPublic,
 		},
 		{
@@ -633,7 +633,7 @@ func testExternalCommentSet(ownerID uint64, externalID string) []*object.Object 
 			ExternalID: externalID,
 			OwnerID:    ownerID,
 			Owned:      true,
-			Type:       typeComment,
+			Type:       TypeComment,
 			Visibility: object.VisibilityPublic,
 		},
 	}

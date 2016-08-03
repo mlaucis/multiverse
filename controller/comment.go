@@ -8,8 +8,10 @@ import (
 )
 
 const (
+	// TypeComment identifies a comment object.
+	TypeComment = "tg_comment"
+
 	attachmentContent = "content"
-	typeComment       = "tg_comment"
 )
 
 // CommentFeed is a collection of comments with their referneced users.
@@ -53,7 +55,7 @@ func (c *CommentController) Create(
 	ps, err := c.objects.Query(app.Namespace(), object.QueryOptions{
 		ID:    &postID,
 		Owned: &defaultOwned,
-		Types: []string{typePost},
+		Types: []string{TypePost},
 	})
 	if err != nil {
 		return nil, err
@@ -74,7 +76,7 @@ func (c *CommentController) Create(
 		OwnerID:    origin.UserID,
 		Owned:      true,
 		Private:    input.Private,
-		Type:       typeComment,
+		Type:       TypeComment,
 		Visibility: ps[0].Visibility,
 	}
 
@@ -105,7 +107,7 @@ func (c *CommentController) Delete(
 			origin,
 		},
 		Types: []string{
-			typeComment,
+			TypeComment,
 		},
 		Owned: &defaultOwned,
 	})
@@ -137,7 +139,7 @@ func (c *CommentController) List(
 	ps, err := c.objects.Query(app.Namespace(), object.QueryOptions{
 		ID:    &postID,
 		Owned: &defaultOwned,
-		Types: []string{typePost},
+		Types: []string{TypePost},
 	})
 	if err != nil {
 		return nil, err
@@ -156,7 +158,7 @@ func (c *CommentController) List(
 			postID,
 		},
 		Types: []string{
-			typeComment,
+			TypeComment,
 		},
 		Owned: &defaultOwned,
 	})
@@ -187,7 +189,7 @@ func (c *CommentController) Retrieve(
 			origin,
 		},
 		Types: []string{
-			typeComment,
+			TypeComment,
 		},
 		Owned: &defaultOwned,
 	})
@@ -224,7 +226,7 @@ func (c *CommentController) Update(
 		},
 		Owned: &defaultOwned,
 		Types: []string{
-			typeComment,
+			TypeComment,
 		},
 	})
 	if err != nil {
@@ -266,7 +268,7 @@ func (c *CommentController) ExternalCreate(
 		ExternalID: externalID,
 		OwnerID:    origin,
 		Owned:      true,
-		Type:       typeComment,
+		Type:       TypeComment,
 		Visibility: object.VisibilityPublic,
 	}
 
@@ -293,7 +295,7 @@ func (c *CommentController) ExternalDelete(
 			origin,
 		},
 		Types: []string{
-			typeComment,
+			TypeComment,
 		},
 		Owned: &defaultOwned,
 	})
@@ -326,7 +328,7 @@ func (c *CommentController) ExternalList(
 			externalID,
 		},
 		Types: []string{
-			typeComment,
+			TypeComment,
 		},
 		Owned: &defaultOwned,
 	})
@@ -358,7 +360,7 @@ func (c *CommentController) ExternalRetrieve(
 			origin,
 		},
 		Types: []string{
-			typeComment,
+			TypeComment,
 		},
 		Owned: &defaultOwned,
 	})
@@ -391,7 +393,7 @@ func (c *CommentController) ExternalUpdate(
 		},
 		Owned: &defaultOwned,
 		Types: []string{
-			typeComment,
+			TypeComment,
 		},
 	})
 	if err != nil {

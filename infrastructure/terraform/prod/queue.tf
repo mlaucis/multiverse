@@ -62,3 +62,50 @@ resource "aws_sqs_queue" "connection-state-change" {
 EOF
     visibility_timeout_seconds  = 60
 }
+resource "aws_sqs_queue" "event-state-change-dlq" {
+    delay_seconds               = 0
+    max_message_size            = 262144
+    message_retention_seconds   = 1209600
+    name                        = "event-state-change-dlq"
+    receive_wait_time_seconds   = 1
+    visibility_timeout_seconds  = 300
+}
+
+resource "aws_sqs_queue" "event-state-change" {
+    delay_seconds               = 0
+    max_message_size            = 262144
+    message_retention_seconds   = 1209600
+    name                        = "event-state-change"
+    receive_wait_time_seconds   = 1
+    redrive_policy              = <<EOF
+{
+    "deadLetterTargetArn": "${aws_sqs_queue.event-state-change-dlq.arn}",
+    "maxReceiveCount": 10
+}
+EOF
+    visibility_timeout_seconds  = 60
+}
+
+resource "aws_sqs_queue" "object-state-change-dlq" {
+    delay_seconds               = 0
+    max_message_size            = 262144
+    message_retention_seconds   = 1209600
+    name                        = "object-state-change-dlq"
+    receive_wait_time_seconds   = 1
+    visibility_timeout_seconds  = 300
+}
+
+resource "aws_sqs_queue" "object-state-change" {
+    delay_seconds               = 0
+    max_message_size            = 262144
+    message_retention_seconds   = 1209600
+    name                        = "object-state-change"
+    receive_wait_time_seconds   = 1
+    redrive_policy              = <<EOF
+{
+    "deadLetterTargetArn": "${aws_sqs_queue.object-state-change-dlq.arn}",
+    "maxReceiveCount": 10
+}
+EOF
+    visibility_timeout_seconds  = 60
+}

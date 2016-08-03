@@ -582,10 +582,15 @@ func (c *UserController) login(
 	}
 
 	if !valid {
-		return nil, ErrUnauthorized
+		return nil, wrapError(ErrUnauthorized, "wrong credentials")
 	}
 
 	err = c.enrichSessionToken(app, u, deviceID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = enrichConnectionCounts(c.connections, c.users, app, u)
 	if err != nil {
 		return nil, err
 	}

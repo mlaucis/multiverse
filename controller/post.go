@@ -8,7 +8,8 @@ import (
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
 
-const typePost = "tg_post"
+// TypePost identifies an object as a Post.
+const TypePost = "tg_post"
 
 var defaultOwned = true
 
@@ -58,6 +59,17 @@ func (ps PostList) Less(i, j int) bool {
 
 func (ps PostList) Swap(i, j int) {
 	ps[i], ps[j] = ps[j], ps[i]
+}
+
+// IDs returns the id of all posts in the list.
+func (ps PostList) IDs() []uint64 {
+	ids := []uint64{}
+
+	for _, p := range ps {
+		ids = append(ids, p.ID)
+	}
+
+	return ids
 }
 
 // OwnerIDs extracts the OwnerID of every post.
@@ -113,7 +125,8 @@ func (c *PostController) Create(
 ) (*Post, error) {
 	post.OwnerID = origin.UserID
 	post.Owned = defaultOwned
-	post.Type = typePost
+	post.Type = TypePost
+	// TypePost identifies an object as a Post.
 
 	if err := post.Validate(); err != nil {
 		return nil, wrapError(ErrInvalidEntity, "invalid Post: %s", err)
@@ -145,7 +158,7 @@ func (c *PostController) Delete(
 		ID:    &id,
 		Owned: &defaultOwned,
 		Types: []string{
-			typePost,
+			TypePost,
 		},
 	})
 	if err != nil {
@@ -177,17 +190,21 @@ func (c *PostController) Delete(
 func (c *PostController) ListAll(
 	app *v04_entity.Application,
 	origin uint64,
+	options *object.QueryOptions,
 ) (*PostFeed, error) {
-	os, err := c.objects.Query(app.Namespace(), object.QueryOptions{
-		Owned: &defaultOwned,
-		Types: []string{
-			typePost,
-		},
-		Visibilities: []object.Visibility{
-			object.VisibilityPublic,
-			object.VisibilityGlobal,
-		},
-	})
+	opts := object.QueryOptions{}
+	if options != nil {
+		opts = *options
+	}
+
+	opts.Owned = &defaultOwned
+	opts.Types = []string{TypePost}
+	opts.Visibilities = []object.Visibility{
+		object.VisibilityPublic,
+		object.VisibilityGlobal,
+	}
+
+	os, err := c.objects.Query(app.Namespace(), opts)
 	if err != nil {
 		return nil, err
 	}
@@ -221,7 +238,13 @@ func (c *PostController) ListUser(
 	app *v04_entity.Application,
 	origin uint64,
 	userID uint64,
+	options *object.QueryOptions,
 ) (*PostFeed, error) {
+	opts := object.QueryOptions{}
+	if options != nil {
+		opts = *options
+	}
+
 	vs := []object.Visibility{
 		object.VisibilityPublic,
 		object.VisibilityGlobal,
@@ -244,16 +267,12 @@ func (c *PostController) ListUser(
 		vs = append(vs, object.VisibilityConnection, object.VisibilityPrivate)
 	}
 
-	os, err := c.objects.Query(app.Namespace(), object.QueryOptions{
-		OwnerIDs: []uint64{
-			userID,
-		},
-		Owned: &defaultOwned,
-		Types: []string{
-			typePost,
-		},
-		Visibilities: vs,
-	})
+	opts.OwnerIDs = []uint64{userID}
+	opts.Owned = &defaultOwned
+	opts.Types = []string{TypePost}
+	opts.Visibilities = vs
+
+	os, err := c.objects.Query(app.Namespace(), opts)
 	if err != nil {
 		return nil, err
 	}
@@ -291,7 +310,7 @@ func (c *PostController) Retrieve(
 		ID:    &id,
 		Owned: &defaultOwned,
 		Types: []string{
-			typePost,
+			TypePost,
 		},
 	})
 	if err != nil {
@@ -335,7 +354,7 @@ func (c *PostController) Update(
 		},
 		Owned: &defaultOwned,
 		Types: []string{
-			typePost,
+			TypePost,
 		},
 	})
 	if err != nil {
@@ -392,7 +411,7 @@ func enrichCounts(
 				p.ID,
 			},
 			Types: []string{
-				typeComment,
+				TypeComment,
 			},
 		})
 		if err != nil {
@@ -405,7 +424,7 @@ func enrichCounts(
 				p.ID,
 			},
 			Types: []string{
-				typeLike,
+				TypeLike,
 			},
 		})
 		if err != nil {
@@ -434,7 +453,7 @@ func enrichIsLiked(
 				p.ID,
 			},
 			Types: []string{
-				typeLike,
+				TypeLike,
 			},
 			UserIDs: []uint64{
 				userID,

@@ -32,9 +32,19 @@ const (
 	TypeFriend = "tg_friend"
 )
 
+// Acker permantly removes the workload from the Source.
+type Acker interface {
+	Ack(id string) error
+}
+
 // AggregateService for event interactions.
 type AggregateService interface {
 	ActiveUserIDs(string, Period) ([]uint64, error)
+}
+
+// Consumer observes state changes.
+type Consumer interface {
+	Consume() (*StateChange, error)
 }
 
 // Event is the buidling block to express interaction on internal/external
@@ -135,6 +145,11 @@ type Object struct {
 	URL          string            `json:"url"`
 }
 
+// Producer creates a state change notification.
+type Producer interface {
+	Propagate(namespace string, old, new *Event) (string, error)
+}
+
 // QueryOptions are used to narrow down Event queries.
 type QueryOptions struct {
 	Enabled             *bool
@@ -172,6 +187,26 @@ type Service interface {
 
 // ServiceMiddleware is a chainable behaviour modifier for Service.
 type ServiceMiddleware func(Service) Service
+
+// StateChange transports all information necessary to observe state changes.
+type StateChange struct {
+	AckID     string
+	ID        string
+	Namespace string
+	New       *Event
+	Old       *Event
+	SentAt    time.Time
+}
+
+// Source encapsulates state change notifications operations.
+type Source interface {
+	Acker
+	Consumer
+	Producer
+}
+
+// SourceMiddleware is a chainable behaviour modifier for Source.
+type SourceMiddleware func(Source) Source
 
 // Visibility determines the visibility of Objects when consumed.
 type Visibility uint8

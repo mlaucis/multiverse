@@ -13,8 +13,8 @@ type logService struct {
 	next   Service
 }
 
-// LogMiddleware given a Logger wraps the next Service with logging capabilities.
-func LogMiddleware(logger log.Logger, store string) ServiceMiddleware {
+// LogServiceMiddleware given a Logger wraps the next Service with logging capabilities.
+func LogServiceMiddleware(logger log.Logger, store string) ServiceMiddleware {
 	return func(next Service) Service {
 		logger = log.NewContext(logger).With(
 			"service", "event",
@@ -163,4 +163,87 @@ func (s *logService) Teardown(ns string) (err error) {
 	}(time.Now())
 
 	return s.next.Teardown(ns)
+}
+
+type logSource struct {
+	logger log.Logger
+	next   Source
+}
+
+// LogSourceMiddleware given a Logger raps the next Source logging capabilities.
+func LogSourceMiddleware(store string, logger log.Logger) SourceMiddleware {
+	return func(next Source) Source {
+		logger = log.NewContext(logger).With(
+			"source", "event",
+			"store", store,
+		)
+
+		return &logSource{
+			logger: logger,
+			next:   next,
+		}
+	}
+}
+
+func (s *logSource) Ack(id string) (err error) {
+	defer func(begin time.Time) {
+		ps := []interface{}{
+			"ack_id", id,
+			"method", "Ack",
+		}
+
+		if err != nil {
+			ps = append(ps, "err", err)
+		}
+
+		_ = s.logger.Log(ps...)
+	}(time.Now())
+
+	return s.next.Ack(id)
+}
+
+func (s *logSource) Consume() (change *StateChange, err error) {
+	defer func(begin time.Time) {
+		ps := []interface{}{
+			"duration_ns", time.Since(begin).Nanoseconds(),
+			"method", "Consume",
+		}
+
+		if change != nil {
+			ps = append(ps,
+				"namespace", change.Namespace,
+				"object_new", change.New,
+				"object_old", change.Old,
+			)
+		}
+
+		if err != nil {
+			ps = append(ps, "err", err)
+		}
+
+		_ = s.logger.Log(ps...)
+	}(time.Now())
+
+	return s.next.Consume()
+}
+
+func (s *logSource) Propagate(ns string, old, new *Event) (id string, err error) {
+	defer func(begin time.Time) {
+		ps := []interface{}{
+			"duration_ns", time.Since(begin).Nanoseconds(),
+			"id", id,
+			"method", "Propagate",
+			"namespace", ns,
+			"object_new", new,
+			"object_old", old,
+		}
+
+		if err != nil {
+			ps = append(ps, "err", err)
+		}
+
+		_ = s.logger.Log(ps...)
+	}(time.Now())
+
+	return s.next.Propagate(ns, old, new)
 }
