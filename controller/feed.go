@@ -451,8 +451,6 @@ func (c *FeedController) NotificationsSelf(
 		return nil, err
 	}
 
-	es = filter(es, conditionDuplicate())
-
 	um, err := fillupUsers(c.users, app, origin, fs.users().ToMap(), es)
 	if err != nil {
 		return nil, err
