@@ -90,7 +90,7 @@ func (a affiliations) filterFollowers(origin uint64) affiliations {
 	am := affiliations{}
 
 	for con, user := range a {
-		if con.Type == connection.TypeFollow && con.FromID != origin {
+		if con.Type == connection.TypeFollow && con.ToID == origin {
 			continue
 		}
 
@@ -106,7 +106,7 @@ func (a affiliations) filterFollowings(origin uint64) affiliations {
 	am := affiliations{}
 
 	for con, user := range a {
-		if con.Type == connection.TypeFollow && con.ToID == origin {
+		if con.Type == connection.TypeFollow && con.FromID == origin {
 			continue
 		}
 
@@ -437,11 +437,10 @@ func (c *FeedController) NotificationsSelf(
 	}
 
 	var (
-		fs      = am.followers(origin)
-		us      = am.filterFollowings(origin).users()
+		fs      = am.filterFollowings(origin)
 		sources = []source{
 			sourceComment(c.objects, app, ps.IDs()...),
-			sourceConnection(fs),
+			sourceConnection(fs.connections()),
 			sourceLikes(c.events, app, opts, ps.IDs()...),
 			sourceTarget(c.events, app, origin, opts),
 		}
@@ -452,12 +451,9 @@ func (c *FeedController) NotificationsSelf(
 		return nil, err
 	}
 
-	es = filter(
-		es,
-		conditionDuplicate(),
-	)
+	es = filter(es, conditionDuplicate())
 
-	um, err := fillupUsers(c.users, app, origin, us.ToMap(), es)
+	um, err := fillupUsers(c.users, app, origin, fs.users().ToMap(), es)
 	if err != nil {
 		return nil, err
 	}
