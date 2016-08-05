@@ -1,11 +1,11 @@
 package controller
 
 import (
+	"github.com/tapglue/multiverse/service/app"
 	"github.com/tapglue/multiverse/service/connection"
 	"github.com/tapglue/multiverse/service/event"
 	"github.com/tapglue/multiverse/service/object"
 	"github.com/tapglue/multiverse/service/user"
-	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
 
 const (
@@ -49,11 +49,11 @@ func NewLikeController(
 // Create checks if a like for the owner on the post exists and if not creates
 // a new event for it.
 func (c *LikeController) Create(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	origin uint64,
 	postID uint64,
 ) (*event.Event, error) {
-	ps, err := c.posts.Query(app.Namespace(), object.QueryOptions{
+	ps, err := c.posts.Query(currentApp.Namespace(), object.QueryOptions{
 		ID:    &postID,
 		Owned: &defaultOwned,
 		Types: []string{
@@ -70,11 +70,11 @@ func (c *LikeController) Create(
 
 	post := ps[0]
 
-	if err := isPostVisible(c.connections, app, post, origin); err != nil {
+	if err := isPostVisible(c.connections, currentApp, post, origin); err != nil {
 		return nil, err
 	}
 
-	es, err := c.events.Query(app.Namespace(), event.QueryOptions{
+	es, err := c.events.Query(currentApp.Namespace(), event.QueryOptions{
 		ObjectIDs: []uint64{
 			postID,
 		},
@@ -110,7 +110,7 @@ func (c *LikeController) Create(
 		like.Enabled = true
 	}
 
-	like, err = c.events.Put(app.Namespace(), like)
+	like, err = c.events.Put(currentApp.Namespace(), like)
 	if err != nil {
 		return nil, err
 	}
@@ -120,11 +120,11 @@ func (c *LikeController) Create(
 
 // Delete removes an existing like event for the given user on the post.
 func (c *LikeController) Delete(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	origin uint64,
 	postID uint64,
 ) error {
-	ps, err := c.posts.Query(app.Namespace(), object.QueryOptions{
+	ps, err := c.posts.Query(currentApp.Namespace(), object.QueryOptions{
 		ID:    &postID,
 		Owned: &defaultOwned,
 		Types: []string{
@@ -139,11 +139,11 @@ func (c *LikeController) Delete(
 		return ErrNotFound
 	}
 
-	if err := isPostVisible(c.connections, app, ps[0], origin); err != nil {
+	if err := isPostVisible(c.connections, currentApp, ps[0], origin); err != nil {
 		return err
 	}
 
-	es, err := c.events.Query(app.Namespace(), event.QueryOptions{
+	es, err := c.events.Query(currentApp.Namespace(), event.QueryOptions{
 		Enabled: &defaultEnabled,
 		ObjectIDs: []uint64{
 			postID,
@@ -167,7 +167,7 @@ func (c *LikeController) Delete(
 	like := es[0]
 	like.Enabled = false
 
-	like, err = c.events.Put(app.Namespace(), like)
+	like, err = c.events.Put(currentApp.Namespace(), like)
 	if err != nil {
 		return err
 	}
@@ -177,11 +177,11 @@ func (c *LikeController) Delete(
 
 // List returns all likes for the given post.
 func (c *LikeController) List(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	origin uint64,
 	postID uint64,
 ) (*LikeFeed, error) {
-	ps, err := c.posts.Query(app.Namespace(), object.QueryOptions{
+	ps, err := c.posts.Query(currentApp.Namespace(), object.QueryOptions{
 		ID:    &postID,
 		Owned: &defaultOwned,
 		Types: []string{
@@ -196,11 +196,11 @@ func (c *LikeController) List(
 		return nil, ErrNotFound
 	}
 
-	if err := isPostVisible(c.connections, app, ps[0], origin); err != nil {
+	if err := isPostVisible(c.connections, currentApp, ps[0], origin); err != nil {
 		return nil, err
 	}
 
-	es, err := c.events.Query(app.Namespace(), event.QueryOptions{
+	es, err := c.events.Query(currentApp.Namespace(), event.QueryOptions{
 		Enabled: &defaultEnabled,
 		ObjectIDs: []uint64{
 			postID,
@@ -211,7 +211,7 @@ func (c *LikeController) List(
 		},
 	})
 
-	um, err := user.MapFromIDs(c.users, app.Namespace(), es.UserIDs()...)
+	um, err := user.MapFromIDs(c.users, currentApp.Namespace(), es.UserIDs()...)
 	if err != nil {
 		return nil, err
 	}
@@ -225,11 +225,11 @@ func (c *LikeController) List(
 // ExternalCreate checks if a like for the owner on the external entity exists
 // and if not creates a new event for it.
 func (c *LikeController) ExternalCreate(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	origin uint64,
 	externalID string,
 ) (*event.Event, error) {
-	es, err := c.events.Query(app.Namespace(), event.QueryOptions{
+	es, err := c.events.Query(currentApp.Namespace(), event.QueryOptions{
 		ExternalObjectIDs: []string{
 			externalID,
 		},
@@ -271,7 +271,7 @@ func (c *LikeController) ExternalCreate(
 		like.Enabled = true
 	}
 
-	like, err = c.events.Put(app.Namespace(), like)
+	like, err = c.events.Put(currentApp.Namespace(), like)
 	if err != nil {
 		return nil, err
 	}
@@ -282,11 +282,11 @@ func (c *LikeController) ExternalCreate(
 // ExternalDelete removes an existing like event for the given user on the
 // external entity.
 func (c *LikeController) ExternalDelete(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	origin uint64,
 	externalID string,
 ) error {
-	es, err := c.events.Query(app.Namespace(), event.QueryOptions{
+	es, err := c.events.Query(currentApp.Namespace(), event.QueryOptions{
 		Enabled: &defaultEnabled,
 		ExternalObjectIDs: []string{
 			externalID,
@@ -313,7 +313,7 @@ func (c *LikeController) ExternalDelete(
 	like := es[0]
 	like.Enabled = false
 
-	like, err = c.events.Put(app.Namespace(), like)
+	like, err = c.events.Put(currentApp.Namespace(), like)
 	if err != nil {
 		return err
 	}
@@ -323,10 +323,10 @@ func (c *LikeController) ExternalDelete(
 
 // ExternalList returns all likes for the external entity.
 func (c *LikeController) ExternalList(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	externalID string,
 ) (*LikeFeed, error) {
-	es, err := c.events.Query(app.Namespace(), event.QueryOptions{
+	es, err := c.events.Query(currentApp.Namespace(), event.QueryOptions{
 		Enabled: &defaultEnabled,
 		ExternalObjectIDs: []string{
 			externalID,
@@ -343,7 +343,7 @@ func (c *LikeController) ExternalList(
 		return nil, err
 	}
 
-	um, err := user.MapFromIDs(c.users, app.Namespace(), es.UserIDs()...)
+	um, err := user.MapFromIDs(c.users, currentApp.Namespace(), es.UserIDs()...)
 	if err != nil {
 		return nil, err
 	}

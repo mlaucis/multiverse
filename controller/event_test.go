@@ -4,11 +4,11 @@ import (
 	"math/rand"
 	"testing"
 
+	"github.com/tapglue/multiverse/service/app"
 	"github.com/tapglue/multiverse/service/connection"
 	"github.com/tapglue/multiverse/service/event"
 	"github.com/tapglue/multiverse/service/object"
 	"github.com/tapglue/multiverse/service/user"
-	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
 
 func TestEventCreateConstrainVisibility(t *testing.T) {
@@ -61,11 +61,11 @@ func testEvent(ownerID uint64) *event.Event {
 
 func testSetupEventController(
 	t *testing.T,
-) (*v04_entity.Application, *user.User, *EventController) {
+) (*app.App, *user.User, *EventController) {
 	var (
-		app = &v04_entity.Application{
-			ID:    rand.Int63(),
-			OrgID: rand.Int63(),
+		a = &app.App{
+			ID:    uint64(rand.Int63()),
+			OrgID: uint64(rand.Int63()),
 		}
 		connections = connection.NewMemService()
 		events      = event.NewMemService()
@@ -76,5 +76,5 @@ func testSetupEventController(
 		}
 	)
 
-	return app, u, NewEventController(connections, events, objects, users)
+	return a, u, NewEventController(connections, events, objects, users)
 }

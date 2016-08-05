@@ -289,6 +289,9 @@ func testServicePut(t *testing.T, p prepareFunc) {
 			created.ID,
 		},
 	})
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	if have, want := len(list), 1; have != want {
 		t.Fatalf("have %v, want %v", have, want)

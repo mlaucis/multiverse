@@ -1,4 +1,4 @@
-package user
+package app
 
 import (
 	"errors"
@@ -7,13 +7,12 @@ import (
 
 const errFmt = "%s: %s"
 
-// Common errors for User service implementations and validations.
+// Common errors for App services.
 var (
-	ErrInvalidUser = errors.New("invalid user")
-	ErrNotFound    = errors.New("user not found")
+	ErrNotFound = errors.New("app not found")
 )
 
-// Error wraps common User errors.
+// Error wraps common App errors.
 type Error struct {
 	err error
 	msg string
@@ -21,11 +20,6 @@ type Error struct {
 
 func (e Error) Error() string {
 	return e.msg
-}
-
-// IsInvalidUser indicates if err is ErrInvalidUser.
-func IsInvalidUser(err error) bool {
-	return unwrapError(err) == ErrInvalidUser
 }
 
 // IsNotFound indicates if err is ErrNotFound.

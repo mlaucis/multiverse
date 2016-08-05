@@ -160,7 +160,7 @@ func main() {
 		"lifecycle", "start",
 	)
 
-	as, err := apps.Query(app.QueryOptions{
+	as, err := apps.Query(app.NamespaceDefault, app.QueryOptions{
 		Enabled:      &defaultTrue,
 		InProduction: &defaultTrue,
 	})

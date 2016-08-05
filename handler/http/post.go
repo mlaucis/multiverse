@@ -6,9 +6,9 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/gorilla/mux"
 	"golang.org/x/net/context"
 
-	"github.com/gorilla/mux"
 	"github.com/tapglue/multiverse/controller"
 	"github.com/tapglue/multiverse/service/object"
 	"github.com/tapglue/multiverse/service/user"

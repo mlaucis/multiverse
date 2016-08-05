@@ -151,7 +151,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "getApplications",
 			Method: "GET",
-			Path:   fmt.Sprintf("/organizations/%s/applications", organizationID),
+			Path:   fmt.Sprintf("/deprecated/organizations/%s/applications", organizationID),
 			Handlers: []RouteFunc{
 				postgresApplicationHandler.List,
 			},
@@ -163,7 +163,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "getApplication",
 			Method: "GET",
-			Path:   fmt.Sprintf("/organizations/%s/applications/%s", organizationID, applicationID),
+			Path:   fmt.Sprintf("/deprecated/organizations/%s/applications/%s", organizationID, applicationID),
 			Handlers: []RouteFunc{
 				postgresApplicationHandler.Read,
 			},
@@ -176,7 +176,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "updateApplication",
 			Method: "PUT",
-			Path:   fmt.Sprintf("/organizations/%s/applications/%s", organizationID, applicationID),
+			Path:   fmt.Sprintf("/deprecated/organizations/%s/applications/%s", organizationID, applicationID),
 			Handlers: []RouteFunc{
 				postgresApplicationHandler.Update,
 			},
@@ -189,7 +189,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "deleteApplication",
 			Method: "DELETE",
-			Path:   fmt.Sprintf("/organizations/%s/applications/%s", organizationID, applicationID),
+			Path:   fmt.Sprintf("/deprecated/organizations/%s/applications/%s", organizationID, applicationID),
 			Handlers: []RouteFunc{
 				postgresApplicationHandler.Delete,
 			},
@@ -202,7 +202,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "createApplication",
 			Method: "POST",
-			Path:   fmt.Sprintf("/organizations/%s/applications", organizationID),
+			Path:   fmt.Sprintf("/deprecated/organizations/%s/applications", organizationID),
 			Handlers: []RouteFunc{
 				postgresApplicationHandler.Create,
 			},

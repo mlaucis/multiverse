@@ -5,10 +5,10 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/tapglue/multiverse/service/app"
 	"github.com/tapglue/multiverse/service/connection"
 	"github.com/tapglue/multiverse/service/object"
 	"github.com/tapglue/multiverse/service/user"
-	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
 
 func TestCommentControllerCreate(t *testing.T) {
@@ -457,11 +457,11 @@ func TestCommentExternalControllerUpdate(t *testing.T) {
 
 func testSetupCommentController(
 	t *testing.T,
-) (*v04_entity.Application, *user.User, *CommentController) {
+) (*app.App, *user.User, *CommentController) {
 	var (
-		app = &v04_entity.Application{
-			ID:    rand.Int63(),
-			OrgID: rand.Int63(),
+		a = &app.App{
+			ID:    uint64(rand.Int63()),
+			OrgID: uint64(rand.Int63()),
 		}
 		connections = connection.NewMemService()
 		objects     = object.NewMemService()
@@ -471,12 +471,12 @@ func testSetupCommentController(
 		}
 	)
 
-	err := objects.Setup(app.Namespace())
+	err := objects.Setup(a.Namespace())
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	return app, user, NewCommentController(connections, objects, users)
+	return a, user, NewCommentController(connections, objects, users)
 }
 
 func testComment(ownerID uint64, post *object.Object) *object.Object {

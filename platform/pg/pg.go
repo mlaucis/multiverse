@@ -14,6 +14,8 @@ const MetaNamespace = "tg"
 // TimeFormat can be used to extract and store time in a reproducible way.
 const TimeFormat = "2006-01-02 15:04:05.000000 UTC"
 
+const URLTest = "postgres://%s@127.0.0.1:5432/tapglue_test?sslmode=disable&connect_timeout=5"
+
 // ErrRelationNotFound is returned as equivalent to the Postgres error.
 var ErrRelationNotFound = errors.New("relation not found")
 

@@ -6,37 +6,33 @@ import (
 	kitmetrics "github.com/go-kit/kit/metrics"
 	"github.com/prometheus/client_golang/prometheus"
 
-	"github.com/tapglue/multiverse/errors"
 	"github.com/tapglue/multiverse/platform/metrics"
-	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
 
 const serviceName = "app"
 
-type instrumentStrangleService struct {
-	StrangleService
-
+type instrumentService struct {
 	component string
 	errCount  kitmetrics.Counter
+	next      Service
 	opCount   kitmetrics.Counter
 	opLatency *prometheus.HistogramVec
 	store     string
 }
 
-// InstrumentStrangleMiddleware observes key aspects of Service operations and exposes
+// InstrumentServiceMiddleware observes key apsects of Service operations and exposes
 // Prometheus metrics.
-func InstrumentStrangleMiddleware(
+func InstrumentServiceMiddleware(
 	component, store string,
 	errCount kitmetrics.Counter,
 	opCount kitmetrics.Counter,
 	opLatency *prometheus.HistogramVec,
-) StrangleMiddleware {
-	return func(next StrangleService) StrangleService {
-		return &instrumentStrangleService{
-			StrangleService: next,
-
+) ServiceMiddleware {
+	return func(next Service) Service {
+		return &instrumentService{
 			component: component,
 			errCount:  errCount,
+			next:      next,
 			opCount:   opCount,
 			opLatency: opLatency,
 			store:     store,
@@ -44,34 +40,46 @@ func InstrumentStrangleMiddleware(
 	}
 }
 
-func (s *instrumentStrangleService) FindByApplicationToken(token string) (app *v04_entity.Application, errs []errors.Error) {
+func (s *instrumentService) Put(
+	ns string,
+	input *App,
+) (output *App, err error) {
 	defer func(begin time.Time) {
-		var err error
-		if errs != nil {
-			err = errs[0]
-		}
-
-		s.track("FindByApplicationToken", begin, err)
+		s.track("Put", ns, begin, err)
 	}(time.Now())
 
-	return s.StrangleService.FindByApplicationToken(token)
+	return s.next.Put(ns, input)
 }
 
-func (s *instrumentStrangleService) FindByBackendToken(token string) (app *v04_entity.Application, errs []errors.Error) {
+func (s *instrumentService) Query(
+	ns string,
+	opts QueryOptions,
+) (list List, err error) {
 	defer func(begin time.Time) {
-		var err error
-		if errs != nil {
-			err = errs[0]
-		}
-
-		s.track("FindByBackendToken", begin, err)
+		s.track("Query", ns, begin, err)
 	}(time.Now())
 
-	return s.StrangleService.FindByBackendToken(token)
+	return s.next.Query(ns, opts)
 }
 
-func (s *instrumentStrangleService) track(
-	method string,
+func (s *instrumentService) Setup(ns string) (err error) {
+	defer func(begin time.Time) {
+		s.track("Setup", ns, begin, err)
+	}(time.Now())
+
+	return s.next.Setup(ns)
+}
+
+func (s *instrumentService) Teardown(ns string) (err error) {
+	defer func(begin time.Time) {
+		s.track("Teardown", ns, begin, err)
+	}(time.Now())
+
+	return s.next.Teardown(ns)
+}
+
+func (s *instrumentService) track(
+	method, namespace string,
 	begin time.Time,
 	err error,
 ) {
@@ -84,6 +92,10 @@ func (s *instrumentStrangleService) track(
 			Key:   metrics.FieldMethod,
 			Value: method,
 		}
+		n = kitmetrics.Field{
+			Key:   metrics.FieldNamespace,
+			Value: namespace,
+		}
 		service = kitmetrics.Field{
 			Key:   metrics.FieldService,
 			Value: serviceName,
@@ -95,14 +107,15 @@ func (s *instrumentStrangleService) track(
 	)
 
 	if err != nil {
-		s.errCount.With(c).With(m).With(service).With(store).Add(1)
+		s.errCount.With(c).With(m).With(n).With(service).With(store).Add(1)
 	}
 
-	s.opCount.With(c).With(m).With(service).With(store).Add(1)
+	s.opCount.With(c).With(m).With(n).With(service).With(store).Add(1)
+
 	s.opLatency.With(prometheus.Labels{
 		metrics.FieldComponent: s.component,
 		metrics.FieldMethod:    method,
-		metrics.FieldNamespace: "",
+		metrics.FieldNamespace: namespace,
 		metrics.FieldService:   serviceName,
 		metrics.FieldStore:     s.store,
 	}).Observe(time.Since(begin).Seconds())

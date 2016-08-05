@@ -1,10 +1,10 @@
 package controller
 
 import (
+	"github.com/tapglue/multiverse/service/app"
 	"github.com/tapglue/multiverse/service/connection"
 	"github.com/tapglue/multiverse/service/object"
 	"github.com/tapglue/multiverse/service/user"
-	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
 
 const (
@@ -42,7 +42,7 @@ func NewCommentController(
 
 // Create associates the given Comment with the Post passed by id.
 func (c *CommentController) Create(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	origin Origin,
 	postID uint64,
 	input *object.Object,
@@ -52,7 +52,7 @@ func (c *CommentController) Create(
 		return nil, err
 	}
 
-	ps, err := c.objects.Query(app.Namespace(), object.QueryOptions{
+	ps, err := c.objects.Query(currentApp.Namespace(), object.QueryOptions{
 		ID:    &postID,
 		Owned: &defaultOwned,
 		Types: []string{TypePost},
@@ -84,21 +84,21 @@ func (c *CommentController) Create(
 		return nil, wrapError(ErrInvalidEntity, "invalid Comment: %s", err)
 	}
 
-	if err := isPostVisible(c.connections, app, ps[0], origin.UserID); err != nil {
+	if err := isPostVisible(c.connections, currentApp, ps[0], origin.UserID); err != nil {
 		return nil, err
 	}
 
-	return c.objects.Put(app.Namespace(), comment)
+	return c.objects.Put(currentApp.Namespace(), comment)
 }
 
 // Delete flags the Comment as deleted.
 func (c *CommentController) Delete(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	origin uint64,
 	postID uint64,
 	commentID uint64,
 ) error {
-	cs, err := c.objects.Query(app.Namespace(), object.QueryOptions{
+	cs, err := c.objects.Query(currentApp.Namespace(), object.QueryOptions{
 		ID: &commentID,
 		ObjectIDs: []uint64{
 			postID,
@@ -122,7 +122,7 @@ func (c *CommentController) Delete(
 
 	cs[0].Deleted = true
 
-	_, err = c.objects.Put(app.Namespace(), cs[0])
+	_, err = c.objects.Put(currentApp.Namespace(), cs[0])
 	if err != nil {
 		return err
 	}
@@ -132,11 +132,11 @@ func (c *CommentController) Delete(
 
 // List returns all comemnts for the given post id.
 func (c *CommentController) List(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	origin uint64,
 	postID uint64,
 ) (*CommentFeed, error) {
-	ps, err := c.objects.Query(app.Namespace(), object.QueryOptions{
+	ps, err := c.objects.Query(currentApp.Namespace(), object.QueryOptions{
 		ID:    &postID,
 		Owned: &defaultOwned,
 		Types: []string{TypePost},
@@ -149,11 +149,11 @@ func (c *CommentController) List(
 		return nil, ErrNotFound
 	}
 
-	if err := isPostVisible(c.connections, app, ps[0], origin); err != nil {
+	if err := isPostVisible(c.connections, currentApp, ps[0], origin); err != nil {
 		return nil, err
 	}
 
-	cs, err := c.objects.Query(app.Namespace(), object.QueryOptions{
+	cs, err := c.objects.Query(currentApp.Namespace(), object.QueryOptions{
 		ObjectIDs: []uint64{
 			postID,
 		},
@@ -166,7 +166,7 @@ func (c *CommentController) List(
 		return nil, err
 	}
 
-	um, err := user.MapFromIDs(c.users, app.Namespace(), cs.OwnerIDs()...)
+	um, err := user.MapFromIDs(c.users, currentApp.Namespace(), cs.OwnerIDs()...)
 	if err != nil {
 		return nil, err
 	}
@@ -176,11 +176,11 @@ func (c *CommentController) List(
 
 // Retrieve returns the comment given id.
 func (c *CommentController) Retrieve(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	origin uint64,
 	postID, commentID uint64,
 ) (*object.Object, error) {
-	cs, err := c.objects.Query(app.Namespace(), object.QueryOptions{
+	cs, err := c.objects.Query(currentApp.Namespace(), object.QueryOptions{
 		ID: &commentID,
 		ObjectIDs: []uint64{
 			postID,
@@ -206,7 +206,7 @@ func (c *CommentController) Retrieve(
 
 // Update replaces the given comment with new values.
 func (c *CommentController) Update(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	origin Origin,
 	postID, commentID uint64,
 	new *object.Object,
@@ -216,7 +216,7 @@ func (c *CommentController) Update(
 		return nil, err
 	}
 
-	cs, err := c.objects.Query(app.Namespace(), object.QueryOptions{
+	cs, err := c.objects.Query(currentApp.Namespace(), object.QueryOptions{
 		ID: &commentID,
 		ObjectIDs: []uint64{
 			postID,
@@ -250,13 +250,13 @@ func (c *CommentController) Update(
 		old.Private = new.Private
 	}
 
-	return c.objects.Put(app.Namespace(), old)
+	return c.objects.Put(currentApp.Namespace(), old)
 }
 
 // ExternalCreate stores a comment with the given content associated with the
 // external object.
 func (c *CommentController) ExternalCreate(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	origin uint64,
 	externalID string,
 	contents object.Contents,
@@ -276,17 +276,17 @@ func (c *CommentController) ExternalCreate(
 		return nil, wrapError(ErrInvalidEntity, "invalid Comment: %s", err)
 	}
 
-	return c.objects.Put(app.Namespace(), comment)
+	return c.objects.Put(currentApp.Namespace(), comment)
 }
 
 // ExternalDelete flags the Comment as deleted.
 func (c *CommentController) ExternalDelete(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	origin uint64,
 	externalID string,
 	commentID uint64,
 ) error {
-	cs, err := c.objects.Query(app.Namespace(), object.QueryOptions{
+	cs, err := c.objects.Query(currentApp.Namespace(), object.QueryOptions{
 		ID: &commentID,
 		ExternalIDs: []string{
 			externalID,
@@ -310,7 +310,7 @@ func (c *CommentController) ExternalDelete(
 
 	cs[0].Deleted = true
 
-	_, err = c.objects.Put(app.Namespace(), cs[0])
+	_, err = c.objects.Put(currentApp.Namespace(), cs[0])
 	if err != nil {
 		return err
 	}
@@ -320,10 +320,10 @@ func (c *CommentController) ExternalDelete(
 
 // ExternalList returns all comemnts for the given external id.
 func (c *CommentController) ExternalList(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	externalID string,
 ) (*CommentFeed, error) {
-	cs, err := c.objects.Query(app.Namespace(), object.QueryOptions{
+	cs, err := c.objects.Query(currentApp.Namespace(), object.QueryOptions{
 		ExternalIDs: []string{
 			externalID,
 		},
@@ -336,7 +336,7 @@ func (c *CommentController) ExternalList(
 		return nil, err
 	}
 
-	um, err := user.MapFromIDs(c.users, app.Namespace(), cs.OwnerIDs()...)
+	um, err := user.MapFromIDs(c.users, currentApp.Namespace(), cs.OwnerIDs()...)
 	if err != nil {
 		return nil, err
 	}
@@ -346,12 +346,12 @@ func (c *CommentController) ExternalList(
 
 // ExternalRetrieve returns the comment given id.
 func (c *CommentController) ExternalRetrieve(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	origin uint64,
 	externalID string,
 	commentID uint64,
 ) (*object.Object, error) {
-	cs, err := c.objects.Query(app.Namespace(), object.QueryOptions{
+	cs, err := c.objects.Query(currentApp.Namespace(), object.QueryOptions{
 		ExternalIDs: []string{
 			externalID,
 		},
@@ -377,13 +377,13 @@ func (c *CommentController) ExternalRetrieve(
 
 // ExternalUpdate replaces the given comment with new values.
 func (c *CommentController) ExternalUpdate(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	origin uint64,
 	externalID string,
 	commentID uint64,
 	contents object.Contents,
 ) (*object.Object, error) {
-	cs, err := c.objects.Query(app.Namespace(), object.QueryOptions{
+	cs, err := c.objects.Query(currentApp.Namespace(), object.QueryOptions{
 		ExternalIDs: []string{
 			externalID,
 		},
@@ -408,7 +408,7 @@ func (c *CommentController) ExternalUpdate(
 		object.NewTextAttachment(attachmentContent, contents),
 	}
 
-	return c.objects.Put(app.Namespace(), cs[0])
+	return c.objects.Put(currentApp.Namespace(), cs[0])
 }
 
 func constrainCommentPrivate(origin Origin, private *object.Private) error {

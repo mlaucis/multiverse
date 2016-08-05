@@ -16,7 +16,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"golang.org/x/net/context"
 
-	"github.com/tapglue/multiverse/errors"
 	"github.com/tapglue/multiverse/limiter"
 	"github.com/tapglue/multiverse/platform/metrics"
 	"github.com/tapglue/multiverse/service/app"
@@ -24,7 +23,6 @@ import (
 	"github.com/tapglue/multiverse/service/org"
 	"github.com/tapglue/multiverse/service/session"
 	"github.com/tapglue/multiverse/service/user"
-	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
 
 const headerIDFV = "X-Tapglue-Idfv"
@@ -51,7 +49,7 @@ func CORS() Middleware {
 }
 
 // CtxApp extracts the App from the Authentication header.
-func CtxApp(apps app.StrangleService) Middleware {
+func CtxApp(apps app.Service) Middleware {
 	return func(next Handler) Handler {
 		return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 			token, _, ok := r.BasicAuth()
@@ -60,35 +58,50 @@ func CtxApp(apps app.StrangleService) Middleware {
 				return
 			}
 
-			var (
-				app  *v04_entity.Application
-				errs []errors.Error
-			)
+			var currentApp *app.App
 
 			if len(token) == 32 {
-				app, errs = apps.FindByApplicationToken(token)
-				if errs != nil {
-					respondError(w, 0, errs[0])
+				as, err := apps.Query(app.NamespaceDefault, app.QueryOptions{
+					Enabled: &defaultEnabled,
+					Tokens: []string{
+						token,
+					},
+				})
+				if err != nil {
+					respondError(w, 0, err)
 					return
+				}
+
+				if len(as) == 1 {
+					currentApp = as[0]
 				}
 
 				ctx = tokenTypeInContext(ctx, tokenApplication)
 			} else if len(token) == 44 {
-				app, errs = apps.FindByBackendToken(token)
-				if errs != nil {
-					respondError(w, 0, errs[0])
+				as, err := apps.Query(app.NamespaceDefault, app.QueryOptions{
+					BackendTokens: []string{
+						token,
+					},
+					Enabled: &defaultEnabled,
+				})
+				if err != nil {
+					respondError(w, 0, err)
 					return
+				}
+
+				if len(as) == 1 {
+					currentApp = as[0]
 				}
 
 				ctx = tokenTypeInContext(ctx, tokenBackend)
 			}
 
-			if app == nil {
+			if currentApp == nil {
 				respondError(w, 1001, wrapError(ErrUnauthorized, "application not found"))
 				return
 			}
 
-			next(appInContext(ctx, app), w, r)
+			next(appInContext(ctx, currentApp), w, r)
 		}
 	}
 }
@@ -416,7 +429,7 @@ func RateLimit(limits limiter.Limiter) Middleware {
 			var (
 				app = appFromContext(ctx)
 				l   = &limiter.Limitee{
-					Hash:       app.AuthToken,
+					Hash:       app.Token,
 					Limit:      app.Limit(),
 					WindowSize: time.Minute,
 				}

@@ -6,10 +6,10 @@ import (
 	"testing"
 
 	"github.com/tapglue/multiverse/platform/generate"
+	"github.com/tapglue/multiverse/service/app"
 	"github.com/tapglue/multiverse/service/connection"
 	"github.com/tapglue/multiverse/service/session"
 	"github.com/tapglue/multiverse/service/user"
-	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
 
 func TestUserCreateConstrainPrivate(t *testing.T) {
@@ -81,18 +81,18 @@ func TestPassword(t *testing.T) {
 
 func testSetupUserController(
 	t *testing.T,
-) (*v04_entity.Application, *UserController) {
+) (*app.App, *UserController) {
 	var (
-		app = &v04_entity.Application{
-			ID:    rand.Int63(),
-			OrgID: rand.Int63(),
+		a = &app.App{
+			ID:    uint64(rand.Int63()),
+			OrgID: uint64(rand.Int63()),
 		}
 		connections = connection.NewMemService()
 		sessions    = session.NewMemService()
 		users       = user.NewMemService()
 	)
 
-	return app, NewUserController(connections, sessions, users)
+	return a, NewUserController(connections, sessions, users)
 }
 
 func testUser() *user.User {

@@ -4,62 +4,97 @@ import (
 	"time"
 
 	"github.com/go-kit/kit/log"
-
-	"github.com/tapglue/multiverse/errors"
-	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
 
-type logStrangleService struct {
-	StrangleService
-
+type logService struct {
 	logger log.Logger
+	next   Service
 }
 
-// LogStrangleMiddleware given a Logger wraps the next StrangleService with
-// logging capabilities.
-func LogStrangleMiddleware(logger log.Logger, store string) StrangleMiddleware {
-	return func(next StrangleService) StrangleService {
+// LogServiceMiddleware gien a Logger wraps the next Service with logging capabilities.
+func LogServiceMiddleware(logger log.Logger, store string) ServiceMiddleware {
+	return func(next Service) Service {
 		logger = log.NewContext(logger).With(
 			"service", "app",
 			"store", store,
 		)
 
-		return &logStrangleService{next, logger}
+		return &logService{logger: logger, next: next}
 	}
 }
 
-func (s *logStrangleService) FindByApplicationToken(token string) (app *v04_entity.Application, errs []errors.Error) {
+func (s *logService) Put(ns string, input *App) (output *App, err error) {
 	defer func(begin time.Time) {
 		ps := []interface{}{
 			"duration_ns", time.Since(begin).Nanoseconds(),
-			"method", "FindByApplicationToken",
-			"token", token,
+			"method", "Put",
+			"namespace", ns,
+			"app_input", input,
+			"app_output", output,
 		}
 
-		if errs != nil {
-			ps = append(ps, "err", errs[0])
+		if err != nil {
+			ps = append(ps, "err", err)
 		}
 
 		_ = s.logger.Log(ps...)
 	}(time.Now())
 
-	return s.StrangleService.FindByApplicationToken(token)
+	return s.next.Put(ns, input)
 }
 
-func (s *logStrangleService) FindByBackendToken(token string) (app *v04_entity.Application, errs []errors.Error) {
+func (s *logService) Query(ns string, opts QueryOptions) (list List, err error) {
 	defer func(begin time.Time) {
 		ps := []interface{}{
 			"duration_ns", time.Since(begin).Nanoseconds(),
-			"method", "FindByBackendToken",
-			"token", token,
+			"method", "Query",
+			"namespace", ns,
+			"query_len", len(list),
+			"app_query_opts", opts,
 		}
 
-		if errs != nil {
-			ps = append(ps, "err", errs[0])
+		if err != nil {
+			ps = append(ps, "err", err)
 		}
 
 		_ = s.logger.Log(ps...)
 	}(time.Now())
 
-	return s.StrangleService.FindByBackendToken(token)
+	return s.next.Query(ns, opts)
+}
+
+func (s *logService) Setup(ns string) (err error) {
+	defer func(begin time.Time) {
+		ps := []interface{}{
+			"duration_ns", time.Since(begin).Nanoseconds(),
+			"method", "Setup",
+			"namespace", ns,
+		}
+
+		if err != nil {
+			ps = append(ps, "err", err)
+		}
+
+		_ = s.logger.Log(ps...)
+	}(time.Now())
+
+	return s.next.Setup(ns)
+}
+
+func (s *logService) Teardown(ns string) (err error) {
+	defer func(begin time.Time) {
+		ps := []interface{}{
+			"duration_ns", time.Since(begin).Nanoseconds(),
+			"method", "Teardown",
+			"namespace", ns,
+		}
+
+		if err != nil {
+			ps = append(ps, "err", err)
+		}
+
+		_ = s.logger.Log(ps...)
+	}(time.Now())
+
+	return s.next.Teardown(ns)
 }

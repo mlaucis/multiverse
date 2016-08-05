@@ -4,6 +4,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/tapglue/multiverse/controller"
+	"github.com/tapglue/multiverse/service/app"
 	"github.com/tapglue/multiverse/service/user"
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
@@ -23,11 +24,11 @@ const (
 	tokenBackend     = "backend"
 )
 
-func appFromContext(ctx context.Context) *v04_entity.Application {
-	return ctx.Value(ctxKeyApp).(*v04_entity.Application)
+func appFromContext(ctx context.Context) *app.App {
+	return ctx.Value(ctxKeyApp).(*app.App)
 }
 
-func appInContext(ctx context.Context, app *v04_entity.Application) context.Context {
+func appInContext(ctx context.Context, app *app.App) context.Context {
 	return context.WithValue(ctx, ctxKeyApp, app)
 }
 
