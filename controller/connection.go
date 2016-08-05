@@ -1,9 +1,9 @@
 package controller
 
 import (
+	"github.com/tapglue/multiverse/service/app"
 	"github.com/tapglue/multiverse/service/connection"
 	"github.com/tapglue/multiverse/service/user"
-	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
 
 var limitInfinite = -1
@@ -34,7 +34,7 @@ func NewConnectionController(
 
 // ByState returns all connections for the given origin and state.
 func (c *ConnectionController) ByState(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	originID uint64,
 	state connection.State,
 ) (*ConnectionFeed, error) {
@@ -45,7 +45,7 @@ func (c *ConnectionController) ByState(
 		return nil, wrapError(ErrInvalidEntity, "unsupported state %s", string(state))
 	}
 
-	ics, err := c.connections.Query(app.Namespace(), connection.QueryOptions{
+	ics, err := c.connections.Query(currentApp.Namespace(), connection.QueryOptions{
 		Enabled: &defaultEnabled,
 		FromIDs: []uint64{originID},
 		States:  []connection.State{state},
@@ -54,7 +54,7 @@ func (c *ConnectionController) ByState(
 		return nil, err
 	}
 
-	ocs, err := c.connections.Query(app.Namespace(), connection.QueryOptions{
+	ocs, err := c.connections.Query(currentApp.Namespace(), connection.QueryOptions{
 		Enabled: &defaultEnabled,
 		States:  []connection.State{state},
 		ToIDs:   []uint64{originID},
@@ -65,7 +65,7 @@ func (c *ConnectionController) ByState(
 
 	um, err := user.MapFromIDs(
 		c.users,
-		app.Namespace(),
+		currentApp.Namespace(),
 		append(ics.ToIDs(), ocs.FromIDs()...)...,
 	)
 	if err != nil {
@@ -80,14 +80,14 @@ func (c *ConnectionController) ByState(
 
 // CreateSocial connects the origin with the users matching the platform ids.
 func (c *ConnectionController) CreateSocial(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	originID uint64,
 	connectionType connection.Type,
 	connectionState connection.State,
 	platform string,
 	connectionIDs ...string,
 ) (user.List, error) {
-	us, err := c.users.Query(app.Namespace(), user.QueryOptions{
+	us, err := c.users.Query(currentApp.Namespace(), user.QueryOptions{
 		Enabled: &defaultEnabled,
 		SocialIDs: map[string][]string{
 			platform: connectionIDs,
@@ -98,7 +98,7 @@ func (c *ConnectionController) CreateSocial(
 	}
 
 	for _, u := range us {
-		_, err := c.connections.Put(app.Namespace(), &connection.Connection{
+		_, err := c.connections.Put(currentApp.Namespace(), &connection.Connection{
 			Enabled: true,
 			FromID:  originID,
 			ToID:    u.ID,
@@ -109,7 +109,7 @@ func (c *ConnectionController) CreateSocial(
 			return nil, err
 		}
 
-		r, err := queryRelation(c.connections, app, originID, u.ID)
+		r, err := queryRelation(c.connections, currentApp, originID, u.ID)
 		if err != nil {
 			return nil, err
 		}
@@ -124,7 +124,7 @@ func (c *ConnectionController) CreateSocial(
 
 // Delete disables the given connection.
 func (c *ConnectionController) Delete(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	con *connection.Connection,
 ) error {
 	var (
@@ -139,7 +139,7 @@ func (c *ConnectionController) Delete(
 
 	limit := 1
 
-	cs, err := c.connections.Query(app.Namespace(), connection.QueryOptions{
+	cs, err := c.connections.Query(currentApp.Namespace(), connection.QueryOptions{
 		Enabled: &defaultEnabled,
 		FromIDs: fromIDs,
 		Limit:   &limit,
@@ -158,18 +158,18 @@ func (c *ConnectionController) Delete(
 
 	con.Enabled = false
 
-	_, err = c.connections.Put(app.Namespace(), con)
+	_, err = c.connections.Put(currentApp.Namespace(), con)
 
 	return err
 }
 
 // Followers returns the list of users who follow the origin.
 func (c *ConnectionController) Followers(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	origin uint64,
 	userID uint64,
 ) (user.List, error) {
-	cs, err := c.connections.Query(app.Namespace(), connection.QueryOptions{
+	cs, err := c.connections.Query(currentApp.Namespace(), connection.QueryOptions{
 		Enabled: &defaultEnabled,
 		ToIDs:   []uint64{userID},
 		States:  []connection.State{connection.StateConfirmed},
@@ -179,18 +179,18 @@ func (c *ConnectionController) Followers(
 		return nil, err
 	}
 
-	us, err := user.ListFromIDs(c.users, app.Namespace(), cs.FromIDs()...)
+	us, err := user.ListFromIDs(c.users, currentApp.Namespace(), cs.FromIDs()...)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, u := range us {
-		err := enrichConnectionCounts(c.connections, c.users, app, u)
+		err := enrichConnectionCounts(c.connections, c.users, currentApp, u)
 		if err != nil {
 			return nil, err
 		}
 
-		err = enrichRelation(c.connections, app, origin, u)
+		err = enrichRelation(c.connections, currentApp, origin, u)
 		if err != nil {
 			return nil, err
 		}
@@ -201,11 +201,11 @@ func (c *ConnectionController) Followers(
 
 // Followings returns the list of users the origin is following.
 func (c *ConnectionController) Followings(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	origin uint64,
 	userID uint64,
 ) (user.List, error) {
-	cs, err := c.connections.Query(app.Namespace(), connection.QueryOptions{
+	cs, err := c.connections.Query(currentApp.Namespace(), connection.QueryOptions{
 		Enabled: &defaultEnabled,
 		FromIDs: []uint64{userID},
 		States:  []connection.State{connection.StateConfirmed},
@@ -215,18 +215,18 @@ func (c *ConnectionController) Followings(
 		return nil, err
 	}
 
-	us, err := user.ListFromIDs(c.users, app.Namespace(), cs.ToIDs()...)
+	us, err := user.ListFromIDs(c.users, currentApp.Namespace(), cs.ToIDs()...)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, u := range us {
-		err := enrichConnectionCounts(c.connections, c.users, app, u)
+		err := enrichConnectionCounts(c.connections, c.users, currentApp, u)
 		if err != nil {
 			return nil, err
 		}
 
-		err = enrichRelation(c.connections, app, origin, u)
+		err = enrichRelation(c.connections, currentApp, origin, u)
 		if err != nil {
 			return nil, err
 		}
@@ -237,11 +237,11 @@ func (c *ConnectionController) Followings(
 
 // Friends returns the list of users the origin is friends with.
 func (c *ConnectionController) Friends(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	origin uint64,
 	userID uint64,
 ) (user.List, error) {
-	fs, err := c.connections.Query(app.Namespace(), connection.QueryOptions{
+	fs, err := c.connections.Query(currentApp.Namespace(), connection.QueryOptions{
 		Enabled: &defaultEnabled,
 		FromIDs: []uint64{userID},
 		States:  []connection.State{connection.StateConfirmed},
@@ -251,7 +251,7 @@ func (c *ConnectionController) Friends(
 		return nil, err
 	}
 
-	ts, err := c.connections.Query(app.Namespace(), connection.QueryOptions{
+	ts, err := c.connections.Query(currentApp.Namespace(), connection.QueryOptions{
 		Enabled: &defaultEnabled,
 		ToIDs:   []uint64{userID},
 		States:  []connection.State{connection.StateConfirmed},
@@ -263,7 +263,7 @@ func (c *ConnectionController) Friends(
 
 	us, err := user.ListFromIDs(
 		c.users,
-		app.Namespace(),
+		currentApp.Namespace(),
 		append(fs.ToIDs(), ts.FromIDs()...)...,
 	)
 	if err != nil {
@@ -271,12 +271,12 @@ func (c *ConnectionController) Friends(
 	}
 
 	for _, u := range us {
-		err := enrichConnectionCounts(c.connections, c.users, app, u)
+		err := enrichConnectionCounts(c.connections, c.users, currentApp, u)
 		if err != nil {
 			return nil, err
 		}
 
-		err = enrichRelation(c.connections, app, origin, u)
+		err = enrichRelation(c.connections, currentApp, origin, u)
 		if err != nil {
 			return nil, err
 		}
@@ -287,10 +287,10 @@ func (c *ConnectionController) Friends(
 
 // Update transitions the passed Connection to its new state.
 func (c *ConnectionController) Update(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	new *connection.Connection,
 ) (*connection.Connection, error) {
-	us, err := c.users.Query(app.Namespace(), user.QueryOptions{
+	us, err := c.users.Query(currentApp.Namespace(), user.QueryOptions{
 		Enabled: &defaultEnabled,
 		IDs: []uint64{
 			new.ToID,
@@ -316,7 +316,7 @@ func (c *ConnectionController) Update(
 
 	limit := 1
 
-	cs, err := c.connections.Query(app.Namespace(), connection.QueryOptions{
+	cs, err := c.connections.Query(currentApp.Namespace(), connection.QueryOptions{
 		Enabled: &defaultEnabled,
 		FromIDs: fromIDs,
 		Limit:   &limit,
@@ -346,7 +346,7 @@ func (c *ConnectionController) Update(
 		return nil, err
 	}
 
-	return c.connections.Put(app.Namespace(), new)
+	return c.connections.Put(currentApp.Namespace(), new)
 }
 
 func validateConTransition(old, new *connection.Connection) error {
@@ -414,10 +414,10 @@ type relation struct {
 
 func queryRelation(
 	s connection.Service,
-	app *v04_entity.Application,
+	currentApp *app.App,
 	origin, user uint64,
 ) (*relation, error) {
-	cs, err := s.Query(app.Namespace(), connection.QueryOptions{
+	cs, err := s.Query(currentApp.Namespace(), connection.QueryOptions{
 		Enabled: &defaultEnabled,
 		FromIDs: []uint64{
 			origin,

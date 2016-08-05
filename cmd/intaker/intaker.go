@@ -47,7 +47,6 @@ import (
 	"github.com/tapglue/multiverse/service/session"
 	"github.com/tapglue/multiverse/service/user"
 	v04_postgres_core "github.com/tapglue/multiverse/v04/core/postgres"
-	v04_redis_core "github.com/tapglue/multiverse/v04/core/redis"
 	v04_postgres "github.com/tapglue/multiverse/v04/storage/postgres"
 	v04_redis "github.com/tapglue/multiverse/v04/storage/redis"
 )
@@ -308,14 +307,13 @@ func main() {
 	var (
 		pgClient    = v04_postgres.New(conf.Postgres)
 		redisClient = v04_redis.NewRedigoPool(conf.RateLimiter)
-		rApps       = v04_redis_core.NewApplication(redisClient)
 		rateLimiter = redis.NewLimiter(redisClient, "test:ratelimiter:app:")
 	)
 
-	var apps app.StrangleService
-	apps = v04_postgres_core.NewApplication(pgClient, rApps)
-	apps = app.InstrumentStrangleMiddleware(component, "postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(apps)
-	apps = app.LogStrangleMiddleware(logger, "postgres")(apps)
+	var apps app.Service
+	apps = app.NewPostgresService(pgClient.MainDatastore())
+	apps = app.InstrumentServiceMiddleware(component, "postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(apps)
+	apps = app.LogServiceMiddleware(logger, "postgres")(apps)
 
 	var connections connection.Service
 	connections = connection.NewPostgresService(pgClient.MainDatastore())
@@ -377,7 +375,6 @@ func main() {
 		eventController          = controller.NewEventController(connections, events, objects, users)
 		feedController           = controller.NewFeedController(connections, events, objects, users)
 		likeController           = controller.NewLikeController(connections, events, objects, users)
-		objectController         = controller.NewObjectController(connections, objects)
 		postController           = controller.NewPostController(connections, events, objects, users)
 		recommendationController = controller.NewRecommendationController(
 			connections,
@@ -677,59 +674,38 @@ func main() {
 		),
 	)
 
-	next.Methods("POST").Path("/objects").Name("objectCreate").HandlerFunc(
-		handler.Wrap(
-			withUser,
-			handler.ObjectCreate(objectController),
-		),
-	)
-
-	next.Methods("DELETE").Path("/objects/{objectID:[0-9]+}").Name("objectDelete").HandlerFunc(
-		handler.Wrap(
-			withUser,
-			handler.ObjectDelete(objectController),
-		),
-	)
-
-	next.Methods("GET").Path("/objects/{objectID:[0-9]+}").Name("objectRetrieve").HandlerFunc(
-		handler.Wrap(
-			withUser,
-			handler.ObjectRetrieve(objectController),
-		),
-	)
-
-	next.Methods("PUT").Path("/objects/{objectID:[0-9]+}").Name("objectUpdate").HandlerFunc(
-		handler.Wrap(
-			withUser,
-			handler.ObjectUpdate(objectController),
-		),
-	)
-
-	next.Methods("GET").Path("/objects").Name("objectListAll").HandlerFunc(
-		handler.Wrap(
-			withApp,
-			handler.ObjectListAll(objectController),
-		),
-	)
-
-	next.Methods("GET").Path("/me/objects/connections").Name("objectListConnections").HandlerFunc(
-		handler.Wrap(
-			withUser,
-			handler.ObjectListConnections(objectController),
-		),
-	)
-
-	next.Methods("GET").Path("/me/objects").Name("objectList").HandlerFunc(
-		handler.Wrap(
-			withUser,
-			handler.ObjectList(objectController),
-		),
-	)
-
 	next.Methods("GET").Path(`/orgs/{orgID:[a-zA-Z0-9\-]+}/apps/{appID:[a-zA-Z0-9\-]+}/analytics`).Name("appAnalytics").HandlerFunc(
 		handler.Wrap(
 			withMember,
 			handler.AnalyticsApp(analyticsController),
+		),
+	)
+
+	next.Methods("POST").Path(`/organizations/{orgID:[a-zA-Z0-9\-]+}/applications`).Name("appCreate").HandlerFunc(
+		handler.Wrap(
+			withMember,
+			handler.AppCreate(controller.AppCreate(apps)),
+		),
+	)
+
+	next.Methods("DELETE").Path(`/organizations/{orgID:[a-zA-Z0-9\-]+}/applications/{appID:[a-zA-Z0-9\-]+}`).Name("appDelete").HandlerFunc(
+		handler.Wrap(
+			withMember,
+			handler.AppDelete(controller.AppDelete(apps)),
+		),
+	)
+
+	next.Methods("GET").Path(`/organizations/{orgID:[a-zA-Z0-9\-]+}/applications`).Name("appList").HandlerFunc(
+		handler.Wrap(
+			withMember,
+			handler.AppList(controller.AppList(apps)),
+		),
+	)
+
+	next.Methods("PUT").Path(`/organizations/{orgID:[a-zA-Z0-9\-]+}/applications/{appID:[a-zA-Z0-9\-]+}`).Name("appUpdate").HandlerFunc(
+		handler.Wrap(
+			withMember,
+			handler.AppUpdate(controller.AppUpdate(apps)),
 		),
 	)
 

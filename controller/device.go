@@ -1,23 +1,23 @@
 package controller
 
 import (
+	"github.com/tapglue/multiverse/service/app"
 	"github.com/tapglue/multiverse/service/device"
-	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
 
 var defaultDeleted = false
 
 // DeviceDeleteFunc removes the device of a user.
-type DeviceDeleteFunc func(*v04_entity.Application, Origin, string) error
+type DeviceDeleteFunc func(*app.App, Origin, string) error
 
 // DeviceDelete removes the device of a user.
 func DeviceDelete(devices device.Service) DeviceDeleteFunc {
 	return func(
-		app *v04_entity.Application,
+		currentApp *app.App,
 		origin Origin,
 		deviceID string,
 	) error {
-		ds, err := devices.Query(app.Namespace(), device.QueryOptions{
+		ds, err := devices.Query(currentApp.Namespace(), device.QueryOptions{
 			Deleted: &defaultDeleted,
 			DeviceIDs: []string{
 				deviceID,
@@ -37,7 +37,7 @@ func DeviceDelete(devices device.Service) DeviceDeleteFunc {
 		d := ds[0]
 		d.Deleted = true
 
-		_, err = devices.Put(app.Namespace(), d)
+		_, err = devices.Put(currentApp.Namespace(), d)
 
 		return err
 	}
@@ -45,7 +45,7 @@ func DeviceDelete(devices device.Service) DeviceDeleteFunc {
 
 // DeviceUpdateFunc stores the device data and updates the endpoint.
 type DeviceUpdateFunc func(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	origin Origin,
 	deviceID string,
 	platform device.Platform,
@@ -56,14 +56,14 @@ type DeviceUpdateFunc func(
 // DeviceUpdate stores the device info in the given device service.
 func DeviceUpdate(devices device.Service) DeviceUpdateFunc {
 	return func(
-		app *v04_entity.Application,
+		currentApp *app.App,
 		origin Origin,
 		deviceID string,
 		platform device.Platform,
 		token string,
 		language string,
 	) error {
-		ds, err := devices.Query(app.Namespace(), device.QueryOptions{
+		ds, err := devices.Query(currentApp.Namespace(), device.QueryOptions{
 			Deleted: &defaultDeleted,
 			DeviceIDs: []string{
 				deviceID,
@@ -97,7 +97,7 @@ func DeviceUpdate(devices device.Service) DeviceUpdateFunc {
 			}
 		}
 
-		_, err = devices.Put(app.Namespace(), d)
+		_, err = devices.Put(currentApp.Namespace(), d)
 		if err != nil {
 			if device.IsInvalidDevice(err) {
 				return wrapError(ErrInvalidEntity, "%s", err)

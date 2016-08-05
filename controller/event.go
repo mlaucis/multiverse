@@ -1,11 +1,11 @@
 package controller
 
 import (
+	"github.com/tapglue/multiverse/service/app"
 	"github.com/tapglue/multiverse/service/connection"
 	"github.com/tapglue/multiverse/service/event"
 	"github.com/tapglue/multiverse/service/object"
 	"github.com/tapglue/multiverse/service/user"
-	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
 
 // EventController bundles the business constraints of Events.
@@ -33,7 +33,7 @@ func NewEventController(
 
 // Create stores a new event for the origin user.
 func (c *EventController) Create(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	origin Origin,
 	input *event.Event,
 ) (*event.Event, error) {
@@ -45,7 +45,7 @@ func (c *EventController) Create(
 		return nil, err
 	}
 
-	event, err := c.events.Put(app.Namespace(), input)
+	event, err := c.events.Put(currentApp.Namespace(), input)
 	if err != nil {
 		return nil, err
 	}
@@ -55,11 +55,11 @@ func (c *EventController) Create(
 
 // Delete marks an event as disabled.
 func (c *EventController) Delete(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	originID uint64,
 	id uint64,
 ) error {
-	es, err := c.events.Query(app.Namespace(), event.QueryOptions{
+	es, err := c.events.Query(currentApp.Namespace(), event.QueryOptions{
 		Enabled: &defaultEnabled,
 		IDs: []uint64{
 			id,
@@ -79,7 +79,7 @@ func (c *EventController) Delete(
 	event := es[0]
 	event.Enabled = false
 
-	_, err = c.events.Put(app.Namespace(), event)
+	_, err = c.events.Put(currentApp.Namespace(), event)
 	if err != nil {
 		return err
 	}
@@ -89,7 +89,7 @@ func (c *EventController) Delete(
 
 // List returns the events of a user as seen by the origin user.
 func (c *EventController) List(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	originID uint64,
 	userID uint64,
 	options *event.QueryOptions,
@@ -115,7 +115,7 @@ func (c *EventController) List(
 			event.VisibilityPrivate,
 		)
 	} else {
-		r, err := queryRelation(c.connections, app, originID, userID)
+		r, err := queryRelation(c.connections, currentApp, originID, userID)
 		if err != nil {
 			return nil, err
 		}
@@ -125,22 +125,22 @@ func (c *EventController) List(
 		}
 	}
 
-	es, err := c.events.Query(app.Namespace(), opts)
+	es, err := c.events.Query(currentApp.Namespace(), opts)
 	if err != nil {
 		return nil, err
 	}
 
-	um, err := fillupUsers(c.users, app, originID, user.Map{}, es)
+	um, err := fillupUsers(c.users, currentApp, originID, user.Map{}, es)
 	if err != nil {
 		return nil, err
 	}
 
-	ps, err := extractPosts(c.objects, app, es)
+	ps, err := extractPosts(c.objects, currentApp, es)
 	if err != nil {
 		return nil, err
 	}
 
-	pum, err := user.MapFromIDs(c.users, app.Namespace(), ps.OwnerIDs()...)
+	pum, err := user.MapFromIDs(c.users, currentApp.Namespace(), ps.OwnerIDs()...)
 	if err != nil {
 		return nil, err
 	}
@@ -154,12 +154,12 @@ func (c *EventController) List(
 
 // Update stores an event with new values.
 func (c *EventController) Update(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	origin Origin,
 	id uint64,
 	input *event.Event,
 ) (*event.Event, error) {
-	es, err := c.events.Query(app.Namespace(), event.QueryOptions{
+	es, err := c.events.Query(currentApp.Namespace(), event.QueryOptions{
 		Enabled: &defaultEnabled,
 		IDs: []uint64{
 			id,
@@ -188,7 +188,7 @@ func (c *EventController) Update(
 		return nil, err
 	}
 
-	event, err := c.events.Put(app.Namespace(), e)
+	event, err := c.events.Put(currentApp.Namespace(), e)
 	if err != nil {
 		return nil, err
 	}

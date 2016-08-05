@@ -6,11 +6,11 @@ import (
 	"time"
 
 	"github.com/tapglue/multiverse/platform/flake"
+	"github.com/tapglue/multiverse/service/app"
 	"github.com/tapglue/multiverse/service/connection"
 	"github.com/tapglue/multiverse/service/event"
 	"github.com/tapglue/multiverse/service/object"
 	"github.com/tapglue/multiverse/service/user"
-	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
 
 // affiliations is the composite structure to map connections to users.
@@ -209,11 +209,11 @@ func NewFeedController(
 
 // Events returns the events from the interest and social graph of the given user.
 func (c *FeedController) Events(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	origin uint64,
 	opts *event.QueryOptions,
 ) (*Feed, error) {
-	am, err := c.neighbours(app, origin, 0)
+	am, err := c.neighbours(currentApp, origin, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -222,21 +222,21 @@ func (c *FeedController) Events(
 		neighbours = am.filterFollowers(origin)
 		sources    = []source{
 			sourceConnection(append(am.followers(origin), am.friends(origin)...)),
-			sourceGlobal(c.events, app, opts),
+			sourceGlobal(c.events, currentApp, opts),
 			sourceNeighbours(
 				c.events,
-				app,
+				currentApp,
 				opts,
 				am.filterFollowers(origin).userIDs()...,
 			),
-			sourceTarget(c.events, app, origin, opts),
+			sourceTarget(c.events, currentApp, origin, opts),
 		}
 	)
 
 	us := am.users()
 
 	for _, u := range neighbours {
-		a, err := c.neighbours(app, u.ID, origin)
+		a, err := c.neighbours(currentApp, u.ID, origin)
 		if err != nil {
 			return nil, err
 		}
@@ -252,17 +252,17 @@ func (c *FeedController) Events(
 		return nil, err
 	}
 
-	ps, err := extractPosts(c.objects, app, es)
+	ps, err := extractPosts(c.objects, currentApp, es)
 	if err != nil {
 		return nil, err
 	}
 
-	err = enrichCounts(c.events, c.objects, app, ps)
+	err = enrichCounts(c.events, c.objects, currentApp, ps)
 	if err != nil {
 		return nil, err
 	}
 
-	err = enrichIsLiked(c.events, app, origin, ps)
+	err = enrichIsLiked(c.events, currentApp, origin, ps)
 	if err != nil {
 		return nil, err
 	}
@@ -275,7 +275,7 @@ func (c *FeedController) Events(
 		conditionPostMissing(pm),
 	)
 
-	um, err := fillupUsers(c.users, app, origin, us.ToMap(), es)
+	um, err := fillupUsers(c.users, currentApp, origin, us.ToMap(), es)
 	if err != nil {
 		return nil, err
 	}
@@ -296,12 +296,12 @@ func (c *FeedController) Events(
 // News returns the events and posts from the interest and social graph of the
 // given user.
 func (c *FeedController) News(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	origin uint64,
 	eventOpts *event.QueryOptions,
 	postOpts *object.QueryOptions,
 ) (*Feed, error) {
-	am, err := c.neighbours(app, origin, 0)
+	am, err := c.neighbours(currentApp, origin, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -310,21 +310,21 @@ func (c *FeedController) News(
 		neighbours = am.filterFollowers(origin)
 		sources    = []source{
 			sourceConnection(append(am.followers(origin), am.friends(origin)...)),
-			sourceGlobal(c.events, app, eventOpts),
+			sourceGlobal(c.events, currentApp, eventOpts),
 			sourceNeighbours(
 				c.events,
-				app,
+				currentApp,
 				eventOpts,
 				am.filterFollowers(origin).userIDs()...,
 			),
-			sourceTarget(c.events, app, origin, eventOpts),
+			sourceTarget(c.events, currentApp, origin, eventOpts),
 		}
 	)
 
 	us := am.users()
 
 	for _, u := range neighbours {
-		a, err := c.neighbours(app, u.ID, origin)
+		a, err := c.neighbours(currentApp, u.ID, origin)
 		if err != nil {
 			return nil, err
 		}
@@ -340,17 +340,17 @@ func (c *FeedController) News(
 		return nil, err
 	}
 
-	ps, err := extractPosts(c.objects, app, es)
+	ps, err := extractPosts(c.objects, currentApp, es)
 	if err != nil {
 		return nil, err
 	}
 
-	err = enrichCounts(c.events, c.objects, app, ps)
+	err = enrichCounts(c.events, c.objects, currentApp, ps)
 	if err != nil {
 		return nil, err
 	}
 
-	err = enrichIsLiked(c.events, app, origin, ps)
+	err = enrichIsLiked(c.events, currentApp, origin, ps)
 	if err != nil {
 		return nil, err
 	}
@@ -363,7 +363,7 @@ func (c *FeedController) News(
 		conditionPostMissing(pm),
 	)
 
-	um, err := fillupUsers(c.users, app, origin, us.ToMap(), es)
+	um, err := fillupUsers(c.users, currentApp, origin, us.ToMap(), es)
 	if err != nil {
 		return nil, err
 	}
@@ -374,17 +374,17 @@ func (c *FeedController) News(
 		es = es[:199]
 	}
 
-	ps, err = c.connectionPosts(app, postOpts, neighbours.userIDs()...)
+	ps, err = c.connectionPosts(currentApp, postOpts, neighbours.userIDs()...)
 	if err != nil {
 		return nil, err
 	}
 
-	gs, err := c.globalPosts(app, postOpts)
+	gs, err := c.globalPosts(currentApp, postOpts)
 	if err != nil {
 		return nil, err
 	}
 
-	gum, err := user.MapFromIDs(c.users, app.Namespace(), gs.OwnerIDs()...)
+	gum, err := user.MapFromIDs(c.users, currentApp.Namespace(), gs.OwnerIDs()...)
 	if err != nil {
 		return nil, err
 	}
@@ -395,17 +395,17 @@ func (c *FeedController) News(
 
 	sort.Sort(ps)
 
-	err = enrichCounts(c.events, c.objects, app, ps)
+	err = enrichCounts(c.events, c.objects, currentApp, ps)
 	if err != nil {
 		return nil, err
 	}
 
-	err = enrichIsLiked(c.events, app, origin, ps)
+	err = enrichIsLiked(c.events, currentApp, origin, ps)
 	if err != nil {
 		return nil, err
 	}
 
-	errs := c.users.PutLastRead(app.Namespace(), origin, time.Now())
+	errs := c.users.PutLastRead(currentApp.Namespace(), origin, time.Now())
 	if errs != nil {
 		// Updating the last read pointer of a user shouldn't stop the feed delivery
 		// as we would accept an incorrect unread counter over a broken feed.
@@ -422,16 +422,16 @@ func (c *FeedController) News(
 // NotificationsSelf returns the events which target the origin user and their
 // content.
 func (c *FeedController) NotificationsSelf(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	origin uint64,
 	opts *event.QueryOptions,
 ) (*Feed, error) {
-	am, err := c.neighbours(app, origin, 0)
+	am, err := c.neighbours(currentApp, origin, 0)
 	if err != nil {
 		return nil, err
 	}
 
-	ps, err := userPosts(c.objects, app, origin)
+	ps, err := userPosts(c.objects, currentApp, origin)
 	if err != nil {
 		return nil, err
 	}
@@ -439,10 +439,10 @@ func (c *FeedController) NotificationsSelf(
 	var (
 		fs      = am.filterFollowings(origin)
 		sources = []source{
-			sourceComment(c.objects, app, ps.IDs()...),
+			sourceComment(c.objects, currentApp, ps.IDs()...),
 			sourceConnection(fs.connections()),
-			sourceLikes(c.events, app, opts, ps.IDs()...),
-			sourceTarget(c.events, app, origin, opts),
+			sourceLikes(c.events, currentApp, opts, ps.IDs()...),
+			sourceTarget(c.events, currentApp, origin, opts),
 		}
 	)
 
@@ -451,7 +451,7 @@ func (c *FeedController) NotificationsSelf(
 		return nil, err
 	}
 
-	um, err := fillupUsers(c.users, app, origin, fs.users().ToMap(), es)
+	um, err := fillupUsers(c.users, currentApp, origin, fs.users().ToMap(), es)
 	if err != nil {
 		return nil, err
 	}
@@ -471,28 +471,28 @@ func (c *FeedController) NotificationsSelf(
 
 // Posts returns the posts from the interest and social graph of the given user.
 func (c *FeedController) Posts(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	origin uint64,
 	opts *object.QueryOptions,
 ) (*Feed, error) {
-	am, err := c.neighbours(app, origin, 0)
+	am, err := c.neighbours(currentApp, origin, 0)
 	if err != nil {
 		return nil, err
 	}
 
 	neighbours := am.filterFollowers(origin)
 
-	ps, err := c.connectionPosts(app, opts, neighbours.userIDs()...)
+	ps, err := c.connectionPosts(currentApp, opts, neighbours.userIDs()...)
 	if err != nil {
 		return nil, err
 	}
 
-	gs, err := c.globalPosts(app, opts)
+	gs, err := c.globalPosts(currentApp, opts)
 	if err != nil {
 		return nil, err
 	}
 
-	um, err := user.MapFromIDs(c.users, app.Namespace(), gs.OwnerIDs()...)
+	um, err := user.MapFromIDs(c.users, currentApp.Namespace(), gs.OwnerIDs()...)
 	if err != nil {
 		return nil, err
 	}
@@ -501,12 +501,12 @@ func (c *FeedController) Posts(
 
 	sort.Sort(ps)
 
-	err = enrichCounts(c.events, c.objects, app, ps)
+	err = enrichCounts(c.events, c.objects, currentApp, ps)
 	if err != nil {
 		return nil, err
 	}
 
-	err = enrichIsLiked(c.events, app, origin, ps)
+	err = enrichIsLiked(c.events, currentApp, origin, ps)
 	if err != nil {
 		return nil, err
 	}
@@ -518,7 +518,7 @@ func (c *FeedController) Posts(
 }
 
 func (c *FeedController) connectionPosts(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	options *object.QueryOptions,
 	ids ...uint64,
 ) (PostList, error) {
@@ -539,7 +539,7 @@ func (c *FeedController) connectionPosts(
 		object.VisibilityPublic,
 	}
 
-	os, err := c.objects.Query(app.Namespace(), opts)
+	os, err := c.objects.Query(currentApp.Namespace(), opts)
 	if err != nil {
 		return nil, err
 	}
@@ -548,7 +548,7 @@ func (c *FeedController) connectionPosts(
 }
 
 func (c *FeedController) globalPosts(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	options *object.QueryOptions,
 ) (PostList, error) {
 	opts := object.QueryOptions{}
@@ -562,7 +562,7 @@ func (c *FeedController) globalPosts(
 		object.VisibilityGlobal,
 	}
 
-	os, err := c.objects.Query(app.Namespace(), opts)
+	os, err := c.objects.Query(currentApp.Namespace(), opts)
 	if err != nil {
 		return nil, err
 	}
@@ -571,11 +571,11 @@ func (c *FeedController) globalPosts(
 }
 
 func (c *FeedController) neighbours(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	origin uint64,
 	root uint64,
 ) (affiliations, error) {
-	fs, err := c.connections.Query(app.Namespace(), connection.QueryOptions{
+	fs, err := c.connections.Query(currentApp.Namespace(), connection.QueryOptions{
 		Enabled: &defaultEnabled,
 		FromIDs: []uint64{
 			origin,
@@ -591,7 +591,7 @@ func (c *FeedController) neighbours(
 		return nil, err
 	}
 
-	is, err := c.connections.Query(app.Namespace(), connection.QueryOptions{
+	is, err := c.connections.Query(currentApp.Namespace(), connection.QueryOptions{
 		Enabled: &defaultEnabled,
 		FromIDs: []uint64{
 			origin,
@@ -607,7 +607,7 @@ func (c *FeedController) neighbours(
 		return nil, err
 	}
 
-	os, err := c.connections.Query(app.Namespace(), connection.QueryOptions{
+	os, err := c.connections.Query(currentApp.Namespace(), connection.QueryOptions{
 		Enabled: &defaultEnabled,
 		States: []connection.State{
 			connection.StateConfirmed,
@@ -627,7 +627,7 @@ func (c *FeedController) neighbours(
 	cs = append(cs, os...)
 
 	if root == 0 {
-		fs, err := c.connections.Query(app.Namespace(), connection.QueryOptions{
+		fs, err := c.connections.Query(currentApp.Namespace(), connection.QueryOptions{
 			Enabled: &defaultEnabled,
 			States: []connection.State{
 				connection.StateConfirmed,
@@ -659,7 +659,7 @@ func (c *FeedController) neighbours(
 			id = con.FromID
 		}
 
-		us, err := c.users.Query(app.Namespace(), user.QueryOptions{
+		us, err := c.users.Query(currentApp.Namespace(), user.QueryOptions{
 			Enabled: &defaultEnabled,
 			IDs: []uint64{
 				id,
@@ -732,7 +732,7 @@ func conditionPostMissing(pm PostMap) condition {
 // extractPosts retrieves referenced post objects from a list of events.
 func extractPosts(
 	objects object.Service,
-	app *v04_entity.Application,
+	currentApp *app.App,
 	es event.List,
 ) (PostList, error) {
 	ps := PostList{}
@@ -742,7 +742,7 @@ func extractPosts(
 			continue
 		}
 
-		os, err := objects.Query(app.Namespace(), object.QueryOptions{
+		os, err := objects.Query(currentApp.Namespace(), object.QueryOptions{
 			ID: &event.ObjectID,
 		})
 		if err != nil {
@@ -762,7 +762,7 @@ func extractPosts(
 // fillupUsers given a map of users and events fills up all missing users.
 func fillupUsers(
 	users user.Service,
-	app *v04_entity.Application,
+	currentApp *app.App,
 	originID uint64,
 	um user.Map,
 	es event.List,
@@ -772,7 +772,7 @@ func fillupUsers(
 			continue
 		}
 
-		us, err := users.Query(app.Namespace(), user.QueryOptions{
+		us, err := users.Query(currentApp.Namespace(), user.QueryOptions{
 			Enabled: &defaultEnabled,
 			IDs: []uint64{
 				id,
@@ -819,7 +819,7 @@ func filter(events event.List, cs ...condition) event.List {
 // sourceComment creates comment events for the given posts.
 func sourceComment(
 	objects object.Service,
-	app *v04_entity.Application,
+	currentApp *app.App,
 	postIDs ...uint64,
 ) source {
 	if len(postIDs) == 0 {
@@ -831,7 +831,7 @@ func sourceComment(
 	return func() (event.List, error) {
 		es := event.List{}
 
-		cs, err := objects.Query(app.Namespace(), object.QueryOptions{
+		cs, err := objects.Query(currentApp.Namespace(), object.QueryOptions{
 			ObjectIDs: postIDs,
 			Owned:     &defaultOwned,
 			Types: []string{
@@ -917,7 +917,7 @@ func sourceConnection(cs connection.List) source {
 // sourceGlobal returns all events for app with visibility EventGlobal.
 func sourceGlobal(
 	events event.Service,
-	app *v04_entity.Application,
+	currentApp *app.App,
 	options *event.QueryOptions,
 ) source {
 	opts := event.QueryOptions{}
@@ -930,7 +930,7 @@ func sourceGlobal(
 	}
 
 	return func() (event.List, error) {
-		es, err := events.Query(app.Namespace(), opts)
+		es, err := events.Query(currentApp.Namespace(), opts)
 		if err != nil {
 			return nil, err
 		}
@@ -941,7 +941,7 @@ func sourceGlobal(
 
 func sourceLikes(
 	events event.Service,
-	app *v04_entity.Application,
+	currentApp *app.App,
 	options *event.QueryOptions,
 	postIDs ...uint64,
 ) source {
@@ -963,14 +963,14 @@ func sourceLikes(
 	}
 
 	return func() (event.List, error) {
-		return events.Query(app.Namespace(), opts)
+		return events.Query(currentApp.Namespace(), opts)
 	}
 }
 
 // connectionUsers returns all events owned by the given user ids.
 func sourceNeighbours(
 	events event.Service,
-	app *v04_entity.Application,
+	currentApp *app.App,
 	options *event.QueryOptions,
 	ids ...uint64,
 ) source {
@@ -992,14 +992,14 @@ func sourceNeighbours(
 	opts.UserIDs = ids
 
 	return func() (event.List, error) {
-		return events.Query(app.Namespace(), opts)
+		return events.Query(currentApp.Namespace(), opts)
 	}
 }
 
 // sourceTarget returns all events where the origin is the target.
 func sourceTarget(
 	events event.Service,
-	app *v04_entity.Application,
+	currentApp *app.App,
 	origin uint64,
 	options *event.QueryOptions,
 ) source {
@@ -1019,7 +1019,7 @@ func sourceTarget(
 	}
 
 	return func() (event.List, error) {
-		es, err := events.Query(app.Namespace(), opts)
+		es, err := events.Query(currentApp.Namespace(), opts)
 		if err != nil {
 			return nil, err
 		}
@@ -1030,10 +1030,10 @@ func sourceTarget(
 
 func userPosts(
 	objects object.Service,
-	app *v04_entity.Application,
+	currentApp *app.App,
 	origin uint64,
 ) (PostList, error) {
-	os, err := objects.Query(app.Namespace(), object.QueryOptions{
+	os, err := objects.Query(currentApp.Namespace(), object.QueryOptions{
 		Owned: &defaultOwned,
 		OwnerIDs: []uint64{
 			origin,

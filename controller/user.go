@@ -7,10 +7,10 @@ import (
 	"time"
 
 	"github.com/tapglue/multiverse/platform/generate"
+	"github.com/tapglue/multiverse/service/app"
 	"github.com/tapglue/multiverse/service/connection"
 	"github.com/tapglue/multiverse/service/session"
 	"github.com/tapglue/multiverse/service/user"
-	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
 
 // UserController bundles the business constraints of Users.
@@ -35,7 +35,7 @@ func NewUserController(
 
 // Create stores the provided user and creates a session.
 func (c *UserController) Create(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	origin Origin,
 	u *user.User,
 ) (*user.User, error) {
@@ -43,20 +43,20 @@ func (c *UserController) Create(
 		return nil, err
 	}
 
-	if err := c.constrainUniqueEmail(app, u); err != nil {
+	if err := c.constrainUniqueEmail(currentApp, u); err != nil {
 		if !IsInvalidEntity(err) {
 			return nil, err
 		}
 
-		return c.LoginEmail(app, origin, u.Email, u.Password)
+		return c.LoginEmail(currentApp, origin, u.Email, u.Password)
 	}
 
-	if err := c.constrainUniqueUsername(app, u); err != nil {
+	if err := c.constrainUniqueUsername(currentApp, u); err != nil {
 		if !IsInvalidEntity(err) {
 			return nil, err
 		}
 
-		return c.LoginUsername(app, origin, u.Username, u.Password)
+		return c.LoginUsername(currentApp, origin, u.Username, u.Password)
 	}
 
 	if err := u.Validate(); err != nil {
@@ -71,12 +71,12 @@ func (c *UserController) Create(
 	u.Enabled = true
 	u.Password = epw
 
-	u, err = c.users.Put(app.Namespace(), u)
+	u, err = c.users.Put(currentApp.Namespace(), u)
 	if err != nil {
 		return nil, err
 	}
 
-	err = c.enrichSessionToken(app, u, origin.DeviceID)
+	err = c.enrichSessionToken(currentApp, u, origin.DeviceID)
 	if err != nil {
 		return nil, err
 	}
@@ -86,23 +86,23 @@ func (c *UserController) Create(
 
 // Delete disables the user.
 func (c *UserController) Delete(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	origin *user.User,
 ) error {
 	origin.Enabled = false
 	origin.Deleted = true
 
-	_, err := c.users.Put(app.Namespace(), origin)
+	_, err := c.users.Put(currentApp.Namespace(), origin)
 	return err
 }
 
 // ListByEmails returns all users for the given emails.
 func (c *UserController) ListByEmails(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	originID uint64,
 	emails ...string,
 ) (user.List, error) {
-	us, err := c.users.Query(app.Namespace(), user.QueryOptions{
+	us, err := c.users.Query(currentApp.Namespace(), user.QueryOptions{
 		Enabled: &defaultEnabled,
 		Emails:  emails,
 	})
@@ -111,7 +111,7 @@ func (c *UserController) ListByEmails(
 	}
 
 	for _, u := range us {
-		r, err := queryRelation(c.connections, app, originID, u.ID)
+		r, err := queryRelation(c.connections, currentApp, originID, u.ID)
 		if err != nil {
 			return nil, err
 		}
@@ -126,12 +126,12 @@ func (c *UserController) ListByEmails(
 
 // ListByPlatformIDs returns all users for the given ids for the social platform.
 func (c *UserController) ListByPlatformIDs(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	originID uint64,
 	platform string,
 	ids ...string,
 ) (user.List, error) {
-	us, err := c.users.Query(app.Namespace(), user.QueryOptions{
+	us, err := c.users.Query(currentApp.Namespace(), user.QueryOptions{
 		Enabled: &defaultEnabled,
 		SocialIDs: map[string][]string{
 			platform: ids,
@@ -142,7 +142,7 @@ func (c *UserController) ListByPlatformIDs(
 	}
 
 	for _, u := range us {
-		r, err := queryRelation(c.connections, app, originID, u.ID)
+		r, err := queryRelation(c.connections, currentApp, originID, u.ID)
 		if err != nil {
 			return nil, err
 		}
@@ -157,12 +157,12 @@ func (c *UserController) ListByPlatformIDs(
 
 // LoginEmail finds the user by email and returns it with a valid session token.
 func (c *UserController) LoginEmail(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	origin Origin,
 	email string,
 	password string,
 ) (*user.User, error) {
-	us, err := c.users.Query(app.Namespace(), user.QueryOptions{
+	us, err := c.users.Query(currentApp.Namespace(), user.QueryOptions{
 		Enabled: &defaultEnabled,
 		Emails: []string{
 			email,
@@ -176,18 +176,18 @@ func (c *UserController) LoginEmail(
 		return nil, ErrNotFound
 	}
 
-	return c.login(app, us[0], password, origin.DeviceID)
+	return c.login(currentApp, us[0], password, origin.DeviceID)
 }
 
 // LoginUsername finds the user by username and returns it with a valid session
 // token.
 func (c *UserController) LoginUsername(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	origin Origin,
 	username string,
 	password string,
 ) (*user.User, error) {
-	us, err := c.users.Query(app.Namespace(), user.QueryOptions{
+	us, err := c.users.Query(currentApp.Namespace(), user.QueryOptions{
 		Enabled: &defaultEnabled,
 		Usernames: []string{
 			username,
@@ -201,16 +201,16 @@ func (c *UserController) LoginUsername(
 		return nil, ErrNotFound
 	}
 
-	return c.login(app, us[0], password, origin.DeviceID)
+	return c.login(currentApp, us[0], password, origin.DeviceID)
 }
 
 // Logout destroys the session stored under token.
 func (c *UserController) Logout(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	origin uint64,
 	token string,
 ) error {
-	ss, err := c.sessions.Query(app.Namespace(), session.QueryOptions{
+	ss, err := c.sessions.Query(currentApp.Namespace(), session.QueryOptions{
 		Enabled: &defaultEnabled,
 		IDs: []string{
 			token,
@@ -230,17 +230,17 @@ func (c *UserController) Logout(
 	s := ss[0]
 	s.Enabled = false
 
-	_, err = c.sessions.Put(app.Namespace(), s)
+	_, err = c.sessions.Put(currentApp.Namespace(), s)
 	return err
 }
 
 // Retrieve returns the user with the given id.
 func (c *UserController) Retrieve(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	origin Origin,
 	userID uint64,
 ) (*user.User, error) {
-	us, err := c.users.Query(app.Namespace(), user.QueryOptions{
+	us, err := c.users.Query(currentApp.Namespace(), user.QueryOptions{
 		Enabled: &defaultEnabled,
 		IDs: []uint64{
 			userID,
@@ -256,18 +256,18 @@ func (c *UserController) Retrieve(
 
 	u := us[0]
 
-	err = enrichRelation(c.connections, app, origin.UserID, u)
+	err = enrichRelation(c.connections, currentApp, origin.UserID, u)
 	if err != nil {
 		return nil, err
 	}
 
-	err = enrichConnectionCounts(c.connections, c.users, app, u)
+	err = enrichConnectionCounts(c.connections, c.users, currentApp, u)
 	if err != nil {
 		return nil, err
 	}
 
 	if origin.UserID == userID {
-		err = c.enrichSessionToken(app, u, origin.DeviceID)
+		err = c.enrichSessionToken(currentApp, u, origin.DeviceID)
 		if err != nil {
 			return nil, err
 		}
@@ -278,13 +278,13 @@ func (c *UserController) Retrieve(
 
 // Search returns all users for the given query.
 func (c *UserController) Search(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	origin uint64,
 	query string,
 ) (user.List, error) {
 	t := []string{query}
 
-	us, err := c.users.Search(app.Namespace(), user.QueryOptions{
+	us, err := c.users.Search(currentApp.Namespace(), user.QueryOptions{
 		Enabled: &defaultEnabled,
 	}, user.SearchOptions{
 		Emails:     t,
@@ -297,12 +297,12 @@ func (c *UserController) Search(
 	}
 
 	for _, u := range us {
-		err = enrichConnectionCounts(c.connections, c.users, app, u)
+		err = enrichConnectionCounts(c.connections, c.users, currentApp, u)
 		if err != nil {
 			return nil, err
 		}
 
-		err = enrichRelation(c.connections, app, origin, u)
+		err = enrichRelation(c.connections, currentApp, origin, u)
 		if err != nil {
 			return nil, err
 		}
@@ -313,7 +313,7 @@ func (c *UserController) Search(
 
 // Update stores the new attributes for the user.
 func (c *UserController) Update(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	origin Origin,
 	old *user.User,
 	new *user.User,
@@ -338,7 +338,7 @@ func (c *UserController) Update(
 	}
 
 	if old.Email != new.Email {
-		err := c.constrainUniqueEmail(app, new)
+		err := c.constrainUniqueEmail(currentApp, new)
 		if err != nil {
 			return nil, err
 		}
@@ -349,23 +349,23 @@ func (c *UserController) Update(
 	}
 
 	if old.Username != new.Username {
-		err := c.constrainUniqueUsername(app, new)
+		err := c.constrainUniqueUsername(currentApp, new)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	u, err := c.users.Put(app.Namespace(), new)
+	u, err := c.users.Put(currentApp.Namespace(), new)
 	if err != nil {
 		return nil, err
 	}
 
-	err = enrichConnectionCounts(c.connections, c.users, app, u)
+	err = enrichConnectionCounts(c.connections, c.users, currentApp, u)
 	if err != nil {
 		return nil, err
 	}
 
-	err = c.enrichSessionToken(app, u, origin.DeviceID)
+	err = c.enrichSessionToken(currentApp, u, origin.DeviceID)
 	if err != nil {
 		return nil, err
 	}
@@ -374,11 +374,11 @@ func (c *UserController) Update(
 }
 
 func (c *UserController) constrainUniqueEmail(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	u *user.User,
 ) error {
 	if u.Email != "" {
-		us, err := c.users.Query(app.Namespace(), user.QueryOptions{
+		us, err := c.users.Query(currentApp.Namespace(), user.QueryOptions{
 			Enabled: &defaultEnabled,
 			Emails: []string{
 				u.Email,
@@ -397,11 +397,11 @@ func (c *UserController) constrainUniqueEmail(
 }
 
 func (c *UserController) constrainUniqueUsername(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	u *user.User,
 ) error {
 	if u.Username != "" {
-		us, err := c.users.Query(app.Namespace(), user.QueryOptions{
+		us, err := c.users.Query(currentApp.Namespace(), user.QueryOptions{
 			Enabled: &defaultEnabled,
 			Usernames: []string{
 				u.Username,
@@ -422,12 +422,12 @@ func (c *UserController) constrainUniqueUsername(
 func enrichConnectionCounts(
 	connections connection.Service,
 	users user.Service,
-	app *v04_entity.Application,
+	currentApp *app.App,
 	u *user.User,
 ) error {
 	deleted := false
 
-	cs, err := connections.Query(app.Namespace(), connection.QueryOptions{
+	cs, err := connections.Query(currentApp.Namespace(), connection.QueryOptions{
 		Enabled: &defaultEnabled,
 		Limit:   &limitInfinite,
 		States: []connection.State{
@@ -445,7 +445,7 @@ func enrichConnectionCounts(
 	}
 
 	if len(cs) > 0 {
-		u.FollowerCount, err = users.Count(app.Namespace(), user.QueryOptions{
+		u.FollowerCount, err = users.Count(currentApp.Namespace(), user.QueryOptions{
 			Deleted: &deleted,
 			Enabled: &defaultEnabled,
 			IDs:     cs.FromIDs(),
@@ -455,7 +455,7 @@ func enrichConnectionCounts(
 		}
 	}
 
-	cs, err = connections.Query(app.Namespace(), connection.QueryOptions{
+	cs, err = connections.Query(currentApp.Namespace(), connection.QueryOptions{
 		Enabled: &defaultEnabled,
 		FromIDs: []uint64{
 			u.ID,
@@ -473,7 +473,7 @@ func enrichConnectionCounts(
 	}
 
 	if len(cs) > 0 {
-		u.FollowingCount, err = users.Count(app.Namespace(), user.QueryOptions{
+		u.FollowingCount, err = users.Count(currentApp.Namespace(), user.QueryOptions{
 			Deleted: &deleted,
 			Enabled: &defaultEnabled,
 			IDs:     cs.ToIDs(),
@@ -483,7 +483,7 @@ func enrichConnectionCounts(
 		}
 	}
 
-	fs, err := connections.Query(app.Namespace(), connection.QueryOptions{
+	fs, err := connections.Query(currentApp.Namespace(), connection.QueryOptions{
 		Enabled: &defaultEnabled,
 		FromIDs: []uint64{
 			u.ID,
@@ -500,7 +500,7 @@ func enrichConnectionCounts(
 		return err
 	}
 
-	ts, err := connections.Query(app.Namespace(), connection.QueryOptions{
+	ts, err := connections.Query(currentApp.Namespace(), connection.QueryOptions{
 		Enabled: &defaultEnabled,
 		States: []connection.State{
 			connection.StateConfirmed,
@@ -519,7 +519,7 @@ func enrichConnectionCounts(
 	ids := append(fs.ToIDs(), ts.FromIDs()...)
 
 	if len(ids) > 0 {
-		u.FriendCount, err = users.Count(app.Namespace(), user.QueryOptions{
+		u.FriendCount, err = users.Count(currentApp.Namespace(), user.QueryOptions{
 			Deleted: &deleted,
 			Enabled: &defaultEnabled,
 			IDs:     ids,
@@ -533,11 +533,11 @@ func enrichConnectionCounts(
 }
 
 func (c *UserController) enrichSessionToken(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	u *user.User,
 	deviceID string,
 ) error {
-	ss, err := c.sessions.Query(app.Namespace(), session.QueryOptions{
+	ss, err := c.sessions.Query(currentApp.Namespace(), session.QueryOptions{
 		DeviceIDs: []string{
 			deviceID,
 		},
@@ -555,7 +555,7 @@ func (c *UserController) enrichSessionToken(
 	if len(ss) > 0 {
 		s = ss[0]
 	} else {
-		s, err = c.sessions.Put(app.Namespace(), &session.Session{
+		s, err = c.sessions.Put(currentApp.Namespace(), &session.Session{
 			DeviceID: deviceID,
 			Enabled:  true,
 			UserID:   u.ID,
@@ -571,7 +571,7 @@ func (c *UserController) enrichSessionToken(
 }
 
 func (c *UserController) login(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	u *user.User,
 	password string,
 	deviceID string,
@@ -585,12 +585,12 @@ func (c *UserController) login(
 		return nil, wrapError(ErrUnauthorized, "wrong credentials")
 	}
 
-	err = c.enrichSessionToken(app, u, deviceID)
+	err = c.enrichSessionToken(currentApp, u, deviceID)
 	if err != nil {
 		return nil, err
 	}
 
-	err = enrichConnectionCounts(c.connections, c.users, app, u)
+	err = enrichConnectionCounts(c.connections, c.users, currentApp, u)
 	if err != nil {
 		return nil, err
 	}
@@ -611,7 +611,7 @@ func constrainUserPrivate(origin Origin, private *user.Private) error {
 
 func enrichRelation(
 	s connection.Service,
-	app *v04_entity.Application,
+	currentApp *app.App,
 	origin uint64,
 	u *user.User,
 ) error {
@@ -619,7 +619,7 @@ func enrichRelation(
 		return nil
 	}
 
-	r, err := queryRelation(s, app, origin, u.ID)
+	r, err := queryRelation(s, currentApp, origin, u.ID)
 	if err != nil {
 		return err
 	}

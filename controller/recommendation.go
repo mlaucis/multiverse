@@ -3,10 +3,10 @@ package controller
 import (
 	"math/rand"
 
+	"github.com/tapglue/multiverse/service/app"
 	"github.com/tapglue/multiverse/service/connection"
 	"github.com/tapglue/multiverse/service/event"
 	"github.com/tapglue/multiverse/service/user"
-	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
 
 // conditionUser determines if the user should be filtered.
@@ -34,16 +34,16 @@ func NewRecommendationController(
 
 // UsersActive returns the list of users with activity in the time period.
 func (c *RecommendationController) UsersActive(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	origin uint64,
 	period event.Period,
 ) (user.List, error) {
-	ids, err := c.events.ActiveUserIDs(app.Namespace(), period)
+	ids, err := c.events.ActiveUserIDs(currentApp.Namespace(), period)
 	if err != nil {
 		return nil, err
 	}
 
-	us, err := user.ListFromIDs(c.users, app.Namespace(), ids...)
+	us, err := user.ListFromIDs(c.users, currentApp.Namespace(), ids...)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func (c *RecommendationController) UsersActive(
 	us, err = filterUsers(
 		us,
 		conditionOrigin(origin),
-		conditionConnection(c.connections, app, origin),
+		conditionConnection(c.connections, currentApp, origin),
 	)
 	if err != nil {
 		return nil, err
@@ -64,11 +64,11 @@ func (c *RecommendationController) UsersActive(
 
 func conditionConnection(
 	connections connection.Service,
-	app *v04_entity.Application,
+	currentApp *app.App,
 	origin uint64,
 ) conditionUser {
 	return func(user *user.User) (bool, error) {
-		r, err := queryRelation(connections, app, origin, user.ID)
+		r, err := queryRelation(connections, currentApp, origin, user.ID)
 		if err != nil {
 			return false, err
 		}

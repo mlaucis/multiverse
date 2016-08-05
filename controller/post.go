@@ -1,11 +1,11 @@
 package controller
 
 import (
+	"github.com/tapglue/multiverse/service/app"
 	"github.com/tapglue/multiverse/service/connection"
 	"github.com/tapglue/multiverse/service/event"
 	"github.com/tapglue/multiverse/service/object"
 	"github.com/tapglue/multiverse/service/user"
-	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
 
 // TypePost identifies an object as a Post.
@@ -119,7 +119,7 @@ func NewPostController(
 // Create associates the given Object with the owner and adds default type to it
 // and stores it in the Object service.
 func (c *PostController) Create(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	origin Origin,
 	post *Post,
 ) (*Post, error) {
@@ -140,7 +140,7 @@ func (c *PostController) Create(
 		return nil, wrapError(ErrInvalidEntity, "%s", err)
 	}
 
-	o, err := c.objects.Put(app.Namespace(), post.Object)
+	o, err := c.objects.Put(currentApp.Namespace(), post.Object)
 	if err != nil {
 		return nil, err
 	}
@@ -150,11 +150,11 @@ func (c *PostController) Create(
 
 // Delete marks a Post as deleted and updates it in the service.
 func (c *PostController) Delete(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	origin uint64,
 	id uint64,
 ) error {
-	os, err := c.objects.Query(app.Namespace(), object.QueryOptions{
+	os, err := c.objects.Query(currentApp.Namespace(), object.QueryOptions{
 		ID:    &id,
 		Owned: &defaultOwned,
 		Types: []string{
@@ -178,7 +178,7 @@ func (c *PostController) Delete(
 
 	post.Deleted = true
 
-	_, err = c.objects.Put(app.Namespace(), post)
+	_, err = c.objects.Put(currentApp.Namespace(), post)
 	if err != nil {
 		return err
 	}
@@ -188,7 +188,7 @@ func (c *PostController) Delete(
 
 // ListAll returns all objects which are of type post.
 func (c *PostController) ListAll(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	origin uint64,
 	options *object.QueryOptions,
 ) (*PostFeed, error) {
@@ -204,24 +204,24 @@ func (c *PostController) ListAll(
 		object.VisibilityGlobal,
 	}
 
-	os, err := c.objects.Query(app.Namespace(), opts)
+	os, err := c.objects.Query(currentApp.Namespace(), opts)
 	if err != nil {
 		return nil, err
 	}
 
 	ps := postsFromObjects(os)
 
-	err = enrichCounts(c.events, c.objects, app, ps)
+	err = enrichCounts(c.events, c.objects, currentApp, ps)
 	if err != nil {
 		return nil, err
 	}
 
-	err = enrichIsLiked(c.events, app, origin, ps)
+	err = enrichIsLiked(c.events, currentApp, origin, ps)
 	if err != nil {
 		return nil, err
 	}
 
-	um, err := user.MapFromIDs(c.users, app.Namespace(), ps.OwnerIDs()...)
+	um, err := user.MapFromIDs(c.users, currentApp.Namespace(), ps.OwnerIDs()...)
 	if err != nil {
 		return nil, err
 	}
@@ -235,7 +235,7 @@ func (c *PostController) ListAll(
 // ListUser returns all posts for the given user id as visible by the
 // connection user id.
 func (c *PostController) ListUser(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	origin uint64,
 	userID uint64,
 	options *object.QueryOptions,
@@ -252,7 +252,7 @@ func (c *PostController) ListUser(
 
 	// Check relation and include connection visibility.
 	if origin != userID {
-		r, err := queryRelation(c.connections, app, origin, userID)
+		r, err := queryRelation(c.connections, currentApp, origin, userID)
 		if err != nil {
 			return nil, err
 		}
@@ -272,24 +272,24 @@ func (c *PostController) ListUser(
 	opts.Types = []string{TypePost}
 	opts.Visibilities = vs
 
-	os, err := c.objects.Query(app.Namespace(), opts)
+	os, err := c.objects.Query(currentApp.Namespace(), opts)
 	if err != nil {
 		return nil, err
 	}
 
 	ps := postsFromObjects(os)
 
-	err = enrichCounts(c.events, c.objects, app, ps)
+	err = enrichCounts(c.events, c.objects, currentApp, ps)
 	if err != nil {
 		return nil, err
 	}
 
-	err = enrichIsLiked(c.events, app, origin, ps)
+	err = enrichIsLiked(c.events, currentApp, origin, ps)
 	if err != nil {
 		return nil, err
 	}
 
-	um, err := user.MapFromIDs(c.users, app.Namespace(), ps.OwnerIDs()...)
+	um, err := user.MapFromIDs(c.users, currentApp.Namespace(), ps.OwnerIDs()...)
 	if err != nil {
 		return nil, err
 	}
@@ -302,11 +302,11 @@ func (c *PostController) ListUser(
 
 // Retrieve returns the Post for the given id.
 func (c *PostController) Retrieve(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	origin uint64,
 	id uint64,
 ) (*Post, error) {
-	os, err := c.objects.Query(app.Namespace(), object.QueryOptions{
+	os, err := c.objects.Query(currentApp.Namespace(), object.QueryOptions{
 		ID:    &id,
 		Owned: &defaultOwned,
 		Types: []string{
@@ -321,18 +321,18 @@ func (c *PostController) Retrieve(
 		return nil, ErrNotFound
 	}
 
-	if err := isPostVisible(c.connections, app, os[0], origin); err != nil {
+	if err := isPostVisible(c.connections, currentApp, os[0], origin); err != nil {
 		return nil, err
 	}
 
 	post := &Post{Object: os[0]}
 
-	err = enrichCounts(c.events, c.objects, app, PostList{post})
+	err = enrichCounts(c.events, c.objects, currentApp, PostList{post})
 	if err != nil {
 		return nil, err
 	}
 
-	err = enrichIsLiked(c.events, app, origin, PostList{post})
+	err = enrichIsLiked(c.events, currentApp, origin, PostList{post})
 	if err != nil {
 		return nil, err
 	}
@@ -342,12 +342,12 @@ func (c *PostController) Retrieve(
 
 // Update stores a post with the new values.
 func (c *PostController) Update(
-	app *v04_entity.Application,
+	currentApp *app.App,
 	origin Origin,
 	id uint64,
 	post *Post,
 ) (*Post, error) {
-	ps, err := c.objects.Query(app.Namespace(), object.QueryOptions{
+	ps, err := c.objects.Query(currentApp.Namespace(), object.QueryOptions{
 		ID: &id,
 		OwnerIDs: []uint64{
 			origin.UserID,
@@ -380,7 +380,7 @@ func (c *PostController) Update(
 		return nil, wrapError(ErrInvalidEntity, "%s", err)
 	}
 
-	o, err := c.objects.Put(app.Namespace(), p)
+	o, err := c.objects.Put(currentApp.Namespace(), p)
 	if err != nil {
 		return nil, err
 	}
@@ -402,11 +402,11 @@ func constrainPostVisibility(origin Origin, visibility object.Visibility) error 
 func enrichCounts(
 	events event.Service,
 	objects object.Service,
-	app *v04_entity.Application,
+	currentApp *app.App,
 	ps PostList,
 ) error {
 	for _, p := range ps {
-		comments, err := objects.Count(app.Namespace(), object.QueryOptions{
+		comments, err := objects.Count(currentApp.Namespace(), object.QueryOptions{
 			ObjectIDs: []uint64{
 				p.ID,
 			},
@@ -418,7 +418,7 @@ func enrichCounts(
 			return err
 		}
 
-		likes, err := events.Count(app.Namespace(), event.QueryOptions{
+		likes, err := events.Count(currentApp.Namespace(), event.QueryOptions{
 			Enabled: &defaultEnabled,
 			ObjectIDs: []uint64{
 				p.ID,
@@ -442,12 +442,12 @@ func enrichCounts(
 
 func enrichIsLiked(
 	events event.Service,
-	app *v04_entity.Application,
+	currentApp *app.App,
 	userID uint64,
 	ps PostList,
 ) error {
 	for _, p := range ps {
-		es, err := events.Query(app.Namespace(), event.QueryOptions{
+		es, err := events.Query(currentApp.Namespace(), event.QueryOptions{
 			Enabled: &defaultEnabled,
 			ObjectIDs: []uint64{
 				p.ID,
@@ -475,7 +475,7 @@ func enrichIsLiked(
 // post.
 func isPostVisible(
 	connections connection.Service,
-	app *v04_entity.Application,
+	currentApp *app.App,
 	post *object.Object,
 	origin uint64,
 ) error {
@@ -490,7 +490,7 @@ func isPostVisible(
 		return ErrNotFound
 	}
 
-	r, err := queryRelation(connections, app, origin, post.OwnerID)
+	r, err := queryRelation(connections, currentApp, origin, post.OwnerID)
 	if err != nil {
 		return err
 	}

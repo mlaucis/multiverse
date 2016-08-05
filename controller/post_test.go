@@ -5,11 +5,11 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/tapglue/multiverse/service/app"
 	"github.com/tapglue/multiverse/service/connection"
 	"github.com/tapglue/multiverse/service/event"
 	"github.com/tapglue/multiverse/service/object"
 	"github.com/tapglue/multiverse/service/user"
-	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
 
 func TestPostControllerCreate(t *testing.T) {
@@ -317,11 +317,11 @@ func TestPostControllerUpdateMissing(t *testing.T) {
 
 func testSetupPostController(
 	t *testing.T,
-) (*v04_entity.Application, *user.User, *PostController) {
+) (*app.App, *user.User, *PostController) {
 	var (
-		app = &v04_entity.Application{
-			ID:    rand.Int63(),
-			OrgID: rand.Int63(),
+		a = &app.App{
+			ID:    uint64(rand.Int63()),
+			OrgID: uint64(rand.Int63()),
 		}
 		events  = event.NewMemService()
 		objects = object.NewMemService()
@@ -331,17 +331,17 @@ func testSetupPostController(
 		}
 	)
 
-	err := events.Setup(app.Namespace())
+	err := events.Setup(a.Namespace())
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = objects.Setup(app.Namespace())
+	err = objects.Setup(a.Namespace())
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	return app, u, NewPostController(
+	return a, u, NewPostController(
 		connection.NewMemService(),
 		events,
 		objects,

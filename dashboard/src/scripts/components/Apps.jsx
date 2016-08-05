@@ -288,6 +288,7 @@ export class App extends Component {
       <div className='grid__col-md-6 note note-block note-success'>
         <AppForm
           description={this.props.app.description}
+          errors={[]}
           name={this.props.app.name}
           onClose={this.toggleEdit}
           onSubmit={this.handleEdit}

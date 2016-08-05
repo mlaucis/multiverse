@@ -27,7 +27,7 @@ type Summary struct {
 // AnalyticsController bundles the business constraints for analytics endpoints
 // for organisations.
 type AnalyticsController struct {
-	apps        app.StrangleService
+	apps        app.Service
 	connections metrics.BucketByDay
 	events      metrics.BucketByDay
 	objects     metrics.BucketByDay
@@ -36,7 +36,7 @@ type AnalyticsController struct {
 
 // NewAnalyticsController returns a controller instance.
 func NewAnalyticsController(
-	apps app.StrangleService,
+	apps app.Service,
 	connections, events, objects, users metrics.BucketByDay,
 ) *AnalyticsController {
 	return &AnalyticsController{
@@ -50,13 +50,24 @@ func NewAnalyticsController(
 
 // App returns the timeseries data for all entities of an app.
 func (c *AnalyticsController) App(
-	appPublicID string,
+	publicID string,
 	where *AnalyticsWhere,
 ) (AppResult, error) {
-	app, errs := c.apps.FindByPublicID(appPublicID)
-	if errs != nil {
-		return nil, errs[0]
+	as, err := c.apps.Query(app.NamespaceDefault, app.QueryOptions{
+		Enabled: &defaultEnabled,
+		PublicIDs: []string{
+			publicID,
+		},
+	})
+	if err != nil {
+		return nil, err
 	}
+
+	if len(as) != 1 {
+		return nil, ErrNotFound
+	}
+
+	app := as[0]
 
 	if where == nil {
 		where = &AnalyticsWhere{
