@@ -186,6 +186,7 @@ func (p *payloadEvent) MarshalJSON() ([]byte, error) {
 		Object       *event.Object  `json:"object"`
 		ObjectID     string         `json:"tg_object_id"`
 		Owned        bool           `json:"owned"`
+		PostID       string         `json:"post_id"`
 		Target       *event.Target  `json:"target,omitempty"`
 		Type         string         `json:"type"`
 		UserID       uint64         `json:"user_id"`
@@ -200,6 +201,7 @@ func (p *payloadEvent) MarshalJSON() ([]byte, error) {
 		Metadata:     p.event.Metadata,
 		ObjectID:     strconv.FormatUint(p.event.ObjectID, 10),
 		Owned:        p.event.Owned,
+		PostID:       strconv.FormatUint(p.event.ObjectID, 10),
 		Type:         p.event.Type,
 		UserID:       p.event.UserID,
 		UserIDString: strconv.FormatUint(p.event.UserID, 10),
