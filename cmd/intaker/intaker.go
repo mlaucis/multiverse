@@ -581,62 +581,6 @@ func main() {
 		),
 	)
 
-	next.Methods("POST").Path(`/externals/{externalID:[a-zA-Z0-9\-\_]+}/comments`).Name("externalCommentCreate").HandlerFunc(
-		handler.Wrap(
-			withUser,
-			handler.ExternalCommentCreate(commentController),
-		),
-	)
-
-	next.Methods("DELETE").Path(`/externals/{externalID:[a-zA-Z0-9\-\_]+}/comments/{commentID:[0-9]+}`).Name("externalCommentDelete").HandlerFunc(
-		handler.Wrap(
-			withUser,
-			handler.ExternalCommentDelete(commentController),
-		),
-	)
-
-	next.Methods("GET").Path(`/externals/{externalID:[a-zA-Z0-9\-\_]+}/comments/{commentID:[0-9]+}`).Name("externalCommentRetrieve").HandlerFunc(
-		handler.Wrap(
-			withUser,
-			handler.ExternalCommentRetrieve(commentController),
-		),
-	)
-
-	next.Methods("PUT").Path(`/externals/{externalID:[a-zA-Z0-9\-\_]+}/comments/{commentID:[0-9]+}`).Name("externalCommentUpdate").HandlerFunc(
-		handler.Wrap(
-			withUser,
-			handler.ExternalCommentUpdate(commentController),
-		),
-	)
-
-	next.Methods("GET").Path(`/externals/{externalID:[a-zA-Z0-9\-\_]+}/comments`).Name("externalCommentList").HandlerFunc(
-		handler.Wrap(
-			withApp,
-			handler.ExternalCommentList(commentController),
-		),
-	)
-
-	next.Methods("POST").Path(`/externals/{externalID:[a-zA-Z0-9\-\_]+}/likes`).Name("externalLikeCreate").HandlerFunc(
-		handler.Wrap(
-			withUser,
-			handler.ExternalLikeCreate(likeController),
-		),
-	)
-
-	next.Methods("DELETE").Path(`/externals/{externalID:[a-zA-Z0-9\-\_]+}/likes`).Name("externalLikeDelete").HandlerFunc(
-		handler.Wrap(
-			withUser,
-			handler.ExternalLikeDelete(likeController),
-		),
-	)
-
-	next.Methods("GET").Path(`/externals/{externalID:[a-zA-Z0-9\-\_]+}/likes`).Name("externalLikeList").HandlerFunc(
-		handler.Wrap(
-			withApp,
-			handler.ExternalLikeList(likeController),
-		),
-	)
-
 	next.Methods("OPTIONS").PathPrefix("/").Name("CORS").HandlerFunc(
 		handler.Wrap(
 			withMember,
