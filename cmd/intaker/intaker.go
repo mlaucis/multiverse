@@ -476,77 +476,77 @@ func main() {
 		),
 	)
 
-	next.Methods("GET").Path(`/me/connections/{state:[a-z]+}`).Name("getConnectionByState").HandlerFunc(
+	next.Methods("GET").Path(`/me/connections/{state:[a-z]+}`).Name("connectionListByState").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.ConnectionByState(connectionController),
 		),
 	)
 
-	next.Methods("DELETE").Path(`/me/connections/{type:[a-z]+}/{toID:[0-9]+}`).Name("deleteConnection").HandlerFunc(
+	next.Methods("DELETE").Path(`/me/connections/{type:[a-z]+}/{toID:[0-9]+}`).Name("connectionDelete").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.ConnectionDelete(connectionController),
 		),
 	)
 
-	next.Methods("POST").Path(`/me/connections/social`).Name("createSocialConnections").HandlerFunc(
+	next.Methods("POST").Path(`/me/connections/social`).Name("connectionCreateSocial").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.ConnectionSocial(connectionController),
 		),
 	)
 
-	next.Methods("PUT").Path(`/me/connections`).Name("updateConnection").HandlerFunc(
+	next.Methods("PUT").Path(`/me/connections`).Name("connectionUpdate").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.ConnectionUpdate(connectionController),
 		),
 	)
 
-	next.Methods("GET").Path(`/me/followers`).Name("getFollowersMe").HandlerFunc(
+	next.Methods("GET").Path(`/me/followers`).Name("connectionFollowersMe").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.ConnectionFollowersMe(connectionController),
 		),
 	)
 
-	next.Methods("GET").Path(`/me/follows`).Name("getFollowingsMe").HandlerFunc(
+	next.Methods("GET").Path(`/me/follows`).Name("connectionFollowingsMe").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.ConnectionFollowingsMe(connectionController),
 		),
 	)
 
-	next.Methods("GET").Path(`/me/friends`).Name("getFriendsMe").HandlerFunc(
+	next.Methods("GET").Path(`/me/friends`).Name("connectionFriendsMe").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.ConnectionFriendsMe(connectionController),
 		),
 	)
 
-	next.Methods("GET").Path(`/users/{userID:[0-9]+}/followers`).Name("getFollowers").HandlerFunc(
+	next.Methods("GET").Path(`/users/{userID:[0-9]+}/followers`).Name("connectionFollowers").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.ConnectionFollowers(connectionController),
 		),
 	)
 
-	next.Methods("GET").Path(`/users/{userID:[0-9]+}/follows`).Name("getFollowings").HandlerFunc(
+	next.Methods("GET").Path(`/users/{userID:[0-9]+}/follows`).Name("connectionFollowings").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.ConnectionFollowings(connectionController),
 		),
 	)
 
-	next.Methods("GET").Path(`/users/{userID:[0-9]+}/friends`).Name("getFriends").HandlerFunc(
+	next.Methods("GET").Path(`/users/{userID:[0-9]+}/friends`).Name("connectionFriends").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.ConnectionFriends(connectionController),
 		),
 	)
 
-	next.Methods("DELETE").Path(`/me/events/{id:[0-9]+}`).Name("deleteEvent").HandlerFunc(
+	next.Methods("DELETE").Path(`/me/events/{id:[0-9]+}`).Name("eventDelete").HandlerFunc(
 		handler.Wrap(
 			withUser,
 			handler.EventDelete(eventController),
