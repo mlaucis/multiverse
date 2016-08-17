@@ -94,6 +94,7 @@ type ServiceMiddleware func(Service) Service
 
 // User is the representation of a customer of an app.
 type User struct {
+	About          string            `json:"about"`
 	CustomID       string            `json:"custom_id,omitempty"`
 	Deleted        bool              `json:"deleted"`
 	Enabled        bool              `json:"enabled"`

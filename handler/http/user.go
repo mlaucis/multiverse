@@ -380,6 +380,7 @@ type payloadUser struct {
 
 func (p *payloadUser) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
+		About          string                `json:"about"`
 		CustomID       string                `json:"custom_id,omitempty"`
 		Email          string                `json:"email"`
 		Firstname      string                `json:"first_name"`
@@ -402,6 +403,7 @@ func (p *payloadUser) MarshalJSON() ([]byte, error) {
 		CreatedAt      time.Time             `json:"created_at"`
 		UpdatedAt      time.Time             `json:"updated_at"`
 	}{
+		About:          p.user.About,
 		CustomID:       p.user.CustomID,
 		Email:          p.user.Email,
 		Firstname:      p.user.Firstname,
@@ -428,6 +430,7 @@ func (p *payloadUser) MarshalJSON() ([]byte, error) {
 
 func (p *payloadUser) UnmarshalJSON(raw []byte) error {
 	f := struct {
+		About     string                `json:"about"`
 		CustomID  string                `json:"custom_id,omitempty"`
 		Email     string                `json:"email"`
 		Firstname string                `json:"first_name"`
@@ -447,6 +450,7 @@ func (p *payloadUser) UnmarshalJSON(raw []byte) error {
 	}
 
 	p.user = &user.User{
+		About:     f.About,
 		CustomID:  f.CustomID,
 		Email:     f.Email,
 		Firstname: f.Firstname,
