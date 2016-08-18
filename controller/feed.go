@@ -768,7 +768,7 @@ func fillupUsers(
 	es event.List,
 ) (user.Map, error) {
 	for _, id := range es.UserIDs() {
-		if _, ok := um[id]; ok || id == originID {
+		if _, ok := um[id]; ok {
 			continue
 		}
 
