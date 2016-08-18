@@ -576,6 +576,11 @@ resource "aws_launch_configuration" "service" {
 #!/bin/bash
 echo ECS_CLUSTER=service >> /etc/ecs/ecs.config
 
+# Increase rate limiting
+echo '
+$SystemLogRateLimitInterval 1
+$SystemLogRateLimitBurst 10000' | sudo tee -a /etc/rsyslog.conf
+
 # Install loggly security credentials
 mkdir -pv /etc/rsyslog.d/keys/ca.d
 cd /etc/rsyslog.d/keys/ca.d/
