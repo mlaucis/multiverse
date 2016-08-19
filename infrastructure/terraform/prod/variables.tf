@@ -12,7 +12,7 @@ variable "version" {
     gateway-http  = "2350"
     pganalyze     = "1884"
     reporter      = "2302"
-    sims          = "2350"
+    sims          = "2352"
   }
 }
 
