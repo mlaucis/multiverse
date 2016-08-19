@@ -517,6 +517,7 @@ func main() {
 			"arn:aws:sns:eu-central-1:775034650473:app/GCM/simsTestGCM":                      "app_1_610",
 			"arn:aws:sns:eu-central-1:775034650473:app/APNS_SANDBOX/uMake-iOSSandbox":        "app_684_948",
 			"arn:aws:sns:eu-central-1:775034650473:app/APNS_SANDBOX/bikestorming-iOSSandbox": "app_515_922",
+			"arn:aws:sns:eu-central-1:775034650473:app/APNS_SANDBOX/tapglue-iOSExample":      "app_1_1147",
 		}
 
 		ns, ok := namespaces[arn]
@@ -533,7 +534,7 @@ func main() {
 				device.PlatformIOSSandbox: "arn:aws:sns:eu-central-1:775034650473:app/APNS_SANDBOX/simsTest",
 				device.PlatformAndroid:    "arn:aws:sns:eu-central-1:775034650473:app/GCM/simsTestGCM",
 			},
-			"app_57_661": map[device.Platform]string{
+			"app_1_1147": map[device.Platform]string{
 				device.PlatformIOSSandbox: "arn:aws:sns:eu-central-1:775034650473:app/APNS_SANDBOX/tapglue-iOSExample",
 			},
 			"app_684_948": map[device.Platform]string{
