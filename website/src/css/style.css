@@ -3809,3 +3809,9 @@ div.pricing .plan h4 {
 body.demo section#one {
   padding-bottom: 5rem !important;
 }
+
+/* Mixpanel Badge */
+
+.mixpanel-badge {
+   margin-top: 1rem !important;
+}
