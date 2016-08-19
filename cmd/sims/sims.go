@@ -567,8 +567,8 @@ func main() {
 				device.PlatformIOSSandbox: "simsTest",
 				device.PlatformAndroid:    "simsTest",
 			},
-			"app_57_661": map[device.Platform]string{
-				device.PlatformIOSSandbox: "tapglue-iOSExample",
+			"app_1_1147": map[device.Platform]string{
+				device.PlatformIOSSandbox: "TapglueSample",
 			},
 			"app_684_948": map[device.Platform]string{
 				device.PlatformIOSSandbox: "uMake",
