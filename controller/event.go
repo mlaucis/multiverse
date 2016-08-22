@@ -92,13 +92,8 @@ func (c *EventController) List(
 	currentApp *app.App,
 	originID uint64,
 	userID uint64,
-	options *event.QueryOptions,
+	opts event.QueryOptions,
 ) (*Feed, error) {
-	opts := event.QueryOptions{}
-	if options != nil {
-		opts = *options
-	}
-
 	opts.Enabled = &defaultEnabled
 	opts.UserIDs = []uint64{
 		userID,

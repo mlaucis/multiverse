@@ -2,6 +2,7 @@ package connection
 
 import (
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/tapglue/multiverse/platform/metrics"
@@ -42,14 +43,20 @@ func (s *memService) Put(ns string, con *Connection) (*Connection, error) {
 		return nil, err
 	}
 
-	con.CreatedAt = time.Now().UTC()
+	now := time.Now().UTC()
+
+	if con.CreatedAt.IsZero() {
+		con.CreatedAt = now
+	}
+
+	con.CreatedAt = con.CreatedAt.UTC()
 
 	stored, ok := s.cons[ns][stringKey(con)]
 	if ok {
 		con.CreatedAt = stored.CreatedAt
 	}
 
-	con.UpdatedAt = time.Now().UTC()
+	con.UpdatedAt = now
 
 	s.cons[ns][stringKey(con)] = con
 
@@ -83,6 +90,10 @@ func filterMap(cm map[string]*Connection, opts QueryOptions) List {
 	cs := List{}
 
 	for _, con := range cm {
+		if !opts.Before.IsZero() && con.CreatedAt.UTC().After(opts.Before.UTC()) {
+			continue
+		}
+
 		if opts.Enabled != nil && con.Enabled != *opts.Enabled {
 			continue
 		}
@@ -106,8 +117,14 @@ func filterMap(cm map[string]*Connection, opts QueryOptions) List {
 		cs = append(cs, con)
 	}
 
-	if opts.Limit != nil && len(cs) > *opts.Limit {
-		cs = cs[:*opts.Limit]
+	if len(cs) == 0 {
+		return cs
+	}
+
+	if opts.Limit > 0 {
+		l := math.Min(float64(len(cs)), float64(opts.Limit))
+
+		return cs[:int(l)]
 	}
 
 	return cs

@@ -1,14 +1,12 @@
 package http
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"golang.org/x/net/context"
 
 	"github.com/tapglue/multiverse/controller"
 	"github.com/tapglue/multiverse/service/event"
-	"github.com/tapglue/multiverse/service/user"
 )
 
 // RecommendUsersActiveDay returns a list of active users in the last day.
@@ -78,26 +76,4 @@ func RecommendUsersActiveMonth(c *controller.RecommendationController) Handler {
 
 		respondJSON(w, http.StatusOK, &payloadUsers{users: us})
 	}
-}
-
-type payloadUsers struct {
-	users user.List
-}
-
-func (p *payloadUsers) MarshalJSON() ([]byte, error) {
-	ps := []*payloadUser{}
-
-	for _, u := range p.users {
-		ps = append(ps, &payloadUser{
-			user: u,
-		})
-	}
-
-	return json.Marshal(struct {
-		Users      []*payloadUser `json:"users"`
-		UsersCount int            `json:"users_count"`
-	}{
-		Users:      ps,
-		UsersCount: len(ps),
-	})
 }

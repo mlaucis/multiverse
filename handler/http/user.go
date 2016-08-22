@@ -153,7 +153,7 @@ func UserRetrieve(c *controller.UserController) Handler {
 			origin = createOrigin(deviceID, tokenType, currentUser.ID)
 		)
 
-		userID, err := strconv.ParseUint(mux.Vars(r)["userID"], 10, 64)
+		userID, err := extractIDCursorBefore(r)
 		if err != nil {
 			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
@@ -211,7 +211,27 @@ func UserSearchEmails(c *controller.UserController) Handler {
 			return
 		}
 
-		us, err := c.ListByEmails(app, currentUser.ID, p.Emails...)
+		opts, err := extractUserOpts(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts.Before, err = extractIDCursorBefore(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts.Limit, err = extractLimit(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts.Emails = p.Emails
+
+		us, err := c.ListByEmails(app, currentUser.ID, opts)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -238,11 +258,29 @@ func UserSearch(c *controller.UserController) Handler {
 		)
 
 		if len(query) < 3 {
-			respondError(w, 0, wrapError(ErrBadRequest, "query must be over 3 characters"))
+			respondError(w, 0, wrapError(ErrBadRequest, "query must be at least 3 characters"))
 			return
 		}
 
-		us, err := c.Search(currentApp, currentUser.ID, query)
+		opts, err := extractUserOpts(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts.Before, err = extractIDCursorBefore(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts.Limit, err = extractLimit(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		us, err := c.Search(currentApp, currentUser.ID, query, opts)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -253,7 +291,15 @@ func UserSearch(c *controller.UserController) Handler {
 			return
 		}
 
-		respondJSON(w, http.StatusOK, &payloadUsers{users: us})
+		respondJSON(w, http.StatusOK, &payloadUsers{
+			pagination: pagination(
+				r,
+				opts.Limit,
+				userCursorAfter(us, opts.Limit),
+				userCursorBefore(us, opts.Limit),
+			),
+			users: us,
+		})
 	}
 }
 
@@ -278,7 +324,29 @@ func UserSearchPlatform(c *controller.UserController) Handler {
 			return
 		}
 
-		us, err := c.ListByPlatformIDs(app, currentUser.ID, platform, p.IDs...)
+		opts, err := extractUserOpts(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts.Before, err = extractIDCursorBefore(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts.Limit, err = extractLimit(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts.SocialIDs = map[string][]string{
+			platform: p.IDs,
+		}
+
+		us, err := c.ListByPlatformIDs(app, currentUser.ID, opts)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -467,6 +535,31 @@ func (p *payloadUser) UnmarshalJSON(raw []byte) error {
 	return nil
 }
 
+type payloadUsers struct {
+	pagination *payloadPagination
+	users      user.List
+}
+
+func (p *payloadUsers) MarshalJSON() ([]byte, error) {
+	ps := []*payloadUser{}
+
+	for _, u := range p.users {
+		ps = append(ps, &payloadUser{
+			user: u,
+		})
+	}
+
+	return json.Marshal(struct {
+		Pagination *payloadPagination `json:"paging"`
+		Users      []*payloadUser     `json:"users"`
+		UsersCount int                `json:"users_count"`
+	}{
+		Pagination: p.pagination,
+		Users:      ps,
+		UsersCount: len(ps),
+	})
+}
+
 type payloadUserMap struct {
 	userMap user.Map
 }
@@ -479,4 +572,24 @@ func (p *payloadUserMap) MarshalJSON() ([]byte, error) {
 	}
 
 	return json.Marshal(m)
+}
+
+func userCursorAfter(us user.List, limit int) string {
+	var after string
+
+	if len(us) > 0 {
+		after = toIDCursor(us[0].ID)
+	}
+
+	return after
+}
+
+func userCursorBefore(us user.List, limit int) string {
+	var before string
+
+	if len(us) > 0 && len(us) >= limit {
+		before = toIDCursor(us[len(us)-1].ID)
+	}
+
+	return before
 }

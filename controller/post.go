@@ -190,13 +190,8 @@ func (c *PostController) Delete(
 func (c *PostController) ListAll(
 	currentApp *app.App,
 	origin uint64,
-	options *object.QueryOptions,
+	opts object.QueryOptions,
 ) (*PostFeed, error) {
-	opts := object.QueryOptions{}
-	if options != nil {
-		opts = *options
-	}
-
 	opts.Owned = &defaultOwned
 	opts.Types = []string{TypePost}
 	opts.Visibilities = []object.Visibility{
@@ -238,13 +233,8 @@ func (c *PostController) ListUser(
 	currentApp *app.App,
 	origin uint64,
 	userID uint64,
-	options *object.QueryOptions,
+	opts object.QueryOptions,
 ) (*PostFeed, error) {
-	opts := object.QueryOptions{}
-	if options != nil {
-		opts = *options
-	}
-
 	vs := []object.Visibility{
 		object.VisibilityPublic,
 		object.VisibilityGlobal,

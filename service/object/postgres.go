@@ -21,12 +21,12 @@ const (
 		WHERE (json_data->>'id')::BIGINT = $1::BIGINT`
 
 	pgCountObjects = `SELECT count(json_data) FROM %s.objects
-		WHERE (json_data->>'deleted')::BOOL = ?::BOOL
 		%s`
 	pgListObjects = `SELECT json_data FROM %s.objects
-		WHERE (json_data->>'deleted')::BOOL = ?::BOOL
 		%s`
 
+	pgClauseBefore     = `(json_data->>'created_at')::TIMESTAMP < ?`
+	pgClauseDeleted    = `(json_data->>'deleted')::BOOL = ?::BOOL`
 	pgClauseExternalID = `(json_data->>'external_id')::TEXT IN (?)`
 	pgClauseID         = `(json_data->>'id')::BIGINT = ?::BIGINT`
 	pgClauseObjectID   = `(json_data->>'object_id')::BIGINT IN (?)`
@@ -35,7 +35,7 @@ const (
 	pgClauseTags       = `(json_data->'tags')::JSONB @> '[%s]'`
 	pgClauseType       = `(json_data->>'type')::TEXT IN (?)`
 	pgClauseVisibility = `(json_data->>'visibility')::INT IN (?)`
-	pgOrderCreatedAt   = `ORDER BY json_data->>'created_at' DESC LIMIT 200`
+	pgOrderCreatedAt   = `ORDER BY json_data->>'created_at' DESC`
 
 	pgCreatedByDay = `SELECT count(*), to_date(json_data->>'created_at', 'YYYY-MM-DD') as bucket
 		FROM %s.objects
@@ -82,12 +82,12 @@ func NewPostgresService(db *sqlx.DB) Service {
 }
 
 func (s *pgService) Count(ns string, opts QueryOptions) (int, error) {
-	clauses, params, err := convertOpts(opts)
+	where, params, err := convertOpts(opts)
 	if err != nil {
 		return 0, err
 	}
 
-	return s.countObjects(ns, clauses, params...)
+	return s.countObjects(ns, where, params...)
 }
 
 func (s *pgService) CreatedByDay(
@@ -147,6 +147,7 @@ func (s *pgService) CreatedByDay(
 
 func (s *pgService) Put(ns string, object *Object) (*Object, error) {
 	var (
+		now   = time.Now().UTC()
 		query = pgUpdateObject
 
 		params []interface{}
@@ -192,13 +193,17 @@ func (s *pgService) Put(ns string, object *Object) (*Object, error) {
 			return nil, err
 		}
 
-		object.CreatedAt = time.Now().UTC()
-		object.ID = id
+		if object.CreatedAt.IsZero() {
+			object.CreatedAt = now
+		} else {
+			object.CreatedAt = object.CreatedAt.UTC()
+		}
 
+		object.ID = id
 		query = pgInsertObject
 	}
 
-	object.UpdatedAt = time.Now().UTC()
+	object.UpdatedAt = now
 
 	data, err := json.Marshal(object)
 	if err != nil {
@@ -225,12 +230,12 @@ func (s *pgService) Put(ns string, object *Object) (*Object, error) {
 }
 
 func (s *pgService) Query(ns string, opts QueryOptions) (List, error) {
-	clauses, params, err := convertOpts(opts)
+	where, params, err := convertOpts(opts)
 	if err != nil {
 		return nil, err
 	}
 
-	return s.listObjects(ns, clauses, params...)
+	return s.listObjects(ns, where, params...)
 }
 
 // Remove issues a hard delete of the object with the id given.
@@ -280,51 +285,31 @@ func (s *pgService) Teardown(namespace string) error {
 }
 
 func (s *pgService) countObjects(
-	ns string,
-	clauses []string,
+	ns, where string,
 	params ...interface{},
 ) (int, error) {
-	if len(clauses) > 0 {
-		clauses = append([]string{""}, clauses...)
-	}
-
-	count := 0
-
-	err := s.db.Get(
-		&count,
-		sqlx.Rebind(sqlx.DOLLAR, fmt.Sprintf(pgCountObjects, ns, strings.Join(clauses, "\nAND"))),
-		params...,
+	var (
+		count = 0
+		query = fmt.Sprintf(pgCountObjects, ns, where)
 	)
+
+	err := s.db.Get(&count, query, params...)
 	if err != nil && pg.IsRelationNotFound(pg.WrapError(err)) {
 		if err := s.Setup(ns); err != nil {
 			return 0, err
 		}
 
-		err = s.db.Get(
-			&count,
-			sqlx.Rebind(sqlx.DOLLAR, fmt.Sprintf(pgCountObjects, ns, strings.Join(clauses, "\nAND"))),
-			params...,
-		)
+		err = s.db.Get(&count, query, params...)
 	}
 
 	return count, err
 }
 
 func (s *pgService) listObjects(
-	ns string,
-	clauses []string,
+	ns, where string,
 	params ...interface{},
 ) (List, error) {
-	if len(clauses) > 0 {
-		clauses = append([]string{""}, clauses...)
-	}
-
-	query := strings.Join([]string{
-		fmt.Sprintf(pgListObjects, ns, strings.Join(clauses, "\nAND")),
-		pgOrderCreatedAt,
-	}, "\n")
-
-	query = sqlx.Rebind(sqlx.DOLLAR, query)
+	query := fmt.Sprintf(pgListObjects, ns, where)
 
 	rows, err := s.db.Query(query, params...)
 	if err != nil {
@@ -334,9 +319,12 @@ func (s *pgService) listObjects(
 			}
 
 			rows, err = s.db.Query(query, params...)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			return nil, err
 		}
-
-		return nil, err
 	}
 	defer rows.Close()
 
@@ -369,13 +357,20 @@ func (s *pgService) listObjects(
 	return os, nil
 }
 
-func convertOpts(opts QueryOptions) ([]string, []interface{}, error) {
+func convertOpts(opts QueryOptions) (string, []interface{}, error) {
 	var (
-		clauses = []string{}
-		params  = []interface{}{
+		clauses = []string{
+			pgClauseDeleted,
+		}
+		params = []interface{}{
 			opts.Deleted,
 		}
 	)
+
+	if !opts.Before.IsZero() {
+		clauses = append(clauses, pgClauseBefore)
+		params = append(params, opts.Before.UTC().Format(time.RFC3339Nano))
+	}
 
 	if len(opts.ExternalIDs) > 0 {
 		ps := []interface{}{}
@@ -386,7 +381,7 @@ func convertOpts(opts QueryOptions) ([]string, []interface{}, error) {
 
 		clause, _, err := sqlx.In(pgClauseExternalID, ps)
 		if err != nil {
-			return nil, nil, err
+			return "", nil, err
 		}
 
 		clauses = append(clauses, clause)
@@ -407,7 +402,7 @@ func convertOpts(opts QueryOptions) ([]string, []interface{}, error) {
 
 		clause, _, err := sqlx.In(pgClauseOwnerID, ps)
 		if err != nil {
-			return nil, nil, err
+			return "", nil, err
 		}
 
 		clauses = append(clauses, clause)
@@ -423,7 +418,7 @@ func convertOpts(opts QueryOptions) ([]string, []interface{}, error) {
 
 		clause, _, err := sqlx.In(pgClauseObjectID, ps)
 		if err != nil {
-			return nil, nil, err
+			return "", nil, err
 		}
 
 		clauses = append(clauses, clause)
@@ -433,7 +428,7 @@ func convertOpts(opts QueryOptions) ([]string, []interface{}, error) {
 	if opts.Owned != nil {
 		clause, _, err := sqlx.In(pgClauseOwned, []interface{}{*opts.Owned})
 		if err != nil {
-			return nil, nil, err
+			return "", nil, err
 		}
 
 		clauses = append(clauses, clause)
@@ -460,7 +455,7 @@ func convertOpts(opts QueryOptions) ([]string, []interface{}, error) {
 
 		clause, _, err := sqlx.In(pgClauseType, ps)
 		if err != nil {
-			return nil, nil, err
+			return "", nil, err
 		}
 
 		clauses = append(clauses, clause)
@@ -476,14 +471,28 @@ func convertOpts(opts QueryOptions) ([]string, []interface{}, error) {
 
 		clause, _, err := sqlx.In(pgClauseVisibility, ps)
 		if err != nil {
-			return nil, nil, err
+			return "", nil, err
 		}
 
 		clauses = append(clauses, clause)
 		params = append(params, ps...)
 	}
 
-	return clauses, params, nil
+	query := ""
+
+	if len(clauses) > 0 {
+		query = sqlx.Rebind(sqlx.DOLLAR, pg.ClausesToWhere(clauses...))
+	}
+
+	if !opts.Before.IsZero() {
+		query = fmt.Sprintf("%s\n%s", query, pgOrderCreatedAt)
+	}
+
+	if opts.Limit > 0 {
+		query = fmt.Sprintf("%s\nLIMIT %d", query, opts.Limit)
+	}
+
+	return query, params, nil
 }
 
 func wrapNamespace(query, namespace string) string {

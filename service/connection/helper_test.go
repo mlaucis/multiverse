@@ -16,137 +16,80 @@ func testServiceCount(t *testing.T, p prepareFunc) {
 		from      = uint64(rand.Int63())
 		to        = uint64(rand.Int63())
 		disabled  = false
+		start     = time.Now()
 	)
 
-	for _, c := range testList(from, to) {
+	for _, c := range testList(from, to, start) {
 		_, err := service.Put(namespace, c)
 		if err != nil {
 			t.Fatal(err)
 		}
 	}
 
-	c, err := service.Count(namespace, QueryOptions{})
-	if err != nil {
-		t.Fatal(err)
+	cases := map[*QueryOptions]int{
+		&QueryOptions{}: 36,
+		&QueryOptions{Before: start.Add(-(time.Hour + time.Minute))}: 10,
+		&QueryOptions{Enabled: &disabled}:                            5,
+		&QueryOptions{FromIDs: []uint64{from}}:                       12,
+		&QueryOptions{States: []State{StateConfirmed}}:               18,
+		&QueryOptions{ToIDs: []uint64{to}}:                           13,
+		&QueryOptions{Types: []Type{TypeFriend}}:                     29,
 	}
 
-	if have, want := c, 25; have != want {
-		t.Errorf("have %v, want %v", have, want)
-	}
+	for opts, want := range cases {
+		have, err := service.Count(namespace, *opts)
+		if err != nil {
+			t.Fatal(err)
+		}
 
-	c, err = service.Count(namespace, QueryOptions{
-		Enabled: &disabled,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if have, want := c, 5; have != want {
-		t.Errorf("have %v, want %v", have, want)
-	}
-
-	c, err = service.Count(namespace, QueryOptions{
-		FromIDs: []uint64{
-			from,
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if have, want := c, 12; have != want {
-		t.Errorf("have %v, want %v", have, want)
-	}
-
-	limit := 10
-
-	c, err = service.Count(namespace, QueryOptions{
-		Limit: &limit,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if have, want := c, 10; have != want {
-		t.Errorf("have %v, want %v", have, want)
-	}
-
-	c, err = service.Count(namespace, QueryOptions{
-		States: []State{
-			StateConfirmed,
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if have, want := c, 7; have != want {
-		t.Errorf("have %v, want %v", have, want)
-	}
-
-	c, err = service.Count(namespace, QueryOptions{
-		ToIDs: []uint64{
-			to,
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if have, want := c, 13; have != want {
-		t.Errorf("have %v, want %v", have, want)
-	}
-
-	c, err = service.Count(namespace, QueryOptions{
-		Types: []Type{
-			TypeFriend,
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if have, want := c, 18; have != want {
-		t.Errorf("have %v, want %v", have, want)
+		if have != want {
+			t.Errorf("have %v, want %v", have, want)
+		}
 	}
 }
 
-func testList(from, to uint64) List {
+func testList(from, to uint64, start time.Time) List {
 	cs := List{}
 
 	for i := 0; i < 7; i++ {
 		cs = append(cs, &Connection{
-			Enabled:   true,
-			FromID:    from,
-			State:     StateConfirmed,
-			ToID:      uint64(rand.Int63()),
-			Type:      TypeFollow,
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
+			Enabled: true,
+			FromID:  from,
+			State:   StateConfirmed,
+			ToID:    uint64(rand.Int63()),
+			Type:    TypeFollow,
 		})
 	}
 
 	for i := 0; i < 5; i++ {
 		cs = append(cs, &Connection{
-			Enabled:   false,
-			FromID:    from,
-			State:     StatePending,
-			ToID:      uint64(rand.Int63()),
-			Type:      TypeFriend,
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
+			Enabled: false,
+			FromID:  from,
+			State:   StatePending,
+			ToID:    uint64(rand.Int63()),
+			Type:    TypeFriend,
 		})
 	}
 
 	for i := 0; i < 13; i++ {
 		cs = append(cs, &Connection{
+			Enabled: true,
+			FromID:  uint64(rand.Int63()),
+			State:   StateRejected,
+			ToID:    to,
+			Type:    TypeFriend,
+		})
+	}
+
+	for i := 1; i < 12; i++ {
+		cs = append(cs, &Connection{
 			Enabled:   true,
 			FromID:    uint64(rand.Int63()),
-			State:     StateRejected,
-			ToID:      to,
+			State:     StateConfirmed,
+			ToID:      uint64(rand.Int63()),
 			Type:      TypeFriend,
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
+			CreatedAt: start.Add(-(time.Duration(i) * time.Hour)),
+			UpdatedAt: start.Add(-(time.Duration(i) * time.Hour)),
 		})
 	}
 
@@ -262,97 +205,35 @@ func testServiceQuery(t *testing.T, p prepareFunc) {
 		from      = uint64(rand.Int63())
 		to        = uint64(rand.Int63())
 		disabled  = false
+		start     = time.Now()
 	)
 
-	for _, c := range testList(from, to) {
+	for _, c := range testList(from, to, time.Now()) {
 		_, err := service.Put(namespace, c)
 		if err != nil {
 			t.Fatal(err)
 		}
 	}
 
-	cs, err := service.Query(namespace, QueryOptions{})
-	if err != nil {
-		t.Fatal(err)
+	cases := map[*QueryOptions]int{
+		&QueryOptions{}: 36,
+		&QueryOptions{Before: start.Add(-(time.Hour + time.Minute))}: 10,
+		&QueryOptions{Enabled: &disabled}:                            5,
+		&QueryOptions{FromIDs: []uint64{from}}:                       12,
+		&QueryOptions{Limit: 10}:                                     10,
+		&QueryOptions{States: []State{StateConfirmed}}:               18,
+		&QueryOptions{ToIDs: []uint64{to}}:                           13,
+		&QueryOptions{Types: []Type{TypeFriend}}:                     29,
 	}
 
-	if have, want := len(cs), 25; have != want {
-		t.Errorf("have %v, want %v", have, want)
-	}
+	for opts, want := range cases {
+		cs, err := service.Query(namespace, *opts)
+		if err != nil {
+			t.Fatal(err)
+		}
 
-	cs, err = service.Query(namespace, QueryOptions{
-		Enabled: &disabled,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if have, want := len(cs), 5; have != want {
-		t.Errorf("have %v, want %v", have, want)
-	}
-
-	cs, err = service.Query(namespace, QueryOptions{
-		FromIDs: []uint64{
-			from,
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if have, want := len(cs), 12; have != want {
-		t.Errorf("have %v, want %v", have, want)
-	}
-
-	limit := 10
-
-	cs, err = service.Query(namespace, QueryOptions{
-		Limit: &limit,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if have, want := len(cs), 10; have != want {
-		t.Errorf("have %v, want %v", have, want)
-	}
-
-	cs, err = service.Query(namespace, QueryOptions{
-		States: []State{
-			StateConfirmed,
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if have, want := len(cs), 7; have != want {
-		t.Errorf("have %v, want %v", have, want)
-	}
-
-	cs, err = service.Query(namespace, QueryOptions{
-		ToIDs: []uint64{
-			to,
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if have, want := len(cs), 13; have != want {
-		t.Errorf("have %v, want %v", have, want)
-	}
-
-	cs, err = service.Query(namespace, QueryOptions{
-		Types: []Type{
-			TypeFriend,
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if have, want := len(cs), 18; have != want {
-		t.Errorf("have %v, want %v", have, want)
+		if have := len(cs); have != want {
+			t.Errorf("have %v, want %v", have, want)
+		}
 	}
 }

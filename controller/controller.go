@@ -20,3 +20,8 @@ type Origin struct {
 func (o Origin) IsBackend() bool {
 	return o.Integration == IntegrationBackend
 }
+
+// Pagination holds the cursors used to page through collections.
+type Pagination struct {
+	Next string
+}

@@ -140,7 +140,7 @@ func TestCommentControllerList(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	list, err := c.List(app, owner.ID, post.ID)
+	list, err := c.List(app, owner.ID, post.ID, object.QueryOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -156,7 +156,7 @@ func TestCommentControllerList(t *testing.T) {
 		}
 	}
 
-	list, err = c.List(app, owner.ID, post.ID)
+	list, err = c.List(app, owner.ID, post.ID, object.QueryOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}

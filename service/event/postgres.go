@@ -3,7 +3,6 @@ package event
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -24,6 +23,7 @@ const (
 	pgListEvents = `SELECT json_data FROM %s.events
 		%s`
 
+	pgClauseBefore              = `(json_data->>'created_at')::TIMESTAMP < ?`
 	pgClauseEnabled             = `(json_data->>'enabled')::BOOL = ?::BOOL`
 	pgClauseExternalObjectIDs   = `(json_data->'object'->>'id')::TEXT IN (?)`
 	pgClauseExternalObjectTypes = `(json_data->'object'->>'type')::TEXT in (?)`
@@ -49,7 +49,7 @@ const (
 	pgClauseByWeek  = `(json_data ->> 'updated_at')::DATE > current_date - interval '1 week'`
 	pgClauseByMonth = `(json_data ->> 'updated_at')::DATE > current_date - interval '1 month'`
 
-	pgOrderCreatedAt = `ORDER BY json_data->>'created_at' DESC`
+	pgOrderCreatedAt = `ORDER BY (json_data->>'created_at')::TIMESTAMP DESC`
 
 	pgCreatedByDay = `SELECT count(*), to_date(json_data->>'created_at', 'YYYY-MM-DD') as bucket
 		FROM %s.events
@@ -121,12 +121,12 @@ func (s *pgService) ActiveUserIDs(
 }
 
 func (s *pgService) Count(ns string, opts QueryOptions) (int, error) {
-	clauses, params, err := convertOpts(opts)
+	where, params, err := convertOpts(opts)
 	if err != nil {
 		return 0, err
 	}
 
-	return s.countEvents(ns, clauses, params...)
+	return s.countEvents(ns, where, params...)
 }
 
 func (s *pgService) CreatedByDay(
@@ -175,6 +175,7 @@ func (s *pgService) CreatedByDay(
 
 func (s *pgService) Put(ns string, event *Event) (*Event, error) {
 	var (
+		now   = time.Now().UTC()
 		query = pgUpdateEvent
 
 		params []interface{}
@@ -209,13 +210,17 @@ func (s *pgService) Put(ns string, event *Event) (*Event, error) {
 			return nil, err
 		}
 
-		event.CreatedAt = time.Now().UTC()
-		event.ID = id
+		if event.CreatedAt.IsZero() {
+			event.CreatedAt = now
+		} else {
+			event.CreatedAt = event.CreatedAt.UTC()
+		}
 
+		event.ID = id
 		query = pgInsertEvent
 	}
 
-	event.UpdatedAt = time.Now().UTC()
+	event.UpdatedAt = now
 
 	data, err := json.Marshal(event)
 	if err != nil {
@@ -233,12 +238,12 @@ func (s *pgService) Put(ns string, event *Event) (*Event, error) {
 }
 
 func (s *pgService) Query(ns string, opts QueryOptions) (List, error) {
-	clauses, params, err := convertOpts(opts)
+	where, params, err := convertOpts(opts)
 	if err != nil {
 		return nil, err
 	}
 
-	return s.listEvents(ns, clauses, params...)
+	return s.listEvents(ns, where, params...)
 }
 
 func (s *pgService) Setup(ns string) error {
@@ -273,55 +278,31 @@ func (s *pgService) Teardown(ns string) error {
 }
 
 func (s *pgService) countEvents(
-	ns string,
-	clauses []string,
+	ns string, where string,
 	params ...interface{},
 ) (int, error) {
-	c := strings.Join(clauses, "\nAND")
-
-	if len(clauses) > 0 {
-		c = fmt.Sprintf("WHERE %s", c)
-	}
-
-	count := 0
-
-	err := s.db.Get(
-		&count,
-		sqlx.Rebind(sqlx.DOLLAR, fmt.Sprintf(pgCountEvents, ns, c)),
-		params...,
+	var (
+		count = 0
+		query = fmt.Sprintf(pgCountEvents, ns, where)
 	)
+
+	err := s.db.Get(&count, query, params...)
 	if err != nil && pg.IsRelationNotFound(pg.WrapError(err)) {
 		if err := s.Setup(ns); err != nil {
 			return 0, err
 		}
 
-		err = s.db.Get(
-			&count,
-			sqlx.Rebind(sqlx.DOLLAR, fmt.Sprintf(pgCountEvents, ns, c)),
-			params...,
-		)
+		err = s.db.Get(&count, query, params...)
 	}
 
 	return count, err
 }
 
 func (s *pgService) listEvents(
-	ns string,
-	clauses []string,
+	ns string, where string,
 	params ...interface{},
 ) (List, error) {
-	c := strings.Join(clauses, "\nAND")
-
-	if len(clauses) > 0 {
-		c = fmt.Sprintf("WHERE %s", c)
-	}
-
-	query := strings.Join([]string{
-		fmt.Sprintf(pgListEvents, ns, c),
-		pgOrderCreatedAt,
-	}, "\n")
-
-	query = sqlx.Rebind(sqlx.DOLLAR, query)
+	query := fmt.Sprintf(pgListEvents, ns, where)
 
 	rows, err := s.db.Query(query, params...)
 	if err != nil {
@@ -369,16 +350,21 @@ func (s *pgService) listEvents(
 	return es, nil
 }
 
-func convertOpts(opts QueryOptions) ([]string, []interface{}, error) {
+func convertOpts(opts QueryOptions) (string, []interface{}, error) {
 	var (
 		clauses = []string{}
 		params  = []interface{}{}
 	)
 
+	if !opts.Before.IsZero() {
+		clauses = append(clauses, pgClauseBefore)
+		params = append(params, opts.Before.UTC().Format(time.RFC3339Nano))
+	}
+
 	if opts.Enabled != nil {
 		clause, _, err := sqlx.In(pgClauseEnabled, []interface{}{*opts.Enabled})
 		if err != nil {
-			return nil, nil, err
+			return "", nil, err
 		}
 
 		clauses = append(clauses, clause)
@@ -394,7 +380,7 @@ func convertOpts(opts QueryOptions) ([]string, []interface{}, error) {
 
 		clause, _, err := sqlx.In(pgClauseExternalObjectIDs, ps)
 		if err != nil {
-			return nil, nil, err
+			return "", nil, err
 		}
 
 		clauses = append(clauses, clause)
@@ -410,7 +396,7 @@ func convertOpts(opts QueryOptions) ([]string, []interface{}, error) {
 
 		clause, _, err := sqlx.In(pgClauseExternalObjectTypes, ps)
 		if err != nil {
-			return nil, nil, err
+			return "", nil, err
 		}
 
 		clauses = append(clauses, clause)
@@ -426,7 +412,7 @@ func convertOpts(opts QueryOptions) ([]string, []interface{}, error) {
 
 		clause, _, err := sqlx.In(pgClauseIDs, ps)
 		if err != nil {
-			return nil, nil, err
+			return "", nil, err
 		}
 
 		clauses = append(clauses, clause)
@@ -442,7 +428,7 @@ func convertOpts(opts QueryOptions) ([]string, []interface{}, error) {
 
 		clause, _, err := sqlx.In(pgClauseObjectIDs, ps)
 		if err != nil {
-			return nil, nil, err
+			return "", nil, err
 		}
 
 		clauses = append(clauses, clause)
@@ -452,7 +438,7 @@ func convertOpts(opts QueryOptions) ([]string, []interface{}, error) {
 	if opts.Owned != nil {
 		clause, _, err := sqlx.In(pgClauseOwned, []interface{}{*opts.Owned})
 		if err != nil {
-			return nil, nil, err
+			return "", nil, err
 		}
 
 		clauses = append(clauses, clause)
@@ -468,7 +454,7 @@ func convertOpts(opts QueryOptions) ([]string, []interface{}, error) {
 
 		clause, _, err := sqlx.In(pgClauseTargetIDs, ps)
 		if err != nil {
-			return nil, nil, err
+			return "", nil, err
 		}
 
 		clauses = append(clauses, clause)
@@ -484,7 +470,7 @@ func convertOpts(opts QueryOptions) ([]string, []interface{}, error) {
 
 		clause, _, err := sqlx.In(pgClauseTargetTypes, ps)
 		if err != nil {
-			return nil, nil, err
+			return "", nil, err
 		}
 
 		clauses = append(clauses, clause)
@@ -500,7 +486,7 @@ func convertOpts(opts QueryOptions) ([]string, []interface{}, error) {
 
 		clause, _, err := sqlx.In(pgClauseTypes, ps)
 		if err != nil {
-			return nil, nil, err
+			return "", nil, err
 		}
 
 		clauses = append(clauses, clause)
@@ -516,7 +502,7 @@ func convertOpts(opts QueryOptions) ([]string, []interface{}, error) {
 
 		clause, _, err := sqlx.In(pgClauseUserIDs, ps)
 		if err != nil {
-			return nil, nil, err
+			return "", nil, err
 		}
 
 		clauses = append(clauses, clause)
@@ -532,14 +518,28 @@ func convertOpts(opts QueryOptions) ([]string, []interface{}, error) {
 
 		clause, _, err := sqlx.In(pgClauseVisibilities, ps)
 		if err != nil {
-			return nil, nil, err
+			return "", nil, err
 		}
 
 		clauses = append(clauses, clause)
 		params = append(params, ps...)
 	}
 
-	return clauses, params, nil
+	query := ""
+
+	if len(clauses) > 0 {
+		query = sqlx.Rebind(sqlx.DOLLAR, pg.ClausesToWhere(clauses...))
+	}
+
+	if !opts.Before.IsZero() {
+		query = fmt.Sprintf("%s\n%s", query, pgOrderCreatedAt)
+	}
+
+	if opts.Limit > 0 {
+		query = fmt.Sprintf("%s\nLIMIT %d", query, opts.Limit)
+	}
+
+	return query, params, nil
 }
 
 func wrapNamespace(query, namespace string) string {

@@ -371,6 +371,7 @@ func testServiceQuery(t *testing.T, p prepareFunc) {
 			generate.RandomString(5),
 			generate.RandomString(5),
 		}
+		ts = testList(platform, socialIDs...)
 	)
 
 	list, err := service.Query(namespace, QueryOptions{})
@@ -391,85 +392,34 @@ func testServiceQuery(t *testing.T, p prepareFunc) {
 		t.Fatal(err)
 	}
 
-	for _, u := range testList(platform, socialIDs...) {
+	for _, u := range ts {
 		_, err := service.Put(namespace, u)
 		if err != nil {
 			t.Fatal(err)
 		}
 	}
 
-	us, err := service.Query(namespace, QueryOptions{
-		CustomIDs: []string{
-			customID,
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
+	cases := map[*QueryOptions]int{
+		&QueryOptions{}:                                                    24,
+		&QueryOptions{Before: ts[len(ts)-3].ID}:                            2,
+		&QueryOptions{CustomIDs: []string{customID}}:                       1,
+		&QueryOptions{Deleted: &deleted}:                                   9,
+		&QueryOptions{Enabled: &enabled}:                                   15,
+		&QueryOptions{IDs: []uint64{created.ID}}:                           1,
+		&QueryOptions{Limit: 10}:                                           10,
+		&QueryOptions{SocialIDs: map[string][]string{platform: socialIDs}}: len(socialIDs),
+		&QueryOptions{Usernames: []string{created.Username}}:               1,
 	}
 
-	if have, want := len(us), 1; have != want {
-		t.Errorf("have %v, want %v", have, want)
-	}
+	for opts, want := range cases {
+		us, err := service.Query(namespace, *opts)
+		if err != nil {
+			t.Fatal(err)
+		}
 
-	us, err = service.Query(namespace, QueryOptions{
-		Deleted: &deleted,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if have, want := len(us), 9; have != want {
-		t.Errorf("have %v, want %v", have, want)
-	}
-
-	us, err = service.Query(namespace, QueryOptions{
-		Enabled: &enabled,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if have, want := len(us), 15; have != want {
-		t.Errorf("have %v, want %v", have, want)
-	}
-
-	us, err = service.Query(namespace, QueryOptions{
-		IDs: []uint64{
-			created.ID,
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if have, want := len(us), 1; have != want {
-		t.Errorf("have %v, want %v", have, want)
-	}
-
-	us, err = service.Query(namespace, QueryOptions{
-		SocialIDs: map[string][]string{
-			platform: socialIDs,
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if have, want := len(us), len(socialIDs); have != want {
-		t.Errorf("have %v, want %v", have, want)
-	}
-
-	us, err = service.Query(namespace, QueryOptions{
-		Usernames: []string{
-			created.Username,
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if have, want := len(us), 1; have != want {
-		t.Errorf("have %v, want %v", have, want)
+		if have := len(us); have != want {
+			t.Errorf("have %v, want %v", have, want)
+		}
 	}
 }
 
@@ -479,7 +429,7 @@ func testServiceSearch(t *testing.T, p prepareFunc) {
 		service   = p(t, namespace)
 	)
 
-	us, err := service.Search(namespace, QueryOptions{}, SearchOptions{})
+	us, err := service.Search(namespace, QueryOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -505,7 +455,7 @@ func testServiceSearch(t *testing.T, p prepareFunc) {
 		}
 	}
 
-	us, err = service.Search(namespace, QueryOptions{}, SearchOptions{
+	us, err = service.Search(namespace, QueryOptions{
 		Emails: []string{
 			created.Email[0 : len(u.Email)-3],
 		},
@@ -518,7 +468,7 @@ func testServiceSearch(t *testing.T, p prepareFunc) {
 		t.Errorf("have %v, want %v", have, want)
 	}
 
-	us, err = service.Search(namespace, QueryOptions{}, SearchOptions{
+	us, err = service.Search(namespace, QueryOptions{
 		Firstnames: []string{
 			created.Firstname[1:10],
 		},
@@ -531,7 +481,7 @@ func testServiceSearch(t *testing.T, p prepareFunc) {
 		t.Errorf("have %v, want %v", have, want)
 	}
 
-	us, err = service.Search(namespace, QueryOptions{}, SearchOptions{
+	us, err = service.Search(namespace, QueryOptions{
 		Lastnames: []string{
 			created.Lastname[1:10],
 		},
@@ -546,7 +496,6 @@ func testServiceSearch(t *testing.T, p prepareFunc) {
 
 	us, err = service.Search(namespace, QueryOptions{
 		Enabled: &defaultEnabled,
-	}, SearchOptions{
 		Usernames: []string{
 			created.Username[3:7],
 		},

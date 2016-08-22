@@ -1,17 +1,18 @@
 package controller
 
 import (
+	"sort"
+
 	"github.com/tapglue/multiverse/service/app"
 	"github.com/tapglue/multiverse/service/connection"
 	"github.com/tapglue/multiverse/service/user"
 )
 
-var limitInfinite = -1
-
 // ConnectionFeed is the composite to transport information relevant for
 // connections.
 type ConnectionFeed struct {
 	Connections connection.List
+	Users       user.List
 	UserMap     user.Map
 }
 
@@ -137,12 +138,10 @@ func (c *ConnectionController) Delete(
 		toIDs = []uint64{con.FromID, con.ToID}
 	}
 
-	limit := 1
-
 	cs, err := c.connections.Query(currentApp.Namespace(), connection.QueryOptions{
 		Enabled: &defaultEnabled,
 		FromIDs: fromIDs,
-		Limit:   &limit,
+		Limit:   1,
 		ToIDs:   toIDs,
 		Types:   []connection.Type{con.Type},
 	})
@@ -168,9 +167,12 @@ func (c *ConnectionController) Followers(
 	currentApp *app.App,
 	origin uint64,
 	userID uint64,
-) (user.List, error) {
+	opts connection.QueryOptions,
+) (*ConnectionFeed, error) {
 	cs, err := c.connections.Query(currentApp.Namespace(), connection.QueryOptions{
+		Before:  opts.Before,
 		Enabled: &defaultEnabled,
+		Limit:   opts.Limit,
 		ToIDs:   []uint64{userID},
 		States:  []connection.State{connection.StateConfirmed},
 		Types:   []connection.Type{connection.TypeFollow},
@@ -196,7 +198,10 @@ func (c *ConnectionController) Followers(
 		}
 	}
 
-	return us, nil
+	return &ConnectionFeed{
+		Connections: cs,
+		Users:       us,
+	}, nil
 }
 
 // Followings returns the list of users the origin is following.
@@ -204,10 +209,13 @@ func (c *ConnectionController) Followings(
 	currentApp *app.App,
 	origin uint64,
 	userID uint64,
-) (user.List, error) {
+	opts connection.QueryOptions,
+) (*ConnectionFeed, error) {
 	cs, err := c.connections.Query(currentApp.Namespace(), connection.QueryOptions{
+		Before:  opts.Before,
 		Enabled: &defaultEnabled,
 		FromIDs: []uint64{userID},
+		Limit:   opts.Limit,
 		States:  []connection.State{connection.StateConfirmed},
 		Types:   []connection.Type{connection.TypeFollow},
 	})
@@ -232,7 +240,10 @@ func (c *ConnectionController) Followings(
 		}
 	}
 
-	return us, nil
+	return &ConnectionFeed{
+		Connections: cs,
+		Users:       us,
+	}, nil
 }
 
 // Friends returns the list of users the origin is friends with.
@@ -240,10 +251,13 @@ func (c *ConnectionController) Friends(
 	currentApp *app.App,
 	origin uint64,
 	userID uint64,
-) (user.List, error) {
+	opts connection.QueryOptions,
+) (*ConnectionFeed, error) {
 	fs, err := c.connections.Query(currentApp.Namespace(), connection.QueryOptions{
+		Before:  opts.Before,
 		Enabled: &defaultEnabled,
 		FromIDs: []uint64{userID},
+		Limit:   opts.Limit,
 		States:  []connection.State{connection.StateConfirmed},
 		Types:   []connection.Type{connection.TypeFriend},
 	})
@@ -252,7 +266,9 @@ func (c *ConnectionController) Friends(
 	}
 
 	ts, err := c.connections.Query(currentApp.Namespace(), connection.QueryOptions{
+		Before:  opts.Before,
 		Enabled: &defaultEnabled,
+		Limit:   opts.Limit,
 		ToIDs:   []uint64{userID},
 		States:  []connection.State{connection.StateConfirmed},
 		Types:   []connection.Type{connection.TypeFriend},
@@ -261,10 +277,28 @@ func (c *ConnectionController) Friends(
 		return nil, err
 	}
 
+	cs := append(fs, ts...)
+
+	sort.Sort(cs)
+
+	if len(cs) > opts.Limit {
+		cs = cs[:opts.Limit-1]
+	}
+
+	ids := []uint64{}
+
+	for _, con := range cs {
+		if con.FromID == userID {
+			ids = append(ids, con.ToID)
+		} else {
+			ids = append(ids, con.FromID)
+		}
+	}
+
 	us, err := user.ListFromIDs(
 		c.users,
 		currentApp.Namespace(),
-		append(fs.ToIDs(), ts.FromIDs()...)...,
+		ids...,
 	)
 	if err != nil {
 		return nil, err
@@ -282,7 +316,10 @@ func (c *ConnectionController) Friends(
 		}
 	}
 
-	return us, nil
+	return &ConnectionFeed{
+		Connections: cs,
+		Users:       us,
+	}, nil
 }
 
 // Update transitions the passed Connection to its new state.
@@ -314,12 +351,10 @@ func (c *ConnectionController) Update(
 		toIDs = []uint64{new.FromID, new.ToID}
 	}
 
-	limit := 1
-
 	cs, err := c.connections.Query(currentApp.Namespace(), connection.QueryOptions{
 		Enabled: &defaultEnabled,
 		FromIDs: fromIDs,
-		Limit:   &limit,
+		Limit:   1,
 		ToIDs:   toIDs,
 		Types:   []connection.Type{new.Type},
 	})

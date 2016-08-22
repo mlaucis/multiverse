@@ -126,19 +126,28 @@ func (s *memService) Query(ns string, opts QueryOptions) (List, error) {
 		return nil, err
 	}
 
-	return filterMap(s.users[ns], opts), nil
+	us := filterMap(s.users[ns], opts)
+
+	if opts.Limit > 0 && len(us) > opts.Limit {
+		us = us[:opts.Limit]
+	}
+
+	return us, nil
 }
 
-func (s *memService) Search(
-	ns string,
-	qOpts QueryOptions,
-	sOpts SearchOptions,
-) (List, error) {
+func (s *memService) Search(ns string, opts QueryOptions) (List, error) {
 	if err := s.Setup(ns); err != nil {
 		return nil, err
 	}
 
-	us := filterMap(s.users[ns], qOpts)
+	sOpts := opts
+
+	opts.Emails = nil
+	opts.Firstnames = nil
+	opts.Lastnames = nil
+	opts.Usernames = nil
+
+	us := filterMap(s.users[ns], opts)
 	us = searchUsers(us, sOpts)
 
 	return us, nil
@@ -269,14 +278,14 @@ func inTypes(ty string, ts []string) bool {
 	return keep
 }
 
-func searchUsers(is List, sOpts SearchOptions) List {
+func searchUsers(is List, opts QueryOptions) List {
 	us := List{}
 
 	for _, u := range is {
-		if !contains(u.Email, sOpts.Emails...) ||
-			!contains(u.Firstname, sOpts.Firstnames...) ||
-			!contains(u.Lastname, sOpts.Lastnames...) ||
-			!contains(u.Username, sOpts.Usernames...) {
+		if !contains(u.Email, opts.Emails...) ||
+			!contains(u.Firstname, opts.Firstnames...) ||
+			!contains(u.Lastname, opts.Lastnames...) ||
+			!contains(u.Username, opts.Usernames...) {
 			continue
 		}
 

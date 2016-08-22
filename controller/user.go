@@ -100,11 +100,13 @@ func (c *UserController) Delete(
 func (c *UserController) ListByEmails(
 	currentApp *app.App,
 	originID uint64,
-	emails ...string,
+	opts user.QueryOptions,
 ) (user.List, error) {
 	us, err := c.users.Query(currentApp.Namespace(), user.QueryOptions{
+		Before:  opts.Before,
 		Enabled: &defaultEnabled,
-		Emails:  emails,
+		Emails:  opts.Emails,
+		Limit:   opts.Limit,
 	})
 	if err != nil {
 		return nil, err
@@ -128,14 +130,13 @@ func (c *UserController) ListByEmails(
 func (c *UserController) ListByPlatformIDs(
 	currentApp *app.App,
 	originID uint64,
-	platform string,
-	ids ...string,
+	opts user.QueryOptions,
 ) (user.List, error) {
 	us, err := c.users.Query(currentApp.Namespace(), user.QueryOptions{
-		Enabled: &defaultEnabled,
-		SocialIDs: map[string][]string{
-			platform: ids,
-		},
+		Before:    opts.Before,
+		Enabled:   &defaultEnabled,
+		Limit:     opts.Limit,
+		SocialIDs: opts.SocialIDs,
 	})
 	if err != nil {
 		return nil, err
@@ -281,15 +282,17 @@ func (c *UserController) Search(
 	currentApp *app.App,
 	origin uint64,
 	query string,
+	opts user.QueryOptions,
 ) (user.List, error) {
 	t := []string{query}
 
 	us, err := c.users.Search(currentApp.Namespace(), user.QueryOptions{
-		Enabled: &defaultEnabled,
-	}, user.SearchOptions{
+		Before:     opts.Before,
+		Enabled:    &defaultEnabled,
 		Emails:     t,
 		Firstnames: t,
 		Lastnames:  t,
+		Limit:      opts.Limit,
 		Usernames:  t,
 	})
 	if err != nil {
@@ -429,7 +432,6 @@ func enrichConnectionCounts(
 
 	cs, err := connections.Query(currentApp.Namespace(), connection.QueryOptions{
 		Enabled: &defaultEnabled,
-		Limit:   &limitInfinite,
 		States: []connection.State{
 			connection.StateConfirmed,
 		},
@@ -460,7 +462,6 @@ func enrichConnectionCounts(
 		FromIDs: []uint64{
 			u.ID,
 		},
-		Limit: &limitInfinite,
 		States: []connection.State{
 			connection.StateConfirmed,
 		},
@@ -488,7 +489,6 @@ func enrichConnectionCounts(
 		FromIDs: []uint64{
 			u.ID,
 		},
-		Limit: &limitInfinite,
 		States: []connection.State{
 			connection.StateConfirmed,
 		},

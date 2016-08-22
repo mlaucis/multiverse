@@ -1,6 +1,7 @@
 package object
 
 import (
+	"math"
 	"time"
 
 	"github.com/tapglue/multiverse/platform/flake"
@@ -87,13 +88,20 @@ func (s *memService) Put(namespace string, object *Object) (*Object, error) {
 		}
 	}
 
+	now := time.Now().UTC()
+
 	if object.ID == 0 {
 		id, err := flake.NextID(flakeNamespace(namespace))
 		if err != nil {
 			return nil, err
 		}
 
-		object.CreatedAt = time.Now()
+		if object.CreatedAt.IsZero() {
+			object.CreatedAt = now
+		} else {
+			object.CreatedAt = object.CreatedAt.UTC()
+		}
+
 		object.ID = id
 	} else {
 		keep := false
@@ -110,7 +118,7 @@ func (s *memService) Put(namespace string, object *Object) (*Object, error) {
 		}
 	}
 
-	object.UpdatedAt = time.Now()
+	object.UpdatedAt = now
 	bucket[object.ID] = copy(object)
 
 	return copy(object), nil
@@ -178,6 +186,10 @@ func filterMap(om Map, opts QueryOptions) List {
 	os := []*Object{}
 
 	for id, object := range om {
+		if !opts.Before.IsZero() && object.CreatedAt.UTC().After(opts.Before.UTC()) {
+			continue
+		}
+
 		if object.Deleted != opts.Deleted {
 			continue
 		}
@@ -223,6 +235,16 @@ func filterMap(om Map, opts QueryOptions) List {
 		}
 
 		os = append(os, object)
+	}
+
+	if len(os) == 0 {
+		return os
+	}
+
+	if opts.Limit > 0 {
+		l := math.Min(float64(len(os)), float64(opts.Limit))
+
+		return os[:int(l)]
 	}
 
 	return os

@@ -77,17 +77,20 @@ func AppDelete(apps app.Service) AppDeleteFunc {
 }
 
 // AppListFunc returns all Apps for the current Org.
-type AppListFunc func(*v04_entity.Organization) (app.List, error)
+type AppListFunc func(*v04_entity.Organization, app.QueryOptions) (app.List, error)
 
 // AppList returns all Apps for the current Org.
 func AppList(apps app.Service) AppListFunc {
-	return func(currentOrg *v04_entity.Organization) (app.List, error) {
-		return apps.Query(app.NamespaceDefault, app.QueryOptions{
-			Enabled: &defaultEnabled,
-			OrgIDs: []uint64{
-				uint64(currentOrg.ID),
-			},
-		})
+	return func(
+		currentOrg *v04_entity.Organization,
+		opts app.QueryOptions,
+	) (app.List, error) {
+		opts.Enabled = &defaultEnabled
+		opts.OrgIDs = []uint64{
+			uint64(currentOrg.ID),
+		}
+
+		return apps.Query(app.NamespaceDefault, opts)
 	}
 }
 

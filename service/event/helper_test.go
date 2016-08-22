@@ -3,6 +3,7 @@ package event
 import (
 	"reflect"
 	"testing"
+	"time"
 )
 
 type prepareFunc func(namespace string, t *testing.T) Service
@@ -18,7 +19,7 @@ func testServiceCount(p prepareFunc, t *testing.T) {
 		targetID          = "123"
 	)
 
-	for _, e := range testList(objectID, externalID, targetID) {
+	for _, e := range testList(objectID, externalID, targetID, time.Now()) {
 		_, err := service.Put(namespace, e)
 		if err != nil {
 			t.Fatal(err)
@@ -32,7 +33,7 @@ func testServiceCount(p prepareFunc, t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if have, want := count, 45; have != want {
+	if have, want := count, 56; have != want {
 		t.Errorf("have %v, want %v", have, want)
 	}
 
@@ -166,7 +167,7 @@ func testEvent() *Event {
 	}
 }
 
-func testList(objectID uint64, externalID, targetID string) List {
+func testList(objectID uint64, externalID, targetID string, start time.Time) List {
 	es := List{}
 
 	for i := 0; i < 5; i++ {
@@ -254,6 +255,16 @@ func testList(objectID uint64, externalID, targetID string) List {
 		})
 	}
 
+	for i := 1; i < 12; i++ {
+		es = append(es, &Event{
+			CreatedAt:  start.Add(-(time.Duration(i) * time.Hour)),
+			Enabled:    true,
+			Type:       "tg_past",
+			UserID:     7,
+			Visibility: VisibilityConnection,
+		})
+	}
+
 	return es
 }
 
@@ -316,145 +327,42 @@ func testServiceQuery(p prepareFunc, t *testing.T) {
 		enabled           = true
 		externalID        = "external-id-123"
 		objectID   uint64 = 321
-		owned             = false
+		notOwned          = false
+		owned             = true
+		start             = time.Now()
 		targetID          = "432"
 	)
 
-	for _, e := range testList(objectID, externalID, targetID) {
+	for _, e := range testList(objectID, externalID, targetID, start) {
 		_, err := service.Put(namespace, e)
 		if err != nil {
 			t.Fatal(err)
 		}
 	}
 
-	es, err := service.Query(namespace, QueryOptions{
-		Enabled: &enabled,
-	})
-	if err != nil {
-		t.Fatal(err)
+	cases := map[*QueryOptions]int{
+		&QueryOptions{Before: start.Add(-(time.Hour + time.Minute))}:                  10,
+		&QueryOptions{Enabled: &enabled}:                                              56,
+		&QueryOptions{ExternalObjectIDs: []string{externalID}}:                        11,
+		&QueryOptions{ExternalObjectTypes: []string{"restaurant"}}:                    11,
+		&QueryOptions{Limit: 9}:                                                       9,
+		&QueryOptions{ObjectIDs: []uint64{objectID}, Owned: &notOwned}:                5,
+		&QueryOptions{Owned: &owned}:                                                  11,
+		&QueryOptions{Owned: &owned, Types: []string{"tg_like"}}:                      6,
+		&QueryOptions{TargetIDs: []string{targetID}}:                                  3,
+		&QueryOptions{TargetTypes: []string{TargetUser}}:                              3,
+		&QueryOptions{UserIDs: []uint64{1}}:                                           5,
+		&QueryOptions{Visibilities: []Visibility{VisibilityPublic, VisibilityGlobal}}: 10,
 	}
 
-	if have, want := len(es), 45; have != want {
-		t.Errorf("have %v, want %v", have, want)
-	}
+	for opts, want := range cases {
+		es, err := service.Query(namespace, *opts)
+		if err != nil {
+			t.Fatal(err)
+		}
 
-	es, err = service.Query(namespace, QueryOptions{
-		ObjectIDs: []uint64{
-			objectID,
-		},
-		Owned: &owned,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if have, want := len(es), 5; have != want {
-		t.Errorf("have %v, want %v", have, want)
-	}
-
-	es, err = service.Query(namespace, QueryOptions{
-		UserIDs: []uint64{
-			1,
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if have, want := len(es), 5; have != want {
-		t.Errorf("have %v, want %v", have, want)
-	}
-
-	es, err = service.Query(namespace, QueryOptions{
-		Visibilities: []Visibility{
-			VisibilityPublic,
-			VisibilityGlobal,
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if have, want := len(es), 10; have != want {
-		t.Errorf("have %v, want %v", have, want)
-	}
-
-	owned = true
-
-	es, err = service.Query(namespace, QueryOptions{
-		Owned: &owned,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if have, want := len(es), 11; have != want {
-		t.Errorf("have %v, want %v", have, want)
-	}
-
-	es, err = service.Query(namespace, QueryOptions{
-		Owned: &owned,
-		Types: []string{
-			"tg_like",
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if have, want := len(es), 6; have != want {
-		t.Errorf("have %v, want %v", have, want)
-	}
-
-	es, err = service.Query(namespace, QueryOptions{
-		ExternalObjectIDs: []string{
-			externalID,
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if have, want := len(es), 11; have != want {
-		t.Errorf("have %v, want %v", have, want)
-	}
-
-	es, err = service.Query(namespace, QueryOptions{
-		ExternalObjectTypes: []string{
-			"restaurant",
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if have, want := len(es), 11; have != want {
-		t.Errorf("have %v, want %v", have, want)
-	}
-
-	es, err = service.Query(namespace, QueryOptions{
-		TargetIDs: []string{
-			targetID,
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if have, want := len(es), 3; have != want {
-		t.Errorf("have %v, want %v", have, want)
-	}
-
-	es, err = service.Query(namespace, QueryOptions{
-		TargetTypes: []string{
-			TargetUser,
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if have, want := len(es), 3; have != want {
-		t.Errorf("have %v, want %v", have, want)
+		if have := len(es); have != want {
+			t.Errorf("have %v, want %v", have, want)
+		}
 	}
 }

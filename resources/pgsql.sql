@@ -24,6 +24,12 @@ FROM (
         relkind IN ('r', 'S', 'v')
   ORDER BY relkind = 'S') AS "s";
 
+CREATE OR REPLACE FUNCTION to_text(text)
+  RETURNS text AS
+$func$
+SELECT to_char(to_timestamp($1, 'YYYY-MM-DD"T"HH24:MI:SS.US')  -- adapt to your pattern
+            AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US')
+$func$ LANGUAGE sql IMMUTABLE;
 
 CREATE SCHEMA tg;
 

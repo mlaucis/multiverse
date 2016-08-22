@@ -26,6 +26,18 @@ type Image struct {
 // List is a collection of users.
 type List []*User
 
+func (l List) Len() int {
+	return len(l)
+}
+
+func (l List) Less(i, j int) bool {
+	return l[i].CreatedAt.After(l[j].CreatedAt)
+}
+
+func (l List) Swap(i, j int) {
+	l[i], l[j] = l[j], l[i]
+}
+
 // ToMap transforms the list to a Map.
 func (l List) ToMap() Map {
 	um := Map{}
@@ -60,20 +72,16 @@ type Private struct {
 
 // QueryOptions is used to narrow-down user queries.
 type QueryOptions struct {
-	CustomIDs []string
-	Deleted   *bool
-	Emails    []string
-	Enabled   *bool
-	IDs       []uint64
-	SocialIDs map[string][]string
-	Usernames []string
-}
-
-// SearchOptions is used to narrow-down user searchs.
-type SearchOptions struct {
+	Before     uint64
+	CustomIDs  []string
+	Deleted    *bool
 	Emails     []string
 	Firstnames []string
+	Enabled    *bool
+	IDs        []uint64
 	Lastnames  []string
+	Limit      int
+	SocialIDs  map[string][]string
 	Usernames  []string
 }
 
@@ -86,7 +94,7 @@ type Service interface {
 	Put(namespace string, user *User) (*User, error)
 	PutLastRead(namespace string, userID uint64, lastRead time.Time) error
 	Query(namespace string, opts QueryOptions) (List, error)
-	Search(namespace string, qOpts QueryOptions, sOpts SearchOptions) (List, error)
+	Search(namespace string, opts QueryOptions) (List, error)
 }
 
 // ServiceMiddleware is a chainable behaviour modifier for Service.
