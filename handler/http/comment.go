@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gorilla/mux"
 	"golang.org/x/net/context"
 
 	"github.com/tapglue/multiverse/controller"
@@ -27,7 +26,7 @@ func CommentCreate(c *controller.CommentController) Handler {
 			origin = createOrigin(deviceID, tokenType, currentUser.ID)
 		)
 
-		postID, err := strconv.ParseUint(mux.Vars(r)["postID"], 10, 64)
+		postID, err := extractPostID(r)
 		if err != nil {
 			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
@@ -57,13 +56,13 @@ func CommentDelete(c *controller.CommentController) Handler {
 			currentUser = userFromContext(ctx)
 		)
 
-		postID, err := strconv.ParseUint(mux.Vars(r)["postID"], 10, 64)
+		postID, err := extractPostID(r)
 		if err != nil {
 			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
 		}
 
-		commentID, err := strconv.ParseUint(mux.Vars(r)["commentID"], 10, 64)
+		commentID, err := extractCommentID(r)
 		if err != nil {
 			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
@@ -87,25 +86,49 @@ func CommentList(c *controller.CommentController) Handler {
 			currentUser = userFromContext(ctx)
 		)
 
-		postID, err := strconv.ParseUint(mux.Vars(r)["postID"], 10, 64)
+		postID, err := extractPostID(r)
 		if err != nil {
 			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
 		}
 
-		list, err := c.List(app, currentUser.ID, postID)
+		opts, err := extractCommentOpts(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts.Before, err = extractTimeCursorBefore(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts.Limit, err = extractLimit(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		feed, err := c.List(app, currentUser.ID, postID, opts)
 		if err != nil {
 			respondError(w, 0, err)
 			return
 		}
 
-		if len(list.Comments) == 0 {
+		if len(feed.Comments) == 0 {
 			respondJSON(w, http.StatusNoContent, nil)
 		}
 
 		respondJSON(w, http.StatusOK, &payloadComments{
-			comments: list.Comments,
-			userMap:  list.UserMap,
+			comments: feed.Comments,
+			pagination: pagination(
+				r,
+				opts.Limit,
+				commentCursorAfter(feed.Comments, opts.Limit),
+				commentCursorBefore(feed.Comments, opts.Limit),
+			),
+			userMap: feed.UserMap,
 		})
 	}
 }
@@ -118,13 +141,13 @@ func CommentRetrieve(c *controller.CommentController) Handler {
 			currentUser = userFromContext(ctx)
 		)
 
-		postID, err := strconv.ParseUint(mux.Vars(r)["postID"], 10, 64)
+		postID, err := extractPostID(r)
 		if err != nil {
 			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
 		}
 
-		commentID, err := strconv.ParseUint(mux.Vars(r)["commentID"], 10, 64)
+		commentID, err := extractCommentID(r)
 		if err != nil {
 			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
@@ -153,13 +176,13 @@ func CommentUpdate(c *controller.CommentController) Handler {
 			origin = createOrigin(deviceID, tokenType, currentUser.ID)
 		)
 
-		postID, err := strconv.ParseUint(mux.Vars(r)["postID"], 10, 64)
+		postID, err := extractPostID(r)
 		if err != nil {
 			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
 		}
 
-		commentID, err := strconv.ParseUint(mux.Vars(r)["commentID"], 10, 64)
+		commentID, err := extractCommentID(r)
 		if err != nil {
 			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
@@ -251,8 +274,9 @@ func (p *payloadComment) UnmarshalJSON(raw []byte) error {
 }
 
 type payloadComments struct {
-	comments object.List
-	userMap  user.Map
+	comments   object.List
+	pagination *payloadPagination
+	userMap    user.Map
 }
 
 func (p *payloadComments) MarshalJSON() ([]byte, error) {
@@ -263,14 +287,36 @@ func (p *payloadComments) MarshalJSON() ([]byte, error) {
 	}
 
 	return json.Marshal(struct {
-		Comments      []*payloadComment `json:"comments"`
-		CommentsCount int               `json:"comments_count"`
-		UserMap       *payloadUserMap   `json:"users"`
-		UsersCount    int               `json:"users_count"`
+		Comments      []*payloadComment  `json:"comments"`
+		CommentsCount int                `json:"comments_count"`
+		Pagination    *payloadPagination `json:"paging"`
+		UserMap       *payloadUserMap    `json:"users"`
+		UsersCount    int                `json:"users_count"`
 	}{
 		Comments:      cs,
 		CommentsCount: len(cs),
+		Pagination:    p.pagination,
 		UserMap:       &payloadUserMap{userMap: p.userMap},
 		UsersCount:    len(p.userMap),
 	})
+}
+
+func commentCursorAfter(cs object.List, limit int) string {
+	var after string
+
+	if len(cs) > 0 {
+		after = toTimeCursor(cs[0].CreatedAt)
+	}
+
+	return after
+}
+
+func commentCursorBefore(cs object.List, limit int) string {
+	var before string
+
+	if len(cs) > 0 && len(cs) >= limit {
+		before = toTimeCursor(cs[len(cs)-1].CreatedAt)
+	}
+
+	return before
 }

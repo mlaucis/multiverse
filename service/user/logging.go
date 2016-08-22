@@ -144,8 +144,7 @@ func (s *logService) Query(ns string, opts QueryOptions) (list List, err error) 
 
 func (s *logService) Search(
 	ns string,
-	qOpts QueryOptions,
-	sOpts SearchOptions,
+	opts QueryOptions,
 ) (list List, err error) {
 	defer func(begin time.Time) {
 		ps := []interface{}{
@@ -153,8 +152,7 @@ func (s *logService) Search(
 			"method", "Search",
 			"namespace", ns,
 			"query_len", len(list),
-			"user_query_opts", qOpts,
-			"user_search_opts", sOpts,
+			"user_query_opts", opts,
 		}
 
 		if err != nil {
@@ -164,7 +162,7 @@ func (s *logService) Search(
 		_ = s.logger.Log(ps...)
 	}(time.Now())
 
-	return s.next.Search(ns, qOpts, sOpts)
+	return s.next.Search(ns, opts)
 }
 
 func (s *logService) Setup(ns string) (err error) {

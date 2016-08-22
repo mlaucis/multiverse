@@ -178,6 +178,7 @@ func (c *LikeController) List(
 	currentApp *app.App,
 	origin uint64,
 	postID uint64,
+	opts event.QueryOptions,
 ) (*LikeFeed, error) {
 	ps, err := c.posts.Query(currentApp.Namespace(), object.QueryOptions{
 		ID:    &postID,
@@ -199,7 +200,9 @@ func (c *LikeController) List(
 	}
 
 	es, err := c.events.Query(currentApp.Namespace(), event.QueryOptions{
+		Before:  opts.Before,
 		Enabled: &defaultEnabled,
+		Limit:   opts.Limit,
 		ObjectIDs: []uint64{
 			postID,
 		},

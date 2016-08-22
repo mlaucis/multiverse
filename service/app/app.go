@@ -59,10 +59,12 @@ type List []*App
 
 // QueryOptions are used to narrow down app queries.
 type QueryOptions struct {
+	Before        time.Time
 	BackendTokens []string
 	Enabled       *bool
 	IDs           []uint64
 	InProduction  *bool
+	Limit         int
 	OrgIDs        []uint64
 	PublicIDs     []string
 	Tokens        []string

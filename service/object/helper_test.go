@@ -1,6 +1,9 @@
 package object
 
-import "testing"
+import (
+	"testing"
+	"time"
+)
 
 type prepareFunc func(string, *testing.T) Service
 
@@ -55,7 +58,7 @@ var testRecipe = &Object{
 	Visibility: VisibilityConnection,
 }
 
-func testCreateSet(objectID uint64) []*Object {
+func testCreateSet(objectID uint64, start time.Time) []*Object {
 	set := []*Object{}
 
 	for i := 0; i < 5; i++ {
@@ -116,6 +119,15 @@ func testCreateSet(objectID uint64) []*Object {
 		})
 	}
 
+	for i := 1; i < 12; i++ {
+		set = append(set, &Object{
+			OwnerID:    7,
+			Type:       "tg_past",
+			Visibility: VisibilityPrivate,
+			CreatedAt:  start.Add(-time.Duration(time.Duration(i) * time.Hour)),
+		})
+	}
+
 	return set
 }
 
@@ -133,7 +145,7 @@ func testServiceCount(t *testing.T, p prepareFunc) {
 		t.Fatal(err)
 	}
 
-	for _, o := range testCreateSet(article.ID) {
+	for _, o := range testCreateSet(article.ID, time.Now()) {
 		_, err = service.Put(namespace, o)
 		if err != nil {
 			t.Fatal(err)
@@ -272,8 +284,9 @@ func testServiceQuery(t *testing.T, p prepareFunc) {
 		namespace  = "service_query"
 		service    = p(namespace, t)
 		testObject = *testArticle
-
-		owned bool
+		owned      = true
+		notOwned   = false
+		start      = time.Now()
 	)
 
 	article, err := service.Put(namespace, &testObject)
@@ -281,142 +294,35 @@ func testServiceQuery(t *testing.T, p prepareFunc) {
 		t.Fatal(err)
 	}
 
-	for _, o := range testCreateSet(article.ID) {
+	for _, o := range testCreateSet(article.ID, start) {
 		_, err = service.Put(namespace, o)
 		if err != nil {
 			t.Fatal(err)
 		}
 	}
 
-	os, err := service.Query(namespace, QueryOptions{
-		OwnerIDs: []uint64{
-			1,
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
+	cases := map[*QueryOptions]int{
+		&QueryOptions{Before: start.Add(-(time.Hour + time.Minute))}:                                             10,
+		&QueryOptions{Limit: 5}:                                                                                  5,
+		&QueryOptions{ObjectIDs: []uint64{article.ID}, Owned: &notOwned}:                                         5,
+		&QueryOptions{Owned: &owned}:                                                                             20,
+		&QueryOptions{Owned: &owned, Types: []string{"tg_comment"}}:                                              20,
+		&QueryOptions{OwnerIDs: []uint64{1}}:                                                                     10,
+		&QueryOptions{Tags: []string{"one"}}:                                                                     3,
+		&QueryOptions{Tags: []string{"one", "two"}}:                                                              3,
+		&QueryOptions{Tags: []string{"one", "three"}}:                                                            3,
+		&QueryOptions{Visibilities: []Visibility{VisibilityPublic, VisibilityGlobal}}:                            11,
+		&QueryOptions{ExternalIDs: []string{"external-input-123"}, Owned: &owned, Types: []string{"tg_comment"}}: 7,
 	}
 
-	if have, want := len(os), 10; have != want {
-		t.Errorf("have %v, want %v", have, want)
+	for opts, want := range cases {
+		os, err := service.Query(namespace, *opts)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if have := len(os); have != want {
+			t.Errorf("have %v, want %v", have, want)
+		}
 	}
-
-	os, err = service.Query(namespace, QueryOptions{
-		ObjectIDs: []uint64{
-			article.ID,
-		},
-		Owned: &owned,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if have, want := len(os), 5; have != want {
-		t.Errorf("have %v, want %v", have, want)
-	}
-
-	os, err = service.Query(namespace, QueryOptions{
-		Visibilities: []Visibility{
-			VisibilityPublic,
-			VisibilityGlobal,
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if have, want := len(os), 11; have != want {
-		t.Errorf("have %v, want %v", have, want)
-	}
-
-	owned = true
-
-	os, err = service.Query(namespace, QueryOptions{
-		Owned: &owned,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if have, want := len(os), 20; have != want {
-		t.Errorf("have %v, want %v", have, want)
-	}
-
-	os, err = service.Query(namespace, QueryOptions{
-		Owned: &owned,
-		Types: []string{
-			"tg_comment",
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if have, want := len(os), 20; have != want {
-		t.Errorf("have %v, want %v", have, want)
-	}
-
-	os, err = service.Query(namespace, QueryOptions{
-		Tags: []string{
-			"one",
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if have, want := len(os), 3; have != want {
-		t.Errorf("have %v, want %v", have, want)
-	}
-
-	os, err = service.Query(namespace, QueryOptions{
-		Tags: []string{
-			"one",
-			"two",
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if have, want := len(os), 3; have != want {
-		t.Errorf("have %v, want %v", have, want)
-	}
-
-	os, err = service.Query(namespace, QueryOptions{
-		Tags: []string{
-			"one",
-			"three",
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if have, want := len(os), 3; have != want {
-		t.Errorf("have %v, want %v", have, want)
-	}
-
-	os, err = service.Query(namespace, QueryOptions{
-		ExternalIDs: []string{
-			"external-input-123",
-		},
-		Owned: &owned,
-		Types: []string{
-			"tg_comment",
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if have, want := len(os), 7; have != want {
-		t.Errorf("have %v, want %v", have, want)
-	}
-
-	// FIXME(xla): Re-enable as soon as we return the error.
-	// _, err = service.Query("invalid", QueryOptions{})
-	// if have, want := err, ErrNamespaceNotFound; have != want {
-	// 	t.Errorf("have %v, want %v", have, want)
-	// }
 }

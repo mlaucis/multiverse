@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gorilla/mux"
 	"golang.org/x/net/context"
 
 	"github.com/tapglue/multiverse/controller"
@@ -51,7 +50,7 @@ func PostDelete(c *controller.PostController) Handler {
 			currentUser = userFromContext(ctx)
 		)
 
-		id, err := strconv.ParseUint(mux.Vars(r)["postID"], 10, 64)
+		id, err := extractPostID(r)
 		if err != nil {
 			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
@@ -75,13 +74,25 @@ func PostList(c *controller.PostController) Handler {
 			currentUser = userFromContext(ctx)
 		)
 
-		userID, err := strconv.ParseUint(mux.Vars(r)["userID"], 10, 64)
+		userID, err := extractUserID(r)
 		if err != nil {
 			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
 		}
 
-		_, opts, err := whereToOpts(r.URL.Query().Get("where"))
+		opts, err := extractPostOpts(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts.Before, err = extractTimeCursorBefore(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts.Limit, err = extractLimit(r)
 		if err != nil {
 			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
@@ -99,6 +110,12 @@ func PostList(c *controller.PostController) Handler {
 		}
 
 		respondJSON(w, http.StatusOK, &payloadPosts{
+			pagination: pagination(
+				r,
+				opts.Limit,
+				postCursorAfter(feed.Posts, opts.Limit),
+				postCursorBefore(feed.Posts, opts.Limit),
+			),
 			posts:   feed.Posts,
 			userMap: feed.UserMap,
 		})
@@ -113,7 +130,19 @@ func PostListAll(c *controller.PostController) Handler {
 			currentUser = userFromContext(ctx)
 		)
 
-		_, opts, err := whereToOpts(r.URL.Query().Get("where"))
+		opts, err := extractPostOpts(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts.Before, err = extractTimeCursorBefore(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts.Limit, err = extractLimit(r)
 		if err != nil {
 			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
@@ -131,6 +160,12 @@ func PostListAll(c *controller.PostController) Handler {
 		}
 
 		respondJSON(w, http.StatusOK, &payloadPosts{
+			pagination: pagination(
+				r,
+				opts.Limit,
+				postCursorAfter(feed.Posts, opts.Limit),
+				postCursorBefore(feed.Posts, opts.Limit),
+			),
 			posts:   feed.Posts,
 			userMap: feed.UserMap,
 		})
@@ -145,7 +180,19 @@ func PostListMe(c *controller.PostController) Handler {
 			currentUser = userFromContext(ctx)
 		)
 
-		_, opts, err := whereToOpts(r.URL.Query().Get("where"))
+		opts, err := extractPostOpts(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts.Before, err = extractTimeCursorBefore(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts.Limit, err = extractLimit(r)
 		if err != nil {
 			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
@@ -163,6 +210,12 @@ func PostListMe(c *controller.PostController) Handler {
 		}
 
 		respondJSON(w, http.StatusOK, &payloadPosts{
+			pagination: pagination(
+				r,
+				opts.Limit,
+				postCursorAfter(feed.Posts, opts.Limit),
+				postCursorBefore(feed.Posts, opts.Limit),
+			),
 			posts:   feed.Posts,
 			userMap: feed.UserMap,
 		})
@@ -177,7 +230,7 @@ func PostRetrieve(c *controller.PostController) Handler {
 			currentUser = userFromContext(ctx)
 		)
 
-		id, err := strconv.ParseUint(mux.Vars(r)["postID"], 10, 64)
+		id, err := extractPostID(r)
 		if err != nil {
 			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
@@ -206,7 +259,7 @@ func PostUpdate(c *controller.PostController) Handler {
 			origin = createOrigin(deviceID, tokenType, currentUser.ID)
 		)
 
-		id, err := strconv.ParseUint(mux.Vars(r)["postID"], 10, 64)
+		id, err := extractPostID(r)
 		if err != nil {
 			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
@@ -347,8 +400,9 @@ func (p *payloadPost) UnmarshalJSON(raw []byte) error {
 }
 
 type payloadPosts struct {
-	posts   controller.PostList
-	userMap user.Map
+	pagination *payloadPagination
+	posts      controller.PostList
+	userMap    user.Map
 }
 
 func (p *payloadPosts) MarshalJSON() ([]byte, error) {
@@ -359,11 +413,13 @@ func (p *payloadPosts) MarshalJSON() ([]byte, error) {
 	}
 
 	return json.Marshal(struct {
-		Posts      []*payloadPost  `json:"posts"`
-		PostsCount int             `json:"posts_count"`
-		UserMap    *payloadUserMap `json:"users"`
-		UserCount  int             `json:"users_count"`
+		Pagination *payloadPagination `json:"paging"`
+		Posts      []*payloadPost     `json:"posts"`
+		PostsCount int                `json:"posts_count"`
+		UserMap    *payloadUserMap    `json:"users"`
+		UserCount  int                `json:"users_count"`
 	}{
+		Pagination: p.pagination,
 		Posts:      ps,
 		PostsCount: len(ps),
 		UserMap:    &payloadUserMap{userMap: p.userMap},
@@ -386,4 +442,24 @@ type postFields struct {
 	UpdatedAt   time.Time           `json:"updated_at,omitempty"`
 	UserID      string              `json:"user_id"`
 	Visibility  object.Visibility   `json:"visibility"`
+}
+
+func postCursorAfter(ps controller.PostList, limit int) string {
+	var after string
+
+	if len(ps) > 0 {
+		after = toTimeCursor(ps[0].CreatedAt)
+	}
+
+	return after
+}
+
+func postCursorBefore(ps controller.PostList, limit int) string {
+	var before string
+
+	if len(ps) > 0 && len(ps) >= limit {
+		before = toTimeCursor(ps[len(ps)-1].CreatedAt)
+	}
+
+	return before
 }

@@ -3,7 +3,6 @@ package connection
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -12,8 +11,12 @@ import (
 )
 
 const (
-	defaultLimit = 200
+	orderNone ordering = iota
+	orderCreatedAt
+	orderUpdatedAt
+)
 
+const (
 	pgDeleteConnection = `DELETE
 		FROM %s.connections
 		WHERE (json_data->>'user_from_id')::BIGINT = $1::BIGINT
@@ -26,11 +29,12 @@ const (
 		AND (json_data->>'user_to_id')::BIGINT = $2::BIGINT
 		AND (json_data->>'type')::TEXT = $3::TEXT`
 
-	pgCount = `SELECT count(*) as total FROM (%s) as sub`
-
-	pgListConnections = `SELECT json_data
-		FROM %s.connections
+	pgCountConnections = `SELECT count(json_data) FROM %s.connections
 		%s`
+	pgListConnections = `SELECT json_data FROM %s.connections
+		%s`
+
+	pgClauseBefore  = `(json_data->>'updated_at')::TIMESTAMP < ?`
 	pgClauseEnabled = `(json_data->>'enabled')::BOOL = ?::BOOL`
 	pgClauseFromIDs = `(json_data->>'user_from_id')::BIGINT IN (?)`
 	pgClauseStates  = `(json_data->>'state')::TEXT IN (?)`
@@ -38,6 +42,7 @@ const (
 	pgClauseTypes   = `(json_data->>'type')::TEXT IN (?)`
 
 	pgOrderCreatedAt = `ORDER BY (json_data->>'created_at')::TIMESTAMP DESC`
+	pgOrderUpdatedAt = `ORDER BY (json_data->>'updated_at')::TIMESTAMP DESC`
 
 	pgCreatedByDay = `SELECT count(*), to_date(json_data->>'created_at', 'YYYY-MM-DD') as bucket
 		FROM %s.connections
@@ -46,18 +51,24 @@ const (
 		GROUP BY bucket
 		ORDER BY bucket`
 
+	pgIndexCreatedAt = `CREATE INDEX %s ON %s.connections
+		USING btree (((json_data->>'created_at')::TIMESTAMP))`
 	pgIndexFromID = `CREATE INDEX %s ON %s.connections
 		USING btree (((json_data->>'user_from_id')::BIGINT))`
 	pgIndexToID = `CREATE INDEX %s ON %s.connections
 		USING btree (((json_data->>'user_to_id')::BIGINT))`
 	pgIndexType = `CREATE INDEX %s ON %s.connections
 		USING btree (((json_data->>'type')::TEXT))`
+	pgIndexUpdatedAt = `CREATE INDEX %s ON %s.connections
+		USING btree (to_text(json_data->>'updated_at'))`
 
 	pgCreateSchema = `CREATE SCHEMA IF NOT EXISTS %s`
 	pgCreateTable  = `CREATE TABLE IF NOT EXISTS %s.connections
 		(json_data JSONB NOT NULL)`
 	pgDropTable = `DROP TABLE IF EXISTS %s.connections`
 )
+
+type ordering int
 
 type pgService struct {
 	db *sqlx.DB
@@ -69,12 +80,12 @@ func NewPostgresService(db *sqlx.DB) Service {
 }
 
 func (s *pgService) Count(ns string, opts QueryOptions) (int, error) {
-	clauses, params, err := convertOpts(opts)
+	where, params, err := convertOpts(opts, orderNone)
 	if err != nil {
 		return 0, err
 	}
 
-	return s.countConnections(ns, convertLimit(opts), clauses, params...)
+	return s.countConnections(ns, where, params...)
 }
 
 func (s *pgService) CreatedByDay(
@@ -127,17 +138,23 @@ func (s *pgService) Put(ns string, con *Connection) (*Connection, error) {
 	}
 
 	var (
+		now    = time.Now().UTC()
 		params = []interface{}{con.FromID, con.ToID, string(con.Type)}
 
 		query string
 	)
 
-	cs, err := s.listConnections(
-		ns,
-		1,
-		[]string{pgClauseFromIDs, pgClauseToIDs, pgClauseTypes},
-		params...,
-	)
+	cs, err := s.Query(ns, QueryOptions{
+		FromIDs: []uint64{
+			con.FromID,
+		},
+		ToIDs: []uint64{
+			con.ToID,
+		},
+		Types: []Type{
+			con.Type,
+		},
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -146,14 +163,22 @@ func (s *pgService) Put(ns string, con *Connection) (*Connection, error) {
 		query = wrapNamespace(pgUpdateConnection, ns)
 
 		con.CreatedAt = cs[0].CreatedAt
+		con.UpdatedAt = now
 	} else {
 		params = []interface{}{}
 		query = wrapNamespace(pgInsertConnection, ns)
 
-		con.CreatedAt = time.Now().UTC()
-	}
+		if con.CreatedAt.IsZero() {
+			con.CreatedAt = now
+		}
 
-	con.UpdatedAt = time.Now().UTC()
+		if con.UpdatedAt.IsZero() {
+			con.UpdatedAt = now
+		}
+
+		con.CreatedAt = con.CreatedAt.UTC()
+		con.UpdatedAt = con.UpdatedAt.UTC()
+	}
 
 	data, err := json.Marshal(con)
 	if err != nil {
@@ -169,21 +194,23 @@ func (s *pgService) Put(ns string, con *Connection) (*Connection, error) {
 }
 
 func (s *pgService) Query(ns string, opts QueryOptions) (List, error) {
-	clauses, params, err := convertOpts(opts)
+	where, params, err := convertOpts(opts, orderUpdatedAt)
 	if err != nil {
 		return nil, err
 	}
 
-	return s.listConnections(ns, convertLimit(opts), clauses, params...)
+	return s.listConnections(ns, where, params...)
 }
 
 func (s *pgService) Setup(ns string) error {
 	qs := []string{
 		wrapNamespace(pgCreateSchema, ns),
 		wrapNamespace(pgCreateTable, ns),
+		// pg.GuardIndex(ns, "connection_created_at", pgIndexCreatedAt),
 		pg.GuardIndex(ns, "connection_from", pgIndexFromID),
 		pg.GuardIndex(ns, "connection_to", pgIndexToID),
 		pg.GuardIndex(ns, "connection_type", pgIndexType),
+		pg.GuardIndex(ns, "connection_updated_at", pgIndexUpdatedAt),
 	}
 
 	for _, query := range qs {
@@ -202,80 +229,31 @@ func (s *pgService) Teardown(ns string) error {
 }
 
 func (s *pgService) countConnections(
-	ns string,
-	limit int,
-	clauses []string,
+	ns, where string,
 	params ...interface{},
 ) (int, error) {
-	c := strings.Join(clauses, "\nAND")
-
-	if len(clauses) > 0 {
-		c = fmt.Sprintf("WHERE %s", c)
-	}
-
-	l := ""
-
-	if limit > -1 {
-		l = fmt.Sprintf("LIMIT %d", limit)
-	}
-
-	query := strings.Join([]string{
-		fmt.Sprintf(pgListConnections, ns, c),
-		pgOrderCreatedAt,
-		l,
-	}, "\n")
-
-	query = sqlx.Rebind(sqlx.DOLLAR, query)
-
-	query = fmt.Sprintf(pgCount, query)
-
-	count := 0
-
-	err := s.db.Get(
-		&count,
-		query,
-		params...,
+	var (
+		count = 0
+		query = fmt.Sprintf(pgCountConnections, ns, where)
 	)
+
+	err := s.db.Get(&count, query, params...)
 	if err != nil && pg.IsRelationNotFound(pg.WrapError(err)) {
 		if err := s.Setup(ns); err != nil {
 			return 0, err
 		}
 
-		err = s.db.Get(
-			&count,
-			query,
-			params...,
-		)
+		err = s.db.Get(&count, query, params...)
 	}
 
 	return count, err
 }
 
 func (s *pgService) listConnections(
-	ns string,
-	limit int,
-	clauses []string,
+	ns, where string,
 	params ...interface{},
 ) (List, error) {
-	c := strings.Join(clauses, "\nAND")
-
-	if len(clauses) > 0 {
-		c = fmt.Sprintf("WHERE %s", c)
-	}
-
-	l := ""
-
-	if limit > -1 {
-		l = fmt.Sprintf("LIMIT %d", limit)
-	}
-
-	query := strings.Join([]string{
-		fmt.Sprintf(pgListConnections, ns, c),
-		pgOrderCreatedAt,
-		l,
-	}, "\n")
-
-	query = sqlx.Rebind(sqlx.DOLLAR, query)
+	query := fmt.Sprintf(pgListConnections, ns, where)
 
 	rows, err := s.db.Query(query, params...)
 	if err != nil {
@@ -323,28 +301,21 @@ func (s *pgService) listConnections(
 	return cs, nil
 }
 
-func convertLimit(opts QueryOptions) int {
-	if opts.Limit == nil {
-		return defaultLimit
-	}
-
-	if *opts.Limit == -1 {
-		return -1
-	}
-
-	return *opts.Limit
-}
-
-func convertOpts(opts QueryOptions) ([]string, []interface{}, error) {
+func convertOpts(opts QueryOptions, order ordering) (string, []interface{}, error) {
 	var (
 		clauses = []string{}
 		params  = []interface{}{}
 	)
 
+	if !opts.Before.IsZero() {
+		clauses = append(clauses, pgClauseBefore)
+		params = append(params, opts.Before.UTC().Format(time.RFC3339Nano))
+	}
+
 	if opts.Enabled != nil {
 		clause, _, err := sqlx.In(pgClauseEnabled, []interface{}{*opts.Enabled})
 		if err != nil {
-			return nil, nil, err
+			return "", nil, err
 		}
 
 		clauses = append(clauses, clause)
@@ -360,7 +331,7 @@ func convertOpts(opts QueryOptions) ([]string, []interface{}, error) {
 
 		clause, _, err := sqlx.In(pgClauseFromIDs, ps)
 		if err != nil {
-			return nil, nil, err
+			return "", nil, err
 		}
 
 		clauses = append(clauses, clause)
@@ -376,7 +347,7 @@ func convertOpts(opts QueryOptions) ([]string, []interface{}, error) {
 
 		clause, _, err := sqlx.In(pgClauseStates, ps)
 		if err != nil {
-			return nil, nil, err
+			return "", nil, err
 		}
 
 		clauses = append(clauses, clause)
@@ -392,7 +363,7 @@ func convertOpts(opts QueryOptions) ([]string, []interface{}, error) {
 
 		clause, _, err := sqlx.In(pgClauseToIDs, ps)
 		if err != nil {
-			return nil, nil, err
+			return "", nil, err
 		}
 
 		clauses = append(clauses, clause)
@@ -408,14 +379,28 @@ func convertOpts(opts QueryOptions) ([]string, []interface{}, error) {
 
 		clause, _, err := sqlx.In(pgClauseTypes, ps)
 		if err != nil {
-			return nil, nil, err
+			return "", nil, err
 		}
 
 		clauses = append(clauses, clause)
 		params = append(params, ps...)
 	}
 
-	return clauses, params, nil
+	query := ""
+
+	if len(clauses) > 0 {
+		query = sqlx.Rebind(sqlx.DOLLAR, pg.ClausesToWhere(clauses...))
+	}
+
+	if !opts.Before.IsZero() && order == orderUpdatedAt {
+		query = fmt.Sprintf("%s\n%s", query, pgOrderUpdatedAt)
+	}
+
+	if opts.Limit > 0 {
+		query = fmt.Sprintf("%s\nLIMIT %d", query, opts.Limit)
+	}
+
+	return query, params, nil
 }
 
 func wrapNamespace(query, namespace string) string {

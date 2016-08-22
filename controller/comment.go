@@ -135,6 +135,7 @@ func (c *CommentController) List(
 	currentApp *app.App,
 	origin uint64,
 	postID uint64,
+	opts object.QueryOptions,
 ) (*CommentFeed, error) {
 	ps, err := c.objects.Query(currentApp.Namespace(), object.QueryOptions{
 		ID:    &postID,
@@ -154,6 +155,8 @@ func (c *CommentController) List(
 	}
 
 	cs, err := c.objects.Query(currentApp.Namespace(), object.QueryOptions{
+		Before: opts.Before,
+		Limit:  opts.Limit,
 		ObjectIDs: []uint64{
 			postID,
 		},

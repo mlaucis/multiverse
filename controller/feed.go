@@ -211,7 +211,7 @@ func NewFeedController(
 func (c *FeedController) Events(
 	currentApp *app.App,
 	origin uint64,
-	opts *event.QueryOptions,
+	opts event.QueryOptions,
 ) (*Feed, error) {
 	am, err := c.neighbours(currentApp, origin, 0)
 	if err != nil {
@@ -282,8 +282,8 @@ func (c *FeedController) Events(
 
 	sort.Sort(es)
 
-	if len(es) > 200 {
-		es = es[:199]
+	if len(es) > opts.Limit {
+		es = es[:opts.Limit]
 	}
 
 	return &Feed{
@@ -298,8 +298,8 @@ func (c *FeedController) Events(
 func (c *FeedController) News(
 	currentApp *app.App,
 	origin uint64,
-	eventOpts *event.QueryOptions,
-	postOpts *object.QueryOptions,
+	eventOpts event.QueryOptions,
+	postOpts object.QueryOptions,
 ) (*Feed, error) {
 	am, err := c.neighbours(currentApp, origin, 0)
 	if err != nil {
@@ -370,8 +370,8 @@ func (c *FeedController) News(
 
 	sort.Sort(es)
 
-	if len(es) > 200 {
-		es = es[:199]
+	if len(es) > eventOpts.Limit {
+		es = es[:eventOpts.Limit]
 	}
 
 	ps, err = c.connectionPosts(currentApp, postOpts, neighbours.userIDs()...)
@@ -394,6 +394,10 @@ func (c *FeedController) News(
 	ps = append(ps, gs...)
 
 	sort.Sort(ps)
+
+	if len(ps) > postOpts.Limit {
+		ps = ps[:postOpts.Limit]
+	}
 
 	err = enrichCounts(c.events, c.objects, currentApp, ps)
 	if err != nil {
@@ -424,7 +428,7 @@ func (c *FeedController) News(
 func (c *FeedController) NotificationsSelf(
 	currentApp *app.App,
 	origin uint64,
-	opts *event.QueryOptions,
+	opts event.QueryOptions,
 ) (*Feed, error) {
 	am, err := c.neighbours(currentApp, origin, 0)
 	if err != nil {
@@ -473,7 +477,7 @@ func (c *FeedController) NotificationsSelf(
 func (c *FeedController) Posts(
 	currentApp *app.App,
 	origin uint64,
-	opts *object.QueryOptions,
+	opts object.QueryOptions,
 ) (*Feed, error) {
 	am, err := c.neighbours(currentApp, origin, 0)
 	if err != nil {
@@ -501,6 +505,10 @@ func (c *FeedController) Posts(
 
 	sort.Sort(ps)
 
+	if len(ps) > opts.Limit {
+		ps = ps[:opts.Limit]
+	}
+
 	err = enrichCounts(c.events, c.objects, currentApp, ps)
 	if err != nil {
 		return nil, err
@@ -519,16 +527,11 @@ func (c *FeedController) Posts(
 
 func (c *FeedController) connectionPosts(
 	currentApp *app.App,
-	options *object.QueryOptions,
+	opts object.QueryOptions,
 	ids ...uint64,
 ) (PostList, error) {
 	if len(ids) == 0 {
 		return PostList{}, nil
-	}
-
-	opts := object.QueryOptions{}
-	if options != nil {
-		opts = *options
 	}
 
 	opts.OwnerIDs = ids
@@ -549,13 +552,8 @@ func (c *FeedController) connectionPosts(
 
 func (c *FeedController) globalPosts(
 	currentApp *app.App,
-	options *object.QueryOptions,
+	opts object.QueryOptions,
 ) (PostList, error) {
-	opts := object.QueryOptions{}
-	if options != nil {
-		opts = *options
-	}
-
 	opts.Owned = &defaultOwned
 	opts.Types = []string{TypePost}
 	opts.Visibilities = []object.Visibility{
@@ -918,13 +916,9 @@ func sourceConnection(cs connection.List) source {
 func sourceGlobal(
 	events event.Service,
 	currentApp *app.App,
-	options *event.QueryOptions,
+	opts event.QueryOptions,
 ) source {
-	opts := event.QueryOptions{}
-	if options != nil {
-		opts = *options
-	}
-
+	opts.Enabled = &defaultEnabled
 	opts.Visibilities = []event.Visibility{
 		event.VisibilityGlobal,
 	}
@@ -942,7 +936,7 @@ func sourceGlobal(
 func sourceLikes(
 	events event.Service,
 	currentApp *app.App,
-	options *event.QueryOptions,
+	opts event.QueryOptions,
 	postIDs ...uint64,
 ) source {
 	if len(postIDs) == 0 {
@@ -951,10 +945,6 @@ func sourceLikes(
 		}
 	}
 
-	opts := event.QueryOptions{}
-	if options != nil {
-		opts = *options
-	}
 	opts.Enabled = &defaultEnabled
 	opts.ObjectIDs = postIDs
 	opts.Owned = &defaultOwned
@@ -971,7 +961,7 @@ func sourceLikes(
 func sourceNeighbours(
 	events event.Service,
 	currentApp *app.App,
-	options *event.QueryOptions,
+	opts event.QueryOptions,
 	ids ...uint64,
 ) source {
 	if len(ids) == 0 {
@@ -980,11 +970,7 @@ func sourceNeighbours(
 		}
 	}
 
-	opts := event.QueryOptions{}
-	if options != nil {
-		opts = *options
-	}
-
+	opts.Enabled = &defaultEnabled
 	opts.Visibilities = []event.Visibility{
 		event.VisibilityConnection,
 		event.VisibilityPublic,
@@ -1001,13 +987,9 @@ func sourceTarget(
 	events event.Service,
 	currentApp *app.App,
 	origin uint64,
-	options *event.QueryOptions,
+	opts event.QueryOptions,
 ) source {
-	opts := event.QueryOptions{}
-	if options != nil {
-		opts = *options
-	}
-
+	opts.Enabled = &defaultEnabled
 	opts.TargetIDs = []string{
 		strconv.FormatUint(origin, 10),
 	}

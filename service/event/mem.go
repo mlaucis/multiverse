@@ -2,6 +2,7 @@ package event
 
 import (
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/tapglue/multiverse/platform/flake"
@@ -75,7 +76,10 @@ func (s *memService) Put(ns string, event *Event) (*Event, error) {
 		return nil, err
 	}
 
-	bucket := s.events[ns]
+	var (
+		bucket = s.events[ns]
+		now    = time.Now().UTC()
+	)
 
 	if event.ID == 0 {
 		id, err := flake.NextID(flakeNamespace(ns))
@@ -83,7 +87,11 @@ func (s *memService) Put(ns string, event *Event) (*Event, error) {
 			return nil, err
 		}
 
-		event.CreatedAt = time.Now()
+		if event.CreatedAt.IsZero() {
+			event.CreatedAt = now
+		}
+
+		event.CreatedAt = event.CreatedAt.UTC()
 		event.ID = id
 	} else {
 		keep := false
@@ -100,7 +108,7 @@ func (s *memService) Put(ns string, event *Event) (*Event, error) {
 		}
 	}
 
-	event.UpdatedAt = time.Now()
+	event.UpdatedAt = now
 	bucket[event.ID] = copy(event)
 
 	return copy(event), nil
@@ -139,6 +147,10 @@ func filterList(em Map, opts QueryOptions) List {
 	es := List{}
 
 	for id, event := range em {
+		if !opts.Before.IsZero() && event.CreatedAt.UTC().After(opts.Before.UTC()) {
+			continue
+		}
+
 		if opts.Enabled != nil && event.Enabled != *opts.Enabled {
 			continue
 		}
@@ -200,6 +212,16 @@ func filterList(em Map, opts QueryOptions) List {
 		}
 
 		es = append(es, event)
+	}
+
+	if len(es) == 0 {
+		return es
+	}
+
+	if opts.Limit > 0 {
+		l := math.Min(float64(len(es)), float64(opts.Limit))
+
+		return es[:int(l)]
 	}
 
 	return es

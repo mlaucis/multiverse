@@ -3,6 +3,7 @@ package pg
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/lib/pq"
 )
@@ -15,6 +16,11 @@ const MetaNamespace = "tg"
 const TimeFormat = "2006-01-02 15:04:05.000000 UTC"
 
 const URLTest = "postgres://%s@127.0.0.1:5432/tapglue_test?sslmode=disable&connect_timeout=5"
+
+const (
+	fmtClause = "\nAND "
+	fmtWHERE  = "WHERE\n%s"
+)
 
 // ErrRelationNotFound is returned as equivalent to the Postgres error.
 var ErrRelationNotFound = errors.New("relation not found")
@@ -31,6 +37,11 @@ const guardIndex = `DO $$
 		%s;
 		END IF;
 		END$$;`
+
+// ClausesToWhere transforms a list of SQL clauses into a WHERE statement.
+func ClausesToWhere(clauses ...string) string {
+	return fmt.Sprintf(fmtWHERE, strings.Join(clauses, fmtClause))
+}
 
 // GuardIndex wraps an index creation query with a condition to prevent conflicts.
 func GuardIndex(namespace, index, query string) string {

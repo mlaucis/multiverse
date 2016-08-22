@@ -83,6 +83,18 @@ func (l List) FromIDs() []uint64 {
 	return ids
 }
 
+func (l List) Len() int {
+	return len(l)
+}
+
+func (l List) Less(i, j int) bool {
+	return l[i].UpdatedAt.After(l[j].UpdatedAt)
+}
+
+func (l List) Swap(i, j int) {
+	l[i], l[j] = l[j], l[i]
+}
+
 // ToIDs returns the extracted ToID of all connections as list.
 func (l List) ToIDs() []uint64 {
 	ids := []uint64{}
@@ -101,9 +113,10 @@ type Producer interface {
 
 // QueryOptions are used to narrow down Connection queries.
 type QueryOptions struct {
+	Before  time.Time
 	Enabled *bool
 	FromIDs []uint64
-	Limit   *int
+	Limit   int
 	States  []State
 	ToIDs   []uint64
 	Types   []Type

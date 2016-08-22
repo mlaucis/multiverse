@@ -189,9 +189,11 @@ type Producer interface {
 
 // QueryOptions are passed to narrow down query for objects.
 type QueryOptions struct {
+	Before       time.Time
 	Deleted      bool
 	ExternalIDs  []string
 	ID           *uint64
+	Limit        int
 	ObjectIDs    []uint64
 	OwnerIDs     []uint64
 	Owned        *bool

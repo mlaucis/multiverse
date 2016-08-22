@@ -77,27 +77,45 @@ func EventListMe(c *controller.EventController) Handler {
 			currentUser = userFromContext(ctx)
 		)
 
-		opts, _, err := whereToOpts(r.URL.Query().Get("where"))
+		opts, err := extractEventOpts(r)
 		if err != nil {
 			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
 		}
 
-		l, err := c.List(app, currentUser.ID, currentUser.ID, opts)
+		opts.Before, err = extractTimeCursorBefore(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts.Limit, err = extractLimit(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		feed, err := c.List(app, currentUser.ID, currentUser.ID, opts)
 		if err != nil {
 			respondError(w, 0, err)
 			return
 		}
 
-		if len(l.Events) == 0 {
+		if len(feed.Events) == 0 {
 			respondJSON(w, http.StatusNoContent, nil)
 			return
 		}
 
 		respondJSON(w, http.StatusOK, &payloadFeedEvents{
-			events:  l.Events,
-			postMap: l.PostMap,
-			userMap: l.UserMap,
+			events: feed.Events,
+			pagination: pagination(
+				r,
+				opts.Limit,
+				eventCursorAfter(feed.Events, opts.Limit),
+				eventCursorBefore(feed.Events, opts.Limit),
+			),
+			postMap: feed.PostMap,
+			userMap: feed.UserMap,
 		})
 	}
 }
@@ -110,27 +128,51 @@ func EventListUser(c *controller.EventController) Handler {
 			currentUser = userFromContext(ctx)
 		)
 
-		userID, err := strconv.ParseUint(mux.Vars(r)["userID"], 10, 64)
+		userID, err := extractUserID(r)
 		if err != nil {
 			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
 		}
 
-		l, err := c.List(app, currentUser.ID, userID, nil)
+		opts, err := extractEventOpts(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts.Before, err = extractTimeCursorBefore(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts.Limit, err = extractLimit(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		feed, err := c.List(app, currentUser.ID, userID, opts)
 		if err != nil {
 			respondError(w, 0, err)
 			return
 		}
 
-		if len(l.Events) == 0 {
+		if len(feed.Events) == 0 {
 			respondJSON(w, http.StatusNoContent, nil)
 			return
 		}
 
 		respondJSON(w, http.StatusOK, &payloadFeedEvents{
-			events:  l.Events,
-			postMap: l.PostMap,
-			userMap: l.UserMap,
+			events: feed.Events,
+			pagination: pagination(
+				r,
+				opts.Limit,
+				eventCursorAfter(feed.Events, opts.Limit),
+				eventCursorBefore(feed.Events, opts.Limit),
+			),
+			postMap: feed.PostMap,
+			userMap: feed.UserMap,
 		})
 	}
 }
@@ -290,6 +332,26 @@ func (p *payloadObject) UnmarshalJSON(raw []byte) error {
 	p.ID = id
 
 	return nil
+}
+
+func eventCursorAfter(es event.List, limit int) string {
+	var after string
+
+	if len(es) != 0 && len(es) >= limit {
+		after = toTimeCursor(es[len(es)-1].CreatedAt)
+	}
+
+	return after
+}
+
+func eventCursorBefore(es event.List, limit int) string {
+	var before string
+
+	if len(es) != 0 && len(es) >= limit {
+		before = toTimeCursor(es[len(es)-1].CreatedAt)
+	}
+
+	return before
 }
 
 func parseID(input interface{}) (string, error) {

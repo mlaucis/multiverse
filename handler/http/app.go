@@ -59,7 +59,25 @@ func AppList(fn controller.AppListFunc) Handler {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		currentOrg := orgFromContext(ctx)
 
-		as, err := fn(currentOrg)
+		opts, err := extractAppOpts(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts.Before, err = extractTimeCursorBefore(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts.Limit, err = extractLimit(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		as, err := fn(currentOrg, opts)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -70,7 +88,15 @@ func AppList(fn controller.AppListFunc) Handler {
 			return
 		}
 
-		respondJSON(w, http.StatusOK, &payloadApps{apps: as})
+		respondJSON(w, http.StatusOK, &payloadApps{
+			apps: as,
+			pagination: pagination(
+				r,
+				opts.Limit,
+				appCursorAfter(as, opts.Limit),
+				appCursorBefore(as, opts.Limit),
+			),
+		})
 	}
 }
 
@@ -153,7 +179,8 @@ func (p *payloadApp) UnmarshalJSON(raw []byte) error {
 }
 
 type payloadApps struct {
-	apps app.List
+	apps       app.List
+	pagination *payloadPagination
 }
 
 func (p *payloadApps) MarshalJSON() ([]byte, error) {
@@ -164,10 +191,32 @@ func (p *payloadApps) MarshalJSON() ([]byte, error) {
 	}
 
 	f := struct {
-		Apps []*payloadApp `json:"applications"`
+		Apps       []*payloadApp      `json:"applications"`
+		Pagination *payloadPagination `json:"paging"`
 	}{
-		Apps: as,
+		Apps:       as,
+		Pagination: p.pagination,
 	}
 
 	return json.Marshal(&f)
+}
+
+func appCursorAfter(as app.List, limit int) string {
+	var after string
+
+	if len(as) > 0 {
+		after = toTimeCursor(as[0].CreatedAt)
+	}
+
+	return after
+}
+
+func appCursorBefore(as app.List, limit int) string {
+	var before string
+
+	if len(as) > 0 && len(as) >= limit {
+		before = toTimeCursor(as[len(as)-1].CreatedAt)
+	}
+
+	return before
 }

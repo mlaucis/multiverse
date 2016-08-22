@@ -98,14 +98,13 @@ func (s *instrumentService) Query(
 
 func (s *instrumentService) Search(
 	ns string,
-	qOpts QueryOptions,
-	sOpts SearchOptions,
+	opts QueryOptions,
 ) (list List, err error) {
 	defer func(begin time.Time) {
 		s.track("Search", ns, begin, err)
 	}(time.Now())
 
-	return s.next.Search(ns, qOpts, sOpts)
+	return s.next.Search(ns, opts)
 }
 
 func (s *instrumentService) Setup(ns string) (err error) {

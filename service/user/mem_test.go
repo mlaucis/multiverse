@@ -18,11 +18,7 @@ func TestMemPutLastRead(t *testing.T) {
 	testServicePutLastRead(t, prepareMem)
 }
 
-func TestMemQuery(t *testing.T) {
-	testServiceQuery(t, prepareMem)
-}
-
-func TestServiceSearc(t *testing.T) {
+func TestMemSearch(t *testing.T) {
 	testServiceSearch(t, prepareMem)
 }
 

@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gorilla/mux"
 	"golang.org/x/net/context"
 
 	"github.com/tapglue/multiverse/controller"
@@ -22,7 +21,7 @@ func LikeCreate(c *controller.LikeController) Handler {
 			currentUser = userFromContext(ctx)
 		)
 
-		postID, err := strconv.ParseUint(mux.Vars(r)["postID"], 10, 64)
+		postID, err := extractPostID(r)
 		if err != nil {
 			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
@@ -46,7 +45,7 @@ func LikeDelete(c *controller.LikeController) Handler {
 			currentUser = userFromContext(ctx)
 		)
 
-		postID, err := strconv.ParseUint(mux.Vars(r)["postID"], 10, 64)
+		postID, err := extractPostID(r)
 		if err != nil {
 			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
@@ -70,26 +69,50 @@ func LikeList(c *controller.LikeController) Handler {
 			currentUser = userFromContext(ctx)
 		)
 
-		postID, err := strconv.ParseUint(mux.Vars(r)["postID"], 10, 64)
+		postID, err := extractPostID(r)
 		if err != nil {
 			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
 		}
 
-		ls, err := c.List(app, currentUser.ID, postID)
+		opts, err := extractLikeOpts(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts.Before, err = extractTimeCursorBefore(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts.Limit, err = extractLimit(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		feed, err := c.List(app, currentUser.ID, postID, opts)
 		if err != nil {
 			respondError(w, 0, err)
 			return
 		}
 
-		if len(ls.Likes) == 0 {
+		if len(feed.Likes) == 0 {
 			respondJSON(w, http.StatusNoContent, nil)
 			return
 		}
 
 		respondJSON(w, http.StatusOK, &payloadLikes{
-			likes:   ls.Likes,
-			userMap: ls.UserMap,
+			likes: feed.Likes,
+			pagination: pagination(
+				r,
+				opts.Limit,
+				eventCursorAfter(feed.Likes, opts.Limit),
+				eventCursorBefore(feed.Likes, opts.Limit),
+			),
+			userMap: feed.UserMap,
 		})
 	}
 }
@@ -122,8 +145,9 @@ func (p *payloadLike) MarshalJSON() ([]byte, error) {
 }
 
 type payloadLikes struct {
-	likes   event.List
-	userMap user.Map
+	likes      event.List
+	pagination *payloadPagination
+	userMap    user.Map
 }
 
 func (p *payloadLikes) MarshalJSON() ([]byte, error) {
@@ -134,13 +158,15 @@ func (p *payloadLikes) MarshalJSON() ([]byte, error) {
 	}
 
 	return json.Marshal(struct {
-		Likes      []*payloadLike  `json:"likes"`
-		LikesCount int             `json:"likes_count"`
-		UserMap    *payloadUserMap `json:"users"`
-		UserCount  int             `json:"users_count"`
+		Likes      []*payloadLike     `json:"likes"`
+		LikesCount int                `json:"likes_count"`
+		Pagination *payloadPagination `json:"paging"`
+		UserMap    *payloadUserMap    `json:"users"`
+		UserCount  int                `json:"users_count"`
 	}{
 		Likes:      ls,
 		LikesCount: len(ls),
+		Pagination: p.pagination,
 		UserMap:    &payloadUserMap{userMap: p.userMap},
 		UserCount:  len(p.userMap),
 	})

@@ -134,7 +134,7 @@ func TestPostControllerDelete(t *testing.T) {
 func TestPostControllerListAll(t *testing.T) {
 	app, owner, c := testSetupPostController(t)
 
-	feed, err := c.ListAll(app, owner.ID, nil)
+	feed, err := c.ListAll(app, owner.ID, object.QueryOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -150,7 +150,7 @@ func TestPostControllerListAll(t *testing.T) {
 		}
 	}
 
-	feed, err = c.ListAll(app, owner.ID, nil)
+	feed, err = c.ListAll(app, owner.ID, object.QueryOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -163,7 +163,7 @@ func TestPostControllerListAll(t *testing.T) {
 func TestPostControllerListUser(t *testing.T) {
 	app, owner, c := testSetupPostController(t)
 
-	feed, err := c.ListUser(app, owner.ID, owner.ID, nil)
+	feed, err := c.ListUser(app, owner.ID, owner.ID, object.QueryOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -179,7 +179,7 @@ func TestPostControllerListUser(t *testing.T) {
 		}
 	}
 
-	feed, err = c.ListUser(app, owner.ID, owner.ID, nil)
+	feed, err = c.ListUser(app, owner.ID, owner.ID, object.QueryOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}

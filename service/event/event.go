@@ -85,12 +85,6 @@ func (e Event) Validate() error {
 // List is an Event collection.
 type List []*Event
 
-// Map is an event collection with the id as index.
-type Map map[uint64]*Event
-
-// Metadata is a bucket of additional event information.
-type Metadata map[string]string
-
 // IDs returns ID for every Event.
 func (es List) IDs() []uint64 {
 	ids := []uint64{}
@@ -137,6 +131,12 @@ func (es List) UserIDs() []uint64 {
 	return ids
 }
 
+// Map is an event collection with the id as index.
+type Map map[uint64]*Event
+
+// Metadata is a bucket of additional event information.
+type Metadata map[string]string
+
 // Object describes an external entity whcih can have a type and an id.
 type Object struct {
 	DisplayNames map[string]string `json:"display_names,omitempty"`
@@ -152,10 +152,12 @@ type Producer interface {
 
 // QueryOptions are used to narrow down Event queries.
 type QueryOptions struct {
+	Before              time.Time
 	Enabled             *bool
 	ExternalObjectIDs   []string
 	ExternalObjectTypes []string
 	IDs                 []uint64
+	Limit               int
 	ObjectIDs           []uint64
 	Owned               *bool
 	TargetIDs           []string

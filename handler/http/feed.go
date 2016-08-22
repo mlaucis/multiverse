@@ -2,7 +2,6 @@ package http
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -11,9 +10,7 @@ import (
 
 	"github.com/tapglue/multiverse/controller"
 	"github.com/tapglue/multiverse/service/event"
-	"github.com/tapglue/multiverse/service/object"
 	"github.com/tapglue/multiverse/service/user"
-	v04_core "github.com/tapglue/multiverse/v04/core"
 )
 
 // FeedEvents returns the events of the current user driven by the social and
@@ -25,7 +22,19 @@ func FeedEvents(c *controller.FeedController) Handler {
 			currentUser = userFromContext(ctx)
 		)
 
-		opts, _, err := whereToOpts(r.URL.Query().Get("where"))
+		opts, err := extractEventOpts(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts.Before, err = extractTimeCursorBefore(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts.Limit, err = extractLimit(r)
 		if err != nil {
 			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
@@ -43,7 +52,13 @@ func FeedEvents(c *controller.FeedController) Handler {
 		}
 
 		respondJSON(w, http.StatusOK, &payloadFeedEvents{
-			events:  feed.Events,
+			events: feed.Events,
+			pagination: pagination(
+				r,
+				opts.Limit,
+				eventCursorAfter(feed.Events, opts.Limit),
+				eventCursorBefore(feed.Events, opts.Limit),
+			),
 			postMap: feed.PostMap,
 			userMap: feed.UserMap,
 		})
@@ -59,11 +74,31 @@ func FeedNews(c *controller.FeedController) Handler {
 			currentUser = userFromContext(ctx)
 		)
 
-		eventOpts, postOpts, err := whereToOpts(r.URL.Query().Get("where"))
+		eventOpts, err := extractEventOpts(r)
 		if err != nil {
 			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
 		}
+
+		postOpts, err := extractPostOpts(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		eventOpts.Before, postOpts.Before, err = extractNewsCursor(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		limit, err := extractLimit(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		eventOpts.Limit, postOpts.Limit = limit, limit
 
 		feed, err := c.News(app, currentUser.ID, eventOpts, postOpts)
 		if err != nil {
@@ -76,12 +111,25 @@ func FeedNews(c *controller.FeedController) Handler {
 			return
 		}
 
+		after, err := newsCursorAfter(feed.Events, feed.Posts, limit)
+		if err != nil {
+			respondError(w, 0, err)
+			return
+		}
+
+		before, err := newsCursorBefore(feed.Events, feed.Posts, limit)
+		if err != nil {
+			respondError(w, 0, err)
+			return
+		}
+
 		respondJSON(w, http.StatusOK, &payloadFeedNews{
-			events:   feed.Events,
-			posts:    feed.Posts,
-			postMap:  feed.PostMap,
-			userMap:  feed.UserMap,
-			lastRead: currentUser.LastRead,
+			events:     feed.Events,
+			pagination: pagination(r, limit, after, before),
+			posts:      feed.Posts,
+			postMap:    feed.PostMap,
+			userMap:    feed.UserMap,
+			lastRead:   currentUser.LastRead,
 		})
 	}
 }
@@ -95,13 +143,25 @@ func FeedNotificationsSelf(c *controller.FeedController) Handler {
 			currentUser = userFromContext(ctx)
 		)
 
-		eventOpts, _, err := whereToOpts(r.URL.Query().Get("where"))
+		opts, err := extractEventOpts(r)
 		if err != nil {
 			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
 		}
 
-		feed, err := c.NotificationsSelf(app, currentUser.ID, eventOpts)
+		opts.Before, err = extractTimeCursorBefore(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts.Limit, err = extractLimit(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		feed, err := c.NotificationsSelf(app, currentUser.ID, opts)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -113,7 +173,13 @@ func FeedNotificationsSelf(c *controller.FeedController) Handler {
 		}
 
 		respondJSON(w, http.StatusOK, &payloadFeedEvents{
-			events:  feed.Events,
+			events: feed.Events,
+			pagination: pagination(
+				r,
+				opts.Limit,
+				eventCursorAfter(feed.Events, opts.Limit),
+				eventCursorBefore(feed.Events, opts.Limit),
+			),
 			postMap: feed.PostMap,
 			userMap: feed.UserMap,
 		})
@@ -129,13 +195,25 @@ func FeedPosts(c *controller.FeedController) Handler {
 			currentUser = userFromContext(ctx)
 		)
 
-		_, postOpts, err := whereToOpts(r.URL.Query().Get("where"))
+		opts, err := extractPostOpts(r)
 		if err != nil {
 			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
 		}
 
-		feed, err := c.Posts(app, currentUser.ID, postOpts)
+		opts.Before, err = extractTimeCursorBefore(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts.Limit, err = extractLimit(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		feed, err := c.Posts(app, currentUser.ID, opts)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -147,6 +225,12 @@ func FeedPosts(c *controller.FeedController) Handler {
 		}
 
 		respondJSON(w, http.StatusOK, &payloadFeedPosts{
+			pagination: pagination(
+				r,
+				opts.Limit,
+				postCursorAfter(feed.Posts, opts.Limit),
+				postCursorBefore(feed.Posts, opts.Limit),
+			),
 			posts:   feed.Posts,
 			userMap: feed.UserMap,
 		})
@@ -154,9 +238,10 @@ func FeedPosts(c *controller.FeedController) Handler {
 }
 
 type payloadFeedEvents struct {
-	events  event.List
-	postMap controller.PostMap
-	userMap user.Map
+	pagination *payloadPagination
+	events     event.List
+	postMap    controller.PostMap
+	userMap    user.Map
 }
 
 func (p *payloadFeedEvents) MarshalJSON() ([]byte, error) {
@@ -175,6 +260,7 @@ func (p *payloadFeedEvents) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
 		Events       []*payloadEvent         `json:"events"`
 		EventsCount  int                     `json:"events_count"`
+		Pagination   *payloadPagination      `json:"paging"`
 		PostMap      map[string]*payloadPost `json:"post_map"`
 		PostMapCount int                     `json:"post_map_count"`
 		Users        *payloadUserMap         `json:"users"`
@@ -182,6 +268,7 @@ func (p *payloadFeedEvents) MarshalJSON() ([]byte, error) {
 	}{
 		Events:       es,
 		EventsCount:  len(es),
+		Pagination:   p.pagination,
 		PostMap:      pm,
 		PostMapCount: len(pm),
 		Users:        &payloadUserMap{userMap: p.userMap},
@@ -190,11 +277,12 @@ func (p *payloadFeedEvents) MarshalJSON() ([]byte, error) {
 }
 
 type payloadFeedNews struct {
-	events   event.List
-	posts    controller.PostList
-	postMap  controller.PostMap
-	userMap  user.Map
-	lastRead time.Time
+	events     event.List
+	pagination *payloadPagination
+	posts      controller.PostList
+	postMap    controller.PostMap
+	userMap    user.Map
+	lastRead   time.Time
 }
 
 func (p *payloadFeedNews) MarshalJSON() ([]byte, error) {
@@ -234,6 +322,7 @@ func (p *payloadFeedNews) MarshalJSON() ([]byte, error) {
 		Events            []*payloadEvent         `json:"events"`
 		EventsCount       int                     `json:"events_count"`
 		EventsCountUnread int                     `json:"events_count_unread"`
+		Pagination        *payloadPagination      `json:"paging"`
 		Posts             []*payloadPost          `json:"posts"`
 		PostsCount        int                     `json:"posts_count"`
 		PostsCountUnread  int                     `json:"posts_count_unread"`
@@ -245,6 +334,7 @@ func (p *payloadFeedNews) MarshalJSON() ([]byte, error) {
 		Events:            es,
 		EventsCount:       len(es),
 		EventsCountUnread: unreadEvents,
+		Pagination:        p.pagination,
 		Posts:             ps,
 		PostsCount:        len(ps),
 		PostsCountUnread:  unreadPosts,
@@ -256,8 +346,9 @@ func (p *payloadFeedNews) MarshalJSON() ([]byte, error) {
 }
 
 type payloadFeedPosts struct {
-	posts   controller.PostList
-	userMap user.Map
+	pagination *payloadPagination
+	posts      controller.PostList
+	userMap    user.Map
 }
 
 func (p *payloadFeedPosts) MarshalJSON() ([]byte, error) {
@@ -268,11 +359,13 @@ func (p *payloadFeedPosts) MarshalJSON() ([]byte, error) {
 	}
 
 	return json.Marshal(struct {
-		Posts      []*payloadPost  `json:"posts"`
-		PostsCount int             `json:"posts_count"`
-		UserMap    *payloadUserMap `json:"users"`
-		UserCount  int             `json:"users_count"`
+		Pagination *payloadPagination `json:"paging"`
+		Posts      []*payloadPost     `json:"posts"`
+		PostsCount int                `json:"posts_count"`
+		UserMap    *payloadUserMap    `json:"users"`
+		UserCount  int                `json:"users_count"`
 	}{
+		Pagination: p.pagination,
 		Posts:      ps,
 		PostsCount: len(ps),
 		UserMap:    &payloadUserMap{userMap: p.userMap},
@@ -284,110 +377,80 @@ type postWhere struct {
 	Tags []string `json:"tags"`
 }
 
-func whereToOpts(input string) (*event.QueryOptions, *object.QueryOptions, error) {
-	cond, errs := v04_core.NewEventFilter(input)
-	if errs != nil {
-		return nil, nil, errs[0]
+type newsCursor struct {
+	Events time.Time `json:"events"`
+	Posts  time.Time `json:"posts"`
+}
+
+func extractNewsCursor(r *http.Request) (time.Time, time.Time, error) {
+	var (
+		before = time.Now().UTC()
+		cursor = &newsCursor{
+			Events: before,
+			Posts:  before,
+		}
+		param = r.URL.Query().Get(keyCursorBefore)
+	)
+
+	if param == "" {
+		return before, before, nil
 	}
 
-	if cond == nil {
-		return nil, nil, nil
-	}
-
-	opts := event.QueryOptions{}
-
-	if cond.Object != nil && cond.Object.ID != nil {
-		if cond.Object.ID.Eq != nil {
-			id, err := parseID(cond.Object.ID.Eq)
-			if err != nil {
-				return nil, nil, err
-			}
-
-			opts.ExternalObjectIDs = []string{
-				id,
-			}
-		}
-
-		if cond.Object.ID.In != nil {
-			opts.ExternalObjectIDs = []string{}
-
-			for _, input := range cond.Object.ID.In {
-				id, err := parseID(input)
-				if err != nil {
-					return nil, nil, err
-				}
-
-				opts.ExternalObjectIDs = append(opts.ExternalObjectIDs, id)
-			}
-		}
-	}
-
-	if cond.Object != nil && cond.Object.Type != nil {
-		if cond.Object.Type.Eq != nil {
-			t, ok := cond.Object.Type.Eq.(string)
-			if !ok {
-				return nil, nil, fmt.Errorf("error in where param")
-			}
-
-			opts.ExternalObjectTypes = []string{
-				t,
-			}
-		}
-
-		if cond.Object.Type.In != nil {
-			opts.ExternalObjectTypes = []string{}
-
-			for _, input := range cond.Object.Type.In {
-				t, ok := input.(string)
-				if !ok {
-					return nil, nil, fmt.Errorf("error in where param")
-				}
-
-				opts.ExternalObjectTypes = append(opts.ExternalObjectTypes, t)
-			}
-		}
-	}
-
-	if cond.Type != nil {
-		if cond.Type.Eq != nil {
-			t, ok := cond.Type.Eq.(string)
-			if !ok {
-				return nil, nil, fmt.Errorf("error in where param")
-			}
-
-			opts.Types = []string{
-				t,
-			}
-		}
-
-		if cond.Type.In != nil {
-			opts.Types = []string{}
-
-			for _, input := range cond.Type.In {
-				t, ok := input.(string)
-				if !ok {
-					return nil, nil, fmt.Errorf("error in where param")
-				}
-
-				opts.Types = append(opts.Types, t)
-			}
-		}
-	}
-
-	w := struct {
-		Post *postWhere `json:"post"`
-	}{}
-
-	err := json.Unmarshal([]byte(input), &w)
+	raw, err := cursorEncoding.DecodeString(param)
 	if err != nil {
-		return nil, nil, fmt.Errorf("error in where param")
+		return before, before, err
 	}
 
-	if w.Post != nil && w.Post.Tags != nil {
-		return &opts, &object.QueryOptions{
-			Tags: w.Post.Tags,
-		}, nil
+	err = json.Unmarshal(raw, cursor)
+	if err != nil {
+		return before, before, err
 	}
 
-	return &opts, nil, nil
+	return cursor.Events, cursor.Posts, nil
+}
+
+func newsCursorAfter(
+	es event.List,
+	ps controller.PostList,
+	limit int,
+) (string, error) {
+	cursor := newsCursor{}
+
+	if len(es) > 0 {
+		cursor.Events = es[0].CreatedAt
+	}
+
+	if len(ps) > 0 {
+		cursor.Posts = ps[0].CreatedAt
+	}
+
+	r, err := json.Marshal(&cursor)
+	if err != nil {
+		return "", err
+	}
+
+	return cursorEncoding.EncodeToString(r), nil
+}
+
+func newsCursorBefore(
+	es event.List,
+	ps controller.PostList,
+	limit int,
+) (string, error) {
+	cursor := newsCursor{}
+
+	if len(es) > 0 && len(es) >= limit {
+		cursor.Events = es[len(es)-1].CreatedAt
+	}
+
+	if len(ps) > 0 && len(ps) >= limit {
+		cursor.Posts = ps[len(ps)-1].CreatedAt
+	}
+
+	r, err := json.Marshal(&cursor)
+	if err != nil {
+		return "", err
+	}
+
+	return cursorEncoding.EncodeToString(r), nil
 }

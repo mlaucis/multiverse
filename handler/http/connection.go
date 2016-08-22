@@ -21,9 +21,10 @@ func ConnectionByState(c *controller.ConnectionController) Handler {
 		var (
 			app         = appFromContext(ctx)
 			currentUser = userFromContext(ctx)
+			state       = extractState(r)
 		)
 
-		f, err := c.ByState(app, currentUser.ID, connection.State(mux.Vars(r)["state"]))
+		f, err := c.ByState(app, currentUser.ID, state)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -91,24 +92,50 @@ func ConnectionFollowers(c *controller.ConnectionController) Handler {
 			currentUser = userFromContext(ctx)
 		)
 
-		userID, err := strconv.ParseUint(mux.Vars(r)["userID"], 10, 64)
+		userID, err := extractUserID(r)
 		if err != nil {
 			respondError(w, 0, wrapError(ErrBadRequest, "invalid user id"))
 			return
 		}
 
-		us, err := c.Followers(app, currentUser.ID, userID)
+		opts, err := extractConnectionOpts(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts.Before, err = extractTimeCursorBefore(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts.Limit, err = extractLimit(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		feed, err := c.Followers(app, currentUser.ID, userID, opts)
 		if err != nil {
 			respondError(w, 0, err)
 			return
 		}
 
-		if len(us) == 0 {
+		if len(feed.Users) == 0 {
 			respondJSON(w, http.StatusNoContent, nil)
 			return
 		}
 
-		respondJSON(w, http.StatusOK, &payloadUsers{users: us})
+		respondJSON(w, http.StatusOK, &payloadUsers{
+			pagination: pagination(
+				r,
+				opts.Limit,
+				connectionCursorAfter(feed.Connections, opts.Limit),
+				connectionCursorBefore(feed.Connections, opts.Limit),
+			),
+			users: feed.Users,
+		})
 	}
 }
 
@@ -120,18 +147,44 @@ func ConnectionFollowersMe(c *controller.ConnectionController) Handler {
 			currentUser = userFromContext(ctx)
 		)
 
-		us, err := c.Followers(app, currentUser.ID, currentUser.ID)
+		opts, err := extractConnectionOpts(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts.Before, err = extractTimeCursorBefore(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts.Limit, err = extractLimit(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		feed, err := c.Followers(app, currentUser.ID, currentUser.ID, opts)
 		if err != nil {
 			respondError(w, 0, err)
 			return
 		}
 
-		if len(us) == 0 {
+		if len(feed.Users) == 0 {
 			respondJSON(w, http.StatusNoContent, nil)
 			return
 		}
 
-		respondJSON(w, http.StatusOK, &payloadUsers{users: us})
+		respondJSON(w, http.StatusOK, &payloadUsers{
+			pagination: pagination(
+				r,
+				opts.Limit,
+				connectionCursorAfter(feed.Connections, opts.Limit),
+				connectionCursorBefore(feed.Connections, opts.Limit),
+			),
+			users: feed.Users,
+		})
 	}
 }
 
@@ -143,24 +196,50 @@ func ConnectionFollowings(c *controller.ConnectionController) Handler {
 			currentUser = userFromContext(ctx)
 		)
 
-		userID, err := strconv.ParseUint(mux.Vars(r)["userID"], 10, 64)
+		userID, err := extractUserID(r)
 		if err != nil {
 			respondError(w, 0, wrapError(ErrBadRequest, "invalid user id"))
 			return
 		}
 
-		us, err := c.Followings(app, currentUser.ID, userID)
+		opts, err := extractConnectionOpts(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts.Before, err = extractTimeCursorBefore(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts.Limit, err = extractLimit(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		feed, err := c.Followings(app, currentUser.ID, userID, opts)
 		if err != nil {
 			respondError(w, 0, err)
 			return
 		}
 
-		if len(us) == 0 {
+		if len(feed.Users) == 0 {
 			respondJSON(w, http.StatusNoContent, nil)
 			return
 		}
 
-		respondJSON(w, http.StatusOK, &payloadUsers{users: us})
+		respondJSON(w, http.StatusOK, &payloadUsers{
+			pagination: pagination(
+				r,
+				opts.Limit,
+				connectionCursorAfter(feed.Connections, opts.Limit),
+				connectionCursorBefore(feed.Connections, opts.Limit),
+			),
+			users: feed.Users,
+		})
 	}
 }
 
@@ -172,18 +251,44 @@ func ConnectionFollowingsMe(c *controller.ConnectionController) Handler {
 			currentUser = userFromContext(ctx)
 		)
 
-		us, err := c.Followings(app, currentUser.ID, currentUser.ID)
+		opts, err := extractConnectionOpts(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts.Before, err = extractTimeCursorBefore(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts.Limit, err = extractLimit(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		feed, err := c.Followings(app, currentUser.ID, currentUser.ID, opts)
 		if err != nil {
 			respondError(w, 0, err)
 			return
 		}
 
-		if len(us) == 0 {
+		if len(feed.Users) == 0 {
 			respondJSON(w, http.StatusNoContent, nil)
 			return
 		}
 
-		respondJSON(w, http.StatusOK, &payloadUsers{users: us})
+		respondJSON(w, http.StatusOK, &payloadUsers{
+			pagination: pagination(
+				r,
+				opts.Limit,
+				connectionCursorAfter(feed.Connections, opts.Limit),
+				connectionCursorBefore(feed.Connections, opts.Limit),
+			),
+			users: feed.Users,
+		})
 	}
 }
 
@@ -195,24 +300,50 @@ func ConnectionFriends(c *controller.ConnectionController) Handler {
 			currentUser = userFromContext(ctx)
 		)
 
-		userID, err := strconv.ParseUint(mux.Vars(r)["userID"], 10, 64)
+		userID, err := extractUserID(r)
 		if err != nil {
 			respondError(w, 0, wrapError(ErrBadRequest, "invalid user id"))
 			return
 		}
 
-		us, err := c.Friends(app, currentUser.ID, userID)
+		opts, err := extractConnectionOpts(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts.Before, err = extractTimeCursorBefore(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts.Limit, err = extractLimit(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		feed, err := c.Friends(app, currentUser.ID, userID, opts)
 		if err != nil {
 			respondError(w, 0, err)
 			return
 		}
 
-		if len(us) == 0 {
+		if len(feed.Users) == 0 {
 			respondJSON(w, http.StatusNoContent, nil)
 			return
 		}
 
-		respondJSON(w, http.StatusOK, &payloadUsers{users: us})
+		respondJSON(w, http.StatusOK, &payloadUsers{
+			pagination: pagination(
+				r,
+				opts.Limit,
+				connectionCursorAfter(feed.Connections, opts.Limit),
+				connectionCursorBefore(feed.Connections, opts.Limit),
+			),
+			users: feed.Users,
+		})
 	}
 }
 
@@ -224,18 +355,44 @@ func ConnectionFriendsMe(c *controller.ConnectionController) Handler {
 			currentUser = userFromContext(ctx)
 		)
 
-		us, err := c.Friends(app, currentUser.ID, currentUser.ID)
+		opts, err := extractConnectionOpts(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts.Before, err = extractTimeCursorBefore(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts.Limit, err = extractLimit(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		feed, err := c.Friends(app, currentUser.ID, currentUser.ID, opts)
 		if err != nil {
 			respondError(w, 0, err)
 			return
 		}
 
-		if len(us) == 0 {
+		if len(feed.Users) == 0 {
 			respondJSON(w, http.StatusNoContent, nil)
 			return
 		}
 
-		respondJSON(w, http.StatusOK, &payloadUsers{users: us})
+		respondJSON(w, http.StatusOK, &payloadUsers{
+			pagination: pagination(
+				r,
+				opts.Limit,
+				connectionCursorAfter(feed.Connections, opts.Limit),
+				connectionCursorBefore(feed.Connections, opts.Limit),
+			),
+			users: feed.Users,
+		})
 	}
 }
 
@@ -463,4 +620,24 @@ func (p *payloadSocial) UnmarshalJSON(raw []byte) error {
 	p.Platform = f.Platform
 
 	return nil
+}
+
+func connectionCursorAfter(cs connection.List, limit int) string {
+	var after string
+
+	if len(cs) > 0 && len(cs) >= limit {
+		after = toTimeCursor(cs[0].UpdatedAt)
+	}
+
+	return after
+}
+
+func connectionCursorBefore(cs connection.List, limit int) string {
+	var before string
+
+	if len(cs) > 0 && len(cs) >= limit {
+		before = toTimeCursor(cs[len(cs)-1].UpdatedAt)
+	}
+
+	return before
 }
