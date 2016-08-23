@@ -10,7 +10,6 @@ variable "version" {
   default = {
     dashboard     = "1902"
     gateway-http  = "2375"
-    pganalyze     = "1884"
     reporter      = "2302"
     sims          = "2352"
   }
