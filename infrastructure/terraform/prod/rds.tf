@@ -83,6 +83,11 @@ resource "aws_db_parameter_group" "master-prod" {
     apply_method = "immediate"
   }
 
+  parameter {
+    name         = "work_mem"
+    value        = "24000"
+    apply_method = "immediate"
+  }
 }
 
 # Database master
