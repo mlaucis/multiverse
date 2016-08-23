@@ -338,7 +338,7 @@ func eventCursorAfter(es event.List, limit int) string {
 	var after string
 
 	if len(es) != 0 && len(es) >= limit {
-		after = toTimeCursor(es[len(es)-1].CreatedAt)
+		after = toTimeCursor(es[0].CreatedAt)
 	}
 
 	return after
