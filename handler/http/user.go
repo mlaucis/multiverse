@@ -153,7 +153,7 @@ func UserRetrieve(c *controller.UserController) Handler {
 			origin = createOrigin(deviceID, tokenType, currentUser.ID)
 		)
 
-		userID, err := extractIDCursorBefore(r)
+		userID, err := extractUserID(r)
 		if err != nil {
 			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
