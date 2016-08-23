@@ -449,7 +449,7 @@ type relation struct {
 }
 
 func queryRelation(
-	s connection.Service,
+	connections connection.Service,
 	currentApp *app.App,
 	origin, userID uint64,
 ) (*relation, error) {
@@ -457,7 +457,7 @@ func queryRelation(
 		return &relation{isSelf: true}, nil
 	}
 
-	cs, err := s.Query(currentApp.Namespace(), connection.QueryOptions{
+	cs, err := connections.Query(currentApp.Namespace(), connection.QueryOptions{
 		Enabled: &defaultEnabled,
 		FromIDs: []uint64{
 			origin,
