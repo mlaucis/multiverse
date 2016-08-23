@@ -205,7 +205,8 @@ func CtxUser(sessions session.Service, users user.Service) Middleware {
 			switch tokenType {
 			case tokenApplication:
 				ss, err := sessions.Query(app.Namespace(), session.QueryOptions{
-					IDs: []string{token},
+					Enabled: &defaultEnabled,
+					IDs:     []string{token},
 				})
 				if err != nil {
 					respondError(w, 0, err)
