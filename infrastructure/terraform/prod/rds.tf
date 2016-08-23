@@ -84,8 +84,26 @@ resource "aws_db_parameter_group" "master-prod" {
   }
 
   parameter {
+    name         = "checkpoint_segments"
+    value        = "8"
+    apply_method = "immediate"
+  }
+
+  parameter {
+    name         = "max_connections"
+    value        = "128"
+    apply_method = "immediate"
+  }
+
+  parameter {
+    name         = "maintenance_work_mem"
+    value        = "768000"
+    apply_method = "immediate"
+  }
+
+  parameter {
     name         = "work_mem"
-    value        = "24000"
+    value        = "64000"
     apply_method = "immediate"
   }
 }
