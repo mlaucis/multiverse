@@ -152,6 +152,7 @@ type Producer interface {
 
 // QueryOptions are used to narrow down Event queries.
 type QueryOptions struct {
+	After               time.Time
 	Before              time.Time
 	Enabled             *bool
 	ExternalObjectIDs   []string

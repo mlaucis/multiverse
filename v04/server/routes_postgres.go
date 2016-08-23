@@ -806,7 +806,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "getCurrentUserUnreadFeedCount",
 			Method: "GET",
-			Path:   "/me/feed/unread/count",
+			Path:   "/deprecated/me/feed/unread/count",
 			Handlers: []RouteFunc{
 				postgresEventHandler.UnreadFeedCount,
 			},

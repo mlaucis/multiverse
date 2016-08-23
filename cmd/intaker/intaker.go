@@ -590,6 +590,13 @@ func main() {
 		),
 	)
 
+	next.Methods("GET").Path("/me/feed").Name("feedNews").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.FeedNews(feedController),
+		),
+	)
+
 	next.Methods("GET").Path("/me/feed/events").Name("feedEvents").HandlerFunc(
 		handler.Wrap(
 			withUser,
@@ -611,10 +618,10 @@ func main() {
 		),
 	)
 
-	next.Methods("GET").Path("/me/feed").Name("feedNews").HandlerFunc(
+	next.Methods("GET").Path(`/me/feed/unread/count`).Name("feedUnreadCount").HandlerFunc(
 		handler.Wrap(
 			withUser,
-			handler.FeedNews(feedController),
+			handler.FeedUnreadCount(feedController),
 		),
 	)
 

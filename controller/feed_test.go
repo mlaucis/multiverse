@@ -188,7 +188,7 @@ func TestSourceConnection(t *testing.T) {
 		}
 	)
 
-	es, err := sourceConnection(cs)()
+	es, err := sourceConnection(cs, event.QueryOptions{})()
 	if err != nil {
 		t.Fatal(err)
 	}
