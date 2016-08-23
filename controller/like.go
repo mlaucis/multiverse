@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"sort"
+
 	"github.com/tapglue/multiverse/service/app"
 	"github.com/tapglue/multiverse/service/connection"
 	"github.com/tapglue/multiverse/service/event"
@@ -18,6 +20,7 @@ var defaultEnabled = true
 // LikeFeed is a collection of likes with their referenced users.
 type LikeFeed struct {
 	Likes   event.List
+	PostMap PostMap
 	UserMap user.Map
 }
 
@@ -221,4 +224,121 @@ func (c *LikeController) List(
 		Likes:   es,
 		UserMap: um,
 	}, nil
+}
+
+// LikesUserFunc returns all Likes for the given user.
+type LikesUserFunc func(
+	app *app.App,
+	origin, userID uint64,
+	opts event.QueryOptions,
+) (*LikeFeed, error)
+
+// LikesUserFunc returns all Likes for the given user.
+func LikesUser(
+	connections connection.Service,
+	events event.Service,
+	objects object.Service,
+	users user.Service,
+) LikesUserFunc {
+	return func(
+		currentApp *app.App,
+		origin, userID uint64,
+		opts event.QueryOptions,
+	) (*LikeFeed, error) {
+		opts.Enabled = &defaultEnabled
+		opts.Types = []string{TypeLike}
+		opts.UserIDs = []uint64{userID}
+
+		r, err := queryRelation(connections, currentApp, origin, userID)
+		if err != nil {
+			return nil, err
+		}
+
+		opts.Visibilities = eventVisibilitiesForRelation(r)
+
+		ls, err := events.Query(currentApp.Namespace(), opts)
+		if err != nil {
+			return nil, err
+		}
+
+		ps, err := extractPosts(objects, currentApp, ls)
+		if err != nil {
+			return nil, err
+		}
+
+		ls = filter(ls, conditionPostMissing(ps.toMap()))
+
+		sort.Sort(ls)
+
+		if len(ls) > opts.Limit {
+			ls = ls[:opts.Limit]
+		}
+
+		ps = postsByEvents(ls, ps.toMap())
+
+		err = enrichCounts(events, objects, currentApp, ps)
+		if err != nil {
+			return nil, err
+		}
+
+		if !r.isSelf {
+			err := enrichIsLiked(events, currentApp, origin, ps)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		um, err := fillupUsersForEvents(users, currentApp, origin, user.Map{}, ls)
+		if err != nil {
+			return nil, err
+		}
+
+		um, err = fillupUsersForPosts(users, currentApp, origin, um, ps)
+		if err != nil {
+			return nil, err
+		}
+
+		return &LikeFeed{
+			Likes:   ls,
+			PostMap: ps.toMap(),
+			UserMap: um,
+		}, nil
+	}
+}
+
+func eventVisibilitiesForRelation(r *relation) []event.Visibility {
+	if r.isSelf {
+		return []event.Visibility{
+			event.VisibilityPrivate,
+			event.VisibilityConnection,
+			event.VisibilityPublic,
+			event.VisibilityGlobal,
+		}
+	}
+
+	if r.isFollowing || r.isFriend {
+		return []event.Visibility{
+			event.VisibilityConnection,
+			event.VisibilityPublic,
+			event.VisibilityGlobal,
+		}
+	}
+
+	return []event.Visibility{
+		event.VisibilityPublic,
+		event.VisibilityGlobal,
+	}
+}
+
+func postsByEvents(es event.List, pm PostMap) PostList {
+	ps := PostList{}
+
+	for _, event := range es {
+		p, ok := pm[event.ObjectID]
+		if ok {
+			ps = append(ps, p)
+		}
+	}
+
+	return ps
 }
