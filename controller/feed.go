@@ -783,6 +783,10 @@ func fillupUsersForEvents(
 		}
 	}
 
+	if len(ids) == 0 {
+		return um, nil
+	}
+
 	us, err := users.Query(currentApp.Namespace(), user.QueryOptions{
 		Enabled: &defaultEnabled,
 		IDs:     ids,
@@ -813,6 +817,10 @@ func fillupUsersForPosts(
 		if _, ok := um[id]; !ok {
 			ids = append(ids, id)
 		}
+	}
+
+	if len(ids) == 0 {
+		return um, nil
 	}
 
 	us, err := users.Query(currentApp.Namespace(), user.QueryOptions{
