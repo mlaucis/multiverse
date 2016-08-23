@@ -125,17 +125,17 @@ func (c *EventController) List(
 		return nil, err
 	}
 
-	um, err := fillupUsers(c.users, currentApp, originID, user.Map{}, es)
-	if err != nil {
-		return nil, err
-	}
-
 	ps, err := extractPosts(c.objects, currentApp, es)
 	if err != nil {
 		return nil, err
 	}
 
-	pum, err := user.MapFromIDs(c.users, currentApp.Namespace(), ps.OwnerIDs()...)
+	um, err := fillupUsersForEvents(c.users, currentApp, originID, user.Map{}, es)
+	if err != nil {
+		return nil, err
+	}
+
+	um, err = fillupUsersForPosts(c.users, currentApp, originID, um, ps)
 	if err != nil {
 		return nil, err
 	}
@@ -143,7 +143,7 @@ func (c *EventController) List(
 	return &Feed{
 		Events:  es,
 		PostMap: ps.toMap(),
-		UserMap: um.Merge(pum),
+		UserMap: um,
 	}, nil
 }
 

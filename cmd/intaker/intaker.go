@@ -702,10 +702,24 @@ func main() {
 		),
 	)
 
-	next.Methods("GET").Path("/posts/{postID:[0-9]+}/likes").Name("likeList").HandlerFunc(
+	next.Methods("GET").Path("/posts/{postID:[0-9]+}/likes").Name("likesPost").HandlerFunc(
 		handler.Wrap(
 			withUser,
-			handler.LikeList(likeController),
+			handler.LikesPost(likeController),
+		),
+	)
+
+	next.Methods("GET").Path("/me/likes").Name("likesMe").HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.LikesMe(controller.LikesUser(connections, events, objects, users)),
+		),
+	)
+
+	next.Methods("GET").Path(`/users/{userID:[0-9]+}/likes`).HandlerFunc(
+		handler.Wrap(
+			withUser,
+			handler.LikesUser(controller.LikesUser(connections, events, objects, users)),
 		),
 	)
 

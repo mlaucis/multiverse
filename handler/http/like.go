@@ -61,8 +61,116 @@ func LikeDelete(c *controller.LikeController) Handler {
 	}
 }
 
-// LikeList returns all Likes for a post.
-func LikeList(c *controller.LikeController) Handler {
+// LikesUser returns all Likes for the given user.
+func LikesUser(fn controller.LikesUserFunc) Handler {
+	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+		var (
+			app         = appFromContext(ctx)
+			currentUser = userFromContext(ctx)
+		)
+
+		userID, err := extractUserID(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts, err := extractLikeOpts(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts.Before, err = extractTimeCursorBefore(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts.Limit, err = extractLimit(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		feed, err := fn(app, currentUser.ID, userID, opts)
+		if err != nil {
+			respondError(w, 0, err)
+			return
+		}
+
+		if len(feed.Likes) == 0 {
+			respondJSON(w, http.StatusNoContent, nil)
+			return
+		}
+
+		respondJSON(w, http.StatusOK, &payloadLikes{
+			likes: feed.Likes,
+			pagination: pagination(
+				r,
+				opts.Limit,
+				eventCursorAfter(feed.Likes, opts.Limit),
+				eventCursorBefore(feed.Likes, opts.Limit),
+			),
+			postMap: feed.PostMap,
+			userMap: feed.UserMap,
+		})
+	}
+}
+
+// LikesMe returns all Likes for the current user.
+func LikesMe(fn controller.LikesUserFunc) Handler {
+	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+		var (
+			app         = appFromContext(ctx)
+			currentUser = userFromContext(ctx)
+		)
+
+		opts, err := extractLikeOpts(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts.Before, err = extractTimeCursorBefore(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts.Limit, err = extractLimit(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		feed, err := fn(app, currentUser.ID, currentUser.ID, opts)
+		if err != nil {
+			respondError(w, 0, err)
+			return
+		}
+
+		if len(feed.Likes) == 0 {
+			respondJSON(w, http.StatusNoContent, nil)
+			return
+		}
+
+		respondJSON(w, http.StatusOK, &payloadLikes{
+			likes: feed.Likes,
+			pagination: pagination(
+				r,
+				opts.Limit,
+				eventCursorAfter(feed.Likes, opts.Limit),
+				eventCursorBefore(feed.Likes, opts.Limit),
+			),
+			postMap: feed.PostMap,
+			userMap: feed.UserMap,
+		})
+	}
+}
+
+// LikesPost returns all Likes for a post.
+func LikesPost(c *controller.LikeController) Handler {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		var (
 			app         = appFromContext(ctx)
@@ -147,6 +255,7 @@ func (p *payloadLike) MarshalJSON() ([]byte, error) {
 type payloadLikes struct {
 	likes      event.List
 	pagination *payloadPagination
+	postMap    controller.PostMap
 	userMap    user.Map
 }
 
@@ -157,17 +266,27 @@ func (p *payloadLikes) MarshalJSON() ([]byte, error) {
 		ls = append(ls, &payloadLike{like: like})
 	}
 
+	pm := map[string]*payloadPost{}
+
+	for id, post := range p.postMap {
+		pm[strconv.FormatUint(id, 10)] = &payloadPost{post: post}
+	}
+
 	return json.Marshal(struct {
-		Likes      []*payloadLike     `json:"likes"`
-		LikesCount int                `json:"likes_count"`
-		Pagination *payloadPagination `json:"paging"`
-		UserMap    *payloadUserMap    `json:"users"`
-		UserCount  int                `json:"users_count"`
+		Likes        []*payloadLike          `json:"likes"`
+		LikesCount   int                     `json:"likes_count"`
+		Pagination   *payloadPagination      `json:"paging"`
+		PostMap      map[string]*payloadPost `json:"post_map"`
+		PostMapCount int                     `json:"post_map_count"`
+		UserMap      *payloadUserMap         `json:"users"`
+		UserCount    int                     `json:"users_count"`
 	}{
-		Likes:      ls,
-		LikesCount: len(ls),
-		Pagination: p.pagination,
-		UserMap:    &payloadUserMap{userMap: p.userMap},
-		UserCount:  len(p.userMap),
+		Likes:        ls,
+		LikesCount:   len(ls),
+		Pagination:   p.pagination,
+		PostMap:      pm,
+		PostMapCount: len(pm),
+		UserMap:      &payloadUserMap{userMap: p.userMap},
+		UserCount:    len(p.userMap),
 	})
 }

@@ -275,16 +275,18 @@ func (c *FeedController) Events(
 		conditionPostMissing(pm),
 	)
 
-	um, err := fillupUsers(c.users, currentApp, origin, us.ToMap(), es)
-	if err != nil {
-		return nil, err
-	}
-
 	sort.Sort(es)
 
 	if len(es) > opts.Limit {
 		es = es[:opts.Limit]
 	}
+
+	um, err := fillupUsersForEvents(c.users, currentApp, origin, us.ToMap(), es)
+	if err != nil {
+		return nil, err
+	}
+
+	um, err = fillupUsersForPosts(c.users, currentApp, origin, um, ps)
 
 	return &Feed{
 		Events:  es,
@@ -363,15 +365,20 @@ func (c *FeedController) News(
 		conditionPostMissing(pm),
 	)
 
-	um, err := fillupUsers(c.users, currentApp, origin, us.ToMap(), es)
-	if err != nil {
-		return nil, err
-	}
-
 	sort.Sort(es)
 
 	if len(es) > eventOpts.Limit {
 		es = es[:eventOpts.Limit]
+	}
+
+	um, err := fillupUsersForEvents(c.users, currentApp, origin, us.ToMap(), es)
+	if err != nil {
+		return nil, err
+	}
+
+	um, err = fillupUsersForPosts(c.users, currentApp, origin, um, ps)
+	if err != nil {
+		return nil, err
 	}
 
 	ps, err = c.connectionPosts(currentApp, postOpts, neighbours.userIDs()...)
@@ -384,19 +391,17 @@ func (c *FeedController) News(
 		return nil, err
 	}
 
-	gum, err := user.MapFromIDs(c.users, currentApp.Namespace(), gs.OwnerIDs()...)
-	if err != nil {
-		return nil, err
-	}
-
-	um = um.Merge(gum)
-
 	ps = append(ps, gs...)
 
 	sort.Sort(ps)
 
 	if len(ps) > postOpts.Limit {
 		ps = ps[:postOpts.Limit]
+	}
+
+	um, err = fillupUsersForPosts(c.users, currentApp, origin, um, gs)
+	if err != nil {
+		return nil, err
 	}
 
 	err = enrichCounts(c.events, c.objects, currentApp, ps)
@@ -409,8 +414,8 @@ func (c *FeedController) News(
 		return nil, err
 	}
 
-	errs := c.users.PutLastRead(currentApp.Namespace(), origin, time.Now())
-	if errs != nil {
+	err = c.users.PutLastRead(currentApp.Namespace(), origin, time.Now())
+	if err != nil {
 		// Updating the last read pointer of a user shouldn't stop the feed delivery
 		// as we would accept an incorrect unread counter over a broken feed.
 	}
@@ -455,15 +460,20 @@ func (c *FeedController) NotificationsSelf(
 		return nil, err
 	}
 
-	um, err := fillupUsers(c.users, currentApp, origin, fs.users().ToMap(), es)
+	sort.Sort(es)
+
+	if len(es) > opts.Limit {
+		es = es[:opts.Limit]
+	}
+
+	um, err := fillupUsersForEvents(c.users, currentApp, origin, fs.users().ToMap(), es)
 	if err != nil {
 		return nil, err
 	}
 
-	sort.Sort(es)
-
-	if len(es) > 200 {
-		es = es[:199]
+	um, err = fillupUsersForPosts(c.users, currentApp, origin, um, ps)
+	if err != nil {
+		return nil, err
 	}
 
 	return &Feed{
@@ -496,17 +506,17 @@ func (c *FeedController) Posts(
 		return nil, err
 	}
 
-	um, err := user.MapFromIDs(c.users, currentApp.Namespace(), gs.OwnerIDs()...)
-	if err != nil {
-		return nil, err
-	}
-
 	ps = append(ps, gs...)
 
 	sort.Sort(ps)
 
 	if len(ps) > opts.Limit {
 		ps = ps[:opts.Limit]
+	}
+
+	um, err := fillupUsersForPosts(c.users, currentApp, origin, am.users().ToMap(), ps)
+	if err != nil {
+		return nil, err
 	}
 
 	err = enrichCounts(c.events, c.objects, currentApp, ps)
@@ -521,7 +531,7 @@ func (c *FeedController) Posts(
 
 	return &Feed{
 		Posts:   ps,
-		UserMap: am.users().ToMap().Merge(um),
+		UserMap: um,
 	}, nil
 }
 
@@ -757,34 +767,64 @@ func extractPosts(
 	return ps, nil
 }
 
-// fillupUsers given a map of users and events fills up all missing users.
-func fillupUsers(
+// fillupUsersForEvents given a map of users and events fills up all missing users.
+func fillupUsersForEvents(
 	users user.Service,
 	currentApp *app.App,
 	originID uint64,
 	um user.Map,
 	es event.List,
 ) (user.Map, error) {
+	ids := []uint64{}
+
 	for _, id := range es.UserIDs() {
 		if _, ok := um[id]; ok {
-			continue
+			ids = append(ids, id)
 		}
+	}
 
-		us, err := users.Query(currentApp.Namespace(), user.QueryOptions{
-			Enabled: &defaultEnabled,
-			IDs: []uint64{
-				id,
-			},
-		})
-		if err != nil {
-			return nil, err
+	us, err := users.Query(currentApp.Namespace(), user.QueryOptions{
+		Enabled: &defaultEnabled,
+		IDs:     ids,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	for _, u := range us {
+		um[u.ID] = u
+	}
+
+	return um, nil
+}
+
+// fillupUsersForPosts given a map of users and a list of posts fills up all
+// missing users.
+func fillupUsersForPosts(
+	users user.Service,
+	currentApp *app.App,
+	origin uint64,
+	um user.Map,
+	ps PostList,
+) (user.Map, error) {
+	ids := []uint64{}
+
+	for _, id := range ps.OwnerIDs() {
+		if _, ok := um[id]; !ok {
+			ids = append(ids, id)
 		}
+	}
 
-		if len(us) != 1 {
-			continue
-		}
+	us, err := users.Query(currentApp.Namespace(), user.QueryOptions{
+		Enabled: &defaultEnabled,
+		IDs:     ids,
+	})
+	if err != nil {
+		return nil, err
+	}
 
-		um[id] = us[0]
+	for _, u := range us {
+		um[u.ID] = u
 	}
 
 	return um, nil

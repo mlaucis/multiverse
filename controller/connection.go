@@ -445,25 +445,30 @@ type relation struct {
 	isFriend    bool
 	isFollower  bool
 	isFollowing bool
+	isSelf      bool
 }
 
 func queryRelation(
 	s connection.Service,
 	currentApp *app.App,
-	origin, user uint64,
+	origin, userID uint64,
 ) (*relation, error) {
+	if origin == userID {
+		return &relation{isSelf: true}, nil
+	}
+
 	cs, err := s.Query(currentApp.Namespace(), connection.QueryOptions{
 		Enabled: &defaultEnabled,
 		FromIDs: []uint64{
 			origin,
-			user,
+			userID,
 		},
 		States: []connection.State{
 			connection.StateConfirmed,
 		},
 		ToIDs: []uint64{
 			origin,
-			user,
+			userID,
 		},
 	})
 	if err != nil {
