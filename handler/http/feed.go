@@ -237,6 +237,45 @@ func FeedPosts(c *controller.FeedController) Handler {
 	}
 }
 
+// FeedUnreadCount returns the number of new items since the last feed retrieval
+// of the current user.
+func FeedUnreadCount(c *controller.FeedController) Handler {
+	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+		var (
+			app         = appFromContext(ctx)
+			currentUser = userFromContext(ctx)
+		)
+
+		opts, err := extractEventOpts(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts.After = currentUser.LastRead
+
+		opts.Limit, err = extractLimit(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		feed, err := c.Events(app, currentUser.ID, opts)
+		if err != nil {
+			respondError(w, 0, err)
+			return
+		}
+
+		f := struct {
+			Count int `json:"unread_events_count"`
+		}{
+			Count: len(feed.Events),
+		}
+
+		respondJSON(w, http.StatusOK, &f)
+	}
+}
+
 type payloadFeedEvents struct {
 	pagination *payloadPagination
 	events     event.List

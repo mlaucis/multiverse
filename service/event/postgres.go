@@ -23,6 +23,7 @@ const (
 	pgListEvents = `SELECT json_data FROM %s.events
 		%s`
 
+	pgClauseAfter               = `(json_data->>'created_at')::TIMESTAMP > ?`
 	pgClauseBefore              = `(json_data->>'created_at')::TIMESTAMP < ?`
 	pgClauseEnabled             = `(json_data->>'enabled')::BOOL = ?::BOOL`
 	pgClauseExternalObjectIDs   = `(json_data->'object'->>'id')::TEXT IN (?)`
@@ -355,6 +356,11 @@ func convertOpts(opts QueryOptions) (string, []interface{}, error) {
 		clauses = []string{}
 		params  = []interface{}{}
 	)
+
+	if !opts.After.IsZero() {
+		clauses = append(clauses, pgClauseAfter)
+		params = append(params, opts.After.UTC().Format(time.RFC3339Nano))
+	}
 
 	if !opts.Before.IsZero() {
 		clauses = append(clauses, pgClauseBefore)

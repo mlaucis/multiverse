@@ -221,7 +221,7 @@ func (c *FeedController) Events(
 	var (
 		neighbours = am.filterFollowers(origin)
 		sources    = []source{
-			sourceConnection(append(am.followers(origin), am.friends(origin)...)),
+			sourceConnection(append(am.followers(origin), am.friends(origin)...), opts),
 			sourceGlobal(c.events, currentApp, opts),
 			sourceNeighbours(
 				c.events,
@@ -243,7 +243,7 @@ func (c *FeedController) Events(
 
 		cs := append(a.followings(u.ID), a.friends(u.ID)...)
 
-		sources = append(sources, sourceConnection(cs))
+		sources = append(sources, sourceConnection(cs, opts))
 		us = append(us, am.users()...)
 	}
 
@@ -311,7 +311,7 @@ func (c *FeedController) News(
 	var (
 		neighbours = am.filterFollowers(origin)
 		sources    = []source{
-			sourceConnection(append(am.followers(origin), am.friends(origin)...)),
+			sourceConnection(append(am.followers(origin), am.friends(origin)...), eventOpts),
 			sourceGlobal(c.events, currentApp, eventOpts),
 			sourceNeighbours(
 				c.events,
@@ -333,7 +333,7 @@ func (c *FeedController) News(
 
 		cs := append(a.followings(u.ID), a.friends(u.ID)...)
 
-		sources = append(sources, sourceConnection(cs))
+		sources = append(sources, sourceConnection(cs, eventOpts))
 		us = append(us, am.users()...)
 	}
 
@@ -449,7 +449,7 @@ func (c *FeedController) NotificationsSelf(
 		fs      = am.filterFollowings(origin)
 		sources = []source{
 			sourceComment(c.objects, currentApp, ps.IDs()...),
-			sourceConnection(fs.connections()),
+			sourceConnection(fs.connections(), opts),
 			sourceLikes(c.events, currentApp, opts, ps.IDs()...),
 			sourceTarget(c.events, currentApp, origin, opts),
 		}
@@ -912,7 +912,7 @@ func sourceComment(
 }
 
 // sourceConnection creates follow events for the given connections.
-func sourceConnection(cs connection.List) source {
+func sourceConnection(cs connection.List, opts event.QueryOptions) source {
 	if len(cs) == 0 {
 		return func() (event.List, error) {
 			return event.List{}, nil
@@ -924,6 +924,14 @@ func sourceConnection(cs connection.List) source {
 
 		for _, con := range cs {
 			if con.State != connection.StateConfirmed {
+				continue
+			}
+
+			if !opts.After.IsZero() && con.UpdatedAt.Before(opts.After) {
+				continue
+			}
+
+			if !opts.Before.IsZero() && con.UpdatedAt.After(opts.Before) {
 				continue
 			}
 
