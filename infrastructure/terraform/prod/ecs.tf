@@ -64,39 +64,6 @@ resource "aws_ecr_repository_policy" "gateway-http-deployment" {
 EOF
 }
 
-resource "aws_ecr_repository" "pganalyze" {
-  provider = "aws.us-east-1"
-  name     = "pganalyze"
-}
-
-resource "aws_ecr_repository_policy" "pganalyze-deployment" {
-  provider = "aws.us-east-1"
-  repository = "${aws_ecr_repository.pganalyze.name}"
-  policy     = <<EOF
-{
-    "Version": "2008-10-17",
-    "Statement": [
-        {
-            "Sid": "deployment",
-            "Effect": "Allow",
-            "Principal": {
-                "AWS": [
-                    "arn:aws:iam::775034650473:root",
-                    "arn:aws:iam::775034650473:role/ecsInstance",
-                    "arn:aws:iam::775034650473:user/deployer"
-                ]
-            },
-            "Action": [
-                "ecr:GetDownloadUrlForLayer",
-                "ecr:BatchGetImage",
-                "ecr:BatchCheckLayerAvailability"
-            ]
-        }
-    ]
-}
-EOF
-}
-
 resource "aws_ecr_repository" "reporter" {
   provider = "aws.us-east-1"
   name     = "reporter"
@@ -452,41 +419,41 @@ resource "aws_ecs_service" "gateway-http" {
   }
 }
 
-resource "aws_iam_instance_profile" "service" {
-  name  = "service"
-  roles = [
-    "${aws_iam_role.ecsInstance.name}"
-  ]
-}
-
-resource "aws_ecs_task_definition" "pganalyze" {
+resource "aws_ecs_task_definition" "pganalyze-master" {
   family                = "pganalyze"
   container_definitions = <<EOF
 [
   {
-    "command": [
-    "/usr/bin/python",
-    "./pganalyze-collector.zip",
-    "--config",
-    "/.pganalyze_collector.conf"
-    ],
     "cpu": 512,
     "dnsSearchDomains": [
       "${var.env}.${var.region}"
     ],
     "essential": true,
-    "image": "775034650473.dkr.ecr.us-east-1.amazonaws.com/pganalyze:${var.version.pganalyze}",
+    "environment": [
+      { "name": "DB_URL", "value": "postgres://${var.pga_username}:${var.pga_password}@db-master.service:5432/${var.rds_db_name}" },
+      { "name": "PGA_API_KEY", "value": "${var.pga_api_key}" }
+    ],
+    "image": "quay.io/pganalyze/collector:stable",
     "logConfiguration": {
       "logDriver": "syslog"
     },
     "memory": 1024,
-    "name": "pganalyze",
+    "name": "pganalyze-master",
     "portMappings": [],
     "readonlyRootFilesystem": true,
     "workingDirectory": "/"
   }
 ]
 EOF
+}
+
+resource "aws_ecs_service" "pganalyze-master" {
+  cluster                             = "${aws_ecs_cluster.service.id}"
+  deployment_maximum_percent          = 200
+  deployment_minimum_healthy_percent  = 50
+  desired_count                       = 1
+  name                                = "pganalyze-master"
+  task_definition                     = "${aws_ecs_task_definition.pganalyze-master.arn}"
 }
 
 resource "aws_ecs_task_definition" "reporter" {
@@ -562,6 +529,13 @@ resource "aws_ecs_service" "sims" {
   desired_count                       = 2
   name                                = "sims"
   task_definition                     = "${aws_ecs_task_definition.sims.arn}"
+}
+
+resource "aws_iam_instance_profile" "service" {
+  name  = "service"
+  roles = [
+    "${aws_iam_role.ecsInstance.name}"
+  ]
 }
 
 resource "aws_launch_configuration" "service" {

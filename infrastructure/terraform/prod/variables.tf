@@ -108,6 +108,18 @@ variable "cloudflare_domain" {
   default = "tapglue.com"
 }
 
+variable "pga_username" {
+  default = "pganalyzer"
+}
+
+variable "pga_password" {
+  default = "BxsWSqAG2bNPVkOmjKat"
+}
+
+variable "pga_api_key" {
+  default = "da3484280d78c1bd7f39"
+}
+
 variable "rds_db_name" {
   default = "tapglue"
 }
