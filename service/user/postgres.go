@@ -42,10 +42,10 @@ const (
 	pgClauseSocialIDs = `(json_data->'social_ids'->>'%s')::TEXT IN (?)`
 	pgClauseUsernames = `(json_data->>'user_name')::TEXT IN (?)`
 
-	pgClauseSearchEmail     = `(json_data->>'email' ILIKE '%%%s%%')`
-	pgClauseSearchFirstname = `(json_data->>'first_name' ILIKE '%%%s%%')`
-	pgClauseSearchLastname  = `(json_data->>'last_name' ILIKE '%%%s%%')`
-	pgClauseSearchUsername  = `(json_data->>'user_name' ILIKE '%%%s%%')`
+	pgClauseSearchEmail     = `(json_data->>'email')::TEXT ILIKE '%%%s%%'`
+	pgClauseSearchFirstname = `(json_data->>'first_name')::TEXT ILIKE '%%%s%%'`
+	pgClauseSearchLastname  = `(json_data->>'last_name')::TEXT ILIKE '%%%s%%'`
+	pgClauseSearchUsername  = `(json_data->>'user_name')::TEXT ILIKE '%%%s%%'`
 
 	pgOrderCreatedAt = `json_data->>'created_at' DESC`
 	pgOrderFirstname = `json_data->>'first_name' ASC`
