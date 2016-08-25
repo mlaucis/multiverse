@@ -808,7 +808,7 @@ func fillupUsersForEvents(
 	ids := []uint64{}
 
 	for _, id := range es.UserIDs() {
-		if _, ok := um[id]; ok {
+		if _, ok := um[id]; !ok {
 			ids = append(ids, id)
 		}
 	}
