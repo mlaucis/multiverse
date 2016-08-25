@@ -669,6 +669,10 @@ func (c *FeedController) neighbours(
 		ids          = []uint64{}
 	)
 
+	if len(ids) == 0 {
+		return affiliations{}, nil
+	}
+
 	for _, con := range cs {
 		if con.ToID == root || con.FromID == root {
 			continue
