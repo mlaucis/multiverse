@@ -213,7 +213,7 @@ func (c *FeedController) Events(
 	origin uint64,
 	opts event.QueryOptions,
 ) (*Feed, error) {
-	am, err := c.neighbours(currentApp, origin, 0)
+	am, err := c.neighbours(currentApp, origin, 0, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -236,7 +236,7 @@ func (c *FeedController) Events(
 	us := am.users()
 
 	for _, u := range neighbours {
-		a, err := c.neighbours(currentApp, u.ID, origin)
+		a, err := c.neighbours(currentApp, u.ID, origin, opts)
 		if err != nil {
 			return nil, err
 		}
@@ -303,7 +303,7 @@ func (c *FeedController) News(
 	eventOpts event.QueryOptions,
 	postOpts object.QueryOptions,
 ) (*Feed, error) {
-	am, err := c.neighbours(currentApp, origin, 0)
+	am, err := c.neighbours(currentApp, origin, 0, eventOpts)
 	if err != nil {
 		return nil, err
 	}
@@ -326,7 +326,7 @@ func (c *FeedController) News(
 	us := am.users()
 
 	for _, u := range neighbours {
-		a, err := c.neighbours(currentApp, u.ID, origin)
+		a, err := c.neighbours(currentApp, u.ID, origin, eventOpts)
 		if err != nil {
 			return nil, err
 		}
@@ -435,7 +435,7 @@ func (c *FeedController) NotificationsSelf(
 	origin uint64,
 	opts event.QueryOptions,
 ) (*Feed, error) {
-	am, err := c.neighbours(currentApp, origin, 0)
+	am, err := c.neighbours(currentApp, origin, 0, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -489,7 +489,10 @@ func (c *FeedController) Posts(
 	origin uint64,
 	opts object.QueryOptions,
 ) (*Feed, error) {
-	am, err := c.neighbours(currentApp, origin, 0)
+	am, err := c.neighbours(currentApp, origin, 0, event.QueryOptions{
+		Before: opts.Before,
+		Limit:  opts.Limit,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -582,6 +585,7 @@ func (c *FeedController) neighbours(
 	currentApp *app.App,
 	origin uint64,
 	root uint64,
+	opts event.QueryOptions,
 ) (affiliations, error) {
 	fs, err := c.connections.Query(currentApp.Namespace(), connection.QueryOptions{
 		Enabled: &defaultEnabled,
@@ -636,7 +640,9 @@ func (c *FeedController) neighbours(
 
 	if root == 0 {
 		fs, err := c.connections.Query(currentApp.Namespace(), connection.QueryOptions{
+			Before:  opts.Before,
 			Enabled: &defaultEnabled,
+			Limit:   opts.Limit,
 			States: []connection.State{
 				connection.StateConfirmed,
 			},

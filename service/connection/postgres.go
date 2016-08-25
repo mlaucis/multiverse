@@ -42,7 +42,7 @@ const (
 	pgClauseTypes   = `(json_data->>'type')::TEXT IN (?)`
 
 	pgOrderCreatedAt = `ORDER BY (json_data->>'created_at')::TIMESTAMP DESC`
-	pgOrderUpdatedAt = `ORDER BY (json_data->>'updated_at')::TIMESTAMP DESC`
+	pgOrderUpdatedAt = `ORDER BY json_data->>'updated_at' DESC`
 
 	pgCreatedByDay = `SELECT count(*), to_date(json_data->>'created_at', 'YYYY-MM-DD') as bucket
 		FROM %s.connections
@@ -305,12 +305,15 @@ func convertOpts(opts QueryOptions, order ordering) (string, []interface{}, erro
 	var (
 		clauses = []string{}
 		params  = []interface{}{}
+		before  = time.Now()
 	)
 
 	if !opts.Before.IsZero() {
-		clauses = append(clauses, pgClauseBefore)
-		params = append(params, opts.Before.UTC().Format(time.RFC3339Nano))
+		before = opts.Before
 	}
+
+	clauses = append(clauses, pgClauseBefore)
+	params = append(params, before.UTC().Format(time.RFC3339Nano))
 
 	if opts.Enabled != nil {
 		clause, _, err := sqlx.In(pgClauseEnabled, []interface{}{*opts.Enabled})
