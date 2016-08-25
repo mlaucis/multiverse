@@ -669,10 +669,6 @@ func (c *FeedController) neighbours(
 		ids          = []uint64{}
 	)
 
-	if len(ids) == 0 {
-		return affiliations{}, nil
-	}
-
 	for _, con := range cs {
 		if con.ToID == root || con.FromID == root {
 			continue
@@ -686,6 +682,10 @@ func (c *FeedController) neighbours(
 
 		filteredCons = append(filteredCons, con)
 		ids = append(ids, id)
+	}
+
+	if len(ids) == 0 {
+		return affiliations{}, nil
 	}
 
 	us, err := c.users.Query(currentApp.Namespace(), user.QueryOptions{
