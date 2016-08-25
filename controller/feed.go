@@ -664,7 +664,10 @@ func (c *FeedController) neighbours(
 		cs = append(cs, fs...)
 	}
 
-	am := affiliations{}
+	var (
+		filteredCons = connection.List{}
+		ids          = []uint64{}
+	)
 
 	for _, con := range cs {
 		if con.ToID == root || con.FromID == root {
@@ -677,21 +680,34 @@ func (c *FeedController) neighbours(
 			id = con.FromID
 		}
 
-		us, err := c.users.Query(currentApp.Namespace(), user.QueryOptions{
-			Enabled: &defaultEnabled,
-			IDs: []uint64{
-				id,
-			},
-		})
-		if err != nil {
-			return nil, err
+		filteredCons = append(filteredCons, con)
+		ids = append(ids, id)
+	}
+
+	us, err := c.users.Query(currentApp.Namespace(), user.QueryOptions{
+		Enabled: &defaultEnabled,
+		IDs:     ids,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var (
+		am = affiliations{}
+		um = us.ToMap()
+	)
+
+	for _, con := range filteredCons {
+		id := con.ToID
+
+		if con.ToID == origin {
+			id = con.FromID
 		}
 
-		if len(us) != 1 {
-			continue
+		u, ok := um[id]
+		if ok {
+			am[con] = u
 		}
-
-		am[con] = us[0]
 	}
 
 	return am, nil
