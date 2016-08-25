@@ -113,6 +113,7 @@ type Producer interface {
 
 // QueryOptions are used to narrow down Connection queries.
 type QueryOptions struct {
+	After   time.Time
 	Before  time.Time
 	Enabled *bool
 	FromIDs []uint64

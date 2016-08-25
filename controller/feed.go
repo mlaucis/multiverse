@@ -287,6 +287,9 @@ func (c *FeedController) Events(
 	}
 
 	um, err = fillupUsersForPosts(c.users, currentApp, origin, um, ps)
+	if err != nil {
+		return nil, err
+	}
 
 	return &Feed{
 		Events:  es,
@@ -640,6 +643,7 @@ func (c *FeedController) neighbours(
 
 	if root == 0 {
 		fs, err := c.connections.Query(currentApp.Namespace(), connection.QueryOptions{
+			After:   opts.After,
 			Before:  opts.Before,
 			Enabled: &defaultEnabled,
 			Limit:   opts.Limit,

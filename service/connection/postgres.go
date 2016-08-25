@@ -34,7 +34,8 @@ const (
 	pgListConnections = `SELECT json_data FROM %s.connections
 		%s`
 
-	pgClauseBefore  = `(json_data->>'updated_at')::TIMESTAMP < ?`
+	pgClauseAfter   = `json_data->>'updated_at' > ?`
+	pgClauseBefore  = `json_data->>'updated_at' < ?`
 	pgClauseEnabled = `(json_data->>'enabled')::BOOL = ?::BOOL`
 	pgClauseFromIDs = `(json_data->>'user_from_id')::BIGINT IN (?)`
 	pgClauseStates  = `(json_data->>'state')::TEXT IN (?)`
@@ -305,15 +306,17 @@ func convertOpts(opts QueryOptions, order ordering) (string, []interface{}, erro
 	var (
 		clauses = []string{}
 		params  = []interface{}{}
-		before  = time.Now()
 	)
 
-	if !opts.Before.IsZero() {
-		before = opts.Before
+	if !opts.After.IsZero() {
+		clauses = append(clauses, pgClauseAfter)
+		params = append(params, opts.After.UTC().Format(time.RFC3339Nano))
 	}
 
-	clauses = append(clauses, pgClauseBefore)
-	params = append(params, before.UTC().Format(time.RFC3339Nano))
+	if !opts.Before.IsZero() {
+		clauses = append(clauses, pgClauseBefore)
+		params = append(params, opts.Before.UTC().Format(time.RFC3339Nano))
+	}
 
 	if opts.Enabled != nil {
 		clause, _, err := sqlx.In(pgClauseEnabled, []interface{}{*opts.Enabled})
@@ -395,7 +398,7 @@ func convertOpts(opts QueryOptions, order ordering) (string, []interface{}, erro
 		query = sqlx.Rebind(sqlx.DOLLAR, pg.ClausesToWhere(clauses...))
 	}
 
-	if !opts.Before.IsZero() && order == orderUpdatedAt {
+	if order == orderUpdatedAt {
 		query = fmt.Sprintf("%s\n%s", query, pgOrderUpdatedAt)
 	}
 
