@@ -45,12 +45,30 @@ const (
 
 	pgOrderCreatedAt = `ORDER BY created_at DESC`
 
-	pgIndexCreatedAt   = `CREATE INDEX %s ON %s.devices (created_at)`
-	pgIndexDeviceID    = `CREATE INDEX %s ON %s.devices (device_id)`
-	pgIndexEndpointARN = `CREATE INDEX %s ON %s.devices (endpoint_arn)`
+	pgIndexDeviceIDUserID = `
+		CREATE INDEX
+			%s
+		ON
+			%s.devices (device_id, user_id)
+		WHERE
+			deleted = false`
+	pgIndexEndpointARN = `
+		CREATE INDEX
+			%s
+		ON
+			%s.devices(endpoint_arn)
+		WHERE
+			deleted = false`
 	pgIndexID          = `CREATE INDEX %s ON %s.devices (id)`
-	pgIndexPlatform    = `CREATE INDEX %s ON %s.devices (platform)`
-	pgIndexUserID      = `CREATE INDEX %s ON %s.devices (user_id)`
+	pgIndexUserDevices = `
+		CREATE INDEX
+			%s
+		ON
+			%s.devices(user_id)
+		WHERE
+			deleted = false
+			AND disabled = false
+			AND platform IN (1, 2, 3)`
 
 	pgCreateSchema = `CREATE SCHEMA IF NOT EXISTS %s`
 	pgCreateTable  = `CREATE TABLE IF NOT EXISTS %s.devices (
@@ -241,12 +259,10 @@ func (s *pgService) Setup(ns string) error {
 	qs := []string{
 		fmt.Sprintf(pgCreateSchema, ns),
 		fmt.Sprintf(pgCreateTable, ns),
-		pg.GuardIndex(ns, "device_created_at", pgIndexCreatedAt),
-		pg.GuardIndex(ns, "device_device_id", pgIndexDeviceID),
+		pg.GuardIndex(ns, "device_device_id_user_id", pgIndexDeviceIDUserID),
 		pg.GuardIndex(ns, "device_endpoint_arn", pgIndexEndpointARN),
 		pg.GuardIndex(ns, "device_id", pgIndexID),
-		pg.GuardIndex(ns, "device_platform", pgIndexPlatform),
-		pg.GuardIndex(ns, "device_user_id", pgIndexUserID),
+		pg.GuardIndex(ns, "device_user_devices", pgIndexUserDevices),
 	}
 
 	for _, q := range qs {

@@ -37,14 +37,32 @@ const (
 	)`
 	pgDropTable = `DROP TABLE IF EXISTS %s.applications`
 
-	pgCreateIndexBackendToken = `CREATE INDEX %s ON %s.applications
-		USING BTREE (((json_data->>'backend_token')::TEXT))`
-	pgCreateOrgID = `CREATE INDEX %s ON %s.applications
-		USING BTREE account_id`
-	pgCreateIndexPublicID = `Create INDEX %s ON %s.applications
-		USING BTREE (((json_data->>'id')::TEXT))`
-	pgCreateIndexToken = `CREATE INDEX %s ON %s.applications
-		USING BTREE (((json_data->>'token')::TEXT))`
+	pgIndexAccuntID = `
+		CREATE INDEX
+			%s
+		ON
+			%s.applications(account_id, id)`
+	pgIndexBackendToken = `
+		CREATE INDEX
+			%s
+		ON
+			%s.applications(((json_data->>'backend_token')::TEXT))
+		WHERE
+			(json_data->>'enabled')::BOOL = true`
+	pgIndexPublicID = `
+		CREATE INDEX
+			%s
+		ON
+			%s.applications(((json_data->>'id')::TEXT))
+		WHERE
+			(json_data->>'enabled')::BOOL = true`
+	pgIndexToken = `
+		CREATE INDEX
+			%s
+		ON
+			%s.applications(((json_data->>'token')::TEXT))
+		WHERE
+			(json_data->>'enabled')::BOOL = true`
 )
 
 type pgService struct {
@@ -137,9 +155,10 @@ func (s *pgService) Setup(ns string) error {
 	qs := []string{
 		wrapNamespace(pgCreateSchema, ns),
 		wrapNamespace(pgCreateTable, ns),
-		pg.GuardIndex(ns, "apps_backend_token", pgCreateIndexBackendToken),
-		pg.GuardIndex(ns, "apps_public_id", pgCreateIndexPublicID),
-		pg.GuardIndex(ns, "apps_token", pgCreateIndexToken),
+		pg.GuardIndex(ns, "app_account_id", pgIndexAccuntID),
+		pg.GuardIndex(ns, "app_backend_token", pgIndexBackendToken),
+		pg.GuardIndex(ns, "app_public_id", pgIndexPublicID),
+		pg.GuardIndex(ns, "app_token", pgIndexToken),
 	}
 
 	for _, query := range qs {
