@@ -73,7 +73,7 @@ type getEndpointFunc func(arn string) (string, error)
 type getNamespaceFunc func(arn string) (string, error)
 type getPlatformARNFunc func(namespace string, platform device.Platform) (string, error)
 type getPlatformNameFunc func(namespace string, platform device.Platform) (string, error)
-type getUserDevicesFunc func(namespace string, userID uint64, platforms ...device.Platform) (device.List, error)
+type getUserDevicesFunc func(namespace string, userID uint64) (device.List, error)
 type prepareDeviceEndpointFunc func(namespace string, d *device.Device) (*device.Device, error)
 type pushAndroidFunc func(arn, platformName string, message *message) error
 type pushAPNSSandboxFunc func(arn, platformName string, message *message) error
