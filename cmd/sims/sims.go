@@ -460,11 +460,15 @@ func main() {
 		return us[0], nil
 	}
 
-	getUserDevices = func(ns string, userID uint64, platforms ...device.Platform) (device.List, error) {
+	getUserDevices = func(ns string, userID uint64) (device.List, error) {
 		ds, err := devices.Query(ns, device.QueryOptions{
-			Deleted:   &defaultDeleted,
-			Disabled:  &defaultDeleted,
-			Platforms: platforms,
+			Deleted:  &defaultDeleted,
+			Disabled: &defaultDeleted,
+			Platforms: []device.Platform{
+				device.PlatformIOSSandbox,
+				device.PlatformIOS,
+				device.PlatformAndroid,
+			},
 			UserIDs: []uint64{
 				userID,
 			},
@@ -804,12 +808,7 @@ func channelPush(
 ) channelFunc {
 	return func(ns string, msg *message) error {
 		// find devices
-		ds, err := getUserDevices(
-			ns,
-			msg.recipient,
-			device.PlatformAndroid,
-			device.PlatformIOSSandbox,
-		)
+		ds, err := getUserDevices(ns, msg.recipient)
 		if err != nil {
 			return err
 		}

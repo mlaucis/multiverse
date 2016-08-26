@@ -52,16 +52,56 @@ const (
 		GROUP BY bucket
 		ORDER BY bucket`
 
-	pgIndexCreatedAt = `CREATE INDEX %s ON %s.connections
-		USING btree (((json_data->>'created_at')::TIMESTAMP))`
-	pgIndexFromID = `CREATE INDEX %s ON %s.connections
-		USING btree (((json_data->>'user_from_id')::BIGINT))`
-	pgIndexToID = `CREATE INDEX %s ON %s.connections
-		USING btree (((json_data->>'user_to_id')::BIGINT))`
-	pgIndexType = `CREATE INDEX %s ON %s.connections
-		USING btree (((json_data->>'type')::TEXT))`
-	pgIndexUpdatedAt = `CREATE INDEX %s ON %s.connections
-		USING btree (to_text(json_data->>'updated_at'))`
+	pgIndexFollowConfirmed = `
+		CREATE INDEX
+			%s
+		ON
+			%s.connections(((json_data->>'user_to_id')::BIGINT))
+		WHERE
+			(json_data->>'enabled')::BOOL = true
+			AND (json_data->>'state')::TEXT = 'confirmed'
+			AND (json_data->>'type')::TEXT = 'follow'`
+	pgIndexFollowingConfirmed = `
+		CREATE INDEX
+			%s
+		ON
+			%s.connections(((json_data->>'user_from_id')::BIGINT))
+		WHERE
+			(json_data->>'enabled')::BOOL = true
+			AND (json_data->>'state')::TEXT = 'confirmed'
+			AND (json_data->>'type')::TEXT = 'follow'`
+	pgIndexFriendConfirmedOrigin = `
+		CREATE INDEX
+			%s
+		ON
+			%s.connections(((json_data->>'user_from_id')::BIGINT))
+		WHERE
+			(json_data->>'enabled')::BOOL = true
+			AND (json_data->>'state')::TEXT = 'confirmed'
+			AND (json_data->>'type')::TEXT = 'friend'`
+	pgIndexFriendConfirmedTarget = `
+		CREATE INDEX
+			%s
+		ON
+			%s.connections(((json_data->>'user_to_id')::BIGINT))
+		WHERE
+			(json_data->>'enabled')::BOOL = true
+			AND (json_data->>'state')::TEXT = 'confirmed'
+			AND (json_data->>'type')::TEXT = 'friend'`
+	pgIndexRelationFollow = `
+		CREATE INDEX
+			%s
+		ON
+			%s.connections(((json_data->>'user_from_id')::BIGINT), ((json_data->>'user_to_id')::BIGINT))
+		WHERE
+			(json_data->>'type')::TEXT = 'follow'`
+	pgIndexRelationFriend = `
+		CREATE INDEX
+			%s
+		ON
+			%s.connections(((json_data->>'user_from_id')::BIGINT), ((json_data->>'user_to_id')::BIGINT))
+		WHERE
+			(json_data->>'type')::TEXT = 'friend'`
 
 	pgCreateSchema = `CREATE SCHEMA IF NOT EXISTS %s`
 	pgCreateTable  = `CREATE TABLE IF NOT EXISTS %s.connections
@@ -207,11 +247,12 @@ func (s *pgService) Setup(ns string) error {
 	qs := []string{
 		wrapNamespace(pgCreateSchema, ns),
 		wrapNamespace(pgCreateTable, ns),
-		// pg.GuardIndex(ns, "connection_created_at", pgIndexCreatedAt),
-		pg.GuardIndex(ns, "connection_from", pgIndexFromID),
-		pg.GuardIndex(ns, "connection_to", pgIndexToID),
-		pg.GuardIndex(ns, "connection_type", pgIndexType),
-		pg.GuardIndex(ns, "connection_updated_at", pgIndexUpdatedAt),
+		pg.GuardIndex(ns, "connection_follow_confirmed", pgIndexFollowConfirmed),
+		pg.GuardIndex(ns, "connection_following_confirmed", pgIndexFollowingConfirmed),
+		pg.GuardIndex(ns, "connection_friend_confirmed_origin", pgIndexFriendConfirmedOrigin),
+		pg.GuardIndex(ns, "connection_friend_confirmed_target", pgIndexFriendConfirmedTarget),
+		pg.GuardIndex(ns, "connection_relation_follow", pgIndexRelationFollow),
+		pg.GuardIndex(ns, "connection_relation_friend", pgIndexRelationFriend),
 	}
 
 	for _, query := range qs {

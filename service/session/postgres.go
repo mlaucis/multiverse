@@ -47,9 +47,27 @@ const (
 	)`
 	pgDropTable = `DROP TABLE IF EXISTS %s.sessions`
 
-	pgIndexDeviceID = `CREATE INDEX %s ON %s.sessions (device_id)`
-	pgIndexID       = `CREATE INDEX %s ON %s.sessions (session_id)`
-	pgIndexUserID   = `CREATE INDEX %s ON %s.sessions (user_id)`
+	pgIndexDeviceIDUserID = `
+		CREATE INDEX
+			%s
+		ON
+			%s.sessions (device_id, user_id)
+		WHERE
+			enabled = true`
+	pgIndexID = `
+		CREATE INDEX
+			%s
+		ON
+			%s.sessions (session_id)
+		WHERE
+			enabled = true`
+	pgIndexIDUserID = `
+		CREATE INDEX
+			%s
+		ON
+			%s.sessions (session_id, user_id)
+		WHERE
+			enabled = true`
 )
 
 type pgService struct {
@@ -124,9 +142,9 @@ func (s *pgService) Setup(ns string) error {
 	qs := []string{
 		fmt.Sprintf(pgCreateSchema, ns),
 		fmt.Sprintf(pgCreateTable, ns),
-		pg.GuardIndex(ns, "session_device_id", pgIndexDeviceID),
+		pg.GuardIndex(ns, "session_device_id_user_id", pgIndexDeviceIDUserID),
 		pg.GuardIndex(ns, "session_id", pgIndexID),
-		pg.GuardIndex(ns, "session_user_id", pgIndexUserID),
+		pg.GuardIndex(ns, "session_id_user_id", pgIndexIDUserID),
 	}
 
 	for _, query := range qs {

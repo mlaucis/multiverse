@@ -428,8 +428,6 @@ func enrichConnectionCounts(
 	currentApp *app.App,
 	u *user.User,
 ) error {
-	deleted := false
-
 	cs, err := connections.Query(currentApp.Namespace(), connection.QueryOptions{
 		Enabled: &defaultEnabled,
 		States: []connection.State{
@@ -448,7 +446,6 @@ func enrichConnectionCounts(
 
 	if len(cs) > 0 {
 		u.FollowerCount, err = users.Count(currentApp.Namespace(), user.QueryOptions{
-			Deleted: &deleted,
 			Enabled: &defaultEnabled,
 			IDs:     cs.FromIDs(),
 		})
@@ -475,7 +472,6 @@ func enrichConnectionCounts(
 
 	if len(cs) > 0 {
 		u.FollowingCount, err = users.Count(currentApp.Namespace(), user.QueryOptions{
-			Deleted: &deleted,
 			Enabled: &defaultEnabled,
 			IDs:     cs.ToIDs(),
 		})
@@ -520,7 +516,6 @@ func enrichConnectionCounts(
 
 	if len(ids) > 0 {
 		u.FriendCount, err = users.Count(currentApp.Namespace(), user.QueryOptions{
-			Deleted: &deleted,
 			Enabled: &defaultEnabled,
 			IDs:     ids,
 		})

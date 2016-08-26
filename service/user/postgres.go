@@ -71,22 +71,41 @@ const (
 	)`
 	pgDropTable = `DROP TABLE IF EXISTS %s.users`
 
-	pgIndexCustomID = `CREATE INDEX %s ON %s.users
-		USING btree (((json_data->>'custom_id')::TEXT))`
-	pgIndexEmail = `CREATE INDEX %s ON %s.users
-		USING btree (((json_data->>'email')::TEXT))`
-	pgIndexID = `CREATE INDEX %s ON %s.users
-		USING btree (((json_data->>'id')::BIGINT))`
-	pgIndexUsername = `CREATE INDEX %s ON %s.users
-		USING btree (((json_data->>'user_name')::TEXT))`
-	pgIndexGinEmail = `CREATE INDEX %s on %s.users
-		USING gin (((json_data->>'email')::TEXT) gin_trgm_ops)`
-	pgIndexGinFirstname = `CREATE INDEX %s on %s.users
-		USING gin (((json_data->>'first_name')::TEXT) gin_trgm_ops)`
-	pgIndexGinLastname = `CREATE INDEX %s on %s.users
-		USING gin (((json_data->>'last_name')::TEXT) gin_trgm_ops)`
-	pgIndexGinUsername = `CREATE INDEX %s on %s.users
-		USING gin (((json_data->>'user_name')::TEXT) gin_trgm_ops)`
+	pgIndexEmail = `
+		CREATE INDEX
+			%s
+		ON
+			%s.users(((json_data->>'email')::TEXT))
+		WHERE
+			(json_data->>'enabled')::BOOL = true`
+	pgIndexID = `
+		CREATE INDEX
+			%s
+		ON
+			%s.users(((json_data->>'id')::BIGINT))
+		WHERE
+			(json_data->>'enabled')::BOOL = true`
+	pgIndexSearch = `
+		CREATE INDEX
+			%s
+		ON
+			%s.users
+		USING
+			gin (
+				((json_data->>'email')::TEXT) gin_trgm_ops,
+				((json_data->>'first_name')::TEXT) gin_trgm_ops,
+				((json_data->>'last_name')::TEXT) gin_trgm_ops,
+				((json_data->>'user_name')::TEXT) gin_trgm_ops
+			)
+		WHERE
+			(json_data->>'enabled')::BOOL = true`
+	pgIndexUsername = `
+		CREATE INDEX
+			%s
+		ON
+			%s.users(((json_data->>'user_name')::TEXT))
+		WHERE
+			(json_data->>'enabled')::BOOL = true`
 )
 
 type pgService struct {
@@ -267,14 +286,10 @@ func (s *pgService) Setup(ns string) error {
 	qs := []string{
 		wrapNamespace(pgCreateSchema, ns),
 		wrapNamespace(pgCreateTable, ns),
-		pg.GuardIndex(ns, "user_custom_id", pgIndexCustomID),
 		pg.GuardIndex(ns, "user_email", pgIndexEmail),
 		pg.GuardIndex(ns, "user_id", pgIndexID),
+		pg.GuardIndex(ns, "user_search", pgIndexSearch),
 		pg.GuardIndex(ns, "user_username", pgIndexUsername),
-		pg.GuardIndex(ns, "user_gin_email", pgIndexGinEmail),
-		pg.GuardIndex(ns, "user_gin_firstname", pgIndexGinFirstname),
-		pg.GuardIndex(ns, "user_gin_lastname", pgIndexGinLastname),
-		pg.GuardIndex(ns, "user_gin_username", pgIndexGinUsername),
 	}
 
 	for _, query := range qs {
