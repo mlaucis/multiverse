@@ -86,12 +86,15 @@ func main() {
 				if err != nil {
 					log.Fatal(err)
 				}
+				fmt.Printf("DROP INDEX %s.%s\n", ns, i)
 			}
 
 			err = s.Setup(ns)
 			if err != nil {
 				log.Fatal(err)
 			}
+
+			fmt.Printf("Setup for %s.%s\n", ns, name)
 		}
 	}
 }
