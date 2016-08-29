@@ -15,6 +15,8 @@ import (
 	"github.com/tapglue/multiverse/service/user"
 )
 
+const namespaceStepz = "app_374_501"
+
 // ConnectionByState returns all connections for a user for a certain state.
 func ConnectionByState(c *controller.ConnectionController) Handler {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
@@ -324,6 +326,11 @@ func ConnectionFriends(c *controller.ConnectionController) Handler {
 			return
 		}
 
+		// FIXME: Let Stepz paginate.
+		if app.Namespace() == namespaceStepz {
+			opts.Limit = 200
+		}
+
 		feed, err := c.Friends(app, currentUser.ID, userID, opts)
 		if err != nil {
 			respondError(w, 0, err)
@@ -371,6 +378,11 @@ func ConnectionFriendsMe(c *controller.ConnectionController) Handler {
 		if err != nil {
 			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
 			return
+		}
+
+		// FIXME: Let Stepz paginate.
+		if app.Namespace() == namespaceStepz {
+			opts.Limit = 200
 		}
 
 		feed, err := c.Friends(app, currentUser.ID, currentUser.ID, opts)
