@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sqs"
@@ -47,7 +48,7 @@ func consumeConnection(
 		for _, rule := range ruleFns {
 			msg, err := rule(c)
 			if err != nil {
-				return err
+				return fmt.Errorf("%s: %s", c.Namespace, err)
 			}
 
 			if msg != nil {
@@ -161,7 +162,7 @@ func consumeEvent(
 		for _, rule := range ruleFns {
 			rs, err := rule(c)
 			if err != nil {
-				return err
+				return fmt.Errorf("%s: %s", c.Namespace, err)
 			}
 
 			for _, msg := range rs {
@@ -217,7 +218,7 @@ func consumeObject(
 		for _, rule := range ruleFns {
 			rs, err := rule(c)
 			if err != nil {
-				return err
+				return fmt.Errorf("%s: %s", c.Namespace, err)
 			}
 
 			for _, msg := range rs {

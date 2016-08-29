@@ -137,6 +137,11 @@ func eventRuleLikeCreated(
 			return nil, nil
 		}
 
+		post, err := fetchObject(change.Namespace, change.New.ObjectID)
+		if err != nil {
+			return nil, err
+		}
+
 		origin, err := fetchUser(change.Namespace, change.New.UserID)
 		if err != nil {
 			return nil, fmt.Errorf("origin fetch: %s", err)
@@ -157,11 +162,6 @@ func eventRuleLikeCreated(
 		}
 
 		rs = append(rs, fs...)
-
-		post, err := fetchObject(change.Namespace, change.New.ObjectID)
-		if err != nil {
-			return nil, err
-		}
 
 		ms := []*message{}
 
