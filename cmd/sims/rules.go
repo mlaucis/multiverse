@@ -139,7 +139,7 @@ func eventRuleLikeCreated(
 
 		post, err := fetchObject(change.Namespace, change.New.ObjectID)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("post fetch: %s", err)
 		}
 
 		origin, err := fetchUser(change.Namespace, change.New.UserID)
@@ -147,7 +147,14 @@ func eventRuleLikeCreated(
 			return nil, fmt.Errorf("origin fetch: %s", err)
 		}
 
-		rs := user.List{}
+		owner, err := fetchUser(change.Namespace, post.OwnerID)
+		if err != nil {
+			return nil, fmt.Errorf("owner fetch: %s", err)
+		}
+
+		rs := user.List{
+			owner,
+		}
 
 		fs, err := fetchFollowers(change.Namespace, origin.ID)
 		if err != nil {
@@ -201,12 +208,24 @@ func objectRuleCommentCreated(
 			return nil, nil
 		}
 
+		post, err := fetchObject(change.Namespace, change.New.ObjectID)
+		if err != nil {
+			return nil, fmt.Errorf("post fetch: %s", err)
+		}
+
 		origin, err := fetchUser(change.Namespace, change.New.OwnerID)
 		if err != nil {
 			return nil, fmt.Errorf("origin fetch: %s", err)
 		}
 
-		rs := user.List{}
+		owner, err := fetchUser(change.Namespace, post.OwnerID)
+		if err != nil {
+			return nil, fmt.Errorf("owner fetch: %s", err)
+		}
+
+		rs := user.List{
+			owner,
+		}
 
 		fs, err := fetchFollowers(change.Namespace, origin.ID)
 		if err != nil {
@@ -221,11 +240,6 @@ func objectRuleCommentCreated(
 		}
 
 		rs = append(rs, fs...)
-
-		post, err := fetchObject(change.Namespace, change.New.ObjectID)
-		if err != nil {
-			return nil, err
-		}
 
 		ms := []*message{}
 
