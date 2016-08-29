@@ -320,7 +320,7 @@ resource "aws_ecs_task_definition" "dashboard" {
 [
   {
     "name": "dashboard",
-    "image": "775034650473.dkr.ecr.us-east-1.amazonaws.com/dashboard:${var.version.dashboard}",
+    "image": "775034650473.dkr.ecr.us-east-1.amazonaws.com/dashboard:${var.version["dashboard"]}",
     "cpu": 256,
     "memory": 256,
     "essential": true,
@@ -377,7 +377,7 @@ resource "aws_ecs_task_definition" "gateway-http" {
       "${var.env}.${var.region}"
     ],
     "essential": true,
-    "image": "775034650473.dkr.ecr.us-east-1.amazonaws.com/gateway-http:${var.version.gateway-http}",
+    "image": "775034650473.dkr.ecr.us-east-1.amazonaws.com/gateway-http:${var.version["gateway-http"]}",
     "logConfiguration": {
       "logDriver": "syslog"
     },
@@ -472,7 +472,7 @@ resource "aws_ecs_task_definition" "reporter" {
       "${var.env}.${var.region}"
     ],
     "essential": true,
-    "image": "775034650473.dkr.ecr.us-east-1.amazonaws.com/reporter:${var.version.reporter}",
+    "image": "775034650473.dkr.ecr.us-east-1.amazonaws.com/reporter:${var.version["reporter"]}",
     "logConfiguration": {
       "logDriver": "syslog"
     },
@@ -503,7 +503,7 @@ resource "aws_ecs_task_definition" "sims" {
       "${var.env}.${var.region}"
     ],
     "essential": true,
-    "image": "775034650473.dkr.ecr.us-east-1.amazonaws.com/sims:${var.version.sims}",
+    "image": "775034650473.dkr.ecr.us-east-1.amazonaws.com/sims:${var.version["sims"]}",
     "logConfiguration": {
       "logDriver": "syslog"
     },
