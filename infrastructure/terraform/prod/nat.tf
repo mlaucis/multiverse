@@ -20,7 +20,7 @@ resource "aws_instance" "nat" {
   subnet_id                   = "${aws_subnet.public-a.id}"
   source_dest_check           = false
 
-  security_groups             = [
+  vpc_security_group_ids      = [
     "${aws_security_group.nat.id}",
   ]
 

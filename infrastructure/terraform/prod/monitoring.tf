@@ -36,7 +36,7 @@ resource "aws_instance" "monitoring0" {
   instance_type = "${var.monitoring_instance_type}"
   subnet_id     = "${aws_subnet.monitoring-a.id}"
 
-  security_groups = [
+  vpc_security_group_ids = [
     "${aws_security_group.platform.id}",
     "${aws_security_group.private.id}",
   ]
