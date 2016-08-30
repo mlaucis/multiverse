@@ -215,7 +215,9 @@ resource "aws_security_group_rule" "nat_ntp_out" {
   type                      = "egress"
   protocol                  = "udp"
   security_group_id         = "${aws_security_group.nat.id}"
-  source_security_group_id  = "${aws_security_group.private.id}"
+  cidr_blocks = [
+    "0.0.0.0/0"
+  ]
 }
 
 resource "aws_security_group_rule" "nat_syslog_in" {
