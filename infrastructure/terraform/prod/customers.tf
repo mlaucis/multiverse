@@ -69,3 +69,12 @@ resource "cloudflare_record" "stepz" {
   ttl     = 1
   proxied = true
 }
+
+resource "cloudflare_record" "umake" {
+  domain  = "${var.cloudflare_domain}"
+  name    = "umake"
+  value   = "${aws_elb.gateway-http.dns_name}"
+  type    = "CNAME"
+  ttl     = 1
+  proxied = true
+}
