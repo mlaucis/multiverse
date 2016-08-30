@@ -47,30 +47,23 @@ func (s *instrumentStrangleService) FindByKey(
 	key string,
 ) (org *v04_entity.Organization, errs []errors.Error) {
 	defer func(begin time.Time) {
-		var (
-			c = kitmetrics.Field{
-				Key:   metrics.FieldComponent,
-				Value: s.component,
-			}
-			m = kitmetrics.Field{
-				Key:   metrics.FieldMethod,
-				Value: "FindByKey",
-			}
-			service = kitmetrics.Field{
-				Key:   metrics.FieldService,
-				Value: serviceName,
-			}
-			store = kitmetrics.Field{
-				Key:   metrics.FieldStore,
-				Value: s.store,
-			}
-		)
-
 		if errs != nil {
-			s.errCount.With(c).With(m).With(service).With(store).Add(1)
+			s.errCount.With(
+				metrics.FieldComponent, s.component,
+				metrics.FieldMethod, "FindByKey",
+				metrics.FieldNamespace, "",
+				metrics.FieldService, serviceName,
+				metrics.FieldStore, s.store,
+			).Add(1)
 		}
 
-		s.opCount.With(c).With(m).With(service).With(store).Add(1)
+		s.opCount.With(
+			metrics.FieldComponent, s.component,
+			metrics.FieldMethod, "FindByKey",
+			metrics.FieldNamespace, "",
+			metrics.FieldService, serviceName,
+			metrics.FieldStore, s.store,
+		).Add(1)
 
 		s.opLatency.With(prometheus.Labels{
 			metrics.FieldComponent: s.component,

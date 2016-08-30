@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/go-kit/kit/log"
-	kitmetrics "github.com/go-kit/kit/metrics"
 	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
@@ -329,11 +328,7 @@ func Instrument(
 			metrics.FieldRoute,
 			metrics.FieldStatus,
 		}
-		componentField = kitmetrics.Field{
-			Key:   metrics.FieldComponent,
-			Value: component,
-		}
-		requestCount = kitprometheus.NewCounter(prometheus.CounterOpts{
+		requestCount = kitprometheus.NewCounterFrom(prometheus.CounterOpts{
 			Namespace: namespace,
 			Subsystem: subsystemRequest,
 			Name:      "count",
@@ -348,7 +343,7 @@ func Instrument(
 			},
 			fieldKeys,
 		)
-		responseBytes = kitprometheus.NewCounter(prometheus.CounterOpts{
+		responseBytes = kitprometheus.NewCounterFrom(prometheus.CounterOpts{
 			Namespace: namespace,
 			Subsystem: subsystemResponse,
 			Name:      "bytes",
@@ -371,22 +366,20 @@ func Instrument(
 
 			var (
 				status = strconv.Itoa(resr.statusCode)
-				route  = kitmetrics.Field{
-					Key:   metrics.FieldRoute,
-					Value: routeName,
-				}
-				s = kitmetrics.Field{
-					Key:   metrics.FieldStatus,
-					Value: status,
-				}
-				v = kitmetrics.Field{
-					Key:   metrics.FieldVersion,
-					Value: version,
-				}
 			)
 
-			requestCount.With(componentField).With(route).With(s).With(v).Add(1)
-			responseBytes.With(componentField).With(route).With(s).With(v).Add(uint64(resr.contentLength))
+			requestCount.With(
+				metrics.FieldComponent, component,
+				metrics.FieldRoute, routeName,
+				metrics.FieldStatus, status,
+				metrics.FieldVersion, version,
+			).Add(1)
+			responseBytes.With(
+				metrics.FieldComponent, component,
+				metrics.FieldRoute, routeName,
+				metrics.FieldStatus, status,
+				metrics.FieldVersion, version,
+			).Add(float64(resr.contentLength))
 			requestLatency.With(prometheus.Labels{
 				metrics.FieldComponent: component,
 				metrics.FieldRoute:     routeName,

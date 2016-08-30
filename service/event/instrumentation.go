@@ -116,34 +116,23 @@ func (s *instrumentService) track(
 	begin time.Time,
 	err error,
 ) {
-	var (
-		c = kitmetrics.Field{
-			Key:   metrics.FieldComponent,
-			Value: s.component,
-		}
-		m = kitmetrics.Field{
-			Key:   metrics.FieldMethod,
-			Value: method,
-		}
-		n = kitmetrics.Field{
-			Key:   metrics.FieldNamespace,
-			Value: namespace,
-		}
-		service = kitmetrics.Field{
-			Key:   metrics.FieldService,
-			Value: serviceName,
-		}
-		store = kitmetrics.Field{
-			Key:   metrics.FieldStore,
-			Value: s.store,
-		}
-	)
-
 	if err != nil {
-		s.errCount.With(c).With(m).With(n).With(service).With(store).Add(1)
+		s.errCount.With(
+			metrics.FieldComponent, s.component,
+			metrics.FieldMethod, method,
+			metrics.FieldNamespace, namespace,
+			metrics.FieldService, serviceName,
+			metrics.FieldStore, s.store,
+		).Add(1)
 	}
 
-	s.opCount.With(c).With(m).With(n).With(service).With(store).Add(1)
+	s.opCount.With(
+		metrics.FieldComponent, s.component,
+		metrics.FieldMethod, method,
+		metrics.FieldNamespace, namespace,
+		metrics.FieldService, serviceName,
+		metrics.FieldStore, s.store,
+	).Add(1)
 
 	s.opLatency.With(prometheus.Labels{
 		metrics.FieldComponent: s.component,
@@ -234,33 +223,22 @@ func (s *instrumentSource) track(
 	begin time.Time,
 	err error,
 ) {
-	var (
-		c = kitmetrics.Field{
-			Key:   metrics.FieldComponent,
-			Value: s.component,
-		}
-		m = kitmetrics.Field{
-			Key:   metrics.FieldMethod,
-			Value: method,
-		}
-		ns = kitmetrics.Field{
-			Key:   metrics.FieldNamespace,
-			Value: namespace,
-		}
-		source = kitmetrics.Field{
-			Key:   metrics.FieldSource,
-			Value: serviceName,
-		}
-		store = kitmetrics.Field{
-			Key:   metrics.FieldStore,
-			Value: s.store,
-		}
-	)
-
 	if err != nil {
-		s.errCount.With(c).With(m).With(ns).With(source).With(store).Add(1)
+		s.errCount.With(
+			metrics.FieldComponent, s.component,
+			metrics.FieldMethod, method,
+			metrics.FieldNamespace, namespace,
+			metrics.FieldSource, serviceName,
+			metrics.FieldStore, s.store,
+		).Add(1)
 	} else {
-		s.opCount.With(c).With(m).With(ns).With(source).With(store).Add(1)
+		s.opCount.With(
+			metrics.FieldComponent, s.component,
+			metrics.FieldMethod, method,
+			metrics.FieldNamespace, namespace,
+			metrics.FieldSource, serviceName,
+			metrics.FieldStore, s.store,
+		).Add(1)
 
 		s.opLatency.With(prometheus.Labels{
 			metrics.FieldComponent: s.component,

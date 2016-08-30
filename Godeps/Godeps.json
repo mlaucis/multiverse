@@ -139,15 +139,18 @@
 		},
 		{
 			"ImportPath": "github.com/go-kit/kit/log",
-			"Rev": "60b4d800f541554ebca34ea77265e574b2ca79a9"
+			"Comment": "v0.2.0-73-g483f2cd",
+			"Rev": "483f2cd7ba885520c7dbc6e50199140925f7b68d"
 		},
 		{
 			"ImportPath": "github.com/go-kit/kit/metrics",
-			"Rev": "60b4d800f541554ebca34ea77265e574b2ca79a9"
+			"Comment": "v0.2.0-73-g483f2cd",
+			"Rev": "483f2cd7ba885520c7dbc6e50199140925f7b68d"
 		},
 		{
 			"ImportPath": "github.com/go-kit/kit/metrics/prometheus",
-			"Rev": "60b4d800f541554ebca34ea77265e574b2ca79a9"
+			"Comment": "v0.2.0-73-g483f2cd",
+			"Rev": "483f2cd7ba885520c7dbc6e50199140925f7b68d"
 		},
 		{
 			"ImportPath": "github.com/go-logfmt/logfmt",
@@ -261,6 +264,11 @@
 		{
 			"ImportPath": "gopkg.in/check.v1",
 			"Rev": "4f90aeace3a26ad7021961c297b22c42160c7b25"
+		},
+		{
+			"ImportPath": "github.com/go-kit/kit/metrics/internal/lv",
+			"Comment": "v0.2.0-73-g483f2cd",
+			"Rev": "483f2cd7ba885520c7dbc6e50199140925f7b68d"
 		}
 	]
 }
