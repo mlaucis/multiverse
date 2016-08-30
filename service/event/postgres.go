@@ -231,11 +231,15 @@ func (s *pgService) Put(ns string, event *Event) (*Event, error) {
 	params = append([]interface{}{data}, params...)
 
 	_, err = s.db.Exec(wrapNamespace(query, ns), params...)
-	if err != nil {
-		return nil, err
+	if err != nil && pg.IsRelationNotFound(pg.WrapError(err)) {
+		if err := s.Setup(ns); err != nil {
+			return nil, err
+		}
+
+		_, err = s.db.Exec(wrapNamespace(query, ns), params...)
 	}
 
-	return event, nil
+	return event, err
 }
 
 func (s *pgService) Query(ns string, opts QueryOptions) (List, error) {
