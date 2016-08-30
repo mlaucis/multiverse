@@ -149,14 +149,14 @@ func main() {
 		metrics.FieldStore,
 	}
 
-	serviceErrCount := kitprometheus.NewCounter(prometheus.CounterOpts{
+	serviceErrCount := kitprometheus.NewCounterFrom(prometheus.CounterOpts{
 		Namespace: namespaceService,
 		Subsystem: subsystemErr,
 		Name:      "count",
 		Help:      "Number of failed service operations",
 	}, serviceFieldKeys)
 
-	serviceOpCount := kitprometheus.NewCounter(prometheus.CounterOpts{
+	serviceOpCount := kitprometheus.NewCounterFrom(prometheus.CounterOpts{
 		Namespace: namespaceService,
 		Subsystem: subsystemOp,
 		Name:      "count",
@@ -182,14 +182,14 @@ func main() {
 		metrics.FieldStore,
 	}
 
-	sourceErrCount := kitprometheus.NewCounter(prometheus.CounterOpts{
+	sourceErrCount := kitprometheus.NewCounterFrom(prometheus.CounterOpts{
 		Namespace: namespaceSource,
 		Subsystem: subsystemErr,
 		Name:      "count",
 		Help:      "Number of failed source operations",
 	}, sourceFieldKeys)
 
-	sourceOpCount := kitprometheus.NewCounter(prometheus.CounterOpts{
+	sourceOpCount := kitprometheus.NewCounterFrom(prometheus.CounterOpts{
 		Namespace: namespaceSource,
 		Subsystem: subsystemOp,
 		Name:      "count",
