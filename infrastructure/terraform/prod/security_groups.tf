@@ -200,6 +200,24 @@ resource "aws_security_group_rule" "nat_ssh_out" {
   source_security_group_id  = "${aws_security_group.private.id}"
 }
 
+resource "aws_security_group_rule" "nat_ntp_in" {
+  from_port                 = 123
+  to_port                   = 123
+  type                      = "ingress"
+  protocol                  = "udp"
+  security_group_id         = "${aws_security_group.nat.id}"
+  source_security_group_id  = "${aws_security_group.private.id}"
+}
+
+resource "aws_security_group_rule" "nat_ntp_out" {
+  from_port                 = 123
+  to_port                   = 123
+  type                      = "egress"
+  protocol                  = "udp"
+  security_group_id         = "${aws_security_group.nat.id}"
+  source_security_group_id  = "${aws_security_group.private.id}"
+}
+
 resource "aws_security_group_rule" "nat_syslog_in" {
   from_port                 = 514
   to_port                   = 514
@@ -389,6 +407,14 @@ resource "aws_security_group_rule" "private_ses_redis_out1" {
   source_security_group_id  = "${aws_security_group.nat.id}"
 }
 
+resource "aws_security_group_rule" "private_ntp_out" {
+  from_port                 = 123
+  to_port                   = 123
+  type                      = "egress"
+  protocol                  = "udp"
+  security_group_id         = "${aws_security_group.private.id}"
+  source_security_group_id  = "${aws_security_group.nat.id}"
+}
 
 resource "aws_security_group_rule" "private_ses_redis_out2" {
   from_port                 = 465
