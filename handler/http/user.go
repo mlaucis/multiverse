@@ -452,15 +452,15 @@ func (p *payloadUser) MarshalJSON() ([]byte, error) {
 		CustomID       string                `json:"custom_id,omitempty"`
 		Email          string                `json:"email"`
 		Firstname      string                `json:"first_name"`
-		FollowerCount  int                   `json:"follower_count"`
-		FollowingCount int                   `json:"followed_count"`
-		FriendCount    int                   `json:"friend_count"`
+		FollowerCount  int                   `json:"follower_count,omitempty"`
+		FollowingCount int                   `json:"followed_count,omitempty"`
+		FriendCount    int                   `json:"friend_count,omitempty"`
 		ID             uint64                `json:"id"`
 		IDString       string                `json:"id_string"`
 		Images         map[string]user.Image `json:"images,omitempty"`
-		IsFollower     bool                  `json:"is_follower"`
-		IsFollowing    bool                  `json:"is_followed"`
-		IsFriend       bool                  `json:"is_friend"`
+		IsFollower     bool                  `json:"is_follower,omitempty"`
+		IsFollowing    bool                  `json:"is_followed,omitempty"`
+		IsFriend       bool                  `json:"is_friend,omitempty"`
 		Lastname       string                `json:"last_name"`
 		Metadata       user.Metadata         `json:"metadata,omitempty"`
 		Private        *user.Private         `json:"private,omitempty"`
