@@ -14,6 +14,11 @@ import (
 )
 
 const (
+	orderNone ordering = iota
+	orderCreatedAt
+)
+
+const (
 	pgInsertObject = `INSERT INTO %s.objects(json_data) VALUES($1)`
 	pgUpdateObject = `UPDATE %s.objects SET json_data = $1
 		WHERE (json_data->>'id')::BIGINT = $2::BIGINT`
@@ -70,6 +75,8 @@ const (
 	pgDropTable = `DROP TABLE IF EXISTS %s.objects`
 )
 
+type ordering int
+
 type pgService struct {
 	db *sqlx.DB
 }
@@ -82,7 +89,7 @@ func NewPostgresService(db *sqlx.DB) Service {
 }
 
 func (s *pgService) Count(ns string, opts QueryOptions) (int, error) {
-	where, params, err := convertOpts(opts)
+	where, params, err := convertOpts(opts, orderNone)
 	if err != nil {
 		return 0, err
 	}
@@ -230,7 +237,7 @@ func (s *pgService) Put(ns string, object *Object) (*Object, error) {
 }
 
 func (s *pgService) Query(ns string, opts QueryOptions) (List, error) {
-	where, params, err := convertOpts(opts)
+	where, params, err := convertOpts(opts, orderCreatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -357,7 +364,7 @@ func (s *pgService) listObjects(
 	return os, nil
 }
 
-func convertOpts(opts QueryOptions) (string, []interface{}, error) {
+func convertOpts(opts QueryOptions, order ordering) (string, []interface{}, error) {
 	var (
 		clauses = []string{
 			pgClauseDeleted,
@@ -484,7 +491,7 @@ func convertOpts(opts QueryOptions) (string, []interface{}, error) {
 		query = sqlx.Rebind(sqlx.DOLLAR, pg.ClausesToWhere(clauses...))
 	}
 
-	if !opts.Before.IsZero() {
+	if order == orderCreatedAt {
 		query = fmt.Sprintf("%s\n%s", query, pgOrderCreatedAt)
 	}
 
