@@ -78,7 +78,7 @@ func homeHandler(ctx *context.Context) {
 	WriteCommonHeaders(10*24*3600, ctx.W, ctx.R)
 	ctx.W.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	ctx.W.Header().Set("Refresh", "3; url=https://tapglue.com")
-	ctx.W.Write([]byte(`these aren't the droids you're looking for`))
+	ctx.W.Write([]byte(`You hold your mouth now, you over-goat!`))
 }
 
 // humans handles requests to humans.txt
