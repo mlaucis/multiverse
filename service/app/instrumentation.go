@@ -91,7 +91,6 @@ func (s *instrumentService) track(
 			metrics.FieldService, serviceName,
 			metrics.FieldStore, s.store,
 		).Add(1)
-
 	}
 
 	s.opCount.With(

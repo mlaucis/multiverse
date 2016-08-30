@@ -74,7 +74,7 @@ const (
 		CREATE INDEX
 			%s
 		ON
-			%s.connections(((json_data->>'user_from_id')::BIGINT))
+			%s.connections(((json_data->>'user_from_id')::BIGINT), (json_data->>'updated_at') DESC)
 		WHERE
 			(json_data->>'enabled')::BOOL = true
 			AND (json_data->>'state')::TEXT = 'confirmed'
@@ -83,11 +83,27 @@ const (
 		CREATE INDEX
 			%s
 		ON
-			%s.connections(((json_data->>'user_to_id')::BIGINT))
+			%s.connections(((json_data->>'user_to_id')::BIGINT), (json_data->>'updated_at') DESC)
 		WHERE
 			(json_data->>'enabled')::BOOL = true
 			AND (json_data->>'state')::TEXT = 'confirmed'
 			AND (json_data->>'type')::TEXT = 'friend'`
+	pgIndexOutgoingPending = `
+		CREATE INDEX
+			%s
+		ON
+			%s.connections (((json_data->>'user_from_id')::BIGINT), (json_data->>'updated_at') DESC)
+		WHERE
+			(json_data->>'enabled')::BOOL = true::BOOL
+			AND (json_data->>'state')::TEXT IN ('pending')`
+	pgIndexRelationConfirmed = `
+		CREATE INDEX
+			%s
+		ON
+			%s.connections (((json_data->>'user_from_id')::BIGINT), ((json_data->>'user_to_id')::BIGINT), (json_data->>'updated_at') DESC)
+		WHERE
+			(json_data->>'enabled')::BOOL = true::BOOL
+			AND (json_data->>'state')::TEXT IN ('confirmed')`
 	pgIndexRelationFollow = `
 		CREATE INDEX
 			%s
@@ -251,6 +267,8 @@ func (s *pgService) Setup(ns string) error {
 		pg.GuardIndex(ns, "connection_following_confirmed", pgIndexFollowingConfirmed),
 		pg.GuardIndex(ns, "connection_friend_confirmed_origin", pgIndexFriendConfirmedOrigin),
 		pg.GuardIndex(ns, "connection_friend_confirmed_target", pgIndexFriendConfirmedTarget),
+		pg.GuardIndex(ns, "connection_outgoing_pending", pgIndexOutgoingPending),
+		pg.GuardIndex(ns, "connection_relation_confirmed", pgIndexRelationConfirmed),
 		pg.GuardIndex(ns, "connection_relation_follow", pgIndexRelationFollow),
 		pg.GuardIndex(ns, "connection_relation_friend", pgIndexRelationFriend),
 	}
