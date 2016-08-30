@@ -35,7 +35,7 @@ if [ "${CONTAINER_NAME}" == "gateway-http" ]; then
         -e GOPATH=${CONTAINER_PROJECT_GOPATH} \
         -e GODEBUG=netdns=go \
         -w "${CONTAINER_PROJECT_DIR}" \
-        golang:1.5.3-alpine \
+        golang:1.7.0-alpine \
         go build -v -ldflags "-X main.currentRevision=${REVISION}" -tags postgres -o ${BINARY_FILE} cmd/intaker/intaker.go
 
     docker build -f ${PROJECT_DIR}/infrastructure/containers/docker/gateway-http.docker \
@@ -55,7 +55,7 @@ if [ "${CONTAINER_NAME}" == "reporter" ]; then
         -e GOPATH=${CONTAINER_PROJECT_GOPATH} \
         -e GODEBUG=netdns=go \
         -w "${CONTAINER_PROJECT_DIR}" \
-        golang:1.5.3-alpine \
+        golang:1.7.0-alpine \
         go build -v -ldflags "-X main.currentRevision=${REVISION}" -o ${BINARY_FILE} cmd/reporter/reporter.go
 
     docker build -f ${PROJECT_DIR}/infrastructure/containers/docker/reporter.docker \
@@ -74,7 +74,7 @@ if [ "${CONTAINER_NAME}" == "sims" ]; then
         -e GOPATH=${CONTAINER_PROJECT_GOPATH} \
         -e GODEBUG=netdns=go \
         -w "${CONTAINER_PROJECT_DIR}" \
-        golang:1.5.3-alpine \
+        golang:1.7.0-alpine \
         go build -v -ldflags "-X main.revision=${REVISION}" -o ${BINARY_FILE} cmd/sims/*.go
 
     docker build -f ${PROJECT_DIR}/infrastructure/containers/docker/sims.docker \

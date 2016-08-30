@@ -108,7 +108,7 @@ then
         -e GOPATH=${CONTAINER_PROJECT_GOPATH} \
         -e GODEBUG=netdns=go \
         -w "${CONTAINER_PROJECT_DIR}" \
-        golang:1.5.3-alpine \
+        golang:1.7.0-alpine \
         go build -v -ldflags "-X main.currentRevision=${REVISION}" -tags ${TEST_TARGET} -o docker_${TEST_COMPONENT}_${TEST_TARGET}_${CIRCLE_BUILD_NUM} cmd/${TEST_COMPONENT}/${TEST_COMPONENT}.go
 
     # If we want to optimize for size of the binary  then we can strip the debugging information out to get around 5-6mb less
