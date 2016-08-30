@@ -4,7 +4,7 @@ machine:
     - sudo chmod 0755 /usr/bin/docker
     - sudo pip install --upgrade awscli
   environment:
-    GOOROT: /home/ubuntu/.gimme/versions/go1.5.2.linux.amd64
+    GOOROT: /home/ubuntu/.gimme/versions/go1.7.linux.amd64
   services:
     - docker
     - redis
