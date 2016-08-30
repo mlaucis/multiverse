@@ -11,7 +11,7 @@ variable "version" {
     dashboard     = "1902"
     gateway-http  = "2410"
     reporter      = "2302"
-    sims          = "2410"
+    sims          = "2415"
   }
 }
 
