@@ -154,8 +154,8 @@
 		},
 		{
 			"ImportPath": "github.com/go-logfmt/logfmt",
-			"Comment": "v0.1.0",
-			"Rev": "08ab82a63ef462ac643ec79e659f023891f588f5"
+			"Comment": "v0.2.0-9-gd432719",
+			"Rev": "d4327190ff838312623b09bfeb50d7c93c8d9c1d"
 		},
 		{
 			"ImportPath": "github.com/go-stack/stack",
