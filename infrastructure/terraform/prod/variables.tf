@@ -123,6 +123,10 @@ variable "rds_db_name" {
   default = "tapglue"
 }
 
+variable "rds_id" {
+  default = "tapglue-master"
+}
+
 variable "rds_username" {
   default = "tapglue"
 }

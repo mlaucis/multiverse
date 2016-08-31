@@ -185,6 +185,44 @@ resource "aws_iam_role_policy" "ecsOperations" {
 EOF
 }
 
+resource "aws_iam_role_policy" "pgaCollector" {
+  name   = "pgaCollector"
+  role   = "${aws_iam_role.ecsInstance.id}"
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+      {
+          "Action": [
+              "rds:Describe*",
+              "rds:ListTagsForResource",
+              "ec2:DescribeAccountAttributes",
+              "ec2:DescribeAvailabilityZones",
+              "ec2:DescribeSecurityGroups",
+              "ec2:DescribeVpcs"
+          ],
+          "Effect": "Allow",
+          "Resource": "*"
+      },
+      {
+          "Action": [
+              "cloudwatch:GetMetricStatistics",
+              "logs:DescribeLogStreams",
+              "logs:GetLogEvents"
+          ],
+          "Effect": "Allow",
+          "Resource": "*"
+      },
+      {
+          "Action": [ "rds:DownloadDBLogFilePortion" ],
+          "Effect": "Allow",
+          "Resource": "*"
+      }
+  ]
+}
+EOF
+}
+
 resource "aws_iam_role" "ecsELB" {
   name               = "ecsELB"
   path               = "/"
@@ -430,6 +468,8 @@ resource "aws_ecs_task_definition" "pganalyze-master" {
     ],
     "essential": true,
     "environment": [
+      { "name": "AWS_REGION", "value": "${var.region}" },
+      { "name": "AWS_INSTANCE_ID", "value": "${var.rds_id}" },
       { "name": "DB_URL", "value": "postgres://${var.pga_username}:${var.pga_password}@db-master.service:5432/${var.rds_db_name}" },
       { "name": "PGA_API_KEY", "value": "${var.pga_api_key}" }
     ],

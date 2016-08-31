@@ -110,7 +110,7 @@ resource "aws_db_parameter_group" "master-prod" {
 
 # Database master
 resource "aws_db_instance" "master" {
-  identifier              = "tapglue-master"
+  identifier              = "${var.rds_id}"
   # change this to io1 if you want to use provisioned iops for production
   storage_type            = "io1"
   iops = 1000 # this should give us a boost in performance for production
