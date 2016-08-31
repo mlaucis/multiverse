@@ -113,7 +113,7 @@ resource "aws_db_instance" "master" {
   identifier              = "${var.rds_id}"
   # change this to io1 if you want to use provisioned iops for production
   storage_type            = "io1"
-  iops = 1000 # this should give us a boost in performance for production
+  iops                    = 1000 # this should give us a boost in performance for production
   allocated_storage       = "200"
   engine                  = "postgres"
   engine_version          = "9.4.7"
@@ -124,6 +124,7 @@ resource "aws_db_instance" "master" {
   username                = "${var.rds_username}"
   password                = "${var.rds_password}"
   multi_az                = true
+  monitoring_role_arn     = "${var.rds_monitoring_role}"
   monitoring_interval     = 1
   # this should be true for production
   publicly_accessible     = false
