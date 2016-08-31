@@ -78,6 +78,12 @@ resource "aws_db_parameter_group" "master-prod" {
   }
 
   parameter {
+    name          = "autovacuum_vacuum_scale_factor"
+    value         = "0.1"
+    apply_method  = "immediate"
+  }
+
+  parameter {
     name         = "log_autovacuum_min_duration"
     value        = "1"
     apply_method = "immediate"
