@@ -123,12 +123,20 @@ variable "rds_db_name" {
   default = "tapglue"
 }
 
+variable "rds_id" {
+  default = "tapglue-master"
+}
+
 variable "rds_username" {
   default = "tapglue"
 }
 
 variable "rds_password" {
   default = "gFthJy858iXOIA3IM0GARIuFYdIWkeCHJc0vto"
+}
+
+variable "rds_monitoring_role" {
+  default = "arn:aws:iam::775034650473:role/rds-monitoring-role"
 }
 
 variable "rds_corp_db_name" {
