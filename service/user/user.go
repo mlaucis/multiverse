@@ -142,7 +142,7 @@ func (u *User) Validate() error {
 	}
 
 	if u.Firstname != "" {
-		if len(u.Firstname) < 2 {
+		if len(u.Firstname) < 1 {
 			return wrapError(ErrInvalidUser, "firstname too short")
 		}
 		if len(u.Firstname) > 40 {
@@ -151,7 +151,7 @@ func (u *User) Validate() error {
 	}
 
 	if u.Lastname != "" {
-		if len(u.Lastname) < 2 {
+		if len(u.Lastname) < 1 {
 			return wrapError(ErrInvalidUser, "lastname too short")
 		}
 		if len(u.Lastname) > 40 {
