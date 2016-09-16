@@ -348,36 +348,39 @@ func (p *payloadPost) MarshalJSON() ([]byte, error) {
 	}
 
 	return json.Marshal(struct {
-		Attachments []*payloadAttachment `json:"attachments"`
-		Counts      postCounts           `json:"counts"`
-		CreatedAt   time.Time            `json:"created_at,omitempty"`
-		ID          string               `json:"id"`
-		IsLiked     bool                 `json:"is_liked"`
-		Tags        []string             `json:"tags,omitempty"`
-		UpdatedAt   time.Time            `json:"updated_at,omitempty"`
-		UserID      string               `json:"user_id"`
-		Visibility  object.Visibility    `json:"visibility"`
+		Attachments  []*payloadAttachment `json:"attachments"`
+		Counts       postCounts           `json:"counts"`
+		CreatedAt    time.Time            `json:"created_at,omitempty"`
+		ID           string               `json:"id"`
+		IsLiked      bool                 `json:"is_liked"`
+		Restrictions *object.Restrictions `json:"restrictions,omitempty"`
+		Tags         []string             `json:"tags,omitempty"`
+		UpdatedAt    time.Time            `json:"updated_at,omitempty"`
+		UserID       string               `json:"user_id"`
+		Visibility   object.Visibility    `json:"visibility"`
 	}{
 		Attachments: ps,
 		Counts: postCounts{
 			Comments: p.post.Counts.Comments,
 			Likes:    p.post.Counts.Likes,
 		},
-		CreatedAt:  p.post.CreatedAt,
-		ID:         strconv.FormatUint(p.post.ID, 10),
-		IsLiked:    p.post.IsLiked,
-		Tags:       p.post.Tags,
-		UpdatedAt:  p.post.UpdatedAt,
-		UserID:     strconv.FormatUint(p.post.OwnerID, 10),
-		Visibility: p.post.Visibility,
+		CreatedAt:    p.post.CreatedAt,
+		ID:           strconv.FormatUint(p.post.ID, 10),
+		IsLiked:      p.post.IsLiked,
+		Restrictions: p.post.Restrictions,
+		Tags:         p.post.Tags,
+		UpdatedAt:    p.post.UpdatedAt,
+		UserID:       strconv.FormatUint(p.post.OwnerID, 10),
+		Visibility:   p.post.Visibility,
 	})
 }
 
 func (p *payloadPost) UnmarshalJSON(raw []byte) error {
 	f := struct {
-		Attachments []*payloadAttachment `json:"attachments"`
-		Tags        []string             `json:"tags,omitempty"`
-		Visibility  object.Visibility    `json:"visibility"`
+		Attachments  []*payloadAttachment `json:"attachments"`
+		Restrictions *object.Restrictions `json:"restrictions,omitempty"`
+		Tags         []string             `json:"tags,omitempty"`
+		Visibility   object.Visibility    `json:"visibility"`
 	}{}
 
 	err := json.Unmarshal(raw, &f)
@@ -393,6 +396,7 @@ func (p *payloadPost) UnmarshalJSON(raw []byte) error {
 
 	p.post = &controller.Post{Object: &object.Object{}}
 	p.post.Attachments = as
+	p.post.Restrictions = f.Restrictions
 	p.post.Tags = f.Tags
 	p.post.Visibility = f.Visibility
 

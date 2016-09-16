@@ -128,22 +128,23 @@ type Map map[uint64]*Object
 // Object is a generic building block to express different domains like Posts,
 // Albums with their dependend objects.
 type Object struct {
-	Attachments []Attachment `json:"attachments"`
-	CreatedAt   time.Time    `json:"created_at"`
-	Deleted     bool         `json:"deleted"`
-	ExternalID  string       `json:"external_id"`
-	ID          uint64       `json:"id"`
-	Latitude    float64      `json:"latitude"`
-	Location    string       `json:"location"`
-	Longitude   float64      `json:"longitude"`
-	ObjectID    uint64       `json:"object_id"`
-	Owned       bool         `json:"owned"`
-	OwnerID     uint64       `json:"owner_id"`
-	Private     *Private     `json:"private,omitempty"`
-	Tags        []string     `json:"tags"`
-	Type        string       `json:"type"`
-	UpdatedAt   time.Time    `json:"updated_at"`
-	Visibility  Visibility   `json:"visibility"`
+	Attachments  []Attachment  `json:"attachments"`
+	CreatedAt    time.Time     `json:"created_at"`
+	Deleted      bool          `json:"deleted"`
+	ExternalID   string        `json:"external_id"`
+	ID           uint64        `json:"id"`
+	Latitude     float64       `json:"latitude"`
+	Location     string        `json:"location"`
+	Longitude    float64       `json:"longitude"`
+	ObjectID     uint64        `json:"object_id"`
+	Owned        bool          `json:"owned"`
+	OwnerID      uint64        `json:"owner_id"`
+	Private      *Private      `json:"private,omitempty"`
+	Restrictions *Restrictions `json:"restrictions,omitempty"`
+	Tags         []string      `json:"tags"`
+	Type         string        `json:"type"`
+	UpdatedAt    time.Time     `json:"updated_at"`
+	Visibility   Visibility    `json:"visibility"`
 }
 
 // Validate returns an error if a constraint on the Object is not full-filled.
@@ -200,6 +201,13 @@ type QueryOptions struct {
 	Tags         []string
 	Types        []string
 	Visibilities []Visibility
+}
+
+// Restrictions is the composite to regulate common interactions on Posts.
+type Restrictions struct {
+	Comment bool `json:"comment"`
+	Like    bool `json:"like"`
+	Report  bool `json:"report"`
 }
 
 // Service for object interactions.

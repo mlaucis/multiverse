@@ -65,6 +65,12 @@ func (c *CommentController) Create(
 		return nil, ErrNotFound
 	}
 
+	post := ps[0]
+
+	if err := constrainCommentRestriction(post.Restrictions); err != nil {
+		return nil, err
+	}
+
 	comment := &object.Object{
 		Attachments: []object.Attachment{
 			object.NewTextAttachment(
@@ -77,7 +83,7 @@ func (c *CommentController) Create(
 		Owned:      true,
 		Private:    input.Private,
 		Type:       TypeComment,
-		Visibility: ps[0].Visibility,
+		Visibility: post.Visibility,
 	}
 
 	if err := comment.Validate(); err != nil {
@@ -260,6 +266,17 @@ func constrainCommentPrivate(origin Origin, private *object.Private) error {
 	if !origin.IsBackend() && private != nil {
 		return wrapError(ErrUnauthorized,
 			"private can only be set by backend integration",
+		)
+	}
+
+	return nil
+}
+
+func constrainCommentRestriction(restrictions *object.Restrictions) error {
+	if restrictions != nil && restrictions.Comment {
+		return wrapError(
+			ErrUnauthorized,
+			"comments not allowed for this post",
 		)
 	}
 
