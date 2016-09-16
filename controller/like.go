@@ -71,6 +71,10 @@ func (c *LikeController) Create(
 
 	post := ps[0]
 
+	if err := constrainLikeRestriction(post.Restrictions); err != nil {
+		return nil, err
+	}
+
 	if err := isPostVisible(c.connections, currentApp, post, origin); err != nil {
 		return nil, err
 	}
@@ -304,6 +308,17 @@ func LikesUser(
 			UserMap: um,
 		}, nil
 	}
+}
+
+func constrainLikeRestriction(restrictions *object.Restrictions) error {
+	if restrictions != nil && restrictions.Like {
+		return wrapError(
+			ErrUnauthorized,
+			"likes not allowed for this post",
+		)
+	}
+
+	return nil
 }
 
 func eventVisibilitiesForRelation(r *relation) []event.Visibility {

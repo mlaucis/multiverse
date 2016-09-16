@@ -126,10 +126,13 @@ func (c *PostController) Create(
 	post.OwnerID = origin.UserID
 	post.Owned = defaultOwned
 	post.Type = TypePost
-	// TypePost identifies an object as a Post.
 
 	if err := post.Validate(); err != nil {
 		return nil, wrapError(ErrInvalidEntity, "invalid Post: %s", err)
+	}
+
+	if err := constrainPostRestrictions(origin, post.Restrictions); err != nil {
+		return nil, err
 	}
 
 	if err := constrainPostVisibility(origin, post.Visibility); err != nil {
@@ -376,6 +379,17 @@ func (c *PostController) Update(
 	}
 
 	return &Post{Object: o}, nil
+}
+
+func constrainPostRestrictions(origin Origin, restrictions *object.Restrictions) error {
+	if !origin.IsBackend() && restrictions != nil {
+		return wrapError(
+			ErrUnauthorized,
+			"restrictions can only be set by backend integration",
+		)
+	}
+
+	return nil
 }
 
 func constrainPostVisibility(origin Origin, visibility object.Visibility) error {
