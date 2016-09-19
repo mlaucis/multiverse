@@ -29,6 +29,7 @@ const (
 	keyState         = "state"
 	keyUserID        = "userID"
 	keyWhere         = "where"
+	maxLimit         = 100
 
 	refFmt = "%s://%s%s?limit=%d&%s"
 )
@@ -247,8 +248,8 @@ func extractLimit(r *http.Request) (int, error) {
 		return 0, err
 	}
 
-	if limit > defaultLimit {
-		return defaultLimit, nil
+	if limit > maxLimit {
+		return maxLimit, nil
 	}
 
 	return limit, nil
