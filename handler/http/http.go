@@ -111,6 +111,7 @@ func respondError(w http.ResponseWriter, code int, err error) {
 	case controller.ErrInvalidEntity:
 		statusCode = http.StatusBadRequest
 	case controller.ErrNotFound:
+		code = http.StatusNotFound
 		statusCode = http.StatusNotFound
 	case controller.ErrUnauthorized:
 		statusCode = http.StatusUnauthorized
