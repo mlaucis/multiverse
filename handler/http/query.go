@@ -20,7 +20,7 @@ import (
 
 const (
 	cursorTimeFormat = time.RFC3339Nano
-	defaultLimit     = 25
+	defaultLimit     = 100
 	keyCommentID     = "commentID"
 	keyCursorAfter   = "after"
 	keyCursorBefore  = "before"
