@@ -337,7 +337,7 @@ func (p *payloadObject) UnmarshalJSON(raw []byte) error {
 func eventCursorAfter(es event.List, limit int) string {
 	var after string
 
-	if len(es) != 0 && len(es) >= limit {
+	if len(es) != 0 {
 		after = toTimeCursor(es[0].CreatedAt)
 	}
 
@@ -347,7 +347,7 @@ func eventCursorAfter(es event.List, limit int) string {
 func eventCursorBefore(es event.List, limit int) string {
 	var before string
 
-	if len(es) != 0 && len(es) >= limit {
+	if len(es) != 0 {
 		before = toTimeCursor(es[len(es)-1].CreatedAt)
 	}
 

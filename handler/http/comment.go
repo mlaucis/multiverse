@@ -314,7 +314,7 @@ func commentCursorAfter(cs object.List, limit int) string {
 func commentCursorBefore(cs object.List, limit int) string {
 	var before string
 
-	if len(cs) > 0 && len(cs) >= limit {
+	if len(cs) > 0 {
 		before = toTimeCursor(cs[len(cs)-1].CreatedAt)
 	}
 

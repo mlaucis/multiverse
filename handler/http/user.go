@@ -587,7 +587,7 @@ func userCursorAfter(us user.List, limit int) string {
 func userCursorBefore(us user.List, limit int) string {
 	var before string
 
-	if len(us) > 0 && len(us) >= limit {
+	if len(us) > 0 {
 		before = toIDCursor(us[len(us)-1].ID)
 	}
 

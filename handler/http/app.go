@@ -214,7 +214,7 @@ func appCursorAfter(as app.List, limit int) string {
 func appCursorBefore(as app.List, limit int) string {
 	var before string
 
-	if len(as) > 0 && len(as) >= limit {
+	if len(as) > 0 {
 		before = toTimeCursor(as[len(as)-1].CreatedAt)
 	}
 
