@@ -62,10 +62,36 @@ func pagination(
 }
 
 func (p *payloadPagination) MarshalJSON() ([]byte, error) {
-	scheme := "http"
+	var (
+		next     = ""
+		previous = ""
+		scheme   = "http"
+	)
 
 	if p.req.TLS != nil {
 		scheme = "https"
+	}
+
+	if p.after != "" {
+		next = fmt.Sprintf(
+			refFmt,
+			scheme,
+			p.req.Host,
+			p.req.URL.Path,
+			p.limit,
+			fmt.Sprintf("%s=%s", keyCursorAfter, p.after),
+		)
+	}
+
+	if p.before != "" {
+		previous = fmt.Sprintf(
+			refFmt,
+			scheme,
+			p.req.Host,
+			p.req.URL.Path,
+			p.limit,
+			fmt.Sprintf("%s=%s", keyCursorBefore, p.before),
+		)
 	}
 
 	f := struct {
@@ -77,22 +103,8 @@ func (p *payloadPagination) MarshalJSON() ([]byte, error) {
 			After:  p.after,
 			Before: p.before,
 		},
-		Next: fmt.Sprintf(
-			refFmt,
-			scheme,
-			p.req.Host,
-			p.req.URL.Path,
-			p.limit,
-			fmt.Sprintf("%s=%s", keyCursorAfter, p.after),
-		),
-		Previous: fmt.Sprintf(
-			refFmt,
-			scheme,
-			p.req.Host,
-			p.req.URL.Path,
-			p.limit,
-			fmt.Sprintf("%s=%s", keyCursorBefore, p.before),
-		),
+		Next:     next,
+		Previous: previous,
 	}
 
 	return json.Marshal(&f)

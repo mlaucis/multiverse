@@ -478,11 +478,11 @@ func newsCursorBefore(
 ) (string, error) {
 	cursor := newsCursor{}
 
-	if len(es) > 0 && len(es) >= limit {
+	if len(es) > 0 {
 		cursor.Events = es[len(es)-1].CreatedAt
 	}
 
-	if len(ps) > 0 && len(ps) >= limit {
+	if len(ps) > 0 {
 		cursor.Posts = ps[len(ps)-1].CreatedAt
 	}
 

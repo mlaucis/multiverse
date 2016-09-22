@@ -461,7 +461,7 @@ func postCursorAfter(ps controller.PostList, limit int) string {
 func postCursorBefore(ps controller.PostList, limit int) string {
 	var before string
 
-	if len(ps) > 0 && len(ps) >= limit {
+	if len(ps) > 0 {
 		before = toTimeCursor(ps[len(ps)-1].CreatedAt)
 	}
 

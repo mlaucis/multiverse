@@ -637,7 +637,7 @@ func (p *payloadSocial) UnmarshalJSON(raw []byte) error {
 func connectionCursorAfter(cs connection.List, limit int) string {
 	var after string
 
-	if len(cs) > 0 && len(cs) >= limit {
+	if len(cs) > 0 {
 		after = toTimeCursor(cs[0].UpdatedAt)
 	}
 
@@ -647,7 +647,7 @@ func connectionCursorAfter(cs connection.List, limit int) string {
 func connectionCursorBefore(cs connection.List, limit int) string {
 	var before string
 
-	if len(cs) > 0 && len(cs) >= limit {
+	if len(cs) > 0 {
 		before = toTimeCursor(cs[len(cs)-1].UpdatedAt)
 	}
 
