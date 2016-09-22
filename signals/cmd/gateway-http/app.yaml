@@ -1,0 +1,25 @@
+automatic_scaling:
+  cool_down_period_sec: 60
+  cpu_utilization:
+    target_utilization: 0.75
+  max_num_instances: 5
+  min_num_instances: 1
+env_variables:
+  GCLOUD_PROJECT: tapglue-signals
+  PUBSUB_TOPIC: test-events
+health_check:
+  check_interval_sec: 1
+  enable_health_check: True
+  healthy_threshold: 2
+  restart_threshold: 30
+  timeout_sec: 1
+  unhealthy_threshold: 2
+network:
+  instance_tag: gateway-http
+resources:
+  cpu: .5
+  disk_size_gb: 10
+  memory_gb: 0.6
+runtime: go
+threadsafe: true
+vm: true
