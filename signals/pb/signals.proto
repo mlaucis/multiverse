@@ -1,0 +1,58 @@
+syntax = "proto3";
+
+package pb;
+
+option java_package = "com.tapglue.pb";
+option java_outer_classname = "Signals";
+
+enum ContentType {
+  AUDIO_BOOK = 0;
+  MOVIE = 1;
+  FASHION_ITEM = 2;
+  FURNITURE_ITEM = 3;
+  NEWS_ARTICLE = 4;
+  TEXT_BOOK = 5;
+  RECIPE = 6;
+  RESTAURANT = 7;
+  REVIEW = 8;
+}
+
+message Content {
+  string id = 1;
+  ContentType type = 2;
+}
+
+enum InteractionType {
+  ADD_TO_CART = 0;
+  BOOKMBARK = 1;
+  COMPLETE = 3;
+  DISLIKE = 4;
+  DOWN_VOTE = 5;
+  FOLLOW = 6;
+  LIKE = 7;
+  ORDER = 8;
+  RATE = 9;
+  SHARE = 10;
+  SUBSCRIBE = 11;
+  VIEW = 12;
+  UNFOLLOW = 13;
+  UP_VOTE = 14;
+}
+
+message Signal {
+  uint64 id = 1;
+  uint64 org = 2;
+  uint64 app = 3;
+
+  InteractionType interaction = 4;
+  Content content = 5;
+  User user = 6;
+}
+
+message Signals {
+  repeated Signal signals = 1;
+}
+
+message User {
+  string id = 1;
+}
