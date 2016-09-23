@@ -85,15 +85,11 @@ func (c *ConnectionController) CreateSocial(
 	originID uint64,
 	connectionType connection.Type,
 	connectionState connection.State,
-	platform string,
-	connectionIDs ...string,
+	opts user.QueryOptions,
 ) (user.List, error) {
-	us, err := c.users.Query(currentApp.Namespace(), user.QueryOptions{
-		Enabled: &defaultEnabled,
-		SocialIDs: map[string][]string{
-			platform: connectionIDs,
-		},
-	})
+	opts.Enabled = &defaultEnabled
+
+	us, err := c.users.Query(currentApp.Namespace(), opts)
 	if err != nil {
 		return nil, err
 	}

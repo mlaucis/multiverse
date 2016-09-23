@@ -424,13 +424,39 @@ func ConnectionSocial(c *controller.ConnectionController) Handler {
 			return
 		}
 
+		if len(p.ConnectionIDs) == 0 {
+			respondJSON(w, http.StatusNoContent, nil)
+			return
+		}
+
+		opts, err := extractUserOpts(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts.Before, err = extractIDCursorBefore(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts.Limit, err = extractLimit(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts.SocialIDs = map[string][]string{
+			p.Platform: p.ConnectionIDs,
+		}
+
 		us, err := c.CreateSocial(
 			app,
 			currentUser.ID,
 			p.Type,
 			p.State,
-			p.Platform,
-			p.ConnectionIDs...,
+			opts,
 		)
 		if err != nil {
 			respondError(w, 0, err)
