@@ -468,7 +468,15 @@ func ConnectionSocial(c *controller.ConnectionController) Handler {
 			return
 		}
 
-		respondJSON(w, http.StatusOK, &payloadUsers{users: us})
+		respondJSON(w, http.StatusOK, &payloadUsers{
+			pagination: pagination(
+				r,
+				opts.Limit,
+				userCursorAfter(us, opts.Limit),
+				userCursorBefore(us, opts.Limit),
+			),
+			users: us,
+		})
 	}
 }
 
