@@ -20,6 +20,13 @@ const (
 // DefaultLanguage is used when no lang is provided for object content.
 const DefaultLanguage = "en"
 
+// State variants available for Objects.
+const (
+	StatePending State = iota
+	StateConfirmed
+	StateDeclined
+)
+
 // Visibility variants available for Objects.
 const (
 	VisibilityPrivate Visibility = (iota + 1) * 10
@@ -163,15 +170,33 @@ func (o *Object) Validate() error {
 		return wrapError(ErrInvalidObject, "missing owner")
 	}
 
+	states := []State{StatePending, StateConfirmed, StateDeclined}
+
+	if o.Private != nil && !inStates(o.Private.State, states) {
+		return wrapError(
+			ErrInvalidObject,
+			"unsupported state (%d)",
+			o.Private.State,
+		)
+	}
+
 	if len(o.Tags) > 5 {
 		return wrapError(ErrInvalidObject, "too many tags")
 	}
 
 	if o.Type == "" {
 		return wrapError(ErrInvalidObject, "missing type")
+
 	}
 
-	if o.Visibility < 10 || o.Visibility > 40 {
+	vs := []Visibility{
+		VisibilityPrivate,
+		VisibilityConnection,
+		VisibilityPublic,
+		VisibilityGlobal,
+	}
+
+	if !inVisibilities(o.Visibility, vs) {
 		return wrapError(ErrInvalidObject, "unsupported visibility")
 	}
 
@@ -180,7 +205,8 @@ func (o *Object) Validate() error {
 
 // Private is the bucket for protected fields on an Object.
 type Private struct {
-	Visible bool `json:"visible"`
+	State   State `json:"state"`
+	Visible bool  `json:"visible"`
 }
 
 // Producer creates a state change notification.
@@ -244,9 +270,40 @@ type Source interface {
 // SourceMiddleware is a chainable behaviour modifier for Source.
 type SourceMiddleware func(Source) Source
 
+// State reflects the progress of an object through a review process.
+type State uint8
+
 // Visibility determines the visibility of Objects when consumed.
 type Visibility uint8
 
 func flakeNamespace(ns string) string {
 	return fmt.Sprintf("%s_%s", ns, "objects")
+}
+
+func inStates(c State, ss []State) bool {
+	if len(ss) == 0 {
+		return true
+	}
+
+	for _, s := range ss {
+		if c == s {
+			return true
+		}
+	}
+
+	return false
+}
+
+func inVisibilities(c Visibility, vs []Visibility) bool {
+	if len(vs) == 0 {
+		return true
+	}
+
+	for _, v := range vs {
+		if c == v {
+			return true
+		}
+	}
+
+	return false
 }
