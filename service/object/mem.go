@@ -266,20 +266,3 @@ func inTypes(ty string, ts []string) bool {
 
 	return keep
 }
-
-func inVisibilities(visibility Visibility, vs []Visibility) bool {
-	if len(vs) == 0 {
-		return true
-	}
-
-	keep := false
-
-	for _, v := range vs {
-		if visibility == v {
-			keep = true
-			break
-		}
-	}
-
-	return keep
-}
