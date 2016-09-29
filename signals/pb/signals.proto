@@ -41,8 +41,8 @@ enum InteractionType {
 
 message Signal {
   uint64 id = 1;
-  uint64 org = 2;
-  uint64 app = 3;
+  string org = 2;
+  string app = 3;
 
   InteractionType interaction = 4;
   Content content = 5;
