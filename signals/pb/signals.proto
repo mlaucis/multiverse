@@ -6,15 +6,16 @@ option java_package = "com.tapglue.signals.data";
 option java_outer_classname = "Protobufs";
 
 enum ContentType {
-  AUDIO_BOOK = 0;
-  MOVIE = 1;
-  FASHION_ITEM = 2;
-  FURNITURE_ITEM = 3;
-  NEWS_ARTICLE = 4;
-  TEXT_BOOK = 5;
-  RECIPE = 6;
-  RESTAURANT = 7;
-  REVIEW = 8;
+  UNKNOWN = 0;
+  AUDIO_BOOK = 1;
+  MOVIE = 2;
+  FASHION_ITEM = 3;
+  FURNITURE_ITEM = 4;
+  NEWS_ARTICLE = 5;
+  TEXT_BOOK = 6;
+  RECIPE = 7;
+  RESTAURANT = 8;
+  REVIEW = 9;
 }
 
 message Content {
@@ -43,10 +44,11 @@ message Signal {
   uint64 id = 1;
   string org = 2;
   string app = 3;
+  string arrvied = 4;
 
-  InteractionType interaction = 4;
-  Content content = 5;
-  User user = 6;
+  InteractionType interaction = 5;
+  Content content = 6;
+  User user = 7;
 }
 
 message Signals {

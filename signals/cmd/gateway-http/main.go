@@ -6,6 +6,9 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
+
+	"github.com/tapglue/multiverse/platform/generate"
 
 	"cloud.google.com/go/pubsub"
 	"github.com/golang/protobuf/proto"
@@ -50,7 +53,10 @@ func trackEventHandler(topic *pubsub.Topic) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var (
 			ctx    = context.Background()
-			signal = &pb.Signal{}
+			signal = &pb.Signal{
+				Arrvied: time.Now().Format(time.RFC3339Nano),
+				Id:      generate.RandomString(32),
+			}
 		)
 
 		raw, err := proto.Marshal(signal)
