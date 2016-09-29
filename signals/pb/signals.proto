@@ -2,8 +2,8 @@ syntax = "proto3";
 
 package pb;
 
-option java_package = "com.tapglue.pb";
-option java_outer_classname = "Signals";
+option java_package = "com.tapglue.signals.data";
+option java_outer_classname = "Protobufs";
 
 enum ContentType {
   AUDIO_BOOK = 0;
