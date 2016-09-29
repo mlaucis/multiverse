@@ -340,6 +340,10 @@ func (c *PostController) Update(
 	id uint64,
 	post *Post,
 ) (*Post, error) {
+	if err := constrainPostRestrictions(origin, post.Restrictions); err != nil {
+		return nil, err
+	}
+
 	ps, err := c.objects.Query(currentApp.Namespace(), object.QueryOptions{
 		ID: &id,
 		OwnerIDs: []uint64{
@@ -363,6 +367,10 @@ func (c *PostController) Update(
 	p.Attachments = post.Attachments
 	p.Tags = post.Tags
 	p.Visibility = post.Visibility
+
+	if post.Restrictions != nil {
+		p.Restrictions = post.Restrictions
+	}
 
 	err = constrainPostVisibility(origin, p.Visibility)
 	if err != nil {
