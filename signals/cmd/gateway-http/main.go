@@ -8,13 +8,12 @@ import (
 	"os"
 	"time"
 
-	"github.com/tapglue/multiverse/platform/generate"
-
 	"cloud.google.com/go/pubsub"
 	"github.com/golang/protobuf/proto"
 	"golang.org/x/net/context"
 	"google.golang.org/api/googleapi"
 
+	"github.com/tapglue/multiverse/platform/generate"
 	"github.com/tapglue/multiverse/signals/pb"
 )
 

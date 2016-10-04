@@ -990,9 +990,14 @@ public final class Protobufs {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>optional uint64 id = 1;</code>
+     * <code>optional string id = 1;</code>
      */
-    long getId();
+    java.lang.String getId();
+    /**
+     * <code>optional string id = 1;</code>
+     */
+    com.google.protobuf.ByteString
+        getIdBytes();
 
     /**
      * <code>optional string org = 2;</code>
@@ -1071,7 +1076,7 @@ public final class Protobufs {
       super(builder);
     }
     private Signal() {
-      id_ = 0L;
+      id_ = "";
       org_ = "";
       app_ = "";
       arrvied_ = "";
@@ -1103,9 +1108,10 @@ public final class Protobufs {
               }
               break;
             }
-            case 8: {
+            case 10: {
+              java.lang.String s = input.readStringRequireUtf8();
 
-              id_ = input.readUInt64();
+              id_ = s;
               break;
             }
             case 18: {
@@ -1182,12 +1188,37 @@ public final class Protobufs {
     }
 
     public static final int ID_FIELD_NUMBER = 1;
-    private long id_;
+    private volatile java.lang.Object id_;
     /**
-     * <code>optional uint64 id = 1;</code>
+     * <code>optional string id = 1;</code>
      */
-    public long getId() {
-      return id_;
+    public java.lang.String getId() {
+      java.lang.Object ref = id_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        id_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>optional string id = 1;</code>
+     */
+    public com.google.protobuf.ByteString
+        getIdBytes() {
+      java.lang.Object ref = id_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        id_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
     }
 
     public static final int ORG_FIELD_NUMBER = 2;
@@ -1362,8 +1393,8 @@ public final class Protobufs {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (id_ != 0L) {
-        output.writeUInt64(1, id_);
+      if (!getIdBytes().isEmpty()) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 1, id_);
       }
       if (!getOrgBytes().isEmpty()) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 2, org_);
@@ -1390,9 +1421,8 @@ public final class Protobufs {
       if (size != -1) return size;
 
       size = 0;
-      if (id_ != 0L) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeUInt64Size(1, id_);
+      if (!getIdBytes().isEmpty()) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, id_);
       }
       if (!getOrgBytes().isEmpty()) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, org_);
@@ -1431,8 +1461,8 @@ public final class Protobufs {
       com.tapglue.signals.data.Protobufs.Signal other = (com.tapglue.signals.data.Protobufs.Signal) obj;
 
       boolean result = true;
-      result = result && (getId()
-          == other.getId());
+      result = result && getId()
+          .equals(other.getId());
       result = result && getOrg()
           .equals(other.getOrg());
       result = result && getApp()
@@ -1461,8 +1491,7 @@ public final class Protobufs {
       int hash = 41;
       hash = (19 * hash) + getDescriptorForType().hashCode();
       hash = (37 * hash) + ID_FIELD_NUMBER;
-      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-          getId());
+      hash = (53 * hash) + getId().hashCode();
       hash = (37 * hash) + ORG_FIELD_NUMBER;
       hash = (53 * hash) + getOrg().hashCode();
       hash = (37 * hash) + APP_FIELD_NUMBER;
@@ -1597,7 +1626,7 @@ public final class Protobufs {
       }
       public Builder clear() {
         super.clear();
-        id_ = 0L;
+        id_ = "";
 
         org_ = "";
 
@@ -1697,8 +1726,9 @@ public final class Protobufs {
 
       public Builder mergeFrom(com.tapglue.signals.data.Protobufs.Signal other) {
         if (other == com.tapglue.signals.data.Protobufs.Signal.getDefaultInstance()) return this;
-        if (other.getId() != 0L) {
-          setId(other.getId());
+        if (!other.getId().isEmpty()) {
+          id_ = other.id_;
+          onChanged();
         }
         if (!other.getOrg().isEmpty()) {
           org_ = other.org_;
@@ -1747,28 +1777,71 @@ public final class Protobufs {
         return this;
       }
 
-      private long id_ ;
+      private java.lang.Object id_ = "";
       /**
-       * <code>optional uint64 id = 1;</code>
+       * <code>optional string id = 1;</code>
        */
-      public long getId() {
-        return id_;
+      public java.lang.String getId() {
+        java.lang.Object ref = id_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          id_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
       }
       /**
-       * <code>optional uint64 id = 1;</code>
+       * <code>optional string id = 1;</code>
        */
-      public Builder setId(long value) {
-        
+      public com.google.protobuf.ByteString
+          getIdBytes() {
+        java.lang.Object ref = id_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          id_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string id = 1;</code>
+       */
+      public Builder setId(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  
         id_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>optional uint64 id = 1;</code>
+       * <code>optional string id = 1;</code>
        */
       public Builder clearId() {
         
-        id_ = 0L;
+        id_ = getDefaultInstance().getId();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string id = 1;</code>
+       */
+      public Builder setIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  checkByteStringIsUtf8(value);
+        
+        id_ = value;
         onChanged();
         return this;
       }
@@ -3575,7 +3648,7 @@ public final class Protobufs {
     java.lang.String[] descriptorData = {
       "\n\rsignals.proto\022\002pb\"4\n\007Content\022\n\n\002id\030\001 \001" +
       "(\t\022\035\n\004type\030\002 \001(\0162\017.pb.ContentType\"\237\001\n\006Si" +
-      "gnal\022\n\n\002id\030\001 \001(\004\022\013\n\003org\030\002 \001(\t\022\013\n\003app\030\003 \001" +
+      "gnal\022\n\n\002id\030\001 \001(\t\022\013\n\003org\030\002 \001(\t\022\013\n\003app\030\003 \001" +
       "(\t\022\017\n\007arrvied\030\004 \001(\t\022(\n\013interaction\030\005 \001(\016" +
       "2\023.pb.InteractionType\022\034\n\007content\030\006 \001(\0132\013" +
       ".pb.Content\022\026\n\004user\030\007 \001(\0132\010.pb.User\"&\n\007S" +

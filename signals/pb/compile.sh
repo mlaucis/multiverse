@@ -12,3 +12,4 @@
 #  https://github.com/grpc/grpc-go/tree/master/examples
 
 protoc signals.proto --go_out=plugins=grpc:.
+protoc --java_out=../src/main/java signals.proto
