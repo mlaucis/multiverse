@@ -1020,47 +1020,57 @@ public final class Protobufs {
         getAppBytes();
 
     /**
-     * <code>optional string arrvied = 4;</code>
+     * <code>optional string namespace = 4;</code>
+     */
+    java.lang.String getNamespace();
+    /**
+     * <code>optional string namespace = 4;</code>
+     */
+    com.google.protobuf.ByteString
+        getNamespaceBytes();
+
+    /**
+     * <code>optional string arrvied = 5;</code>
      */
     java.lang.String getArrvied();
     /**
-     * <code>optional string arrvied = 4;</code>
+     * <code>optional string arrvied = 5;</code>
      */
     com.google.protobuf.ByteString
         getArrviedBytes();
 
     /**
-     * <code>optional .pb.InteractionType interaction = 5;</code>
+     * <code>optional .pb.InteractionType interaction = 6;</code>
      */
     int getInteractionValue();
     /**
-     * <code>optional .pb.InteractionType interaction = 5;</code>
+     * <code>optional .pb.InteractionType interaction = 6;</code>
      */
     com.tapglue.signals.data.Protobufs.InteractionType getInteraction();
 
     /**
-     * <code>optional .pb.Content content = 6;</code>
+     * <code>optional .pb.Content content = 7;</code>
      */
     boolean hasContent();
     /**
-     * <code>optional .pb.Content content = 6;</code>
+     * <code>optional .pb.Content content = 7;</code>
      */
     com.tapglue.signals.data.Protobufs.Content getContent();
     /**
-     * <code>optional .pb.Content content = 6;</code>
+     * <code>optional .pb.Content content = 7;</code>
      */
     com.tapglue.signals.data.Protobufs.ContentOrBuilder getContentOrBuilder();
 
     /**
-     * <code>optional .pb.User user = 7;</code>
+     * <code>optional .pb.User user = 8;</code>
      */
     boolean hasUser();
     /**
-     * <code>optional .pb.User user = 7;</code>
+     * <code>optional .pb.User user = 8;</code>
      */
     com.tapglue.signals.data.Protobufs.User getUser();
     /**
-     * <code>optional .pb.User user = 7;</code>
+     * <code>optional .pb.User user = 8;</code>
      */
     com.tapglue.signals.data.Protobufs.UserOrBuilder getUserOrBuilder();
   }
@@ -1079,6 +1089,7 @@ public final class Protobufs {
       id_ = "";
       org_ = "";
       app_ = "";
+      namespace_ = "";
       arrvied_ = "";
       interaction_ = 0;
     }
@@ -1129,16 +1140,22 @@ public final class Protobufs {
             case 34: {
               java.lang.String s = input.readStringRequireUtf8();
 
+              namespace_ = s;
+              break;
+            }
+            case 42: {
+              java.lang.String s = input.readStringRequireUtf8();
+
               arrvied_ = s;
               break;
             }
-            case 40: {
+            case 48: {
               int rawValue = input.readEnum();
 
               interaction_ = rawValue;
               break;
             }
-            case 50: {
+            case 58: {
               com.tapglue.signals.data.Protobufs.Content.Builder subBuilder = null;
               if (content_ != null) {
                 subBuilder = content_.toBuilder();
@@ -1151,7 +1168,7 @@ public final class Protobufs {
 
               break;
             }
-            case 58: {
+            case 66: {
               com.tapglue.signals.data.Protobufs.User.Builder subBuilder = null;
               if (user_ != null) {
                 subBuilder = user_.toBuilder();
@@ -1289,10 +1306,44 @@ public final class Protobufs {
       }
     }
 
-    public static final int ARRVIED_FIELD_NUMBER = 4;
+    public static final int NAMESPACE_FIELD_NUMBER = 4;
+    private volatile java.lang.Object namespace_;
+    /**
+     * <code>optional string namespace = 4;</code>
+     */
+    public java.lang.String getNamespace() {
+      java.lang.Object ref = namespace_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        namespace_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>optional string namespace = 4;</code>
+     */
+    public com.google.protobuf.ByteString
+        getNamespaceBytes() {
+      java.lang.Object ref = namespace_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        namespace_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int ARRVIED_FIELD_NUMBER = 5;
     private volatile java.lang.Object arrvied_;
     /**
-     * <code>optional string arrvied = 4;</code>
+     * <code>optional string arrvied = 5;</code>
      */
     public java.lang.String getArrvied() {
       java.lang.Object ref = arrvied_;
@@ -1307,7 +1358,7 @@ public final class Protobufs {
       }
     }
     /**
-     * <code>optional string arrvied = 4;</code>
+     * <code>optional string arrvied = 5;</code>
      */
     public com.google.protobuf.ByteString
         getArrviedBytes() {
@@ -1323,59 +1374,59 @@ public final class Protobufs {
       }
     }
 
-    public static final int INTERACTION_FIELD_NUMBER = 5;
+    public static final int INTERACTION_FIELD_NUMBER = 6;
     private int interaction_;
     /**
-     * <code>optional .pb.InteractionType interaction = 5;</code>
+     * <code>optional .pb.InteractionType interaction = 6;</code>
      */
     public int getInteractionValue() {
       return interaction_;
     }
     /**
-     * <code>optional .pb.InteractionType interaction = 5;</code>
+     * <code>optional .pb.InteractionType interaction = 6;</code>
      */
     public com.tapglue.signals.data.Protobufs.InteractionType getInteraction() {
       com.tapglue.signals.data.Protobufs.InteractionType result = com.tapglue.signals.data.Protobufs.InteractionType.valueOf(interaction_);
       return result == null ? com.tapglue.signals.data.Protobufs.InteractionType.UNRECOGNIZED : result;
     }
 
-    public static final int CONTENT_FIELD_NUMBER = 6;
+    public static final int CONTENT_FIELD_NUMBER = 7;
     private com.tapglue.signals.data.Protobufs.Content content_;
     /**
-     * <code>optional .pb.Content content = 6;</code>
+     * <code>optional .pb.Content content = 7;</code>
      */
     public boolean hasContent() {
       return content_ != null;
     }
     /**
-     * <code>optional .pb.Content content = 6;</code>
+     * <code>optional .pb.Content content = 7;</code>
      */
     public com.tapglue.signals.data.Protobufs.Content getContent() {
       return content_ == null ? com.tapglue.signals.data.Protobufs.Content.getDefaultInstance() : content_;
     }
     /**
-     * <code>optional .pb.Content content = 6;</code>
+     * <code>optional .pb.Content content = 7;</code>
      */
     public com.tapglue.signals.data.Protobufs.ContentOrBuilder getContentOrBuilder() {
       return getContent();
     }
 
-    public static final int USER_FIELD_NUMBER = 7;
+    public static final int USER_FIELD_NUMBER = 8;
     private com.tapglue.signals.data.Protobufs.User user_;
     /**
-     * <code>optional .pb.User user = 7;</code>
+     * <code>optional .pb.User user = 8;</code>
      */
     public boolean hasUser() {
       return user_ != null;
     }
     /**
-     * <code>optional .pb.User user = 7;</code>
+     * <code>optional .pb.User user = 8;</code>
      */
     public com.tapglue.signals.data.Protobufs.User getUser() {
       return user_ == null ? com.tapglue.signals.data.Protobufs.User.getDefaultInstance() : user_;
     }
     /**
-     * <code>optional .pb.User user = 7;</code>
+     * <code>optional .pb.User user = 8;</code>
      */
     public com.tapglue.signals.data.Protobufs.UserOrBuilder getUserOrBuilder() {
       return getUser();
@@ -1402,17 +1453,20 @@ public final class Protobufs {
       if (!getAppBytes().isEmpty()) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 3, app_);
       }
+      if (!getNamespaceBytes().isEmpty()) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 4, namespace_);
+      }
       if (!getArrviedBytes().isEmpty()) {
-        com.google.protobuf.GeneratedMessageV3.writeString(output, 4, arrvied_);
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 5, arrvied_);
       }
       if (interaction_ != com.tapglue.signals.data.Protobufs.InteractionType.ADD_TO_CART.getNumber()) {
-        output.writeEnum(5, interaction_);
+        output.writeEnum(6, interaction_);
       }
       if (content_ != null) {
-        output.writeMessage(6, getContent());
+        output.writeMessage(7, getContent());
       }
       if (user_ != null) {
-        output.writeMessage(7, getUser());
+        output.writeMessage(8, getUser());
       }
     }
 
@@ -1430,20 +1484,23 @@ public final class Protobufs {
       if (!getAppBytes().isEmpty()) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, app_);
       }
+      if (!getNamespaceBytes().isEmpty()) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(4, namespace_);
+      }
       if (!getArrviedBytes().isEmpty()) {
-        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(4, arrvied_);
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(5, arrvied_);
       }
       if (interaction_ != com.tapglue.signals.data.Protobufs.InteractionType.ADD_TO_CART.getNumber()) {
         size += com.google.protobuf.CodedOutputStream
-          .computeEnumSize(5, interaction_);
+          .computeEnumSize(6, interaction_);
       }
       if (content_ != null) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(6, getContent());
+          .computeMessageSize(7, getContent());
       }
       if (user_ != null) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(7, getUser());
+          .computeMessageSize(8, getUser());
       }
       memoizedSize = size;
       return size;
@@ -1467,6 +1524,8 @@ public final class Protobufs {
           .equals(other.getOrg());
       result = result && getApp()
           .equals(other.getApp());
+      result = result && getNamespace()
+          .equals(other.getNamespace());
       result = result && getArrvied()
           .equals(other.getArrvied());
       result = result && interaction_ == other.interaction_;
@@ -1496,6 +1555,8 @@ public final class Protobufs {
       hash = (53 * hash) + getOrg().hashCode();
       hash = (37 * hash) + APP_FIELD_NUMBER;
       hash = (53 * hash) + getApp().hashCode();
+      hash = (37 * hash) + NAMESPACE_FIELD_NUMBER;
+      hash = (53 * hash) + getNamespace().hashCode();
       hash = (37 * hash) + ARRVIED_FIELD_NUMBER;
       hash = (53 * hash) + getArrvied().hashCode();
       hash = (37 * hash) + INTERACTION_FIELD_NUMBER;
@@ -1632,6 +1693,8 @@ public final class Protobufs {
 
         app_ = "";
 
+        namespace_ = "";
+
         arrvied_ = "";
 
         interaction_ = 0;
@@ -1673,6 +1736,7 @@ public final class Protobufs {
         result.id_ = id_;
         result.org_ = org_;
         result.app_ = app_;
+        result.namespace_ = namespace_;
         result.arrvied_ = arrvied_;
         result.interaction_ = interaction_;
         if (contentBuilder_ == null) {
@@ -1736,6 +1800,10 @@ public final class Protobufs {
         }
         if (!other.getApp().isEmpty()) {
           app_ = other.app_;
+          onChanged();
+        }
+        if (!other.getNamespace().isEmpty()) {
+          namespace_ = other.namespace_;
           onChanged();
         }
         if (!other.getArrvied().isEmpty()) {
@@ -1984,9 +2052,78 @@ public final class Protobufs {
         return this;
       }
 
+      private java.lang.Object namespace_ = "";
+      /**
+       * <code>optional string namespace = 4;</code>
+       */
+      public java.lang.String getNamespace() {
+        java.lang.Object ref = namespace_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          namespace_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string namespace = 4;</code>
+       */
+      public com.google.protobuf.ByteString
+          getNamespaceBytes() {
+        java.lang.Object ref = namespace_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          namespace_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string namespace = 4;</code>
+       */
+      public Builder setNamespace(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  
+        namespace_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string namespace = 4;</code>
+       */
+      public Builder clearNamespace() {
+        
+        namespace_ = getDefaultInstance().getNamespace();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string namespace = 4;</code>
+       */
+      public Builder setNamespaceBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  checkByteStringIsUtf8(value);
+        
+        namespace_ = value;
+        onChanged();
+        return this;
+      }
+
       private java.lang.Object arrvied_ = "";
       /**
-       * <code>optional string arrvied = 4;</code>
+       * <code>optional string arrvied = 5;</code>
        */
       public java.lang.String getArrvied() {
         java.lang.Object ref = arrvied_;
@@ -2001,7 +2138,7 @@ public final class Protobufs {
         }
       }
       /**
-       * <code>optional string arrvied = 4;</code>
+       * <code>optional string arrvied = 5;</code>
        */
       public com.google.protobuf.ByteString
           getArrviedBytes() {
@@ -2017,7 +2154,7 @@ public final class Protobufs {
         }
       }
       /**
-       * <code>optional string arrvied = 4;</code>
+       * <code>optional string arrvied = 5;</code>
        */
       public Builder setArrvied(
           java.lang.String value) {
@@ -2030,7 +2167,7 @@ public final class Protobufs {
         return this;
       }
       /**
-       * <code>optional string arrvied = 4;</code>
+       * <code>optional string arrvied = 5;</code>
        */
       public Builder clearArrvied() {
         
@@ -2039,7 +2176,7 @@ public final class Protobufs {
         return this;
       }
       /**
-       * <code>optional string arrvied = 4;</code>
+       * <code>optional string arrvied = 5;</code>
        */
       public Builder setArrviedBytes(
           com.google.protobuf.ByteString value) {
@@ -2055,13 +2192,13 @@ public final class Protobufs {
 
       private int interaction_ = 0;
       /**
-       * <code>optional .pb.InteractionType interaction = 5;</code>
+       * <code>optional .pb.InteractionType interaction = 6;</code>
        */
       public int getInteractionValue() {
         return interaction_;
       }
       /**
-       * <code>optional .pb.InteractionType interaction = 5;</code>
+       * <code>optional .pb.InteractionType interaction = 6;</code>
        */
       public Builder setInteractionValue(int value) {
         interaction_ = value;
@@ -2069,14 +2206,14 @@ public final class Protobufs {
         return this;
       }
       /**
-       * <code>optional .pb.InteractionType interaction = 5;</code>
+       * <code>optional .pb.InteractionType interaction = 6;</code>
        */
       public com.tapglue.signals.data.Protobufs.InteractionType getInteraction() {
         com.tapglue.signals.data.Protobufs.InteractionType result = com.tapglue.signals.data.Protobufs.InteractionType.valueOf(interaction_);
         return result == null ? com.tapglue.signals.data.Protobufs.InteractionType.UNRECOGNIZED : result;
       }
       /**
-       * <code>optional .pb.InteractionType interaction = 5;</code>
+       * <code>optional .pb.InteractionType interaction = 6;</code>
        */
       public Builder setInteraction(com.tapglue.signals.data.Protobufs.InteractionType value) {
         if (value == null) {
@@ -2088,7 +2225,7 @@ public final class Protobufs {
         return this;
       }
       /**
-       * <code>optional .pb.InteractionType interaction = 5;</code>
+       * <code>optional .pb.InteractionType interaction = 6;</code>
        */
       public Builder clearInteraction() {
         
@@ -2101,13 +2238,13 @@ public final class Protobufs {
       private com.google.protobuf.SingleFieldBuilderV3<
           com.tapglue.signals.data.Protobufs.Content, com.tapglue.signals.data.Protobufs.Content.Builder, com.tapglue.signals.data.Protobufs.ContentOrBuilder> contentBuilder_;
       /**
-       * <code>optional .pb.Content content = 6;</code>
+       * <code>optional .pb.Content content = 7;</code>
        */
       public boolean hasContent() {
         return contentBuilder_ != null || content_ != null;
       }
       /**
-       * <code>optional .pb.Content content = 6;</code>
+       * <code>optional .pb.Content content = 7;</code>
        */
       public com.tapglue.signals.data.Protobufs.Content getContent() {
         if (contentBuilder_ == null) {
@@ -2117,7 +2254,7 @@ public final class Protobufs {
         }
       }
       /**
-       * <code>optional .pb.Content content = 6;</code>
+       * <code>optional .pb.Content content = 7;</code>
        */
       public Builder setContent(com.tapglue.signals.data.Protobufs.Content value) {
         if (contentBuilder_ == null) {
@@ -2133,7 +2270,7 @@ public final class Protobufs {
         return this;
       }
       /**
-       * <code>optional .pb.Content content = 6;</code>
+       * <code>optional .pb.Content content = 7;</code>
        */
       public Builder setContent(
           com.tapglue.signals.data.Protobufs.Content.Builder builderForValue) {
@@ -2147,7 +2284,7 @@ public final class Protobufs {
         return this;
       }
       /**
-       * <code>optional .pb.Content content = 6;</code>
+       * <code>optional .pb.Content content = 7;</code>
        */
       public Builder mergeContent(com.tapglue.signals.data.Protobufs.Content value) {
         if (contentBuilder_ == null) {
@@ -2165,7 +2302,7 @@ public final class Protobufs {
         return this;
       }
       /**
-       * <code>optional .pb.Content content = 6;</code>
+       * <code>optional .pb.Content content = 7;</code>
        */
       public Builder clearContent() {
         if (contentBuilder_ == null) {
@@ -2179,7 +2316,7 @@ public final class Protobufs {
         return this;
       }
       /**
-       * <code>optional .pb.Content content = 6;</code>
+       * <code>optional .pb.Content content = 7;</code>
        */
       public com.tapglue.signals.data.Protobufs.Content.Builder getContentBuilder() {
         
@@ -2187,7 +2324,7 @@ public final class Protobufs {
         return getContentFieldBuilder().getBuilder();
       }
       /**
-       * <code>optional .pb.Content content = 6;</code>
+       * <code>optional .pb.Content content = 7;</code>
        */
       public com.tapglue.signals.data.Protobufs.ContentOrBuilder getContentOrBuilder() {
         if (contentBuilder_ != null) {
@@ -2198,7 +2335,7 @@ public final class Protobufs {
         }
       }
       /**
-       * <code>optional .pb.Content content = 6;</code>
+       * <code>optional .pb.Content content = 7;</code>
        */
       private com.google.protobuf.SingleFieldBuilderV3<
           com.tapglue.signals.data.Protobufs.Content, com.tapglue.signals.data.Protobufs.Content.Builder, com.tapglue.signals.data.Protobufs.ContentOrBuilder> 
@@ -2218,13 +2355,13 @@ public final class Protobufs {
       private com.google.protobuf.SingleFieldBuilderV3<
           com.tapglue.signals.data.Protobufs.User, com.tapglue.signals.data.Protobufs.User.Builder, com.tapglue.signals.data.Protobufs.UserOrBuilder> userBuilder_;
       /**
-       * <code>optional .pb.User user = 7;</code>
+       * <code>optional .pb.User user = 8;</code>
        */
       public boolean hasUser() {
         return userBuilder_ != null || user_ != null;
       }
       /**
-       * <code>optional .pb.User user = 7;</code>
+       * <code>optional .pb.User user = 8;</code>
        */
       public com.tapglue.signals.data.Protobufs.User getUser() {
         if (userBuilder_ == null) {
@@ -2234,7 +2371,7 @@ public final class Protobufs {
         }
       }
       /**
-       * <code>optional .pb.User user = 7;</code>
+       * <code>optional .pb.User user = 8;</code>
        */
       public Builder setUser(com.tapglue.signals.data.Protobufs.User value) {
         if (userBuilder_ == null) {
@@ -2250,7 +2387,7 @@ public final class Protobufs {
         return this;
       }
       /**
-       * <code>optional .pb.User user = 7;</code>
+       * <code>optional .pb.User user = 8;</code>
        */
       public Builder setUser(
           com.tapglue.signals.data.Protobufs.User.Builder builderForValue) {
@@ -2264,7 +2401,7 @@ public final class Protobufs {
         return this;
       }
       /**
-       * <code>optional .pb.User user = 7;</code>
+       * <code>optional .pb.User user = 8;</code>
        */
       public Builder mergeUser(com.tapglue.signals.data.Protobufs.User value) {
         if (userBuilder_ == null) {
@@ -2282,7 +2419,7 @@ public final class Protobufs {
         return this;
       }
       /**
-       * <code>optional .pb.User user = 7;</code>
+       * <code>optional .pb.User user = 8;</code>
        */
       public Builder clearUser() {
         if (userBuilder_ == null) {
@@ -2296,7 +2433,7 @@ public final class Protobufs {
         return this;
       }
       /**
-       * <code>optional .pb.User user = 7;</code>
+       * <code>optional .pb.User user = 8;</code>
        */
       public com.tapglue.signals.data.Protobufs.User.Builder getUserBuilder() {
         
@@ -2304,7 +2441,7 @@ public final class Protobufs {
         return getUserFieldBuilder().getBuilder();
       }
       /**
-       * <code>optional .pb.User user = 7;</code>
+       * <code>optional .pb.User user = 8;</code>
        */
       public com.tapglue.signals.data.Protobufs.UserOrBuilder getUserOrBuilder() {
         if (userBuilder_ != null) {
@@ -2315,7 +2452,7 @@ public final class Protobufs {
         }
       }
       /**
-       * <code>optional .pb.User user = 7;</code>
+       * <code>optional .pb.User user = 8;</code>
        */
       private com.google.protobuf.SingleFieldBuilderV3<
           com.tapglue.signals.data.Protobufs.User, com.tapglue.signals.data.Protobufs.User.Builder, com.tapglue.signals.data.Protobufs.UserOrBuilder> 
@@ -3647,23 +3784,24 @@ public final class Protobufs {
   static {
     java.lang.String[] descriptorData = {
       "\n\rsignals.proto\022\002pb\"4\n\007Content\022\n\n\002id\030\001 \001" +
-      "(\t\022\035\n\004type\030\002 \001(\0162\017.pb.ContentType\"\237\001\n\006Si" +
+      "(\t\022\035\n\004type\030\002 \001(\0162\017.pb.ContentType\"\262\001\n\006Si" +
       "gnal\022\n\n\002id\030\001 \001(\t\022\013\n\003org\030\002 \001(\t\022\013\n\003app\030\003 \001" +
-      "(\t\022\017\n\007arrvied\030\004 \001(\t\022(\n\013interaction\030\005 \001(\016" +
-      "2\023.pb.InteractionType\022\034\n\007content\030\006 \001(\0132\013" +
-      ".pb.Content\022\026\n\004user\030\007 \001(\0132\010.pb.User\"&\n\007S" +
-      "ignals\022\033\n\007signals\030\001 \003(\0132\n.pb.Signal\"\022\n\004U" +
-      "ser\022\n\n\002id\030\001 \001(\t*\244\001\n\013ContentType\022\013\n\007UNKNO" +
-      "WN\020\000\022\016\n\nAUDIO_BOOK\020\001\022\t\n\005MOVIE\020\002\022\020\n\014FASHI" +
-      "ON_ITEM\020\003\022\022\n\016FURNITURE_ITEM\020\004\022\020\n\014NEWS_AR",
-      "TICLE\020\005\022\r\n\tTEXT_BOOK\020\006\022\n\n\006RECIPE\020\007\022\016\n\nRE" +
-      "STAURANT\020\010\022\n\n\006REVIEW\020\t*\305\001\n\017InteractionTy" +
-      "pe\022\017\n\013ADD_TO_CART\020\000\022\r\n\tBOOKMBARK\020\001\022\014\n\010CO" +
-      "MPLETE\020\003\022\013\n\007DISLIKE\020\004\022\r\n\tDOWN_VOTE\020\005\022\n\n\006" +
-      "FOLLOW\020\006\022\010\n\004LIKE\020\007\022\t\n\005ORDER\020\010\022\010\n\004RATE\020\t\022" +
-      "\t\n\005SHARE\020\n\022\r\n\tSUBSCRIBE\020\013\022\010\n\004VIEW\020\014\022\014\n\010U" +
-      "NFOLLOW\020\r\022\013\n\007UP_VOTE\020\016B%\n\030com.tapglue.si" +
-      "gnals.dataB\tProtobufsb\006proto3"
+      "(\t\022\021\n\tnamespace\030\004 \001(\t\022\017\n\007arrvied\030\005 \001(\t\022(" +
+      "\n\013interaction\030\006 \001(\0162\023.pb.InteractionType" +
+      "\022\034\n\007content\030\007 \001(\0132\013.pb.Content\022\026\n\004user\030\010" +
+      " \001(\0132\010.pb.User\"&\n\007Signals\022\033\n\007signals\030\001 \003" +
+      "(\0132\n.pb.Signal\"\022\n\004User\022\n\n\002id\030\001 \001(\t*\244\001\n\013C" +
+      "ontentType\022\013\n\007UNKNOWN\020\000\022\016\n\nAUDIO_BOOK\020\001\022" +
+      "\t\n\005MOVIE\020\002\022\020\n\014FASHION_ITEM\020\003\022\022\n\016FURNITUR",
+      "E_ITEM\020\004\022\020\n\014NEWS_ARTICLE\020\005\022\r\n\tTEXT_BOOK\020" +
+      "\006\022\n\n\006RECIPE\020\007\022\016\n\nRESTAURANT\020\010\022\n\n\006REVIEW\020" +
+      "\t*\305\001\n\017InteractionType\022\017\n\013ADD_TO_CART\020\000\022\r" +
+      "\n\tBOOKMBARK\020\001\022\014\n\010COMPLETE\020\003\022\013\n\007DISLIKE\020\004" +
+      "\022\r\n\tDOWN_VOTE\020\005\022\n\n\006FOLLOW\020\006\022\010\n\004LIKE\020\007\022\t\n" +
+      "\005ORDER\020\010\022\010\n\004RATE\020\t\022\t\n\005SHARE\020\n\022\r\n\tSUBSCRI" +
+      "BE\020\013\022\010\n\004VIEW\020\014\022\014\n\010UNFOLLOW\020\r\022\013\n\007UP_VOTE\020" +
+      "\016B%\n\030com.tapglue.signals.dataB\tProtobufs" +
+      "b\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -3688,7 +3826,7 @@ public final class Protobufs {
     internal_static_pb_Signal_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_pb_Signal_descriptor,
-        new java.lang.String[] { "Id", "Org", "App", "Arrvied", "Interaction", "Content", "User", });
+        new java.lang.String[] { "Id", "Org", "App", "Namespace", "Arrvied", "Interaction", "Content", "User", });
     internal_static_pb_Signals_descriptor =
       getDescriptor().getMessageTypes().get(2);
     internal_static_pb_Signals_fieldAccessorTable = new

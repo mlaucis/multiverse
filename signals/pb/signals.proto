@@ -44,11 +44,12 @@ message Signal {
   string id = 1;
   string org = 2;
   string app = 3;
-  string arrvied = 4;
+  string namespace = 4;
+  string arrvied = 5;
 
-  InteractionType interaction = 5;
-  Content content = 6;
-  User user = 7;
+  InteractionType interaction = 6;
+  Content content = 7;
+  User user = 8;
 }
 
 message Signals {

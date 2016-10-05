@@ -53,8 +53,11 @@ func trackEventHandler(topic *pubsub.Topic) http.HandlerFunc {
 		var (
 			ctx    = context.Background()
 			signal = &pb.Signal{
-				Arrvied: time.Now().Format(time.RFC3339Nano),
-				Id:      generate.RandomString(32),
+				Arrvied:   time.Now().Format(time.RFC3339Nano),
+				Id:        generate.RandomString(32),
+				Org:       "1",
+				App:       "1",
+				Namespace: "1_1",
 			}
 		)
 
