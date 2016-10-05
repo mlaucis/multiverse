@@ -517,6 +517,10 @@ func (p *payloadUser) UnmarshalJSON(raw []byte) error {
 		return err
 	}
 
+	if len(f.Metadata) > 5 {
+		return fmt.Errorf("metadata fields limit of 5 exceeded")
+	}
+
 	p.user = &user.User{
 		About:     f.About,
 		CustomID:  f.CustomID,
