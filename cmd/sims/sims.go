@@ -60,6 +60,39 @@ var (
 	revision = "0000000-dev"
 )
 
+// arns maps Tapglue app namespaces to SNS ARNs.
+var arns = map[string]map[device.Platform]string{
+	"app_1_610": map[device.Platform]string{
+		device.PlatformIOSSandbox: "arn:aws:sns:eu-central-1:775034650473:app/APNS_SANDBOX/simsTest",
+		device.PlatformAndroid:    "arn:aws:sns:eu-central-1:775034650473:app/GCM/simsTestGCM",
+	},
+	"app_1_1147": map[device.Platform]string{
+		device.PlatformIOSSandbox: "arn:aws:sns:eu-central-1:775034650473:app/APNS_SANDBOX/tapglue-iOSExample",
+	},
+	"app_515_922": map[device.Platform]string{
+		device.PlatformIOSSandbox: "arn:aws:sns:eu-central-1:775034650473:app/APNS_SANDBOX/bikestorming-iOSSandbox",
+	},
+	"app_684_948": map[device.Platform]string{
+		device.PlatformIOSSandbox: "arn:aws:sns:eu-central-1:775034650473:app/APNS_SANDBOX/uMake-iOSSandbox",
+	},
+	"app_684_987": map[device.Platform]string{
+		device.PlatformIOSSandbox: "arn:aws:sns:eu-central-1:775034650473:app/APNS_SANDBOX/uMake-iOSSandbox",
+	},
+	"app_831_1203": map[device.Platform]string{
+		device.PlatformIOSSandbox: "arn:aws:sns:eu-central-1:775034650473:app/APNS_SANDBOX/lifesum-iOSSandbox",
+	},
+}
+
+// namespaces maps SNS ARNs to Tapglue app namespaces.
+var namespaces = map[string]string{
+	"arn:aws:sns:eu-central-1:775034650473:app/APNS_SANDBOX/simsTest":                "app_1_610",
+	"arn:aws:sns:eu-central-1:775034650473:app/GCM/simsTestGCM":                      "app_1_610",
+	"arn:aws:sns:eu-central-1:775034650473:app/APNS_SANDBOX/uMake-iOSSandbox":        "app_684_948",
+	"arn:aws:sns:eu-central-1:775034650473:app/APNS_SANDBOX/bikestorming-iOSSandbox": "app_515_922",
+	"arn:aws:sns:eu-central-1:775034650473:app/APNS_SANDBOX/tapglue-iOSExample":      "app_1_1147",
+	"arn:aws:sns:eu-central-1:775034650473:app/APNS_SANDBOX/lifesum-iOSSandbox":      "app_831_1203",
+}
+
 type ackFunc func() error
 type channelFunc func(string, *message) error
 type createEndpointFunc func(platformARN, token string) (string, error)
@@ -516,14 +549,6 @@ func main() {
 	}
 
 	getNamespace = func(arn string) (string, error) {
-		namespaces := map[string]string{
-			"arn:aws:sns:eu-central-1:775034650473:app/APNS_SANDBOX/simsTest":                "app_1_610",
-			"arn:aws:sns:eu-central-1:775034650473:app/GCM/simsTestGCM":                      "app_1_610",
-			"arn:aws:sns:eu-central-1:775034650473:app/APNS_SANDBOX/uMake-iOSSandbox":        "app_684_948",
-			"arn:aws:sns:eu-central-1:775034650473:app/APNS_SANDBOX/bikestorming-iOSSandbox": "app_515_922",
-			"arn:aws:sns:eu-central-1:775034650473:app/APNS_SANDBOX/tapglue-iOSExample":      "app_1_1147",
-		}
-
 		ns, ok := namespaces[arn]
 		if !ok {
 			return "", ErrNamespaceNotFound
@@ -533,24 +558,6 @@ func main() {
 	}
 
 	getPlatformARN = func(ns string, platform device.Platform) (string, error) {
-		arns := map[string]map[device.Platform]string{
-			"app_1_610": map[device.Platform]string{
-				device.PlatformIOSSandbox: "arn:aws:sns:eu-central-1:775034650473:app/APNS_SANDBOX/simsTest",
-				device.PlatformAndroid:    "arn:aws:sns:eu-central-1:775034650473:app/GCM/simsTestGCM",
-			},
-			"app_1_1147": map[device.Platform]string{
-				device.PlatformIOSSandbox: "arn:aws:sns:eu-central-1:775034650473:app/APNS_SANDBOX/tapglue-iOSExample",
-			},
-			"app_684_948": map[device.Platform]string{
-				device.PlatformIOSSandbox: "arn:aws:sns:eu-central-1:775034650473:app/APNS_SANDBOX/uMake-iOSSandbox",
-			},
-			"app_684_987": map[device.Platform]string{
-				device.PlatformIOSSandbox: "arn:aws:sns:eu-central-1:775034650473:app/APNS_SANDBOX/uMake-iOSSandbox",
-			},
-			"app_515_922": map[device.Platform]string{
-				device.PlatformIOSSandbox: "arn:aws:sns:eu-central-1:775034650473:app/APNS_SANDBOX/bikestorming-iOSSandbox",
-			},
-		}
 
 		cs, ok := arns[ns]
 		if !ok {
