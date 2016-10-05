@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	"cloud.google.com/go/bigquery"
 	"cloud.google.com/go/pubsub"
 	"github.com/golang/protobuf/proto"
 	"golang.org/x/net/context"
@@ -18,19 +19,32 @@ import (
 )
 
 const (
+	envDataset = "BIGQUERY_DATASET"
 	envProject = "GCLOUD_PROJECT"
 	envTopic   = "PUBSUB_TOPIC"
 )
 
 func main() {
-	ctx := context.Background()
+	var (
+		ctx       = context.Background()
+		dataset   = mustGetenv(envDataset)
+		projectID = mustGetenv(envProject)
+		topic     = mustGetenv(envTopic)
+	)
 
-	client, err := pubsub.NewClient(ctx, mustGetenv(envProject))
+	bq, err := bigquery.NewClient(ctx, projectID)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	topic, err := client.CreateTopic(ctx, mustGetenv(envTopic))
+	ds := bq.Dataset(dataset)
+
+	ps, err := pubsub.NewClient(ctx, projectID)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	t, err := ps.CreateTopic(ctx, topic)
 	if err != nil {
 		if gErr, ok := err.(*googleapi.Error); !ok || gErr.Code != 409 {
 			log.Fatal(err)
@@ -38,7 +52,8 @@ func main() {
 	}
 
 	http.HandleFunc("/_ah/health", healthCheckHandler)
-	http.HandleFunc("/track/event", trackEventHandler(topic))
+	http.HandleFunc("/pubsub-handlers/signals-persist-bigquery", persistBigQueryHandler(ds))
+	http.HandleFunc("/track/signal", trackSignalHandler(t))
 
 	log.Print("Listening on port 8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
@@ -48,7 +63,56 @@ func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "ok")
 }
 
-func trackEventHandler(topic *pubsub.Topic) http.HandlerFunc {
+func persistBigQueryHandler(ds *bigquery.Dataset) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var (
+			ctx = context.Background()
+			msg = struct {
+				Message struct {
+					Attributes map[string]string
+					Data       []byte
+					ID         string `json:"message_id"`
+				}
+				Subscription string
+			}{}
+			signal = &pb.Signal{}
+		)
+
+		if err := json.NewDecoder(r.Body).Decode(&msg); err != nil {
+			respondError(w, http.StatusBadRequest, fmt.Errorf("message decode failed: %s", err))
+			return
+		}
+
+		if err := proto.Unmarshal(msg.Message.Data, signal); err != nil {
+			respondError(w, http.StatusBadRequest, fmt.Errorf("signal decode failed: %s", err))
+			return
+		}
+
+		t := ds.Table(signal.Namespace)
+
+		if _, err := t.Metadata(ctx); err != nil {
+			if gErr, ok := err.(*googleapi.Error); !ok || gErr.Code != 404 {
+				respondError(w, http.StatusInternalServerError, fmt.Errorf("table metadata fetch failed: %s", err))
+				return
+			}
+
+			err := t.Create(ctx, bigquery.UseStandardSQL())
+			if err != nil {
+				log.Printf("table create error: %#v\n", err)
+				respondError(w, http.StatusInternalServerError, fmt.Errorf("table create failed: %s", err))
+				return
+			}
+		}
+
+		// TODO: store in BigQuery
+		// TODO: store BQ table handles
+		// TODO: cache id to avoid multiple appends of the same Signal (Memcache?)
+
+		respondJSON(w, http.StatusNoContent, nil)
+	}
+}
+
+func trackSignalHandler(topic *pubsub.Topic) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var (
 			ctx    = context.Background()

@@ -5,8 +5,9 @@ automatic_scaling:
   max_num_instances: 5
   min_num_instances: 1
 env_variables:
+  BIGQUERY_DATASET: signals_persist
   GCLOUD_PROJECT: tapglue-signals
-  PUBSUB_TOPIC: test-events
+  PUBSUB_TOPIC: signals-raw
 health_check:
   check_interval_sec: 1
   enable_health_check: True
