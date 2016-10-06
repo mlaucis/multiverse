@@ -24,6 +24,11 @@ const (
 	envTopic   = "PUBSUB_TOPIC"
 )
 
+type bqSignalRaw struct {
+	ID  uint64
+	Raw []byte
+}
+
 func main() {
 	var (
 		ctx       = context.Background()
@@ -51,8 +56,25 @@ func main() {
 		}
 	}
 
+	schema, err := bigquery.InferSchema(bqSignalRaw{})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, f := range schema {
+		log.Println(f.Name, f.Type)
+	}
+
+	ts := map[string]*bigquery.Table{}
+
 	http.HandleFunc("/_ah/health", healthCheckHandler)
-	http.HandleFunc("/pubsub-handlers/signals-persist-bigquery", persistBigQueryHandler(ds))
+	http.HandleFunc(
+		"/pubsub-handlers/signals-persist-bigquery",
+		persistBigQueryHandler(
+			ds,
+			tableForNamespace(ts),
+		),
+	)
 	http.HandleFunc("/track/signal", trackSignalHandler(t))
 
 	log.Print("Listening on port 8080")
@@ -63,7 +85,7 @@ func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "ok")
 }
 
-func persistBigQueryHandler(ds *bigquery.Dataset) http.HandlerFunc {
+func persistBigQueryHandler(ds *bigquery.Dataset, tableForNamespace tableForNamespaceFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var (
 			ctx = context.Background()
@@ -88,24 +110,13 @@ func persistBigQueryHandler(ds *bigquery.Dataset) http.HandlerFunc {
 			return
 		}
 
-		t := ds.Table(signal.Namespace)
-
-		if _, err := t.Metadata(ctx); err != nil {
-			if gErr, ok := err.(*googleapi.Error); !ok || gErr.Code != 404 {
-				respondError(w, http.StatusInternalServerError, fmt.Errorf("table metadata fetch failed: %s", err))
-				return
-			}
-
-			err := t.Create(ctx, bigquery.UseStandardSQL())
-			if err != nil {
-				log.Printf("table create error: %#v\n", err)
-				respondError(w, http.StatusInternalServerError, fmt.Errorf("table create failed: %s", err))
-				return
-			}
+		_, err := tableForNamespace(ctx, ds, signal.Namespace)
+		if err != nil {
+			respondError(w, http.StatusInternalServerError, fmt.Errorf("table construction failed: %s", err))
+			return
 		}
 
 		// TODO: store in BigQuery
-		// TODO: store BQ table handles
 		// TODO: cache id to avoid multiple appends of the same Signal (Memcache?)
 
 		respondJSON(w, http.StatusNoContent, nil)
@@ -140,6 +151,10 @@ func trackSignalHandler(topic *pubsub.Topic) http.HandlerFunc {
 	}
 }
 
+type apiError struct {
+	Message string `json:"message"`
+}
+
 func mustGetenv(key string) string {
 	v := os.Getenv(key)
 
@@ -148,10 +163,6 @@ func mustGetenv(key string) string {
 	}
 
 	return v
-}
-
-type apiError struct {
-	Message string `json:"message"`
 }
 
 func respondError(w http.ResponseWriter, code int, err error) {
@@ -164,4 +175,38 @@ func respondJSON(w http.ResponseWriter, statusCode int, payload interface{}) {
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
 	json.NewEncoder(w).Encode(payload)
+}
+
+type tableForNamespaceFunc func(context.Context, *bigquery.Dataset, string) (*bigquery.Table, error)
+
+func tableForNamespace(ts map[string]*bigquery.Table) tableForNamespaceFunc {
+	return func(
+		ctx context.Context,
+		ds *bigquery.Dataset,
+		ns string,
+	) (*bigquery.Table, error) {
+		t, ok := ts[ns]
+		if ok {
+			return t, nil
+		}
+
+		// If the table is not already been stored we should set it up locally
+		// and if necessary on BigQuery itself.
+		t = ds.Table(ns)
+
+		if _, err := t.Metadata(ctx); err != nil {
+			if gErr, ok := err.(*googleapi.Error); !ok || gErr.Code != 404 {
+				return nil, fmt.Errorf("metadata fetch failed: %s", err)
+			}
+
+			err := t.Create(ctx, bigquery.UseStandardSQL())
+			if err != nil {
+				return nil, fmt.Errorf("create failed: %s", err)
+			}
+		}
+
+		ts[ns] = t
+
+		return t, nil
+	}
 }
