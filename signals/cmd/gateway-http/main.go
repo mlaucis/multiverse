@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"cloud.google.com/go/bigquery"
@@ -14,7 +15,7 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/api/googleapi"
 
-	"github.com/tapglue/multiverse/platform/generate"
+	"github.com/tapglue/multiverse/platform/flake"
 	"github.com/tapglue/multiverse/signals/pb"
 )
 
@@ -23,11 +24,6 @@ const (
 	envProject = "GCLOUD_PROJECT"
 	envTopic   = "PUBSUB_TOPIC"
 )
-
-type bqSignalRaw struct {
-	ID  uint64
-	Raw []byte
-}
 
 func main() {
 	var (
@@ -56,23 +52,12 @@ func main() {
 		}
 	}
 
-	schema, err := bigquery.InferSchema(bqSignalRaw{})
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	for _, f := range schema {
-		log.Println(f.Name, f.Type)
-	}
-
-	ts := map[string]*bigquery.Table{}
-
 	http.HandleFunc("/_ah/health", healthCheckHandler)
 	http.HandleFunc(
 		"/pubsub-handlers/signals-persist-bigquery",
 		persistBigQueryHandler(
 			ds,
-			tableForNamespace(ts),
+			uploaderForNamespace(map[string]*bigquery.Uploader{}),
 		),
 	)
 	http.HandleFunc("/track/signal", trackSignalHandler(t))
@@ -85,7 +70,7 @@ func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "ok")
 }
 
-func persistBigQueryHandler(ds *bigquery.Dataset, tableForNamespace tableForNamespaceFunc) http.HandlerFunc {
+func persistBigQueryHandler(ds *bigquery.Dataset, uploader uploaderForNamespaceFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var (
 			ctx = context.Background()
@@ -101,22 +86,47 @@ func persistBigQueryHandler(ds *bigquery.Dataset, tableForNamespace tableForName
 		)
 
 		if err := json.NewDecoder(r.Body).Decode(&msg); err != nil {
+			log.Println(fmt.Errorf("message decode failed: %s", err))
+
 			respondError(w, http.StatusBadRequest, fmt.Errorf("message decode failed: %s", err))
 			return
 		}
 
 		if err := proto.Unmarshal(msg.Message.Data, signal); err != nil {
+			log.Println(fmt.Errorf("signal decode failed: %s", err))
+
 			respondError(w, http.StatusBadRequest, fmt.Errorf("signal decode failed: %s", err))
 			return
 		}
 
-		_, err := tableForNamespace(ctx, ds, signal.Namespace)
+		u, err := uploader(ctx, ds, signal.Namespace)
 		if err != nil {
-			respondError(w, http.StatusInternalServerError, fmt.Errorf("table construction failed: %s", err))
+			log.Println(fmt.Errorf("table construction failed: %s", err))
+
+			respondError(w, http.StatusInternalServerError, fmt.Errorf("uploader retrieval failed: %s", err))
 			return
 		}
 
-		// TODO: store in BigQuery
+		v := &bqSignalRaw{
+			ID:  signal.Id,
+			Raw: msg.Message.Data,
+		}
+
+		v.Arrived, err = time.Parse(time.RFC3339Nano, signal.Arrvied)
+		if err != nil {
+			log.Println(fmt.Errorf("arrived parse failed: %s", err))
+
+			respondError(w, http.StatusInternalServerError, fmt.Errorf("arrived parse failed: %s", err))
+			return
+		}
+
+		if err := u.Put(ctx, v); err != nil {
+			log.Println(fmt.Errorf("bq append failed: %s", err))
+
+			respondError(w, http.StatusInternalServerError, fmt.Errorf("bq append failed: %s", err))
+			return
+		}
+
 		// TODO: cache id to avoid multiple appends of the same Signal (Memcache?)
 
 		respondJSON(w, http.StatusNoContent, nil)
@@ -129,21 +139,28 @@ func trackSignalHandler(topic *pubsub.Topic) http.HandlerFunc {
 			ctx    = context.Background()
 			signal = &pb.Signal{
 				Arrvied:   time.Now().Format(time.RFC3339Nano),
-				Id:        generate.RandomString(32),
 				Org:       "1",
 				App:       "1",
 				Namespace: "1_1",
 			}
 		)
 
+		id, err := flake.NextID("signals")
+		if err != nil {
+			respondError(w, 500, fmt.Errorf("id creation failed: %s", err))
+			return
+		}
+
+		signal.Id = id
+
 		raw, err := proto.Marshal(signal)
 		if err != nil {
-			respondError(w, 500, err)
+			respondError(w, 500, fmt.Errorf("marshal failed: %s", err))
 			return
 		}
 
 		if _, err := topic.Publish(ctx, &pubsub.Message{Data: raw}); err != nil {
-			respondError(w, 500, err)
+			respondError(w, 500, fmt.Errorf("publish failed: %s", err))
 			return
 		}
 
@@ -153,6 +170,20 @@ func trackSignalHandler(topic *pubsub.Topic) http.HandlerFunc {
 
 type apiError struct {
 	Message string `json:"message"`
+}
+
+type bqSignalRaw struct {
+	Arrived time.Time
+	ID      uint64
+	Raw     []byte
+}
+
+func (v *bqSignalRaw) Save() (map[string]bigquery.Value, string, error) {
+	return map[string]bigquery.Value{
+		"arrived": v.Arrived,
+		"id":      v.ID,
+		"raw":     v.Raw,
+	}, strconv.FormatUint(v.ID, 10), nil
 }
 
 func mustGetenv(key string) string {
@@ -177,22 +208,22 @@ func respondJSON(w http.ResponseWriter, statusCode int, payload interface{}) {
 	json.NewEncoder(w).Encode(payload)
 }
 
-type tableForNamespaceFunc func(context.Context, *bigquery.Dataset, string) (*bigquery.Table, error)
+type uploaderForNamespaceFunc func(context.Context, *bigquery.Dataset, string) (*bigquery.Uploader, error)
 
-func tableForNamespace(ts map[string]*bigquery.Table) tableForNamespaceFunc {
+func uploaderForNamespace(um map[string]*bigquery.Uploader) uploaderForNamespaceFunc {
 	return func(
 		ctx context.Context,
 		ds *bigquery.Dataset,
 		ns string,
-	) (*bigquery.Table, error) {
-		t, ok := ts[ns]
+	) (*bigquery.Uploader, error) {
+		u, ok := um[ns]
 		if ok {
-			return t, nil
+			return u, nil
 		}
 
-		// If the table is not already been stored we should set it up locally
-		// and if necessary on BigQuery itself.
-		t = ds.Table(ns)
+		// If the Uploader is not present we need to set it up including
+		// table creation if not present.
+		t := ds.Table(ns)
 
 		if _, err := t.Metadata(ctx); err != nil {
 			if gErr, ok := err.(*googleapi.Error); !ok || gErr.Code != 404 {
@@ -205,8 +236,41 @@ func tableForNamespace(ts map[string]*bigquery.Table) tableForNamespaceFunc {
 			}
 		}
 
-		ts[ns] = t
+		// In order to make append operations succeed we need to set the schema
+		// upfront.
 
-		return t, nil
+		p := t.Patch()
+
+		s := bigquery.Schema{
+			&bigquery.FieldSchema{
+				Name:        "arrived",
+				Description: "signal arrival in system",
+				Required:    true,
+				Type:        bigquery.TimestampFieldType,
+			},
+			&bigquery.FieldSchema{
+				Name:        "id",
+				Description: "signal unique identifier",
+				Required:    true,
+				Type:        bigquery.IntegerFieldType,
+			},
+			&bigquery.FieldSchema{
+				Name:        "raw",
+				Description: "raw signal payload",
+				Required:    true,
+				Type:        bigquery.StringFieldType,
+			},
+		}
+
+		p.Schema(s)
+
+		if _, err := p.Apply(ctx); err != nil {
+			return nil, fmt.Errorf("schema apply failed: %s", err)
+		}
+
+		u = t.NewUploader()
+		um[ns] = u
+
+		return u, nil
 	}
 }
