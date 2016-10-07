@@ -61,8 +61,8 @@ func main() {
 
 	http.HandleFunc("/_ah/health", healthCheckHandler)
 	http.HandleFunc(
-		"/pubsub-handlers/signals-persist-bigquery",
-		persistBigQueryHandler(
+		"/pubsub-handlers/signals-persist-bigquery-raw",
+		persistBigRawQueryHandler(
 			ds,
 			mc,
 			uploaderForNamespace(map[string]*bigquery.Uploader{}),
@@ -78,7 +78,7 @@ func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "ok")
 }
 
-func persistBigQueryHandler(
+func persistBigQueryRawHandler(
 	ds *bigquery.Dataset,
 	mc *memcache.Client,
 	uploader uploaderForNamespaceFunc,
