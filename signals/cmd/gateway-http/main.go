@@ -11,6 +11,7 @@ import (
 
 	"cloud.google.com/go/bigquery"
 	"cloud.google.com/go/pubsub"
+	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/golang/protobuf/proto"
 	"golang.org/x/net/context"
 	"google.golang.org/api/googleapi"
@@ -20,17 +21,21 @@ import (
 )
 
 const (
-	envDataset = "BIGQUERY_DATASET"
-	envProject = "GCLOUD_PROJECT"
-	envTopic   = "PUBSUB_TOPIC"
+	envDataset      = "BIGQUERY_DATASET"
+	envMemcacheHost = "MEMCACHE_PORT_11211_TCP_ADDR"
+	envMemcachePort = "MEMCACHE_PORT_11211_TCP_PORT"
+	envProject      = "GCLOUD_PROJECT"
+	envTopic        = "PUBSUB_TOPIC"
 )
 
 func main() {
 	var (
-		ctx       = context.Background()
-		dataset   = mustGetenv(envDataset)
-		projectID = mustGetenv(envProject)
-		topic     = mustGetenv(envTopic)
+		ctx          = context.Background()
+		dataset      = mustGetenv(envDataset, "signals_persist")
+		memcacheHost = mustGetenv(envMemcacheHost, "localhost")
+		memcachePort = mustGetenv(envMemcachePort, "11211")
+		projectID    = mustGetenv(envProject, "tapglue-signals")
+		topic        = mustGetenv(envTopic, "signals-raw")
 	)
 
 	bq, err := bigquery.NewClient(ctx, projectID)
@@ -39,6 +44,8 @@ func main() {
 	}
 
 	ds := bq.Dataset(dataset)
+
+	mc := memcache.New(fmt.Sprintf("%s:%s", memcacheHost, memcachePort))
 
 	ps, err := pubsub.NewClient(ctx, projectID)
 	if err != nil {
@@ -57,6 +64,7 @@ func main() {
 		"/pubsub-handlers/signals-persist-bigquery",
 		persistBigQueryHandler(
 			ds,
+			mc,
 			uploaderForNamespace(map[string]*bigquery.Uploader{}),
 		),
 	)
@@ -70,7 +78,11 @@ func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "ok")
 }
 
-func persistBigQueryHandler(ds *bigquery.Dataset, uploader uploaderForNamespaceFunc) http.HandlerFunc {
+func persistBigQueryHandler(
+	ds *bigquery.Dataset,
+	mc *memcache.Client,
+	uploader uploaderForNamespaceFunc,
+) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var (
 			ctx = context.Background()
@@ -89,6 +101,18 @@ func persistBigQueryHandler(ds *bigquery.Dataset, uploader uploaderForNamespaceF
 			log.Println(fmt.Errorf("message decode failed: %s", err))
 
 			respondError(w, http.StatusBadRequest, fmt.Errorf("message decode failed: %s", err))
+			return
+		}
+
+		if _, err := mc.Get(fmt.Sprintf("signals-persist-raw|%s", msg.Message.ID)); err != memcache.ErrCacheMiss {
+			if err == nil {
+				respondJSON(w, http.StatusNoContent, nil)
+				return
+			}
+
+			log.Println(fmt.Errorf("memcache lookup failed: %s", err))
+
+			respondError(w, http.StatusBadRequest, fmt.Errorf("message lookup failed: %s", err))
 			return
 		}
 
@@ -127,7 +151,16 @@ func persistBigQueryHandler(ds *bigquery.Dataset, uploader uploaderForNamespaceF
 			return
 		}
 
-		// TODO: cache id to avoid multiple appends of the same Signal (Memcache?)
+		if err := mc.Add(&memcache.Item{
+			Expiration: 604800, // Expire in 7 days.
+			Key:        fmt.Sprintf("signals-persist-raw|%s", msg.Message.ID),
+			Value:      []byte("processed"),
+		}); err != nil {
+			log.Println(fmt.Errorf("memcache add failed: %s", err))
+
+			respondError(w, http.StatusInternalServerError, fmt.Errorf("memcache add failed: %s", err))
+			return
+		}
 
 		respondJSON(w, http.StatusNoContent, nil)
 	}
@@ -186,10 +219,14 @@ func (v *bqSignalRaw) Save() (map[string]bigquery.Value, string, error) {
 	}, strconv.FormatUint(v.ID, 10), nil
 }
 
-func mustGetenv(key string) string {
+func mustGetenv(key, def string) string {
 	v := os.Getenv(key)
 
 	if v == "" {
+		if def != "" {
+			return def
+		}
+
 		log.Fatalf("%s env variable not set", key)
 	}
 
