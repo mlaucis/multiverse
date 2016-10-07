@@ -62,7 +62,7 @@ func main() {
 	http.HandleFunc("/_ah/health", healthCheckHandler)
 	http.HandleFunc(
 		"/pubsub-handlers/signals-persist-bigquery-raw",
-		persistBigRawQueryHandler(
+		persistBigQueryRawHandler(
 			ds,
 			mc,
 			uploaderForNamespace(map[string]*bigquery.Uploader{}),
