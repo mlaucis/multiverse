@@ -23,8 +23,8 @@ const (
 	pgListEvents = `SELECT json_data FROM %s.events
 		%s`
 
-	pgClauseAfter               = `(json_data->>'created_at')::TIMESTAMP > ?`
-	pgClauseBefore              = `(json_data->>'created_at')::TIMESTAMP < ?`
+	pgClauseAfter               = `(json_data->>'created_at') > ?`
+	pgClauseBefore              = `(json_data->>'created_at') < ?`
 	pgClauseEnabled             = `(json_data->>'enabled')::BOOL = ?::BOOL`
 	pgClauseExternalObjectIDs   = `(json_data->'object'->>'id')::TEXT IN (?)`
 	pgClauseExternalObjectTypes = `(json_data->'object'->>'type')::TEXT in (?)`
@@ -50,7 +50,7 @@ const (
 	pgClauseByWeek  = `(json_data ->> 'updated_at')::DATE > current_date - interval '1 week'`
 	pgClauseByMonth = `(json_data ->> 'updated_at')::DATE > current_date - interval '1 month'`
 
-	pgOrderCreatedAt = `ORDER BY (json_data->>'created_at')::TIMESTAMP DESC`
+	pgOrderCreatedAt = `ORDER BY (json_data->>'created_at') DESC`
 
 	pgCreatedByDay = `SELECT count(*), to_date(json_data->>'created_at', 'YYYY-MM-DD') as bucket
 		FROM %s.events
