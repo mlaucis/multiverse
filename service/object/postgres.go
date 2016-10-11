@@ -30,7 +30,7 @@ const (
 	pgListObjects = `SELECT json_data FROM %s.objects
 		%s`
 
-	pgClauseBefore     = `(json_data->>'created_at')::TIMESTAMP < ?`
+	pgClauseBefore     = `(json_data->>'created_at') < ?`
 	pgClauseDeleted    = `(json_data->>'deleted')::BOOL = ?::BOOL`
 	pgClauseExternalID = `(json_data->>'external_id')::TEXT IN (?)`
 	pgClauseID         = `(json_data->>'id')::BIGINT = ?::BIGINT`
@@ -54,7 +54,7 @@ const (
 		(json_data JSONB NOT NULL)`
 
 	pgCreateIndexCreatedAt = `CREATE INDEX %s ON %s.objects
-		USING btree ((json_data->>'created_at'))`
+		USING btree ((json_data->>'created_at') DESC)`
 	pgCreateIndexExternalID = `CREATE INDEX %s ON %s.objects
 		USING btree (((json_data->>'external_id')::TEXT))`
 	pgCreateIndexID = `CREATE INDEX %s ON %s.objects
