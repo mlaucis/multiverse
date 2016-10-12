@@ -445,7 +445,7 @@ resource "aws_ecs_service" "gateway-http" {
   ]
   deployment_maximum_percent          = 200
   deployment_minimum_healthy_percent  = 50
-  desired_count                       = 2
+  desired_count                       = 5
   iam_role                            = "${aws_iam_role.ecsELB.arn}"
   name                                = "gateway-http"
   task_definition                     = "${aws_ecs_task_definition.gateway-http.arn}"
@@ -676,7 +676,7 @@ resource "aws_autoscaling_group" "service" {
   ]
   name                      = "service"
   max_size                  = 30
-  min_size                  = 2
+  min_size                  = 5
   health_check_type         = "EC2"
   health_check_grace_period = 60
   force_delete              = false
