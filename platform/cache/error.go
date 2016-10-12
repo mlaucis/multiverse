@@ -1,4 +1,4 @@
-package event
+package cache
 
 import (
 	"errors"
@@ -9,10 +9,7 @@ const errFmt = "%s: %s"
 
 // Common errors for Event implementations.
 var (
-	ErrEmptySource       = errors.New("empty source")
-	ErrInvalidEvent      = errors.New("invalid event")
-	ErrNamespaceNotFound = errors.New("namespace not found")
-	ErrNotFound          = errors.New("event not found")
+	ErrKeyNotFound = errors.New("key not found")
 )
 
 // Error wraps common Event errors.
@@ -25,9 +22,9 @@ func (e Error) Error() string {
 	return e.msg
 }
 
-// IsEmptySource indicates if err is ErrEmptySource.
-func IsEmptySource(err error) bool {
-	return unwrapError(err) == ErrEmptySource
+// IsKeyNotFound checks if err is ErrKeyNotFound.
+func IsKeyNotFound(err error) bool {
+	return unwrapError(err) == ErrKeyNotFound
 }
 
 func unwrapError(err error) error {

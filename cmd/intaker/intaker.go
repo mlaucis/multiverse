@@ -35,6 +35,7 @@ import (
 	handler "github.com/tapglue/multiverse/handler/http"
 	"github.com/tapglue/multiverse/limiter/redis"
 	tgLogger "github.com/tapglue/multiverse/logger"
+	"github.com/tapglue/multiverse/platform/cache"
 	"github.com/tapglue/multiverse/platform/metrics"
 	"github.com/tapglue/multiverse/server"
 	"github.com/tapglue/multiverse/service/app"
@@ -310,6 +311,11 @@ func main() {
 		rateLimiter = redis.NewLimiter(redisClient, "test:ratelimiter:app:")
 	)
 
+	var countsCache cache.CountService
+	countsCache = cache.RedisCountService(redisClient)
+	// TODO: add instrumentation middleware
+	// TODO: add logging middleware
+
 	var apps app.Service
 	apps = app.NewPostgresService(pgClient.MainDatastore())
 	apps = app.InstrumentServiceMiddleware(component, "postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(apps)
@@ -329,7 +335,7 @@ func main() {
 
 	var events event.Service
 	events = event.NewPostgresService(pgClient.MainDatastore())
-	events = event.CacheServiceMiddleware(redisClient)(events)
+	events = event.CacheServiceMiddleware(countsCache)(events)
 	events = event.InstrumentServiceMiddleware(component, "postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(events)
 	events = event.LogServiceMiddleware(logger, "postgres")(events)
 	// Combine event service and source.
@@ -342,6 +348,7 @@ func main() {
 
 	var objects object.Service
 	objects = object.NewPostgresService(pgClient.MainDatastore())
+	objects = object.CacheServiceMiddleware(countsCache)(objects)
 	objects = object.InstrumentServiceMiddleware(component, "postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(objects)
 	objects = object.LogServiceMiddleware(logger, "postgres")(objects)
 	// Combine object service and source.
