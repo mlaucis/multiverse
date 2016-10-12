@@ -5,34 +5,27 @@ import (
 	"strings"
 	"time"
 
-	"github.com/garyburd/redigo/redis"
-
+	"github.com/tapglue/multiverse/platform/cache"
 	"github.com/tapglue/multiverse/platform/metrics"
 )
 
 const (
-	cacheKeySeparator = "."
-	cachePrefixCount  = "cache.events.count"
-	cacheTTLDefault   = 300
-
-	commandEX  = "EX"
-	commandGET = "GET"
-	commandSET = "SET"
+	cachePrefixCount = "events.count"
 )
 
 type cacheService struct {
-	next Service
-	pool *redis.Pool
+	countCache cache.CountService
+	next       Service
 }
 
 // CacheServiceMiddleware adds caching capabilities to the Service by using
 // read-through and write-through methods to store results of heavy computation
 // with sensible TTLs.
-func CacheServiceMiddleware(pool *redis.Pool) ServiceMiddleware {
+func CacheServiceMiddleware(countCache cache.CountService) ServiceMiddleware {
 	return func(next Service) Service {
 		return &cacheService{
-			next: next,
-			pool: pool,
+			countCache: countCache,
+			next:       next,
 		}
 	}
 }
@@ -43,39 +36,26 @@ func (s *cacheService) ActiveUserIDs(ns string, p Period) (ids []uint64, err err
 
 func (s *cacheService) Count(ns string, opts QueryOptions) (int, error) {
 	var (
-		count = 0
-		con   = s.pool.Get()
-		key   = cacheKey(opts)
+		key = cacheKey(opts)
 	)
-	defer con.Close()
 
-	res, err := con.Do(commandGET, key)
+	count, err := s.countCache.Get(ns, key)
+	if err == nil {
+		return count, nil
+	}
+
+	if !cache.IsKeyNotFound(err) {
+		return -1, err
+	}
+
+	count, err = s.next.Count(ns, opts)
 	if err != nil {
-		return 0, fmt.Errorf("cache get failed: %s", err)
+		return -1, err
 	}
 
-	if res == nil {
-		count, err = s.next.Count(ns, opts)
-		if err != nil {
-			return 0, err
-		}
+	err = s.countCache.Set(ns, key, count)
 
-		_, err = con.Do(commandSET, key, uint64(count), commandEX, cacheTTLDefault)
-		if err != nil {
-			return 0, fmt.Errorf("cache set failed: %s", err)
-		}
-	} else {
-		var c uint64 = 0
-
-		_, err = redis.Scan([]interface{}{res}, &c)
-		if err != nil {
-			return 0, fmt.Errorf("cache scan failed: %s", err)
-		}
-
-		count = int(c)
-	}
-
-	return count, nil
+	return count, err
 }
 
 func (s *cacheService) CreatedByDay(
@@ -114,5 +94,5 @@ func cacheKey(opts QueryOptions) string {
 		ps = append(ps, fmt.Sprintf("%d", opts.ObjectIDs[0]))
 	}
 
-	return strings.Join(ps, cacheKeySeparator)
+	return strings.Join(ps, cache.KeySeparator)
 }
