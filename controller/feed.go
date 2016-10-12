@@ -3,7 +3,6 @@ package controller
 import (
 	"sort"
 	"strconv"
-	"time"
 
 	"github.com/tapglue/multiverse/platform/flake"
 	"github.com/tapglue/multiverse/service/app"
@@ -417,11 +416,12 @@ func (c *FeedController) News(
 		return nil, err
 	}
 
-	err = c.users.PutLastRead(currentApp.Namespace(), origin, time.Now())
-	if err != nil {
-		// Updating the last read pointer of a user shouldn't stop the feed delivery
-		// as we would accept an incorrect unread counter over a broken feed.
-	}
+	// FIXME: This puts to much pressure on our datastore.
+	// err = c.users.PutLastRead(currentApp.Namespace(), origin, time.Now())
+	// if err != nil {
+	// 	// Updating the last read pointer of a user shouldn't stop the feed delivery
+	// 	// as we would accept an incorrect unread counter over a broken feed.
+	// }
 
 	return &Feed{
 		Events:  es,
