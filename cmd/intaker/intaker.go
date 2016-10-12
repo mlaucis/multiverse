@@ -348,6 +348,7 @@ func main() {
 
 	var objects object.Service
 	objects = object.NewPostgresService(pgClient.MainDatastore())
+	objects = object.CacheServiceMiddleware(countsCache)(objects)
 	objects = object.InstrumentServiceMiddleware(component, "postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(objects)
 	objects = object.LogServiceMiddleware(logger, "postgres")(objects)
 	// Combine object service and source.

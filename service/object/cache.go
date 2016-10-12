@@ -1,4 +1,4 @@
-package event
+package object
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	cachePrefixCount = "events.count"
+	cachePrefixCount = "objects.count"
 )
 
 type cacheService struct {
@@ -30,14 +30,8 @@ func CacheServiceMiddleware(countsCache cache.CountService) ServiceMiddleware {
 	}
 }
 
-func (s *cacheService) ActiveUserIDs(ns string, p Period) (ids []uint64, err error) {
-	return s.next.ActiveUserIDs(ns, p)
-}
-
 func (s *cacheService) Count(ns string, opts QueryOptions) (int, error) {
-	var (
-		key = cacheKey(opts)
-	)
+	key := cacheCountKey(opts)
 
 	count, err := s.countsCache.Get(ns, key)
 	if err == nil {
@@ -65,12 +59,16 @@ func (s *cacheService) CreatedByDay(
 	return s.next.CreatedByDay(ns, start, end)
 }
 
-func (s *cacheService) Put(ns string, input *Event) (output *Event, err error) {
+func (s *cacheService) Put(ns string, input *Object) (output *Object, err error) {
 	return s.next.Put(ns, input)
 }
 
-func (s *cacheService) Query(ns string, opts QueryOptions) (list List, err error) {
+func (s *cacheService) Query(ns string, opts QueryOptions) (os List, err error) {
 	return s.next.Query(ns, opts)
+}
+
+func (s *cacheService) Remove(ns string, id uint64) (err error) {
+	return s.next.Remove(ns, id)
 }
 
 func (s *cacheService) Setup(ns string) (err error) {
@@ -81,7 +79,7 @@ func (s *cacheService) Teardown(ns string) (err error) {
 	return s.next.Teardown(ns)
 }
 
-func cacheKey(opts QueryOptions) string {
+func cacheCountKey(opts QueryOptions) string {
 	ps := []string{
 		cachePrefixCount,
 	}
