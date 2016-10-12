@@ -329,6 +329,7 @@ func main() {
 
 	var events event.Service
 	events = event.NewPostgresService(pgClient.MainDatastore())
+	events = event.CacheServiceMiddleware(redisClient)(events)
 	events = event.InstrumentServiceMiddleware(component, "postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(events)
 	events = event.LogServiceMiddleware(logger, "postgres")(events)
 	// Combine event service and source.
