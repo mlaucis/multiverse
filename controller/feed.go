@@ -420,7 +420,7 @@ func (c *FeedController) News(
 	}
 
 	// FIXME: Gambify is the only (malparido) customer depending on this feature.
-	if ns == namespaceGambify {
+	if currentApp.Namespace() == namespaceGambify {
 		err = c.users.PutLastRead(currentApp.Namespace(), origin, time.Now())
 		if err != nil {
 			// Updating the last read pointer of a user shouldn't stop the feed delivery
