@@ -78,9 +78,21 @@ resource "aws_db_parameter_group" "master-prod" {
   }
 
   parameter {
+    name         = "autovacuum_naptime"
+    value        = "300"
+    apply_method = "immediate"
+  }
+
+  parameter {
     name          = "autovacuum_vacuum_scale_factor"
-    value         = "0.05"
+    value         = "0.2"
     apply_method  = "immediate"
+  }
+
+  parameter {
+    name         = "autovacuum_vacuum_threshold"
+    value        = "5000"
+    apply_method = "immediate"
   }
 
   parameter {
