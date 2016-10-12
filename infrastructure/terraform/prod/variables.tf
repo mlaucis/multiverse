@@ -9,7 +9,7 @@ variable "region" {
 variable "version" {
   default = {
     dashboard     = "1902"
-    gateway-http  = "2485"
+    gateway-http  = "2486"
     reporter      = "2302"
     sims          = "2423"
   }
