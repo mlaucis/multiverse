@@ -491,7 +491,7 @@ func convertOpts(opts QueryOptions, order ordering) (string, []interface{}, erro
 		query = sqlx.Rebind(sqlx.DOLLAR, pg.ClausesToWhere(clauses...))
 	}
 
-	if order == orderCreatedAt {
+	if !opts.Before.IsZero() && order == orderCreatedAt {
 		query = fmt.Sprintf("%s\n%s", query, pgOrderCreatedAt)
 	}
 
