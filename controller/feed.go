@@ -3,6 +3,7 @@ package controller
 import (
 	"sort"
 	"strconv"
+	"time"
 
 	"github.com/tapglue/multiverse/platform/flake"
 	"github.com/tapglue/multiverse/service/app"
@@ -11,6 +12,8 @@ import (
 	"github.com/tapglue/multiverse/service/object"
 	"github.com/tapglue/multiverse/service/user"
 )
+
+const namespaceGambify = "app_309_443"
 
 // affiliations is the composite structure to map connections to users.
 type affiliations map[*connection.Connection]*user.User
@@ -416,12 +419,14 @@ func (c *FeedController) News(
 		return nil, err
 	}
 
-	// FIXME: This puts to much pressure on our datastore.
-	// err = c.users.PutLastRead(currentApp.Namespace(), origin, time.Now())
-	// if err != nil {
-	// 	// Updating the last read pointer of a user shouldn't stop the feed delivery
-	// 	// as we would accept an incorrect unread counter over a broken feed.
-	// }
+	// FIXME: Gambify is the only (malparido) customer depending on this feature.
+	if ns == namespaceGambify {
+		err = c.users.PutLastRead(currentApp.Namespace(), origin, time.Now())
+		if err != nil {
+			// Updating the last read pointer of a user shouldn't stop the feed delivery
+			// as we would accept an incorrect unread counter over a broken feed.
+		}
+	}
 
 	return &Feed{
 		Events:  es,
