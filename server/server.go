@@ -18,9 +18,6 @@ import (
 	"github.com/tapglue/multiverse/tgflake"
 	"github.com/tapglue/multiverse/utils"
 
-	v03_server "github.com/tapglue/multiverse/v03/server"
-	v03_postgres "github.com/tapglue/multiverse/v03/storage/postgres"
-
 	v04_server "github.com/tapglue/multiverse/v04/server"
 	v04_postgres "github.com/tapglue/multiverse/v04/storage/postgres"
 	v04_redis "github.com/tapglue/multiverse/v04/storage/redis"
@@ -149,7 +146,6 @@ func GetRouter(
 ) (*mux.Router, chan *logger.LogMsg, chan *logger.LogMsg, error) {
 	router := mux.NewRouter().StrictSlash(true)
 
-	v03_server.InitRouter(router, metricHandler, mainLogChan, errorLogChan, environment, skipSecurityChecks, debugMode)
 	v04_server.InitRouter(router, metricHandler, mainLogChan, errorLogChan, environment, skipSecurityChecks, debugMode)
 
 	for idx := range generalRoutes {
@@ -225,17 +221,14 @@ func Setup(conf *config.Config, revision, hostname string) {
 
 	rateLimiterPool = v04_redis.NewRedigoPool(conf.RateLimiter)
 	applicationRateLimiter := ratelimiter_redis.NewLimiter(rateLimiterPool, "ratelimiter:app:")
-	v03_server.SetupRateLimit(applicationRateLimiter)
 	v04_server.SetupRateLimit(applicationRateLimiter)
 
-	v03PostgresClient := v03_postgres.New(conf.Postgres)
 	v04PostgresClient := v04_postgres.New(conf.Postgres)
 	rawPostgresClient = v04PostgresClient
 
-	SetupFlakes(v03PostgresClient.SlaveDatastore(-1))
+	SetupFlakes(v04PostgresClient.SlaveDatastore(-1))
 
 	appCachePool = v04_redis.NewRedigoPool(conf.CacheApp)
 
-	v03_server.Setup(v03PostgresClient, appCachePool, currentRevision, currentHostname)
 	v04_server.Setup(v04PostgresClient, appCachePool, currentRevision, currentHostname)
 }
