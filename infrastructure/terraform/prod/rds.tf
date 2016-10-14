@@ -230,14 +230,16 @@ resource "aws_db_parameter_group" "master-prod-95" {
 
 # Database master
 resource "aws_db_instance" "master" {
+  # Enable this option for major upgrades (e.g. 9.5 -> 9.6)
+  # allow_major_version_upgrade = true
   identifier              = "${var.rds_id}"
   # change this to io1 if you want to use provisioned iops for production
   storage_type            = "io1"
-  iops                    = 1000 # this should give us a boost in performance for production
-  allocated_storage       = "200"
+  iops                    = 5000 # this should give us a boost in performance for production
+  allocated_storage       = "500"
   engine                  = "postgres"
-  engine_version          = "9.4.7"
-  instance_class          = "db.r3.large"
+  engine_version          = "9.5.4"
+  instance_class          = "db.r3.2xlarge"
   # if you want to change to true, see the list of instance types that support storage encryption: http://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Overview.Encryption.html#d0e10116
   storage_encrypted       = true
   name                    = "${var.rds_db_name}"
@@ -255,7 +257,7 @@ resource "aws_db_instance" "master" {
   backup_retention_period = 30
   backup_window           = "00:00-01:30"
   maintenance_window      = "tue:02:00-tue:03:00"
-  parameter_group_name    = "${aws_db_parameter_group.master-prod.id}"
+  parameter_group_name    = "${aws_db_parameter_group.master-prod-95.id}"
   apply_immediately       = true
   skip_final_snapshot     = false
 }
