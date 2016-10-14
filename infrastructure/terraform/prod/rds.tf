@@ -120,6 +120,108 @@ resource "aws_db_parameter_group" "master-prod" {
   }
 
   parameter {
+    name         = "standard_conforming_strings"
+    value        = "1"
+    apply_method = "immediate"
+  }
+
+  parameter {
+    name         = "work_mem"
+    value        = "64000"
+    apply_method = "immediate"
+  }
+}
+
+resource "aws_db_parameter_group" "master-prod-95" {
+  name        = "master-prod-95"
+  family      = "postgres9.5"
+  description = "Postgres prod parameter group"
+
+  parameter {
+    name         = "log_statement"
+    value        = "all"
+    apply_method = "immediate"
+  }
+
+  parameter {
+    name         = "log_min_duration_statement"
+    value        = "20"
+    apply_method = "immediate"
+  }
+
+  parameter {
+    name         = "log_duration"
+    value        = "1"
+    apply_method = "immediate"
+  }
+
+  parameter {
+    name         = "shared_preload_libraries"
+    value        = "pg_stat_statements"
+    apply_method = "immediate"
+  }
+
+  parameter {
+    name         = "track_activity_query_size"
+    value        = "2048"
+    apply_method = "immediate"
+  }
+
+  parameter {
+    name         = "pg_stat_statements.track"
+    value        = "ALL"
+    apply_method = "immediate"
+  }
+
+  parameter {
+    name         = "autovacuum"
+    value        = "1"
+    apply_method = "immediate"
+  }
+
+  parameter {
+    name         = "autovacuum_naptime"
+    value        = "300"
+    apply_method = "immediate"
+  }
+
+  parameter {
+    name          = "autovacuum_vacuum_scale_factor"
+    value         = "0.2"
+    apply_method  = "immediate"
+  }
+
+  parameter {
+    name         = "autovacuum_vacuum_threshold"
+    value        = "5000"
+    apply_method = "immediate"
+  }
+
+  parameter {
+    name         = "log_autovacuum_min_duration"
+    value        = "1"
+    apply_method = "immediate"
+  }
+
+  parameter {
+    name         = "max_connections"
+    value        = "256"
+    apply_method = "immediate"
+  }
+
+  parameter {
+    name         = "maintenance_work_mem"
+    value        = "768000"
+    apply_method = "immediate"
+  }
+
+  parameter {
+    name         = "standard_conforming_strings"
+    value        = "1"
+    apply_method = "immediate"
+  }
+
+  parameter {
     name         = "work_mem"
     value        = "64000"
     apply_method = "immediate"
