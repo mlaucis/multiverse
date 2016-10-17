@@ -61,6 +61,7 @@ const (
 	namespaceService = "service"
 	namespaceSource  = "source"
 	subsystemErr     = "err"
+	subsystemHit     = "hit"
 	subsystemOp      = "op"
 	subsystemQueue   = "queue"
 )
@@ -162,14 +163,14 @@ func main() {
 
 	cacheErrCount := kitprometheus.NewCounterFrom(prometheus.CounterOpts{
 		Namespace: namespaceCache,
-		Substyem:  subsystemErr,
+		Subsystem: subsystemErr,
 		Name:      "count",
 		Help:      "Number of failed cache operations",
 	}, cacheFieldKeys)
 
 	cacheHitCount := kitprometheus.NewCounterFrom(prometheus.CounterOpts{
 		Namespace: namespaceCache,
-		Subsystem: subsystemOp,
+		Subsystem: subsystemHit,
 		Name:      "count",
 		Help:      "Number of cache hits",
 	}, cacheFieldKeys)
@@ -188,9 +189,9 @@ func main() {
 			Name:      "latency_seconds",
 			Help:      "Distribution of cache op duration in seconds",
 		},
-		serviceFieldKeys,
+		cacheFieldKeys,
 	)
-	prometheus.MustRegister(serviceOpLatency)
+	prometheus.MustRegister(cacheOpLatency)
 
 	serviceFieldKeys := []string{
 		metrics.FieldComponent,
@@ -354,12 +355,12 @@ func main() {
 
 	var eventCountsCache cache.CountService
 	eventCountsCache = cache.RedisCountService(redisClient)
-	eventCountsCache = cache.InstrumentCountServiceMiddleware(component, "event", "redis", cacheErrCount, cacheHitCount, cacheOpCount, cacheOpLatency)
+	eventCountsCache = cache.InstrumentCountServiceMiddleware(component, "event", "redis", cacheErrCount, cacheHitCount, cacheOpCount, cacheOpLatency)(eventCountsCache)
 	// TODO: add logging middleware
 
 	var objectCountsCache cache.CountService
 	objectCountsCache = cache.RedisCountService(redisClient)
-	objectCountsCache = cache.InstrumentCountServiceMiddleware(component, "object", "redis", cacheErrCount, cacheHitCount, cacheOpCount, cacheOpLatency)
+	objectCountsCache = cache.InstrumentCountServiceMiddleware(component, "object", "redis", cacheErrCount, cacheHitCount, cacheOpCount, cacheOpLatency)(objectCountsCache)
 
 	var apps app.Service
 	apps = app.NewPostgresService(pgClient.MainDatastore())
@@ -385,7 +386,7 @@ func main() {
 	// Combine event service and source.
 	events = event.SourcingServiceMiddleware(eventSource)(events)
 	// Add counts cache.
-	events = event.CacheServiceMiddleware(countsCache)(events)
+	events = event.CacheServiceMiddleware(eventCountsCache)(events)
 
 	var members member.StrangleService
 	members = v04_postgres_core.NewMember(pgClient)
@@ -399,7 +400,7 @@ func main() {
 	// Combine object service and source.
 	objects = object.SourcingServiceMiddleware(objectSource)(objects)
 	// Add counts cache.
-	objects = object.CacheServiceMiddleware(objectCountsCachect)(objects)
+	objects = object.CacheServiceMiddleware(objectCountsCache)(objects)
 
 	var orgs org.StrangleService
 	orgs = v04_postgres_core.NewOrganization(pgClient)
