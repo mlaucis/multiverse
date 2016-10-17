@@ -56,6 +56,10 @@ func (s *instrumentCountCache) Get(ns, key string) (count int, err error) {
 }
 
 func (s *instrumentCountCache) Set(ns, key string, count int) (err error) {
+	defer func(begin time.Time) {
+		s.track("Set", ns, begin, err)
+	}(time.Now())
+
 	return s.next.Set(ns, key, count)
 }
 
