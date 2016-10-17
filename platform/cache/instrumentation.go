@@ -44,9 +44,10 @@ func InstrumentCountServiceMiddleware(
 func (s *instrumentCountCache) Get(ns, key string) (count int, err error) {
 	defer func(begin time.Time) {
 		if IsKeyNotFound(err) {
-			s.trackHit("Get", ns)
-
 			err = nil
+		}
+		if err == nil {
+			s.trackHit("Get", ns)
 		}
 
 		s.track("Get", ns, begin, err)
@@ -98,7 +99,7 @@ func (s *instrumentCountCache) track(
 }
 
 func (s *instrumentCountCache) trackHit(method, namespace string) {
-	s.opCount.With(
+	s.hitCount.With(
 		metrics.FieldComponent, s.component,
 		metrics.FieldMethod, method,
 		metrics.FieldNamespace, namespace,
