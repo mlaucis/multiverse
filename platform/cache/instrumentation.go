@@ -35,6 +35,7 @@ func InstrumentCountServiceMiddleware(
 			next:      next,
 			opCount:   opCount,
 			opLatency: opLatency,
+			service:   service,
 			store:     store,
 		}
 	}
