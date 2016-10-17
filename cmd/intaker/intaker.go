@@ -279,8 +279,8 @@ func main() {
 			Region:      aws.String(*awsRegion),
 		})
 		pgClient    = v04_postgres.New(conf.Postgres)
-		rateLimiter = redis.NewLimiter(redisClient, "test:ratelimiter:app:")
 		redisClient = v04_redis.NewRedigoPool(conf.RateLimiter)
+		rateLimiter = redis.NewLimiter(redisClient, "test:ratelimiter:app:")
 		sqsAPI      = sqs.New(aSession)
 	)
 
