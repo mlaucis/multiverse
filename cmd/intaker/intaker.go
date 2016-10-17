@@ -57,6 +57,7 @@ const (
 	EnvConfigVar     = "TAPGLUE_INTAKER_CONFIG_PATH"
 	apiVersionNext   = "0.4"
 	component        = "gateway-http"
+	namespaceCache   = "cache"
 	namespaceService = "service"
 	namespaceSource  = "source"
 	subsystemErr     = "err"
@@ -151,6 +152,46 @@ func main() {
 	)
 
 	// Setup instrumenation
+	cacheFieldKeys := []string{
+		metrics.FieldComponent,
+		metrics.FieldMethod,
+		metrics.FieldNamespace,
+		metrics.FieldService,
+		metrics.FieldStore,
+	}
+
+	cacheErrCount := kitprometheus.NewCounterFrom(prometheus.CounterOpts{
+		Namespace: namespaceCache,
+		Substyem:  subsystemErr,
+		Name:      "count",
+		Help:      "Number of failed cache operations",
+	}, cacheFieldKeys)
+
+	cacheHitCount := kitprometheus.NewCounterFrom(prometheus.CounterOpts{
+		Namespace: namespaceCache,
+		Subsystem: subsystemOp,
+		Name:      "count",
+		Help:      "Number of cache hits",
+	}, cacheFieldKeys)
+
+	cacheOpCount := kitprometheus.NewCounterFrom(prometheus.CounterOpts{
+		Namespace: namespaceCache,
+		Subsystem: subsystemOp,
+		Name:      "count",
+		Help:      "Number of cache operations performed",
+	}, cacheFieldKeys)
+
+	cacheOpLatency := prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: namespaceCache,
+			Subsystem: subsystemOp,
+			Name:      "latency_seconds",
+			Help:      "Distribution of cache op duration in seconds",
+		},
+		serviceFieldKeys,
+	)
+	prometheus.MustRegister(serviceOpLatency)
+
 	serviceFieldKeys := []string{
 		metrics.FieldComponent,
 		metrics.FieldMethod,
@@ -311,10 +352,14 @@ func main() {
 		rateLimiter = redis.NewLimiter(redisClient, "test:ratelimiter:app:")
 	)
 
-	var countsCache cache.CountService
-	countsCache = cache.RedisCountService(redisClient)
-	// TODO: add instrumentation middleware
+	var eventCountsCache cache.CountService
+	eventCountsCache = cache.RedisCountService(redisClient)
+	eventCountsCache = cache.InstrumentCountServiceMiddleware(component, "event", "redis", cacheErrCount, cacheHitCount, cacheOpCount, cacheOpLatency)
 	// TODO: add logging middleware
+
+	var objectCountsCache cache.CountService
+	objectCountsCache = cache.RedisCountService(redisClient)
+	objectCountsCache = cache.InstrumentCountServiceMiddleware(component, "object", "redis", cacheErrCount, cacheHitCount, cacheOpCount, cacheOpLatency)
 
 	var apps app.Service
 	apps = app.NewPostgresService(pgClient.MainDatastore())
@@ -335,11 +380,12 @@ func main() {
 
 	var events event.Service
 	events = event.NewPostgresService(pgClient.MainDatastore())
-	events = event.CacheServiceMiddleware(countsCache)(events)
 	events = event.InstrumentServiceMiddleware(component, "postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(events)
 	events = event.LogServiceMiddleware(logger, "postgres")(events)
 	// Combine event service and source.
 	events = event.SourcingServiceMiddleware(eventSource)(events)
+	// Add counts cache.
+	events = event.CacheServiceMiddleware(countsCache)(events)
 
 	var members member.StrangleService
 	members = v04_postgres_core.NewMember(pgClient)
@@ -348,11 +394,12 @@ func main() {
 
 	var objects object.Service
 	objects = object.NewPostgresService(pgClient.MainDatastore())
-	objects = object.CacheServiceMiddleware(countsCache)(objects)
 	objects = object.InstrumentServiceMiddleware(component, "postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(objects)
 	objects = object.LogServiceMiddleware(logger, "postgres")(objects)
 	// Combine object service and source.
 	objects = object.SourcingServiceMiddleware(objectSource)(objects)
+	// Add counts cache.
+	objects = object.CacheServiceMiddleware(objectCountsCachect)(objects)
 
 	var orgs org.StrangleService
 	orgs = v04_postgres_core.NewOrganization(pgClient)
