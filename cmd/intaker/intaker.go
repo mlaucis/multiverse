@@ -272,14 +272,30 @@ func main() {
 	)
 	prometheus.MustRegister(sourceQueueLatency)
 
-	// Setup sources
+	// Setup clients
 	var (
 		aSession = awsSession.New(&aws.Config{
 			Credentials: credentials.NewStaticCredentials(*awsID, *awsSecret, ""),
 			Region:      aws.String(*awsRegion),
 		})
-		sqsAPI = sqs.New(aSession)
+		pgClient    = v04_postgres.New(conf.Postgres)
+		rateLimiter = redis.NewLimiter(redisClient, "test:ratelimiter:app:")
+		redisClient = v04_redis.NewRedigoPool(conf.RateLimiter)
+		sqsAPI      = sqs.New(aSession)
+	)
 
+	// Setup caches
+	var eventCountsCache cache.CountService
+	eventCountsCache = cache.RedisCountService(redisClient)
+	eventCountsCache = cache.InstrumentCountServiceMiddleware(component, "event_counts", "redis", cacheErrCount, cacheHitCount, cacheOpCount, cacheOpLatency)(eventCountsCache)
+	// TODO: add logging middleware
+
+	var objectCountsCache cache.CountService
+	objectCountsCache = cache.RedisCountService(redisClient)
+	objectCountsCache = cache.InstrumentCountServiceMiddleware(component, "object_counts", "redis", cacheErrCount, cacheHitCount, cacheOpCount, cacheOpLatency)(objectCountsCache)
+
+	// Setup sources
+	var (
 		conSource    connection.Source
 		eventSource  event.Source
 		objectSource object.Source
@@ -347,21 +363,6 @@ func main() {
 	objectSource = object.LogSourceMiddleware(*source, logger)(objectSource)
 
 	// Setup services
-	var (
-		pgClient    = v04_postgres.New(conf.Postgres)
-		redisClient = v04_redis.NewRedigoPool(conf.RateLimiter)
-		rateLimiter = redis.NewLimiter(redisClient, "test:ratelimiter:app:")
-	)
-
-	var eventCountsCache cache.CountService
-	eventCountsCache = cache.RedisCountService(redisClient)
-	eventCountsCache = cache.InstrumentCountServiceMiddleware(component, "event", "redis", cacheErrCount, cacheHitCount, cacheOpCount, cacheOpLatency)(eventCountsCache)
-	// TODO: add logging middleware
-
-	var objectCountsCache cache.CountService
-	objectCountsCache = cache.RedisCountService(redisClient)
-	objectCountsCache = cache.InstrumentCountServiceMiddleware(component, "object", "redis", cacheErrCount, cacheHitCount, cacheOpCount, cacheOpLatency)(objectCountsCache)
-
 	var apps app.Service
 	apps = app.NewPostgresService(pgClient.MainDatastore())
 	apps = app.InstrumentServiceMiddleware(component, "postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(apps)
