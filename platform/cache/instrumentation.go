@@ -43,11 +43,11 @@ func InstrumentCountServiceMiddleware(
 
 func (s *instrumentCountCache) Get(ns, key string) (count int, err error) {
 	defer func(begin time.Time) {
-		if IsKeyNotFound(err) {
-			err = nil
-		}
 		if err == nil {
 			s.trackHit("Get", ns)
+		}
+		if IsKeyNotFound(err) {
+			err = nil
 		}
 
 		s.track("Get", ns, begin, err)
