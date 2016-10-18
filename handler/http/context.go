@@ -5,6 +5,7 @@ import (
 
 	"github.com/tapglue/multiverse/controller"
 	"github.com/tapglue/multiverse/service/app"
+	"github.com/tapglue/multiverse/service/member"
 	"github.com/tapglue/multiverse/service/user"
 	v04_entity "github.com/tapglue/multiverse/v04/entity"
 )
@@ -40,11 +41,11 @@ func deviceIDInContext(ctx context.Context, deviceID string) context.Context {
 	return context.WithValue(ctx, ctxKeyDeviceID, deviceID)
 }
 
-func memberFromContext(ctx context.Context) *v04_entity.Member {
-	return ctx.Value(ctxKeyMember).(*v04_entity.Member)
+func memberFromContext(ctx context.Context) *member.Member {
+	return ctx.Value(ctxKeyMember).(*member.Member)
 }
 
-func memberInContext(ctx context.Context, app *v04_entity.Member) context.Context {
+func memberInContext(ctx context.Context, app *member.Member) context.Context {
 	return context.WithValue(ctx, ctxKeyMember, app)
 }
 

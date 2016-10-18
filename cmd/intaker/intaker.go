@@ -389,10 +389,15 @@ func main() {
 	// Add counts cache.
 	events = event.CacheServiceMiddleware(eventCountsCache)(events)
 
-	var members member.StrangleService
-	members = v04_postgres_core.NewMember(pgClient)
-	members = member.InstrumentStrangleMiddleware(component, "postgres", serviceErrCount, serviceOpCount, serviceOpLatency)(members)
-	members = member.LogStrangleMiddleware(logger, "postgres")(members)
+	var members member.Service
+	members = member.PostgresService(pgClient.MainDatastore())
+	// TODO: add instrumentation
+	// TODO: add logging
+
+	var memberSessions member.SessionService
+	memberSessions = member.PostgresSessionService(pgClient.MainDatastore())
+	// TODO: add instrumentation
+	// TODO: add logging
 
 	var objects object.Service
 	objects = object.NewPostgresService(pgClient.MainDatastore())
@@ -460,7 +465,7 @@ func main() {
 		)
 		withMember = handler.Chain(
 			withOrg,
-			handler.CtxMember(members),
+			handler.CtxMember(members, memberSessions),
 		)
 		withApp = handler.Chain(
 			withConstraints,

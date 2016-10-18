@@ -107,7 +107,7 @@ func CtxApp(apps app.Service) Middleware {
 
 // CtxMember extracts the member from the Authentication header and adds it to the
 // Context.
-func CtxMember(members member.StrangleService) Middleware {
+func CtxMember(members member.Service, memberSessions member.SessionService) Middleware {
 	return func(next Handler) Handler {
 		return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 			_, token, ok := r.BasicAuth()
@@ -116,18 +116,43 @@ func CtxMember(members member.StrangleService) Middleware {
 				return
 			}
 
-			member, errs := members.FindBySession(token)
-			if errs != nil {
-				respondError(w, 0, errs[0])
+			ss, err := memberSessions.Query(
+				member.NamespaceDefault,
+				member.SessionQueryOpts{
+					IDs: []string{
+						token,
+					},
+				},
+			)
+			if err != nil {
+				respondError(w, 0, err)
 				return
 			}
 
-			if member == nil {
+			if len(ss) == 0 {
 				respondError(w, 7004, wrapError(ErrUnauthorized, "member not found"))
 				return
 			}
 
-			next(memberInContext(ctx, member), w, r)
+			session := ss[0]
+
+			ms, err := members.Query(member.NamespaceDefault, member.QueryOpts{
+				Enabled: &defaultEnabled,
+				IDs: []uint64{
+					session.MemberID,
+				},
+			})
+			if err != nil {
+				respondError(w, 0, err)
+				return
+			}
+
+			if len(ms) == 0 {
+				respondError(w, 7004, wrapError(ErrUnauthorized, "member not found"))
+				return
+			}
+
+			next(memberInContext(ctx, ms[0]), w, r)
 		}
 	}
 }
