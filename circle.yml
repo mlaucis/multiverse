@@ -45,4 +45,4 @@ deployment:
       # - ./infrastructure/containers/docker/release_container.sh dashboard
       - ./infrastructure/containers/docker/release_container.sh sims sims_${CIRCLE_BUILD_NUM}
       # - ./bin/make_release.sh corporate styleguide
-      # - ./bin/make_release.sh corporate website
+      - ./bin/make_release.sh corporate website
