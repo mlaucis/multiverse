@@ -80,7 +80,7 @@ var appSchemes = map[string]map[device.Platform]string{
 		device.PlatformIOSSandbox: "bkx",
 	},
 	"app_831_1203": map[device.Platform]string{
-		device.PlatformIOSSandbox: "lifesum",
+		device.PlatformIOSSandbox: "shapeupclub",
 	},
 }
 
