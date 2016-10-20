@@ -60,6 +60,30 @@ var (
 	revision = "0000000-dev"
 )
 
+// appSchemes maps namespaces to device specific schemes for construction of
+// deep links.
+var appSchemes = map[string]map[device.Platform]string{
+	"app_1_610": map[device.Platform]string{
+		device.PlatformIOSSandbox: "simsTest",
+		device.PlatformAndroid:    "simsTest",
+	},
+	"app_1_1147": map[device.Platform]string{
+		device.PlatformIOSSandbox: "TapglueSample",
+	},
+	"app_684_948": map[device.Platform]string{
+		device.PlatformIOSSandbox: "uMake",
+	},
+	"app_684_987": map[device.Platform]string{
+		device.PlatformIOSSandbox: "uMake",
+	},
+	"app_515_922": map[device.Platform]string{
+		device.PlatformIOSSandbox: "bkx",
+	},
+	"app_831_1203": map[device.Platform]string{
+		device.PlatformIOSSandbox: "lifesum",
+	},
+}
+
 // arns maps Tapglue app namespaces to SNS ARNs.
 var arns = map[string]map[device.Platform]string{
 	"app_1_610": map[device.Platform]string{
@@ -558,7 +582,6 @@ func main() {
 	}
 
 	getPlatformARN = func(ns string, platform device.Platform) (string, error) {
-
 		cs, ok := arns[ns]
 		if !ok {
 			return "", ErrNamespaceNotFound
@@ -573,26 +596,7 @@ func main() {
 	}
 
 	getPlatformName = func(ns string, platform device.Platform) (string, error) {
-		names := map[string]map[device.Platform]string{
-			"app_1_610": map[device.Platform]string{
-				device.PlatformIOSSandbox: "simsTest",
-				device.PlatformAndroid:    "simsTest",
-			},
-			"app_1_1147": map[device.Platform]string{
-				device.PlatformIOSSandbox: "TapglueSample",
-			},
-			"app_684_948": map[device.Platform]string{
-				device.PlatformIOSSandbox: "uMake",
-			},
-			"app_684_987": map[device.Platform]string{
-				device.PlatformIOSSandbox: "uMake",
-			},
-			"app_515_922": map[device.Platform]string{
-				device.PlatformIOSSandbox: "bkx",
-			},
-		}
-
-		cs, ok := names[ns]
+		cs, ok := appSchemes[ns]
 		if !ok {
 			return "", ErrNamespaceNotFound
 		}
