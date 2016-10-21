@@ -6,7 +6,7 @@ import (
 	"github.com/tapglue/multiverse/platform/service"
 )
 
-// NamespaceDefault is the default namespace for member services.
+// NamespaceDefault is the default namespace to isolate top-level data sets.
 const NamespaceDefault = "tg"
 
 // List is a Member collection.

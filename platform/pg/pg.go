@@ -58,7 +58,7 @@ func IsRelationNotFound(err error) bool {
 	return err == ErrRelationNotFound
 }
 
-// WrapError check the given error if it indicates that the relation wasn't
+// WrapError checks if the given error indicates that the relation wasn't
 // present, otherwise returns the original error.
 func WrapError(err error) error {
 	if err, ok := err.(*pq.Error); ok && err.Code == "42P01" {
@@ -66,4 +66,9 @@ func WrapError(err error) error {
 	}
 
 	return err
+}
+
+// WrapNamespace replaces the first format string verb with the namespace.
+func WrapNamespace(query, namespace string) string {
+	return fmt.Sprintf(query, namespace)
 }
