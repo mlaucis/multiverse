@@ -47,7 +47,11 @@ func (s *sourcingService) Put(ns string, input *Event) (new *Event, err error) {
 	}()
 
 	if input.ID != 0 {
-		es, err := s.service.Query(ns, QueryOptions{})
+		es, err := s.service.Query(ns, QueryOptions{
+			IDs: []uint64{
+				input.ID,
+			},
+		})
 		if err != nil {
 			return nil, err
 		}
