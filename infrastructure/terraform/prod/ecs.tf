@@ -621,6 +621,7 @@ $ActionSendStreamDriver gtls
 $ActionSendStreamDriverMode 1
 $ActionSendStreamDriverAuthMode x509/name
 $ActionSendStreamDriverPermittedPeer *.loggly.com
+:msg, !contains, "err" ~ # Discard non-error messages
 *.* @@logs-01.loggly.com:6514;LogglyFormat
 ' | sudo tee /etc/rsyslog.d/22-loggly.conf > /dev/null
 
