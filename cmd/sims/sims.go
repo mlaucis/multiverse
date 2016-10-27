@@ -121,10 +121,11 @@ type ackFunc func() error
 type channelFunc func(string, *message) error
 type createEndpointFunc func(platformARN, token string) (string, error)
 type disableDeviceFunc func(platformARN, endpointARN string) error
-type fetchFollowersFunc func(namespace string, id uint64) (user.List, error)
-type fetchFriendsFunc func(namespace string, id uint64) (user.List, error)
+type fetchFollowerIDsFunc func(namespace string, origin uint64) ([]uint64, error)
+type fetchFriendIDsFunc func(namespace string, origin uint64) ([]uint64, error)
 type fetchObjectFunc func(namespace string, id uint64) (*object.Object, error)
 type fetchUserFunc func(namespace string, id uint64) (*user.User, error)
+type fetchUsersFunc func(namespace string, ids ...uint64) (user.List, error)
 type findDevicesFunc func(namespace string, userID uint64, platforms ...device.Platform) (device.List, error)
 type getEndpointFunc func(arn string) (string, error)
 type getNamespaceFunc func(arn string) (string, error)
@@ -360,10 +361,11 @@ func main() {
 
 	var createEndpoint createEndpointFunc
 	var disableDevice disableDeviceFunc
-	var fetchFollowers fetchFollowersFunc
-	var fetchFriends fetchFriendsFunc
+	var fetchFollowerIDs fetchFollowerIDsFunc
+	var fetchFriendIDs fetchFriendIDsFunc
 	var fetchObject fetchObjectFunc
 	var fetchUser fetchUserFunc
+	var fetchUsers fetchUsersFunc
 	var getUserDevices getUserDevicesFunc
 	var getEndpoint getEndpointFunc
 	var getNamespace getNamespaceFunc
@@ -414,14 +416,14 @@ func main() {
 		return err
 	}
 
-	fetchFollowers = func(ns string, id uint64) (user.List, error) {
+	fetchFollowerIDs = func(ns string, origin uint64) ([]uint64, error) {
 		fs, err := connections.Query(ns, connection.QueryOptions{
 			Enabled: &defaultEnabled,
 			States: []connection.State{
 				connection.StateConfirmed,
 			},
 			ToIDs: []uint64{
-				id,
+				origin,
 			},
 			Types: []connection.Type{
 				connection.TypeFollow,
@@ -431,16 +433,14 @@ func main() {
 			return nil, err
 		}
 
-		return user.ListFromIDs(users, ns, fs.FromIDs()...)
+		return fs.FromIDs(), nil
 	}
 
-	fetchFriends = func(ns string, id uint64) (user.List, error) {
-		us := user.List{}
-
-		rs, err := connections.Query(ns, connection.QueryOptions{
+	fetchFriendIDs = func(ns string, origin uint64) ([]uint64, error) {
+		fs, err := connections.Query(ns, connection.QueryOptions{
 			Enabled: &defaultEnabled,
 			FromIDs: []uint64{
-				id,
+				origin,
 			},
 			States: []connection.State{
 				connection.StateConfirmed,
@@ -453,17 +453,10 @@ func main() {
 			return nil, err
 		}
 
-		is, err := user.ListFromIDs(users, ns, rs.ToIDs()...)
-		if err != nil {
-			return nil, err
-		}
-
-		us = append(us, is...)
-
-		rs, err = connections.Query(ns, connection.QueryOptions{
+		ts, err := connections.Query(ns, connection.QueryOptions{
 			Enabled: &defaultEnabled,
 			ToIDs: []uint64{
-				id,
+				origin,
 			},
 			States: []connection.State{
 				connection.StateConfirmed,
@@ -476,12 +469,7 @@ func main() {
 			return nil, err
 		}
 
-		is, err = user.ListFromIDs(users, ns, rs.FromIDs()...)
-		if err != nil {
-			return nil, err
-		}
-
-		return append(us, is...), nil
+		return append(fs.ToIDs(), ts.FromIDs()...), nil
 	}
 
 	fetchObject = func(ns string, id uint64) (*object.Object, error) {
@@ -515,6 +503,17 @@ func main() {
 		}
 
 		return us[0], nil
+	}
+
+	fetchUsers = func(ns string, ids ...uint64) (user.List, error) {
+		if len(ids) == 0 {
+			return user.List{}, nil
+		}
+
+		return users.Query(ns, user.QueryOptions{
+			Enabled: &defaultEnabled,
+			IDs:     ids,
+		})
 	}
 
 	getUserDevices = func(ns string, userID uint64) (device.List, error) {
@@ -765,7 +764,7 @@ func main() {
 		err := consumeEvent(
 			eventSource,
 			batchc,
-			eventRuleLikeCreated(fetchFollowers, fetchFriends, fetchObject, fetchUser),
+			eventRuleLikeCreated(fetchFollowerIDs, fetchFriendIDs, fetchObject, fetchUser, fetchUsers),
 		)
 		if err != nil {
 			logger.Log("err", err, "lifecycle", "abort")
@@ -777,8 +776,8 @@ func main() {
 		err := consumeObject(
 			objectSource,
 			batchc,
-			objectRuleCommentCreated(fetchFollowers, fetchFriends, fetchObject, fetchUser),
-			objectRulePostCreated(fetchFollowers, fetchFriends, fetchUser),
+			objectRuleCommentCreated(fetchFollowerIDs, fetchFriendIDs, fetchObject, fetchUser, fetchUsers),
+			objectRulePostCreated(fetchFollowerIDs, fetchFriendIDs, fetchUser, fetchUsers),
 		)
 		if err != nil {
 			logger.Log("err", err, "lifecycle", "abort")

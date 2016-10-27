@@ -3,8 +3,6 @@ package main
 import (
 	"fmt"
 
-	"github.com/tapglue/multiverse/service/user"
-
 	"github.com/tapglue/multiverse/controller"
 	"github.com/tapglue/multiverse/service/connection"
 	"github.com/tapglue/multiverse/service/event"
@@ -125,10 +123,11 @@ func conRuleFriendRequest(fetchUser fetchUserFunc) conRuleFunc {
 }
 
 func eventRuleLikeCreated(
-	fetchFollowers fetchFollowersFunc,
-	fetchFriends fetchFriendsFunc,
+	fetchFollowerIDs fetchFollowerIDsFunc,
+	fetchFriendIDs fetchFriendIDsFunc,
 	fetchObject fetchObjectFunc,
 	fetchUser fetchUserFunc,
+	fetchUsers fetchUsersFunc,
 ) eventRuleFunc {
 	return func(change *event.StateChange) ([]*message, error) {
 		if change.Old != nil ||
@@ -152,23 +151,24 @@ func eventRuleLikeCreated(
 			return nil, fmt.Errorf("owner fetch: %s", err)
 		}
 
-		rs := user.List{
-			owner,
-		}
-
-		fs, err := fetchFollowers(change.Namespace, origin.ID)
+		followIDs, err := fetchFollowerIDs(change.Namespace, origin.ID)
 		if err != nil {
 			return nil, err
 		}
 
-		rs = append(rs, fs...)
-
-		fs, err = fetchFriends(change.Namespace, origin.ID)
+		friendIDs, err := fetchFriendIDs(change.Namespace, origin.ID)
 		if err != nil {
 			return nil, err
 		}
 
-		rs = append(rs, fs...)
+		ids := filterIDs(append(followIDs, friendIDs...), owner.ID)
+
+		rs, err := fetchUsers(change.Namespace, ids...)
+		if err != nil {
+			return nil, err
+		}
+
+		rs = append(rs, owner)
 
 		ms := []*message{}
 
@@ -196,10 +196,11 @@ func eventRuleLikeCreated(
 }
 
 func objectRuleCommentCreated(
-	fetchFollowers fetchFollowersFunc,
-	fetchFriends fetchFriendsFunc,
+	fetchFollowerIDs fetchFollowerIDsFunc,
+	fetchFriendIDs fetchFriendIDsFunc,
 	fetchObject fetchObjectFunc,
 	fetchUser fetchUserFunc,
+	fetchUsers fetchUsersFunc,
 ) objectRuleFunc {
 	return func(change *object.StateChange) ([]*message, error) {
 		if change.Old != nil ||
@@ -223,23 +224,24 @@ func objectRuleCommentCreated(
 			return nil, fmt.Errorf("owner fetch: %s", err)
 		}
 
-		rs := user.List{
-			owner,
-		}
-
-		fs, err := fetchFollowers(change.Namespace, origin.ID)
+		followIDs, err := fetchFollowerIDs(change.Namespace, origin.ID)
 		if err != nil {
 			return nil, err
 		}
 
-		rs = append(rs, fs...)
-
-		fs, err = fetchFriends(change.Namespace, origin.ID)
+		friendIDs, err := fetchFriendIDs(change.Namespace, origin.ID)
 		if err != nil {
 			return nil, err
 		}
 
-		rs = append(rs, fs...)
+		ids := filterIDs(append(followIDs, friendIDs...), owner.ID)
+
+		rs, err := fetchUsers(change.Namespace, ids...)
+		if err != nil {
+			return nil, err
+		}
+
+		rs = append(rs, owner)
 
 		ms := []*message{}
 
@@ -267,9 +269,10 @@ func objectRuleCommentCreated(
 }
 
 func objectRulePostCreated(
-	fetchFollowers fetchFollowersFunc,
-	fetchFriends fetchFriendsFunc,
+	fetchFollowerIDs fetchFollowerIDsFunc,
+	fetchFriendIDs fetchFriendIDsFunc,
 	fetchUser fetchUserFunc,
+	fetchUsers fetchUsersFunc,
 ) objectRuleFunc {
 	return func(change *object.StateChange) ([]*message, error) {
 		if change.Old != nil ||
@@ -283,21 +286,20 @@ func objectRulePostCreated(
 			return nil, fmt.Errorf("origin fetch: %s", err)
 		}
 
-		rs := user.List{}
-
-		fs, err := fetchFollowers(change.Namespace, origin.ID)
+		followIDs, err := fetchFollowerIDs(change.Namespace, origin.ID)
 		if err != nil {
 			return nil, err
 		}
 
-		rs = append(rs, fs...)
-
-		fs, err = fetchFriends(change.Namespace, origin.ID)
+		friendIDs, err := fetchFriendIDs(change.Namespace, origin.ID)
 		if err != nil {
 			return nil, err
 		}
 
-		rs = append(rs, fs...)
+		rs, err := fetchUsers(change.Namespace, append(followIDs, friendIDs...)...)
+		if err != nil {
+			return nil, err
+		}
 
 		ms := []*message{}
 
@@ -316,6 +318,27 @@ func objectRulePostCreated(
 
 		return ms, nil
 	}
+}
+
+func filterIDs(ids []uint64, fs ...uint64) []uint64 {
+	var (
+		is   = []uint64{}
+		seen = map[uint64]struct{}{}
+	)
+
+	for _, id := range fs {
+		seen[id] = struct{}{}
+	}
+
+	for _, id := range ids {
+		if _, ok := seen[id]; ok {
+			continue
+		}
+
+		is = append(is, id)
+	}
+
+	return is
 }
 
 func isComment(o *object.Object) bool {
