@@ -26,6 +26,17 @@ const (
 			AND id = $2
 		RETURNING id`
 
+	pgListMembers = `
+		SELECT
+			id, account_id, json_data
+		FROM
+			%s.account_users
+		%s`
+
+	pgClauseEnabled = `(json_data->>'enabled')::BOOL = ?::BOOL`
+	pgClauseIDs     = `id IN (?)`
+	pgClauseOrgIDs  = `account_id IN (?)`
+
 	pgCreateSchema = `CREATE SCHEMA IF NOT EXISTS %s`
 	pgCreateTable  = `CREATE TABLE IF NOT EXISTS %s.account_users(
 		id SERIAL PRIMARY KEY NOT NULL,
@@ -65,6 +76,9 @@ func (s *pgService) Put(ns string, input *Member) (*Member, error) {
 				input.ID,
 			},
 		})
+		if err != nil {
+			return nil, err
+		}
 
 		ms, err := s.listMembers(ns, where, params...)
 		if err != nil {
@@ -75,12 +89,19 @@ func (s *pgService) Put(ns string, input *Member) (*Member, error) {
 			return nil, ErrNotFound
 		}
 
-		input.CreatedAt = ms[0].CreatedAt
+		input.CreatedAt = ms[0].CreatedAt.UTC()
 	} else {
 		query = pgInsertMember
+
+		if input.CreatedAt.IsZero() {
+			input.CreatedAt = now
+		}
+
+		input.CreatedAt = input.CreatedAt.UTC()
 	}
 
-	input.UpdatedAt = now
+	input.LastLogin = input.LastLogin.UTC()
+	input.UpdatedAt = now.UTC()
 
 	data, err := json.Marshal(input)
 	if err != nil {
@@ -111,7 +132,12 @@ func (s *pgService) Put(ns string, input *Member) (*Member, error) {
 }
 
 func (s *pgService) Query(ns string, opts QueryOpts) (List, error) {
-	return nil, fmt.Errorf("Query not implemented")
+	where, params, err := convertOpts(opts)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.listMembers(ns, where, params...)
 }
 
 func (s *pgService) Setup(ns string) error {
@@ -123,7 +149,7 @@ func (s *pgService) Setup(ns string) error {
 	for _, q := range qs {
 		_, err := s.db.Exec(q)
 		if err != nil {
-			return fmt.Errorf("query faield (%s): %s", err)
+			return fmt.Errorf("query faield (%s): %s", q, err)
 		}
 	}
 
@@ -149,7 +175,56 @@ func (s *pgService) listMembers(
 	ns, where string,
 	params ...interface{},
 ) (List, error) {
-	return nil, fmt.Errorf("listMembers not implemented")
+	query := fmt.Sprintf(pgListMembers, ns, where)
+
+	rows, err := s.db.Query(query, params...)
+	if err != nil {
+		if pg.IsRelationNotFound(pg.WrapError(err)) {
+			if err := s.Setup(ns); err != nil {
+				return nil, err
+			}
+
+			rows, err = s.db.Query(query, params...)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			return nil, err
+		}
+	}
+	defer rows.Close()
+
+	ms := List{}
+
+	for rows.Next() {
+		var (
+			member = &Member{}
+
+			id, orgID uint64
+			raw       []byte
+		)
+
+		err := rows.Scan(&id, &orgID, &raw)
+		if err != nil {
+			return nil, err
+		}
+
+		err = json.Unmarshal(raw, member)
+		if err != nil {
+			return nil, err
+		}
+
+		member.ID = id
+		member.OrgID = orgID
+
+		ms = append(ms, member)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return ms, nil
 }
 
 type pgSessionService struct {
@@ -157,7 +232,9 @@ type pgSessionService struct {
 }
 
 func PostgresSessionService(db *sqlx.DB) SessionService {
-	return &pgSessionService{}
+	return &pgSessionService{
+		db: db,
+	}
 }
 
 func (s *pgSessionService) Put(ns string, input *Session) (*Session, error) {
@@ -177,5 +254,58 @@ func (s *pgSessionService) Teardown(ns string) error {
 }
 
 func convertOpts(opts QueryOpts) (string, []interface{}, error) {
-	return "", nil, fmt.Errorf("convertOpts not implemented")
+	var (
+		clauses = []string{}
+		params  = []interface{}{}
+	)
+
+	if opts.Enabled != nil {
+		clause, _, err := sqlx.In(pgClauseEnabled, []interface{}{*opts.Enabled})
+		if err != nil {
+			return "", nil, err
+		}
+
+		clauses = append(clauses, clause)
+		params = append(params, *opts.Enabled)
+	}
+
+	if len(opts.IDs) > 0 {
+		ps := []interface{}{}
+
+		for _, id := range opts.IDs {
+			ps = append(ps, id)
+		}
+
+		clause, _, err := sqlx.In(pgClauseIDs, ps)
+		if err != nil {
+			return "", nil, err
+		}
+
+		clauses = append(clauses, clause)
+		params = append(params, ps...)
+	}
+
+	if len(opts.OrgIDs) > 0 {
+		ps := []interface{}{}
+
+		for _, id := range opts.OrgIDs {
+			ps = append(ps, id)
+		}
+
+		clause, _, err := sqlx.In(pgClauseOrgIDs, ps)
+		if err != nil {
+			return "", nil, err
+		}
+
+		clauses = append(clauses, clause)
+		params = append(params, ps...)
+	}
+
+	query := ""
+
+	if len(clauses) > 0 {
+		query = sqlx.Rebind(sqlx.DOLLAR, pg.ClausesToWhere(clauses...))
+	}
+
+	return query, params, nil
 }

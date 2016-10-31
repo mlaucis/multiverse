@@ -73,6 +73,7 @@ func (m *Member) Validate() error {
 type QueryOpts struct {
 	Enabled *bool
 	IDs     []uint64
+	OrgIDs  []uint64
 }
 
 // Service for member interactions.

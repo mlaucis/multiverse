@@ -46,7 +46,7 @@ func TestPostgresPut(t *testing.T) {
 		t.Fatalf("have %v, want %v", have, want)
 	}
 	if have, want := list[0], created; !reflect.DeepEqual(have, want) {
-		t.Errorf("have %v, want %v", have, want)
+		t.Errorf("have\n%v\nwant\n%v", have, want)
 	}
 
 	created.Enabled = false
@@ -80,7 +80,71 @@ func TestPostgresPut(t *testing.T) {
 }
 
 func TestPostgresQuery(t *testing.T) {
-	t.Fatal("TestQuery not implemented")
+	var (
+		namespace = "service_query"
+		service   = preparePostgres(t, namespace)
+	)
+
+	list, err := service.Query(namespace, QueryOpts{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if have, want := len(list), 0; have != want {
+		t.Errorf("have %v, want %v", have, want)
+	}
+
+	member := testMember()
+
+	created, err := service.Put(namespace, member)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, m := range testList() {
+		_, err := service.Put(namespace, m)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	enabled := true
+
+	cases := map[*QueryOpts]int{
+		&QueryOpts{}:                          11,
+		&QueryOpts{Enabled: &enabled}:         6,
+		&QueryOpts{IDs: []uint64{created.ID}}: 1,
+		&QueryOpts{OrgIDs: []uint64{2}}:       5,
+	}
+
+	for opts, want := range cases {
+		list, err := service.Query(namespace, *opts)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if have := len(list); have != want {
+			t.Errorf("have %v, want %v", have, want)
+		}
+	}
+}
+
+func testList() List {
+	ms := List{}
+
+	for i := 0; i < 5; i++ {
+		ms = append(ms, testMember())
+	}
+
+	for i := 0; i < 5; i++ {
+		m := testMember()
+		m.Enabled = false
+		m.OrgID = 2
+
+		ms = append(ms, m)
+	}
+
+	return ms
 }
 
 func testMember() *Member {
