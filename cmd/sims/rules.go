@@ -7,17 +7,18 @@ import (
 	"github.com/tapglue/multiverse/service/connection"
 	"github.com/tapglue/multiverse/service/event"
 	"github.com/tapglue/multiverse/service/object"
+	"github.com/tapglue/multiverse/service/user"
 )
 
 const (
-	fmtCommentPost     = "%s %s (%s) commented on a Post."
-	fmtCommentPostOwn  = "%s %s (%s) commented on your Post."
-	fmtFollow          = "%s %s (%s) started following you"
-	fmtFriendConfirmed = "%s %s (%s) accepted your friend request."
-	fmtFriendRequest   = "%s %s (%s) sent you a friend request."
-	fmtLikePost        = "%s %s (%s) liked a Post."
-	fmtLikePostOwn     = "%s %s (%s) liked your Post."
-	fmtPostCreated     = "%s %s (%s) created a new Post."
+	fmtCommentPost     = "%s commented on a Post."
+	fmtCommentPostOwn  = "%s commented on your Post."
+	fmtFollow          = "%s started following you"
+	fmtFriendConfirmed = "%s accepted your friend request."
+	fmtFriendRequest   = "%s sent you a friend request."
+	fmtLikePost        = "%s liked a Post."
+	fmtLikePostOwn     = "%s liked your Post."
+	fmtPostCreated     = "%s created a new Post."
 
 	urnComment = "tapglue/posts/%d/comments/%d"
 	urnPost    = "tapglue/posts/%d"
@@ -47,12 +48,7 @@ func conRuleFollower(fetchUser fetchUserFunc) conRuleFunc {
 		}
 
 		return &message{
-			message: fmt.Sprintf(
-				fmtFollow,
-				origin.Firstname,
-				origin.Lastname,
-				origin.Username,
-			),
+			message:   fmtToMessage(fmtFollow, origin),
 			recipient: target.ID,
 			urn:       fmt.Sprintf(urnUser, origin.ID),
 		}, nil
@@ -79,12 +75,7 @@ func conRuleFriendConfirmed(fetchUser fetchUserFunc) conRuleFunc {
 		}
 
 		return &message{
-			message: fmt.Sprintf(
-				fmtFriendConfirmed,
-				target.Firstname,
-				target.Lastname,
-				target.Username,
-			),
+			message:   fmtToMessage(fmtFriendConfirmed, target),
 			recipient: origin.ID,
 			urn:       fmt.Sprintf(urnUser, origin.ID),
 		}, nil
@@ -110,12 +101,7 @@ func conRuleFriendRequest(fetchUser fetchUserFunc) conRuleFunc {
 		}
 
 		return &message{
-			message: fmt.Sprintf(
-				fmtFriendRequest,
-				origin.Firstname,
-				origin.Lastname,
-				origin.Username,
-			),
+			message:   fmtToMessage(fmtFriendRequest, origin),
 			recipient: target.ID,
 			urn:       fmt.Sprintf(urnUser, origin.ID),
 		}, nil
@@ -180,12 +166,7 @@ func eventRuleLikeCreated(
 			}
 
 			ms = append(ms, &message{
-				message: fmt.Sprintf(
-					f,
-					origin.Firstname,
-					origin.Lastname,
-					origin.Username,
-				),
+				message:   fmtToMessage(f, origin),
 				recipient: recipient.ID,
 				urn:       fmt.Sprintf(urnPost, post.ID),
 			})
@@ -253,12 +234,7 @@ func objectRuleCommentCreated(
 			}
 
 			ms = append(ms, &message{
-				message: fmt.Sprintf(
-					f,
-					origin.Firstname,
-					origin.Lastname,
-					origin.Username,
-				),
+				message:   fmtToMessage(f, origin),
 				recipient: recipient.ID,
 				urn:       fmt.Sprintf(urnComment, post.ID, change.New.ID),
 			})
@@ -305,12 +281,7 @@ func objectRulePostCreated(
 
 		for _, recipient := range rs {
 			ms = append(ms, &message{
-				message: fmt.Sprintf(
-					fmtPostCreated,
-					origin.Firstname,
-					origin.Lastname,
-					origin.Username,
-				),
+				message:   fmtToMessage(fmtPostCreated, origin),
 				recipient: recipient.ID,
 				urn:       fmt.Sprintf(urnPost, change.New.ID),
 			})
@@ -363,4 +334,12 @@ func isPost(o *object.Object) bool {
 	}
 
 	return o.Owned
+}
+
+func fmtToMessage(f string, u *user.User) string {
+	if u.Firstname != "" {
+		return fmt.Sprintf(f, u.Firstname)
+	}
+
+	return fmt.Sprintf(f, u.Username)
 }
