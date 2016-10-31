@@ -11,6 +11,27 @@ import (
 )
 
 const (
+	pgInsertMember = `
+		INSERT INTO
+			%s.account_users(account_id, json_data)
+		VALUES($1, $2)
+		RETURNING id`
+	pgUpdateMember = `
+		UPDATE
+			%s.account_users
+		SET
+			json_data = $3
+		WHERE
+			account_id = $1
+			AND id = $2
+		RETURNING id`
+
+	pgCreateSchema = `CREATE SCHEMA IF NOT EXISTS %s`
+	pgCreateTable  = `CREATE TABLE IF NOT EXISTS %s.account_users(
+		id SERIAL PRIMARY KEY NOT NULL,
+		account_id INT NOT NULL,
+		json_data JSONB NOT NULL
+	)`
 	pgDropTable = `DROP TABLE IF EXISTS %s.account_users`
 )
 
@@ -37,6 +58,24 @@ func (s *pgService) Put(ns string, input *Member) (*Member, error) {
 	}
 
 	if input.ID != 0 {
+		params = append(params, input.ID)
+
+		where, params, err := convertOpts(QueryOpts{
+			IDs: []uint64{
+				input.ID,
+			},
+		})
+
+		ms, err := s.listMembers(ns, where, params...)
+		if err != nil {
+			return nil, err
+		}
+
+		if len(ms) != 1 {
+			return nil, ErrNotFound
+		}
+
+		input.CreatedAt = ms[0].CreatedAt
 	} else {
 		query = pgInsertMember
 	}
@@ -47,6 +86,9 @@ func (s *pgService) Put(ns string, input *Member) (*Member, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	query = pg.WrapNamespace(query, ns)
+	params = append(params, data)
 
 	var id uint64
 
@@ -73,7 +115,19 @@ func (s *pgService) Query(ns string, opts QueryOpts) (List, error) {
 }
 
 func (s *pgService) Setup(ns string) error {
-	return fmt.Errorf("Setup not implemented")
+	qs := []string{
+		pg.WrapNamespace(pgCreateSchema, ns),
+		pg.WrapNamespace(pgCreateTable, ns),
+	}
+
+	for _, q := range qs {
+		_, err := s.db.Exec(q)
+		if err != nil {
+			return fmt.Errorf("query faield (%s): %s", err)
+		}
+	}
+
+	return nil
 }
 
 func (s *pgService) Teardown(ns string) error {
@@ -89,6 +143,13 @@ func (s *pgService) Teardown(ns string) error {
 	}
 
 	return nil
+}
+
+func (s *pgService) listMembers(
+	ns, where string,
+	params ...interface{},
+) (List, error) {
+	return nil, fmt.Errorf("listMembers not implemented")
 }
 
 type pgSessionService struct {
@@ -113,4 +174,8 @@ func (s *pgSessionService) Setup(ns string) error {
 
 func (s *pgSessionService) Teardown(ns string) error {
 	return fmt.Errorf("Teardown not implemented")
+}
+
+func convertOpts(opts QueryOpts) (string, []interface{}, error) {
+	return "", nil, fmt.Errorf("convertOpts not implemented")
 }

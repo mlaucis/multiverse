@@ -11,6 +11,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/tapglue/multiverse/platform/generate"
+
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
@@ -89,7 +91,12 @@ func testMember() *Member {
 			"member%d@tapglue.test",
 			r.Int63(),
 		),
-		Enabled: true,
+		Enabled:   true,
+		Firstname: generate.RandomString(6),
+		Lastname:  generate.RandomString(12),
+		OrgID:     uint64(r.Intn(1000)),
+		Password:  generate.RandomString(12),
+		Username:  generate.RandomString(4),
 	}
 }
 

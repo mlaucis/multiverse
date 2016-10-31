@@ -10,6 +10,7 @@ const errFmt = "%s: %s"
 // Common errors for User service implementations and validations.
 var (
 	ErrInvalidMember = errors.New("invalid member")
+	ErrNotFound      = errors.New("member not found")
 )
 
 // Error wraps common User errors.
@@ -25,6 +26,11 @@ func (e Error) Error() string {
 // IsInvalidMember indicates if err is ErrInvalidMember.
 func IsInvalidMember(err error) bool {
 	return unwrapError(err) == ErrInvalidMember
+}
+
+// IsNotFound indicates if err is ErrNotFound.
+func IsNotFound(err error) bool {
+	return unwrapError(err) == ErrNotFound
 }
 
 func unwrapError(err error) error {

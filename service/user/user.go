@@ -136,7 +136,7 @@ func (u *User) Validate() error {
 	}
 
 	if ok := govalidator.IsEmail(u.Email); u.Email != "" && !ok {
-		// FIXME Some of the exisitng data set has invalid emails which cause
+		// FIXME Some of the existing data set has invalid emails which cause
 		// errors on updates.
 		// return wrapError(ErrInvalidUser, "invalid email address '%s'", u.Email)
 	}

@@ -3,6 +3,8 @@ package member
 import (
 	"time"
 
+	"github.com/asaskevich/govalidator"
+
 	"github.com/tapglue/multiverse/platform/service"
 )
 
@@ -29,6 +31,42 @@ type Member struct {
 	Username     string    `json:"user_name"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
+}
+
+func (m *Member) Validate() error {
+	if m.OrgID == 0 {
+		return wrapError(ErrInvalidMember, "org id must be set")
+	}
+
+	if m.Email == "" {
+		return wrapError(ErrInvalidMember, "email must be set")
+	}
+
+	if m.Password == "" {
+		return wrapError(ErrInvalidMember, "password must be set")
+	}
+
+	if ok := govalidator.IsEmail(m.Email); !ok {
+		return wrapError(ErrInvalidMember, "invalid email address'%s'", m.Email)
+	}
+
+	if len(m.Firstname) < 2 || len(m.Firstname) > 40 {
+		return wrapError(ErrInvalidMember, "firstname must be between 2 and 40 characters")
+	}
+
+	if len(m.Lastname) < 2 || len(m.Lastname) > 40 {
+		return wrapError(ErrInvalidMember, "lastname must be between 2 and 40 characters")
+	}
+
+	if len(m.Username) < 2 || len(m.Username) > 40 {
+		return wrapError(ErrInvalidMember, "username must be between 2 and 40 characters")
+	}
+
+	if ok := govalidator.IsURL(m.URL); m.URL != "" && !ok {
+		return wrapError(ErrInvalidMember, "invalid url '%s'", m.URL)
+	}
+
+	return nil
 }
 
 // QueryOpts is used to narrow-down member queries.
