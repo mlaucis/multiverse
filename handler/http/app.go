@@ -26,13 +26,13 @@ func AppCreate(fn controller.AppCreateFunc) Handler {
 			return
 		}
 
-		app, err := fn(currentOrg, p.name, p.description)
+		a, err := fn(currentOrg, p.name, p.description)
 		if err != nil {
 			respondError(w, 0, err)
 			return
 		}
 
-		respondJSON(w, http.StatusCreated, &payloadApp{app: app})
+		respondJSON(w, http.StatusCreated, &payloadApp{app: a})
 	}
 }
 
