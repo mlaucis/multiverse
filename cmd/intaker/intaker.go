@@ -387,7 +387,7 @@ func main() {
 	// Combine event service and source.
 	events = event.SourcingServiceMiddleware(eventSource)(events)
 	// Add counts cache.
-	events = event.CacheServiceMiddleware(eventCountsCache)(events)
+	// events = event.CacheServiceMiddleware(eventCountsCache)(events)
 
 	var members member.StrangleService
 	members = v04_postgres_core.NewMember(pgClient)
@@ -401,7 +401,7 @@ func main() {
 	// Combine object service and source.
 	objects = object.SourcingServiceMiddleware(objectSource)(objects)
 	// Add counts cache.
-	objects = object.CacheServiceMiddleware(objectCountsCache)(objects)
+	// objects = object.CacheServiceMiddleware(objectCountsCache)(objects)
 
 	var orgs org.StrangleService
 	orgs = v04_postgres_core.NewOrganization(pgClient)
