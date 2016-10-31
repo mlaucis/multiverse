@@ -42,7 +42,7 @@ deployment:
     branch: master
     commands:
       - ./infrastructure/containers/docker/release_container.sh gateway-http gateway-http_${CIRCLE_BUILD_NUM} ./infrastructure/config/intaker_prod.json
-      # - ./infrastructure/containers/docker/release_container.sh dashboard
+      - ./infrastructure/containers/docker/release_container.sh dashboard
       - ./infrastructure/containers/docker/release_container.sh sims sims_${CIRCLE_BUILD_NUM}
       # - ./bin/make_release.sh corporate styleguide
       - ./bin/make_release.sh corporate website

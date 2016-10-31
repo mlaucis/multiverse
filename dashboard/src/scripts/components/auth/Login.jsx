@@ -58,7 +58,6 @@ export class LoginForm extends Component {
             <span className='help'></span>
             <label hmtlFor='password'>Password</label>
           </div>
-          <p>No account yet? <Link to='AUTH_SIGNUP'>Sign Up</Link></p>
         </div>
         <div className='actions'>
           <input

@@ -74,10 +74,6 @@ let routes = (
         name='AUTH_LOGOUT'
         path={RouteConstants.AUTH_LOGOUT}
         handler={requireAuth(AuthLogout)}/>
-      <Route
-        name='AUTH_SIGNUP'
-        path={RouteConstants.AUTH_SIGNUP}
-        handler={requireAnonymous(AuthSignup)}/>
 
       <Route
         name='ONBOARDING'
