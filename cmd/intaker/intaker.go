@@ -722,6 +722,13 @@ func main() {
 		),
 	)
 
+	next.Methods("POST").Path(`/organizations/{orgID:[a-zA-Z0-9\-]+}/members`).Name("memberCreate").HandlerFunc(
+		handler.Wrap(
+			withOrg,
+			handler.MemberCreate(controller.MemberCreate(members)),
+		),
+	)
+
 	next.Methods("POST").Path("/posts/{postID:[0-9]+}/comments").Name("commentCreate").HandlerFunc(
 		handler.Wrap(
 			withUser,

@@ -92,7 +92,7 @@ func SetupRoutes() []*Route {
 		&Route{
 			Name:   "createMember",
 			Method: "POST",
-			Path:   fmt.Sprintf("/organizations/%s/members", organizationID),
+			Path:   fmt.Sprintf("/deprecated/organizations/%s/members", organizationID),
 			Handlers: []RouteFunc{
 				postgresMemberHandler.Create,
 			},

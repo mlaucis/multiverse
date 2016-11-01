@@ -71,9 +71,11 @@ func (m *Member) Validate() error {
 
 // QueryOpts is used to narrow-down member queries.
 type QueryOpts struct {
-	Enabled *bool
-	IDs     []uint64
-	OrgIDs  []uint64
+	Emails    []string
+	Enabled   *bool
+	IDs       []uint64
+	OrgIDs    []uint64
+	Usernames []string
 }
 
 // Service for member interactions.

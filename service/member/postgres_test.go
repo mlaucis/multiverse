@@ -111,10 +111,12 @@ func TestPostgresQuery(t *testing.T) {
 	enabled := true
 
 	cases := map[*QueryOpts]int{
-		&QueryOpts{}:                          11,
-		&QueryOpts{Enabled: &enabled}:         6,
-		&QueryOpts{IDs: []uint64{created.ID}}: 1,
-		&QueryOpts{OrgIDs: []uint64{2}}:       5,
+		&QueryOpts{}:                                      11,
+		&QueryOpts{Emails: []string{created.Email}}:       1,
+		&QueryOpts{Enabled: &enabled}:                     6,
+		&QueryOpts{IDs: []uint64{created.ID}}:             1,
+		&QueryOpts{OrgIDs: []uint64{2}}:                   5,
+		&QueryOpts{Usernames: []string{created.Username}}: 1,
 	}
 
 	for opts, want := range cases {

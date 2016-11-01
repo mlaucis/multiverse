@@ -36,7 +36,7 @@ const (
 	pgClauseBefore    = `(json_data->>'id')::BIGINT > ?`
 	pgClauseCustomIDs = `(json_data->>'custom_id')::TEXT IN (?)`
 	pgClauseDeleted   = `(json_data->>'deleted')::BOOL = ?::BOOL`
-	pgClauseEmail     = `(json_data->>'email')::TEXT IN (?)`
+	pgClauseEmails    = `(json_data->>'email')::TEXT IN (?)`
 	pgClauseEnabled   = `(json_data->>'enabled')::BOOL = ?::BOOL`
 	pgClauseIDs       = `(json_data->>'id')::BIGINT IN (?)`
 	pgClauseSocialIDs = `(json_data->'social_ids'->>'%s')::TEXT IN (?)`
@@ -435,7 +435,7 @@ func convertOpts(opts QueryOptions) (string, []interface{}, error) {
 			ps = append(ps, email)
 		}
 
-		clause, _, err := sqlx.In(pgClauseEmail, ps)
+		clause, _, err := sqlx.In(pgClauseEmails, ps)
 		if err != nil {
 			return "", nil, err
 		}

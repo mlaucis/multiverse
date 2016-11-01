@@ -33,9 +33,11 @@ const (
 			%s.account_users
 		%s`
 
-	pgClauseEnabled = `(json_data->>'enabled')::BOOL = ?::BOOL`
-	pgClauseIDs     = `id IN (?)`
-	pgClauseOrgIDs  = `account_id IN (?)`
+	pgClauseEmails    = `(json_data->>'email')::TEXT IN (?)`
+	pgClauseEnabled   = `(json_data->>'enabled')::BOOL = ?::BOOL`
+	pgClauseIDs       = `id IN (?)`
+	pgClauseOrgIDs    = `account_id IN (?)`
+	pgClauseUsernames = `(json_data->>'user_name')::TEXT IN (?)`
 
 	pgCreateSchema = `CREATE SCHEMA IF NOT EXISTS %s`
 	pgCreateTable  = `CREATE TABLE IF NOT EXISTS %s.account_users(
@@ -259,6 +261,22 @@ func convertOpts(opts QueryOpts) (string, []interface{}, error) {
 		params  = []interface{}{}
 	)
 
+	if len(opts.Emails) > 0 {
+		ps := []interface{}{}
+
+		for _, email := range opts.Emails {
+			ps = append(ps, email)
+		}
+
+		clause, _, err := sqlx.In(pgClauseEmails, ps)
+		if err != nil {
+			return "", nil, err
+		}
+
+		clauses = append(clauses, clause)
+		params = append(params, ps...)
+	}
+
 	if opts.Enabled != nil {
 		clause, _, err := sqlx.In(pgClauseEnabled, []interface{}{*opts.Enabled})
 		if err != nil {
@@ -293,6 +311,22 @@ func convertOpts(opts QueryOpts) (string, []interface{}, error) {
 		}
 
 		clause, _, err := sqlx.In(pgClauseOrgIDs, ps)
+		if err != nil {
+			return "", nil, err
+		}
+
+		clauses = append(clauses, clause)
+		params = append(params, ps...)
+	}
+
+	if len(opts.Usernames) > 0 {
+		ps := []interface{}{}
+
+		for _, username := range opts.Usernames {
+			ps = append(ps, username)
+		}
+
+		clause, _, err := sqlx.In(pgClauseUsernames, ps)
 		if err != nil {
 			return "", nil, err
 		}
