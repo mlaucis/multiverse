@@ -15,7 +15,7 @@ resource "cloudflare_record" "api-prod" {
 resource "cloudflare_record" "website-prod" {
   domain  = "${var.cloudflare_domain}"
   name    = "website-prod"
-  value   = "${aws_elb.corporate.dns_name}"
+  value   = "tapglue.github.io"
   type    = "CNAME"
   ttl     = 1
   proxied = true
