@@ -247,7 +247,7 @@ resource "aws_db_instance" "master" {
   password                = "${var.rds_password}"
   multi_az                = true
   monitoring_role_arn     = "${var.rds_monitoring_role}"
-  monitoring_interval     = 1
+  monitoring_interval     = 0
   # this should be true for production
   publicly_accessible     = false
   vpc_security_group_ids  = [
