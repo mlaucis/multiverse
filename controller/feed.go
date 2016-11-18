@@ -293,6 +293,13 @@ func (c *FeedController) Events(
 		return nil, err
 	}
 
+	for _, u := range um {
+		err = enrichRelation(c.connections, currentApp, origin, u)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return &Feed{
 		Events:  es,
 		PostMap: pm,
@@ -428,6 +435,13 @@ func (c *FeedController) News(
 		}
 	}
 
+	for _, u := range um {
+		err = enrichRelation(c.connections, currentApp, origin, u)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return &Feed{
 		Events:  es,
 		Posts:   ps,
@@ -484,6 +498,13 @@ func (c *FeedController) NotificationsSelf(
 		return nil, err
 	}
 
+	for _, u := range um {
+		err = enrichRelation(c.connections, currentApp, origin, u)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return &Feed{
 		Events:  es,
 		PostMap: ps.toMap(),
@@ -538,6 +559,13 @@ func (c *FeedController) Posts(
 	err = enrichIsLiked(c.events, currentApp, origin, ps)
 	if err != nil {
 		return nil, err
+	}
+
+	for _, u := range um {
+		err = enrichRelation(c.connections, currentApp, origin, u)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &Feed{
