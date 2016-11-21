@@ -6,16 +6,18 @@ import (
 	"fmt"
 	"log"
 	"os"
-
-	"github.com/tapglue/multiverse/service/session"
-	"github.com/tapglue/multiverse/service/user"
+	"strconv"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 
+	"github.com/tapglue/multiverse/service/app"
 	"github.com/tapglue/multiverse/service/connection"
 	"github.com/tapglue/multiverse/service/device"
 	"github.com/tapglue/multiverse/service/event"
 	"github.com/tapglue/multiverse/service/object"
+	"github.com/tapglue/multiverse/service/session"
+	"github.com/tapglue/multiverse/service/user"
 )
 
 var enabled = true
@@ -33,6 +35,7 @@ func main() {
 	}
 
 	var (
+		apps        = app.NewPostgresService(db)
 		connections = connection.NewPostgresService(db)
 		devices     = device.PostgresService(db)
 		events      = event.NewPostgresService(db)
@@ -43,6 +46,11 @@ func main() {
 	)
 
 	err = os.MkdirAll(ns, os.ModePerm)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = dumpApp(apps, ns)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -76,6 +84,45 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func dumpApp(apps app.Service, ns string) error {
+	ps := strings.SplitN(ns, "_", 3)
+
+	if len(ps) != 3 {
+		return fmt.Errorf("Invalid namespace: %s", ns)
+	}
+
+	id, err := strconv.ParseUint(ps[2], 10, 64)
+	if err != nil {
+		return err
+	}
+
+	f, err := os.Create(fmt.Sprintf("./%s/apps.json", ns))
+	if err != nil {
+		return err
+	}
+
+	out := json.NewEncoder(f)
+
+	as, err := apps.Query(app.NamespaceDefault, app.QueryOptions{
+		Enabled: &enabled,
+		IDs: []uint64{
+			id,
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	for _, a := range as {
+		err := out.Encode(a)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func dumpConnections(connections connection.Service, ns string) error {
