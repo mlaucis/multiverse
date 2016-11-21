@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
 	"time"
 
@@ -254,7 +255,7 @@ func UserSearch(c *controller.UserController) Handler {
 		var (
 			currentApp  = appFromContext(ctx)
 			currentUser = userFromContext(ctx)
-			query       = r.URL.Query().Get("q")
+			query       = r.URL.Query().Get(keyQuery)
 		)
 
 		if len(query) < 3 {
@@ -297,6 +298,9 @@ func UserSearch(c *controller.UserController) Handler {
 				opts.Limit,
 				userCursorAfter(us, opts.Limit),
 				userCursorBefore(us, opts.Limit),
+				url.Values{
+					keyQuery: []string{query},
+				},
 			),
 			users: us,
 		})

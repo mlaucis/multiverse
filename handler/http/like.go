@@ -111,6 +111,7 @@ func LikesUser(fn controller.LikesUserFunc) Handler {
 				opts.Limit,
 				eventCursorAfter(feed.Likes, opts.Limit),
 				eventCursorBefore(feed.Likes, opts.Limit),
+				nil,
 			),
 			postMap: feed.PostMap,
 			userMap: feed.UserMap,
@@ -162,6 +163,7 @@ func LikesMe(fn controller.LikesUserFunc) Handler {
 				opts.Limit,
 				eventCursorAfter(feed.Likes, opts.Limit),
 				eventCursorBefore(feed.Likes, opts.Limit),
+				nil,
 			),
 			postMap: feed.PostMap,
 			userMap: feed.UserMap,
@@ -219,6 +221,7 @@ func LikesPost(c *controller.LikeController) Handler {
 				opts.Limit,
 				eventCursorAfter(feed.Likes, opts.Limit),
 				eventCursorBefore(feed.Likes, opts.Limit),
+				nil,
 			),
 			userMap: feed.UserMap,
 		})

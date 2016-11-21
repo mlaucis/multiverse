@@ -135,6 +135,7 @@ func ConnectionFollowers(c *controller.ConnectionController) Handler {
 				opts.Limit,
 				connectionCursorAfter(feed.Connections, opts.Limit),
 				connectionCursorBefore(feed.Connections, opts.Limit),
+				nil,
 			),
 			users: feed.Users,
 		})
@@ -184,6 +185,7 @@ func ConnectionFollowersMe(c *controller.ConnectionController) Handler {
 				opts.Limit,
 				connectionCursorAfter(feed.Connections, opts.Limit),
 				connectionCursorBefore(feed.Connections, opts.Limit),
+				nil,
 			),
 			users: feed.Users,
 		})
@@ -239,6 +241,7 @@ func ConnectionFollowings(c *controller.ConnectionController) Handler {
 				opts.Limit,
 				connectionCursorAfter(feed.Connections, opts.Limit),
 				connectionCursorBefore(feed.Connections, opts.Limit),
+				nil,
 			),
 			users: feed.Users,
 		})
@@ -288,6 +291,7 @@ func ConnectionFollowingsMe(c *controller.ConnectionController) Handler {
 				opts.Limit,
 				connectionCursorAfter(feed.Connections, opts.Limit),
 				connectionCursorBefore(feed.Connections, opts.Limit),
+				nil,
 			),
 			users: feed.Users,
 		})
@@ -348,6 +352,7 @@ func ConnectionFriends(c *controller.ConnectionController) Handler {
 				opts.Limit,
 				connectionCursorAfter(feed.Connections, opts.Limit),
 				connectionCursorBefore(feed.Connections, opts.Limit),
+				nil,
 			),
 			users: feed.Users,
 		})
@@ -402,6 +407,7 @@ func ConnectionFriendsMe(c *controller.ConnectionController) Handler {
 				opts.Limit,
 				connectionCursorAfter(feed.Connections, opts.Limit),
 				connectionCursorBefore(feed.Connections, opts.Limit),
+				nil,
 			),
 			users: feed.Users,
 		})
@@ -474,6 +480,7 @@ func ConnectionSocial(c *controller.ConnectionController) Handler {
 				opts.Limit,
 				userCursorAfter(us, opts.Limit),
 				userCursorBefore(us, opts.Limit),
+				nil,
 			),
 			users: us,
 		})

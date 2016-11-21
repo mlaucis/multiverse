@@ -58,6 +58,7 @@ func FeedEvents(c *controller.FeedController) Handler {
 				opts.Limit,
 				eventCursorAfter(feed.Events, opts.Limit),
 				eventCursorBefore(feed.Events, opts.Limit),
+				nil,
 			),
 			postMap: feed.PostMap,
 			userMap: feed.UserMap,
@@ -125,7 +126,7 @@ func FeedNews(c *controller.FeedController) Handler {
 
 		respondJSON(w, http.StatusOK, &payloadFeedNews{
 			events:     feed.Events,
-			pagination: pagination(r, limit, after, before),
+			pagination: pagination(r, limit, after, before, nil),
 			posts:      feed.Posts,
 			postMap:    feed.PostMap,
 			userMap:    feed.UserMap,
@@ -179,6 +180,7 @@ func FeedNotificationsSelf(c *controller.FeedController) Handler {
 				opts.Limit,
 				eventCursorAfter(feed.Events, opts.Limit),
 				eventCursorBefore(feed.Events, opts.Limit),
+				nil,
 			),
 			postMap: feed.PostMap,
 			userMap: feed.UserMap,
@@ -230,6 +232,7 @@ func FeedPosts(c *controller.FeedController) Handler {
 				opts.Limit,
 				postCursorAfter(feed.Posts, opts.Limit),
 				postCursorBefore(feed.Posts, opts.Limit),
+				nil,
 			),
 			posts:   feed.Posts,
 			userMap: feed.UserMap,

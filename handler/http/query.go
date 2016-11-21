@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
 	"time"
 
@@ -26,6 +27,7 @@ const (
 	keyCursorBefore  = "before"
 	keyLimit         = "limit"
 	keyPostID        = "postID"
+	keyQuery         = "q"
 	keyState         = "state"
 	keyUserID        = "userID"
 	keyWhere         = "where"
@@ -45,6 +47,7 @@ type payloadPagination struct {
 	after  string
 	before string
 	limit  int
+	params url.Values
 	req    *http.Request
 }
 
@@ -52,19 +55,21 @@ func pagination(
 	req *http.Request,
 	limit int,
 	after, before string,
+	params url.Values,
 ) *payloadPagination {
 	return &payloadPagination{
 		after:  after,
 		before: before,
 		limit:  limit,
+		params: params,
 		req:    req,
 	}
 }
 
 func (p *payloadPagination) MarshalJSON() ([]byte, error) {
 	var (
-		next     = ""
-		previous = ""
+		next     = &url.URL{}
+		previous = &url.URL{}
 		scheme   = "http"
 	)
 
@@ -73,25 +78,35 @@ func (p *payloadPagination) MarshalJSON() ([]byte, error) {
 	}
 
 	if p.after != "" {
-		next = fmt.Sprintf(
-			refFmt,
-			scheme,
-			p.req.Host,
-			p.req.URL.Path,
-			p.limit,
-			fmt.Sprintf("%s=%s", keyCursorAfter, p.after),
-		)
+		q := url.Values{}
+
+		q.Set(keyLimit, fmt.Sprintf("%d", p.limit))
+		q.Set(keyCursorAfter, p.after)
+
+		for k, vs := range p.params {
+			q.Set(k, vs[0])
+		}
+
+		next.Host = p.req.Host
+		next.Path = p.req.URL.Path
+		next.RawQuery = q.Encode()
+		next.Scheme = scheme
 	}
 
 	if p.before != "" {
-		previous = fmt.Sprintf(
-			refFmt,
-			scheme,
-			p.req.Host,
-			p.req.URL.Path,
-			p.limit,
-			fmt.Sprintf("%s=%s", keyCursorBefore, p.before),
-		)
+		q := url.Values{}
+
+		q.Set(keyLimit, fmt.Sprintf("%d", p.limit))
+		q.Set(keyCursorBefore, p.before)
+
+		for k, vs := range p.params {
+			q.Set(k, vs[0])
+		}
+
+		previous.Host = p.req.Host
+		previous.Path = p.req.URL.Path
+		previous.RawQuery = q.Encode()
+		previous.Scheme = scheme
 	}
 
 	f := struct {
@@ -103,8 +118,8 @@ func (p *payloadPagination) MarshalJSON() ([]byte, error) {
 			After:  p.after,
 			Before: p.before,
 		},
-		Next:     next,
-		Previous: previous,
+		Next:     next.String(),
+		Previous: previous.String(),
 	}
 
 	return json.Marshal(&f)
@@ -228,8 +243,9 @@ func extractEventOpts(r *http.Request) (event.QueryOptions, error) {
 
 func extractIDCursorBefore(r *http.Request) (uint64, error) {
 	var (
-		id    uint64 = 0
-		param        = r.URL.Query().Get(keyCursorBefore)
+		param = r.URL.Query().Get(keyCursorBefore)
+
+		id uint64
 	)
 
 	if param == "" {

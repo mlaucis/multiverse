@@ -95,6 +95,7 @@ func AppList(fn controller.AppListFunc) Handler {
 				opts.Limit,
 				appCursorAfter(as, opts.Limit),
 				appCursorBefore(as, opts.Limit),
+				nil,
 			),
 		})
 	}

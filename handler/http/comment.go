@@ -127,6 +127,7 @@ func CommentList(c *controller.CommentController) Handler {
 				opts.Limit,
 				commentCursorAfter(feed.Comments, opts.Limit),
 				commentCursorBefore(feed.Comments, opts.Limit),
+				nil,
 			),
 			userMap: feed.UserMap,
 		})
