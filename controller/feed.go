@@ -498,6 +498,11 @@ func (c *FeedController) NotificationsSelf(
 		return nil, err
 	}
 
+	err = enrichCounts(c.events, c.objects, currentApp, ps)
+	if err != nil {
+		return nil, err
+	}
+
 	for _, u := range um {
 		err = enrichRelation(c.connections, currentApp, origin, u)
 		if err != nil {
