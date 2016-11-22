@@ -224,6 +224,13 @@ func (c *PostController) ListAll(
 		return nil, err
 	}
 
+	for _, u := range um {
+		err = enrichRelation(c.connections, currentApp, origin, u)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return &PostFeed{
 		Posts:   ps,
 		UserMap: um,
@@ -285,6 +292,13 @@ func (c *PostController) ListUser(
 	um, err := user.MapFromIDs(c.users, currentApp.Namespace(), ps.OwnerIDs()...)
 	if err != nil {
 		return nil, err
+	}
+
+	for _, u := range um {
+		err = enrichRelation(c.connections, currentApp, origin, u)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &PostFeed{
