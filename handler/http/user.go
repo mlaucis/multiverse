@@ -244,6 +244,13 @@ func UserSearchEmails(c *controller.UserController) Handler {
 		}
 
 		respondJSON(w, http.StatusOK, &payloadUsers{
+			pagination: pagination(
+				r,
+				opts.Limit,
+				userCursorAfter(us, opts.Limit),
+				userCursorBefore(us, opts.Limit),
+				nil,
+			),
 			users: us,
 		})
 	}
@@ -362,6 +369,13 @@ func UserSearchPlatform(c *controller.UserController) Handler {
 		}
 
 		respondJSON(w, http.StatusOK, &payloadUsers{
+			pagination: pagination(
+				r,
+				opts.Limit,
+				userCursorAfter(us, opts.Limit),
+				userCursorBefore(us, opts.Limit),
+				nil,
+			),
 			users: us,
 		})
 	}
