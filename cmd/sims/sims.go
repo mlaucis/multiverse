@@ -8,8 +8,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/tapglue/multiverse/service/event"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -24,6 +22,7 @@ import (
 	"github.com/tapglue/multiverse/platform/metrics"
 	"github.com/tapglue/multiverse/service/connection"
 	"github.com/tapglue/multiverse/service/device"
+	"github.com/tapglue/multiverse/service/event"
 	"github.com/tapglue/multiverse/service/object"
 	"github.com/tapglue/multiverse/service/user"
 )
