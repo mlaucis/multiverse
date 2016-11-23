@@ -38,6 +38,7 @@ func (c *ConnectionController) ByState(
 	currentApp *app.App,
 	originID uint64,
 	state connection.State,
+	opts connection.QueryOptions,
 ) (*ConnectionFeed, error) {
 	switch state {
 	case connection.StatePending, connection.StateConfirmed, connection.StateRejected:
@@ -47,8 +48,10 @@ func (c *ConnectionController) ByState(
 	}
 
 	ics, err := c.connections.Query(currentApp.Namespace(), connection.QueryOptions{
+		Before:  opts.Before,
 		Enabled: &defaultEnabled,
 		FromIDs: []uint64{originID},
+		Limit:   opts.Limit,
 		States:  []connection.State{state},
 	})
 	if err != nil {
@@ -56,25 +59,50 @@ func (c *ConnectionController) ByState(
 	}
 
 	ocs, err := c.connections.Query(currentApp.Namespace(), connection.QueryOptions{
+		Before:  opts.Before,
 		Enabled: &defaultEnabled,
 		States:  []connection.State{state},
+		Limit:   opts.Limit,
 		ToIDs:   []uint64{originID},
 	})
 	if err != nil {
 		return nil, err
 	}
 
+	cons := append(ics, ocs...)
+
+	if len(cons) == 0 {
+		return &ConnectionFeed{
+			Connections: connection.List{},
+			UserMap:     user.Map{},
+		}, nil
+	}
+
+	if len(cons) > opts.Limit {
+		cons = cons[:opts.Limit-1]
+	}
+
+	ids := []uint64{}
+
+	for _, c := range cons {
+		if c.FromID == originID {
+			ids = append(ids, c.ToID)
+		} else {
+			ids = append(ids, c.FromID)
+		}
+	}
+
 	um, err := user.MapFromIDs(
 		c.users,
 		currentApp.Namespace(),
-		append(ics.ToIDs(), ocs.FromIDs()...)...,
+		ids...,
 	)
 	if err != nil {
 		return nil, err
 	}
 
 	return &ConnectionFeed{
-		Connections: append(ics, ocs...),
+		Connections: cons,
 		UserMap:     um,
 	}, nil
 }

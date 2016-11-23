@@ -26,7 +26,25 @@ func ConnectionByState(c *controller.ConnectionController) Handler {
 			state       = extractState(r)
 		)
 
-		f, err := c.ByState(app, currentUser.ID, state)
+		opts, err := extractConnectionOpts(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts.Before, err = extractTimeCursorBefore(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		opts.Limit, err = extractLimit(r)
+		if err != nil {
+			respondError(w, 0, wrapError(ErrBadRequest, err.Error()))
+			return
+		}
+
+		f, err := c.ByState(app, currentUser.ID, state, opts)
 		if err != nil {
 			respondError(w, 0, err)
 			return
@@ -38,8 +56,15 @@ func ConnectionByState(c *controller.ConnectionController) Handler {
 		}
 
 		respondJSON(w, http.StatusOK, &payloadConnections{
-			cons:    f.Connections,
-			origin:  currentUser.ID,
+			cons:   f.Connections,
+			origin: currentUser.ID,
+			pagination: pagination(
+				r,
+				opts.Limit,
+				connectionCursorAfter(f.Connections, opts.Limit),
+				connectionCursorBefore(f.Connections, opts.Limit),
+				nil,
+			),
 			userMap: f.UserMap,
 		})
 	}
@@ -590,9 +615,10 @@ func (p *payloadConnection) UnmarshalJSON(raw []byte) error {
 }
 
 type payloadConnections struct {
-	cons    connection.List
-	origin  uint64
-	userMap user.Map
+	cons       connection.List
+	origin     uint64
+	pagination *payloadPagination
+	userMap    user.Map
 }
 
 func (p *payloadConnections) MarshalJSON() ([]byte, error) {
@@ -601,11 +627,13 @@ func (p *payloadConnections) MarshalJSON() ([]byte, error) {
 		IncomingCount int                  `json:"incoming_connections_count"`
 		Outgoing      []*payloadConnection `json:"outgoing"`
 		OutgoingCount int                  `json:"outgoing_connections_count"`
+		Pagination    *payloadPagination   `json:"paging"`
 		Users         []*payloadUser       `json:"users"`
 		UsersCount    int                  `json:"users_count"`
 	}{
 		Incoming:   []*payloadConnection{},
 		Outgoing:   []*payloadConnection{},
+		Pagination: p.pagination,
 		Users:      []*payloadUser{},
 		UsersCount: len(p.userMap),
 	}
