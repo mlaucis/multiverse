@@ -71,6 +71,8 @@ func (c *ConnectionController) ByState(
 
 	cons := append(ics, ocs...)
 
+	sort.Sort(cons)
+
 	if len(cons) == 0 {
 		return &ConnectionFeed{
 			Connections: connection.List{},
@@ -79,7 +81,7 @@ func (c *ConnectionController) ByState(
 	}
 
 	if len(cons) > opts.Limit {
-		cons = cons[:opts.Limit-1]
+		cons = cons[:opts.Limit]
 	}
 
 	ids := []uint64{}
