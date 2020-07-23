@@ -172,21 +172,21 @@ func healthCheckHandler(ctx *context.Context) {
 	response := struct {
 		Healthy  bool `json:"healthy"`
 		Services struct {
-			PostgresMaster bool   `json:"postgres_master"`
-			PostgresSlaves []bool `json:"postgres_slaves"`
+			PostgresMain bool   `json:"postgres_main"`
+			PostgresSubordinates []bool `json:"postgres_subordinates"`
 			RateLimiter    bool   `json:"rate_limiter"`
 			AppCache       bool   `json:"app_cache"`
 		} `json:"services"`
 	}{
 		Healthy: true,
 		Services: struct {
-			PostgresMaster bool   `json:"postgres_master"`
-			PostgresSlaves []bool `json:"postgres_slaves"`
+			PostgresMain bool   `json:"postgres_main"`
+			PostgresSubordinates []bool `json:"postgres_subordinates"`
 			RateLimiter    bool   `json:"rate_limiter"`
 			AppCache       bool   `json:"app_cache"`
 		}{
-			PostgresMaster: true,
-			PostgresSlaves: make([]bool, rawPostgresClient.SlaveCount()),
+			PostgresMain: true,
+			PostgresSubordinates: make([]bool, rawPostgresClient.SubordinateCount()),
 			RateLimiter:    true,
 			AppCache:       true,
 		},
@@ -208,16 +208,16 @@ func healthCheckHandler(ctx *context.Context) {
 	// Check Postgres
 	if _, err := rawPostgresClient.MainDatastore().Exec("SELECT 1"); err != nil {
 		response.Healthy = false
-		response.Services.PostgresMaster = false
+		response.Services.PostgresMain = false
 	}
 
-	// TODO add exactly the slaves
-	for slave := 0; slave < rawPostgresClient.SlaveCount(); slave++ {
-		if _, err := rawPostgresClient.SlaveDatastore(slave).Exec("SELECT 1"); err != nil {
+	// TODO add exactly the subordinates
+	for subordinate := 0; subordinate < rawPostgresClient.SubordinateCount(); subordinate++ {
+		if _, err := rawPostgresClient.SubordinateDatastore(subordinate).Exec("SELECT 1"); err != nil {
 			response.Healthy = false
-			response.Services.PostgresSlaves[slave] = false
+			response.Services.PostgresSubordinates[subordinate] = false
 		} else {
-			response.Services.PostgresSlaves[slave] = true
+			response.Services.PostgresSubordinates[subordinate] = true
 		}
 	}
 

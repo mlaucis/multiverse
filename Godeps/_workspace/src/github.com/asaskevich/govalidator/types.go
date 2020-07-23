@@ -336,7 +336,7 @@ var ISO3166List = []ISO3166Entry{
 	{"Tuvalu", "Tuvalu (les)", "TV", "TUV", "798"},
 	{"Uganda", "Ouganda (l')", "UG", "UGA", "800"},
 	{"Ukraine", "Ukraine (l')", "UA", "UKR", "804"},
-	{"Macedonia (the former Yugoslav Republic of)", "Macédoine (l'ex‑République yougoslave de)", "MK", "MKD", "807"},
+	{"Macedonia (the former Yugoslav Republic of)", "Macédoine (l'ex‑République yougosubordinate de)", "MK", "MKD", "807"},
 	{"Egypt", "Égypte (l')", "EG", "EGY", "818"},
 	{"United Kingdom of Great Britain and Northern Ireland (the)", "Royaume-Uni de Grande-Bretagne et d'Irlande du Nord (le)", "GB", "GBR", "826"},
 	{"Guernsey", "Guernesey", "GG", "GGY", "831"},

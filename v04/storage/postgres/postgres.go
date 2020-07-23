@@ -19,22 +19,22 @@ type (
 		// Returns the raw main database connection
 		MainDatastore() *sqlx.DB
 
-		// SlaveDatastore returns a random slave database connection
+		// SubordinateDatastore returns a random subordinate database connection
 		//
 		// If the paramater is -1 then the returned connection is chosen out of the connection pool
 		//
-		// If there's no slave connection available, then the main connection is returned
-		SlaveDatastore(id int) *sqlx.DB
+		// If there's no subordinate connection available, then the main connection is returned
+		SubordinateDatastore(id int) *sqlx.DB
 
-		SlaveCount() int
+		SubordinateCount() int
 	}
 
 	cli struct {
-		master *config.PostgresDB
-		slaves []config.PostgresDB
+		main *config.PostgresDB
+		subordinates []config.PostgresDB
 
 		mainPg  *sqlx.DB
-		slavePg []*sqlx.DB
+		subordinatePg []*sqlx.DB
 	}
 )
 
@@ -42,20 +42,20 @@ func (c *cli) MainDatastore() *sqlx.DB {
 	return c.mainPg
 }
 
-func (c *cli) SlaveDatastore(id int) *sqlx.DB {
-	if len(c.slavePg) == 0 {
+func (c *cli) SubordinateDatastore(id int) *sqlx.DB {
+	if len(c.subordinatePg) == 0 {
 		return c.mainPg
 	}
 
-	if id == -1 || id >= len(c.slavePg) {
-		return c.slavePg[rand.Intn(len(c.slavePg))]
+	if id == -1 || id >= len(c.subordinatePg) {
+		return c.subordinatePg[rand.Intn(len(c.subordinatePg))]
 	}
 
-	return c.slavePg[id]
+	return c.subordinatePg[id]
 }
 
-func (c *cli) SlaveCount() int {
-	return len(c.slavePg)
+func (c *cli) SubordinateCount() int {
+	return len(c.subordinatePg)
 }
 
 func formatConnectionURL(database string, config *config.PostgresDB) string {
@@ -84,14 +84,14 @@ func composeConnection(database string, config *config.PostgresDB) *sqlx.DB {
 // http://godoc.org/github.com/lib/pq#hdr-Connection_String_Parameters
 func New(config *config.Postgres) Client {
 	result := &cli{
-		mainPg: composeConnection(config.Database, &config.Master),
+		mainPg: composeConnection(config.Database, &config.Main),
 
-		master: &config.Master,
-		slaves: config.Slaves,
+		main: &config.Main,
+		subordinates: config.Subordinates,
 	}
 
-	for idx := range config.Slaves {
-		result.slavePg = append(result.slavePg, composeConnection(config.Database, &config.Slaves[idx]))
+	for idx := range config.Subordinates {
+		result.subordinatePg = append(result.subordinatePg, composeConnection(config.Database, &config.Subordinates[idx]))
 	}
 
 	return result
