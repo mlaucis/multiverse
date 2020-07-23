@@ -11,7 +11,7 @@ primary_domain = 'php'
 extensions = []
 templates_path = ['_templates']
 source_suffix = '.rst'
-master_doc = 'index'
+main_doc = 'index'
 
 project = u'Guzzle'
 copyright = u'2012, Michael Dowling'

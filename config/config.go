@@ -32,8 +32,8 @@ type (
 	// Postgres structure
 	Postgres struct {
 		Database string       `json:"database"`
-		Master   PostgresDB   `json:"master"`
-		Slaves   []PostgresDB `json:"slaves"`
+		Main   PostgresDB   `json:"main"`
+		Subordinates   []PostgresDB `json:"subordinates"`
 	}
 
 	// Config structure for the application configuration
